@@ -1,8 +1,10 @@
 top_module:
   name: dma_real_top
-  description: Multi-channel DMA controller with APB slave configuration and AHB-Lite
-    master data-transfer interface. Four independent channels with round-robin arbitration,
-    per-channel interrupts, and error reporting.
+  description: Production-grade multi-channel DMA controller with dual-clock architecture
+    (pclk for APB configuration, hclk for AHB-Lite data transfer), CDC async FIFO
+    bridge, full AHB-Lite master protocol with RETRY/SPLIT support, per-channel
+    programmable stride, bus timeout detection, performance counters, and clock gating.
+    N_CHANNELS parameterized via generate blocks.
   file: rtl/dma_real_top.sv
   owner: ssot-manual
   quality_profile: standard
@@ -21,7 +23,12 @@ sub_modules:
   - function_model.state_variables
   register_refs:
   - registers.register_list
-  description: APB slave register decode and configuration distribution to channels.
+  description: APB slave register decode in pclk domain. Writes latched into sync
+    registers, crossed to hclk domain via CDC.
+  dataflow_refs:
+  - dataflow.sequence.sequence_0
+  - dataflow.sequence.sequence_1
+  - dataflow.ordering.ordering_0
 - name: dma_real_arbiter
   file: rtl/dma_real_arbiter.sv
   ownership: manifest
@@ -36,7 +43,11 @@ sub_modules:
   cycle_model_refs:
   - cycle_model.handshake_rules
   - cycle_model.performance
-  description: Round-robin arbiter granting AHB bus access to active channels.
+  description: Round-robin priority arbiter in hclk domain. Grants AHB bus access
+    to one requesting channel per burst cycle.
+  dataflow_refs:
+  - dataflow.sequence.sequence_2
+  - dataflow.ordering.ordering_1
 - name: dma_real_channel
   file: rtl/dma_real_channel.sv
   ownership: manifest
@@ -68,7 +79,23 @@ sub_modules:
   - registers.register_list
   fsm_refs:
   - fsm.per_channel
-  description: Per-channel FSM, address counters, remaining counter, and burst control.
+  description: Per-channel FSM with pointer-based FIFO, address counters with programmable
+    stride, burst controller, timeout counter, and performance counters. Instantiated
+    N_CHANNELS times via generate block.
+  dataflow_refs:
+  - dataflow.sequence.sequence_3
+  - dataflow.sequence.sequence_4
+  - dataflow.sequence.sequence_5
+  - dataflow.sequence.sequence_6
+  - dataflow.sequence.sequence_7
+  - dataflow.sequence.sequence_8
+  - dataflow.sequence.sequence_9
+  - dataflow.sequence.sequence_10
+  - dataflow.sequence.sequence_11
+  - dataflow.ordering.ordering_1
+  - dataflow.ordering.ordering_2
+  - dataflow.ordering.ordering_3
+  - dataflow.ordering.ordering_4
 - name: dma_real_ahb_master
   file: rtl/dma_real_ahb_master.sv
   ownership: manifest
@@ -84,7 +111,13 @@ sub_modules:
   cycle_model_refs:
   - cycle_model.pipeline
   - cycle_model.handshake_rules
-  description: AHB-Lite master protocol engine driving address and data phases.
+  description: Full AHB-Lite master protocol engine in hclk domain. Supports INCR4/8/16/INCR
+    and WRAP4/8/16 bursts, hprot/hmaster/hmastlock, 2-bit hresp (OKAY/ERROR/RETRY/SPLIT),
+    dynamic hsize, and 1KB boundary crossing detection.
+  dataflow_refs:
+  - dataflow.sequence.sequence_5
+  - dataflow.sequence.sequence_6
+  - dataflow.ordering.ordering_2
 - name: dma_real_irq
   file: rtl/dma_real_irq.sv
   ownership: manifest
@@ -99,7 +132,26 @@ sub_modules:
   - function_model.state_variables
   register_refs:
   - registers.register_list
-  description: Interrupt aggregation with per-channel mask and combined IRQ output.
+  description: Interrupt aggregation in pclk domain. Sticky latch per channel for
+    done/error with INT_CLEAR write-1-to-clear. Combined IRQ output.
+- name: dma_real_engine
+  file: rtl/dma_real_engine.sv
+  ownership: manifest
+  rtl_emit: true
+  implements:
+  - function_model.transactions.FM_DMA_STEP
+  - cycle_model.pipeline
+  source_sections:
+  - function_model
+  - cycle_model
+  - fsm
+  function_model_refs:
+  - function_model.transactions.FM_DMA_STEP
+  cycle_model_refs:
+  - cycle_model.pipeline
+  description: hclk-domain top module connecting arbiter, N_CHANNELS channel instances,
+    shared AHB master, and per-channel clock gating cells. Config from pclk domain
+    received via CDC async FIFO.
 decomposition:
   units:
   - id: apb_decode
@@ -109,6 +161,13 @@ decomposition:
     - io_list.interfaces.apb_slave
     rtl_candidates:
     - dma_real_apb_cfg
+  - id: cdc_bridge
+    kind: cdc
+    source_refs:
+    - clock_reset_domains
+    - cdc_requirements
+    rtl_candidates:
+    - dma_real_top
   - id: channel_config
     kind: control
     source_refs:
@@ -138,6 +197,12 @@ decomposition:
     - cycle_model.pipeline
     rtl_candidates:
     - dma_real_ahb_master
+  - id: fifo_buffer
+    kind: datapath
+    source_refs:
+    - memory.internal
+    rtl_candidates:
+    - dma_real_channel
   - id: completion_status
     kind: status
     source_refs:
@@ -154,21 +219,33 @@ decomposition:
     - registers.register_list
     rtl_candidates:
     - dma_real_irq
+  - id: clock_gating
+    kind: power
+    source_refs:
+    - power.domains
+    rtl_candidates:
+    - dma_real_engine
+  - id: perf_counter
+    kind: status
+    source_refs:
+    - registers.register_list
+    rtl_candidates:
+    - dma_real_channel
 parameters:
 - name: ADDR_WIDTH
   type: int
   default: 32
-  description: Address bus width for APB and AHB-Lite
+  description: Address bus width for APB and AHB-Lite interfaces
   user_editable: true
 - name: DATA_WIDTH
   type: int
   default: 32
-  description: Data bus width (must be 32)
+  description: Data bus width (must be 32 for this revision)
   user_editable: false
 - name: N_CHANNELS
   type: int
   default: 4
-  description: Number of independent DMA channels
+  description: Number of independent DMA channels (instantiated via generate)
   user_editable: true
 - name: BURST_MAX
   type: int
@@ -177,8 +254,13 @@ parameters:
   user_editable: true
 - name: FIFO_DEPTH
   type: int
-  default: 8
-  description: Per-channel read FIFO depth in words
+  default: 16
+  description: Per-channel async FIFO depth in words (must be power of 2)
+  user_editable: true
+- name: TIMEOUT_DEFAULT
+  type: int
+  default: 1024
+  description: Default bus timeout in hclk cycles (0 = disabled)
   user_editable: true
 io_list:
   clock_domains:
@@ -187,7 +269,13 @@ io_list:
     - name: pclk
       direction: input
       width: 1
-      description: System clock (single domain)
+      description: APB configuration clock
+  - name: hclk_domain
+    ports:
+    - name: hclk
+      direction: input
+      width: 1
+      description: AHB data transfer clock (may be async to pclk)
   resets:
   - name: presetn_domain
     active: low
@@ -195,7 +283,14 @@ io_list:
     - name: presetn
       direction: input
       width: 1
-      description: Active-low reset
+      description: Active-low reset for pclk domain
+  - name: hresetn_domain
+    active: low
+    ports:
+    - name: hresetn
+      direction: input
+      width: 1
+      description: Active-low reset for hclk domain (async to presetn)
   interfaces:
   - name: apb_slave
     type: apb
@@ -228,11 +323,11 @@ io_list:
     - name: pready
       direction: output
       width: 1
-      description: APB ready (always 1)
+      description: APB ready (always 1, no wait states)
     - name: pslverr
       direction: output
       width: 1
-      description: APB slave error (unmapped address)
+      description: APB slave error on unmapped address
     protocol:
       timing: two-phase (setup + access)
       rules:
@@ -242,13 +337,13 @@ io_list:
       - pslverr asserted when paddr targets unmapped register space
   - name: ahb_master
     type: ahb_lite
-    clock_domain: pclk_domain
+    clock_domain: hclk_domain
     ports:
     - name: haddr
       direction: output
       width: ADDR_WIDTH
       parameter_ref: ADDR_WIDTH
-      description: AHB-Lite address
+      description: AHB-Lite address bus
     - name: hwrite
       direction: output
       width: 1
@@ -260,45 +355,67 @@ io_list:
     - name: hsize
       direction: output
       width: 3
-      description: AHB-Lite transfer size (010=word)
+      description: AHB-Lite transfer size (000=byte, 001=halfword, 010=word, 011=doubleword)
     - name: hburst
       direction: output
       width: 3
-      description: AHB-Lite burst type (000=SINGLE, 001=INCR4, 010=INCR8, 011=INCR16)
+      description: AHB-Lite burst type (000=SINGLE, 001=INCR4, 010=INCR8, 011=INCR16,
+        101=WRAP4, 110=WRAP8, 111=WRAP16)
+    - name: hprot
+      direction: output
+      width: 4
+      description: AHB-Lite protection control (bit3=cacheable, bit2=bufferable,
+        bit1=privileged, bit0=data/opcode)
+    - name: hmaster
+      direction: output
+      width: 4
+      description: AHB-Lite master ID for bus matrix decode
+    - name: hmastlock
+      direction: output
+      width: 1
+      description: AHB-Lite locked transfer (atomic burst)
     - name: hwdata
       direction: output
       width: DATA_WIDTH
       parameter_ref: DATA_WIDTH
-      description: AHB-Lite write data
+      description: AHB-Lite write data (driven in data phase)
     - name: hrdata
       direction: input
       width: DATA_WIDTH
       parameter_ref: DATA_WIDTH
-      description: AHB-Lite read data
+      description: AHB-Lite read data (sampled in data phase)
     - name: hready
       direction: input
       width: 1
-      description: AHB-Lite ready from slave
+      description: AHB-Lite transfer done from slave
     - name: hresp
       direction: input
-      width: 1
-      description: AHB-Lite response (0=OKAY, 1=ERROR)
+      width: 2
+      description: AHB-Lite response (00=OKAY, 01=ERROR, 10=RETRY, 11=SPLIT)
     - name: hbusreq
       direction: output
       width: 1
-      description: AHB-Lite bus request
+      description: AHB-Lite bus request to arbiter
     - name: hgrant
       direction: input
       width: 1
-      description: AHB-Lite bus grant
+      description: AHB-Lite bus grant from arbiter
     protocol:
-      timing: address phase then data phase, pipelined
+      timing: address phase then data phase, pipelined, 1KB boundary rules
       rules:
       - haddr and control signals valid during address phase
       - hwdata valid during data phase (one cycle after address phase)
       - htrans=NONSEQ for first beat of burst, SEQ for subsequent beats
-      - hburst encodes burst length based on remaining transfer count
-      - hresp=ERROR triggers transfer abort and error status latch
+      - hburst encodes burst type; INCR4/8/16 for linear, WRAP4/8/16 for wrapping
+      - hsize set per CHx_CTRL.hsize field (byte/halfword/word/doubleword)
+      - hprot default 0011 (data, non-privileged, non-bufferable, non-cacheable)
+      - hmaster set to channel ID of current transfer owner
+      - hmastlock asserted for locked sequential transfers
+      - "hresp 2-bit: OKAY=normal, ERROR=abort transfer, RETRY=retry same transfer, SPLIT=released bus and re-request"
+      - Burst crossing 1KB boundary starts new NONSEQ beat with updated hburst
+      - hresp=ERROR triggers transfer abort and error latch with code 3
+      - hresp=RETRY causes master to release bus and re-request same transfer
+      - hresp=SPLIT causes master to release bus and wait for HSPLIT signal
   - name: irq_outputs
     type: irq
     clock_domain: pclk_domain
@@ -307,7 +424,7 @@ io_list:
       direction: output
       width: N_CHANNELS
       parameter_ref: N_CHANNELS
-      description: Per-channel interrupt (done or error)
+      description: Per-channel interrupt (done or error, level-sensitive active-high)
     - name: irq_combined
       direction: output
       width: 1
@@ -315,88 +432,137 @@ io_list:
     protocol:
       timing: level-sensitive, active-high
       rules:
-      - irq[ch] asserted when (ch_status.done OR ch_status.error) AND int_enable[ch]
+      - irq[ch] asserted when (done_q[ch] OR error_q[ch]) AND int_enable[ch]
       - irq_combined is OR of all per-channel IRQ outputs
       - IRQ deasserted when INT_CLEAR written and condition clears
   - name: dma_status
     type: status
-    clock_domain: pclk_domain
+    clock_domain: hclk_domain
     ports:
     - name: ch_busy
       direction: output
       width: N_CHANNELS
       parameter_ref: N_CHANNELS
-      description: Per-channel busy flag (1 = channel active)
+      description: Per-channel busy flag (1 = channel FSM not IDLE)
     - name: ch_done
       direction: output
       width: N_CHANNELS
       parameter_ref: N_CHANNELS
-      description: Per-channel done pulse (1 = transfer complete)
+      description: Per-channel done pulse (1 cycle, latched by IRQ module)
     - name: ch_error
       direction: output
       width: N_CHANNELS
       parameter_ref: N_CHANNELS
-      description: Per-channel error flag (1 = error detected)
+      description: Per-channel error pulse (1 cycle, latched by IRQ module)
     - name: ch_err_code
       direction: output
       width: 8
-      description: Packed per-channel 2-bit error code (bits [2*ch+1:2*ch])
+      description: Packed per-channel 3-bit error code (bits [3*ch+2:3*ch])
     - name: arb_grant
       direction: output
       width: 3
       description: Current arbiter grant channel index
     protocol:
-      timing: combinational status outputs, registered on pclk edge
+      timing: registered on hclk edge, synchronized to pclk for readback
       rules:
       - ch_busy[ch] reflects per-channel FSM not in IDLE state
-      - ch_done[ch] pulses for one cycle on transfer completion
-      - ch_error[ch] latched until INT_CLEAR written
-      - ch_err_code packed 2-bit code per channel
+      - ch_done[ch] pulses for one hclk cycle on transfer completion
+      - ch_error[ch] pulses for one hclk cycle on error detection
+      - ch_err_code packed 3-bit code per channel (0=none, 1=align, 2=zero_len,
+        3=bus_err, 4=timeout, 5=fifo_overflow)
       - arb_grant shows current round-robin grant target
 features:
-  - id: multi_channel
-    description: Four independent DMA channels with separate configuration and status
-    source_refs:
-    - parameters.N_CHANNELS
-    - registers.register_list
-  - id: round_robin_arb
-    description: Round-robin arbitration among active channels requesting AHB access
-    source_refs:
-    - function_model.transactions.FM_ARB_GRANT
-    - cycle_model.performance
-  - id: burst_transfer
-    description: INCR4/INCR8/INCR16 burst support on AHB-Lite master interface
-    source_refs:
-    - parameters.BURST_MAX
-    - io_list.interfaces.ahb_master
-  - id: per_channel_irq
-    description: Per-channel done/error interrupt with mask and combined output
-    source_refs:
-    - interrupts
-    - io_list.interfaces.irq_outputs
-  - id: error_detection
-    description: Alignment, zero-length, and bus-error detection per channel
-    source_refs:
-    - error_handling
-    - function_model.transactions.FM_DMA_ERROR
+- id: multi_channel
+  description: N_CHANNELS independent DMA channels with separate configuration, status,
+    stride, and performance counters. Instantiated via generate block.
+  source_refs:
+  - parameters.N_CHANNELS
+  - registers.register_list
+- id: dual_clock_cdc
+  description: Dual-clock architecture with pclk for APB configuration and hclk for
+    AHB data transfer. Async FIFO and gray-code pointer synchronization bridge the
+    domains.
+  source_refs:
+  - clock_reset_domains
+  - cdc_requirements
+  - memory.internal
+- id: round_robin_arb
+  description: Round-robin arbitration among active channels requesting AHB access.
+    Starvation-free guarantee.
+  source_refs:
+  - function_model.transactions.FM_ARB_GRANT
+  - cycle_model.performance
+- id: full_ahb_lite
+  description: Full AHB-Lite master with INCR4/8/16/INCR and WRAP4/8/16 bursts,
+    2-bit hresp (OKAY/ERROR/RETRY/SPLIT), hprot, hmaster, hmastlock, dynamic hsize,
+    and 1KB boundary crossing detection.
+  source_refs:
+  - io_list.interfaces.ahb_master
+  - parameters.BURST_MAX
+- id: per_channel_irq
+  description: Per-channel done/error interrupt with mask and combined output. Sticky
+    latches cleared by INT_CLEAR write-1-to-clear.
+  source_refs:
+  - interrupts
+  - io_list.interfaces.irq_outputs
+- id: error_detection
+  description: Alignment, zero-length, bus error, timeout, and FIFO overflow detection
+    per channel with 3-bit error codes.
+  source_refs:
+  - error_handling
+  - function_model.transactions.FM_DMA_ERROR
+- id: programmable_stride
+  description: Per-channel CHx_STRIDE register controls address increment per beat.
+    Default 4 (word), set to 0 for fixed-address peripheral access.
+  source_refs:
+  - registers.register_list
+- id: bus_timeout
+  description: Configurable GLOBAL_TIMEOUT register sets max hclk cycles to wait for
+    hready. Timeout error (code 4) if exceeded. 0 disables timeout.
+  source_refs:
+  - registers.register_list
+  - error_handling
+- id: performance_counters
+  description: Per-channel CHx_PERF_WORDS and CHx_PERF_CYCLES registers track transfer
+    volume and active time.
+  source_refs:
+  - registers.register_list
+- id: clock_gating
+  description: Per-channel integrated clock-gating cell in hclk domain. Auto-gates
+    when channel FSM is IDLE to reduce dynamic power.
+  source_refs:
+  - power.domains
 dataflow:
   sequence:
-  - Software configures channel registers via APB (SRC_ADDR, DST_ADDR, LEN, CTRL).
+  - Software configures channel registers via APB in pclk domain (SRC, DST, LEN,
+    STRIDE, CTRL).
+  - APB config written to CDC async FIFO for crossing to hclk domain.
   - Software sets CTRL.ch_start to initiate transfer.
-  - Channel FSM transitions IDLE to CFG to latch parameters.
-  - Channel requests AHB bus via arbiter.
-  - Arbiter grants bus (round-robin among active channels).
-  - Channel reads burst from source address via AHB master.
-  - Channel writes burst to destination address via AHB master.
+  - Channel FSM (hclk) transitions IDLE to CFG, latches config from CDC bridge.
+  - Channel requests AHB bus via arbiter (hclk).
+  - Arbiter grants bus round-robin among active channels.
+  - AHB master drives read burst from source address into pointer-based FIFO.
+  - AHB master drives write burst from FIFO to destination address.
+  - Addresses increment by CHx_STRIDE per beat (default 4).
+  - Timeout counter monitors hready latency; error code 4 on expiry.
+  - Performance counters increment (PERF_WORDS per word, PERF_CYCLES per active
+    cycle).
   - Repeat read/write bursts until remaining count reaches zero.
-  - Channel asserts done status and triggers IRQ if enabled.
+  - Channel asserts done pulse (1 hclk cycle), IRQ module latches sticky in pclk
+    domain.
+  - IRQ asserted if enabled.
   ordering:
-  - Configuration must complete before transfer starts.
+  - Configuration (APB write in pclk) must cross CDC before hclk channel FSM reads
+    it.
   - Arbiter grant must precede AHB address phase.
-  - Read burst completion must precede write burst of same data.
+  - Read burst completion must precede write burst for same data.
   - Address update must precede next burst request.
+  - Transfer completion (DONE) precedes done pulse observation.
+  - 1KB boundary crossing starts new NONSEQ beat.
 function_model:
-  purpose: Behavioral DMA reference independent of micro-architectural details.
+  purpose: Behavioral DMA reference model independent of dual-clock microarchitecture.
+    Models single-logical-cycle semantics; CDC and clock domain details are implementation
+    concerns.
   state_variables:
   - name: ch_busy_q
     width: N_CHANNELS
@@ -405,11 +571,11 @@ function_model:
   - name: ch_done_q
     width: N_CHANNELS
     reset: 0
-    description: Per-channel done latch
+    description: Per-channel done sticky latch
   - name: ch_error_q
     width: N_CHANNELS
     reset: 0
-    description: Per-channel error latch
+    description: Per-channel error sticky latch
   - name: ch_remaining_q
     width: 32
     reset: 0
@@ -422,6 +588,10 @@ function_model:
     width: ADDR_WIDTH
     reset: 0
     description: Per-channel current destination address
+  - name: ch_stride_q
+    width: ADDR_WIDTH
+    reset: 4
+    description: Per-channel address increment per beat (default 4 for word)
   - name: dma_en_q
     width: 1
     reset: 0
@@ -434,6 +604,18 @@ function_model:
     width: 3
     reset: 0
     description: Round-robin arbiter pointer
+  - name: timeout_q
+    width: 16
+    reset: 0
+    description: Bus timeout threshold in hclk cycles
+  - name: perf_words_q
+    width: 32
+    reset: 0
+    description: Per-channel total words transferred
+  - name: perf_cycles_q
+    width: 32
+    reset: 0
+    description: Per-channel total active cycles
   transactions:
   - id: FM_DMA_START
     name: dma_start
@@ -442,14 +624,15 @@ function_model:
     - src_addr
     - dst_addr
     - length
+    - stride
     preconditions:
-    - presetn is deasserted
+    - presetn and hresetn are deasserted
     - dma_en_q == 1
     - ch_busy_q[ch_id] == 0
     outputs:
     - ch_busy
     - ch_error
-    - ch_error_code
+    - ch_err_code
     output_rules:
     - name: ch_busy_next
       port: ch_busy
@@ -462,17 +645,20 @@ function_model:
       expr: 1 if (length == 0 or src_addr % 4 != 0 or dst_addr % 4 != 0) else 0
     - name: ch_err_code_val
       port: ch_err_code
-      width: 2
+      width: 3
       expr: 2 if (length == 0) else 1 if (src_addr % 4 != 0 or dst_addr % 4 != 0)
         else 0
     side_effects:
     - ch_remaining_q[ch_id] set to length on valid start
     - ch_src_addr_q[ch_id] set to src_addr on valid start
     - ch_dst_addr_q[ch_id] set to dst_addr on valid start
+    - ch_stride_q[ch_id] set to stride on valid start
+    - perf_cycles_q[ch_id] reset to 0 on valid start
+    - perf_words_q[ch_id] reset to 0 on valid start
     error_cases:
-    - zero length (length == 0)
-    - misaligned source address (src_addr % 4 != 0)
-    - misaligned destination address (dst_addr % 4 != 0)
+    - zero length (length == 0, error code 2)
+    - misaligned source address (src_addr % 4 != 0, error code 1)
+    - misaligned destination address (dst_addr % 4 != 0, error code 1)
     - start while busy (ignored, preserves state)
   - id: FM_DMA_STEP
     name: dma_step
@@ -493,26 +679,35 @@ function_model:
     - name: done_pulse
       port: ch_done
       width: 1
-      expr: 1 if (ch_remaining_q[ch_id] <= burst_len and ch_remaining_q[ch_id] >
-        0) else 0
+      expr: 1 if (ch_remaining_q[ch_id] <= burst_len and ch_remaining_q[ch_id]
+        > 0) else 0
     state_updates:
     - name: remaining_next
       expr: ch_remaining_q[ch_id] - burst_len if ch_remaining_q[ch_id] > burst_len
         else 0
       width: 32
     - name: src_addr_next
-      expr: ch_src_addr_q[ch_id] + burst_len * 4
+      expr: ch_src_addr_q[ch_id] + burst_len * ch_stride_q[ch_id]
       width: ADDR_WIDTH
     - name: dst_addr_next
-      expr: ch_dst_addr_q[ch_id] + burst_len * 4
+      expr: ch_dst_addr_q[ch_id] + burst_len * ch_stride_q[ch_id]
       width: ADDR_WIDTH
+    - name: perf_words_next
+      expr: perf_words_q[ch_id] + burst_len
+      width: 32
+    - name: perf_cycles_next
+      expr: perf_cycles_q[ch_id] + burst_len + 4
+      width: 32
     side_effects:
     - ch_remaining_q decrements by burst_len
-    - ch_src_addr_q increments by burst_len * 4
-    - ch_dst_addr_q increments by burst_len * 4
+    - ch_src_addr_q increments by burst_len * ch_stride_q[ch_id]
+    - ch_dst_addr_q increments by burst_len * ch_stride_q[ch_id]
+    - perf_words_q increments by burst_len
+    - perf_cycles_q increments by burst_len plus pipeline overhead
     - done pulses on terminal step
     error_cases:
-    - bus error during AHB transfer (hresp == ERROR)
+    - bus error during AHB transfer (hresp == ERROR, code 3)
+    - timeout waiting for hready (code 4)
   - id: FM_DMA_COMPLETE
     name: dma_complete
     required_fields:
@@ -541,16 +736,18 @@ function_model:
     - ch_done_q[ch_id] set to 1
     - ch_busy_q[ch_id] cleared
     - IRQ asserted if enabled
+    error_cases: []
   - id: FM_DMA_ERROR
     name: dma_error
     required_fields:
     - ch_id
     - error_code
     preconditions:
-    - error condition detected (alignment, zero-length, or bus error)
+    - error condition detected (alignment, zero-length, bus error, timeout, or FIFO
+      overflow)
     outputs:
     - ch_error
-    - ch_error_code
+    - ch_err_code
     - irq
     output_rules:
     - name: error_assert
@@ -559,7 +756,7 @@ function_model:
       expr: 1
     - name: error_code_out
       port: ch_err_code
-      width: 2
+      width: 3
       expr: error_code
     - name: irq_error
       port: irq
@@ -573,6 +770,8 @@ function_model:
     - alignment error (code 1)
     - zero length (code 2)
     - bus error (code 3)
+    - timeout (code 4)
+    - FIFO overflow (code 5)
   - id: FM_ARB_GRANT
     name: arb_grant
     required_fields:
@@ -580,7 +779,7 @@ function_model:
     preconditions:
     - at least one channel is requesting bus access
     outputs:
-    - grant_ch
+    - arb_grant
     output_rules:
     - name: grant_next
       port: arb_grant
@@ -597,80 +796,140 @@ function_model:
     error_cases: []
   invariants:
   - ch_busy and ch_done are not asserted together for the same channel.
-  - ch_error is asserted only for invalid requests or bus errors.
+  - ch_error is asserted only for invalid requests, bus errors, timeouts, or FIFO
+    overflows.
   - ch_remaining_q never underflows below zero.
   - irq[ch] reflects (done_q[ch] OR error_q[ch]) AND int_enable_q[ch].
   - irq_combined reflects OR of all per-channel irq outputs.
+  - Each FIFO operates as circular buffer with gray-code synchronized pointers across
+    clock domains.
+  - htrans transitions IDLE only when no channel has an active grant.
+  - Performance counters saturate at 32'hFFFFFFFF and do not wrap.
 cycle_model:
   executable: pymtl3
   backend_policy: Use PyMTL3 shell for cycle behavior. FunctionalModel remains oracle.
-  clock: pclk
-  reset: presetn
-  latency: 4
+  clock: hclk
+  reset: hresetn
+  latency: 5
   handshake_rules:
   - name: apb_access
     description: APB accesses sample on pclk with psel and penable. No wait states.
+      Config data crosses CDC to hclk domain via async FIFO.
+  - name: cdc_config
+    description: APB write data pushed into pclk-side FIFO write port. hclk-side
+      read port pops config. Gray-code pointer synchronization prevents metastability.
   - name: ahb_address_phase
-    description: AHB address phase drives haddr, htrans, hsize, hburst, hwrite for
-      one cycle.
+    description: AHB address phase drives haddr, htrans, hsize, hburst, hprot, hmaster,
+      hmastlock for one hclk cycle.
   - name: ahb_data_phase
-    description: AHB data phase follows address phase by one cycle with hwdata or
-      hrdata.
+    description: AHB data phase follows address phase by one hclk cycle with hwdata
+      or hrdata.
+  - name: ahb_1kb_boundary
+    description: Burst crossing 1KB address boundary starts new NONSEQ beat. hburst
+      recalculated for remaining beats.
+  - name: ahb_error_response
+    description: hresp=ERROR (01) completes current beat and aborts burst. hresp=RETRY
+      (10) releases bus and re-requests. hresp=SPLIT (11) releases bus and waits.
   - name: arb_grant_rule
-    description: Arbiter evaluates requests every cycle and grants to next round-robin
+    description: Arbiter evaluates requests every hclk cycle and grants to next round-robin
       contender.
   - name: start_accept
-    description: ch_start accepted only when ch_busy is low and dma_en is high.
+    description: ch_start accepted only when ch_busy is low and dma_en is high and
+      CDC config has arrived.
+  - name: timeout_rule
+    description: Timeout counter increments each hclk cycle while waiting for hready.
+      Resets on hready assertion. Error code 4 when counter reaches GLOBAL_TIMEOUT.
   pipeline:
   - stage: IDLE
     cycle: 0
-    action: wait for valid start/config
+    action: wait for valid start/config from CDC bridge
   - stage: CFG
     cycle: 1
-    action: latch src_addr, dst_addr, remaining count
+    action: latch src_addr, dst_addr, remaining, stride from CDC config registers
   - stage: REQUEST
     cycle: 2
-    action: request AHB bus via arbiter
+    action: request AHB bus via arbiter, clock gating cell enables hclk to channel
   - stage: READ
     cycle: 3
-    action: AHB read burst from source address into FIFO
+    action: AHB read burst from source address into pointer-based FIFO, timeout counter
+      active
   - stage: WRITE
     cycle: 4
-    action: AHB write burst from FIFO to destination address
+    action: AHB write burst from FIFO to destination address, FIFO read pointer advances
   - stage: UPDATE
     cycle: 5
-    action: update remaining count, src_addr, dst_addr
+    action: update remaining count (decrement), src_addr (+= stride), dst_addr (+=
+      stride), perf counters increment
   - stage: DONE
     cycle: 6
-    action: assert done, update status, trigger IRQ
+    action: assert done pulse, update status, trigger IRQ, clock gating cell may
+      disable hclk
   - stage: ERROR
     cycle: 2
-    action: assert error, latch error code, return to IDLE
+    action: assert error pulse, latch error code, return to IDLE, clock gating cell
+      may disable hclk
   ordering:
-  - Configuration (CFG) precedes transfer execution (READ/WRITE).
-  - Read burst completion precedes write burst for same data.
-  - Address update (UPDATE) precedes next burst request.
+  - Configuration (APB pclk) must cross CDC before hclk channel FSM reads it.
+  - Read burst completion must precede write burst for same data.
+  - Address update (UPDATE) must precede next burst request.
   - Transfer completion (DONE) precedes done pulse observation.
+  - 1KB boundary crossing recalculates burst parameters before next address phase.
   backpressure:
   - New starts blocked while channel busy.
   - AHB transfers stall when hready is low.
   - Arbiter queues requests when bus is occupied.
+  - FIFO almost_full back-pressures read burst.
+  - CDC FIFO full back-pressures APB writes (pslverr or pready deassert).
   performance:
     outstanding_limit: N_CHANNELS
     throughput: one burst per channel per arbiter round
+    cdc_latency: 3 hclk cycles for config to cross from pclk domain
+    fifo_depth: FIFO_DEPTH words per channel
 clock_reset_domains:
   domains:
   - name: pclk_domain
     clock: pclk
     reset: presetn
     reset_active: low
-    description: Single synchronous clock domain for all logic
+    description: APB configuration clock domain. apb_cfg and irq modules operate
+      here.
+  - name: hclk_domain
+    clock: hclk
+    reset: hresetn
+    reset_active: low
+    description: AHB data transfer clock domain. arbiter, channels, ahb_master, engine
+      operate here. May be async to pclk.
 cdc_requirements:
-  policy: no_cdc
-  description: Single clock domain. No clock domain crossing logic required.
+  policy: gray_code_async_fifo
+  description: Config data from pclk domain crosses to hclk domain via dual-clock
+    async FIFO with gray-code pointer synchronization. Status signals (ch_busy, ch_done,
+    ch_error) cross from hclk to pclk via 2-stage synchronizer.
+  crossings:
+  - name: config_cdc
+    source_clock: pclk
+    dest_clock: hclk
+    data_width: ADDR_WIDTH + ADDR_WIDTH + 16 + ADDR_WIDTH + 3
+    description: Channel config (src_addr + dst_addr + len + stride + ctrl) packed
+      and pushed on APB write, popped by hclk channel FSM.
+    protocol: async FIFO with gray-code rd_ptr and wr_ptr, 2-stage sync
+  - name: status_cdc
+    source_clock: hclk
+    dest_clock: pclk
+    data_width: N_CHANNELS * 4
+    description: Per-channel status (busy, done_pulse, error_pulse, err_code) synchronized
+      for APB readback.
+    protocol: 2-stage flip-flop synchronizer with pulse-to-level converter
+  - name: irq_cdc
+    source_clock: hclk
+    dest_clock: pclk
+    data_width: N_CHANNELS * 2
+    description: Per-channel done and error pulses cross to pclk for IRQ module sticky
+      latch.
+    protocol: pulse synchronizer (toggle + 2-stage sync + edge detect)
 rdc_requirements:
-  policy: no_rdc
-  description: Single reset domain synchronous to pclk.
+  policy: async_reset_deassert_sync
+  description: presetn and hresetn are async assert, sync deassert. Each domain has
+    its own reset synchronizer. Cross-domain reset ordering not guaranteed.
 registers:
   register_list:
   - name: GLOBAL_CTRL
@@ -685,8 +944,7 @@ registers:
       width: 1
       access: rw
       reset: 0
-      description: Global DMA enable. When 0, no new transfers start and in-progress
-        transfers pause after current burst.
+      description: Global DMA enable
       write_effect: enables or disables DMA globally
     - name: reserved_31_1
       lsb: 1
@@ -707,8 +965,8 @@ registers:
       width: 4
       access: ro
       reset: 0
-      description: Bit[ch] is 1 when channel ch has pending interrupt (done or error)
-      write_effect: read-only, no write effect
+      description: Bit[ch] is 1 when channel ch has pending interrupt
+      write_effect: read-only
   - name: INT_ENABLE
     offset: 8
     width: 32
@@ -736,9 +994,30 @@ registers:
       access: wo
       reset: 0
       description: Writing 1 to bit[ch] clears done_q and error_q for channel ch
-      write_effect: clears latched done and error status for selected channels
+      write_effect: clears latched done and error status
+  - name: GLOBAL_TIMEOUT
+    offset: 16
+    width: 32
+    access: rw
+    reset: 0x00000400
+    description: Bus timeout threshold in hclk cycles. 0 disables timeout.
+    fields:
+    - name: timeout_val
+      lsb: 0
+      width: 16
+      access: rw
+      reset: 1024
+      description: Max hclk cycles to wait for hready. 0 = disabled.
+      write_effect: updates timeout threshold for all channels
+    - name: reserved_31_16
+      lsb: 16
+      width: 16
+      access: rw
+      reset: 0
+      description: Reserved
+      write_effect: no side effect
   - name: CH0_CTRL
-    offset: 128
+    offset: 256
     width: 32
     access: rw
     reset: 0x00000000
@@ -749,52 +1028,66 @@ registers:
       width: 1
       access: rw
       reset: 0
-      description: Channel enable. Must be set before ch_start is accepted.
+      description: Channel enable
       write_effect: enables or disables the channel
     - name: ch_start
       lsb: 1
       width: 1
       access: rw
       reset: 0
-      description: Write 1 to start transfer. Self-clearing.
+      description: Write 1 to start transfer (self-clearing)
       write_effect: initiates DMA transfer if ch_en and dma_en are set
-    - name: ch_mode
+    - name: hsize
       lsb: 2
-      width: 1
+      width: 2
       access: rw
       reset: 0
-      description: Transfer mode (0 = memory-to-memory). Fixed at 0 for this version.
-      write_effect: selects transfer mode
+      description: Transfer size (00=byte, 01=halfword, 10=word)
+      write_effect: sets hsize for AHB transfers
+    - name: burst_mode
+      lsb: 4
+      width: 2
+      access: rw
+      reset: 0
+      description: Burst mode (00=INCR, 01=INCR4, 10=INCR8, 11=INCR16)
+      write_effect: selects burst type for AHB
+    - name: reserved_31_6
+      lsb: 6
+      width: 26
+      access: rw
+      reset: 0
+      description: Reserved
+      write_effect: no side effect
   - name: CH0_SRC_ADDR
-    offset: 132
+    offset: 260
     width: 32
     access: rw
     reset: 0x00000000
-    description: Channel 0 source start address (must be word-aligned)
+    description: Channel 0 source start address (must be word-aligned for word transfers)
     fields:
     - name: src_addr
       lsb: 0
-      width: ADDR_WIDTH
+      width: 32
       access: rw
       reset: 0
-      description: Source address. Bits [1:0] must be 0.
+      description: Source address
       write_effect: latches source address for transfer
   - name: CH0_DST_ADDR
-    offset: 136
+    offset: 264
     width: 32
     access: rw
     reset: 0x00000000
-    description: Channel 0 destination start address (must be word-aligned)
+    description: Channel 0 destination start address
     fields:
     - name: dst_addr
       lsb: 0
-      width: ADDR_WIDTH
+      width: 32
       access: rw
       reset: 0
-      description: Destination address. Bits [1:0] must be 0.
+      description: Destination address
       write_effect: latches destination address for transfer
   - name: CH0_LEN
-    offset: 140
+    offset: 268
     width: 32
     access: rw
     reset: 0x00000000
@@ -807,8 +1100,15 @@ registers:
       reset: 0
       description: Transfer length in words
       write_effect: sets number of words to transfer
+    - name: reserved_31_16
+      lsb: 16
+      width: 16
+      access: rw
+      reset: 0
+      description: Reserved
+      write_effect: no side effect
   - name: CH0_STATUS
-    offset: 144
+    offset: 272
     width: 32
     access: ro
     reset: 0x00000000
@@ -826,24 +1126,75 @@ registers:
       width: 1
       access: ro
       reset: 0
-      description: Transfer completed successfully. Cleared by INT_CLEAR.
-      write_effect: read-only, cleared via INT_CLEAR
+      description: Transfer completed (sticky, cleared by INT_CLEAR)
+      write_effect: read-only
     - name: error
       lsb: 2
       width: 1
       access: ro
       reset: 0
-      description: Error occurred. Cleared by INT_CLEAR.
-      write_effect: read-only, cleared via INT_CLEAR
+      description: Error occurred (sticky, cleared by INT_CLEAR)
+      write_effect: read-only
     - name: err_code
       lsb: 3
-      width: 2
+      width: 3
       access: ro
       reset: 0
-      description: Error code (0=none, 1=alignment, 2=zero_len, 3=bus_err)
+      description: Error code (0=none, 1=align, 2=zero_len, 3=bus_err, 4=timeout,
+        5=fifo_overflow)
+      write_effect: read-only
+    - name: reserved_31_6
+      lsb: 6
+      width: 26
+      access: ro
+      reset: 0
+      description: Reserved
+      write_effect: read-only
+  - name: CH0_STRIDE
+    offset: 276
+    width: 32
+    access: rw
+    reset: 0x00000004
+    description: Channel 0 address stride per beat. Default 4 (word). Set 0 for fixed-address
+      peripheral.
+    fields:
+    - name: stride
+      lsb: 0
+      width: 32
+      access: rw
+      reset: 4
+      description: Address increment per beat
+      write_effect: sets address stride for transfer
+  - name: CH0_PERF_WORDS
+    offset: 284
+    width: 32
+    access: ro
+    reset: 0x00000000
+    description: Channel 0 total words transferred (saturating counter)
+    fields:
+    - name: word_count
+      lsb: 0
+      width: 32
+      access: ro
+      reset: 0
+      description: Cumulative words transferred
+      write_effect: read-only
+  - name: CH0_PERF_CYCLES
+    offset: 288
+    width: 32
+    access: ro
+    reset: 0x00000000
+    description: Channel 0 total active cycles (saturating counter)
+    fields:
+    - name: cycle_count
+      lsb: 0
+      width: 32
+      access: ro
+      reset: 0
+      description: Cumulative active hclk cycles
       write_effect: read-only
   - name: CH1_CTRL
-    offset: 160
+    offset: 320
     width: 32
     access: rw
     reset: 0x00000000
@@ -863,15 +1214,29 @@ registers:
       reset: 0
       description: Write 1 to start transfer
       write_effect: initiates DMA transfer
-    - name: ch_mode
+    - name: hsize
       lsb: 2
-      width: 1
+      width: 2
       access: rw
       reset: 0
-      description: Transfer mode (0 = memory-to-memory)
-      write_effect: selects transfer mode
+      description: Transfer size
+      write_effect: sets hsize for AHB transfers
+    - name: burst_mode
+      lsb: 4
+      width: 2
+      access: rw
+      reset: 0
+      description: Burst mode
+      write_effect: selects burst type
+    - name: reserved_31_6
+      lsb: 6
+      width: 26
+      access: rw
+      reset: 0
+      description: Reserved
+      write_effect: no side effect
   - name: CH1_SRC_ADDR
-    offset: 164
+    offset: 324
     width: 32
     access: rw
     reset: 0x00000000
@@ -879,13 +1244,13 @@ registers:
     fields:
     - name: src_addr
       lsb: 0
-      width: ADDR_WIDTH
+      width: 32
       access: rw
       reset: 0
       description: Source address
       write_effect: latches source address
   - name: CH1_DST_ADDR
-    offset: 168
+    offset: 328
     width: 32
     access: rw
     reset: 0x00000000
@@ -893,13 +1258,13 @@ registers:
     fields:
     - name: dst_addr
       lsb: 0
-      width: ADDR_WIDTH
+      width: 32
       access: rw
       reset: 0
       description: Destination address
       write_effect: latches destination address
   - name: CH1_LEN
-    offset: 172
+    offset: 332
     width: 32
     access: rw
     reset: 0x00000000
@@ -912,8 +1277,15 @@ registers:
       reset: 0
       description: Transfer length
       write_effect: sets transfer length
+    - name: reserved_31_16
+      lsb: 16
+      width: 16
+      access: rw
+      reset: 0
+      description: Reserved
+      write_effect: no side effect
   - name: CH1_STATUS
-    offset: 176
+    offset: 336
     width: 32
     access: ro
     reset: 0x00000000
@@ -932,23 +1304,72 @@ registers:
       access: ro
       reset: 0
       description: Transfer done
-      write_effect: read-only, cleared via INT_CLEAR
+      write_effect: read-only
     - name: error
       lsb: 2
       width: 1
       access: ro
       reset: 0
       description: Error flag
-      write_effect: read-only, cleared via INT_CLEAR
+      write_effect: read-only
     - name: err_code
       lsb: 3
-      width: 2
+      width: 3
       access: ro
       reset: 0
       description: Error code
       write_effect: read-only
+    - name: reserved_31_6
+      lsb: 6
+      width: 26
+      access: ro
+      reset: 0
+      description: Reserved
+      write_effect: read-only
+  - name: CH1_STRIDE
+    offset: 340
+    width: 32
+    access: rw
+    reset: 0x00000004
+    description: Channel 1 address stride per beat
+    fields:
+    - name: stride
+      lsb: 0
+      width: 32
+      access: rw
+      reset: 4
+      description: Address increment per beat
+      write_effect: sets address stride
+  - name: CH1_PERF_WORDS
+    offset: 348
+    width: 32
+    access: ro
+    reset: 0x00000000
+    description: Channel 1 total words transferred
+    fields:
+    - name: word_count
+      lsb: 0
+      width: 32
+      access: ro
+      reset: 0
+      description: Cumulative words transferred
+      write_effect: read-only
+  - name: CH1_PERF_CYCLES
+    offset: 352
+    width: 32
+    access: ro
+    reset: 0x00000000
+    description: Channel 1 total active cycles
+    fields:
+    - name: cycle_count
+      lsb: 0
+      width: 32
+      access: ro
+      reset: 0
+      description: Cumulative active hclk cycles
+      write_effect: read-only
   - name: CH2_CTRL
-    offset: 192
+    offset: 384
     width: 32
     access: rw
     reset: 0x00000000
@@ -968,15 +1389,29 @@ registers:
       reset: 0
       description: Write 1 to start transfer
       write_effect: initiates DMA transfer
-    - name: ch_mode
+    - name: hsize
       lsb: 2
-      width: 1
+      width: 2
       access: rw
       reset: 0
-      description: Transfer mode (0 = memory-to-mem)
-      write_effect: selects transfer mode
+      description: Transfer size
+      write_effect: sets hsize for AHB transfers
+    - name: burst_mode
+      lsb: 4
+      width: 2
+      access: rw
+      reset: 0
+      description: Burst mode
+      write_effect: selects burst type
+    - name: reserved_31_6
+      lsb: 6
+      width: 26
+      access: rw
+      reset: 0
+      description: Reserved
+      write_effect: no side effect
   - name: CH2_SRC_ADDR
-    offset: 196
+    offset: 388
     width: 32
     access: rw
     reset: 0x00000000
@@ -984,13 +1419,13 @@ registers:
     fields:
     - name: src_addr
       lsb: 0
-      width: ADDR_WIDTH
+      width: 32
       access: rw
       reset: 0
       description: Source address
       write_effect: latches source address
   - name: CH2_DST_ADDR
-    offset: 200
+    offset: 392
     width: 32
     access: rw
     reset: 0x00000000
@@ -998,17 +1433,17 @@ registers:
     fields:
     - name: dst_addr
       lsb: 0
-      width: ADDR_WIDTH
+      width: 32
       access: rw
       reset: 0
       description: Destination address
       write_effect: latches destination address
   - name: CH2_LEN
-    offset: 204
+    offset: 396
     width: 32
     access: rw
     reset: 0x00000000
-    description: Channel 2 transfer length in words
+    description: Channel 2 transfer length
     fields:
     - name: length
       lsb: 0
@@ -1017,8 +1452,15 @@ registers:
       reset: 0
       description: Transfer length
       write_effect: sets transfer length
+    - name: reserved_31_16
+      lsb: 16
+      width: 16
+      access: rw
+      reset: 0
+      description: Reserved
+      write_effect: no side effect
   - name: CH2_STATUS
-    offset: 208
+    offset: 400
     width: 32
     access: ro
     reset: 0x00000000
@@ -1037,23 +1479,72 @@ registers:
       access: ro
       reset: 0
       description: Transfer done
-      write_effect: read-only, cleared via INT_CLEAR
+      write_effect: read-only
     - name: error
       lsb: 2
       width: 1
       access: ro
       reset: 0
       description: Error flag
-      write_effect: read-only, cleared via INT_CLEAR
+      write_effect: read-only
     - name: err_code
       lsb: 3
-      width: 2
+      width: 3
       access: ro
       reset: 0
       description: Error code
       write_effect: read-only
+    - name: reserved_31_6
+      lsb: 6
+      width: 26
+      access: ro
+      reset: 0
+      description: Reserved
+      write_effect: read-only
+  - name: CH2_STRIDE
+    offset: 404
+    width: 32
+    access: rw
+    reset: 0x00000004
+    description: Channel 2 address stride
+    fields:
+    - name: stride
+      lsb: 0
+      width: 32
+      access: rw
+      reset: 4
+      description: Address increment per beat
+      write_effect: sets address stride
+  - name: CH2_PERF_WORDS
+    offset: 412
+    width: 32
+    access: ro
+    reset: 0x00000000
+    description: Channel 2 words transferred
+    fields:
+    - name: word_count
+      lsb: 0
+      width: 32
+      access: ro
+      reset: 0
+      description: Cumulative words transferred
+      write_effect: read-only
+  - name: CH2_PERF_CYCLES
+    offset: 416
+    width: 32
+    access: ro
+    reset: 0x00000000
+    description: Channel 2 active cycles
+    fields:
+    - name: cycle_count
+      lsb: 0
+      width: 32
+      access: ro
+      reset: 0
+      description: Cumulative active hclk cycles
+      write_effect: read-only
   - name: CH3_CTRL
-    offset: 224
+    offset: 448
     width: 32
     access: rw
     reset: 0x00000000
@@ -1073,15 +1564,29 @@ registers:
       reset: 0
       description: Write 1 to start transfer
       write_effect: initiates DMA transfer
-    - name: ch_mode
+    - name: hsize
       lsb: 2
-      width: 1
+      width: 2
       access: rw
       reset: 0
-      description: Transfer mode (0 = memory-to-mem)
-      write_effect: selects transfer mode
+      description: Transfer size
+      write_effect: sets hsize for AHB transfers
+    - name: burst_mode
+      lsb: 4
+      width: 2
+      access: rw
+      reset: 0
+      description: Burst mode
+      write_effect: selects burst type
+    - name: reserved_31_6
+      lsb: 6
+      width: 26
+      access: rw
+      reset: 0
+      description: Reserved
+      write_effect: no side effect
   - name: CH3_SRC_ADDR
-    offset: 228
+    offset: 452
     width: 32
     access: rw
     reset: 0x00000000
@@ -1089,13 +1594,13 @@ registers:
     fields:
     - name: src_addr
       lsb: 0
-      width: ADDR_WIDTH
+      width: 32
       access: rw
       reset: 0
       description: Source address
       write_effect: latches source address
   - name: CH3_DST_ADDR
-    offset: 232
+    offset: 456
     width: 32
     access: rw
     reset: 0x00000000
@@ -1103,17 +1608,17 @@ registers:
     fields:
     - name: dst_addr
       lsb: 0
-      width: ADDR_WIDTH
+      width: 32
       access: rw
       reset: 0
       description: Destination address
       write_effect: latches destination address
   - name: CH3_LEN
-    offset: 236
+    offset: 460
     width: 32
     access: rw
     reset: 0x00000000
-    description: Channel 3 transfer length in words
+    description: Channel 3 transfer length
     fields:
     - name: length
       lsb: 0
@@ -1122,8 +1627,15 @@ registers:
       reset: 0
       description: Transfer length
       write_effect: sets transfer length
+    - name: reserved_31_16
+      lsb: 16
+      width: 16
+      access: rw
+      reset: 0
+      description: Reserved
+      write_effect: no side effect
   - name: CH3_STATUS
-    offset: 240
+    offset: 464
     width: 32
     access: ro
     reset: 0x00000000
@@ -1142,25 +1654,74 @@ registers:
       access: ro
       reset: 0
       description: Transfer done
-      write_effect: read-only, cleared via INT_CLEAR
+      write_effect: read-only
     - name: error
       lsb: 2
       width: 1
       access: ro
       reset: 0
       description: Error flag
-      write_effect: read-only, cleared via INT_CLEAR
+      write_effect: read-only
     - name: err_code
       lsb: 3
-      width: 2
+      width: 3
       access: ro
       reset: 0
       description: Error code
       write_effect: read-only
+    - name: reserved_31_6
+      lsb: 6
+      width: 26
+      access: ro
+      reset: 0
+      description: Reserved
+      write_effect: read-only
+  - name: CH3_STRIDE
+    offset: 468
+    width: 32
+    access: rw
+    reset: 0x00000004
+    description: Channel 3 address stride
+    fields:
+    - name: stride
+      lsb: 0
+      width: 32
+      access: rw
+      reset: 4
+      description: Address increment per beat
+      write_effect: sets address stride
+  - name: CH3_PERF_WORDS
+    offset: 476
+    width: 32
+    access: ro
+    reset: 0x00000000
+    description: Channel 3 words transferred
+    fields:
+    - name: word_count
+      lsb: 0
+      width: 32
+      access: ro
+      reset: 0
+      description: Cumulative words transferred
+      write_effect: read-only
+  - name: CH3_PERF_CYCLES
+    offset: 480
+    width: 32
+    access: ro
+    reset: 0x00000000
+    description: Channel 3 active cycles
+    fields:
+    - name: cycle_count
+      lsb: 0
+      width: 32
+      access: ro
+      reset: 0
+      description: Cumulative active hclk cycles
+      write_effect: read-only
 memory:
   internal:
-  - name: ch_fifo
-    kind: fifo
+  - name: ch_async_fifo
+    kind: async_fifo
     width: DATA_WIDTH
     depth: FIFO_DEPTH
     per_instance: true
@@ -1169,7 +1730,14 @@ memory:
     - ch1_fifo
     - ch2_fifo
     - ch3_fifo
-    description: Per-channel FIFO buffering read data before write phase
+    description: Per-channel dual-clock async FIFO with gray-code pointer sync. Read
+      port in hclk domain, write port in pclk domain (via CDC config bridge). Pointer-based
+      circular buffer with almost_full and almost_empty thresholds.
+    implementation:
+      ptr_type: gray_code_binary
+      almost_full_threshold: FIFO_DEPTH - 2
+      almost_empty_threshold: 2
+      sync_stages: 2
 interrupts:
   outputs:
   - name: irq
@@ -1203,7 +1771,7 @@ fsm:
     transitions:
     - from: IDLE
       to: CFG
-      condition: ch_start && ch_en && dma_en && valid_cfg
+      condition: ch_start && ch_en && dma_en && valid_cfg && cdc_config_valid
     - from: IDLE
       to: ERROR
       condition: ch_start && ch_en && !valid_cfg
@@ -1215,12 +1783,18 @@ fsm:
       condition: arb_grant
     - from: READ
       to: WRITE
-      condition: read_burst_complete
+      condition: read_burst_complete && !fifo_full
+    - from: READ
+      to: ERROR
+      condition: ahb_error || timeout_expired || fifo_overflow
     - from: WRITE
       to: UPDATE
       condition: write_burst_complete
+    - from: WRITE
+      to: ERROR
+      condition: ahb_error || timeout_expired
     - from: UPDATE
-      to: READ
+      to: REQUEST
       condition: remaining_gt_0
     - from: UPDATE
       to: DONE
@@ -1235,39 +1809,61 @@ timing:
   target_clocks:
   - clock: pclk
     target_freq_mhz: 100
-    description: Target operating frequency for single clock domain
+    description: APB configuration clock
+  - clock: hclk
+    target_freq_mhz: 200
+    description: AHB data transfer clock
   latency_budget:
     apb_access: 2
-    channel_start_to_first_read: 4
+    cdc_config_crossing: 3
+    channel_start_to_first_read: 5
     burst_read_latency: BURST_MAX
     burst_write_latency: BURST_MAX
-    completion_to_irq: 2
+    completion_to_irq: 3
+    timeout_default: TIMEOUT_DEFAULT
 power:
   domains:
-  - name: pd_core
+  - name: pd_pclk
     clocks:
     - pclk
-    description: Single power domain for all logic
+    description: APB configuration domain, always-on
+  - name: pd_hclk
+    clocks:
+    - hclk
+    description: AHB data transfer domain with per-channel clock gating
   power_states:
   - state: active
-    description: All logic powered and clocked
+    description: All logic powered and clocked, DMA transfers in progress
   - state: idle
-    description: No active transfers, clock gating possible
+    description: No active transfers, per-channel hclk gated off
+  - state: config_only
+    description: Only pclk domain active, hclk domain fully gated
+  clock_gating:
+    description: Per-channel integrated clock-gating cell (ICG) in hclk domain. When
+      channel FSM is IDLE and no pending request, gated_hclk is disabled. ICG enable
+      controlled by (ch_en && (ch_start_pending || ch_busy)).
 security:
   classification: internal
   assets:
   - name: channel_config
     type: configuration
-    description: DMA channel source/destination/length registers
+    description: DMA channel source/destination/length/stride registers
   - name: transfer_data
     type: data
-    description: Data words in transit through FIFO
+    description: Data words in transit through async FIFO
+  - name: perf_counters
+    type: telemetry
+    description: Performance counter registers revealing transfer activity
   threat_model:
   - threat: unauthorized_channel_access
     mitigation: APB bus access restricted by system bus matrix
     severity: medium
   - threat: dma_transfer_corruption
-    mitigation: Error detection and reporting per channel
+    mitigation: Error detection per channel, bus timeout, FIFO overflow detection
+    severity: high
+  - threat: cdc_metastability
+    mitigation: Gray-code pointer synchronization with 2-stage sync, timing constraints
+      on CDC paths
     severity: high
 error_handling:
   error_sources:
@@ -1283,9 +1879,19 @@ error_handling:
     description: Zero-length transfer requested
   - id: ERR_BUS
     source: ahb_transfer
-    condition: hresp == ERROR
+    condition: hresp == 2'b01 (ERROR)
     code: 3
     description: AHB bus error during transfer
+  - id: ERR_TIMEOUT
+    source: bus_timeout
+    condition: hready==0 for GLOBAL_TIMEOUT consecutive hclk cycles
+    code: 4
+    description: Bus timeout waiting for slave response
+  - id: ERR_FIFO_OVERFLOW
+    source: fifo_write
+    condition: fifo_write when fifo_full (CDC config path)
+    code: 5
+    description: FIFO overflow on config data path
   propagation:
   - error latched in CHx_STATUS.error
   - error code latched in CHx_STATUS.err_code
@@ -1295,18 +1901,23 @@ error_handling:
   - Software reads CHx_STATUS to identify error code
   - Software writes INT_CLEAR to clear error and done latches
   - Channel returns to IDLE after status is cleared
-  - No automatic retry
+  - No automatic retry (software must reconfigure and restart)
+  - For hresp=RETRY, hardware re-requests same transfer automatically
 debug_observability:
   waveform_must_probe:
-  - pclk
-  - presetn
+  - pclk, hclk, presetn, hresetn
   - psel, penable, pwrite, paddr, pwdata, prdata, pready, pslverr
-  - haddr, htrans, hsize, hburst, hwrite, hwdata, hrdata, hready, hresp, hbusreq,
-    hgrant
+  - haddr, htrans, hsize, hburst, hprot, hmaster, hmastlock, hwrite, hwdata, hrdata,
+    hready, hresp, hbusreq, hgrant
   - irq, irq_combined
-  - per_channel state FSM
+  - per_channel FSM state
   - per_channel remaining counter
   - per_channel src_addr and dst_addr counters
+  - per_channel stride register
+  - per_channel FIFO wr_ptr and rd_ptr (gray and binary)
+  - per_channel timeout counter
+  - per_channel perf_words and perf_cycles
+  - CDC sync pointers
   trace_events:
   - channel_start
   - burst_read_start
@@ -1316,20 +1927,75 @@ debug_observability:
   - transfer_done
   - transfer_error
   - arbiter_grant
+  - timeout_expired
+  - cdc_config_push
+  - cdc_config_pop
+  - fifo_almost_full
+  - fifo_almost_empty
+  - clock_gate_enable
+  - clock_gate_disable
 integration:
   bus_attachment:
-    apb_slave: connects to APB bus matrix for configuration
-    ahb_master: connects to AHB-Lite bus matrix for data transfer
+    apb_slave: connects to APB bus matrix for configuration (pclk domain)
+    ahb_master: connects to AHB-Lite bus matrix for data transfer (hclk domain)
   dependencies:
-  - APB bus matrix provides psel, penable, pwrite, paddr, pwdata
-  - AHB-Lite bus matrix provides hready, hrdata, hresp, hgrant
-  - System interrupt controller receives irq_combined
+  - APB bus matrix provides psel, penable, pwrite, paddr, pwdata in pclk domain
+  - AHB-Lite bus matrix provides hready, hrdata, hresp[1:0], hgrant in hclk domain
+  - System interrupt controller receives irq_combined in pclk domain
+  - System reset controller provides presetn and hresetn (may be async)
+dft:
+  scan_required: true
+  controllability: All state registers accessible via scan chain
+  observability: All state register outputs observed through scan
+  scan:
+    mode: muxed_d
+    description: Standard muxed-D scan insertion via external ATPG tool
+  test_modes:
+  - name: functional
+    description: Normal functional operation mode
+  - name: scan_shift
+    description: Scan shift mode for ATPG pattern load/unload
+  - name: scan_capture
+    description: Scan capture mode for ATPG pattern application
+  mbist: none
+  notes: Single clock domain, no embedded SRAM (FIFOs are register-based). Standard scan insertion suffices.
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: met3
+    vertical: met2
+  cts:
+    buf_list:
+    - sky130_fd_sc_hd__clkbuf_4
+    - sky130_fd_sc_hd__clkbuf_8
+  routing:
+    signal_layers:
+      min: met1
+      max: met5
+    drc_waivers: []
 synthesis:
   dialect: systemverilog-2012
   constraints:
   - clock: pclk
     period_ns: 10.0
     uncertainty_ns: 0.5
+    description: APB configuration clock constraint
+  - clock: hclk
+    period_ns: 5.0
+    uncertainty_ns: 0.3
+    description: AHB data transfer clock constraint (200 MHz target)
+  - type: false_path
+    from: pclk_domain
+    to: hclk_domain
+    description: CDC paths covered by gray-code sync, no timing constraint
+  - type: max_delay
+    from: pclk_domain
+    to: hclk_domain
+    delay_ns: 20.0
+    description: CDC max delay for async FIFO pointer sync
   required_outputs:
   - prdata
   - pready
@@ -1339,23 +2005,54 @@ synthesis:
   - htrans
   - hsize
   - hburst
+  - hprot
+  - hmaster
+  - hmastlock
   - hwdata
   - hbusreq
   - irq
   - irq_combined
 coding_rules:
-  - use input logic / output logic port style
-  - no always_ff / always_comb / for / while / typedef / enum
-  - no package / import / interface / modport / function / task
-  - use always @(posedge) / always @(*) style
-  - all state registers have async reset
-reuse_modules: []
+- use input logic / output logic port style
+- no always_ff / always_comb / for / while / typedef / enum
+- no package / import / interface / modport / function / task
+- use always @(posedge) / always @(*) style
+- all state registers have async reset (posedge clk or negedge rst_n)
+- CDC modules use 2-stage synchronizer with async reset
+- gray-code counter for async FIFO pointers
+- generate blocks for N_CHANNELS instantiation
+- pointer-based circular buffer for FIFO (not shift register)
+- clock gating via library ICG cell
+reuse_modules:
+- name: dma_real_async_fifo
+  file: rtl/dma_real_async_fifo.sv
+  ownership: manifest
+  rtl_emit: true
+  description: Parameterized dual-clock async FIFO with gray-code pointer sync,
+    almost_full/almost_empty flags, and configurable depth (power of 2)
+- name: dma_real_cdc_sync
+  file: rtl/dma_real_cdc_sync.sv
+  ownership: manifest
+  rtl_emit: true
+  description: Parameterized 2-stage flip-flop synchronizer for single-bit or multi-bit
+    (gray-code) CDC
+- name: dma_real_cg_cell
+  file: rtl/dma_real_cg_cell.sv
+  ownership: manifest
+  rtl_emit: true
+  description: Integrated clock-gating cell wrapping library ICG primitive. Enable
+    input controls gated clock output.
 custom:
   assumptions:
-  - single_clock_domain: pclk is the only clock
-  - word_aligned_addresses: all addresses are 32-bit word aligned
-  - max_burst_16: burst length does not exceed 16
-  - no_scatter_gather: contiguous address transfers only
+  - dual_clock_domain: pclk and hclk may be asynchronous. Design must handle arbitrary
+      phase relationship.
+  - word_aligned_addresses: all addresses are word-aligned for word-size transfers
+  - max_burst_16: burst length does not exceed 16 beats
+  - no_scatter_gather: contiguous or fixed-stride address transfers only (no linked-list
+      descriptor in this revision)
+  - fifo_depth_power_of_2: FIFO_DEPTH must be power of 2 for gray-code pointer efficiency
+  - hresp_split_optional: SPLIT response support included but may not be exercised
+      by all AHB slaves
 dir_structure:
   rtl: rtl/
   tb: tb/cocotb/
@@ -1373,12 +2070,17 @@ filelist:
   - rtl/dma_real_channel.sv
   - rtl/dma_real_ahb_master.sv
   - rtl/dma_real_irq.sv
+  - rtl/dma_real_engine.sv
+  - rtl/dma_real_async_fifo.sv
+  - rtl/dma_real_cdc_sync.sv
+  - rtl/dma_real_cg_cell.sv
 test_requirements:
   scenarios:
   - id: SC_001
     name: single_channel_transfer
-    stimulus: configure CH0 with aligned src=0x1000, dst=0x2000, len=4, start transfer
-    expected: CH0_STATUS.done=1, 4 words transferred, irq[0] asserted
+    stimulus: configure CH0 with aligned src=0x1000, dst=0x2000, len=4, stride=4,
+      start transfer
+    expected: CH0_STATUS.done=1, 4 words transferred, PERF_WORDS=4, irq[0] asserted
     checker: scoreboard compares FL vs RTL per-busy/done/error
     coverage:
     - function_dma_step
@@ -1404,16 +2106,16 @@ test_requirements:
     coverage:
     - function_dma_busy_reject
   - id: SC_005
-    name: multi_channel_round_robin
+    name: multi_channel_interleaved
     stimulus: start CH0 and CH1 simultaneously with len=8 each
     expected: both complete, arbiter alternates grants, both irq asserted
-    checker: scoreboard verifies both channels complete with correct data
+    checker: scoreboard verifies both channels complete with interleaved grants
     coverage:
     - function_dma_multi_ch
     - cycle_arb_round_robin
   - id: SC_006
     name: bus_error_during_transfer
-    stimulus: configure CH0, start transfer, inject hresp=ERROR on first read
+    stimulus: configure CH0, start transfer, inject hresp=ERROR on first read beat
     expected: CH0_STATUS.error=1, err_code=3, transfer aborted
     checker: scoreboard verifies error after bus error response
     coverage:
@@ -1439,12 +2141,53 @@ test_requirements:
     checker: scoreboard verifies pslverr response
     coverage:
     - function_dma_apb_err
+  - id: SC_010
+    name: stride_transfer
+    stimulus: configure CH0 with stride=8, src=0x1000, dst=0x2000, len=4
+    expected: addresses increment by 8 per beat, 4 words transferred, PERF_WORDS=4
+    checker: scoreboard verifies address increments match stride
+    coverage:
+    - function_dma_stride
+  - id: SC_011
+    name: bus_timeout
+    stimulus: configure CH0 with GLOBAL_TIMEOUT=100, start transfer, inject hready=0
+      for 101 cycles
+    expected: CH0_STATUS.error=1, err_code=4, transfer aborted
+    checker: scoreboard verifies timeout error detection
+    coverage:
+    - function_dma_timeout
+  - id: SC_012
+    name: performance_counters
+    stimulus: configure and complete CH0 transfer with len=16, read PERF_WORDS and
+      PERF_CYCLES
+    expected: PERF_WORDS=16, PERF_CYCLES > 0, PERF_CYCLES saturates at 32'hFFFFFFFF
+    checker: scoreboard verifies counter values
+    coverage:
+    - function_dma_perf_counters
+  - id: SC_013
+    name: burst_wrap_boundary
+    stimulus: configure CH0 with burst_mode=INCR4, start address near 1KB boundary
+    expected: burst splits at 1KB boundary, new NONSEQ beat starts after boundary
+    checker: scoreboard verifies burst splitting at boundary
+    coverage:
+    - function_dma_burst_boundary
+  - id: SC_014
+    name: clock_gating
+    stimulus: start CH0 transfer, observe gated_hclk active. After completion, observe
+      gated_hclk disabled
+    expected: clock gating enable follows ch_busy, no spurious transitions
+    checker: scoreboard verifies clock gate enable timing
+    coverage:
+    - function_dma_clock_gating
   scoreboard_checks:
   - per-channel busy/done/error output matches FunctionalModel
   - per-channel remaining counter matches FL state
-  - per-channel src/dst address counters match FL state
+  - per-channel src/dst address counters match FL state (with stride)
   - arbiter grant matches round-robin policy
   - IRQ outputs match mask and status
+  - performance counter values match expected increments
+  - timeout detection triggers within GLOBAL_TIMEOUT cycles
+  - AHB htrans/hburst/hsize encoding matches protocol
   coverage_goals:
     function:
       target_pct: 100
@@ -1466,6 +2209,10 @@ test_requirements:
         source_ref: function_model.transactions.FM_DMA_ERROR
         class: error
         description: Bus error during AHB transfer
+      - id: function_dma_error_timeout
+        source_ref: function_model.transactions.FM_DMA_ERROR
+        class: error
+        description: Bus timeout error
       - id: function_dma_busy_reject
         source_ref: function_model.transactions.FM_DMA_START
         class: error_case
@@ -1486,6 +2233,26 @@ test_requirements:
         source_ref: function_model.transactions.FM_DMA_START
         class: protocol
         description: APB error on unmapped address access
+      - id: function_dma_stride
+        source_ref: function_model.state_variables.ch_stride_q
+        class: transaction
+        description: Non-default stride address increment
+      - id: function_dma_timeout
+        source_ref: function_model.state_variables.timeout_q
+        class: error
+        description: Bus timeout detection
+      - id: function_dma_perf_counters
+        source_ref: function_model.state_variables.perf_words_q
+        class: status
+        description: Performance counter increment
+      - id: function_dma_burst_boundary
+        source_ref: function_model.transactions.FM_DMA_STEP
+        class: protocol
+        description: Burst split at 1KB boundary
+      - id: function_dma_clock_gating
+        source_ref: function_model.state_variables.ch_busy_q
+        class: power
+        description: Clock gating enable/disable per channel
     cycle:
       target_pct: 100
       model: cycle_model
@@ -1530,6 +2297,14 @@ test_requirements:
         source_ref: cycle_model.handshake_rules.ahb_address_phase
         class: timing
         description: Burst completion latency measured
+      - id: cycle_cdc_crossing
+        source_ref: cycle_model.handshake_rules.cdc_config
+        class: timing
+        description: CDC config crossing latency measured
+      - id: cycle_timeout_path
+        source_ref: cycle_model.handshake_rules.timeout_rule
+        class: timing
+        description: Timeout counter activation and expiry
 quality_gates:
   ssot:
     pass: SSOT YAML passes check_ssot_disk.sh validator with no missing sections
@@ -1543,6 +2318,12 @@ quality_gates:
   coverage:
     pass: 100% of planned functional and cycle coverage bins hit
     evidence: cov/coverage_functional.json, cov/fcov_plan.json
+  eda:
+    pass: Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have approved SSOT waivers.
+    evidence: syn report, sta reports, pnr report, routed.spef, sta-post reports
+  signoff:
+    pass: All quality gates pass with fresh evidence. Human gates resolved.
+    evidence: sim/fl_rtl_goal_audit.json, cov/coverage_functional.json, req/approval_manifest.json
 traceability:
   yaml_to_output:
   - ssot_section: top_module
@@ -1563,36 +2344,46 @@ traceability:
     output: error detection in rtl/dma_real_channel.sv
   - ssot_section: interrupts
     output: IRQ logic in rtl/dma_real_irq.sv
+  - ssot_section: cdc_requirements
+    output: CDC logic in rtl/dma_real_async_fifo.sv and rtl/dma_real_cdc_sync.sv
+  - ssot_section: power
+    output: clock gating in rtl/dma_real_cg_cell.sv and rtl/dma_real_engine.sv
   - ssot_section: test_requirements
     output: tb/cocotb/test_dma_real.py
 workflow_todos:
   rtl-gen:
-  - content: Implement top-level DMA wiring module connecting APB, AHB, arbiter, channels,
-      and IRQ
-    detail: dma_real_top.sv instantiates apb_cfg, arbiter, 4x channel, ahb_master,
-      and irq. Wire APB slave ports, AHB master ports, and IRQ outputs per io_list.
+  - content: Implement top-level DMA wiring with dual-clock CDC bridge
+    detail: dma_real_top.sv instantiates apb_cfg (pclk), engine (hclk), irq (pclk),
+      and CDC async FIFO bridges. Wire APB slave ports, AHB master ports, and IRQ
+      outputs. CDC FIFO connects pclk domain config writes to hclk domain channel
+      FSM.
     criteria:
-    - top module ports match SSOT io_list exactly
-    - all sub-modules instantiated and connected
+    - top module ports match SSOT io_list exactly including hprot, hmaster, hmastlock,
+      hresp[1:0]
+    - dual-clock domains properly separated
+    - CDC async FIFO instantiated for config crossing
     - compile clean with iverilog -g2012
     source_refs:
     - io_list
     - sub_modules
     - integration
-  - content: Implement APB slave configuration decode with register read/write
-    detail: dma_real_apb_cfg decodes paddr to global and per-channel registers. Write
-      data latched, read data muxed. pslverr on unmapped addresses.
+    - cdc_requirements
+  - content: Implement APB slave configuration decode with dual-clock awareness
+    detail: dma_real_apb_cfg decodes paddr to global and per-channel registers including
+      STRIDE, GLOBAL_TIMEOUT, PERF counters. Writes pushed into CDC FIFO for hclk
+      domain. Readback synchronized from hclk domain.
     criteria:
     - all register offsets decoded correctly per SSOT register map
+    - new registers (STRIDE, GLOBAL_TIMEOUT, PERF_WORDS, PERF_CYCLES) implemented
     - write_effect implemented for each field
-    - read returns correct field values
-    - pslverr asserted for unmapped addresses
+    - CDC FIFO push on config write
     source_refs:
     - registers.register_list
     - io_list.interfaces.apb_slave
-  - content: Implement round-robin arbiter for AHB bus access
+    - cdc_requirements
+  - content: Implement round-robin arbiter in hclk domain
     detail: dma_real_arbiter accepts request from each active channel and grants bus
-      to next channel in round-robin order. One grant per burst.
+      to next channel in round-robin order. Starvation-free.
     criteria:
     - round-robin pointer advances after each grant
     - only one channel granted at a time
@@ -1600,60 +2391,100 @@ workflow_todos:
     source_refs:
     - function_model.transactions.FM_ARB_GRANT
     - cycle_model.performance
-  - content: Implement per-channel FSM with address counters and burst control
+  - content: Implement per-channel FSM with stride, timeout, and performance counters
     detail: dma_real_channel implements IDLE/CFG/REQUEST/READ/WRITE/UPDATE/DONE/ERROR
-      FSM. Latches src_addr, dst_addr, remaining from config. Increments addresses
-      after each burst. Detects alignment and zero-length errors.
+      FSM. Latches src_addr, dst_addr, remaining, stride from CDC config. Addresses
+      increment by stride (not hardcoded 4). Timeout counter monitors hready. Performance
+      counters increment. Generate-based instantiation for N_CHANNELS.
     criteria:
-    - all FSM states and transitions match SSOT
-    - address counters increment by burst_len * 4
-    - remaining counter decrements correctly
-    - error detection for alignment, zero-length
-    - busy/done/error status outputs match FL
+    - all FSM states and transitions match SSOT including timeout and FIFO overflow
+    - address counters increment by stride per beat
+    - timeout counter triggers error code 4
+    - perf_words increments per word, perf_cycles per active cycle
+    - generate block for N_CHANNELS
     source_refs:
     - fsm.per_channel
-    - function_model.transactions.FM_DMA_START
-    - function_model.transactions.FM_DMA_STEP
-    - function_model.transactions.FM_DMA_COMPLETE
-    - function_model.transactions.FM_DMA_ERROR
+    - function_model.transactions
     - error_handling
-  - content: Implement AHB-Lite master protocol engine
-    detail: dma_real_ahb_master drives haddr, htrans, hsize, hburst, hwrite, hwdata
-      per AHB-Lite protocol. Supports INCR4/8/16 bursts. Monitors hready and hresp.
+    - registers.register_list
+  - content: Implement full AHB-Lite master protocol engine
+    detail: "dma_real_ahb_master drives full AHB-Lite protocol: haddr, htrans, hsize, hburst (INCR4/8/16 + WRAP4/8/16), hprot, hmaster, hmastlock, hwdata. 2-bit hresp handles OKAY/ERROR/RETRY/SPLIT. 1KB boundary detection splits burst."
     criteria:
     - address phase and data phase timing correct
     - NONSEQ for first beat, SEQ for subsequent
-    - hburst encoded based on remaining count
-    - hresp=ERROR triggers error reporting
+    - hburst INCR and WRAP modes encoded correctly
+    - hprot default 0011, hmaster set to channel ID
+    - hresp=ERROR aborts, hresp=RETRY re-requests
+    - 1KB boundary detection triggers new NONSEQ
     source_refs:
     - io_list.interfaces.ahb_master
     - cycle_model.pipeline
     - cycle_model.handshake_rules
-  - content: Implement interrupt aggregation with mask and combined output
-    detail: dma_real_irq aggregates per-channel done/error status with INT_ENABLE mask.
-      Generates per-channel irq and combined irq_combined outputs.
+  - content: Implement interrupt aggregation with sticky latch
+    detail: dma_real_irq aggregates per-channel done/error status with INT_ENABLE mask
+      in pclk domain. Done/error pulses from hclk domain cross via pulse synchronizer.
     criteria:
     - irq[ch] reflects (done_q[ch] OR error_q[ch]) AND int_enable_q[ch]
-    - irq_combined is OR of all per-channel irq
-    - INT_CLEAR clears done_q and error_q for selected channels
+    - INT_CLEAR clears done_q and error_q with priority over new pulse
+    - pulse synchronizer for hclk-to-pclk crossing
     source_refs:
     - interrupts
     - io_list.interfaces.irq_outputs
-    - registers.register_list
-  tb-gen:
-  - content: Generate SSOT-driven cocotb testbench for DMA scenarios
-    detail: cocotb TB with APB driver, AHB-Lite slave model, scoreboard, and coverage
-      collector. Stimulus covers all 9 scenarios from test_requirements.
+    - cdc_requirements
+  - content: Implement dual-clock async FIFO with gray-code pointer sync
+    detail: dma_real_async_fifo parameterized dual-clock FIFO. Write port in pclk
+      domain, read port in hclk domain. Gray-code rd_ptr and wr_ptr with 2-stage
+      synchronization. almost_full and almost_empty flags. Power-of-2 depth.
     criteria:
-    - APB driver exercises register read/write
-    - AHB slave model responds to read/write with configurable hready and hresp
+    - gray-code pointer conversion correct
+    - 2-stage synchronizer on crossed pointers
+    - almost_full/almost_empty thresholds configurable
+    - full/empty flags never simultaneously true
+    source_refs:
+    - memory.internal
+    - cdc_requirements
+  - content: Implement 2-stage CDC synchronizer and clock gating cell
+    detail: dma_real_cdc_sync is parameterized 2-stage flip-flop synchronizer. dma_real_cg_cell
+      wraps library ICG primitive with enable input.
+    criteria:
+    - 2-stage sync with async reset
+    - ICG enable/disable glitch-free
+    - parameterized width for multi-bit gray-code sync
+    source_refs:
+    - cdc_requirements
+    - power.domains
+  - content: Implement hclk-domain engine connecting arbiter, channels, AHB master,
+      and clock gating
+    detail: dma_real_engine instantiates arbiter, N_CHANNELS channel instances (via
+      generate), shared AHB master, and per-channel clock gating cells. Mux channel
+      requests to AHB master based on arbiter grant.
+    criteria:
+    - generate block instantiates N_CHANNELS channel and FIFO instances
+    - per-channel CG cell enable tied to ch_busy or ch_start_pending
+    - AHB master mux selects granted channel
+    - compile clean
+    source_refs:
+    - sub_modules
+    - power.domains
+    - cycle_model.pipeline
+  tb-gen:
+  - content: Generate SSOT-driven cocotb testbench for DMA scenarios including dual-clock
+      and CDC
+    detail: cocotb TB with APB driver (pclk), AHB-Lite slave model (hclk), dual-clock
+      timing, CDC awareness, scoreboard, and coverage collector. Stimulus covers all
+      14 scenarios including stride, timeout, burst boundary, performance counters,
+      and clock gating.
+    criteria:
+    - APB driver exercises register read/write in pclk domain
+    - AHB slave model responds with configurable hready, hresp[1:0], in hclk domain
+    - dual-clock testbench with separate pclk and hclk
     - scoreboard checks FL-vs-RTL equivalence per goal
     - coverage bins sampled from passing scoreboard rows
     source_refs:
     - test_requirements.scenarios
     - test_requirements.coverage_goals
-    - io_list.interfaces.apb_slave
-    - io_list.interfaces.ahb_master
+    - io_list.interfaces
+    - cdc_requirements
 generation_flow:
   stages:
   - name: ssot-gen
@@ -1690,8 +2521,8 @@ generation_flow:
     tool: deterministic
     evidence: sim/fl_rtl_goal_audit.json
 rtl_contract:
-  clock: pclk
-  reset: presetn
+  clock: hclk
+  reset: hresetn
   reset_active: low
   transaction: FM_DMA_STEP
   sample_condition: ch_start or ch_busy or ch_done or ch_error or irq
@@ -1700,9 +2531,11 @@ rtl_contract:
     src_addr: CHx_SRC_ADDR
     dst_addr: CHx_DST_ADDR
     length: CHx_LEN
+    stride: CHx_STRIDE
     ch_en: CHx_CTRL.ch_en
     ch_start: CHx_CTRL.ch_start
     dma_en: GLOBAL_CTRL.dma_en
+    timeout_val: GLOBAL_TIMEOUT.timeout_val
   output_map:
     ch_busy_next: ch_busy
     done_pulse: ch_done

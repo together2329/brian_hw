@@ -1,0 +1,28 @@
+{
+  "ip": "uart_lite_real",
+  "status": "blocked",
+  "reason": "SSOT is entirely TBD — no sections populated. TB generation requires at minimum: top_module, io_list, function_model, cycle_model, test_requirements.scenarios, and coverage_goals.",
+  "next_action": "Populate SSOT via ssot-gen with real UART-lite requirements, then rerun /ssot-tb uart_lite_real",
+  "owner": "ssot-gen + human gate",
+  "timestamp": "2026-06-14T00:00:00Z",
+  "schema_version": 1,
+  "type": "tb_blocker",
+  "missing_ssot_sections": [
+    "top_module",
+    "io_list",
+    "parameters",
+    "clock_reset_domains",
+    "function_model",
+    "cycle_model",
+    "features",
+    "dataflow",
+    "registers",
+    "test_requirements",
+    "coverage_goals",
+    "interrupts",
+    "error_handling",
+    "debug_observability",
+    "quality_gates"
+  ],
+  "rtl_status": "also blocked (see rtl/rtl_blocked.json)"
+}

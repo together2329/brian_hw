@@ -2,12 +2,11 @@
 """SSOT-to-RTL preflight bridge with explicit ambiguity blocking.
 
 This script validates that SSOT semantics and the SSOT-derived RTL TODO ledger
-are ready, then checks for authored RTL files and filelist evidence. It can
-lower a requirements-backed, single-leaf, machine-checkable SSOT rule contract
-into deterministic seed RTL. Larger or ambiguous designs still require the
-rtl-gen authoring loop; when behavior or implementation evidence is missing,
-the script writes <ip>/rtl/rtl_blocked.json and prints a focused
-[SSOT QUESTION] or [RTL BLOCKED] instead of emitting fixed-template RTL.
+are ready, then checks for authored RTL files, filelist evidence, and RTL
+authoring provenance. It does not turn SSOT rules into RTL by default; when
+behavior or implementation evidence is missing, the script writes
+<ip>/rtl/rtl_blocked.json and prints a focused [SSOT QUESTION] or
+[RTL BLOCKED] instead of emitting fixed-template RTL.
 """
 
 from __future__ import annotations
@@ -412,6 +411,16 @@ def _starter_wrap_nested(node: ast.AST, expr: str) -> str:
     return f"({expr})"
 
 
+def _starter_cast(width: int, expr: str, expr_width: int | None = None) -> str:
+    text = str(expr or "0").strip() or "0"
+    width = max(int(width or 1), 1)
+    if expr_width == width:
+        return text
+    if width == 1:
+        return text if expr_width == 1 else f"(|{_sv_width_cast(max(int(expr_width or 1), 1), text)})"
+    return _sv_width_cast(width, text)
+
+
 def _starter_bool_expr(node: ast.AST, env: dict[str, str], widths: dict[str, int]) -> str:
     expr, width = _starter_ast_to_rtl_typed(node, env, widths, 1)
     if width == 1:
@@ -425,11 +434,10 @@ def _starter_ast_to_rtl_typed(
     widths: dict[str, int],
     preferred_width: int | None = None,
 ) -> tuple[str, int]:
-    """Lower Starter preview rules to reviewable RTL.
+    """Lower Starter rule expressions to reviewable RTL expressions.
 
-    The full rtl-gen path keeps aggressively defensive casts. Starter is an
-    inspection lane, so single-bit boolean rules should read like handwritten
-    combinational RTL while still rejecting unsupported expressions.
+    The LLM authoring contract and smoke harness share this readable expression
+    form; this helper does not write a full RTL artifact.
     """
 
     if isinstance(node, ast.Expression):
@@ -483,10 +491,10 @@ def _starter_ast_to_rtl_typed(
             width = max(left_w, right_w, int(preferred_width or 0), 1)
             if width == left_w == right_w == 1:
                 return f"{_starter_wrap_nested(node.left, left)} {op} {_starter_wrap_nested(node.right, right)}", 1
-            return f"({_sv_width_cast(width, left)} {op} {_sv_width_cast(width, right)})", width
+            return f"({_starter_cast(width, left, left_w)} {op} {_starter_cast(width, right, right_w)})", width
         if isinstance(node.op, (ast.LShift, ast.RShift)):
             width = max(left_w, int(preferred_width or 0), 1)
-            return f"({_sv_width_cast(width, left)} {op} {right})", width
+            return f"({_starter_cast(width, left, left_w)} {op} {right})", width
         width = max(left_w, right_w, int(preferred_width or 0), 1)
         return f"({left} {op} {right})", width
     if isinstance(node, ast.Compare):
@@ -506,8 +514,7 @@ def _starter_ast_to_rtl_typed(
             if op is None:
                 raise ValueError(f"unsupported comparison {type(op_node).__name__}")
             right, right_w = _starter_ast_to_rtl_typed(comparator, env, widths, None)
-            width = max(left_w, right_w, 1)
-            parts.append(f"{_sv_width_cast(width, left)} {op} {_sv_width_cast(width, right)}")
+            parts.append(f"{left} {op} {right}")
             left, left_w = right, right_w
         return " & ".join(f"({part})" for part in parts), 1
     if isinstance(node, ast.IfExp):
@@ -515,7 +522,7 @@ def _starter_ast_to_rtl_typed(
         body, body_w = _starter_ast_to_rtl_typed(node.body, env, widths, preferred_width)
         other, other_w = _starter_ast_to_rtl_typed(node.orelse, env, widths, preferred_width)
         width = max(body_w, other_w, int(preferred_width or 0), 1)
-        return f"({test} ? {_sv_width_cast(width, body)} : {_sv_width_cast(width, other)})", width
+        return f"({test} ? {_starter_cast(width, body, body_w)} : {_starter_cast(width, other, other_w)})", width
     if isinstance(node, ast.Subscript):
         value, _value_w = _starter_ast_to_rtl_typed(node.value, env, widths, None)
         slice_node = node.slice
@@ -559,7 +566,7 @@ def _starter_assign_expr(
     output_width = max(int(output_width or 1), 1)
     if output_width == expr_width:
         return expr
-    return _sv_width_cast(output_width, expr)
+    return _starter_cast(output_width, expr, expr_width)
 
 
 def _rtl_bool(expr: str) -> str:
@@ -593,19 +600,19 @@ def _find_clock_reset(ports: list[dict], contract: dict) -> tuple[str, str, str,
         questions.append(_question(
             "RTL_CLOCK_PORT",
             "Define a concrete input clock port for generated sequential RTL.",
-            "The generic sampled-rule generator needs rtl_contract.clock or an input port named clk/clock/pclk.",
+            "The RTL authoring contract needs rtl_contract.clock or an input port named clk/clock/pclk.",
             ["Add rtl_contract.clock: <clock_port> and ensure io_list declares it as input."],
             "Declare the clock explicitly under rtl_contract.clock.",
-            "rtl-gen can create deterministic sequential logic and compile/lint evidence.",
+            "rtl-gen can hand precise clocking context to the LLM author and compile/lint evidence.",
         ))
     if not reset or reset not in by_name or by_name[reset].get("direction") != "input":
         questions.append(_question(
             "RTL_RESET_PORT",
             "Define a concrete input reset port and active level.",
-            "The generic sampled-rule generator needs rtl_contract.reset and rtl_contract.reset_active.",
+            "The RTL authoring contract needs rtl_contract.reset and rtl_contract.reset_active.",
             ["Add rtl_contract.reset: <reset_port> and rtl_contract.reset_active: low|high."],
             "Declare reset and active level explicitly under rtl_contract.",
-            "Generated RTL, FL reset behavior, and TB reset sequence share the same contract.",
+            "LLM-authored RTL, FL reset behavior, and TB reset sequence share the same contract.",
         ))
     if reset_active not in {"low", "high"}:
         questions.append(_question(
@@ -621,6 +628,8 @@ def _find_clock_reset(ports: list[dict], contract: dict) -> tuple[str, str, str,
 
 def _find_rule_transaction(doc: dict, contract: dict) -> tuple[dict, list[dict]]:
     fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    if _rule_items(fm.get("output_rules")) or _rule_items(fm.get("state_updates")):
+        return fm, []
     transactions = [tx for tx in fm.get("transactions") or [] if isinstance(tx, dict)]
     requested = str(contract.get("transaction") or contract.get("transaction_id") or "").strip().lower()
     selected: dict = {}
@@ -639,14 +648,38 @@ def _find_rule_transaction(doc: dict, contract: dict) -> tuple[dict, list[dict]]
     return {}, [_question(
         "FM_OUTPUT_RULES",
         "Define executable function_model output_rules for at least one transaction.",
-        "The generic RTL path only runs when the SSOT carries machine-checkable output rules.",
+        "The RTL authoring contract needs machine-checkable output rules before implementation can be verified.",
         ["Add function_model.transactions[].output_rules with name/expr/width entries."],
         "Put datapath behavior in output_rules and keep prose as description only.",
-        "FL model, RTL generation, scoreboard expected values, and coverage goals share the same rule ledger.",
+        "FL model, LLM-authored RTL, scoreboard expected values, and coverage goals share the same rule ledger.",
     )]
 
 
-def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict, list[dict]]:
+def _lower_rule_expr(
+    raw_expr: object,
+    env: dict[str, str],
+    widths: dict[str, int],
+    output_width: int,
+    *,
+    readable: bool = False,
+) -> str:
+    node = _parse_rule_expr(raw_expr)
+    if readable:
+        return _starter_assign_expr(node, env, widths, output_width)
+    return _ast_to_rtl_width(node, env, widths, output_width)
+
+
+def _cast_rule_expr(width: int, expr: str, *, readable: bool = False) -> str:
+    return str(expr or "0").strip() if readable else _sv_cast(width, expr)
+
+
+def _generic_rule_contract(
+    doc: dict,
+    top: str,
+    ports: list[dict],
+    *,
+    readable: bool = False,
+) -> tuple[dict, list[dict]]:
     contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
     tx, questions = _find_rule_transaction(doc, contract)
     if questions:
@@ -750,7 +783,7 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
                 next_pending.append(item)
                 continue
             try:
-                expr = _ast_to_rtl_width(_parse_rule_expr(raw_expr), env, env_widths, width)
+                expr = _lower_rule_expr(raw_expr, env, env_widths, width, readable=readable)
             except Exception as exc:
                 still_missing = (_expr_names(raw_expr) & derived_names) - set(env)
                 if still_missing:
@@ -828,7 +861,7 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
             f"Rule expressions reference {name!r}, but rtl_contract.input_map does not bind it to an input port.",
             [f"Add rtl_contract.input_map.{name}: <input_port>."],
             "Use explicit input_map entries for every transaction field used by output_rules/sample_condition.",
-            "Generated RTL can connect the SSOT transaction vocabulary to concrete DUT pins.",
+            "RTL authoring can connect the SSOT transaction vocabulary to concrete DUT pins.",
         ))
 
     pending_outputs: list[dict] = []
@@ -875,7 +908,7 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
             port = item["port"]
             raw_expr = item["raw_expr"]
             try:
-                expr = _ast_to_rtl_width(_parse_rule_expr(raw_expr), env, env_widths, int(item["width"]))
+                expr = _lower_rule_expr(raw_expr, env, env_widths, int(item["width"]), readable=readable)
             except Exception as exc:
                 questions.append(_question(
                     f"RTL_EXPR_{name.upper()}",
@@ -891,11 +924,11 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
             resolved_outputs.append({
                 "name": name,
                 "port": port,
-                "expr": _sv_cast(int(item["width"]), expr),
+                "expr": _cast_rule_expr(int(item["width"]), expr, readable=readable),
                 "width": item["width"],
                 "source": item["source"],
             })
-            same_cycle_ref = _sv_cast(int(item["width"]), expr)
+            same_cycle_ref = _cast_rule_expr(int(item["width"]), expr, readable=readable)
             for alias in item["aliases"]:
                 env[alias] = same_cycle_ref
                 sample_env[alias] = same_cycle_ref
@@ -914,7 +947,7 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
                 f"Rule expression references unresolved output rule(s): {', '.join(deps) or 'unknown cycle'}.",
                 ["Define combinational helper expressions before dependent outputs or remove cyclic output dependencies."],
                 "Output rules must form an acyclic same-cycle expression graph.",
-                "Generated RTL can lower FL observables without previous-cycle output feedback.",
+                "LLM-authored RTL can implement FL observables without previous-cycle output feedback.",
             ))
         break
 
@@ -930,7 +963,7 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
         env_widths[name] = int(state_vars[name]["width"])
         sample_env_widths[name] = int(state_vars[name]["width"])
         try:
-            expr = _ast_to_rtl_width(_parse_rule_expr(raw_expr), env, env_widths, int(state_vars[name]["width"]))
+            expr = _lower_rule_expr(raw_expr, env, env_widths, int(state_vars[name]["width"]), readable=readable)
         except Exception as exc:
             questions.append(_question(
                 f"RTL_STATE_EXPR_{name.upper()}",
@@ -955,7 +988,7 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
                     f"rtl_contract.{key} references {port!r}, but io_list does not declare it as output.",
                     [f"Add {port} to io_list as output or remove rtl_contract.{key}."],
                     "Keep handshake/control outputs explicit in io_list.",
-                    "Generated RTL can expose ready/valid behavior to TB monitors.",
+                    "LLM-authored RTL can expose ready/valid behavior to TB monitors.",
                 ))
             else:
                 special_outputs[key] = port
@@ -1033,7 +1066,7 @@ def _generic_rule_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict
         questions.append(question)
 
     try:
-        sample_expr = _ast_to_rtl_width(_parse_rule_expr(sample_condition), sample_env, sample_env_widths, 1)
+        sample_expr = _lower_rule_expr(sample_condition, sample_env, sample_env_widths, 1, readable=readable)
     except Exception as exc:
         questions.append(_question(
             "RTL_SAMPLE_CONDITION",
@@ -1091,12 +1124,18 @@ def _function_model_state_updates(fm: dict) -> list[dict]:
     return updates
 
 
+def _starter_sequential_intent(doc: dict) -> bool:
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    return bool(_function_model_state_updates(fm) or (fm.get("state_variables") if isinstance(fm, dict) else []))
+
+
 def _starter_preview_contract(doc: dict, top: str, ports: list[dict]) -> tuple[dict, list[dict], list[dict]]:
-    """Build the lowest-risk Starter RTL preview contract.
+    """Build the lowest-risk Starter RTL authoring contract.
 
     Starter is a fast feedback lane, not signoff. It accepts a compact SSOT
-    with top_module/io_list/function_model, lowers only direct combinational
-    output_rules, and reports everything else as soft/deferred gate evidence.
+    with top_module/io_list/function_model and turns direct output_rules into
+    a worker handoff contract. The LLM/worker writes the RTL; this path only
+    reports missing context as hard/soft/deferred gate evidence.
     """
 
     fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
@@ -1105,11 +1144,11 @@ def _starter_preview_contract(doc: dict, top: str, ports: list[dict]) -> tuple[d
     if not ports:
         hard_questions.append(_question(
             "STARTER_IO_LIST_PORTS",
-            "Declare at least one concrete DUT port before Starter RTL preview.",
+            "Declare at least one concrete DUT port before Starter RTL authoring.",
             "io_list did not contain parsable ports.",
             ["Add io_list.interfaces[].ports[] with name, direction, and width."],
             "Keep Starter input small, but make pin names explicit.",
-            "The preview generator can emit a compile-checkable module port list.",
+            "The LLM author needs a concrete compile-checkable module port list.",
         ))
         return {}, hard_questions, soft_gates
 
@@ -1118,7 +1157,7 @@ def _starter_preview_contract(doc: dict, top: str, ports: list[dict]) -> tuple[d
             "id": "STARTER_CYCLE_MODEL_DEFERRED",
             "severity": "warning",
             "status": "deferred",
-            "message": "cycle_model is missing; Starter treats direct output_rules as same-cycle combinational preview only.",
+            "message": "cycle_model is missing; Starter treats direct output_rules as same-cycle authoring hints only.",
         })
 
     state_updates = _function_model_state_updates(fm)
@@ -1126,11 +1165,11 @@ def _starter_preview_contract(doc: dict, top: str, ports: list[dict]) -> tuple[d
     if state_updates or state_vars:
         hard_questions.append(_question(
             "STARTER_SEQUENTIAL_CONTRACT",
-            "Add clock/reset or use Engineering mode for sequential Starter preview.",
-            "function_model has state_variables/state_updates, so a combinational preview would hide state behavior.",
+            "Add clock/reset or use Engineering mode for sequential Starter authoring.",
+            "function_model has state_variables/state_updates, so the LLM author needs explicit sequential timing context.",
             ["Add rtl_contract.clock/reset/reset_active and rerun.", "Use --mode engineering for the full rtl-gen authoring loop."],
-            "Keep Starter combinational unless the sequential timing contract is explicit.",
-            "Prevents a fast preview from pretending stateful RTL is complete.",
+            "Keep Starter sequential behavior explicit when state is present.",
+            "Prevents a fast Starter run from pretending stateful RTL is complete.",
         ))
 
     by_name = {p["name"]: p for p in ports}
@@ -1139,11 +1178,11 @@ def _starter_preview_contract(doc: dict, top: str, ports: list[dict]) -> tuple[d
     if not output_ports:
         hard_questions.append(_question(
             "STARTER_OUTPUT_PORT",
-            "Declare at least one DUT output port before Starter RTL preview.",
+            "Declare at least one DUT output port before Starter RTL authoring.",
             "io_list has no output/inout port that output_rules can drive.",
             ["Add an output port under io_list.interfaces[].ports[]."],
             "Expose the observable behavior as a DUT output.",
-            "The preview can compile and be inspected immediately.",
+            "The authored RTL can compile and be inspected immediately.",
         ))
 
     contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
@@ -1170,11 +1209,11 @@ def _starter_preview_contract(doc: dict, top: str, ports: list[dict]) -> tuple[d
     if not raw_rules:
         hard_questions.append(_question(
             "STARTER_OUTPUT_RULES",
-            "Add direct function_model.output_rules before Starter RTL preview.",
-            "Starter can only emit deterministic preview RTL from machine-checkable output_rules.",
+            "Add direct function_model.output_rules before Starter RTL authoring.",
+            "Starter needs machine-checkable output_rules to guide and verify LLM-authored RTL.",
             ["Add function_model.output_rules[] or function_model.transactions[].output_rules[] with name/expr/port."],
-            "Use prose for context, but put preview behavior in output_rules.",
-            "The preview RTL and later FL/TB checks share the same expression contract.",
+            "Use prose for context, but put executable behavior in output_rules.",
+            "The authored RTL and later FL/TB checks share the same expression contract.",
         ))
 
     outputs: list[dict] = []
@@ -1189,7 +1228,7 @@ def _starter_preview_contract(doc: dict, top: str, ports: list[dict]) -> tuple[d
                 f"Rule targets {port!r}, but io_list does not declare that output port.",
                 [f"Set output_rules[{idx}].port or rtl_contract.output_map.{name} to a declared output."],
                 "Make every Starter rule land on a concrete DUT pin.",
-                "The generated preview can compile without inventing output ports.",
+                "The authored RTL can compile without inventing output ports.",
             ))
             continue
         raw_expr = rule.get("expr", rule.get("expression", rule.get("value")))
@@ -1199,8 +1238,8 @@ def _starter_preview_contract(doc: dict, top: str, ports: list[dict]) -> tuple[d
                 f"Give Starter output rule {name!r} an executable expression.",
                 "The rule has no expr/expression/value.",
                 ["Use input names, constants, arithmetic, bitwise, comparison, and/or/not expressions."],
-                "Keep Starter preview deterministic.",
-                "The expression can be lowered directly to RTL.",
+                "Keep Starter authoring deterministic and checkable.",
+                "The expression can be used directly by the LLM author and verification harness.",
             ))
             continue
         missing = sorted(_expr_names(raw_expr) - set(env) - {"true", "false", "True", "False"})
@@ -1223,8 +1262,8 @@ def _starter_preview_contract(doc: dict, top: str, ports: list[dict]) -> tuple[d
                 f"Rewrite Starter output rule {name!r} using the supported expression DSL.",
                 str(exc),
                 ["Use constants, input names, +, -, *, /, %, <<, >>, &, |, ^, comparisons, if/else, and/or/not."],
-                "Keep Starter preview machine-checkable.",
-                "The preview generator can lower the rule directly to RTL.",
+                "Keep Starter authoring hints machine-checkable.",
+                "The LLM author and simulator harness can share the same rule.",
             ))
             continue
         outputs.append({
@@ -1242,7 +1281,7 @@ def _starter_preview_contract(doc: dict, top: str, ports: list[dict]) -> tuple[d
             "id": "STARTER_UNDRIVEN_OUTPUTS_DEFAULT_ZERO",
             "severity": "warning",
             "status": "deferred",
-            "message": "Starter ties undeclared-output-rule outputs to zero for preview only.",
+            "message": "Starter contract has outputs without output_rules; LLM author must implement or justify them before promotion.",
             "ports": undriven,
         })
 
@@ -2714,20 +2753,32 @@ def preflight(ip: str, root: Path, mode: str = "signoff") -> None:
     (ip_dir / "rtl").mkdir(parents=True, exist_ok=True)
     blocked_path = ip_dir / "rtl" / "rtl_blocked.json"
     if mode == "starter":
-        contract, hard_questions, soft_gates = _starter_preview_contract(doc, top, ports)
+        if _starter_sequential_intent(doc):
+            contract, hard_questions = _generic_rule_contract(doc, top, ports, readable=True)
+            soft_gates = []
+        else:
+            contract, hard_questions, soft_gates = _starter_preview_contract(doc, top, ports)
+        soft_gates = [
+            *soft_gates,
+            {
+                "id": "STARTER_LLM_RTL_AUTHORING_REQUIRED",
+                "severity": "warning",
+                "status": "handoff",
+                "message": "Starter contract is ready for LLM-authored RTL; Starter gates are relaxed but RTL must be real authored RTL.",
+            },
+        ]
         deferred_questions = _rtl_contract_questions(doc, top) + _merge_existing_dynamic_blocker_questions(ip_dir, [])
         if hard_questions:
             _write_blocked(ip_dir, ip, top, hard_questions)
-            print(f"[SSOT QUESTION] starter rtl preview blocked for {ip}: {len(hard_questions)} hard gate(s)")
+            print(f"[SSOT QUESTION] starter rtl handoff blocked for {ip}: {len(hard_questions)} hard gate(s)")
             for q in hard_questions:
                 print(f"- {q['id']}: {q['decision_needed']}")
             raise SystemExit(2)
-        gates = _starter_preview_gate_report(ip, top, soft_gates, deferred_questions, status="ready")
-        (ip_dir / "rtl" / "rtl_preview_gates.json").write_text(json.dumps(gates, indent=2) + "\n", encoding="utf-8")
+        _write_starter_llm_handoff_artifacts(ip_dir, ip, top, contract, soft_gates, deferred_questions)
         if blocked_path.exists():
             blocked_path.unlink()
         print(
-            f"[rtl-preflight] PASS: {ip} starter preview contract ready "
+            f"[rtl-preflight] PASS: {ip} starter contract ready for LLM-authored RTL "
             f"(soft={len(soft_gates)} deferred={len(deferred_questions)})"
         )
         return
@@ -2808,12 +2859,10 @@ def _can_write_generic_rule_seed(ip_dir: Path, expected_files: list[str], top: s
 
 
 def _generic_rule_seed_allowed(ip_dir: Path, top: str, contract: dict, expected_files: list[str]) -> bool:
-    return bool(
-        contract
-        and contract.get("outputs")
-        and _requirements_authority_present(ip_dir)
-        and _can_write_generic_rule_seed(ip_dir, expected_files, top)
-    )
+    # Policy: Starter/Engineering/Signoff differ by gate strictness, not by
+    # whether RTL is real. Keep the rule contract helpers for authoring,
+    # scoreboard, and compatibility, but do not write generated RTL here.
+    return False
 
 
 def _sv_range(width: int) -> str:
@@ -3064,38 +3113,60 @@ def _write_generic_rule_artifacts(ip_dir: Path, ip: str, top: str, ports: list[d
     (rtl_dir / "rtl_authoring_provenance.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
 
 
-def _starter_preview_rtl_source(ip: str, top: str, ports: list[dict], contract: dict) -> str:
-    by_name = {p["name"]: p for p in ports}
-    output_ports = {p["name"] for p in ports if str(p.get("direction") or "").lower() in {"output", "inout"}}
-    driven = {_ident(item.get("port") or "") for item in contract.get("outputs") or [] if isinstance(item, dict)}
-    lines: list[str] = [
-        f"module {top} (",
-    ]
-    for idx, port in enumerate(ports):
-        suffix = "," if idx < len(ports) - 1 else ""
-        lines.append(f"    {_sv_port_decl(port, driven)}{suffix}")
-    lines += [
-        ");",
-        "",
-        f"    // Starter RTL preview generated from {ip}/yaml/{ip}.ssot.yaml.",
-        "    // Preview-only: deferred gates must close before Engineering or Signoff approval.",
-    ]
-    for item in contract.get("outputs") or []:
-        if not isinstance(item, dict):
-            continue
-        port = _ident(item.get("port") or item.get("name") or "")
-        if not port:
-            continue
-        width = _port_width(by_name.get(port, {"width": item.get("width", 1)}))
-        lines.append(f"    assign {port} = {str(item.get('expr') or _sv_zero(width)).strip()};")
-    for port in sorted(output_ports - driven):
-        width = _port_width(by_name.get(port, {"width": 1}))
-        lines.append(f"    assign {port} = {_sv_zero(width)};")
-    lines += [
-        "endmodule",
-        "",
-    ]
-    return "\n".join(lines)
+def _write_starter_llm_handoff_artifacts(
+    ip_dir: Path,
+    ip: str,
+    top: str,
+    contract: dict,
+    soft_gates: list[dict],
+    deferred_questions: list[dict],
+) -> None:
+    rtl_dir = ip_dir / "rtl"
+    rtl_dir.mkdir(parents=True, exist_ok=True)
+    contract_doc = {
+        "schema_version": 1,
+        "type": "starter_llm_rtl_authoring_contract",
+        "ip": ip,
+        "top": top,
+        "mode": "starter",
+        "contract": contract,
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "rule": "Starter RTL must be authored by an LLM/worker and verified by gates; this file is an authoring contract, not generated RTL.",
+    }
+    (rtl_dir / "rtl_contract.json").write_text(json.dumps(contract_doc, indent=2) + "\n", encoding="utf-8")
+    handoff = {
+        "schema_version": 1,
+        "type": "starter_llm_rtl_handoff",
+        "ip": ip,
+        "top": top,
+        "mode": "starter",
+        "target_rtl": f"rtl/{top}.sv",
+        "target_filelist": f"list/{ip}.f",
+        "authoring_surface": "llm_worker",
+        "instructions": [
+            "Author RTL directly from rtl/rtl_contract.json and the SSOT.",
+            "Do not use rule-to-RTL generation for Starter IP.",
+            "Write rtl_authoring_provenance.json after authoring.",
+            "Run rtl_compile_report.py and starter_preview_sim.py before promoting the result.",
+        ],
+        "source_refs": [
+            "top_module",
+            "io_list",
+            "rtl_contract",
+            "function_model.state_variables",
+            "function_model.transactions[].state_updates",
+            "function_model.transactions[].output_rules",
+        ],
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+    (rtl_dir / "starter_llm_rtl_handoff.json").write_text(json.dumps(handoff, indent=2) + "\n", encoding="utf-8")
+    gates = _starter_preview_gate_report(ip, top, soft_gates, deferred_questions, status="handoff")
+    gates["hard_gates"].append({
+        "id": "STARTER_LLM_RTL_AUTHORING_REQUIRED",
+        "status": "required",
+        "message": "Stateful Starter RTL must be authored by an LLM/worker before compile/sim gates can run.",
+    })
+    (rtl_dir / "rtl_preview_gates.json").write_text(json.dumps(gates, indent=2) + "\n", encoding="utf-8")
 
 
 def _starter_preview_gate_report(
@@ -3128,70 +3199,16 @@ def _starter_preview_gate_report(
             {"id": "STARTER_TOP_MODULE", "status": "pass"},
             {"id": "STARTER_IO_LIST", "status": "pass"},
             {"id": "STARTER_FUNCTION_MODEL", "status": "pass"},
-            {"id": "STARTER_RTL_PREVIEW", "status": "pass" if status == "pass" else status},
+            {"id": "STARTER_RTL_AUTHORING", "status": "pass" if status == "pass" else status},
         ],
         "soft_gates": soft_gates,
         "deferred_gates": deferred,
         "policy": (
-            "Starter produces fast RTL preview evidence only. Deferred gates remain non-blocking in Starter "
-            "and become blocking in Engineering/Signoff as applicable."
+            "Starter produces real LLM-authored RTL with relaxed gates. Deferred gates remain non-blocking "
+            "in Starter and become blocking in Engineering/Signoff as applicable."
         ),
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
-
-
-def _write_starter_preview_artifacts(
-    ip_dir: Path,
-    ip: str,
-    top: str,
-    ports: list[dict],
-    contract: dict,
-    soft_gates: list[dict],
-    deferred_questions: list[dict],
-) -> None:
-    rtl_dir = ip_dir / "rtl"
-    list_dir = ip_dir / "list"
-    rtl_dir.mkdir(parents=True, exist_ok=True)
-    list_dir.mkdir(parents=True, exist_ok=True)
-    rtl_rel = f"rtl/{top}.sv"
-    (ip_dir / rtl_rel).write_text(_starter_preview_rtl_source(ip, top, ports, contract), encoding="utf-8")
-    (list_dir / f"{ip}.f").write_text(f"{rtl_rel}\n", encoding="utf-8")
-    contract_doc = {
-        "schema_version": 1,
-        "type": "starter_rtl_preview_contract",
-        "ip": ip,
-        "top": top,
-        "mode": "starter",
-        "contract": contract,
-        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-    }
-    (rtl_dir / "rtl_contract.json").write_text(json.dumps(contract_doc, indent=2) + "\n", encoding="utf-8")
-    traceability = {
-        "schema_version": 1,
-        "type": "rtl_traceability",
-        "ip": ip,
-        "top": top,
-        "mode": "starter",
-        "rtl_files": [rtl_rel],
-        "source_refs": ["top_module", "io_list", "function_model.output_rules"],
-        "rule": "Starter preview is derived from direct machine-checkable output_rules and is not signoff evidence.",
-    }
-    (rtl_dir / "rtl_traceability.json").write_text(json.dumps(traceability, indent=2) + "\n", encoding="utf-8")
-    provenance = {
-        "schema_version": 1,
-        "type": "rtl_authoring_provenance",
-        "agent": "common_ai_agent",
-        "workflow": "rtl-gen",
-        "surface": "headless_common_engine",
-        "generator": "starter_ssot_preview_seed",
-        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "rtl_files": [rtl_rel],
-        "authoring_packets": ["starter_function_model_output_rules"],
-        "mode": "starter",
-    }
-    (rtl_dir / "rtl_authoring_provenance.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
-    gates = _starter_preview_gate_report(ip, top, soft_gates, deferred_questions)
-    (rtl_dir / "rtl_preview_gates.json").write_text(json.dumps(gates, indent=2) + "\n", encoding="utf-8")
 
 
 def _sha256_file(path: Path) -> str:
@@ -3346,22 +3363,42 @@ def generate(ip: str, root: Path, mode: str = "signoff") -> None:
     blocked_path = ip_dir / "rtl" / "rtl_blocked.json"
 
     if mode == "starter":
-        contract, hard_questions, soft_gates = _starter_preview_contract(doc, top, ports)
+        if _starter_sequential_intent(doc):
+            contract, hard_questions = _generic_rule_contract(doc, top, ports, readable=True)
+            soft_gates = []
+        else:
+            contract, hard_questions, soft_gates = _starter_preview_contract(doc, top, ports)
+        soft_gates = [
+            *soft_gates,
+            {
+                "id": "STARTER_LLM_RTL_AUTHORING_REQUIRED",
+                "severity": "warning",
+                "status": "handoff",
+                "message": "Starter contract is ready for LLM-authored RTL; Starter gates are relaxed but RTL must be real authored RTL.",
+            },
+        ]
         deferred_questions = _rtl_contract_questions(doc, top) + _merge_existing_dynamic_blocker_questions(ip_dir, [])
         if hard_questions:
             _write_blocked(ip_dir, ip, top, hard_questions)
-            print(f"[SSOT QUESTION] starter rtl preview blocked for {ip}: {len(hard_questions)} hard gate(s)")
+            print(f"[SSOT QUESTION] starter rtl handoff blocked for {ip}: {len(hard_questions)} hard gate(s)")
             for q in hard_questions:
                 print(f"- {q['id']}: {q['decision_needed']}")
             raise SystemExit(2)
-        _write_starter_preview_artifacts(ip_dir, ip, top, ports, contract, soft_gates, deferred_questions)
-        if blocked_path.exists():
-            blocked_path.unlink()
-        print(
-            f"[ssot_to_rtl] starter preview generated for {ip}: rtl/{top}.sv "
-            f"(soft={len(soft_gates)} deferred={len(deferred_questions)})"
-        )
-        return
+        _write_starter_llm_handoff_artifacts(ip_dir, ip, top, contract, soft_gates, deferred_questions)
+        _write_blocked(ip_dir, ip, top, [_question(
+            "STARTER_LLM_RTL_AUTHORING_REQUIRED",
+            "Author Starter RTL with an LLM/worker, then run compile and sim gates.",
+            "Starter relaxes gate depth only. RTL must be real LLM-authored RTL, not template output or rule-compiled YAML.",
+            [
+                f"Have the RTL worker author rtl/{top}.sv from rtl/starter_llm_rtl_handoff.json.",
+                f"Write list/{ip}.f and rtl/rtl_authoring_provenance.json.",
+                "Run rtl_compile_report.py and starter_preview_sim.py after authoring.",
+            ],
+            "Use LLM-authored RTL for Starter IP; keep rule contracts as authoring and verification evidence.",
+            "Prevents Starter from becoming a YAML-to-RTL generator DSL while preserving relaxed Starter gates.",
+        )])
+        print(f"[RTL HANDOFF] starter needs LLM-authored RTL for {ip}: rtl/starter_llm_rtl_handoff.json")
+        raise SystemExit(2)
 
     contract_questions = _rtl_contract_questions(doc, top)
     if contract_questions:

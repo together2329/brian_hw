@@ -1,0 +1,2498 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 43,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_real_top.sv",
+      "name": "dma_real_top",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "pclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pclk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "hclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hclk",
+        "source_ref": "io_list.clock_domains[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "presetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "presetn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "hresetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hresetn",
+        "source_ref": "io_list.resets[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "12"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_haddr",
+          "haddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "haddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "ahb_master_hwrite",
+          "hwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hwrite",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_htrans",
+          "htrans"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "htrans",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_master_hsize",
+          "hsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hsize",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_master_hburst",
+          "hburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hburst",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_master_hprot",
+          "hprot"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hprot",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "ahb_master_hmaster",
+          "hmaster"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hmaster",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "ahb_master_hmastlock",
+          "hmastlock"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hmastlock",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_hwdata",
+          "hwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hwdata",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "ahb_master_hrdata",
+          "hrdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hrdata",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "ahb_master_hready",
+          "hready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hready",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_hresp",
+          "hresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hresp",
+        "source_ref": "io_list.interfaces[1].ports[11]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_master_hbusreq",
+          "hbusreq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hbusreq",
+        "source_ref": "io_list.interfaces[1].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_hgrant",
+          "hgrant"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hgrant",
+        "source_ref": "io_list.interfaces[1].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "irq",
+          "irq_outputs_irq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "N_CHANNELS"
+      },
+      {
+        "aliases": [
+          "irq_combined",
+          "irq_outputs_irq_combined"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq_combined",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ch_busy",
+          "dma_status_ch_busy"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "ch_busy",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "N_CHANNELS"
+      },
+      {
+        "aliases": [
+          "ch_done",
+          "dma_status_ch_done"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "ch_done",
+        "source_ref": "io_list.interfaces[3].ports[1]",
+        "width": "N_CHANNELS"
+      },
+      {
+        "aliases": [
+          "ch_error",
+          "dma_status_ch_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "ch_error",
+        "source_ref": "io_list.interfaces[3].ports[2]",
+        "width": "N_CHANNELS"
+      },
+      {
+        "aliases": [
+          "ch_err_code",
+          "dma_status_ch_err_code"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "ch_err_code",
+        "source_ref": "io_list.interfaces[3].ports[3]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "arb_grant",
+          "dma_status_arb_grant"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arb_grant",
+        "source_ref": "io_list.interfaces[3].ports[4]",
+        "width": "3"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 3,
+    "open_required_count": 3,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "module",
+  "owner_file": "rtl/dma_real_top.sv",
+  "owner_module": "dma_real_top",
+  "packet_id": "module__dma_real_top",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "dft.scan": 2,
+      "equivalence.module": 1,
+      "features.item": 10,
+      "integration.dependencies": 4,
+      "rtl_flow.seed": 1,
+      "rtl_flow.top": 1,
+      "security.assets": 3,
+      "synthesis.constraints": 4,
+      "test_requirements.scenario": 14,
+      "workflow_todo.rtl_gen": 3
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 43,
+      "task_limit": 48
+    },
+    "open_required_count": 3,
+    "required_count": 43,
+    "source_refs": [
+      "top_module",
+      "io_list",
+      "workflow_todos.rtl-gen[0]",
+      "workflow_todos.rtl-gen[6]",
+      "workflow_todos.rtl-gen[7]",
+      "features.multi_channel",
+      "features.dual_clock_cdc",
+      "features.round_robin_arb",
+      "features.full_ahb_lite",
+      "features.per_channel_irq",
+      "features.error_detection",
+      "features.programmable_stride",
+      "features.bus_timeout",
+      "features.performance_counters",
+      "features.clock_gating",
+      "security.assets.channel_config",
+      "security.assets.transfer_data",
+      "security.assets.perf_counters",
+      "integration.dependencies.dependencie_0",
+      "integration.dependencies.dependencie_1",
+      "integration.dependencies.dependencie_2",
+      "integration.dependencies.dependencie_3",
+      "dft.scan.mode",
+      "dft.scan.description"
+    ],
+    "status_counts": {
+      "open": 3,
+      "pass": 40
+    },
+    "task_count": 43
+  },
+  "tasks": [
+    {
+      "category": "rtl_flow.seed",
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "criteria": [
+        "rtl_todo_plan.json was regenerated from the current SSOT",
+        "Every required task in the plan is either implemented, evidenced, or escalated",
+        "No IP-specific fixed template is used as the source of truth",
+        "Traceability keeps source_ref top_module",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: dma_real_top in rtl/dma_real_top.sv via top_module.",
+      "evidence_terms": [],
+      "id": "RTL-0001",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {},
+      "ssot_refs": [
+        "top_module"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_flow.top",
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "criteria": [
+        "Top module name matches SSOT top_module",
+        "Every SSOT top-level port appears with matching direction and width",
+        "Filelist contains all LLM-authored RTL sources and no stale sources",
+        "Traceability keeps source_ref io_list",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: dma_real_top in rtl/dma_real_top.sv via top_module.\nSSOT item context: value=dma_real_top.",
+      "evidence_terms": [
+        "dma",
+        "dma_real_top",
+        "real",
+        "top"
+      ],
+      "id": "RTL-0002",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "io_list",
+      "ssot_context": {
+        "value": "dma_real_top"
+      },
+      "ssot_refs": [
+        "io_list"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement top-level DMA wiring with dual-clock CDC bridge",
+      "criteria": [
+        "top module ports match SSOT io_list exactly including hprot, hmaster, hmastlock, hresp[1:0]",
+        "dual-clock domains properly separated",
+        "CDC async FIFO instantiated for config crossing",
+        "compile clean with iverilog -g2012",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[0]",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Semantic source_refs covered: cdc_requirements, integration, io_list, sub_modules"
+      ],
+      "detail": "dma_real_top.sv instantiates apb_cfg (pclk), engine (hclk), irq (pclk), and CDC async FIFO bridges. Wire APB slave ports, AHB master ports, and IRQ outputs. CDC FIFO connects pclk domain config writes to hclk domain channel FSM.\nSSOT ref: workflow_todos.rtl-gen[0].\nOwner: dma_real_top in rtl/dma_real_top.sv via integration.",
+      "evidence_terms": [
+        "cdc",
+        "cdc_requirements",
+        "io",
+        "io_list",
+        "list",
+        "modules",
+        "requirements",
+        "sub",
+        "sub_modules"
+      ],
+      "id": "RTL-0020",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[0]",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cdc_requirements",
+        "integration",
+        "io_list",
+        "sub_modules",
+        "workflow_todos.rtl-gen[0]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "cdc",
+          "cdc_requirements",
+          "io",
+          "io_list",
+          "list",
+          "modules",
+          "requirements",
+          "sub",
+          "sub_modules"
+        ],
+        "source_scope": "rtl/dma_real_top.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_WORKFLOW_TODO_001",
+        "source_refs": [
+          "cdc_requirements",
+          "integration",
+          "io_list",
+          "sub_modules"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement dual-clock async FIFO with gray-code pointer sync",
+      "criteria": [
+        "gray-code pointer conversion correct",
+        "2-stage synchronizer on crossed pointers",
+        "almost_full/almost_empty thresholds configurable",
+        "full/empty flags never simultaneously true",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[6]",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Semantic source_refs covered: cdc_requirements, memory.internal"
+      ],
+      "detail": "dma_real_async_fifo parameterized dual-clock FIFO. Write port in pclk domain, read port in hclk domain. Gray-code rd_ptr and wr_ptr with 2-stage synchronization. almost_full and almost_empty flags. Power-of-2 depth.\nSSOT ref: workflow_todos.rtl-gen[6].\nOwner: dma_real_top in rtl/dma_real_top.sv via top_module.",
+      "evidence_terms": [
+        "cdc",
+        "cdc_requirements",
+        "requirements"
+      ],
+      "id": "RTL-0026",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[6]",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cdc_requirements",
+        "memory.internal",
+        "workflow_todos.rtl-gen[6]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "cdc",
+          "cdc_requirements",
+          "requirements"
+        ],
+        "source_scope": "rtl/dma_real_top.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_WORKFLOW_TODO_007",
+        "source_refs": [
+          "cdc_requirements",
+          "memory.internal"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement 2-stage CDC synchronizer and clock gating cell",
+      "criteria": [
+        "2-stage sync with async reset",
+        "ICG enable/disable glitch-free",
+        "parameterized width for multi-bit gray-code sync",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[7]",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Semantic source_refs covered: cdc_requirements, power.domains"
+      ],
+      "detail": "dma_real_cdc_sync is parameterized 2-stage flip-flop synchronizer. dma_real_cg_cell wraps library ICG primitive with enable input.\nSSOT ref: workflow_todos.rtl-gen[7].\nOwner: dma_real_top in rtl/dma_real_top.sv via power.",
+      "evidence_terms": [
+        "cdc",
+        "cdc_requirements",
+        "requirements"
+      ],
+      "id": "RTL-0027",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[7]",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cdc_requirements",
+        "power.domains",
+        "workflow_todos.rtl-gen[7]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "cdc",
+          "cdc_requirements",
+          "requirements"
+        ],
+        "source_scope": "rtl/dma_real_top.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_WORKFLOW_TODO_008",
+        "source_refs": [
+          "cdc_requirements",
+          "power.domains"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature multi_channel",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.multi_channel",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.multi_channel.\nOwner: dma_real_top in rtl/dma_real_top.sv via features.\nSSOT item context: id=multi_channel.",
+      "evidence_terms": [],
+      "id": "RTL-0328",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.multi_channel",
+      "ssot_context": {
+        "id": "multi_channel"
+      },
+      "ssot_refs": [
+        "features.multi_channel"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature dual_clock_cdc",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.dual_clock_cdc",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.dual_clock_cdc.\nOwner: dma_real_top in rtl/dma_real_top.sv via features.\nSSOT item context: id=dual_clock_cdc.",
+      "evidence_terms": [],
+      "id": "RTL-0329",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.dual_clock_cdc",
+      "ssot_context": {
+        "id": "dual_clock_cdc"
+      },
+      "ssot_refs": [
+        "features.dual_clock_cdc"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature round_robin_arb",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.round_robin_arb",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.round_robin_arb.\nOwner: dma_real_top in rtl/dma_real_top.sv via features.\nSSOT item context: id=round_robin_arb.",
+      "evidence_terms": [],
+      "id": "RTL-0330",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.round_robin_arb",
+      "ssot_context": {
+        "id": "round_robin_arb"
+      },
+      "ssot_refs": [
+        "features.round_robin_arb"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature full_ahb_lite",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.full_ahb_lite",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.full_ahb_lite.\nOwner: dma_real_top in rtl/dma_real_top.sv via features.\nSSOT item context: id=full_ahb_lite.",
+      "evidence_terms": [],
+      "id": "RTL-0331",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.full_ahb_lite",
+      "ssot_context": {
+        "id": "full_ahb_lite"
+      },
+      "ssot_refs": [
+        "features.full_ahb_lite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature per_channel_irq",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.per_channel_irq",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.per_channel_irq.\nOwner: dma_real_top in rtl/dma_real_top.sv via features.\nSSOT item context: id=per_channel_irq.",
+      "evidence_terms": [],
+      "id": "RTL-0332",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.per_channel_irq",
+      "ssot_context": {
+        "id": "per_channel_irq"
+      },
+      "ssot_refs": [
+        "features.per_channel_irq"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature error_detection",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.error_detection",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.error_detection.\nOwner: dma_real_top in rtl/dma_real_top.sv via features.\nSSOT item context: id=error_detection.",
+      "evidence_terms": [],
+      "id": "RTL-0333",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.error_detection",
+      "ssot_context": {
+        "id": "error_detection"
+      },
+      "ssot_refs": [
+        "features.error_detection"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature programmable_stride",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.programmable_stride",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.programmable_stride.\nOwner: dma_real_top in rtl/dma_real_top.sv via features.\nSSOT item context: id=programmable_stride.",
+      "evidence_terms": [],
+      "id": "RTL-0334",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.programmable_stride",
+      "ssot_context": {
+        "id": "programmable_stride"
+      },
+      "ssot_refs": [
+        "features.programmable_stride"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature bus_timeout",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.bus_timeout",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.bus_timeout.\nOwner: dma_real_top in rtl/dma_real_top.sv via features.\nSSOT item context: id=bus_timeout.",
+      "evidence_terms": [],
+      "id": "RTL-0335",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.bus_timeout",
+      "ssot_context": {
+        "id": "bus_timeout"
+      },
+      "ssot_refs": [
+        "features.bus_timeout"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature performance_counters",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.performance_counters",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.performance_counters.\nOwner: dma_real_top in rtl/dma_real_top.sv via features.\nSSOT item context: id=performance_counters.",
+      "evidence_terms": [],
+      "id": "RTL-0336",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.performance_counters",
+      "ssot_context": {
+        "id": "performance_counters"
+      },
+      "ssot_refs": [
+        "features.performance_counters"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature clock_gating",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.clock_gating",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.clock_gating.\nOwner: dma_real_top in rtl/dma_real_top.sv via features.\nSSOT item context: id=clock_gating.",
+      "evidence_terms": [],
+      "id": "RTL-0337",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.clock_gating",
+      "ssot_context": {
+        "id": "clock_gating"
+      },
+      "ssot_refs": [
+        "features.clock_gating"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item channel_config",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.channel_config",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.channel_config.\nOwner: dma_real_top in rtl/dma_real_top.sv via security.\nSSOT item context: name=channel_config.",
+      "evidence_terms": [],
+      "id": "RTL-0363",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.channel_config",
+      "ssot_context": {
+        "name": "channel_config"
+      },
+      "ssot_refs": [
+        "security.assets.channel_config"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item transfer_data",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.transfer_data",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.transfer_data.\nOwner: dma_real_top in rtl/dma_real_top.sv via security.\nSSOT item context: name=transfer_data.",
+      "evidence_terms": [],
+      "id": "RTL-0364",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.transfer_data",
+      "ssot_context": {
+        "name": "transfer_data"
+      },
+      "ssot_refs": [
+        "security.assets.transfer_data"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item perf_counters",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.perf_counters",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.perf_counters.\nOwner: dma_real_top in rtl/dma_real_top.sv via security.\nSSOT item context: name=perf_counters.",
+      "evidence_terms": [],
+      "id": "RTL-0365",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.perf_counters",
+      "ssot_context": {
+        "name": "perf_counters"
+      },
+      "ssot_refs": [
+        "security.assets.perf_counters"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item dependencie_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.dependencie_0",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.dependencie_0.\nOwner: dma_real_top in rtl/dma_real_top.sv via integration.\nSSOT item context: value=APB bus matrix provides psel, penable, pwrite, paddr, pwdata in pclk domain.",
+      "evidence_terms": [],
+      "id": "RTL-0366",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.dependencie_0",
+      "ssot_context": {
+        "value": "APB bus matrix provides psel, penable, pwrite, paddr, pwdata in pclk domain"
+      },
+      "ssot_refs": [
+        "integration.dependencies.dependencie_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item dependencie_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.dependencie_1",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.dependencie_1.\nOwner: dma_real_top in rtl/dma_real_top.sv via integration.\nSSOT item context: value=AHB-Lite bus matrix provides hready, hrdata, hresp[1:0], hgrant in hclk domain.",
+      "evidence_terms": [],
+      "id": "RTL-0367",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.dependencie_1",
+      "ssot_context": {
+        "value": "AHB-Lite bus matrix provides hready, hrdata, hresp[1:0], hgrant in hclk domain"
+      },
+      "ssot_refs": [
+        "integration.dependencies.dependencie_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item dependencie_2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.dependencie_2",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.dependencie_2.\nOwner: dma_real_top in rtl/dma_real_top.sv via integration.\nSSOT item context: value=System interrupt controller receives irq_combined in pclk domain.",
+      "evidence_terms": [
+        "combined",
+        "irq",
+        "irq_combined"
+      ],
+      "id": "RTL-0368",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.dependencie_2",
+      "ssot_context": {
+        "value": "System interrupt controller receives irq_combined in pclk domain"
+      },
+      "ssot_refs": [
+        "integration.dependencies.dependencie_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item dependencie_3",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.dependencie_3",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.dependencie_3.\nOwner: dma_real_top in rtl/dma_real_top.sv via integration.\nSSOT item context: value=System reset controller provides presetn and hresetn (may be async).",
+      "evidence_terms": [],
+      "id": "RTL-0369",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.dependencie_3",
+      "ssot_context": {
+        "value": "System reset controller provides presetn and hresetn (may be async)"
+      },
+      "ssot_refs": [
+        "integration.dependencies.dependencie_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dft.scan",
+      "content": "Implement DFT item mode",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref dft.scan.mode",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "This SSOT dft.scan item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: dft.scan.mode.\nOwner: dma_real_top in rtl/dma_real_top.sv via dft.\nSSOT item context: name=mode; value=muxed_d.",
+      "evidence_terms": [],
+      "id": "RTL-0370",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dft.scan.mode",
+      "ssot_context": {
+        "name": "mode",
+        "value": "muxed_d"
+      },
+      "ssot_refs": [
+        "dft.scan.mode"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dft.scan",
+      "content": "Implement DFT item description",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref dft.scan.description",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "This SSOT dft.scan item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: dft.scan.description.\nOwner: dma_real_top in rtl/dma_real_top.sv via dft.\nSSOT item context: name=description; value=Standard muxed-D scan insertion via external ATPG tool.",
+      "evidence_terms": [],
+      "id": "RTL-0371",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dft.scan.description",
+      "ssot_context": {
+        "name": "description",
+        "value": "Standard muxed-D scan insertion via external ATPG tool"
+      },
+      "ssot_refs": [
+        "dft.scan.description"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_0",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_0.\nOwner: dma_real_top in rtl/dma_real_top.sv via synthesis.",
+      "evidence_terms": [],
+      "id": "RTL-0372",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_0",
+      "ssot_context": {},
+      "ssot_refs": [
+        "synthesis.constraints.constraint_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_1",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_1.\nOwner: dma_real_top in rtl/dma_real_top.sv via synthesis.",
+      "evidence_terms": [],
+      "id": "RTL-0373",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_1",
+      "ssot_context": {},
+      "ssot_refs": [
+        "synthesis.constraints.constraint_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_2",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "synthesis.constraints.constraint_2 transition path pclk_domain -> hclk_domain is encoded or explicitly proven equivalent"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_2.\nOwner: dma_real_top in rtl/dma_real_top.sv via synthesis.\nSSOT item context: from=pclk_domain; to=hclk_domain.",
+      "evidence_terms": [
+        "domain",
+        "hclk",
+        "hclk_domain",
+        "pclk",
+        "pclk_domain"
+      ],
+      "id": "RTL-0374",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_2",
+      "ssot_context": {
+        "from": "pclk_domain",
+        "to": "hclk_domain"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_3",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_3",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "synthesis.constraints.constraint_3 transition path pclk_domain -> hclk_domain is encoded or explicitly proven equivalent"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_3.\nOwner: dma_real_top in rtl/dma_real_top.sv via synthesis.\nSSOT item context: from=pclk_domain; to=hclk_domain.",
+      "evidence_terms": [
+        "domain",
+        "hclk",
+        "hclk_domain",
+        "pclk",
+        "pclk_domain"
+      ],
+      "id": "RTL-0375",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_3",
+      "ssot_context": {
+        "from": "pclk_domain",
+        "to": "hclk_domain"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module dma_real_top is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.dma_real_top.module_equivalence",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.dma_real_top.module_equivalence.\nOwner: dma_real_top in rtl/dma_real_top.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0382",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.dma_real_top.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.dma_real_top.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_001",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_001",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: CH0_STATUS.done=1, 4 words transferred, PERF_WORDS=4, irq[0] asserted"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_001.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_001; name=single_channel_transfer; expected=CH0_STATUS.done=1, 4 words transferred, PERF_WORDS=4, irq[0] asserted.",
+      "evidence_terms": [],
+      "id": "RTL-0383",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_001",
+      "ssot_context": {
+        "expected": "CH0_STATUS.done=1, 4 words transferred, PERF_WORDS=4, irq[0] asserted",
+        "id": "SC_001",
+        "name": "single_channel_transfer"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_001"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_002",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_002",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: CH0_STATUS.error=1, err_code=1, no transfer occurs"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_002.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_002; name=alignment_error; expected=CH0_STATUS.error=1, err_code=1, no transfer occurs.",
+      "evidence_terms": [],
+      "id": "RTL-0384",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_002",
+      "ssot_context": {
+        "expected": "CH0_STATUS.error=1, err_code=1, no transfer occurs",
+        "id": "SC_002",
+        "name": "alignment_error"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_002"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_003",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_003",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: CH0_STATUS.error=1, err_code=2, no transfer occurs"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_003.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_003; name=zero_length_error; expected=CH0_STATUS.error=1, err_code=2, no transfer occurs.",
+      "evidence_terms": [],
+      "id": "RTL-0385",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_003",
+      "ssot_context": {
+        "expected": "CH0_STATUS.error=1, err_code=2, no transfer occurs",
+        "id": "SC_003",
+        "name": "zero_length_error"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_003"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_004",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_004",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: second start ignored, transfer continues"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_004.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_004; name=busy_reject; expected=second start ignored, transfer continues.",
+      "evidence_terms": [],
+      "id": "RTL-0386",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_004",
+      "ssot_context": {
+        "expected": "second start ignored, transfer continues",
+        "id": "SC_004",
+        "name": "busy_reject"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_004"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_005",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_005",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: both complete, arbiter alternates grants, both irq asserted"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_005.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_005; name=multi_channel_interleaved; expected=both complete, arbiter alternates grants, both irq asserted.",
+      "evidence_terms": [],
+      "id": "RTL-0387",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_005",
+      "ssot_context": {
+        "expected": "both complete, arbiter alternates grants, both irq asserted",
+        "id": "SC_005",
+        "name": "multi_channel_interleaved"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_005"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_006",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_006",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: CH0_STATUS.error=1, err_code=3, transfer aborted"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_006.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_006; name=bus_error_during_transfer; expected=CH0_STATUS.error=1, err_code=3, transfer aborted.",
+      "evidence_terms": [],
+      "id": "RTL-0388",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_006",
+      "ssot_context": {
+        "expected": "CH0_STATUS.error=1, err_code=3, transfer aborted",
+        "id": "SC_006",
+        "name": "bus_error_during_transfer"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_006"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_007",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_007",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: current burst completes, then pauses. Resume when dma_en re-asserted"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_007.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_007; name=global_enable_disable; expected=current burst completes, then pauses. Resume when dma_en re-asserted.",
+      "evidence_terms": [],
+      "id": "RTL-0389",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_007",
+      "ssot_context": {
+        "expected": "current burst completes, then pauses. Resume when dma_en re-asserted",
+        "id": "SC_007",
+        "name": "global_enable_disable"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_007"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_008",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_008",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: irq[0] deasserted, CH0_STATUS.done cleared"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_008.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_008; name=interrupt_clear; expected=irq[0] deasserted, CH0_STATUS.done cleared.",
+      "evidence_terms": [],
+      "id": "RTL-0390",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_008",
+      "ssot_context": {
+        "expected": "irq[0] deasserted, CH0_STATUS.done cleared",
+        "id": "SC_008",
+        "name": "interrupt_clear"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_008"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_009",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_009",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: pslverr=1, prdata=0"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_009.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_009; name=apb_unmapped_address; expected=pslverr=1, prdata=0.",
+      "evidence_terms": [],
+      "id": "RTL-0391",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_009",
+      "ssot_context": {
+        "expected": "pslverr=1, prdata=0",
+        "id": "SC_009",
+        "name": "apb_unmapped_address"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_009"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_010",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_010",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: addresses increment by 8 per beat, 4 words transferred, PERF_WORDS=4"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_010.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_010; name=stride_transfer; expected=addresses increment by 8 per beat, 4 words transferred, PERF_WORDS=4.",
+      "evidence_terms": [],
+      "id": "RTL-0392",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_010",
+      "ssot_context": {
+        "expected": "addresses increment by 8 per beat, 4 words transferred, PERF_WORDS=4",
+        "id": "SC_010",
+        "name": "stride_transfer"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_010"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_011",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_011",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: CH0_STATUS.error=1, err_code=4, transfer aborted"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_011.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_011; name=bus_timeout; expected=CH0_STATUS.error=1, err_code=4, transfer aborted.",
+      "evidence_terms": [],
+      "id": "RTL-0393",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_011",
+      "ssot_context": {
+        "expected": "CH0_STATUS.error=1, err_code=4, transfer aborted",
+        "id": "SC_011",
+        "name": "bus_timeout"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_011"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_012",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_012",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: PERF_WORDS=16, PERF_CYCLES > 0, PERF_CYCLES saturates at 32'hFFFFFFFF"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_012.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_012; name=performance_counters; expected=PERF_WORDS=16, PERF_CYCLES > 0, PERF_CYCLES saturates at 32'hFFFFFFFF.",
+      "evidence_terms": [],
+      "id": "RTL-0394",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_012",
+      "ssot_context": {
+        "expected": "PERF_WORDS=16, PERF_CYCLES > 0, PERF_CYCLES saturates at 32'hFFFFFFFF",
+        "id": "SC_012",
+        "name": "performance_counters"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_012"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_013",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_013",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: burst splits at 1KB boundary, new NONSEQ beat starts after boundary"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_013.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_013; name=burst_wrap_boundary; expected=burst splits at 1KB boundary, new NONSEQ beat starts after boundary.",
+      "evidence_terms": [],
+      "id": "RTL-0395",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_013",
+      "ssot_context": {
+        "expected": "burst splits at 1KB boundary, new NONSEQ beat starts after boundary",
+        "id": "SC_013",
+        "name": "burst_wrap_boundary"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_013"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_014",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_014",
+        "Primary implementation evidence is in rtl/dma_real_top.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: clock gating enable follows ch_busy, no spurious transitions"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_014.\nOwner: dma_real_top in rtl/dma_real_top.sv via test_requirements.\nSSOT item context: id=SC_014; name=clock_gating; expected=clock gating enable follows ch_busy, no spurious transitions.",
+      "evidence_terms": [],
+      "id": "RTL-0396",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_014",
+      "ssot_context": {
+        "expected": "clock gating enable follows ch_busy, no spurious transitions",
+        "id": "SC_014",
+        "name": "clock_gating"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_014"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

@@ -1,0 +1,1466 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 5,
+      "key": "fsm",
+      "module_task_count": 130,
+      "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_real_channel.sv",
+      "name": "dma_real_channel",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.performance",
+        "cycle_model.pipeline",
+        "dataflow.ordering.ordering_1",
+        "dataflow.ordering.ordering_2",
+        "dataflow.ordering.ordering_3",
+        "dataflow.ordering.ordering_4",
+        "dataflow.sequence.sequence_10",
+        "dataflow.sequence.sequence_11",
+        "dataflow.sequence.sequence_3",
+        "dataflow.sequence.sequence_4",
+        "dataflow.sequence.sequence_5",
+        "dataflow.sequence.sequence_6",
+        "dataflow.sequence.sequence_7",
+        "dataflow.sequence.sequence_8",
+        "dataflow.sequence.sequence_9",
+        "error_handling",
+        "fsm",
+        "fsm.per_channel",
+        "function_model",
+        "function_model.invariants",
+        "function_model.state_variables",
+        "function_model.transactions.FM_DMA_COMPLETE",
+        "function_model.transactions.FM_DMA_ERROR",
+        "function_model.transactions.FM_DMA_START",
+        "function_model.transactions.FM_DMA_STEP",
+        "io_list",
+        "parameters",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "module",
+  "owner_file": "rtl/dma_real_channel.sv",
+  "owner_module": "dma_real_channel",
+  "packet_id": "module__dma_real_channel__fsm",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "fsm.state": 8,
+      "fsm.transition": 12
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 5,
+      "key": "fsm",
+      "module_task_count": 130,
+      "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 20,
+    "source_refs": [
+      "fsm.per_channel.states.state_0",
+      "fsm.per_channel.states.state_1",
+      "fsm.per_channel.states.state_2",
+      "fsm.per_channel.states.state_3",
+      "fsm.per_channel.states.state_4",
+      "fsm.per_channel.states.state_5",
+      "fsm.per_channel.states.state_6",
+      "fsm.per_channel.states.state_7",
+      "fsm.per_channel.transitions.transition_0",
+      "fsm.per_channel.transitions.transition_1",
+      "fsm.per_channel.transitions.transition_2",
+      "fsm.per_channel.transitions.transition_3",
+      "fsm.per_channel.transitions.transition_4",
+      "fsm.per_channel.transitions.transition_5",
+      "fsm.per_channel.transitions.transition_6",
+      "fsm.per_channel.transitions.transition_7",
+      "fsm.per_channel.transitions.transition_8",
+      "fsm.per_channel.transitions.transition_9",
+      "fsm.per_channel.transitions.transition_10",
+      "fsm.per_channel.transitions.transition_11"
+    ],
+    "status_counts": {
+      "pass": 20
+    },
+    "task_count": 20
+  },
+  "tasks": [
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state per_channel.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.per_channel.states.state_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.states.state_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: value=IDLE.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0308",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.states.state_0",
+      "ssot_context": {
+        "value": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.states.state_0"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state per_channel.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.per_channel.states.state_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.states.state_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: value=CFG.",
+      "evidence_terms": [
+        "CFG"
+      ],
+      "id": "RTL-0309",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.states.state_1",
+      "ssot_context": {
+        "value": "CFG"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.states.state_1"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "CFG"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CFG"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state per_channel.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.per_channel.states.state_2",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.states.state_2.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: value=REQUEST.",
+      "evidence_terms": [
+        "REQUEST"
+      ],
+      "id": "RTL-0310",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.states.state_2",
+      "ssot_context": {
+        "value": "REQUEST"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.states.state_2"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "REQUEST"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "REQUEST"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state per_channel.state_3",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.per_channel.states.state_3",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.states.state_3.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: value=READ.",
+      "evidence_terms": [
+        "READ"
+      ],
+      "id": "RTL-0311",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.states.state_3",
+      "ssot_context": {
+        "value": "READ"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.states.state_3"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "READ"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "READ"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state per_channel.state_4",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.per_channel.states.state_4",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.states.state_4.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: value=WRITE.",
+      "evidence_terms": [
+        "WRITE"
+      ],
+      "id": "RTL-0312",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.states.state_4",
+      "ssot_context": {
+        "value": "WRITE"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.states.state_4"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "WRITE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "WRITE"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state per_channel.state_5",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.per_channel.states.state_5",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.states.state_5.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: value=UPDATE.",
+      "evidence_terms": [
+        "UPDATE"
+      ],
+      "id": "RTL-0313",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.states.state_5",
+      "ssot_context": {
+        "value": "UPDATE"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.states.state_5"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "UPDATE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "UPDATE"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state per_channel.state_6",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.per_channel.states.state_6",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.states.state_6.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: value=DONE.",
+      "evidence_terms": [
+        "DONE"
+      ],
+      "id": "RTL-0314",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.states.state_6",
+      "ssot_context": {
+        "value": "DONE"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.states.state_6"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "DONE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DONE"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state per_channel.state_7",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.per_channel.states.state_7",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.states.state_7.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: value=ERROR.",
+      "evidence_terms": [],
+      "id": "RTL-0315",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.states.state_7",
+      "ssot_context": {
+        "value": "ERROR"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.states.state_7"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition per_channel.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.per_channel.transitions.transition_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "fsm.per_channel.transitions.transition_0 condition is implemented as RTL control logic: ch_start && ch_en && dma_en && valid_cfg && cdc_config_valid",
+        "fsm.per_channel.transitions.transition_0 transition path IDLE -> CFG is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.transitions.transition_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: from=IDLE; to=CFG; condition=ch_start && ch_en && dma_en && valid_cfg && cdc_config_valid.",
+      "evidence_terms": [
+        "CFG",
+        "IDLE",
+        "cdc",
+        "cdc_config_valid",
+        "cfg",
+        "ch",
+        "ch_en",
+        "ch_start",
+        "config",
+        "dma",
+        "dma_en",
+        "en",
+        "start",
+        "valid",
+        "valid_cfg"
+      ],
+      "id": "RTL-0316",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.transitions.transition_0",
+      "ssot_context": {
+        "condition": "ch_start && ch_en && dma_en && valid_cfg && cdc_config_valid",
+        "from": "IDLE",
+        "to": "CFG"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 12,
+        "matched_terms": [
+          "CFG",
+          "IDLE",
+          "cfg",
+          "ch",
+          "ch_en",
+          "ch_start",
+          "dma",
+          "dma_en",
+          "en",
+          "start",
+          "valid",
+          "valid_cfg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CFG",
+          "IDLE",
+          "cdc",
+          "cdc_config_valid",
+          "cfg",
+          "ch",
+          "ch_en",
+          "ch_start",
+          "config",
+          "dma",
+          "dma_en",
+          "en",
+          "start",
+          "valid",
+          "valid_cfg"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition per_channel.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.per_channel.transitions.transition_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "fsm.per_channel.transitions.transition_1 condition is implemented as RTL control logic: ch_start && ch_en && !valid_cfg",
+        "fsm.per_channel.transitions.transition_1 transition path IDLE -> ERROR is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.transitions.transition_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: from=IDLE; to=ERROR; condition=ch_start && ch_en && !valid_cfg.",
+      "evidence_terms": [
+        "IDLE",
+        "cfg",
+        "ch",
+        "ch_en",
+        "ch_start",
+        "en",
+        "start",
+        "valid",
+        "valid_cfg"
+      ],
+      "id": "RTL-0317",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.transitions.transition_1",
+      "ssot_context": {
+        "condition": "ch_start && ch_en && !valid_cfg",
+        "from": "IDLE",
+        "to": "ERROR"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 9,
+        "matched_terms": [
+          "IDLE",
+          "cfg",
+          "ch",
+          "ch_en",
+          "ch_start",
+          "en",
+          "start",
+          "valid",
+          "valid_cfg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "cfg",
+          "ch",
+          "ch_en",
+          "ch_start",
+          "en",
+          "start",
+          "valid",
+          "valid_cfg"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition per_channel.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.per_channel.transitions.transition_2",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "fsm.per_channel.transitions.transition_2 condition is implemented as RTL control logic: next_cycle",
+        "fsm.per_channel.transitions.transition_2 transition path CFG -> REQUEST is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.transitions.transition_2.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: from=CFG; to=REQUEST; condition=next_cycle.",
+      "evidence_terms": [
+        "CFG",
+        "REQUEST",
+        "next",
+        "next_cycle"
+      ],
+      "id": "RTL-0318",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.transitions.transition_2",
+      "ssot_context": {
+        "condition": "next_cycle",
+        "from": "CFG",
+        "to": "REQUEST"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions.transition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "CFG",
+          "REQUEST",
+          "next"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CFG",
+          "REQUEST",
+          "next",
+          "next_cycle"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition per_channel.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.per_channel.transitions.transition_3",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "fsm.per_channel.transitions.transition_3 condition is implemented as RTL control logic: arb_grant",
+        "fsm.per_channel.transitions.transition_3 transition path REQUEST -> READ is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.transitions.transition_3.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: from=REQUEST; to=READ; condition=arb_grant.",
+      "evidence_terms": [
+        "READ",
+        "REQUEST",
+        "arb",
+        "arb_grant",
+        "grant"
+      ],
+      "id": "RTL-0319",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.transitions.transition_3",
+      "ssot_context": {
+        "condition": "arb_grant",
+        "from": "REQUEST",
+        "to": "READ"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions.transition_3"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "READ",
+          "REQUEST",
+          "grant"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "READ",
+          "REQUEST",
+          "arb",
+          "arb_grant",
+          "grant"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition per_channel.transition_4",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.per_channel.transitions.transition_4",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "fsm.per_channel.transitions.transition_4 condition is implemented as RTL control logic: read_burst_complete && !fifo_full",
+        "fsm.per_channel.transitions.transition_4 transition path READ -> WRITE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.transitions.transition_4.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: from=READ; to=WRITE; condition=read_burst_complete && !fifo_full.",
+      "evidence_terms": [
+        "READ",
+        "WRITE",
+        "burst",
+        "complete",
+        "fifo",
+        "fifo_full",
+        "full",
+        "read",
+        "read_burst_complete"
+      ],
+      "id": "RTL-0320",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.transitions.transition_4",
+      "ssot_context": {
+        "condition": "read_burst_complete && !fifo_full",
+        "from": "READ",
+        "to": "WRITE"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions.transition_4"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "READ",
+          "WRITE",
+          "burst",
+          "fifo",
+          "fifo_full",
+          "full",
+          "read"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "READ",
+          "WRITE",
+          "burst",
+          "complete",
+          "fifo",
+          "fifo_full",
+          "full",
+          "read",
+          "read_burst_complete"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition per_channel.transition_5",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.per_channel.transitions.transition_5",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "fsm.per_channel.transitions.transition_5 condition is implemented as RTL control logic: ahb_error || timeout_expired || fifo_overflow",
+        "fsm.per_channel.transitions.transition_5 transition path READ -> ERROR is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.transitions.transition_5.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: from=READ; to=ERROR; condition=ahb_error || timeout_expired || fifo_overflow.",
+      "evidence_terms": [
+        "READ",
+        "ahb",
+        "ahb_error",
+        "expired",
+        "fifo",
+        "fifo_overflow",
+        "overflow",
+        "timeout",
+        "timeout_expired"
+      ],
+      "id": "RTL-0321",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.transitions.transition_5",
+      "ssot_context": {
+        "condition": "ahb_error || timeout_expired || fifo_overflow",
+        "from": "READ",
+        "to": "ERROR"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions.transition_5"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "READ",
+          "ahb",
+          "ahb_error",
+          "fifo"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "READ",
+          "ahb",
+          "ahb_error",
+          "expired",
+          "fifo",
+          "fifo_overflow",
+          "overflow",
+          "timeout",
+          "timeout_expired"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition per_channel.transition_6",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.per_channel.transitions.transition_6",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "fsm.per_channel.transitions.transition_6 condition is implemented as RTL control logic: write_burst_complete",
+        "fsm.per_channel.transitions.transition_6 transition path WRITE -> UPDATE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.transitions.transition_6.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: from=WRITE; to=UPDATE; condition=write_burst_complete.",
+      "evidence_terms": [
+        "UPDATE",
+        "WRITE",
+        "burst",
+        "complete",
+        "write",
+        "write_burst_complete"
+      ],
+      "id": "RTL-0322",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.transitions.transition_6",
+      "ssot_context": {
+        "condition": "write_burst_complete",
+        "from": "WRITE",
+        "to": "UPDATE"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions.transition_6"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "UPDATE",
+          "WRITE",
+          "burst",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "UPDATE",
+          "WRITE",
+          "burst",
+          "complete",
+          "write",
+          "write_burst_complete"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition per_channel.transition_7",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.per_channel.transitions.transition_7",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "fsm.per_channel.transitions.transition_7 condition is implemented as RTL control logic: ahb_error || timeout_expired",
+        "fsm.per_channel.transitions.transition_7 transition path WRITE -> ERROR is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.transitions.transition_7.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: from=WRITE; to=ERROR; condition=ahb_error || timeout_expired.",
+      "evidence_terms": [
+        "WRITE",
+        "ahb",
+        "ahb_error",
+        "expired",
+        "timeout",
+        "timeout_expired"
+      ],
+      "id": "RTL-0323",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.transitions.transition_7",
+      "ssot_context": {
+        "condition": "ahb_error || timeout_expired",
+        "from": "WRITE",
+        "to": "ERROR"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions.transition_7"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "WRITE",
+          "ahb",
+          "ahb_error"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "WRITE",
+          "ahb",
+          "ahb_error",
+          "expired",
+          "timeout",
+          "timeout_expired"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition per_channel.transition_8",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.per_channel.transitions.transition_8",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "fsm.per_channel.transitions.transition_8 condition is implemented as RTL control logic: remaining_gt_0",
+        "fsm.per_channel.transitions.transition_8 transition path UPDATE -> REQUEST is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.transitions.transition_8.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: from=UPDATE; to=REQUEST; condition=remaining_gt_0.",
+      "evidence_terms": [
+        "REQUEST",
+        "UPDATE"
+      ],
+      "id": "RTL-0324",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.transitions.transition_8",
+      "ssot_context": {
+        "condition": "remaining_gt_0",
+        "from": "UPDATE",
+        "to": "REQUEST"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions.transition_8"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "REQUEST",
+          "UPDATE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "REQUEST",
+          "UPDATE"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition per_channel.transition_9",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.per_channel.transitions.transition_9",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "fsm.per_channel.transitions.transition_9 condition is implemented as RTL control logic: remaining_eq_0",
+        "fsm.per_channel.transitions.transition_9 transition path UPDATE -> DONE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.transitions.transition_9.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: from=UPDATE; to=DONE; condition=remaining_eq_0.",
+      "evidence_terms": [
+        "DONE",
+        "UPDATE"
+      ],
+      "id": "RTL-0325",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.transitions.transition_9",
+      "ssot_context": {
+        "condition": "remaining_eq_0",
+        "from": "UPDATE",
+        "to": "DONE"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions.transition_9"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "DONE",
+          "UPDATE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DONE",
+          "UPDATE"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition per_channel.transition_10",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.per_channel.transitions.transition_10",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "fsm.per_channel.transitions.transition_10 condition is implemented as RTL control logic: status_sampled",
+        "fsm.per_channel.transitions.transition_10 transition path DONE -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.transitions.transition_10.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: from=DONE; to=IDLE; condition=status_sampled.",
+      "evidence_terms": [
+        "DONE",
+        "IDLE",
+        "sampled",
+        "status",
+        "status_sampled"
+      ],
+      "id": "RTL-0326",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.transitions.transition_10",
+      "ssot_context": {
+        "condition": "status_sampled",
+        "from": "DONE",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions.transition_10"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "DONE",
+          "IDLE",
+          "status"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "DONE",
+          "IDLE",
+          "sampled",
+          "status",
+          "status_sampled"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition per_channel.transition_11",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.per_channel.transitions.transition_11",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "fsm.per_channel.transitions.transition_11 condition is implemented as RTL control logic: status_sampled",
+        "fsm.per_channel.transitions.transition_11 transition path ERROR -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.per_channel.transitions.transition_11.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via fsm.per_channel.\nSSOT item context: from=ERROR; to=IDLE; condition=status_sampled.",
+      "evidence_terms": [
+        "IDLE",
+        "sampled",
+        "status",
+        "status_sampled"
+      ],
+      "id": "RTL-0327",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.per_channel.transitions.transition_11",
+      "ssot_context": {
+        "condition": "status_sampled",
+        "from": "ERROR",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions.transition_11"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "IDLE",
+          "status"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "sampled",
+          "status",
+          "status_sampled"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

@@ -1,0 +1,918 @@
+# =============================================================================
+# SSOT DRAFT - atcwdt200
+# Source: /Users/brian/Desktop/andes/atcwdt200 reference RTL evidence + ssot-gen Q&A
+# Status: approved first-pass SSOT; .session/default/atcwdt200/ssot-gen/qa.json records 9/9 approved decisions.
+# =============================================================================
+top_module:
+  name: atcwdt200
+  file: rtl/atcwdt200.sv
+  version: "0.1-draft"
+  type: peripheral
+  description: APB-accessed watchdog timer with programmable interrupt timeout, reset timeout, restart command, pause input, and selectable internal/external tick source.
+  reference_spec: clean-room compatible behavior derived from user-provided atcwdt200 RTL evidence
+  target:
+    technology: generic
+    clock_freq_mhz: 50
+    area_um2: null
+    power_mw: null
+
+sub_modules:
+  - name: atcwdt200_regs
+    file: rtl/atcwdt200_regs.sv
+    ownership: manifest
+    ssot_gen: true
+    implements:
+      - registers.register_list
+      - function_model.transactions.apb_read
+      - function_model.transactions.apb_write
+      - function_model.transactions.write_unlock
+    source_sections: [registers, function_model, error_handling]
+    function_model_refs:
+      - function_model.transactions.apb_read
+      - function_model.transactions.apb_write
+      - function_model.transactions.write_unlock
+    decomposition_refs:
+      - decomposition.units.apb_register_block
+    register_refs:
+      - registers.register_list
+    dataflow_refs:
+      - dataflow.sequence.sequence_0
+      - dataflow.sequence.sequence_1
+      - dataflow.sinks.sinks_0
+    description: APB-visible register decode, write protection, read mux, and protected write side effects.
+  - name: atcwdt200_core
+    file: rtl/atcwdt200_core.sv
+    ownership: manifest
+    ssot_gen: true
+    implements:
+      - function_model.transactions.watchdog_tick
+      - function_model.transactions.restart
+      - fsm.watchdog
+      - interrupts
+    source_sections: [function_model, cycle_model, fsm, interrupts]
+    function_model_refs:
+      - function_model.transactions.watchdog_tick
+      - function_model.transactions.restart
+      - function_model.transactions.timeout_decode
+    decomposition_refs:
+      - decomposition.units.watchdog_core
+    cycle_model_refs:
+      - cycle_model.pipeline
+      - cycle_model.ordering
+    fsm_refs:
+      - fsm.watchdog
+    dataflow_refs:
+      - dataflow.sequence.sequence_2
+      - dataflow.sequence.sequence_3
+      - dataflow.sequence.sequence_4
+      - dataflow.sequence.sequence_5
+      - dataflow.sinks.sinks_1
+      - dataflow.sinks.sinks_2
+    description: Watchdog counter, timeout decode, interrupt phase, reset phase, pause handling, and output status.
+  - name: atcwdt200_sync
+    file: rtl/atcwdt200_sync.sv
+    ownership: manifest
+    ssot_gen: true
+    implements:
+      - cdc_requirements.crossings.extclk_to_pclk
+      - cdc_requirements.crossings.wdt_pause_to_pclk
+    source_sections: [cdc_requirements, io_list]
+    decomposition_refs:
+      - decomposition.units.cdc_sync
+    dataflow_refs:
+      - dataflow.sequence.sequence_2
+    description: Manifest-owned clean-room two-flop synchronizer and extclk rising-edge detector replacing the unavailable external nds_sync_l2l dependency.
+  - name: atcwdt200
+    file: rtl/atcwdt200.sv
+    ownership: manifest
+    ssot_gen: true
+    wiring_only: true
+    kind: top_wrapper
+    source_sections: [top_module, io_list, integration, filelist]
+    ssot_refs:
+      - top_module
+      - io_list.interfaces
+      - integration.connections
+    ports:
+      - extclk
+      - wdt_pause
+      - wdt_rst
+      - wdt_int
+      - pclk
+      - presetn
+      - psel
+      - penable
+      - paddr
+      - pwrite
+      - pwdata
+      - prdata
+    description: Top-level port wrapper and named wiring for register, core, and synchronizer blocks.
+
+decomposition:
+  units:
+    - id: apb_register_block
+      kind: control
+      source_refs: [io_list.interfaces.apb_control, registers.register_list]
+      rtl_candidates: [atcwdt200_regs]
+      verification_impact: [test_requirements.scenarios.apb_register_access]
+      description: Decode APB-style accesses to VER, CR, RES, WEN, and SR.
+    - id: watchdog_core
+      kind: datapath/control
+      source_refs: [function_model.transactions.watchdog_tick, fsm.watchdog, interrupts]
+      rtl_candidates: [atcwdt200_core]
+      verification_impact: [test_requirements.scenarios.interrupt_timeout, test_requirements.scenarios.reset_timeout]
+      description: Count selected ticks, detect timeout intervals, sequence interrupt/reset phases, and drive watchdog outputs.
+    - id: cdc_sync
+      kind: cdc
+      source_refs: [cdc_requirements.crossings]
+      rtl_candidates: [atcwdt200_sync]
+      verification_impact: [test_requirements.scenarios.extclk_tick, test_requirements.scenarios.pause]
+      description: Synchronize extclk and wdt_pause into pclk; implementation ownership pending QA.
+
+parameters:
+  - name: COUNTER_WIDTH
+    default: 16
+    type: int
+    values: [16, 32]
+    description: Watchdog counter width; generated RTL keeps 16/32-bit parameterization and defaults to the reference 16-bit mode.
+    drives: [rtl/atcwdt200_core.sv]
+  - name: INT_TIME_WIDTH
+    default: 3
+    type: int
+    values: [3, 4]
+    description: Width of CR.INTTIME implemented field; 3 for 16-bit default, 4 when COUNTER_WIDTH is 32.
+    drives: [rtl/atcwdt200_regs.sv, rtl/atcwdt200_core.sv]
+  - name: APB_ADDR_WIDTH
+    default: 5
+    type: int
+    description: Byte address window width for offsets 0x00 through 0x1c; reference exposes paddr[4:2].
+    drives: [rtl/atcwdt200.sv, rtl/atcwdt200_regs.sv]
+  - name: DATA_WIDTH
+    default: 32
+    type: int
+    description: APB data width.
+    drives: [rtl/atcwdt200.sv, rtl/atcwdt200_regs.sv]
+
+io_list:
+  clock_domains:
+    - name: pclk
+      frequency_mhz: 50
+      description: APB/control clock from SDC pclk_period 20 ns.
+      ports:
+        - { name: pclk, width: 1, direction: input, description: Register/control clock }
+  resets:
+    - name: presetn
+      polarity: active_low
+      sync_async: async_assert_sync_deassert
+      description: Active-low reset; reference uses async assertion in sequential blocks.
+      ports:
+        - { name: presetn, width: 1, direction: input, description: Active-low reset }
+  interfaces:
+    - name: apb_control
+      type: APB-like
+      role: slave
+      clock_domain: pclk
+      reset_domain: presetn
+      description: Reference APB-style control interface; APB3/APB4 upgrade pending QA.
+      protocol:
+        setup_phase: psel=1 and penable=0 captures address into paddr_d1 in the reference.
+        access_phase: psel=1 and penable=1 performs write when pwrite=1; read data mux uses delayed address.
+        ready_rule: No pready port in legacy-compatible mode; each selected access is treated as completing in the access phase.
+        error_rule: No pslverr port in legacy-compatible mode; unsupported reads return zero and unsupported writes have no architectural side effect.
+      ports:
+        - { name: psel, width: 1, direction: input, description: APB select }
+        - { name: penable, width: 1, direction: input, description: APB enable }
+        - { name: paddr, width: 3, direction: input, description: "APB byte address bits [4:2]" }
+        - { name: pwrite, width: 1, direction: input, description: APB write enable }
+        - { name: pwdata, width: 32, direction: input, description: APB write data }
+        - { name: prdata, width: 32, direction: output, description: APB read data }
+    - name: watchdog_sideband
+      type: custom
+      role: mixed
+      clock_domain: pclk
+      reset_domain: presetn
+      description: Watchdog external tick, pause, interrupt, and reset pins.
+      protocol:
+        extclk_rule: extclk is sampled as a rising-edge tick after CDC policy is approved.
+        pause_rule: wdt_pause suppresses counter advance after synchronization.
+        output_rule: wdt_int and wdt_rst are active-high level outputs.
+      ports:
+        - { name: extclk, width: 1, direction: input, description: External watchdog tick source }
+        - { name: wdt_pause, width: 1, direction: input, description: Pause watchdog counting }
+        - { name: wdt_int, width: 1, direction: output, description: Watchdog interrupt output }
+        - { name: wdt_rst, width: 1, direction: output, description: Watchdog reset request output }
+
+features:
+  - name: apb_register_access
+    trigger: psel and penable define APB-style access cycles.
+    datapath: Address decode selects VER, CR, RES, WEN, or SR; reads return 32-bit prdata and writes update protected state.
+    control: Register writes are gated by WEN magic where required.
+    output: prdata, CR state, SR state, restart pulse.
+  - name: watchdog_timeout
+    trigger: CR.EN set and selected tick source advances the counter while not paused.
+    datapath: Counter increments until selected INTTIME or RSTTIME bit tap asserts timeout.
+    control: ST_INTTIME transitions to ST_RSTTIME on interrupt timeout; reset timeout clears enable.
+    output: wdt_int, wdt_rst, SR.INTZERO.
+  - name: restart_and_pause
+    trigger: RES magic write or synchronized wdt_pause.
+    datapath: Restart clears counter; pause prevents counter advance.
+    control: Restart returns FSM to interrupt-time phase.
+    output: Counter/state update only; no APB read side effect.
+
+dataflow:
+  sequence:
+    - APB writes WEN magic to unlock a protected write.
+    - APB writes CR to configure enable, tick source, interrupt enable, reset enable, and timeout encodings.
+    - The watchdog counter advances on pclk cycles when CR.CLK selects pclk, or on synchronized extclk rising pulses when external tick is selected.
+    - INTTIME timeout sets SR.INTZERO and asserts wdt_int when CR.INTEN is set.
+    - RSTTIME timeout sets reset status, asserts wdt_rst when CR.RSTEN is set, and clears CR.EN.
+    - RES magic write restarts the watchdog counter and phase.
+  sources:
+    - pclk
+    - extclk
+    - wdt_pause
+    - APB writes to CR, RES, WEN, SR
+  sinks:
+    - prdata
+    - wdt_int
+    - wdt_rst
+
+function_model:
+  purpose: Executable watchdog timer contract for FL model, RTL, and TB.
+  state_variables:
+    - { name: CR_EN, width: 1, reset: 0, description: Watchdog enable }
+    - { name: CR_CLK, width: 1, reset: 0, description: Tick source select }
+    - { name: CR_INTEN, width: 1, reset: 0, description: Interrupt enable }
+    - { name: CR_RSTEN, width: 1, reset: 0, description: Reset output enable }
+    - { name: CR_INTTIME, width: INT_TIME_WIDTH, reset: 0, description: Interrupt timeout encoding }
+    - { name: CR_RSTTIME, width: 3, reset: 0, description: Reset timeout encoding }
+    - { name: SR_INTZERO, width: 1, reset: 0, description: Interrupt timeout pending status }
+    - { name: SR_RSTZERO, width: 1, reset: 0, description: Reset timeout internal status }
+    - { name: REG_WEN, width: 1, reset: 0, description: Protected-write enable latch }
+    - { name: COUNTER, width: COUNTER_WIDTH, reset: 0, description: Watchdog counter }
+    - { name: STATE, width: 1, reset: ST_INTTIME, description: Interrupt-time or reset-time phase }
+  transactions:
+    - id: apb_read
+      name: APB register read
+      preconditions: [psel and penable are asserted, pwrite is low]
+      inputs: [paddr]
+      outputs: [prdata returns selected register value]
+      output_rules:
+        - { name: prdata_rule, port: prdata, expr: 0, width: 32 }
+      side_effects: [No architectural state changes on read]
+      error_cases: [Unsupported offsets return zero in legacy-compatible mode.]
+    - id: apb_write
+      name: APB register write
+      preconditions: [psel and penable and pwrite are asserted]
+      inputs: [paddr, pwdata]
+      outputs: [Protected registers update only when REG_WEN is set according to approved policy]
+      state_updates:
+        - { name: CR_FIELDS, expr: pwdata & 0x7ff, width: 11 }
+        - { name: SR_INTZERO, expr: SR_INTZERO & (((pwdata & 1) ^ 1) & 1), width: 1 }
+      side_effects: [May update CR, set REG_WEN, clear SR_INTZERO, or issue restart command]
+      error_cases: [Writes without unlock to protected registers have no effect]
+    - id: write_unlock
+      name: Write protection unlock
+      preconditions: [APB write to WEN offset 0x18]
+      inputs: [pwdata]
+      outputs: [REG_WEN becomes one when lower 16 bits match 0x5aa5]
+      state_updates:
+        - { name: REG_WEN, expr: "(pwdata & 0xffff) == 0x5aa5", width: 1 }
+      side_effects: [Unlock consumption policy pending QA]
+      error_cases: [Wrong magic value does not unlock]
+    - id: restart
+      name: Watchdog restart command
+      preconditions: [Unlocked APB write to RES offset 0x14 with lower 16 bits 0xcafe]
+      inputs: [pwdata, REG_WEN]
+      outputs: [COUNTER resets to zero and STATE becomes ST_INTTIME]
+      state_updates:
+        - { name: COUNTER, expr: 0, width: COUNTER_WIDTH }
+        - { name: STATE, expr: 0, width: 1 }
+      side_effects: [Restart command is a pulse]
+      error_cases: [Wrong magic or locked write has no restart effect]
+    - id: watchdog_tick
+      name: Watchdog tick and timeout update
+      preconditions: [CR_EN is set, wdt_pause synchronized value is zero]
+      inputs: [pclk_tick, extclk_rising_pulse, CR_CLK, CR_INTTIME, CR_RSTTIME, STATE, restart_cmd, inttime_end, rsttime_end]
+      outputs: [wdt_int and wdt_rst reflect timeout status gated by enables]
+      output_rules:
+        - { name: wdt_int_rule, port: wdt_int, expr: SR_INTZERO & CR_INTEN, width: 1 }
+        - { name: wdt_rst_rule, port: wdt_rst, expr: SR_RSTZERO & CR_RSTEN, width: 1 }
+      state_updates:
+        - { name: COUNTER, expr: "0 if (restart_cmd or inttime_end) else (COUNTER + 1)", width: COUNTER_WIDTH }
+        - { name: SR_INTZERO, expr: "1 if inttime_end else SR_INTZERO", width: 1 }
+        - { name: SR_RSTZERO, expr: "1 if rsttime_end else SR_RSTZERO", width: 1 }
+        - { name: STATE, expr: "1 if (inttime_end and not restart_cmd) else (0 if restart_cmd else STATE)", width: 1 }
+        - { name: CR_EN, expr: "0 if rsttime_end else CR_EN", width: 1 }
+      side_effects: [Timeout table uses the observed reference counter bit taps.]
+      error_cases: [No counting while paused or disabled]
+    - id: timeout_decode
+      name: Timeout interval decode
+      preconditions: [COUNTER advances]
+      inputs: [CR_INTTIME, CR_RSTTIME, COUNTER]
+      outputs: [inttime_end and rsttime_end predicates]
+      state_updates:
+        - { name: TIMEOUT_PREDICATES, expr: 0, width: 2 }
+      side_effects: [Drives watchdog_tick state updates]
+      error_cases: [Unsupported encodings are not expected if table is locked]
+  invariants:
+    - wdt_int equals SR_INTZERO & CR_INTEN.
+    - wdt_rst equals SR_RSTZERO & CR_RSTEN.
+    - Counter does not advance while disabled or paused.
+    - Reserved register bits read as zero and ignore writes unless QA approves modernized behavior.
+  reference_model_hint: FL model should implement register transactions, protected-write policy, timeout table, and tick-source selection before RTL is generated.
+
+cycle_model:
+  purpose: Cycle/handshake contract for watchdog control timing.
+  executable: python
+  backend_policy: Use FL model as behavioral oracle and cycle model for pclk-edge sequencing.
+  clock: pclk
+  reset:
+    assertion: presetn low asynchronously clears architectural state.
+    deassertion: Generated RTL should use async assert and synchronous operational use after reset release.
+  latency:
+    register_read: { min_cycles: 0, max_cycles: 1, description: Reference prdata is combinational from delayed paddr; exact APB read latency pending protocol QA. }
+    register_write: { min_cycles: 1, max_cycles: 1, description: Writes update state on pclk when psel && penable && pwrite. }
+    watchdog_timeout: { min_cycles: 1, max_cycles: null, description: Determined by timeout tap table and selected tick source. }
+  handshake_rules:
+    - { signal: psel, rule: Address is captured when psel is high. }
+    - { signal: penable, rule: Write access is valid when psel && penable && pwrite. }
+    - { signal: extclk, rule: External tick is consumed as synchronized rising-edge pulse if CDC QA approves internal sync. }
+  pipeline:
+    - { stage: S0_APB_ADDR, cycle: 0, action: Capture APB address during select phase. }
+    - { stage: S1_APB_ACCESS, cycle: 1, action: Apply APB write side effects or drive selected read data. }
+    - { stage: S2_SYNC, cycle: 0, action: Synchronize extclk and wdt_pause into pclk domain. }
+    - { stage: S3_COUNT, cycle: 0, action: Increment or clear watchdog counter based on enable, pause, selected tick, restart, and timeout. }
+    - { stage: S4_TIMEOUT_OUTPUT, cycle: 0, action: Update interrupt/reset status and outputs. }
+  ordering:
+    - WEN unlock is evaluated before a protected write consumes or clears unlock state according to approved QA policy.
+    - Restart command clears counter and returns state to ST_INTTIME.
+    - Interrupt timeout set happens before reset-time phase begins.
+    - Reset timeout clears CR.EN and asserts reset status.
+  backpressure:
+    - APB interface has no backpressure in the reference; APB4 ready/error behavior is pending QA.
+  performance:
+    frequency_mhz: 50
+    throughput: { register_accesses_per_cycle: 1, condition: APB-like access with no wait states if legacy mode is selected }
+    outstanding: { apb_max: 1, description: Single APB access at a time }
+    depth: { pipeline_stages: 5, queue_depth: 0, description: Register access plus synchronizer/counter stages }
+  observability:
+    - Every function_model transaction maps to at least one scenario and coverage bin.
+
+clock_reset_domains:
+  domains:
+    - { name: pclk, frequency_mhz: 50, description: Main register/control domain }
+  reset_scheme:
+    signal: presetn
+    polarity: active_low
+    type: async_assert_sync_deassert
+
+cdc_requirements:
+  crossings:
+    - { name: extclk_to_pclk, source: extclk, destination: pclk, mitigation: two_flop_synchronizer_plus_rising_edge_detect, description: External tick source crosses into pclk. }
+    - { name: wdt_pause_to_pclk, source: wdt_pause, destination: pclk, mitigation: two_flop_level_synchronizer, description: Pause input crosses into pclk. }
+  synchronizers:
+    - { name: extclk_sync, type: two_flop_edge_detect, owner: atcwdt200_sync }
+    - { name: wdt_pause_sync, type: two_flop_level, owner: atcwdt200_sync }
+  note: Generated RTL owns the clean-room synchronizers; STA treats async sideband inputs as CDC paths into pclk.
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: Single reset input presetn; no reset-domain crossing identified in reference.
+
+registers:
+  config:
+    register_width: 32
+    addr_width: 5
+    byte_addressable: true
+  bit_order: lsb0
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: ignore
+    rtl_requirement: Reserved fields read zero and do not allocate storage.
+  register_list:
+    - name: VER
+      offset: 0x00
+      width: 32
+      access: ro
+      reset: 0x03002002
+      category: identification
+      description: Version register assembled from imported constants.
+      fields:
+        - { name: id, bits: [31, 16], access: ro, reset: 0x0300, description: IP ID }
+        - { name: rev_major, bits: [15, 4], access: ro, reset: 0x200, description: Major revision }
+        - { name: rev_minor, bits: [3, 0], access: ro, reset: 0x2, description: Minor revision }
+    - name: CR
+      offset: 0x10
+      width: 32
+      access: rw
+      reset: 0x00000000
+      category: control
+      description: Watchdog control register.
+      write_side_effects:
+        - Protected write policy pending QA.
+      fields:
+        - { name: en, bits: [0, 0], access: rw, reset: 0, write_effect: Enable watchdog counter, description: Watchdog enable }
+        - { name: clk, bits: [1, 1], access: rw, reset: 0, write_effect: Select pclk or extclk tick source, description: Tick source select }
+        - { name: inten, bits: [2, 2], access: rw, reset: 0, write_effect: Enable wdt_int output, description: Interrupt enable }
+        - { name: rsten, bits: [3, 3], access: rw, reset: 0, write_effect: Enable wdt_rst output, description: Reset enable }
+        - { name: inttime, bits: [7, 4], access: rw, reset: 0, write_effect: Select interrupt timeout interval, description: Width/policy pending counter QA }
+        - { name: rsttime, bits: [10, 8], access: rw, reset: 0, write_effect: Select reset timeout interval, description: Reset timeout interval }
+        - { name: reserved_31_11, bits: [31, 11], access: reserved, reset: 0, read_value: 0, write_effect: ignore, description: Reserved }
+    - name: RES
+      offset: 0x14
+      width: 32
+      access: wo
+      reset: 0x00000000
+      category: command
+      description: Restart watchdog command.
+      write_side_effects:
+        - Writing 0x0000cafe when unlocked restarts watchdog timer.
+      fields:
+        - { name: restart_magic, bits: [15, 0], access: wo, reset: 0, write_effect: 0xcafe issues restart when unlocked, description: Restart magic value }
+        - { name: reserved_31_16, bits: [31, 16], access: reserved, reset: 0, read_value: 0, write_effect: ignore, description: Reserved }
+    - name: WEN
+      offset: 0x18
+      width: 32
+      access: wo
+      reset: 0x00000000
+      category: protection
+      description: Write protection unlock command.
+      write_side_effects:
+        - Writing 0x00005aa5 unlocks protected writes according to pending QA policy.
+      fields:
+        - { name: unlock_magic, bits: [15, 0], access: wo, reset: 0, write_effect: 0x5aa5 unlocks protected write, description: Unlock magic value }
+        - { name: reserved_31_16, bits: [31, 16], access: reserved, reset: 0, read_value: 0, write_effect: ignore, description: Reserved }
+    - name: SR
+      offset: 0x1c
+      width: 32
+      access: rw1c
+      reset: 0x00000000
+      category: status
+      description: Watchdog status register; reset-timeout visibility pending QA.
+      fields:
+        - { name: intzero, bits: [0, 0], access: rw1c, reset: 0, write_effect: Write one clears interrupt timeout status, description: Interrupt timeout pending }
+        - { name: reserved_31_1, bits: [31, 1], access: reserved, reset: 0, read_value: 0, write_effect: ignore, description: Reserved }
+
+memory:
+  instances: []
+  note: No SRAM/FIFO/memory arrays identified in reference.
+
+interrupts:
+  sources:
+    - { name: WDT_INTZERO, bit: 0, type: level, enable_reg: CR.INTEN, status_reg: SR.INTZERO, clear: W1C, description: Interrupt timeout reached }
+    - { name: WDT_RSTZERO, bit: 1, type: level_output_only, enable_reg: CR.RSTEN, status_reg: output_only, clear: reset_only, description: Reset timeout reached; visible through wdt_rst only in the compatible first pass. }
+  output:
+    signal: wdt_int
+    polarity: active_high
+    type: level
+  reset_output:
+    signal: wdt_rst
+    polarity: active_high
+    type: level
+
+fsm:
+  watchdog:
+    states:
+      - ST_INTTIME
+      - ST_RSTTIME
+    transitions:
+      - { from: ST_INTTIME, to: ST_RSTTIME, condition: inttime_end and not restart_cmd }
+      - { from: ST_RSTTIME, to: ST_INTTIME, condition: restart_cmd }
+      - { from: ST_INTTIME, to: ST_INTTIME, condition: restart_cmd or not inttime_end }
+      - { from: ST_RSTTIME, to: ST_RSTTIME, condition: not restart_cmd }
+    reset_state: ST_INTTIME
+
+rtl_contract:
+  transaction: watchdog_tick
+  clock: pclk
+  reset: presetn
+  reset_active: low
+  sample_condition: (psel and penable) or CR_EN
+  input_map:
+    apb_select: psel
+    apb_enable: penable
+    apb_write: pwrite
+    apb_addr: paddr
+    apb_wdata: pwdata
+    external_tick: extclk
+    pause: wdt_pause
+  output_map:
+    apb_rdata: prdata
+    watchdog_interrupt: wdt_int
+    watchdog_reset: wdt_rst
+  state_updates:
+    - { name: COUNTER, reset: 0, expr: COUNTER }
+    - { name: STATE, reset: 0, expr: STATE }
+    - { name: CR_FIELDS, reset: 0, expr: CR_FIELDS }
+
+timing:
+  target_clocks:
+    - { name: pclk, frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.3 }
+  latency_budget:
+    register_access_cycles: { min: 0, max: 1, measured_from: APB access phase, measured_to: prdata/state update }
+    interrupt_latency_cycles: { min: 1, max: 1, measured_from: timeout predicate, measured_to: wdt_int assertion }
+    reset_output_latency_cycles: { min: 1, max: 1, measured_from: reset-timeout predicate, measured_to: wdt_rst assertion }
+  throughput:
+    sustained_register_accesses_per_cycle: 1
+    conditions: Legacy APB-like no-wait-state mode if approved.
+  timing_exceptions:
+    - { path: extclk_to_pclk, type: asynchronous_input_to_sync_chain, reason: extclk is synchronized before use in pclk domain }
+    - { path: wdt_pause_to_pclk, type: asynchronous_input_to_sync_chain, reason: wdt_pause is synchronized before use in pclk domain }
+  io_delays:
+    inputs:
+      - { ports: all_nonclock_inputs, clock: pclk, delay_ns: 14.0, source: imported SDC uses 0.7 * pclk_period }
+    outputs:
+      - { ports: all_outputs, clock: pclk, delay_ns: 14.0, source: imported SDC uses 0.7 * pclk_period }
+  false_paths: []
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports: [sta/out/setup.rpt, sta/out/hold.rpt, sta/out/wns.json]
+
+power:
+  domains:
+    - { name: PD_CORE, voltage: nominal, clock_domains: [pclk], isolation: not_required_single_domain }
+  clock_gating:
+    required: false
+    rationale: Reference uses enable gating, not explicit clock gating.
+  reset_retention:
+    retention_required: false
+    reset_value_source: function_model.state_variables
+  power_states:
+    - { name: ON, entry: presetn deasserted, exit: presetn asserted, guarantees: Watchdog behavior active when CR.EN is set }
+  upf_required: false
+
+security:
+  classification: non_secure_control_ip
+  assets:
+    - { name: watchdog_reset_control, protection: WEN magic and CR.RSTEN gate reset-output behavior }
+    - { name: watchdog_disable_control, protection: CR.EN write protection policy pending QA }
+  threat_model:
+    - { threat: accidental watchdog disable, mitigation: WEN magic before protected writes }
+    - { threat: missed timeout, mitigation: counter/tap coverage and output assertions }
+  privilege_model: External bus fabric enforces privilege; this IP implements no internal privilege levels.
+  safety_goals:
+    - Watchdog reset request must assert after enabled reset-timeout phase.
+    - Restart must reliably clear the counter before timeout.
+
+error_handling:
+  error_sources:
+    - { id: ERR_UNSUPPORTED_APB_OFFSET, condition: APB access to unsupported offset, architectural_effect: Legacy-compatible mode returns zero on reads and ignores writes because no pslverr output exists. }
+    - { id: ERR_BAD_MAGIC, condition: RES or WEN magic mismatch, architectural_effect: No state-changing command effect }
+  propagation:
+    - Bad magic writes do not update protected state.
+    - Unsupported-offset response depends on APB protocol QA.
+  recovery:
+    - { action: reset, clears: [all architectural state], preserves: [] }
+    - { action: SR W1C, clears: [SR_INTZERO], preserves: [CR fields, COUNTER unless restart] }
+
+debug_observability:
+  waveform_must_probe:
+    - CR_EN
+    - CR_CLK
+    - CR_INTEN
+    - CR_RSTEN
+    - CR_INTTIME
+    - CR_RSTTIME
+    - SR_INTZERO
+    - SR_RSTZERO
+    - REG_WEN
+    - COUNTER
+    - STATE
+    - extclk_sync
+    - wdt_pause_sync
+  status_outputs:
+    - wdt_int
+    - wdt_rst
+    - prdata
+  trace_events:
+    - { name: apb_write_unlock, trigger: WEN magic accepted }
+    - { name: watchdog_restart, trigger: RES magic accepted }
+    - { name: interrupt_timeout, trigger: inttime_end }
+    - { name: reset_timeout, trigger: rsttime_end }
+  debug_registers:
+    - VER
+    - CR
+    - SR
+
+integration:
+  bus_attachment:
+    control: legacy APB-like slave without pready/pslverr for first compatibility pass
+    sideband: extclk, wdt_pause, wdt_int, wdt_rst
+  connections:
+    - { module: atcwdt200_regs, port: pclk, signal: pclk }
+    - { module: atcwdt200_regs, port: presetn, signal: presetn }
+    - { module: atcwdt200_core, port: pclk, signal: pclk }
+    - { module: atcwdt200_core, port: presetn, signal: presetn }
+    - { module: atcwdt200_sync, port: pclk, signal: pclk }
+    - { module: atcwdt200_sync, port: presetn, signal: presetn }
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: SoC interconnect or APB local decode
+    illegal_access_response: zero read data and no write side effect
+  dependencies:
+    external_modules:
+      - { name: nds_sync_l2l, policy: replaced_by_local_manifest_sync, source: imported flist references external module }
+    external_clocks: [pclk, extclk]
+    external_resets: [presetn]
+  integration_notes:
+    - SoC must decide whether extclk is asynchronous and whether generated RTL owns synchronization.
+
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: presetn must be controllable in test mode.
+    clocks: [pclk]
+  observability:
+    required_internal_points: [COUNTER, STATE, CR fields, SR fields]
+  mbist_required: false
+  notes: No memory macro identified.
+
+synthesis:
+  dialect: systemverilog_2012
+  top_module: atcwdt200
+  technology:
+    pdk: generic
+    standard_cell_library: generic
+    liberty_corner: generic
+    liberty_env: GENERIC_LIB
+    lef_env: GENERIC_LEF
+    tech_lef_env: GENERIC_TLEF
+    rcx_rules_env: GENERIC_RCX_RULES
+  constraints:
+    - No inferred latches.
+    - Single pclk sequential domain after synchronizers.
+    - Generated RTL must be clean-room from SSOT behavior.
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 50
+  required_outputs:
+    - syn/out/atcwdt200.json or syn/out/atcwdt200.v
+    - syn/out/area.rpt
+    - syn/out/timing_summary.rpt
+
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: met3
+    vertical: met2
+  placement:
+    density_target: 0.65
+    max_displacement_um: null
+  cts:
+    buf_list: []
+    functional_mode_case_analysis: []
+  routing:
+    signal_layers: { min: met1, max: met5 }
+    clock_layers: { min: met3, max: met5 }
+    drc_waivers: []
+  required_outputs:
+    - pnr/out/floorplan.def
+    - pnr/out/placed.def
+    - pnr/out/cts.def
+    - pnr/out/routed.def
+    - pnr/out/routed.v
+    - pnr/out/routed.spef
+    - pnr/out/pnr.report.md
+
+coding_rules:
+  verilog_style: systemverilog_2012
+  file_extension: .sv
+  parameter_header: rtl/atcwdt200_param.vh
+  conventions:
+    - Use synthesizable SystemVerilog subset.
+    - Nonblocking assignments in sequential blocks.
+    - Blocking assignments in combinational blocks.
+    - No inferred latches.
+    - Active-low reset style must match clock_reset_domains.
+    - Parameterize counter and interval widths.
+  lint_waivers: []
+
+reuse_modules:
+  - { name: nds_sync_l2l, policy: not_used_replaced_by_manifest_sync, reason: Reference depends on unavailable external synchronizer; generated RTL uses local clean-room synchronizers. }
+
+custom:
+  assumptions:
+    - Reference RTL is used as behavioral evidence only.
+    - RTL engineer approved clean-room compatible behavior, legacy APB-like first pass, parameterized 16-bit default counter, local synchronizers, one-shot WEN, observed timeout taps, reset-status output-only policy, and standard quality profile.
+  imported_evidence:
+    manifest: atcwdt200/req/import_manifest.json
+
+dir_structure:
+  template_dirs:
+    rtl: templates/rtl/
+    sim: templates/sim/
+  output_dirs:
+    rtl: rtl/
+    sim: sim/
+    firmware: firmware/
+    docs: docs/
+  yaml_dir: yaml/
+  generators_dir: generators/
+
+filelist:
+  headers:
+    - rtl/atcwdt200_param.vh
+  rtl:
+    - rtl/atcwdt200_regs.sv
+    - rtl/atcwdt200_core.sv
+    - rtl/atcwdt200_sync.sv
+    - rtl/atcwdt200.sv
+  sim:
+    - sim/tb_top.sv
+    - sim/tb_program.sv
+  firmware:
+    - firmware/atcwdt200_regs.h
+  docs:
+    - docs/register_map.md
+    - docs/README.md
+
+test_requirements:
+  scenarios:
+    - id: reset_defaults
+      name: Reset defaults
+      stimulus: Assert presetn low then release.
+      expected: CR, SR, REG_WEN, COUNTER, and STATE reset to declared values; outputs deassert.
+      checker: FL model and RTL monitor compare reset state and outputs.
+      coverage: [function_model.state_variables, cycle_model.reset]
+    - id: apb_register_access
+      name: APB register read/write
+      stimulus: Read VER, unlock and write CR, read CR and SR.
+      expected: Register readback follows register map and protected write policy.
+      checker: APB scoreboard.
+      coverage: [function_model.transactions.apb_read, function_model.transactions.apb_write]
+    - id: restart_command
+      name: Restart command
+      stimulus: Unlock, write RES magic 0xcafe while watchdog is running.
+      expected: COUNTER clears and STATE returns to ST_INTTIME.
+      checker: Counter/state monitor.
+      coverage: [function_model.transactions.restart]
+    - id: interrupt_timeout
+      name: Interrupt timeout
+      stimulus: Program CR.INTTIME, enable watchdog and interrupt, advance selected tick.
+      expected: SR.INTZERO sets and wdt_int asserts when timeout is reached.
+      checker: Timeout scoreboard.
+      coverage: [function_model.transactions.watchdog_tick, interrupts.sources.WDT_INTZERO]
+    - id: reset_timeout
+      name: Reset timeout
+      stimulus: Let watchdog advance from interrupt phase into reset phase with reset enabled.
+      expected: wdt_rst asserts and CR.EN clears on reset timeout.
+      checker: Timeout/reset scoreboard.
+      coverage: [fsm.watchdog, interrupts.sources.WDT_RSTZERO]
+    - id: pause_and_extclk
+      name: Pause and external clock behavior
+      stimulus: Select external tick, toggle extclk, assert/deassert wdt_pause.
+      expected: Counter advances only on approved ticks while pause is deasserted.
+      checker: CDC/tick monitor.
+      coverage: [cdc_requirements.crossings, cycle_model.handshake_rules]
+  scoreboard_checks:
+    - Register read/write mirror.
+    - Protected write gating.
+    - Restart command effect.
+    - Timeout decode table.
+    - wdt_int and wdt_rst output equations.
+    - Pause and external tick behavior.
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+      description: Behavioral coverage for watchdog register, command, timeout, and output behavior.
+      bins:
+        - { id: FCOV_APB_READ, source_ref: function_model.transactions.apb_read, class: transaction, description: APB read transaction observed. }
+        - { id: FCOV_APB_WRITE, source_ref: function_model.transactions.apb_write, class: transaction, description: APB write transaction observed. }
+        - { id: FCOV_UNLOCK, source_ref: function_model.transactions.write_unlock, class: transaction, description: WEN magic accepted. }
+        - { id: FCOV_RESTART, source_ref: function_model.transactions.restart, class: transaction, description: Restart magic accepted. }
+        - { id: FCOV_TIMEOUT, source_ref: function_model.transactions.watchdog_tick, class: transaction, description: Interrupt and reset timeout behavior observed. }
+    cycle:
+      target_pct: 100
+      model: cycle_model
+      description: Cycle, CDC, FSM, and timeout sequencing coverage.
+      bins:
+        - { id: CCOV_APB_ACCESS, source_ref: cycle_model.pipeline.S1_APB_ACCESS, class: pipeline_stage, description: APB access stage observed. }
+        - { id: CCOV_SYNC, source_ref: cycle_model.pipeline.S2_SYNC, class: pipeline_stage, description: Synchronizer stage observed. }
+        - { id: CCOV_COUNT, source_ref: cycle_model.pipeline.S3_COUNT, class: pipeline_stage, description: Counter stage observed. }
+        - { id: CCOV_FSM_INT_TO_RST, source_ref: fsm.watchdog.transitions, class: state_transition, description: ST_INTTIME to ST_RSTTIME observed. }
+        - { id: CCOV_PERF_FREQ, source_ref: cycle_model.performance.frequency_mhz, class: frequency, description: PCLK target recorded. }
+    functional: Legacy alias; function and cycle goals must both close.
+    line: ">= 90% instrumented line coverage or approved waiver"
+    branch: ">= 85% instrumented branch coverage or approved waiver"
+    fsm: 100% declared FSM states and legal transitions covered.
+    assertions: All protocol/order/error assertions pass.
+
+quality_gates:
+  ssot:
+    pass: All canonical sections present; pending QA resolved before validation PASS.
+    evidence: [atcwdt200/yaml/atcwdt200.ssot.yaml, atcwdt200/req/import_manifest.json, .session/default/atcwdt200/ssot-gen/qa.json]
+  rtl_gen:
+    profile: standard
+    pass: SSOT-derived rtl_todo_plan has no blockers/orphans and RTL compiles after QA approval.
+    evidence: [atcwdt200/rtl/rtl_todo_plan.json, atcwdt200/rtl/rtl_compile.json, atcwdt200/lint/dut_lint.json]
+  rtl:
+    pass: RTL implements function_model and cycle_model, compiles, and has no unwaived lint warnings.
+    evidence: [rtl filelist, compile log, lint report]
+  dv:
+    pass: Every test_requirements scenario has executable TB, expected/got checker, and coverage bin.
+    evidence: [sim/results.xml, cov/coverage.json]
+  coverage:
+    pass: Functional and cycle coverage goals pass or have approved waiver.
+    evidence: [cov/coverage.json, cov/coverage_report.md]
+  eda:
+    pass: Synthesis/STA/PnR evidence meets timing/area/power targets or has explicit waiver.
+    evidence: [syn report, sta report, pnr report]
+  signoff:
+    pass: SSOT, FL model, RTL, TB, simulation, lint, and coverage gates pass with fresh evidence.
+    evidence: [ATLAS progress signoff pass]
+
+traceability:
+  yaml_to_output:
+    - { yaml: top_module.name, output: ALL files and module names }
+    - { yaml: parameters, output: rtl/atcwdt200_param.vh }
+    - { yaml: io_list.interfaces, output: rtl/atcwdt200.sv port list }
+    - { yaml: registers.register_list, output: rtl/atcwdt200_regs.sv and firmware/atcwdt200_regs.h }
+    - { yaml: function_model, output: model/functional_model.py and rtl/atcwdt200_core.sv }
+    - { yaml: cycle_model, output: model/cycle_model.py and RTL sequencing checks }
+    - { yaml: cdc_requirements, output: rtl/atcwdt200_sync.sv and lint/CDC notes }
+    - { yaml: test_requirements.scenarios, output: tb/cocotb tests and coverage bins }
+  change_impact_example:
+    change: counter width policy changes from 16-bit default to fixed 32-bit.
+    affected_files:
+      - rtl/atcwdt200_param.vh
+      - rtl/atcwdt200_core.sv
+      - model/functional_model.py
+      - tb/cocotb/test_atcwdt200.py
+
+workflow_todos:
+  fl-model-gen:
+    - id: FL_TODO_QA_GATE
+      content: Wait for pending SSOT QA decisions before locking the FL model.
+      detail: FL model needs protocol, counter width, timeout table, protected-write policy, CDC policy, and reset-status visibility.
+      criteria:
+        - .session/default/atcwdt200/ssot-gen/qa.json records approved RTL engineer decisions.
+        - atcwdt200/yaml/atcwdt200.ssot.yaml has no live unresolved placeholders affecting FL behavior.
+      source_refs: [function_model, registers, cdc_requirements]
+      owner_module: atcwdt200
+      owner_file: atcwdt200/yaml/atcwdt200.ssot.yaml
+      priority: high
+      required: true
+  rtl-gen:
+    - id: RTL_TODO_WDT_CORE
+      content: Implement clean-room watchdog timer RTL from approved SSOT.
+      detail: Translate register block, counter, FSM, timeout decode, outputs, and synchronizer policy into manifest-owned RTL modules.
+      criteria:
+        - RTL does not copy reference source.
+        - Function/cycle/model traceability covers all listed owner refs.
+        - Compile and lint reports are fresh after final RTL edit.
+      source_refs: [function_model.transactions, cycle_model.pipeline, registers.register_list, fsm.watchdog]
+      owner_module: atcwdt200_core
+      owner_file: rtl/atcwdt200_core.sv
+      priority: high
+      required: true
+  tb-gen:
+    - id: TB_TODO_WDT_SCENARIOS
+      content: Build cocotb scenarios for reset, APB access, restart, timeout, pause, and extclk behavior.
+      detail: Drive approved APB protocol and compare RTL to FL model.
+      criteria:
+        - All test_requirements.scenarios execute.
+        - Coverage goals function and cycle bins close or have approved waiver.
+      source_refs: [test_requirements.scenarios, coverage_goals]
+      owner_module: tb
+      owner_file: tb/cocotb/test_atcwdt200.py
+      priority: high
+      required: true
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+
+generation_flow:
+  steps:
+    - { name: validate_ssot, command: bash workflow/ssot-gen/scripts/check_ssot_disk.sh atcwdt200, description: Validate SSOT after QA decisions are approved and applied. }
+    - { name: handoff_fl_model, command: /ssot-fl-model atcwdt200, description: Generate FL model and functional coverage plan from SSOT. }
+    - { name: handoff_cycle_model, command: /ssot-cycle-model atcwdt200, description: Generate deterministic cycle model from SSOT. }
+    - { name: handoff_dual_fcov, command: /ssot-dual-fcov atcwdt200, description: Emit combined function/cycle coverage plan. }
+    - { name: handoff_equivalence_goals, command: /ssot-equiv-goals atcwdt200, description: Derive FL-vs-RTL equivalence goals for TB/sim. }
+    - { name: handoff_rtl, command: /ssot-rtl atcwdt200, description: Generate clean-room RTL from SSOT and prove compile/lint gates. }
+    - { name: handoff_lint, command: /lint atcwdt200, description: Run DUT lint after RTL generation and after RTL repairs. }
+    - { name: handoff_tb, command: /ssot-tb-cocotb atcwdt200, description: Generate cocotb TB and scenario scoreboards. }
+    - { name: handoff_sim, command: /sim atcwdt200, description: Run simulation and produce results/coverage evidence. }
+  atlas_workflows:
+    - ssot-gen
+    - fl-model-gen
+    - cl-model-gen
+    - equiv-goals
+    - rtl-gen
+    - lint
+    - tb-gen
+    - sim

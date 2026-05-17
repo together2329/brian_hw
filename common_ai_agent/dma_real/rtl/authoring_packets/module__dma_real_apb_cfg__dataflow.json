@@ -1,0 +1,485 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 8,
+      "key": "dataflow",
+      "module_task_count": 152,
+      "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "dataflow",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_real_apb_cfg.sv",
+      "name": "dma_real_apb_cfg",
+      "refs": [
+        "dataflow.ordering.ordering_0",
+        "dataflow.sequence.sequence_0",
+        "dataflow.sequence.sequence_1",
+        "function_model.state_variables",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "module",
+  "owner_file": "rtl/dma_real_apb_cfg.sv",
+  "owner_module": "dma_real_apb_cfg",
+  "packet_id": "module__dma_real_apb_cfg__dataflow",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "dataflow.ordering": 6,
+      "dataflow.sequence": 2
+    },
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 8,
+      "key": "dataflow",
+      "module_task_count": 152,
+      "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "dataflow",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 8,
+    "source_refs": [
+      "dataflow.sequence.sequence_12",
+      "dataflow.sequence.sequence_13",
+      "dataflow.ordering.ordering_0",
+      "dataflow.ordering.ordering_1",
+      "dataflow.ordering.ordering_2",
+      "dataflow.ordering.ordering_3",
+      "dataflow.ordering.ordering_4",
+      "dataflow.ordering.ordering_5"
+    ],
+    "status_counts": {
+      "pass": 8
+    },
+    "task_count": 8
+  },
+  "tasks": [
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_12",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_12",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_12.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via dataflow.sequence.sequence_0.\nSSOT item context: value=Channel asserts done pulse (1 hclk cycle), IRQ module latches sticky in pclk domain..",
+      "evidence_terms": [],
+      "id": "RTL-0350",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_12",
+      "ssot_context": {
+        "value": "Channel asserts done pulse (1 hclk cycle), IRQ module latches sticky in pclk domain."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_12"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_13",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_13",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_13.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via dataflow.sequence.sequence_0.\nSSOT item context: value=IRQ asserted if enabled..",
+      "evidence_terms": [],
+      "id": "RTL-0351",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_13",
+      "ssot_context": {
+        "value": "IRQ asserted if enabled."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_13"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.ordering",
+      "content": "Implement dataflow ordering: ordering_0",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.ordering.ordering_0",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.ordering.ordering_0.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via dataflow.ordering.ordering_0.\nSSOT item context: value=Configuration (APB write in pclk) must cross CDC before hclk channel FSM reads it..",
+      "evidence_terms": [],
+      "id": "RTL-0352",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.ordering.ordering_0",
+      "ssot_context": {
+        "value": "Configuration (APB write in pclk) must cross CDC before hclk channel FSM reads it."
+      },
+      "ssot_refs": [
+        "dataflow.ordering.ordering_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.ordering",
+      "content": "Implement dataflow ordering: ordering_1",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.ordering.ordering_1",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.ordering.ordering_1.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via dataflow.ordering.ordering_0.\nSSOT item context: value=Arbiter grant must precede AHB address phase..",
+      "evidence_terms": [],
+      "id": "RTL-0353",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.ordering.ordering_1",
+      "ssot_context": {
+        "value": "Arbiter grant must precede AHB address phase."
+      },
+      "ssot_refs": [
+        "dataflow.ordering.ordering_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.ordering",
+      "content": "Implement dataflow ordering: ordering_2",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.ordering.ordering_2",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.ordering.ordering_2.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via dataflow.ordering.ordering_0.\nSSOT item context: value=Read burst completion must precede write burst for same data..",
+      "evidence_terms": [],
+      "id": "RTL-0354",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.ordering.ordering_2",
+      "ssot_context": {
+        "value": "Read burst completion must precede write burst for same data."
+      },
+      "ssot_refs": [
+        "dataflow.ordering.ordering_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.ordering",
+      "content": "Implement dataflow ordering: ordering_3",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.ordering.ordering_3",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.ordering.ordering_3.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via dataflow.ordering.ordering_0.\nSSOT item context: value=Address update must precede next burst request..",
+      "evidence_terms": [],
+      "id": "RTL-0355",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.ordering.ordering_3",
+      "ssot_context": {
+        "value": "Address update must precede next burst request."
+      },
+      "ssot_refs": [
+        "dataflow.ordering.ordering_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.ordering",
+      "content": "Implement dataflow ordering: ordering_4",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.ordering.ordering_4",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.ordering.ordering_4.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via dataflow.ordering.ordering_0.\nSSOT item context: value=Transfer completion (DONE) precedes done pulse observation..",
+      "evidence_terms": [],
+      "id": "RTL-0356",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.ordering.ordering_4",
+      "ssot_context": {
+        "value": "Transfer completion (DONE) precedes done pulse observation."
+      },
+      "ssot_refs": [
+        "dataflow.ordering.ordering_4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.ordering",
+      "content": "Implement dataflow ordering: ordering_5",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.ordering.ordering_5",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.ordering.ordering_5.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via dataflow.ordering.ordering_0.\nSSOT item context: value=1KB boundary crossing starts new NONSEQ beat..",
+      "evidence_terms": [],
+      "id": "RTL-0357",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.ordering.ordering_5",
+      "ssot_context": {
+        "value": "1KB boundary crossing starts new NONSEQ beat."
+      },
+      "ssot_refs": [
+        "dataflow.ordering.ordering_5"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

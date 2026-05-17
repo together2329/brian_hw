@@ -4,7 +4,9 @@
   "env": {
     "MAX_ITERATIONS": "300",
     "ENABLE_MARKDOWN_RENDER": "true",
-    "DEFAULT_SCHEMA_ENGINE": "cerberus"
+    "DEFAULT_SCHEMA_ENGINE": "cerberus",
+    "_disabled_tools_comment": "ssot-gen is interactive — both ask_user (live interview) and record_ssot_qa (durable QA card) are allowed. Overrides default which disables record_ssot_qa.",
+    "WORKFLOW_DISABLED_TOOLS": ""
   },
   "skills": {
     "force_activate": ["verilog-expert", "grill-me", "to-ssot"],

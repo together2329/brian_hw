@@ -1,0 +1,3135 @@
+{
+  "ip": "atcwdt200",
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "source_of_truth": {
+    "ssot": "atcwdt200/yaml/atcwdt200.ssot.yaml",
+    "functional_model": "atcwdt200/model/functional_model.py",
+    "functional_model_exists": true,
+    "cycle_model_section": "cycle_model",
+    "decomposition": "atcwdt200/model/decomposition.json",
+    "coverage_plan": "atcwdt200/cov/fcov_plan.json",
+    "authority_contract": {
+      "rule": "LLM repair loops are allowed when a general criterion has objective machine evidence: PASS/FAIL/DIFF, coverage gap, lint diagnostic, assertion failure, stale evidence, traceability gap, or measured performance gap. Human gates own intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff.",
+      "general_evaluation_criteria": [
+        {
+          "id": "traceability",
+          "criterion": "Every generated artifact traces to SSOT requirement, function_model, cycle_model, interface, coverage, or quality_gates refs.",
+          "machine_evidence": [
+            "source refs in decomposition/equivalence goals",
+            "artifact manifests"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "functional_equivalence",
+          "criterion": "RTL observable behavior matches FunctionalModel results for every required transaction/scenario.",
+          "machine_evidence": [
+            "scoreboard_events.jsonl",
+            "fl_rtl_compare.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "module_equivalence",
+          "criterion": "Each behavior-owning RTL module has module-boundary evidence before top-level signoff.",
+          "machine_evidence": [
+            "scope.level=module scoreboard rows",
+            "module goal status"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "coverage_closure",
+          "criterion": "SSOT coverage goals are hit by passing RTL-observed scoreboard evidence.",
+          "machine_evidence": [
+            "fcov_plan.json",
+            "coverage.json",
+            "scoreboard coverage_refs"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "interface_protocol",
+          "criterion": "Ports, handshakes, ordering, reset, and error protocol obey SSOT io_list/cycle_model/interface contract.",
+          "machine_evidence": [
+            "protocol goals",
+            "assertion failures",
+            "waveform evidence"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "lint_compile",
+          "criterion": "DUT-only RTL compile/lint has zero unwaived errors, warnings, and style diagnostics.",
+          "machine_evidence": [
+            "rtl_compile.json",
+            "dut_lint.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "simulation_evidence",
+          "criterion": "Simulation results are fresh, bounded, non-stale, and tied to structured scoreboard goals.",
+          "machine_evidence": [
+            "results.xml",
+            "scoreboard_events.jsonl",
+            "stale_evidence checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "performance_cycle",
+          "criterion": "Cycle/performance targets from cycle_model/timing are measured or explicitly escalated.",
+          "machine_evidence": [
+            "latency/throughput measurements",
+            "CL/performance sweep reports"
+          ],
+          "llm_loop_allowed": "candidate_search_only"
+        },
+        {
+          "id": "debug_observability",
+          "criterion": "Waveforms and debug probes are sufficient to inspect reset, interface activity, state, outputs, and failures.",
+          "machine_evidence": [
+            "VCD/FST presence",
+            "debug_observability goals",
+            "waveform parser summary"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "maintainability",
+          "criterion": "Generated RTL/TB is structured by SSOT-owned modules, avoids fixed IP templates, and remains reviewable.",
+          "machine_evidence": [
+            "module contracts",
+            "dynamic todo plan",
+            "filelist/manifest checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "human_decision",
+          "criterion": "Intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff are human-owned.",
+          "machine_evidence": [
+            "human_gate questions/answers",
+            "approval state"
+          ],
+          "llm_loop_allowed": false
+        }
+      ],
+      "locked_artifacts": [
+        {
+          "name": "requirement",
+          "path": "atcwdt200/req/",
+          "owner": "human",
+          "change_rule": "Human owns intent, scope, priority, tradeoffs, and final acceptance."
+        },
+        {
+          "name": "ssot_spec",
+          "path": "atcwdt200/yaml/atcwdt200.ssot.yaml",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Behavior, interface, coverage goal, and waiver changes require human gate."
+        },
+        {
+          "name": "functional_model",
+          "path": "atcwdt200/model/functional_model.py",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "FunctionalModel is the golden oracle; sim-debug cannot change it to match RTL."
+        },
+        {
+          "name": "coverage_plan",
+          "path": "atcwdt200/cov/fcov_plan.json",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "LLM may add tests to hit bins, but cannot weaken or delete bins without approval."
+        },
+        {
+          "name": "interface_contract",
+          "path": "atcwdt200/yaml/atcwdt200.ssot.yaml#io_list",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Protocol and port contract changes require human approval."
+        },
+        {
+          "name": "performance_target",
+          "path": "atcwdt200/yaml/atcwdt200.ssot.yaml#cycle_model",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "LLM may sweep candidates, but target/tradeoff changes require human approval."
+        }
+      ],
+      "llm_editable_artifacts": [
+        "atcwdt200/rtl/",
+        "atcwdt200/tb/",
+        "atcwdt200/sim/",
+        "atcwdt200/reports/",
+        "atcwdt200/vectors/"
+      ],
+      "loopable_evidence_points": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "loopable_oracles": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "non_loopable_decisions": [
+        "change requirement intent or scope",
+        "change SSOT behavioral rule",
+        "change FunctionalModel golden semantics",
+        "change coverage goal or waiver",
+        "change interface contract",
+        "change performance target or architecture tradeoff",
+        "final signoff"
+      ]
+    }
+  },
+  "summary": {
+    "total": 41,
+    "required": 41,
+    "optional": 0,
+    "blocked": 0,
+    "unverified": 0,
+    "module_total": 2,
+    "module_required": 2,
+    "module_blocked": 0,
+    "module_unverified": 0
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_APB_READ",
+      "title": "Transaction APB register read matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model"
+      ],
+      "coverage_refs": [
+        "apb_register_access_executed",
+        "fcov_apb_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "APB register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel and penable are asserted",
+          "pwrite is low"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "prdata returns selected register value",
+          "prdata_rule"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "No architectural state changes on read"
+        ],
+        "error_policy": "Unsupported offsets return zero in legacy-compatible mode."
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_APB_WRITE",
+      "title": "Transaction APB register write matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[1]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_apb_write"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "APB register write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel and penable and pwrite are asserted"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Protected registers update only when REG_WEN is set according to approved policy"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "May update CR",
+          "set REG_WEN",
+          "clear SR_INTZERO",
+          "or issue restart command",
+          "CR_FIELDS",
+          "SR_INTZERO"
+        ],
+        "error_policy": "Writes without unlock to protected registers have no effect"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_WRITE_UNLOCK",
+      "title": "Transaction Write protection unlock matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[2]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_unlock"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "Write protection unlock",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "APB write to WEN offset 0x18"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "REG_WEN becomes one when lower 16 bits match 0x5aa5"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "Unlock consumption policy pending QA",
+          "REG_WEN"
+        ],
+        "error_policy": "Wrong magic value does not unlock"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_RESTART",
+      "title": "Transaction Watchdog restart command matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[3]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model"
+      ],
+      "coverage_refs": [
+        "restart_command_executed",
+        "fcov_restart",
+        "function_watchdog_restart_command",
+        "cycle_ordering_1",
+        "fsm_watchdog_st_inttime_to_st_rsttime_0",
+        "fsm_watchdog_st_rsttime_to_st_inttime_1",
+        "fsm_watchdog_st_inttime_to_st_inttime_2",
+        "fsm_watchdog_st_rsttime_to_st_rsttime_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "Watchdog restart command",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "Unlocked APB write to RES offset 0x14 with lower 16 bits 0xcafe"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "COUNTER resets to zero and STATE becomes ST_INTTIME"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "Restart command is a pulse",
+          "COUNTER",
+          "STATE"
+        ],
+        "error_policy": "Wrong magic or locked write has no restart effect"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_WATCHDOG_TICK",
+      "title": "Transaction Watchdog tick and timeout update matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[4]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_timeout",
+        "function_watchdog_tick_and_timeout_update"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "Watchdog tick and timeout update",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "CR_EN is set",
+          "wdt_pause synchronized value is zero"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "wdt_int and wdt_rst reflect timeout status gated by enables",
+          "wdt_int_rule",
+          "wdt_rst_rule"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "Timeout table uses the observed reference counter bit taps.",
+          "COUNTER",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "STATE",
+          "CR_EN"
+        ],
+        "error_policy": "No counting while paused or disabled"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_TIMEOUT_DECODE",
+      "title": "Transaction Timeout interval decode matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[5]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "Timeout interval decode",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "COUNTER advances"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "inttime_end and rsttime_end predicates"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "Drives watchdog_tick state updates",
+          "TIMEOUT_PREDICATES"
+        ],
+        "error_policy": "Unsupported encodings are not expected if table is locked"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_RESET_DEFAULTS",
+      "title": "Scenario reset_defaults: Reset defaults",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "reset_defaults_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset_defaults",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert presetn low then release."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "CR, SR, REG_WEN, COUNTER, and STATE reset to declared values; outputs deassert.",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_APB_REGISTER_ACCESS",
+      "title": "Scenario apb_register_access: APB register read/write",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "apb_register_access_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "APB register read",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Read VER, unlock and write CR, read CR and SR.",
+          "psel and penable are asserted",
+          "pwrite is low"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Register readback follows register map and protected write policy.",
+          "prdata returns selected register value",
+          "prdata_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "No architectural state changes on read"
+        ],
+        "error_policy": "Unsupported offsets return zero in legacy-compatible mode."
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_RESTART_COMMAND",
+      "title": "Scenario restart_command: Restart command",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "restart_command_executed",
+        "function_watchdog_restart_command",
+        "cycle_ordering_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "Watchdog restart command",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Unlock, write RES magic 0xcafe while watchdog is running.",
+          "Unlocked APB write to RES offset 0x14 with lower 16 bits 0xcafe"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "COUNTER clears and STATE returns to ST_INTTIME.",
+          "COUNTER resets to zero and STATE becomes ST_INTTIME"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "Restart command is a pulse",
+          "COUNTER",
+          "STATE"
+        ],
+        "error_policy": "Wrong magic or locked write has no restart effect"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_INTERRUPT_TIMEOUT",
+      "title": "Scenario interrupt_timeout: Interrupt timeout",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "interrupt_timeout_executed",
+        "cycle_ordering_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "Watchdog tick and timeout update",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Program CR.INTTIME, enable watchdog and interrupt, advance selected tick.",
+          "CR_EN is set",
+          "wdt_pause synchronized value is zero"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "SR.INTZERO sets and wdt_int asserts when timeout is reached.",
+          "wdt_int and wdt_rst reflect timeout status gated by enables",
+          "wdt_int_rule",
+          "wdt_rst_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "Timeout table uses the observed reference counter bit taps.",
+          "COUNTER",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "STATE",
+          "CR_EN"
+        ],
+        "error_policy": "No counting while paused or disabled"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_RESET_TIMEOUT",
+      "title": "Scenario reset_timeout: Reset timeout",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[4]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "reset_timeout_executed",
+        "fcov_timeout",
+        "cycle_ordering_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset_timeout",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Let watchdog advance from interrupt phase into reset phase with reset enabled."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "wdt_rst asserts and CR.EN clears on reset timeout.",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_PAUSE_AND_EXTCLK",
+      "title": "Scenario pause_and_extclk: Pause and external clock behavior",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[5]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "pause_and_extclk_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "pause_and_extclk",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Select external tick, toggle extclk, assert/deassert wdt_pause."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Counter advances only on approved ticks while pause is deasserted.",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "title": "Cycle/handshake rule handshake_0",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[0]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_latency_register_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_0",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'psel', 'rule': 'Address is captured when psel is high.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Reference prdata is combinational from delayed paddr; exact APB read latency pending protocol QA.'}, 'register_write': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Writes update state on pclk when psel && penable && pwrite.'}, 'watchdog_timeout': {'min_cycles': 1, 'max_cycles': None, 'description': 'Determined by timeout tap table and selected tick source.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "title": "Cycle/handshake rule handshake_1",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[1]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_latency_register_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_1",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'penable', 'rule': 'Write access is valid when psel && penable && pwrite.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Reference prdata is combinational from delayed paddr; exact APB read latency pending protocol QA.'}, 'register_write': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Writes update state on pclk when psel && penable && pwrite.'}, 'watchdog_timeout': {'min_cycles': 1, 'max_cycles': None, 'description': 'Determined by timeout tap table and selected tick source.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "title": "Cycle/handshake rule handshake_2",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[2]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_latency_register_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_2",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'extclk', 'rule': 'External tick is consumed as synchronized rising-edge pulse if CDC QA approves internal sync.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Reference prdata is combinational from delayed paddr; exact APB read latency pending protocol QA.'}, 'register_write': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Writes update state on pclk when psel && penable && pwrite.'}, 'watchdog_timeout': {'min_cycles': 1, 'max_cycles': None, 'description': 'Determined by timeout tap table and selected tick source.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "title": "Ordering rule ordering_0",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_0",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "WEN unlock is evaluated before a protected write consumes or clears unlock state according to approved QA policy."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Reference prdata is combinational from delayed paddr; exact APB read latency pending protocol QA.'}, 'register_write': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Writes update state on pclk when psel && penable && pwrite.'}, 'watchdog_timeout': {'min_cycles': 1, 'max_cycles': None, 'description': 'Determined by timeout tap table and selected tick source.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "title": "Ordering rule ordering_1",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[1]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_1",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Restart command clears counter and returns state to ST_INTTIME."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Reference prdata is combinational from delayed paddr; exact APB read latency pending protocol QA.'}, 'register_write': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Writes update state on pclk when psel && penable && pwrite.'}, 'watchdog_timeout': {'min_cycles': 1, 'max_cycles': None, 'description': 'Determined by timeout tap table and selected tick source.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "title": "Ordering rule ordering_2",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[2]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_2",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Interrupt timeout set happens before reset-time phase begins."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Reference prdata is combinational from delayed paddr; exact APB read latency pending protocol QA.'}, 'register_write': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Writes update state on pclk when psel && penable && pwrite.'}, 'watchdog_timeout': {'min_cycles': 1, 'max_cycles': None, 'description': 'Determined by timeout tap table and selected tick source.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_3",
+      "title": "Ordering rule ordering_3",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[3]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_3",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Reset timeout clears CR.EN and asserts reset status."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Reference prdata is combinational from delayed paddr; exact APB read latency pending protocol QA.'}, 'register_write': {'min_cycles': 1, 'max_cycles': 1, 'description': 'Writes update state on pclk when psel && penable && pwrite.'}, 'watchdog_timeout': {'min_cycles': 1, 'max_cycles': None, 'description': 'Determined by timeout tap table and selected tick source.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_VER",
+      "title": "Register access VER",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[0]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_register_model"
+      ],
+      "coverage_refs": [
+        "apb_register_access_executed",
+        "function_apb_register_read",
+        "function_apb_register_write",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_perf_depth",
+        "cycle_perf_throughput",
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'VER', 'offset': 0, 'width': 32, 'access': 'ro', 'reset': 50339842, 'category': 'identification', 'description': 'Version register assembled from imported constants.', 'fields': [{'name': 'id', 'bits': [31, 16], 'access': 'ro', 'reset': 768, 'description': 'IP ID'}, {'name': 'rev_major', 'bits': [15, 4], 'access': 'ro', 'reset': 512, 'description': 'Major revision'}, {'name': 'rev_minor', 'bits': [3, 0], 'access': 'ro', 'reset': 2, 'description': 'Minor revision'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CR",
+      "title": "Register access CR",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[1]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_register_model"
+      ],
+      "coverage_refs": [
+        "apb_register_access_executed",
+        "function_apb_register_read",
+        "function_apb_register_write",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_latency_watchdog_timeout",
+        "cycle_pipeline_s3_count",
+        "cycle_ordering_3",
+        "cycle_perf_outstanding",
+        "cycle_perf_depth",
+        "cycle_perf_throughput"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CR', 'offset': 16, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'control', 'description': 'Watchdog control register.', 'write_side_effects': ['Protected write policy pending QA.'], 'fields': [{'name': 'en', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'write_effect': 'Enable watchdog counter', 'description': 'Watchdog enable'}, {'name': 'clk', 'bits': [1, 1], 'access': 'rw', 'reset': 0, 'write_effect': 'Select pclk or extclk tick source', 'description': 'Tick source select'}, {'name': 'inten', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'write_effect': 'Enable wdt_int output', 'description': 'Interrupt enable'}, {'name': 'rsten', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'write_effect': 'Enable wdt_rst output', 'description': 'Reset enable'}, {'name': 'inttime', 'bits': [7, 4], 'access': 'rw', 'reset': 0, 'write_effect': 'Select interrupt timeout interval', 'description': 'Width/policy pending counter QA'}, {'name': 'rsttime', 'bits': [10, 8], 'access': 'rw', 'reset': 0, 'write_effect': 'Select reset timeout interval', 'description': 'Reset timeout interval'}, {'name': 'reserved_31_11', 'bits': [31, 11], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_RES",
+      "title": "Register access RES",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[2]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_register_model"
+      ],
+      "coverage_refs": [
+        "reset_defaults_executed",
+        "apb_register_access_executed",
+        "restart_command_executed",
+        "reset_timeout_executed",
+        "fcov_restart",
+        "fcov_timeout",
+        "function_apb_register_read",
+        "function_apb_register_write",
+        "function_watchdog_restart_command",
+        "cycle_handshake_0",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_pipeline_s0_apb_addr",
+        "cycle_pipeline_s4_timeout_output",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3",
+        "cycle_backpressure_0",
+        "cycle_perf_depth",
+        "cycle_perf_throughput",
+        "fsm_watchdog_st_inttime_to_st_rsttime_0",
+        "fsm_watchdog_st_rsttime_to_st_inttime_1",
+        "fsm_watchdog_st_inttime_to_st_inttime_2",
+        "fsm_watchdog_st_rsttime_to_st_rsttime_3",
+        "error_error_0",
+        "error_error_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'RES', 'offset': 20, 'width': 32, 'access': 'wo', 'reset': 0, 'category': 'command', 'description': 'Restart watchdog command.', 'write_side_effects': ['Writing 0x0000cafe when unlocked restarts watchdog timer.'], 'fields': [{'name': 'restart_magic', 'bits': [15, 0], 'access': 'wo', 'reset': 0, 'write_effect': '0xcafe issues restart when unlocked', 'description': 'Restart magic value'}, {'name': 'reserved_31_16', 'bits': [31, 16], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_WEN",
+      "title": "Register access WEN",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[3]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_register_model"
+      ],
+      "coverage_refs": [
+        "apb_register_access_executed",
+        "fcov_unlock",
+        "function_apb_register_read",
+        "function_apb_register_write",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_ordering_0",
+        "cycle_perf_depth",
+        "cycle_perf_throughput",
+        "error_error_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'WEN', 'offset': 24, 'width': 32, 'access': 'wo', 'reset': 0, 'category': 'protection', 'description': 'Write protection unlock command.', 'write_side_effects': ['Writing 0x00005aa5 unlocks protected writes according to pending QA policy.'], 'fields': [{'name': 'unlock_magic', 'bits': [15, 0], 'access': 'wo', 'reset': 0, 'write_effect': '0x5aa5 unlocks protected write', 'description': 'Unlock magic value'}, {'name': 'reserved_31_16', 'bits': [31, 16], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_SR",
+      "title": "Register access SR",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[4]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_register_model"
+      ],
+      "coverage_refs": [
+        "apb_register_access_executed",
+        "function_apb_register_read",
+        "function_apb_register_write",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_perf_depth",
+        "cycle_perf_throughput"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'SR', 'offset': 28, 'width': 32, 'access': 'rw1c', 'reset': 0, 'category': 'status', 'description': 'Watchdog status register; reset-timeout visibility pending QA.', 'fields': [{'name': 'intzero', 'bits': [0, 0], 'access': 'rw1c', 'reset': 0, 'write_effect': 'Write one clears interrupt timeout status', 'description': 'Interrupt timeout pending'}, {'name': 'reserved_31_1', 'bits': [31, 1], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "title": "Error policy None",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[0]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_error_model"
+      ],
+      "coverage_refs": [
+        "cycle_latency_watchdog_timeout",
+        "cycle_backpressure_0",
+        "error_error_0",
+        "error_error_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "None",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "{'id': 'ERR_UNSUPPORTED_APB_OFFSET', 'condition': 'APB access to unsupported offset', 'architectural_effect': 'Legacy-compatible mode returns zero on reads and ignores writes because no pslverr output exists.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "['Bad magic writes do not update protected state.', 'Unsupported-offset response depends on APB protocol QA.']"
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_WATCHDOG_ST_INTTIME_TO_ST_RSTTIME_0",
+      "title": "FSM transition watchdog: ST_INTTIME -> ST_RSTTIME",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.watchdog.transitions[0]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_fsm_model"
+      ],
+      "coverage_refs": [
+        "fcov_timeout",
+        "ccov_fsm_int_to_rst",
+        "function_watchdog_restart_command",
+        "function_watchdog_tick_and_timeout_update",
+        "cycle_latency_watchdog_timeout",
+        "cycle_pipeline_s3_count",
+        "cycle_ordering_1",
+        "fsm_watchdog_st_inttime_to_st_rsttime_0",
+        "fsm_watchdog_st_rsttime_to_st_inttime_1",
+        "fsm_watchdog_st_inttime_to_st_inttime_2",
+        "fsm_watchdog_st_rsttime_to_st_rsttime_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "watchdog_ST_INTTIME_to_ST_RSTTIME_0",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "inttime_end and not restart_cmd"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "watchdog state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_WATCHDOG_ST_RSTTIME_TO_ST_INTTIME_1",
+      "title": "FSM transition watchdog: ST_RSTTIME -> ST_INTTIME",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.watchdog.transitions[1]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_fsm_model"
+      ],
+      "coverage_refs": [
+        "fcov_timeout",
+        "ccov_fsm_int_to_rst",
+        "function_watchdog_restart_command",
+        "function_watchdog_tick_and_timeout_update",
+        "cycle_latency_watchdog_timeout",
+        "cycle_pipeline_s3_count",
+        "cycle_ordering_1",
+        "fsm_watchdog_st_inttime_to_st_rsttime_0",
+        "fsm_watchdog_st_rsttime_to_st_inttime_1",
+        "fsm_watchdog_st_inttime_to_st_inttime_2",
+        "fsm_watchdog_st_rsttime_to_st_rsttime_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "watchdog_ST_RSTTIME_to_ST_INTTIME_1",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "restart_cmd"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "watchdog state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_WATCHDOG_ST_INTTIME_TO_ST_INTTIME_2",
+      "title": "FSM transition watchdog: ST_INTTIME -> ST_INTTIME",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.watchdog.transitions[2]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_fsm_model"
+      ],
+      "coverage_refs": [
+        "fcov_timeout",
+        "ccov_fsm_int_to_rst",
+        "function_watchdog_restart_command",
+        "function_watchdog_tick_and_timeout_update",
+        "cycle_latency_watchdog_timeout",
+        "cycle_pipeline_s3_count",
+        "cycle_ordering_1",
+        "fsm_watchdog_st_inttime_to_st_rsttime_0",
+        "fsm_watchdog_st_rsttime_to_st_inttime_1",
+        "fsm_watchdog_st_inttime_to_st_inttime_2",
+        "fsm_watchdog_st_rsttime_to_st_rsttime_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "watchdog_ST_INTTIME_to_ST_INTTIME_2",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "restart_cmd or not inttime_end"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "watchdog state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_WATCHDOG_ST_RSTTIME_TO_ST_RSTTIME_3",
+      "title": "FSM transition watchdog: ST_RSTTIME -> ST_RSTTIME",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.watchdog.transitions[3]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_fsm_model"
+      ],
+      "coverage_refs": [
+        "fcov_timeout",
+        "ccov_fsm_int_to_rst",
+        "function_watchdog_restart_command",
+        "function_watchdog_tick_and_timeout_update",
+        "cycle_latency_watchdog_timeout",
+        "cycle_pipeline_s3_count",
+        "fsm_watchdog_st_inttime_to_st_rsttime_0",
+        "fsm_watchdog_st_rsttime_to_st_inttime_1",
+        "fsm_watchdog_st_inttime_to_st_inttime_2",
+        "fsm_watchdog_st_rsttime_to_st_rsttime_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "watchdog_ST_RSTTIME_to_ST_RSTTIME_3",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "not restart_cmd"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "watchdog state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "title": "Required debug/waveform observability exists",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "debug_observability.waveform_must_probe"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "debug_probe_capture",
+        "required_fields": [
+          "waveform_path"
+        ],
+        "constraints": [
+          "CR_EN",
+          "CR_CLK",
+          "CR_INTEN",
+          "CR_RSTEN",
+          "CR_INTTIME",
+          "CR_RSTTIME",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "REG_WEN",
+          "COUNTER",
+          "STATE",
+          "extclk_sync",
+          "wdt_pause_sync"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "waveform contains required probes"
+        ],
+        "latency": "throughout simulation window",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Waveform includes SSOT-required debug probes",
+        "sim_debug can inspect those probes around checked scenarios"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "tb",
+          "coverage",
+          "rtl",
+          "ssot",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_MODULE_ATCWDT200_REGS",
+      "title": "Module atcwdt200_regs functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "atcwdt200_regs",
+        "rtl_file": "rtl/atcwdt200_regs.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "error_handling",
+        "features.restart_and_pause",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.counter",
+        "function_model.state_variables.cr_clk",
+        "function_model.state_variables.cr_en",
+        "function_model.state_variables.cr_inten",
+        "function_model.state_variables.cr_inttime",
+        "function_model.state_variables.cr_rsten",
+        "function_model.state_variables.cr_rsttime",
+        "function_model.state_variables.reg_wen",
+        "function_model.state_variables.sr_intzero",
+        "function_model.state_variables.sr_rstzero",
+        "function_model.state_variables.state",
+        "function_model.transactions.apb_read",
+        "function_model.transactions.apb_read.error_cases.error_case_0",
+        "function_model.transactions.apb_read.inputs.input_0",
+        "function_model.transactions.apb_read.output_rules.prdata_rule",
+        "function_model.transactions.apb_read.outputs.output_0",
+        "function_model.transactions.apb_read.preconditions.precondition_0",
+        "function_model.transactions.apb_read.preconditions.precondition_1",
+        "function_model.transactions.apb_read.side_effects.side_effect_0",
+        "function_model.transactions.apb_write",
+        "function_model.transactions.apb_write.error_cases.error_case_0",
+        "function_model.transactions.apb_write.inputs.input_0",
+        "function_model.transactions.apb_write.inputs.input_1",
+        "function_model.transactions.apb_write.outputs.output_0",
+        "function_model.transactions.apb_write.preconditions.precondition_0",
+        "function_model.transactions.apb_write.side_effects.side_effect_0",
+        "function_model.transactions.apb_write.side_effects.side_effect_1",
+        "function_model.transactions.apb_write.side_effects.side_effect_2",
+        "function_model.transactions.apb_write.side_effects.side_effect_3",
+        "function_model.transactions.apb_write.state_updates.cr_fields",
+        "function_model.transactions.apb_write.state_updates.sr_intzero",
+        "function_model.transactions.write_unlock",
+        "function_model.transactions.write_unlock.error_cases.error_case_0",
+        "function_model.transactions.write_unlock.inputs.input_0",
+        "function_model.transactions.write_unlock.outputs.output_0",
+        "function_model.transactions.write_unlock.preconditions.precondition_0",
+        "function_model.transactions.write_unlock.side_effects.side_effect_0",
+        "function_model.transactions.write_unlock.state_updates.reg_wen",
+        "parameters.apb_addr_width",
+        "parameters.data_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.cr",
+        "registers.register_list.res",
+        "registers.register_list.sr",
+        "registers.register_list.ver",
+        "registers.register_list.wen"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "APB register write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel and penable and pwrite are asserted",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Protected registers update only when REG_WEN is set according to approved policy"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "May update CR",
+          "set REG_WEN",
+          "clear SR_INTZERO",
+          "or issue restart command",
+          "CR_FIELDS",
+          "SR_INTZERO"
+        ],
+        "error_policy": "Writes without unlock to protected registers have no effect"
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_MODULE_ATCWDT200_CORE",
+      "title": "Module atcwdt200_core functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "atcwdt200_core",
+        "rtl_file": "rtl/atcwdt200_core.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.extclk",
+        "cycle_model.handshake_rules.penable",
+        "cycle_model.handshake_rules.psel",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.s0_apb_addr",
+        "cycle_model.pipeline.s1_apb_access",
+        "cycle_model.pipeline.s2_sync",
+        "cycle_model.pipeline.s3_count",
+        "cycle_model.pipeline.s4_timeout_output",
+        "cycle_model.reset",
+        "features.watchdog_timeout",
+        "fsm",
+        "fsm.watchdog",
+        "function_model",
+        "function_model.transactions.restart",
+        "function_model.transactions.restart.error_cases.error_case_0",
+        "function_model.transactions.restart.inputs.input_0",
+        "function_model.transactions.restart.inputs.input_1",
+        "function_model.transactions.restart.outputs.output_0",
+        "function_model.transactions.restart.preconditions.precondition_0",
+        "function_model.transactions.restart.side_effects.side_effect_0",
+        "function_model.transactions.restart.state_updates.counter",
+        "function_model.transactions.restart.state_updates.state",
+        "function_model.transactions.timeout_decode",
+        "function_model.transactions.timeout_decode.error_cases.error_case_0",
+        "function_model.transactions.timeout_decode.inputs.input_0",
+        "function_model.transactions.timeout_decode.inputs.input_1",
+        "function_model.transactions.timeout_decode.inputs.input_2",
+        "function_model.transactions.timeout_decode.outputs.output_0",
+        "function_model.transactions.timeout_decode.preconditions.precondition_0",
+        "function_model.transactions.timeout_decode.side_effects.side_effect_0",
+        "function_model.transactions.timeout_decode.state_updates.timeout_predicates",
+        "function_model.transactions.watchdog_tick",
+        "function_model.transactions.watchdog_tick.error_cases.error_case_0",
+        "function_model.transactions.watchdog_tick.inputs.input_0",
+        "function_model.transactions.watchdog_tick.inputs.input_1",
+        "function_model.transactions.watchdog_tick.inputs.input_2",
+        "function_model.transactions.watchdog_tick.inputs.input_3",
+        "function_model.transactions.watchdog_tick.inputs.input_4",
+        "function_model.transactions.watchdog_tick.inputs.input_5",
+        "function_model.transactions.watchdog_tick.inputs.input_6",
+        "function_model.transactions.watchdog_tick.inputs.input_7",
+        "function_model.transactions.watchdog_tick.inputs.input_8",
+        "function_model.transactions.watchdog_tick.output_rules.wdt_int_rule",
+        "function_model.transactions.watchdog_tick.output_rules.wdt_rst_rule",
+        "function_model.transactions.watchdog_tick.outputs.output_0",
+        "function_model.transactions.watchdog_tick.preconditions.precondition_0",
+        "function_model.transactions.watchdog_tick.preconditions.precondition_1",
+        "function_model.transactions.watchdog_tick.side_effects.side_effect_0",
+        "function_model.transactions.watchdog_tick.state_updates.counter",
+        "function_model.transactions.watchdog_tick.state_updates.cr_en",
+        "function_model.transactions.watchdog_tick.state_updates.sr_intzero",
+        "function_model.transactions.watchdog_tick.state_updates.sr_rstzero",
+        "function_model.transactions.watchdog_tick.state_updates.state",
+        "interrupts",
+        "parameters.counter_width"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_core"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "APB register write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel and penable and pwrite are asserted",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Protected registers update only when REG_WEN is set according to approved policy"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "May update CR",
+          "set REG_WEN",
+          "clear SR_INTZERO",
+          "or issue restart command",
+          "CR_FIELDS",
+          "SR_INTZERO"
+        ],
+        "error_policy": "Writes without unlock to protected registers have no effect"
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_APB_ACCESS",
+      "title": "Functional coverage bin ccov_apb_access: APB access stage observed.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S1_APB_ACCESS"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_apb_access"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "APB register write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel and penable and pwrite are asserted",
+          "APB access stage observed."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Protected registers update only when REG_WEN is set according to approved policy"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "May update CR",
+          "set REG_WEN",
+          "clear SR_INTZERO",
+          "or issue restart command",
+          "CR_FIELDS",
+          "SR_INTZERO"
+        ],
+        "error_policy": "Writes without unlock to protected registers have no effect"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_SYNC",
+      "title": "Functional coverage bin ccov_sync: Synchronizer stage observed.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S2_SYNC"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_sync"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "APB register write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel and penable and pwrite are asserted",
+          "Synchronizer stage observed."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Protected registers update only when REG_WEN is set according to approved policy"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "May update CR",
+          "set REG_WEN",
+          "clear SR_INTZERO",
+          "or issue restart command",
+          "CR_FIELDS",
+          "SR_INTZERO"
+        ],
+        "error_policy": "Writes without unlock to protected registers have no effect"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_COUNT",
+      "title": "Functional coverage bin ccov_count: Counter stage observed.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S3_COUNT"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_count"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "APB register write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel and penable and pwrite are asserted",
+          "Counter stage observed."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Protected registers update only when REG_WEN is set according to approved policy"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "May update CR",
+          "set REG_WEN",
+          "clear SR_INTZERO",
+          "or issue restart command",
+          "CR_FIELDS",
+          "SR_INTZERO"
+        ],
+        "error_policy": "Writes without unlock to protected registers have no effect"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_PERF_FREQ",
+      "title": "Functional coverage bin ccov_perf_freq: PCLK target recorded.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.frequency_mhz"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_perf_freq"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "APB register write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel and penable and pwrite are asserted",
+          "PCLK target recorded."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Protected registers update only when REG_WEN is set according to approved policy"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "May update CR",
+          "set REG_WEN",
+          "clear SR_INTZERO",
+          "or issue restart command",
+          "CR_FIELDS",
+          "SR_INTZERO"
+        ],
+        "error_policy": "Writes without unlock to protected registers have no effect"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FUNCTION_WRITE_PROTECTION_UNLOCK",
+      "title": "Functional coverage bin function_write_protection_unlock: write_protection_unlock",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[2]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "function_write_protection_unlock"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "APB register write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel and penable and pwrite are asserted",
+          "write_protection_unlock"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Protected registers update only when REG_WEN is set according to approved policy"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "May update CR",
+          "set REG_WEN",
+          "clear SR_INTZERO",
+          "or issue restart command",
+          "CR_FIELDS",
+          "SR_INTZERO"
+        ],
+        "error_policy": "Writes without unlock to protected registers have no effect"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FUNCTION_TIMEOUT_INTERVAL_DECODE",
+      "title": "Functional coverage bin function_timeout_interval_decode: timeout_interval_decode",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[5]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "function_timeout_interval_decode"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "APB register write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel and penable and pwrite are asserted",
+          "timeout_interval_decode"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Protected registers update only when REG_WEN is set according to approved policy"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "May update CR",
+          "set REG_WEN",
+          "clear SR_INTZERO",
+          "or issue restart command",
+          "CR_FIELDS",
+          "SR_INTZERO"
+        ],
+        "error_policy": "Writes without unlock to protected registers have no effect"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_APB_ACCESS",
+      "title": "Functional coverage bin cycle_pipeline_s1_apb_access: Apply APB write side effects or drive selected read data.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[1]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s1_apb_access"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "APB register write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel and penable and pwrite are asserted",
+          "Apply APB write side effects or drive selected read data."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Protected registers update only when REG_WEN is set according to approved policy"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "May update CR",
+          "set REG_WEN",
+          "clear SR_INTZERO",
+          "or issue restart command",
+          "CR_FIELDS",
+          "SR_INTZERO"
+        ],
+        "error_policy": "Writes without unlock to protected registers have no effect"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S2_SYNC",
+      "title": "Functional coverage bin cycle_pipeline_s2_sync: Synchronize extclk and wdt_pause into pclk domain.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[2]"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s2_sync"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "APB register write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel and penable and pwrite are asserted",
+          "Synchronize extclk and wdt_pause into pclk domain."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Protected registers update only when REG_WEN is set according to approved policy"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "May update CR",
+          "set REG_WEN",
+          "clear SR_INTZERO",
+          "or issue restart command",
+          "CR_FIELDS",
+          "SR_INTZERO"
+        ],
+        "error_policy": "Writes without unlock to protected registers have no effect"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "title": "Functional coverage bin cycle_perf_frequency_mhz: 50",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.frequency_mhz"
+      ],
+      "decomposition_refs": [
+        "atcwdt200_regs",
+        "atcwdt200_core",
+        "atcwdt200_sync",
+        "atcwdt200",
+        "atcwdt200_protocol_model",
+        "atcwdt200_register_model",
+        "atcwdt200_datapath_model",
+        "atcwdt200_fsm_model",
+        "atcwdt200_error_model",
+        "atcwdt200_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "APB register write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel and penable and pwrite are asserted",
+          "50"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Protected registers update only when REG_WEN is set according to approved policy"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "May update CR",
+          "set REG_WEN",
+          "clear SR_INTZERO",
+          "or issue restart command",
+          "CR_FIELDS",
+          "SR_INTZERO"
+        ],
+        "error_policy": "Writes without unlock to protected registers have no effect"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "blocked_at_stage": "rtl-gen",
+  "ip": "dma_real",
+  "llm": {
+    "by_stage": {
+      "rtl-gen": {
+        "cache_read_tokens": 0,
+        "calls": 1,
+        "cost_usd": 0.0,
+        "input_tokens": 0,
+        "models": [
+          "glm-5.1"
+        ],
+        "output_tokens": 0,
+        "repair_calls": 0,
+        "repair_rate": 0.0,
+        "total_tokens": 0
+      }
+    },
+    "totals": {
+      "cache_read_tokens": 0,
+      "calls": 1,
+      "cost_usd": 0.0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "repair_calls": 0,
+      "repair_rate": 0.0,
+      "total_tokens": 0
+    }
+  },
+  "llm_log_files": 1,
+  "run_status": "blocked",
+  "stage_engine_order": [
+    {
+      "created_at": "2026-05-17T05:52:36Z",
+      "stage_engine": "ssot-rtl",
+      "status": "human_gate"
+    }
+  ]
+}

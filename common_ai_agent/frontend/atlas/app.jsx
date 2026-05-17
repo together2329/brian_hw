@@ -71,6 +71,7 @@ const ATLAS_EXEC_MODE_OPTIONS = [
   { key: 'single-worker', label: 'Single Worker' },
   { key: 'orchestrator', label: 'Orchestrator' },
 ];
+const DEFAULT_ATLAS_EXEC_MODE = 'orchestrator';
 const normalizeAtlasRunMode = (value) => {
   const v = String(value || '').trim().toLowerCase().replace(/_/g, '-');
   if (v === 'eng') return 'engineering';
@@ -81,7 +82,7 @@ const normalizeAtlasExecMode = (value) => {
   const v = String(value || '').trim().toLowerCase().replace(/_/g, '-');
   if (v === 'single' || v === 'worker' || v === 'serial') return 'single-worker';
   if (v === 'orch' || v === 'multi-worker') return 'orchestrator';
-  return ATLAS_EXEC_MODE_OPTIONS.some(o => o.key === v) ? v : 'single-worker';
+  return ATLAS_EXEC_MODE_OPTIONS.some(o => o.key === v) ? v : DEFAULT_ATLAS_EXEC_MODE;
 };
 
 // ── PipelineRunningChip ───────────────────────────────────────────
@@ -146,7 +147,7 @@ const App = () => {
   });
   const [execMode, setExecMode] = React.useState(() => {
     try { return normalizeAtlasExecMode(localStorage.getItem('atlasExecMode')); }
-    catch (_) { return 'single-worker'; }
+    catch (_) { return DEFAULT_ATLAS_EXEC_MODE; }
   });
   React.useEffect(() => {
     window.ATLAS_UI_LANG = uiLang;
@@ -242,10 +243,19 @@ const App = () => {
   // wedges the cmux WKWebView (native dialogs hang every browser RPC),
   // so route validation feedback through a transient banner instead.
   const [topNotice, setTopNotice] = React.useState('');
+  const [nameEntry, setNameEntry] = React.useState(null);
+  const nameEntryInputRef = React.useRef(null);
   const showNotice = React.useCallback((msg) => {
     setTopNotice(String(msg || ''));
     setTimeout(() => setTopNotice(''), 5000);
   }, []);
+  React.useEffect(() => {
+    if (!nameEntry) return undefined;
+    const timer = setTimeout(() => {
+      try { nameEntryInputRef.current && nameEntryInputRef.current.focus(); } catch (_) {}
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [nameEntry && nameEntry.kind]);
   const saveRunPolicy = React.useCallback(async (nextRunMode, nextExecMode) => {
     const run_mode = normalizeAtlasRunMode(nextRunMode);
     const exec_mode = normalizeAtlasExecMode(nextExecMode);
@@ -897,38 +907,38 @@ const App = () => {
     activateNamespace(activeSessionId, ip, wf, true);
   };
 
-  const newSessionId = () => {
-    const raw = window.prompt(
-      'New session_id (letters/digits/_-, e.g. brian or u-team-a):',
-      ''
-    );
+  const beginNameEntry = (kind) => {
+    setTopNotice('');
+    setNameEntry({ kind, value: '' });
+  };
+
+  const commitNewSessionId = (raw) => {
     if (!raw) return;
     const owner = normalizeSession(raw);
     if (!owner) {
       showNotice('Invalid session_id. Use only [A-Za-z0-9_.-].');
-      return;
+      return false;
     }
     setSessionIdOptions(prev => Array.from(new Set([owner].concat(prev || []))));
     const ip = activeIp || WORKFLOW_DEFAULT;
     const wf = currentWorkflow() || WORKFLOW_DEFAULT;
     activateNamespace(owner, ip, wf, true);
+    return true;
   };
+
+  const newSessionId = () => beginNameEntry('session');
 
   // Create a brand-new IP under the current user_session and switch
   // to it. Mirrors the simplicity of `+ Session` but takes a name
   // because IPs are named identifiers rather than disposable scratch
   // owners. The actual on-disk .session/<sid>/<ip>/<wf>/ tree gets
   // created by _setup_session on the next /wf or agent run.
-  const createIp = async () => {
-    const raw = window.prompt(
-      'New IP name (letters/digits/_-, e.g. axi_dma):',
-      ''
-    );
+  const createIp = async (raw) => {
     if (!raw) return;
     const ip = normalizeSession(raw);
     if (!ip) {
       showNotice('Invalid IP name. Use only [A-Za-z0-9_.-].');
-      return;
+      return false;
     }
     // IP names are globally unique across all sessions — two different
     // sessions cannot both own an IP called "gpio_pad". /api/session/list
@@ -946,7 +956,7 @@ const App = () => {
         }
         if (taken.has(ip)) {
           showNotice(`IP "${ip}" already exists in another session — IP names must be globally unique.`);
-          return;
+          return false;
         }
       }
     } catch (_) {}
@@ -990,6 +1000,20 @@ const App = () => {
         });
       } catch (_) {}
     }
+    return true;
+  };
+
+  const commitNameEntry = async () => {
+    if (!nameEntry) return;
+    const raw = String(nameEntry.value || '').trim();
+    if (!raw) {
+      setNameEntry(null);
+      return;
+    }
+    const ok = nameEntry.kind === 'session'
+      ? commitNewSessionId(raw)
+      : await createIp(raw);
+    if (ok) setNameEntry(null);
   };
 
   // Top-level screen — 'workspace' (live agent + chat + sidebar) or
@@ -1044,7 +1068,12 @@ const App = () => {
       // Disable via localStorage if user finds it disruptive.
       const optOut = (() => { try { return localStorage.getItem('atlasArchAutoSwitch') === 'off'; }
                               catch (_) { return false; } })();
-      if (!optOut) window.backend.send({ type: 'prompt', text: '/workflow architect', ui_lang: window.ATLAS_UI_LANG || uiLang });
+      // Pipeline screen routes its chat to the orchestrator workflow
+      // (the orchestrator IS the conversation surface that decides
+      // which worker to dispatch). Architect screen still gets the
+      // architect agent for SoC-level design conversations.
+      const targetWorkflow = screen === 'pipeline' ? 'orchestrator' : 'architect';
+      if (!optOut) window.backend.send({ type: 'prompt', text: `/workflow ${targetWorkflow}`, ui_lang: window.ATLAS_UI_LANG || uiLang });
     } else if (prev === 'architect' || prev === 'pipeline') {
       // Leaving pipeline/architect → fall back to default (could be
       // smarter and restore the prior workflow, but default keeps
@@ -1300,6 +1329,29 @@ const App = () => {
         <button className="dir-btn"
                 title="Create a fresh browser/user session_id and keep the selected IP/workflow"
                 onClick={newSessionId}>+ Session</button>
+        {nameEntry && nameEntry.kind === 'session' && (
+          <form className="dir-name-entry"
+                data-esc-local="true"
+                title="New session_id: letters, digits, underscore, dash, or dot"
+                onSubmit={(e) => { e.preventDefault(); commitNameEntry(); }}>
+            <input ref={nameEntryInputRef}
+                   className="dir-name-input"
+                   aria-label="New session_id"
+                   placeholder="session_id"
+                   value={nameEntry.value}
+                   onChange={e => setNameEntry({ kind: 'session', value: e.currentTarget.value })}
+                   onKeyDown={e => {
+                     if (e.key === 'Escape') {
+                       e.preventDefault();
+                       setNameEntry(null);
+                     }
+                   }} />
+            <button type="submit" className="dir-name-action">OK</button>
+            <button type="button" className="dir-name-action"
+                    aria-label="Cancel new session_id"
+                    onClick={() => setNameEntry(null)}>×</button>
+          </form>
+        )}
         <label className="dir-select-wrap" title="Select ip_id. The current workflow is appended to session_id/ip_id/workflow.">
           <span>ip_id</span>
           <select
@@ -1321,7 +1373,30 @@ const App = () => {
         </label>
         <button className="dir-btn"
                 title="Create a new IP under the current session and switch to it (ssot-gen workflow)"
-                onClick={createIp}>+ IP</button>
+                onClick={() => beginNameEntry('ip')}>+ IP</button>
+        {nameEntry && nameEntry.kind === 'ip' && (
+          <form className="dir-name-entry"
+                data-esc-local="true"
+                title="New IP name: letters, digits, underscore, dash, or dot"
+                onSubmit={(e) => { e.preventDefault(); commitNameEntry(); }}>
+            <input ref={nameEntryInputRef}
+                   className="dir-name-input ip"
+                   aria-label="New IP name"
+                   placeholder="ip_id"
+                   value={nameEntry.value}
+                   onChange={e => setNameEntry({ kind: 'ip', value: e.currentTarget.value })}
+                   onKeyDown={e => {
+                     if (e.key === 'Escape') {
+                       e.preventDefault();
+                       setNameEntry(null);
+                     }
+                   }} />
+            <button type="submit" className="dir-name-action">OK</button>
+            <button type="button" className="dir-name-action"
+                    aria-label="Cancel new IP"
+                    onClick={() => setNameEntry(null)}>×</button>
+          </form>
+        )}
         <label className="dir-select-wrap" title="Active workflow segment of the session namespace. Picking one activates the backend workspace and re-pins config.TODO_FILE accordingly.">
           <span>workflow</span>
           <select

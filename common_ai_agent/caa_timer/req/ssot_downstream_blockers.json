@@ -1,0 +1,26 @@
+{
+  "schema_version": "ssot_downstream_blockers.v1",
+  "ip": "caa_timer",
+  "ssot": "caa_timer/yaml/caa_timer.ssot.yaml",
+  "issues": [
+    {
+      "id": "SSOT_SUBMODULE_REFS_MISSING_CAA_TIMER",
+      "submodule": "caa_timer",
+      "fix": "Add at least one of implements / function_model_refs / cycle_model_refs / fsm_refs / register_refs / dataflow_refs."
+    },
+    {
+      "id": "SSOT_FM_MACHINE_RULES_MISSING_TR_ILLEGAL_ACCESS",
+      "field": "function_model.transactions[4]",
+      "transaction": "TR_ILLEGAL_ACCESS",
+      "outputs": [
+        "pready_out == 1",
+        "pslverr_out == 1",
+        "prdata_out == 0"
+      ],
+      "side_effects": [
+        "no architectural state change"
+      ],
+      "fix": "Convert prose outputs/side_effects into executable output_rules or state_updates. Use output_rules with name, expr, width, and port for externally visible outputs; use state_updates with name, expr, and width for architectural state changes."
+    }
+  ]
+}

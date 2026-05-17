@@ -1,0 +1,3076 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 6,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model",
+      "module_task_count": 67,
+      "rule": "Owner module atcwdt200_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atcwdt200_core.sv",
+      "name": "atcwdt200_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.ordering",
+        "cycle_model.pipeline",
+        "dataflow.sequence.sequence_2",
+        "dataflow.sequence.sequence_3",
+        "dataflow.sequence.sequence_4",
+        "dataflow.sequence.sequence_5",
+        "dataflow.sinks.sinks_1",
+        "dataflow.sinks.sinks_2",
+        "decomposition.units.watchdog_core",
+        "fsm",
+        "fsm.watchdog",
+        "function_model",
+        "function_model.transactions.restart",
+        "function_model.transactions.timeout_decode",
+        "function_model.transactions.watchdog_tick",
+        "interrupts"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcwdt200_regs.sv",
+        "name": "atcwdt200_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_core.sv",
+        "name": "atcwdt200_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_sync.sv",
+        "name": "atcwdt200_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200.sv",
+        "name": "atcwdt200",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_core",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_core",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[3]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 7,
+    "open_required_count": 7,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atcwdt200",
+  "kind": "module",
+  "owner_file": "rtl/atcwdt200_core.sv",
+  "owner_module": "atcwdt200_core",
+  "packet_id": "module__atcwdt200_core__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 3,
+      "function_model.input": 14,
+      "function_model.output": 3,
+      "function_model.output_rule": 2,
+      "function_model.precondition": 4,
+      "function_model.side_effect": 3,
+      "function_model.state_update": 8,
+      "function_model.transaction": 3
+    },
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model",
+      "module_task_count": 67,
+      "rule": "Owner module atcwdt200_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 7,
+    "required_count": 40,
+    "source_refs": [
+      "function_model.transactions.restart",
+      "function_model.transactions.restart.preconditions.precondition_0",
+      "function_model.transactions.restart.inputs.input_0",
+      "function_model.transactions.restart.inputs.input_1",
+      "function_model.transactions.restart.outputs.output_0",
+      "function_model.transactions.restart.state_updates.COUNTER",
+      "function_model.transactions.restart.state_updates.STATE",
+      "function_model.transactions.restart.side_effects.side_effect_0",
+      "function_model.transactions.restart.error_cases.error_case_0",
+      "function_model.transactions.watchdog_tick",
+      "function_model.transactions.watchdog_tick.preconditions.precondition_0",
+      "function_model.transactions.watchdog_tick.preconditions.precondition_1",
+      "function_model.transactions.watchdog_tick.inputs.input_0",
+      "function_model.transactions.watchdog_tick.inputs.input_1",
+      "function_model.transactions.watchdog_tick.inputs.input_2",
+      "function_model.transactions.watchdog_tick.inputs.input_3",
+      "function_model.transactions.watchdog_tick.inputs.input_4",
+      "function_model.transactions.watchdog_tick.inputs.input_5",
+      "function_model.transactions.watchdog_tick.inputs.input_6",
+      "function_model.transactions.watchdog_tick.inputs.input_7",
+      "function_model.transactions.watchdog_tick.inputs.input_8",
+      "function_model.transactions.watchdog_tick.outputs.output_0",
+      "function_model.transactions.watchdog_tick.output_rules.wdt_int_rule",
+      "function_model.transactions.watchdog_tick.output_rules.wdt_rst_rule"
+    ],
+    "status_counts": {
+      "open": 7,
+      "pass": 33
+    },
+    "task_count": 40
+  },
+  "tasks": [
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction restart",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.restart",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.restart.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.restart.\nSSOT item context: id=restart; name=Watchdog restart command.",
+      "evidence_terms": [],
+      "id": "RTL-0075",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.restart",
+      "ssot_context": {
+        "id": "restart",
+        "name": "Watchdog restart command"
+      },
+      "ssot_refs": [
+        "function_model.transactions.restart"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for restart: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.restart.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.restart.preconditions.precondition_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.restart.\nSSOT item context: value=Unlocked APB write to RES offset 0x14 with lower 16 bits 0xcafe.",
+      "evidence_terms": [],
+      "id": "RTL-0076",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.restart.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "Unlocked APB write to RES offset 0x14 with lower 16 bits 0xcafe"
+      },
+      "ssot_refs": [
+        "function_model.transactions.restart.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for restart: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.restart.inputs.input_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.restart.inputs.input_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.restart.\nSSOT item context: id=restart; name=Watchdog restart command; signal=[\"pwdata\"]; state=[\"COUNTER\", \"STATE\"].",
+      "evidence_terms": [
+        "pwdata"
+      ],
+      "id": "RTL-0077",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.restart.inputs.input_0",
+      "ssot_context": {
+        "id": "restart",
+        "name": "Watchdog restart command",
+        "signal": "[\"pwdata\"]",
+        "state": "[\"COUNTER\", \"STATE\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.restart.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "pwdata"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for restart: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.restart.inputs.input_1",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.restart.inputs.input_1.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.restart.\nSSOT item context: id=restart; name=Watchdog restart command; signal=[\"REG_WEN\"]; state=[\"COUNTER\", \"STATE\"].",
+      "evidence_terms": [
+        "REG",
+        "REG_WEN",
+        "WEN"
+      ],
+      "id": "RTL-0078",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.restart.inputs.input_1",
+      "ssot_context": {
+        "id": "restart",
+        "name": "Watchdog restart command",
+        "signal": "[\"REG_WEN\"]",
+        "state": "[\"COUNTER\", \"STATE\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.restart.inputs.input_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "REG",
+          "REG_WEN",
+          "WEN"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for restart: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.restart.outputs.output_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.restart.outputs.output_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.restart.\nSSOT item context: id=restart; name=Watchdog restart command; signal=[\"COUNTER resets to zero and STATE becomes ST_INTTIME\"]; state=[\"COUNTER\", \"STATE\"].",
+      "evidence_terms": [
+        "INTTIME",
+        "ST",
+        "ST_INTTIME"
+      ],
+      "id": "RTL-0079",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.restart.outputs.output_0",
+      "ssot_context": {
+        "id": "restart",
+        "name": "Watchdog restart command",
+        "signal": "[\"COUNTER resets to zero and STATE becomes ST_INTTIME\"]",
+        "state": "[\"COUNTER\", \"STATE\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.restart.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "INTTIME",
+          "ST",
+          "ST_INTTIME"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "INTTIME",
+          "ST",
+          "ST_INTTIME"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for restart: COUNTER",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.restart.state_updates.COUNTER",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "COUNTER width matches SSOT value COUNTER_WIDTH",
+        "COUNTER RTL expression implements SSOT expression 0",
+        "COUNTER updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.restart.state_updates.COUNTER.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.restart.\nSSOT item context: name=COUNTER; expr=0; width=COUNTER_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0080",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.restart.state_updates.COUNTER",
+      "ssot_context": {
+        "expr": "0",
+        "name": "COUNTER",
+        "width": "COUNTER_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.restart.state_updates.COUNTER"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for restart: STATE",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.restart.state_updates.STATE",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "STATE width matches SSOT value 1",
+        "STATE RTL expression implements SSOT expression 0",
+        "STATE updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.restart.state_updates.STATE.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.restart.\nSSOT item context: name=STATE; expr=0; width=1.",
+      "evidence_terms": [],
+      "id": "RTL-0081",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.restart.state_updates.STATE",
+      "ssot_context": {
+        "expr": "0",
+        "name": "STATE",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.restart.state_updates.STATE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for restart: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.restart.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.restart.side_effects.side_effect_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.restart.\nSSOT item context: id=restart; name=Watchdog restart command; signal=[\"Restart command is a pulse\"]; state=[\"COUNTER\", \"STATE\"].",
+      "evidence_terms": [
+        "Restart"
+      ],
+      "id": "RTL-0082",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.restart.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "restart",
+        "name": "Watchdog restart command",
+        "signal": "[\"Restart command is a pulse\"]",
+        "state": "[\"COUNTER\", \"STATE\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.restart.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "Restart"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "Restart"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for restart: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.restart.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.restart.error_cases.error_case_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.restart.\nSSOT item context: id=restart; name=Watchdog restart command; signal=[\"Wrong magic or locked write has no restart effect\"]; state=[\"COUNTER\", \"STATE\"].",
+      "evidence_terms": [
+        "Wrong"
+      ],
+      "id": "RTL-0083",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.restart.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "restart",
+        "name": "Watchdog restart command",
+        "signal": "[\"Wrong magic or locked write has no restart effect\"]",
+        "state": "[\"COUNTER\", \"STATE\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.restart.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "Wrong"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction watchdog_tick",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.watchdog_tick.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: id=watchdog_tick; name=Watchdog tick and timeout update.",
+      "evidence_terms": [],
+      "id": "RTL-0084",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick",
+      "ssot_context": {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for watchdog_tick: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.preconditions.precondition_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: value=CR_EN is set.",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "EN"
+      ],
+      "id": "RTL-0085",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "CR_EN is set"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "EN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "EN"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for watchdog_tick: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.preconditions.precondition_1.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: value=wdt_pause synchronized value is zero.",
+      "evidence_terms": [
+        "pause",
+        "wdt",
+        "wdt_pause"
+      ],
+      "id": "RTL-0086",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "wdt_pause synchronized value is zero"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "pause",
+          "wdt",
+          "wdt_pause"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "pause",
+          "wdt",
+          "wdt_pause"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for watchdog_tick: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.inputs.input_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for Watchdog tick and timeout update"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.inputs.input_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: id=watchdog_tick; name=Watchdog tick and timeout update; port=[\"wdt_int\", \"wdt_rst\"]; signal=[\"pclk_tick\"]; state=[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "EN",
+        "INTZERO",
+        "RSTZERO",
+        "SR",
+        "SR_INTZERO",
+        "SR_RSTZERO",
+        "int",
+        "pclk",
+        "pclk_tick",
+        "rst",
+        "tick",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0087",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.inputs.input_0",
+      "ssot_context": {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update",
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "[\"pclk_tick\"]",
+        "state": "[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 15,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "pclk",
+          "rst",
+          "tick",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "pclk",
+          "pclk_tick",
+          "rst",
+          "tick",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for watchdog_tick: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.inputs.input_1",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for Watchdog tick and timeout update"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.inputs.input_1.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: id=watchdog_tick; name=Watchdog tick and timeout update; port=[\"wdt_int\", \"wdt_rst\"]; signal=[\"extclk_rising_pulse\"]; state=[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "EN",
+        "INTZERO",
+        "RSTZERO",
+        "SR",
+        "SR_INTZERO",
+        "SR_RSTZERO",
+        "extclk",
+        "extclk_rising_pulse",
+        "int",
+        "pulse",
+        "rising",
+        "rst",
+        "wdt",
+        "wdt_int"
+      ],
+      "id": "RTL-0088",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.inputs.input_1",
+      "ssot_context": {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update",
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "[\"extclk_rising_pulse\"]",
+        "state": "[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.inputs.input_1"
+      ],
+      "static_evidence": {
+        "matched_count": 14,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "extclk",
+          "int",
+          "pulse",
+          "rst",
+          "wdt",
+          "wdt_int"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "extclk",
+          "extclk_rising_pulse",
+          "int",
+          "pulse",
+          "rising",
+          "rst",
+          "wdt",
+          "wdt_int"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for watchdog_tick: input_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.inputs.input_2",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for Watchdog tick and timeout update"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.inputs.input_2.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: id=watchdog_tick; name=Watchdog tick and timeout update; port=[\"wdt_int\", \"wdt_rst\"]; signal=[\"CR_CLK\"]; state=[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"].",
+      "evidence_terms": [
+        "CLK",
+        "CR",
+        "CR_CLK",
+        "CR_EN",
+        "EN",
+        "INTZERO",
+        "RSTZERO",
+        "SR",
+        "SR_INTZERO",
+        "SR_RSTZERO",
+        "int",
+        "rst",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0089",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.inputs.input_2",
+      "ssot_context": {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update",
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "[\"CR_CLK\"]",
+        "state": "[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.inputs.input_2"
+      ],
+      "static_evidence": {
+        "matched_count": 15,
+        "matched_terms": [
+          "CLK",
+          "CR",
+          "CR_CLK",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CLK",
+          "CR",
+          "CR_CLK",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for watchdog_tick: input_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.inputs.input_3",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for Watchdog tick and timeout update"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.inputs.input_3.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: id=watchdog_tick; name=Watchdog tick and timeout update; port=[\"wdt_int\", \"wdt_rst\"]; signal=[\"CR_INTTIME\"]; state=[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "CR_INTTIME",
+        "EN",
+        "INTTIME",
+        "INTZERO",
+        "RSTZERO",
+        "SR",
+        "SR_INTZERO",
+        "SR_RSTZERO",
+        "int",
+        "rst",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0090",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.inputs.input_3",
+      "ssot_context": {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update",
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "[\"CR_INTTIME\"]",
+        "state": "[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.inputs.input_3"
+      ],
+      "static_evidence": {
+        "matched_count": 15,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "CR_INTTIME",
+          "EN",
+          "INTTIME",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "CR_INTTIME",
+          "EN",
+          "INTTIME",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for watchdog_tick: input_4",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.inputs.input_4",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for Watchdog tick and timeout update"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.inputs.input_4.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: id=watchdog_tick; name=Watchdog tick and timeout update; port=[\"wdt_int\", \"wdt_rst\"]; signal=[\"CR_RSTTIME\"]; state=[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "CR_RSTTIME",
+        "EN",
+        "INTZERO",
+        "RSTTIME",
+        "RSTZERO",
+        "SR",
+        "SR_INTZERO",
+        "SR_RSTZERO",
+        "int",
+        "rst",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0091",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.inputs.input_4",
+      "ssot_context": {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update",
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "[\"CR_RSTTIME\"]",
+        "state": "[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.inputs.input_4"
+      ],
+      "static_evidence": {
+        "matched_count": 15,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "CR_RSTTIME",
+          "EN",
+          "INTZERO",
+          "RSTTIME",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "CR_RSTTIME",
+          "EN",
+          "INTZERO",
+          "RSTTIME",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for watchdog_tick: input_5",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.inputs.input_5",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for Watchdog tick and timeout update"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.inputs.input_5.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: id=watchdog_tick; name=Watchdog tick and timeout update; port=[\"wdt_int\", \"wdt_rst\"]; signal=[\"STATE\"]; state=[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "EN",
+        "INTZERO",
+        "RSTZERO",
+        "SR",
+        "SR_INTZERO",
+        "SR_RSTZERO",
+        "int",
+        "rst",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0092",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.inputs.input_5",
+      "ssot_context": {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update",
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "[\"STATE\"]",
+        "state": "[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.inputs.input_5"
+      ],
+      "static_evidence": {
+        "matched_count": 13,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for watchdog_tick: input_6",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.inputs.input_6",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for Watchdog tick and timeout update"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.inputs.input_6.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: id=watchdog_tick; name=Watchdog tick and timeout update; port=[\"wdt_int\", \"wdt_rst\"]; signal=[\"restart_cmd\"]; state=[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "EN",
+        "INTZERO",
+        "RSTZERO",
+        "SR",
+        "SR_INTZERO",
+        "SR_RSTZERO",
+        "cmd",
+        "int",
+        "restart",
+        "restart_cmd",
+        "rst",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0093",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.inputs.input_6",
+      "ssot_context": {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update",
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "[\"restart_cmd\"]",
+        "state": "[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.inputs.input_6"
+      ],
+      "static_evidence": {
+        "matched_count": 14,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "restart",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "cmd",
+          "int",
+          "restart",
+          "restart_cmd",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for watchdog_tick: input_7",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.inputs.input_7",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for Watchdog tick and timeout update"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.inputs.input_7.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: id=watchdog_tick; name=Watchdog tick and timeout update; port=[\"wdt_int\", \"wdt_rst\"]; signal=[\"inttime_end\"]; state=[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "EN",
+        "INTZERO",
+        "RSTZERO",
+        "SR",
+        "SR_INTZERO",
+        "SR_RSTZERO",
+        "end",
+        "int",
+        "inttime",
+        "inttime_end",
+        "rst",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0094",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.inputs.input_7",
+      "ssot_context": {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update",
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "[\"inttime_end\"]",
+        "state": "[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.inputs.input_7"
+      ],
+      "static_evidence": {
+        "matched_count": 16,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "end",
+          "int",
+          "inttime",
+          "inttime_end",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "end",
+          "int",
+          "inttime",
+          "inttime_end",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for watchdog_tick: input_8",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.inputs.input_8",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for Watchdog tick and timeout update"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.inputs.input_8.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: id=watchdog_tick; name=Watchdog tick and timeout update; port=[\"wdt_int\", \"wdt_rst\"]; signal=[\"rsttime_end\"]; state=[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "EN",
+        "INTZERO",
+        "RSTZERO",
+        "SR",
+        "SR_INTZERO",
+        "SR_RSTZERO",
+        "end",
+        "int",
+        "rst",
+        "rsttime",
+        "rsttime_end",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0095",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.inputs.input_8",
+      "ssot_context": {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update",
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "[\"rsttime_end\"]",
+        "state": "[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.inputs.input_8"
+      ],
+      "static_evidence": {
+        "matched_count": 16,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "end",
+          "int",
+          "rst",
+          "rsttime",
+          "rsttime_end",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "end",
+          "int",
+          "rst",
+          "rsttime",
+          "rsttime_end",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for watchdog_tick: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.outputs.output_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for Watchdog tick and timeout update"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.outputs.output_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: id=watchdog_tick; name=Watchdog tick and timeout update; port=[\"wdt_int\", \"wdt_rst\"]; signal=[\"wdt_int and wdt_rst reflect timeout status gated by enables\"]; state=[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "EN",
+        "INTZERO",
+        "RSTZERO",
+        "SR",
+        "SR_INTZERO",
+        "SR_RSTZERO",
+        "int",
+        "rst",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0096",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.outputs.output_0",
+      "ssot_context": {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update",
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "[\"wdt_int and wdt_rst reflect timeout status gated by enables\"]",
+        "state": "[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 13,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for watchdog_tick: wdt_int_rule",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.output_rules.wdt_int_rule",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "wdt_int_rule width matches SSOT value 1",
+        "wdt_int_rule RTL expression implements SSOT expression SR_INTZERO & CR_INTEN",
+        "DUT port wdt_int is the implementation/observation point for wdt_int_rule",
+        "wdt_int_rule is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.output_rules.wdt_int_rule.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: name=wdt_int_rule; port=wdt_int; expr=SR_INTZERO & CR_INTEN; width=1.",
+      "evidence_terms": [
+        "CR",
+        "CR_INTEN",
+        "INTEN",
+        "INTZERO",
+        "SR",
+        "SR_INTZERO",
+        "int",
+        "wdt",
+        "wdt_int",
+        "wdt_int_rule"
+      ],
+      "id": "RTL-0097",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.output_rules.wdt_int_rule",
+      "ssot_context": {
+        "expr": "SR_INTZERO & CR_INTEN",
+        "name": "wdt_int_rule",
+        "port": "wdt_int",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.output_rules.wdt_int_rule"
+      ],
+      "static_evidence": {
+        "matched_count": 9,
+        "matched_terms": [
+          "CR",
+          "CR_INTEN",
+          "INTEN",
+          "INTZERO",
+          "SR",
+          "SR_INTZERO",
+          "int",
+          "wdt",
+          "wdt_int"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_INTEN",
+          "INTEN",
+          "INTZERO",
+          "SR",
+          "SR_INTZERO",
+          "int",
+          "wdt",
+          "wdt_int",
+          "wdt_int_rule"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for watchdog_tick: wdt_rst_rule",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.output_rules.wdt_rst_rule",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "wdt_rst_rule width matches SSOT value 1",
+        "wdt_rst_rule RTL expression implements SSOT expression SR_RSTZERO & CR_RSTEN",
+        "DUT port wdt_rst is the implementation/observation point for wdt_rst_rule",
+        "wdt_rst_rule is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.output_rules.wdt_rst_rule.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: name=wdt_rst_rule; port=wdt_rst; expr=SR_RSTZERO & CR_RSTEN; width=1.",
+      "evidence_terms": [
+        "CR",
+        "CR_RSTEN",
+        "RSTEN",
+        "RSTZERO",
+        "SR",
+        "SR_RSTZERO",
+        "rst",
+        "wdt",
+        "wdt_rst",
+        "wdt_rst_rule"
+      ],
+      "id": "RTL-0098",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.output_rules.wdt_rst_rule",
+      "ssot_context": {
+        "expr": "SR_RSTZERO & CR_RSTEN",
+        "name": "wdt_rst_rule",
+        "port": "wdt_rst",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.output_rules.wdt_rst_rule"
+      ],
+      "static_evidence": {
+        "matched_count": 9,
+        "matched_terms": [
+          "CR",
+          "CR_RSTEN",
+          "RSTEN",
+          "RSTZERO",
+          "SR",
+          "SR_RSTZERO",
+          "rst",
+          "wdt",
+          "wdt_rst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_RSTEN",
+          "RSTEN",
+          "RSTZERO",
+          "SR",
+          "SR_RSTZERO",
+          "rst",
+          "wdt",
+          "wdt_rst",
+          "wdt_rst_rule"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for watchdog_tick: COUNTER",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.state_updates.COUNTER",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "COUNTER width matches SSOT value COUNTER_WIDTH",
+        "COUNTER RTL expression implements SSOT expression 0 if (restart_cmd or inttime_end) else (COUNTER + 1)",
+        "COUNTER updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.state_updates.COUNTER.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: name=COUNTER; expr=0 if (restart_cmd or inttime_end) else (COUNTER + 1); width=COUNTER_WIDTH.",
+      "evidence_terms": [
+        "cmd",
+        "end",
+        "inttime",
+        "inttime_end",
+        "restart",
+        "restart_cmd"
+      ],
+      "id": "RTL-0099",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.state_updates.COUNTER",
+      "ssot_context": {
+        "expr": "0 if (restart_cmd or inttime_end) else (COUNTER + 1)",
+        "name": "COUNTER",
+        "width": "COUNTER_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.state_updates.COUNTER"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "end",
+          "inttime",
+          "inttime_end",
+          "restart"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "cmd",
+          "end",
+          "inttime",
+          "inttime_end",
+          "restart",
+          "restart_cmd"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for watchdog_tick: SR_INTZERO",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.state_updates.SR_INTZERO",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "SR_INTZERO width matches SSOT value 1",
+        "SR_INTZERO RTL expression implements SSOT expression 1 if inttime_end else SR_INTZERO",
+        "SR_INTZERO updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.state_updates.SR_INTZERO.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: name=SR_INTZERO; expr=1 if inttime_end else SR_INTZERO; width=1.",
+      "evidence_terms": [
+        "INTZERO",
+        "SR",
+        "SR_INTZERO",
+        "end",
+        "inttime",
+        "inttime_end"
+      ],
+      "id": "RTL-0100",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.state_updates.SR_INTZERO",
+      "ssot_context": {
+        "expr": "1 if inttime_end else SR_INTZERO",
+        "name": "SR_INTZERO",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.state_updates.SR_INTZERO"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "INTZERO",
+          "SR",
+          "SR_INTZERO",
+          "end",
+          "inttime",
+          "inttime_end"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "INTZERO",
+          "SR",
+          "SR_INTZERO",
+          "end",
+          "inttime",
+          "inttime_end"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for watchdog_tick: SR_RSTZERO",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.state_updates.SR_RSTZERO",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "SR_RSTZERO width matches SSOT value 1",
+        "SR_RSTZERO RTL expression implements SSOT expression 1 if rsttime_end else SR_RSTZERO",
+        "SR_RSTZERO updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.state_updates.SR_RSTZERO.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: name=SR_RSTZERO; expr=1 if rsttime_end else SR_RSTZERO; width=1.",
+      "evidence_terms": [
+        "RSTZERO",
+        "SR",
+        "SR_RSTZERO",
+        "end",
+        "rsttime",
+        "rsttime_end"
+      ],
+      "id": "RTL-0101",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.state_updates.SR_RSTZERO",
+      "ssot_context": {
+        "expr": "1 if rsttime_end else SR_RSTZERO",
+        "name": "SR_RSTZERO",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.state_updates.SR_RSTZERO"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "RSTZERO",
+          "SR",
+          "SR_RSTZERO",
+          "end",
+          "rsttime",
+          "rsttime_end"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RSTZERO",
+          "SR",
+          "SR_RSTZERO",
+          "end",
+          "rsttime",
+          "rsttime_end"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for watchdog_tick: STATE",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.state_updates.STATE",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "STATE width matches SSOT value 1",
+        "STATE RTL expression implements SSOT expression 1 if (inttime_end and not restart_cmd) else (0 if restart_cmd else STATE)",
+        "STATE updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.state_updates.STATE.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: name=STATE; expr=1 if (inttime_end and not restart_cmd) else (0 if restart_cmd else STATE); width=1.",
+      "evidence_terms": [
+        "cmd",
+        "end",
+        "inttime",
+        "inttime_end",
+        "restart",
+        "restart_cmd"
+      ],
+      "id": "RTL-0102",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.state_updates.STATE",
+      "ssot_context": {
+        "expr": "1 if (inttime_end and not restart_cmd) else (0 if restart_cmd else STATE)",
+        "name": "STATE",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.state_updates.STATE"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "end",
+          "inttime",
+          "inttime_end",
+          "restart"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "cmd",
+          "end",
+          "inttime",
+          "inttime_end",
+          "restart",
+          "restart_cmd"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for watchdog_tick: CR_EN",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.state_updates.CR_EN",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "CR_EN width matches SSOT value 1",
+        "CR_EN RTL expression implements SSOT expression 0 if rsttime_end else CR_EN",
+        "CR_EN updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.state_updates.CR_EN.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: name=CR_EN; expr=0 if rsttime_end else CR_EN; width=1.",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "EN",
+        "end",
+        "rsttime",
+        "rsttime_end"
+      ],
+      "id": "RTL-0103",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.state_updates.CR_EN",
+      "ssot_context": {
+        "expr": "0 if rsttime_end else CR_EN",
+        "name": "CR_EN",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.state_updates.CR_EN"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "end",
+          "rsttime",
+          "rsttime_end"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "end",
+          "rsttime",
+          "rsttime_end"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for watchdog_tick: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for Watchdog tick and timeout update"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.side_effects.side_effect_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: id=watchdog_tick; name=Watchdog tick and timeout update; port=[\"wdt_int\", \"wdt_rst\"]; signal=[\"Timeout table uses the observed reference counter bit taps.\"]; state=[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "EN",
+        "INTZERO",
+        "RSTZERO",
+        "SR",
+        "SR_INTZERO",
+        "SR_RSTZERO",
+        "Timeout",
+        "int",
+        "rst",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0104",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update",
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "[\"Timeout table uses the observed reference counter bit taps.\"]",
+        "state": "[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 13,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "Timeout",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for watchdog_tick: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.watchdog_tick.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for Watchdog tick and timeout update"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.watchdog_tick.error_cases.error_case_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.watchdog_tick.\nSSOT item context: id=watchdog_tick; name=Watchdog tick and timeout update; port=[\"wdt_int\", \"wdt_rst\"]; signal=[\"No counting while paused or disabled\"]; state=[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "EN",
+        "INTZERO",
+        "RSTZERO",
+        "SR",
+        "SR_INTZERO",
+        "SR_RSTZERO",
+        "int",
+        "rst",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0105",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.watchdog_tick.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update",
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "[\"No counting while paused or disabled\"]",
+        "state": "[\"COUNTER\", \"SR_INTZERO\", \"SR_RSTZERO\", \"STATE\", \"CR_EN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.watchdog_tick.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 13,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "EN",
+          "INTZERO",
+          "RSTZERO",
+          "SR",
+          "SR_INTZERO",
+          "SR_RSTZERO",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction timeout_decode",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.timeout_decode",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.timeout_decode.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.timeout_decode.\nSSOT item context: id=timeout_decode; name=Timeout interval decode.",
+      "evidence_terms": [],
+      "id": "RTL-0106",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.timeout_decode",
+      "ssot_context": {
+        "id": "timeout_decode",
+        "name": "Timeout interval decode"
+      },
+      "ssot_refs": [
+        "function_model.transactions.timeout_decode"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for timeout_decode: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.timeout_decode.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.timeout_decode.preconditions.precondition_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.timeout_decode.\nSSOT item context: value=COUNTER advances.",
+      "evidence_terms": [],
+      "id": "RTL-0107",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.timeout_decode.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "COUNTER advances"
+      },
+      "ssot_refs": [
+        "function_model.transactions.timeout_decode.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for timeout_decode: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.timeout_decode.inputs.input_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.timeout_decode.inputs.input_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.timeout_decode.\nSSOT item context: id=timeout_decode; name=Timeout interval decode; signal=[\"CR_INTTIME\"]; state=[\"TIMEOUT_PREDICATES\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_INTTIME",
+        "INTTIME",
+        "PREDICATES",
+        "TIMEOUT",
+        "TIMEOUT_PREDICATES"
+      ],
+      "id": "RTL-0108",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.timeout_decode.inputs.input_0",
+      "ssot_context": {
+        "id": "timeout_decode",
+        "name": "Timeout interval decode",
+        "signal": "[\"CR_INTTIME\"]",
+        "state": "[\"TIMEOUT_PREDICATES\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.timeout_decode.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "CR",
+          "CR_INTTIME",
+          "INTTIME"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_INTTIME",
+          "INTTIME",
+          "PREDICATES",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for timeout_decode: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.timeout_decode.inputs.input_1",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.timeout_decode.inputs.input_1.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.timeout_decode.\nSSOT item context: id=timeout_decode; name=Timeout interval decode; signal=[\"CR_RSTTIME\"]; state=[\"TIMEOUT_PREDICATES\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_RSTTIME",
+        "PREDICATES",
+        "RSTTIME",
+        "TIMEOUT",
+        "TIMEOUT_PREDICATES"
+      ],
+      "id": "RTL-0109",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.timeout_decode.inputs.input_1",
+      "ssot_context": {
+        "id": "timeout_decode",
+        "name": "Timeout interval decode",
+        "signal": "[\"CR_RSTTIME\"]",
+        "state": "[\"TIMEOUT_PREDICATES\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.timeout_decode.inputs.input_1"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "CR",
+          "CR_RSTTIME",
+          "RSTTIME"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_RSTTIME",
+          "PREDICATES",
+          "RSTTIME",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for timeout_decode: input_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.timeout_decode.inputs.input_2",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.timeout_decode.inputs.input_2.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.timeout_decode.\nSSOT item context: id=timeout_decode; name=Timeout interval decode; signal=[\"COUNTER\"]; state=[\"TIMEOUT_PREDICATES\"].",
+      "evidence_terms": [
+        "PREDICATES",
+        "TIMEOUT",
+        "TIMEOUT_PREDICATES"
+      ],
+      "id": "RTL-0110",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.timeout_decode.inputs.input_2",
+      "ssot_context": {
+        "id": "timeout_decode",
+        "name": "Timeout interval decode",
+        "signal": "[\"COUNTER\"]",
+        "state": "[\"TIMEOUT_PREDICATES\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.timeout_decode.inputs.input_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "PREDICATES",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for timeout_decode: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.timeout_decode.outputs.output_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.timeout_decode.outputs.output_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.timeout_decode.\nSSOT item context: id=timeout_decode; name=Timeout interval decode; signal=[\"inttime_end and rsttime_end predicates\"]; state=[\"TIMEOUT_PREDICATES\"].",
+      "evidence_terms": [
+        "PREDICATES",
+        "TIMEOUT",
+        "TIMEOUT_PREDICATES",
+        "end",
+        "inttime",
+        "inttime_end",
+        "rsttime",
+        "rsttime_end"
+      ],
+      "id": "RTL-0111",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.timeout_decode.outputs.output_0",
+      "ssot_context": {
+        "id": "timeout_decode",
+        "name": "Timeout interval decode",
+        "signal": "[\"inttime_end and rsttime_end predicates\"]",
+        "state": "[\"TIMEOUT_PREDICATES\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.timeout_decode.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "end",
+          "inttime",
+          "inttime_end",
+          "rsttime",
+          "rsttime_end"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "PREDICATES",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES",
+          "end",
+          "inttime",
+          "inttime_end",
+          "rsttime",
+          "rsttime_end"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for timeout_decode: TIMEOUT_PREDICATES",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.timeout_decode.state_updates.TIMEOUT_PREDICATES",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "TIMEOUT_PREDICATES width matches SSOT value 2",
+        "TIMEOUT_PREDICATES RTL expression implements SSOT expression 0",
+        "TIMEOUT_PREDICATES updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.timeout_decode.state_updates.TIMEOUT_PREDICATES.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.timeout_decode.\nSSOT item context: name=TIMEOUT_PREDICATES; expr=0; width=2.",
+      "evidence_terms": [
+        "PREDICATES",
+        "TIMEOUT",
+        "TIMEOUT_PREDICATES"
+      ],
+      "id": "RTL-0112",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.timeout_decode.state_updates.TIMEOUT_PREDICATES",
+      "ssot_context": {
+        "expr": "0",
+        "name": "TIMEOUT_PREDICATES",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.timeout_decode.state_updates.TIMEOUT_PREDICATES"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "PREDICATES",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for timeout_decode: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.timeout_decode.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.timeout_decode.side_effects.side_effect_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.timeout_decode.\nSSOT item context: id=timeout_decode; name=Timeout interval decode; signal=[\"Drives watchdog_tick state updates\"]; state=[\"TIMEOUT_PREDICATES\"].",
+      "evidence_terms": [
+        "Drives",
+        "PREDICATES",
+        "TIMEOUT",
+        "TIMEOUT_PREDICATES",
+        "tick",
+        "watchdog",
+        "watchdog_tick"
+      ],
+      "id": "RTL-0113",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.timeout_decode.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "timeout_decode",
+        "name": "Timeout interval decode",
+        "signal": "[\"Drives watchdog_tick state updates\"]",
+        "state": "[\"TIMEOUT_PREDICATES\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.timeout_decode.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "tick"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Drives",
+          "PREDICATES",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES",
+          "tick",
+          "watchdog",
+          "watchdog_tick"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for timeout_decode: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.timeout_decode.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.timeout_decode.error_cases.error_case_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via function_model.transactions.timeout_decode.\nSSOT item context: id=timeout_decode; name=Timeout interval decode; signal=[\"Unsupported encodings are not expected if table is locked\"]; state=[\"TIMEOUT_PREDICATES\"].",
+      "evidence_terms": [
+        "PREDICATES",
+        "TIMEOUT",
+        "TIMEOUT_PREDICATES",
+        "Unsupported"
+      ],
+      "id": "RTL-0114",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.timeout_decode.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "timeout_decode",
+        "name": "Timeout interval decode",
+        "signal": "[\"Unsupported encodings are not expected if table is locked\"]",
+        "state": "[\"TIMEOUT_PREDICATES\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.timeout_decode.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "PREDICATES",
+          "TIMEOUT",
+          "TIMEOUT_PREDICATES",
+          "Unsupported"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3348ddb6018966555eeb963ff7b9aa4ed0d14e6293df5093c73330b07393340c",
+  "top": "atcwdt200",
+  "type": "rtl_authoring_packet"
+}

@@ -25,8 +25,12 @@
         "function_model.state_variables.ch_error_q",
         "function_model.state_variables.ch_remaining_q",
         "function_model.state_variables.ch_src_addr_q",
+        "function_model.state_variables.ch_stride_q",
         "function_model.state_variables.dma_en_q",
         "function_model.state_variables.int_enable_q",
+        "function_model.state_variables.perf_cycles_q",
+        "function_model.state_variables.perf_words_q",
+        "function_model.state_variables.timeout_q",
         "io_list",
         "io_list.interfaces.apb_slave",
         "registers",
@@ -34,24 +38,37 @@
         "registers.register_list.ch0_ctrl",
         "registers.register_list.ch0_dst_addr",
         "registers.register_list.ch0_len",
+        "registers.register_list.ch0_perf_cycles",
+        "registers.register_list.ch0_perf_words",
         "registers.register_list.ch0_src_addr",
         "registers.register_list.ch0_status",
+        "registers.register_list.ch0_stride",
         "registers.register_list.ch1_ctrl",
         "registers.register_list.ch1_dst_addr",
         "registers.register_list.ch1_len",
+        "registers.register_list.ch1_perf_cycles",
+        "registers.register_list.ch1_perf_words",
         "registers.register_list.ch1_src_addr",
         "registers.register_list.ch1_status",
+        "registers.register_list.ch1_stride",
         "registers.register_list.ch2_ctrl",
         "registers.register_list.ch2_dst_addr",
         "registers.register_list.ch2_len",
+        "registers.register_list.ch2_perf_cycles",
+        "registers.register_list.ch2_perf_words",
         "registers.register_list.ch2_src_addr",
         "registers.register_list.ch2_status",
+        "registers.register_list.ch2_stride",
         "registers.register_list.ch3_ctrl",
         "registers.register_list.ch3_dst_addr",
         "registers.register_list.ch3_len",
+        "registers.register_list.ch3_perf_cycles",
+        "registers.register_list.ch3_perf_words",
         "registers.register_list.ch3_src_addr",
         "registers.register_list.ch3_status",
+        "registers.register_list.ch3_stride",
         "registers.register_list.global_ctrl",
+        "registers.register_list.global_timeout",
         "registers.register_list.int_clear",
         "registers.register_list.int_enable",
         "registers.register_list.int_status"
@@ -64,32 +81,49 @@
         "function_model.state_variables.ch_error_q",
         "function_model.state_variables.ch_remaining_q",
         "function_model.state_variables.ch_src_addr_q",
+        "function_model.state_variables.ch_stride_q",
         "function_model.state_variables.dma_en_q",
-        "function_model.state_variables.int_enable_q"
+        "function_model.state_variables.int_enable_q",
+        "function_model.state_variables.perf_cycles_q",
+        "function_model.state_variables.perf_words_q",
+        "function_model.state_variables.timeout_q"
       ],
       "cycle_model_refs": [],
       "structural_refs": [
         "registers.register_list.ch0_ctrl",
         "registers.register_list.ch0_dst_addr",
         "registers.register_list.ch0_len",
+        "registers.register_list.ch0_perf_cycles",
+        "registers.register_list.ch0_perf_words",
         "registers.register_list.ch0_src_addr",
         "registers.register_list.ch0_status",
+        "registers.register_list.ch0_stride",
         "registers.register_list.ch1_ctrl",
         "registers.register_list.ch1_dst_addr",
         "registers.register_list.ch1_len",
+        "registers.register_list.ch1_perf_cycles",
+        "registers.register_list.ch1_perf_words",
         "registers.register_list.ch1_src_addr",
         "registers.register_list.ch1_status",
+        "registers.register_list.ch1_stride",
         "registers.register_list.ch2_ctrl",
         "registers.register_list.ch2_dst_addr",
         "registers.register_list.ch2_len",
+        "registers.register_list.ch2_perf_cycles",
+        "registers.register_list.ch2_perf_words",
         "registers.register_list.ch2_src_addr",
         "registers.register_list.ch2_status",
+        "registers.register_list.ch2_stride",
         "registers.register_list.ch3_ctrl",
         "registers.register_list.ch3_dst_addr",
         "registers.register_list.ch3_len",
+        "registers.register_list.ch3_perf_cycles",
+        "registers.register_list.ch3_perf_words",
         "registers.register_list.ch3_src_addr",
         "registers.register_list.ch3_status",
+        "registers.register_list.ch3_stride",
         "registers.register_list.global_ctrl",
+        "registers.register_list.global_timeout",
         "registers.register_list.int_clear",
         "registers.register_list.int_enable",
         "registers.register_list.int_status"
@@ -119,16 +153,21 @@
         "cycle_model.backpressure.backpressure_0",
         "cycle_model.backpressure.backpressure_1",
         "cycle_model.backpressure.backpressure_2",
+        "cycle_model.backpressure.backpressure_3",
+        "cycle_model.backpressure.backpressure_4",
         "cycle_model.clock",
         "cycle_model.handshake_rules",
         "cycle_model.handshake_rules.apb_access",
         "cycle_model.handshake_rules.arb_grant_rule",
+        "cycle_model.handshake_rules.cdc_config",
         "cycle_model.handshake_rules.start_accept",
+        "cycle_model.handshake_rules.timeout_rule",
         "cycle_model.latency",
         "cycle_model.ordering.ordering_0",
         "cycle_model.ordering.ordering_1",
         "cycle_model.ordering.ordering_2",
         "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
         "cycle_model.performance",
         "cycle_model.reset",
         "features.round_robin_arb",
@@ -155,15 +194,20 @@
         "cycle_model.backpressure.backpressure_0",
         "cycle_model.backpressure.backpressure_1",
         "cycle_model.backpressure.backpressure_2",
+        "cycle_model.backpressure.backpressure_3",
+        "cycle_model.backpressure.backpressure_4",
         "cycle_model.clock",
         "cycle_model.handshake_rules.apb_access",
         "cycle_model.handshake_rules.arb_grant_rule",
+        "cycle_model.handshake_rules.cdc_config",
         "cycle_model.handshake_rules.start_accept",
+        "cycle_model.handshake_rules.timeout_rule",
         "cycle_model.latency",
         "cycle_model.ordering.ordering_0",
         "cycle_model.ordering.ordering_1",
         "cycle_model.ordering.ordering_2",
         "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
         "cycle_model.reset"
       ],
       "structural_refs": [
@@ -208,8 +252,12 @@
         "cycle_model.pipeline.update",
         "cycle_model.pipeline.write",
         "error_handling",
+        "features.bus_timeout",
+        "features.clock_gating",
         "features.error_detection",
         "features.multi_channel",
+        "features.performance_counters",
+        "features.programmable_stride",
         "fsm",
         "fsm.per_channel",
         "function_model",
@@ -219,6 +267,9 @@
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
         "function_model.invariants.invariant_4",
+        "function_model.invariants.invariant_5",
+        "function_model.invariants.invariant_6",
+        "function_model.invariants.invariant_7",
         "function_model.state_variables",
         "function_model.transactions.FM_DMA_COMPLETE",
         "function_model.transactions.FM_DMA_ERROR",
@@ -240,6 +291,8 @@
         "function_model.transactions.fm_dma_error.error_cases.error_case_0",
         "function_model.transactions.fm_dma_error.error_cases.error_case_1",
         "function_model.transactions.fm_dma_error.error_cases.error_case_2",
+        "function_model.transactions.fm_dma_error.error_cases.error_case_3",
+        "function_model.transactions.fm_dma_error.error_cases.error_case_4",
         "function_model.transactions.fm_dma_error.output_rules.error_assert",
         "function_model.transactions.fm_dma_error.output_rules.error_code_out",
         "function_model.transactions.fm_dma_error.output_rules.irq_error",
@@ -267,8 +320,12 @@
         "function_model.transactions.fm_dma_start.side_effects.side_effect_0",
         "function_model.transactions.fm_dma_start.side_effects.side_effect_1",
         "function_model.transactions.fm_dma_start.side_effects.side_effect_2",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_3",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_4",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_5",
         "function_model.transactions.fm_dma_step",
         "function_model.transactions.fm_dma_step.error_cases.error_case_0",
+        "function_model.transactions.fm_dma_step.error_cases.error_case_1",
         "function_model.transactions.fm_dma_step.output_rules.busy_next",
         "function_model.transactions.fm_dma_step.output_rules.done_pulse",
         "function_model.transactions.fm_dma_step.outputs.output_0",
@@ -279,7 +336,11 @@
         "function_model.transactions.fm_dma_step.side_effects.side_effect_1",
         "function_model.transactions.fm_dma_step.side_effects.side_effect_2",
         "function_model.transactions.fm_dma_step.side_effects.side_effect_3",
+        "function_model.transactions.fm_dma_step.side_effects.side_effect_4",
+        "function_model.transactions.fm_dma_step.side_effects.side_effect_5",
         "function_model.transactions.fm_dma_step.state_updates.dst_addr_next",
+        "function_model.transactions.fm_dma_step.state_updates.perf_cycles_next",
+        "function_model.transactions.fm_dma_step.state_updates.perf_words_next",
         "function_model.transactions.fm_dma_step.state_updates.remaining_next",
         "function_model.transactions.fm_dma_step.state_updates.src_addr_next",
         "io_list",
@@ -289,6 +350,7 @@
         "parameters.data_width",
         "parameters.fifo_depth",
         "parameters.n_channels",
+        "parameters.timeout_default",
         "registers",
         "registers.register_list"
       ],
@@ -298,6 +360,9 @@
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
         "function_model.invariants.invariant_4",
+        "function_model.invariants.invariant_5",
+        "function_model.invariants.invariant_6",
+        "function_model.invariants.invariant_7",
         "function_model.transactions.fm_dma_complete",
         "function_model.transactions.fm_dma_complete.output_rules.busy_clear",
         "function_model.transactions.fm_dma_complete.output_rules.done_assert",
@@ -314,6 +379,8 @@
         "function_model.transactions.fm_dma_error.error_cases.error_case_0",
         "function_model.transactions.fm_dma_error.error_cases.error_case_1",
         "function_model.transactions.fm_dma_error.error_cases.error_case_2",
+        "function_model.transactions.fm_dma_error.error_cases.error_case_3",
+        "function_model.transactions.fm_dma_error.error_cases.error_case_4",
         "function_model.transactions.fm_dma_error.output_rules.error_assert",
         "function_model.transactions.fm_dma_error.output_rules.error_code_out",
         "function_model.transactions.fm_dma_error.output_rules.irq_error",
@@ -341,8 +408,12 @@
         "function_model.transactions.fm_dma_start.side_effects.side_effect_0",
         "function_model.transactions.fm_dma_start.side_effects.side_effect_1",
         "function_model.transactions.fm_dma_start.side_effects.side_effect_2",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_3",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_4",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_5",
         "function_model.transactions.fm_dma_step",
         "function_model.transactions.fm_dma_step.error_cases.error_case_0",
+        "function_model.transactions.fm_dma_step.error_cases.error_case_1",
         "function_model.transactions.fm_dma_step.output_rules.busy_next",
         "function_model.transactions.fm_dma_step.output_rules.done_pulse",
         "function_model.transactions.fm_dma_step.outputs.output_0",
@@ -353,7 +424,11 @@
         "function_model.transactions.fm_dma_step.side_effects.side_effect_1",
         "function_model.transactions.fm_dma_step.side_effects.side_effect_2",
         "function_model.transactions.fm_dma_step.side_effects.side_effect_3",
+        "function_model.transactions.fm_dma_step.side_effects.side_effect_4",
+        "function_model.transactions.fm_dma_step.side_effects.side_effect_5",
         "function_model.transactions.fm_dma_step.state_updates.dst_addr_next",
+        "function_model.transactions.fm_dma_step.state_updates.perf_cycles_next",
+        "function_model.transactions.fm_dma_step.state_updates.perf_words_next",
         "function_model.transactions.fm_dma_step.state_updates.remaining_next",
         "function_model.transactions.fm_dma_step.state_updates.src_addr_next"
       ],
@@ -368,13 +443,18 @@
         "cycle_model.pipeline.write"
       ],
       "structural_refs": [
+        "features.bus_timeout",
+        "features.clock_gating",
         "features.error_detection",
         "features.multi_channel",
+        "features.performance_counters",
+        "features.programmable_stride",
         "parameters.addr_width",
         "parameters.burst_max",
         "parameters.data_width",
         "parameters.fifo_depth",
-        "parameters.n_channels"
+        "parameters.n_channels",
+        "parameters.timeout_default"
       ],
       "verification_impact": [
         "module-level FL-vs-RTL scoreboard",
@@ -400,21 +480,25 @@
       "ssot_refs": [
         "cycle_model",
         "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.ahb_1kb_boundary",
         "cycle_model.handshake_rules.ahb_address_phase",
         "cycle_model.handshake_rules.ahb_data_phase",
+        "cycle_model.handshake_rules.ahb_error_response",
         "cycle_model.pipeline",
-        "features.burst_transfer",
+        "features.full_ahb_lite",
         "function_model.transactions.FM_DMA_STEP",
         "io_list",
         "io_list.interfaces.ahb_master"
       ],
       "function_model_refs": [],
       "cycle_model_refs": [
+        "cycle_model.handshake_rules.ahb_1kb_boundary",
         "cycle_model.handshake_rules.ahb_address_phase",
-        "cycle_model.handshake_rules.ahb_data_phase"
+        "cycle_model.handshake_rules.ahb_data_phase",
+        "cycle_model.handshake_rules.ahb_error_response"
       ],
       "structural_refs": [
-        "features.burst_transfer"
+        "features.full_ahb_lite"
       ],
       "verification_impact": [
         "module-level FL-vs-RTL scoreboard",
@@ -451,6 +535,36 @@
       "structural_refs": [
         "features.per_channel_irq"
       ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "dma_real_engine",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "fsm",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "dma_real_engine"
+      ],
+      "rtl_file": "rtl/dma_real_engine.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "fsm",
+        "function_model",
+        "function_model.transactions.FM_DMA_STEP"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
       "verification_impact": [
         "module-level FL-vs-RTL scoreboard",
         "module functional coverage"
@@ -576,8 +690,12 @@
         "function_model.state_variables.ch_error_q",
         "function_model.state_variables.ch_remaining_q",
         "function_model.state_variables.ch_src_addr_q",
+        "function_model.state_variables.ch_stride_q",
         "function_model.state_variables.dma_en_q",
         "function_model.state_variables.int_enable_q",
+        "function_model.state_variables.perf_cycles_q",
+        "function_model.state_variables.perf_words_q",
+        "function_model.state_variables.timeout_q",
         "io_list",
         "io_list.interfaces.apb_slave",
         "registers",
@@ -585,24 +703,37 @@
         "registers.register_list.ch0_ctrl",
         "registers.register_list.ch0_dst_addr",
         "registers.register_list.ch0_len",
+        "registers.register_list.ch0_perf_cycles",
+        "registers.register_list.ch0_perf_words",
         "registers.register_list.ch0_src_addr",
         "registers.register_list.ch0_status",
+        "registers.register_list.ch0_stride",
         "registers.register_list.ch1_ctrl",
         "registers.register_list.ch1_dst_addr",
         "registers.register_list.ch1_len",
+        "registers.register_list.ch1_perf_cycles",
+        "registers.register_list.ch1_perf_words",
         "registers.register_list.ch1_src_addr",
         "registers.register_list.ch1_status",
+        "registers.register_list.ch1_stride",
         "registers.register_list.ch2_ctrl",
         "registers.register_list.ch2_dst_addr",
         "registers.register_list.ch2_len",
+        "registers.register_list.ch2_perf_cycles",
+        "registers.register_list.ch2_perf_words",
         "registers.register_list.ch2_src_addr",
         "registers.register_list.ch2_status",
+        "registers.register_list.ch2_stride",
         "registers.register_list.ch3_ctrl",
         "registers.register_list.ch3_dst_addr",
         "registers.register_list.ch3_len",
+        "registers.register_list.ch3_perf_cycles",
+        "registers.register_list.ch3_perf_words",
         "registers.register_list.ch3_src_addr",
         "registers.register_list.ch3_status",
+        "registers.register_list.ch3_stride",
         "registers.register_list.global_ctrl",
+        "registers.register_list.global_timeout",
         "registers.register_list.int_clear",
         "registers.register_list.int_enable",
         "registers.register_list.int_status"
@@ -615,32 +746,49 @@
         "function_model.state_variables.ch_error_q",
         "function_model.state_variables.ch_remaining_q",
         "function_model.state_variables.ch_src_addr_q",
+        "function_model.state_variables.ch_stride_q",
         "function_model.state_variables.dma_en_q",
-        "function_model.state_variables.int_enable_q"
+        "function_model.state_variables.int_enable_q",
+        "function_model.state_variables.perf_cycles_q",
+        "function_model.state_variables.perf_words_q",
+        "function_model.state_variables.timeout_q"
       ],
       "cycle_model_refs": [],
       "structural_refs": [
         "registers.register_list.ch0_ctrl",
         "registers.register_list.ch0_dst_addr",
         "registers.register_list.ch0_len",
+        "registers.register_list.ch0_perf_cycles",
+        "registers.register_list.ch0_perf_words",
         "registers.register_list.ch0_src_addr",
         "registers.register_list.ch0_status",
+        "registers.register_list.ch0_stride",
         "registers.register_list.ch1_ctrl",
         "registers.register_list.ch1_dst_addr",
         "registers.register_list.ch1_len",
+        "registers.register_list.ch1_perf_cycles",
+        "registers.register_list.ch1_perf_words",
         "registers.register_list.ch1_src_addr",
         "registers.register_list.ch1_status",
+        "registers.register_list.ch1_stride",
         "registers.register_list.ch2_ctrl",
         "registers.register_list.ch2_dst_addr",
         "registers.register_list.ch2_len",
+        "registers.register_list.ch2_perf_cycles",
+        "registers.register_list.ch2_perf_words",
         "registers.register_list.ch2_src_addr",
         "registers.register_list.ch2_status",
+        "registers.register_list.ch2_stride",
         "registers.register_list.ch3_ctrl",
         "registers.register_list.ch3_dst_addr",
         "registers.register_list.ch3_len",
+        "registers.register_list.ch3_perf_cycles",
+        "registers.register_list.ch3_perf_words",
         "registers.register_list.ch3_src_addr",
         "registers.register_list.ch3_status",
+        "registers.register_list.ch3_stride",
         "registers.register_list.global_ctrl",
+        "registers.register_list.global_timeout",
         "registers.register_list.int_clear",
         "registers.register_list.int_enable",
         "registers.register_list.int_status"
@@ -671,6 +819,10 @@
           "matched_ref": "function_model.state_variables"
         },
         {
+          "ref": "function_model.state_variables.ch_stride_q",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
           "ref": "function_model.state_variables.dma_en_q",
           "matched_ref": "function_model.state_variables"
         },
@@ -680,6 +832,18 @@
         },
         {
           "ref": "function_model.state_variables.arb_ptr_q",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.timeout_q",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.perf_words_q",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.perf_cycles_q",
           "matched_ref": "function_model.state_variables"
         }
       ],
@@ -698,6 +862,10 @@
         },
         {
           "ref": "registers.register_list.int_clear",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.global_timeout",
           "matched_ref": "registers.register_list"
         },
         {
@@ -721,6 +889,18 @@
           "matched_ref": "registers.register_list"
         },
         {
+          "ref": "registers.register_list.ch0_stride",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.ch0_perf_words",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.ch0_perf_cycles",
+          "matched_ref": "registers.register_list"
+        },
+        {
           "ref": "registers.register_list.ch1_ctrl",
           "matched_ref": "registers.register_list"
         },
@@ -738,6 +918,18 @@
         },
         {
           "ref": "registers.register_list.ch1_status",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.ch1_stride",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.ch1_perf_words",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.ch1_perf_cycles",
           "matched_ref": "registers.register_list"
         },
         {
@@ -761,6 +953,18 @@
           "matched_ref": "registers.register_list"
         },
         {
+          "ref": "registers.register_list.ch2_stride",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.ch2_perf_words",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.ch2_perf_cycles",
+          "matched_ref": "registers.register_list"
+        },
+        {
           "ref": "registers.register_list.ch3_ctrl",
           "matched_ref": "registers.register_list"
         },
@@ -778,6 +982,18 @@
         },
         {
           "ref": "registers.register_list.ch3_status",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.ch3_stride",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.ch3_perf_words",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.ch3_perf_cycles",
           "matched_ref": "registers.register_list"
         }
       ],
@@ -801,16 +1017,21 @@
         "cycle_model.backpressure.backpressure_0",
         "cycle_model.backpressure.backpressure_1",
         "cycle_model.backpressure.backpressure_2",
+        "cycle_model.backpressure.backpressure_3",
+        "cycle_model.backpressure.backpressure_4",
         "cycle_model.clock",
         "cycle_model.handshake_rules",
         "cycle_model.handshake_rules.apb_access",
         "cycle_model.handshake_rules.arb_grant_rule",
+        "cycle_model.handshake_rules.cdc_config",
         "cycle_model.handshake_rules.start_accept",
+        "cycle_model.handshake_rules.timeout_rule",
         "cycle_model.latency",
         "cycle_model.ordering.ordering_0",
         "cycle_model.ordering.ordering_1",
         "cycle_model.ordering.ordering_2",
         "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
         "cycle_model.performance",
         "cycle_model.reset",
         "features.round_robin_arb",
@@ -837,15 +1058,20 @@
         "cycle_model.backpressure.backpressure_0",
         "cycle_model.backpressure.backpressure_1",
         "cycle_model.backpressure.backpressure_2",
+        "cycle_model.backpressure.backpressure_3",
+        "cycle_model.backpressure.backpressure_4",
         "cycle_model.clock",
         "cycle_model.handshake_rules.apb_access",
         "cycle_model.handshake_rules.arb_grant_rule",
+        "cycle_model.handshake_rules.cdc_config",
         "cycle_model.handshake_rules.start_accept",
+        "cycle_model.handshake_rules.timeout_rule",
         "cycle_model.latency",
         "cycle_model.ordering.ordering_0",
         "cycle_model.ordering.ordering_1",
         "cycle_model.ordering.ordering_2",
         "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
         "cycle_model.reset"
       ],
       "structural_refs": [
@@ -897,11 +1123,19 @@
           "matched_ref": "cycle_model.handshake_rules"
         },
         {
+          "ref": "cycle_model.handshake_rules.cdc_config",
+          "matched_ref": "cycle_model.handshake_rules"
+        },
+        {
           "ref": "cycle_model.handshake_rules.arb_grant_rule",
           "matched_ref": "cycle_model.handshake_rules"
         },
         {
           "ref": "cycle_model.handshake_rules.start_accept",
+          "matched_ref": "cycle_model.handshake_rules"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.timeout_rule",
           "matched_ref": "cycle_model.handshake_rules"
         },
         {
@@ -921,6 +1155,10 @@
           "matched_ref": "cycle_model"
         },
         {
+          "ref": "cycle_model.ordering.ordering_4",
+          "matched_ref": "cycle_model"
+        },
+        {
           "ref": "cycle_model.backpressure.backpressure_0",
           "matched_ref": "cycle_model"
         },
@@ -930,6 +1168,14 @@
         },
         {
           "ref": "cycle_model.backpressure.backpressure_2",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_3",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_4",
           "matched_ref": "cycle_model"
         }
       ],
@@ -973,8 +1219,12 @@
         "cycle_model.pipeline.update",
         "cycle_model.pipeline.write",
         "error_handling",
+        "features.bus_timeout",
+        "features.clock_gating",
         "features.error_detection",
         "features.multi_channel",
+        "features.performance_counters",
+        "features.programmable_stride",
         "fsm",
         "fsm.per_channel",
         "function_model",
@@ -984,6 +1234,9 @@
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
         "function_model.invariants.invariant_4",
+        "function_model.invariants.invariant_5",
+        "function_model.invariants.invariant_6",
+        "function_model.invariants.invariant_7",
         "function_model.state_variables",
         "function_model.transactions.FM_DMA_COMPLETE",
         "function_model.transactions.FM_DMA_ERROR",
@@ -1005,6 +1258,8 @@
         "function_model.transactions.fm_dma_error.error_cases.error_case_0",
         "function_model.transactions.fm_dma_error.error_cases.error_case_1",
         "function_model.transactions.fm_dma_error.error_cases.error_case_2",
+        "function_model.transactions.fm_dma_error.error_cases.error_case_3",
+        "function_model.transactions.fm_dma_error.error_cases.error_case_4",
         "function_model.transactions.fm_dma_error.output_rules.error_assert",
         "function_model.transactions.fm_dma_error.output_rules.error_code_out",
         "function_model.transactions.fm_dma_error.output_rules.irq_error",
@@ -1032,8 +1287,12 @@
         "function_model.transactions.fm_dma_start.side_effects.side_effect_0",
         "function_model.transactions.fm_dma_start.side_effects.side_effect_1",
         "function_model.transactions.fm_dma_start.side_effects.side_effect_2",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_3",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_4",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_5",
         "function_model.transactions.fm_dma_step",
         "function_model.transactions.fm_dma_step.error_cases.error_case_0",
+        "function_model.transactions.fm_dma_step.error_cases.error_case_1",
         "function_model.transactions.fm_dma_step.output_rules.busy_next",
         "function_model.transactions.fm_dma_step.output_rules.done_pulse",
         "function_model.transactions.fm_dma_step.outputs.output_0",
@@ -1044,7 +1303,11 @@
         "function_model.transactions.fm_dma_step.side_effects.side_effect_1",
         "function_model.transactions.fm_dma_step.side_effects.side_effect_2",
         "function_model.transactions.fm_dma_step.side_effects.side_effect_3",
+        "function_model.transactions.fm_dma_step.side_effects.side_effect_4",
+        "function_model.transactions.fm_dma_step.side_effects.side_effect_5",
         "function_model.transactions.fm_dma_step.state_updates.dst_addr_next",
+        "function_model.transactions.fm_dma_step.state_updates.perf_cycles_next",
+        "function_model.transactions.fm_dma_step.state_updates.perf_words_next",
         "function_model.transactions.fm_dma_step.state_updates.remaining_next",
         "function_model.transactions.fm_dma_step.state_updates.src_addr_next",
         "io_list",
@@ -1054,6 +1317,7 @@
         "parameters.data_width",
         "parameters.fifo_depth",
         "parameters.n_channels",
+        "parameters.timeout_default",
         "registers",
         "registers.register_list"
       ],
@@ -1063,6 +1327,9 @@
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
         "function_model.invariants.invariant_4",
+        "function_model.invariants.invariant_5",
+        "function_model.invariants.invariant_6",
+        "function_model.invariants.invariant_7",
         "function_model.transactions.fm_dma_complete",
         "function_model.transactions.fm_dma_complete.output_rules.busy_clear",
         "function_model.transactions.fm_dma_complete.output_rules.done_assert",
@@ -1079,6 +1346,8 @@
         "function_model.transactions.fm_dma_error.error_cases.error_case_0",
         "function_model.transactions.fm_dma_error.error_cases.error_case_1",
         "function_model.transactions.fm_dma_error.error_cases.error_case_2",
+        "function_model.transactions.fm_dma_error.error_cases.error_case_3",
+        "function_model.transactions.fm_dma_error.error_cases.error_case_4",
         "function_model.transactions.fm_dma_error.output_rules.error_assert",
         "function_model.transactions.fm_dma_error.output_rules.error_code_out",
         "function_model.transactions.fm_dma_error.output_rules.irq_error",
@@ -1106,8 +1375,12 @@
         "function_model.transactions.fm_dma_start.side_effects.side_effect_0",
         "function_model.transactions.fm_dma_start.side_effects.side_effect_1",
         "function_model.transactions.fm_dma_start.side_effects.side_effect_2",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_3",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_4",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_5",
         "function_model.transactions.fm_dma_step",
         "function_model.transactions.fm_dma_step.error_cases.error_case_0",
+        "function_model.transactions.fm_dma_step.error_cases.error_case_1",
         "function_model.transactions.fm_dma_step.output_rules.busy_next",
         "function_model.transactions.fm_dma_step.output_rules.done_pulse",
         "function_model.transactions.fm_dma_step.outputs.output_0",
@@ -1118,7 +1391,11 @@
         "function_model.transactions.fm_dma_step.side_effects.side_effect_1",
         "function_model.transactions.fm_dma_step.side_effects.side_effect_2",
         "function_model.transactions.fm_dma_step.side_effects.side_effect_3",
+        "function_model.transactions.fm_dma_step.side_effects.side_effect_4",
+        "function_model.transactions.fm_dma_step.side_effects.side_effect_5",
         "function_model.transactions.fm_dma_step.state_updates.dst_addr_next",
+        "function_model.transactions.fm_dma_step.state_updates.perf_cycles_next",
+        "function_model.transactions.fm_dma_step.state_updates.perf_words_next",
         "function_model.transactions.fm_dma_step.state_updates.remaining_next",
         "function_model.transactions.fm_dma_step.state_updates.src_addr_next"
       ],
@@ -1133,13 +1410,18 @@
         "cycle_model.pipeline.write"
       ],
       "structural_refs": [
+        "features.bus_timeout",
+        "features.clock_gating",
         "features.error_detection",
         "features.multi_channel",
+        "features.performance_counters",
+        "features.programmable_stride",
         "parameters.addr_width",
         "parameters.burst_max",
         "parameters.data_width",
         "parameters.fifo_depth",
-        "parameters.n_channels"
+        "parameters.n_channels",
+        "parameters.timeout_default"
       ],
       "owner_matches": [
         {
@@ -1192,6 +1474,18 @@
         },
         {
           "ref": "function_model.transactions.fm_dma_start.side_effects.side_effect_2",
+          "matched_ref": "function_model.transactions.FM_DMA_START"
+        },
+        {
+          "ref": "function_model.transactions.fm_dma_start.side_effects.side_effect_3",
+          "matched_ref": "function_model.transactions.FM_DMA_START"
+        },
+        {
+          "ref": "function_model.transactions.fm_dma_start.side_effects.side_effect_4",
+          "matched_ref": "function_model.transactions.FM_DMA_START"
+        },
+        {
+          "ref": "function_model.transactions.fm_dma_start.side_effects.side_effect_5",
           "matched_ref": "function_model.transactions.FM_DMA_START"
         },
         {
@@ -1251,6 +1545,14 @@
           "matched_ref": "function_model.transactions.FM_DMA_STEP"
         },
         {
+          "ref": "function_model.transactions.fm_dma_step.state_updates.perf_words_next",
+          "matched_ref": "function_model.transactions.FM_DMA_STEP"
+        },
+        {
+          "ref": "function_model.transactions.fm_dma_step.state_updates.perf_cycles_next",
+          "matched_ref": "function_model.transactions.FM_DMA_STEP"
+        },
+        {
           "ref": "function_model.transactions.fm_dma_step.side_effects.side_effect_0",
           "matched_ref": "function_model.transactions.FM_DMA_STEP"
         },
@@ -1267,7 +1569,19 @@
           "matched_ref": "function_model.transactions.FM_DMA_STEP"
         },
         {
+          "ref": "function_model.transactions.fm_dma_step.side_effects.side_effect_4",
+          "matched_ref": "function_model.transactions.FM_DMA_STEP"
+        },
+        {
+          "ref": "function_model.transactions.fm_dma_step.side_effects.side_effect_5",
+          "matched_ref": "function_model.transactions.FM_DMA_STEP"
+        },
+        {
           "ref": "function_model.transactions.fm_dma_step.error_cases.error_case_0",
+          "matched_ref": "function_model.transactions.FM_DMA_STEP"
+        },
+        {
+          "ref": "function_model.transactions.fm_dma_step.error_cases.error_case_1",
           "matched_ref": "function_model.transactions.FM_DMA_STEP"
         },
         {
@@ -1375,6 +1689,14 @@
           "matched_ref": "function_model.transactions.FM_DMA_ERROR"
         },
         {
+          "ref": "function_model.transactions.fm_dma_error.error_cases.error_case_3",
+          "matched_ref": "function_model.transactions.FM_DMA_ERROR"
+        },
+        {
+          "ref": "function_model.transactions.fm_dma_error.error_cases.error_case_4",
+          "matched_ref": "function_model.transactions.FM_DMA_ERROR"
+        },
+        {
           "ref": "function_model.invariants.invariant_0",
           "matched_ref": "function_model.invariants"
         },
@@ -1392,6 +1714,18 @@
         },
         {
           "ref": "function_model.invariants.invariant_4",
+          "matched_ref": "function_model.invariants"
+        },
+        {
+          "ref": "function_model.invariants.invariant_5",
+          "matched_ref": "function_model.invariants"
+        },
+        {
+          "ref": "function_model.invariants.invariant_6",
+          "matched_ref": "function_model.invariants"
+        },
+        {
+          "ref": "function_model.invariants.invariant_7",
           "matched_ref": "function_model.invariants"
         },
         {
@@ -1449,12 +1783,32 @@
           "matched_ref": "parameters"
         },
         {
+          "ref": "parameters.timeout_default",
+          "matched_ref": "parameters"
+        },
+        {
           "ref": "features.multi_channel",
-          "matched_ref": "semantic_terms:channel,list,parameters,register"
+          "matched_ref": "semantic_terms:channel,list,parameters,performance,register"
         },
         {
           "ref": "features.error_detection",
           "matched_ref": "semantic_terms:channel,error_handling,fm,fm_dma_error,handling,per"
+        },
+        {
+          "ref": "features.programmable_stride",
+          "matched_ref": "semantic_terms:channel,list,per,register"
+        },
+        {
+          "ref": "features.bus_timeout",
+          "matched_ref": "semantic_terms:error_handling,handling,list,register"
+        },
+        {
+          "ref": "features.performance_counters",
+          "matched_ref": "semantic_terms:channel,list,per,performance,register"
+        },
+        {
+          "ref": "features.clock_gating",
+          "matched_ref": "semantic_terms:channel,per"
         }
       ],
       "verification_scope": "module",
@@ -1476,21 +1830,25 @@
       "ssot_refs": [
         "cycle_model",
         "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.ahb_1kb_boundary",
         "cycle_model.handshake_rules.ahb_address_phase",
         "cycle_model.handshake_rules.ahb_data_phase",
+        "cycle_model.handshake_rules.ahb_error_response",
         "cycle_model.pipeline",
-        "features.burst_transfer",
+        "features.full_ahb_lite",
         "function_model.transactions.FM_DMA_STEP",
         "io_list",
         "io_list.interfaces.ahb_master"
       ],
       "function_model_refs": [],
       "cycle_model_refs": [
+        "cycle_model.handshake_rules.ahb_1kb_boundary",
         "cycle_model.handshake_rules.ahb_address_phase",
-        "cycle_model.handshake_rules.ahb_data_phase"
+        "cycle_model.handshake_rules.ahb_data_phase",
+        "cycle_model.handshake_rules.ahb_error_response"
       ],
       "structural_refs": [
-        "features.burst_transfer"
+        "features.full_ahb_lite"
       ],
       "owner_matches": [
         {
@@ -1500,11 +1858,19 @@
         {
           "ref": "cycle_model.handshake_rules.ahb_data_phase",
           "matched_ref": "cycle_model.handshake_rules"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.ahb_1kb_boundary",
+          "matched_ref": "cycle_model.handshake_rules"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.ahb_error_response",
+          "matched_ref": "cycle_model.handshake_rules"
         }
       ],
       "structural_owner_matches": [
         {
-          "ref": "features.burst_transfer",
+          "ref": "features.full_ahb_lite",
           "matched_ref": "semantic_terms:ahb,ahb_master,interfaces,io,io_list,list"
         }
       ],
@@ -1549,10 +1915,37 @@
       "requires_module_equivalence": false,
       "blocked": false,
       "blocker": ""
+    },
+    {
+      "name": "dma_real_engine",
+      "kind": "rtl_module",
+      "rtl_module": "dma_real_engine",
+      "rtl_file": "rtl/dma_real_engine.sv",
+      "source_sections": [
+        "cycle_model",
+        "fsm",
+        "function_model"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "fsm",
+        "function_model",
+        "function_model.transactions.FM_DMA_STEP"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
     }
   ],
   "orphan_function_cycle_refs": [],
-  "function_cycle_ref_count": 102,
+  "function_cycle_ref_count": 126,
   "authority_contract": {
     "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
     "general_evaluation_criteria": [

@@ -1,0 +1,1071 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 19,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_real_ahb_master.sv",
+      "name": "dma_real_ahb_master",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "dataflow.ordering.ordering_2",
+        "dataflow.sequence.sequence_5",
+        "dataflow.sequence.sequence_6",
+        "function_model.transactions.FM_DMA_STEP",
+        "io_list",
+        "io_list.interfaces.ahb_master"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 3,
+    "open_required_count": 3,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "module",
+  "owner_file": "rtl/dma_real_ahb_master.sv",
+  "owner_module": "dma_real_ahb_master",
+  "packet_id": "module__dma_real_ahb_master",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.handshake_rules": 4,
+      "equivalence.module": 1,
+      "io_list.port": 14
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 19,
+      "task_limit": 48
+    },
+    "open_required_count": 3,
+    "required_count": 19,
+    "source_refs": [
+      "cycle_model.handshake_rules.ahb_address_phase",
+      "cycle_model.handshake_rules.ahb_data_phase",
+      "cycle_model.handshake_rules.ahb_1kb_boundary",
+      "cycle_model.handshake_rules.ahb_error_response",
+      "sub_modules.dma_real_ahb_master.module_equivalence",
+      "io_list.interfaces.ahb_master.ports.haddr",
+      "io_list.interfaces.ahb_master.ports.hwrite",
+      "io_list.interfaces.ahb_master.ports.htrans",
+      "io_list.interfaces.ahb_master.ports.hsize",
+      "io_list.interfaces.ahb_master.ports.hburst",
+      "io_list.interfaces.ahb_master.ports.hprot",
+      "io_list.interfaces.ahb_master.ports.hmaster",
+      "io_list.interfaces.ahb_master.ports.hmastlock",
+      "io_list.interfaces.ahb_master.ports.hwdata",
+      "io_list.interfaces.ahb_master.ports.hrdata",
+      "io_list.interfaces.ahb_master.ports.hready",
+      "io_list.interfaces.ahb_master.ports.hresp",
+      "io_list.interfaces.ahb_master.ports.hbusreq",
+      "io_list.interfaces.ahb_master.ports.hgrant"
+    ],
+    "status_counts": {
+      "open": 3,
+      "pass": 16
+    },
+    "task_count": 19
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: ahb_address_phase",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.ahb_address_phase",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "ahb_address_phase appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.ahb_address_phase.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via cycle_model.handshake_rules.\nSSOT item context: name=ahb_address_phase.",
+      "evidence_terms": [
+        "address",
+        "ahb",
+        "ahb_address_phase",
+        "phase"
+      ],
+      "id": "RTL-0169",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.ahb_address_phase",
+      "ssot_context": {
+        "name": "ahb_address_phase"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.ahb_address_phase"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "ahb"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "address",
+          "ahb",
+          "ahb_address_phase",
+          "phase"
+        ],
+        "source_scope": "rtl/dma_real_ahb_master.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: ahb_data_phase",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.ahb_data_phase",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "ahb_data_phase appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.ahb_data_phase.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via cycle_model.handshake_rules.\nSSOT item context: name=ahb_data_phase.",
+      "evidence_terms": [
+        "ahb",
+        "ahb_data_phase",
+        "data",
+        "phase"
+      ],
+      "id": "RTL-0170",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.ahb_data_phase",
+      "ssot_context": {
+        "name": "ahb_data_phase"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.ahb_data_phase"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "ahb",
+          "data"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ahb",
+          "ahb_data_phase",
+          "data",
+          "phase"
+        ],
+        "source_scope": "rtl/dma_real_ahb_master.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: ahb_1kb_boundary",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.ahb_1kb_boundary",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "ahb_1kb_boundary appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.ahb_1kb_boundary.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via cycle_model.handshake_rules.\nSSOT item context: name=ahb_1kb_boundary.",
+      "evidence_terms": [
+        "1kb",
+        "ahb",
+        "ahb_1kb_boundary"
+      ],
+      "id": "RTL-0171",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.ahb_1kb_boundary",
+      "ssot_context": {
+        "name": "ahb_1kb_boundary"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.ahb_1kb_boundary"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "ahb"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "1kb",
+          "ahb",
+          "ahb_1kb_boundary"
+        ],
+        "source_scope": "rtl/dma_real_ahb_master.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: ahb_error_response",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.ahb_error_response",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "ahb_error_response appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.ahb_error_response.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via cycle_model.handshake_rules.\nSSOT item context: name=ahb_error_response.",
+      "evidence_terms": [
+        "ahb",
+        "ahb_error_response",
+        "response"
+      ],
+      "id": "RTL-0172",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.ahb_error_response",
+      "ssot_context": {
+        "name": "ahb_error_response"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.ahb_error_response"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "ahb"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ahb",
+          "ahb_error_response",
+          "response"
+        ],
+        "source_scope": "rtl/dma_real_ahb_master.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module dma_real_ahb_master is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.dma_real_ahb_master.module_equivalence",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.dma_real_ahb_master.module_equivalence.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0379",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.dma_real_ahb_master.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.dma_real_ahb_master.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port haddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.haddr",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "haddr width matches SSOT value ADDR_WIDTH",
+        "haddr port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.haddr.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=haddr; width=ADDR_WIDTH; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0047",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.haddr",
+      "ssot_context": {
+        "direction": "output",
+        "name": "haddr",
+        "width": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.haddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hwrite",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.hwrite",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "hwrite width matches SSOT value 1",
+        "hwrite port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.hwrite.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=hwrite; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0048",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.hwrite",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hwrite",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.hwrite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port htrans",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.htrans",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "htrans width matches SSOT value 2",
+        "htrans port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.htrans.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=htrans; width=2; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.htrans",
+      "ssot_context": {
+        "direction": "output",
+        "name": "htrans",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.htrans"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hsize",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.hsize",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "hsize width matches SSOT value 3",
+        "hsize port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.hsize.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=hsize; width=3; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0050",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.hsize",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hsize",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.hsize"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hburst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.hburst",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "hburst width matches SSOT value 3",
+        "hburst port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.hburst.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=hburst; width=3; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0051",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.hburst",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hburst",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.hburst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hprot",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.hprot",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "hprot width matches SSOT value 4",
+        "hprot port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.hprot.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=hprot; width=4; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0052",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.hprot",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hprot",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.hprot"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hmaster",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.hmaster",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "hmaster width matches SSOT value 4",
+        "hmaster port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.hmaster.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=hmaster; width=4; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0053",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.hmaster",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hmaster",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.hmaster"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hmastlock",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.hmastlock",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "hmastlock width matches SSOT value 1",
+        "hmastlock port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.hmastlock.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=hmastlock; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0054",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.hmastlock",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hmastlock",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.hmastlock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hwdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.hwdata",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "hwdata width matches SSOT value DATA_WIDTH",
+        "hwdata port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.hwdata.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=hwdata; width=DATA_WIDTH; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0055",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.hwdata",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hwdata",
+        "width": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.hwdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hrdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.hrdata",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "hrdata width matches SSOT value DATA_WIDTH",
+        "hrdata port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.hrdata.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=hrdata; width=DATA_WIDTH; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0056",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.hrdata",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hrdata",
+        "width": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.hrdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.hready",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "hready width matches SSOT value 1",
+        "hready port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.hready.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=hready; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0057",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.hready",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.hready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hresp",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.hresp",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "hresp width matches SSOT value 2",
+        "hresp port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.hresp.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=hresp; width=2; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0058",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.hresp",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hresp",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.hresp"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hbusreq",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.hbusreq",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "hbusreq width matches SSOT value 1",
+        "hbusreq port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.hbusreq.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=hbusreq; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0059",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.hbusreq",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hbusreq",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.hbusreq"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hgrant",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master.ports.hgrant",
+        "Primary implementation evidence is in rtl/dma_real_ahb_master.sv",
+        "hgrant width matches SSOT value 1",
+        "hgrant port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master.ports.hgrant.\nOwner: dma_real_ahb_master in rtl/dma_real_ahb_master.sv via io_list.interfaces.ahb_master.\nSSOT item context: name=hgrant; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0060",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master.ports.hgrant",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hgrant",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master.ports.hgrant"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

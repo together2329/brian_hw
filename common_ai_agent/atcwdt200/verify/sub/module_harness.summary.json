@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "type": "module_harness_summary",
+  "ip": "atcwdt200",
+  "harness_files": [
+    "verify/sub/atcwdt200_regs_harness.py",
+    "verify/sub/atcwdt200_core_harness.py"
+  ],
+  "harnesses_total": 2
+}

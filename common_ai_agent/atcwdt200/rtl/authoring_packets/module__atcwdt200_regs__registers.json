@@ -1,0 +1,1487 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 6,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 2,
+      "key": "registers",
+      "module_task_count": 75,
+      "rule": "Owner module atcwdt200_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atcwdt200_regs.sv",
+      "name": "atcwdt200_regs",
+      "refs": [
+        "dataflow.sequence.sequence_0",
+        "dataflow.sequence.sequence_1",
+        "dataflow.sinks.sinks_0",
+        "decomposition.units.apb_register_block",
+        "error_handling",
+        "function_model",
+        "function_model.transactions.apb_read",
+        "function_model.transactions.apb_write",
+        "function_model.transactions.write_unlock",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcwdt200_regs.sv",
+        "name": "atcwdt200_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_core.sv",
+        "name": "atcwdt200_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_sync.sv",
+        "name": "atcwdt200_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200.sv",
+        "name": "atcwdt200",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_regs",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_regs",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 7,
+    "open_required_count": 7,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atcwdt200",
+  "kind": "module",
+  "owner_file": "rtl/atcwdt200_regs.sv",
+  "owner_module": "atcwdt200_regs",
+  "packet_id": "module__atcwdt200_regs__registers",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "registers.field": 16,
+      "registers.register": 5
+    },
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 2,
+      "key": "registers",
+      "module_task_count": 75,
+      "rule": "Owner module atcwdt200_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 7,
+    "required_count": 21,
+    "source_refs": [
+      "registers.register_list.VER",
+      "registers.register_list.VER.fields.id",
+      "registers.register_list.VER.fields.rev_major",
+      "registers.register_list.VER.fields.rev_minor",
+      "registers.register_list.CR",
+      "registers.register_list.CR.fields.en",
+      "registers.register_list.CR.fields.clk",
+      "registers.register_list.CR.fields.inten",
+      "registers.register_list.CR.fields.rsten",
+      "registers.register_list.CR.fields.inttime",
+      "registers.register_list.CR.fields.rsttime",
+      "registers.register_list.CR.fields.reserved_31_11",
+      "registers.register_list.RES",
+      "registers.register_list.RES.fields.restart_magic",
+      "registers.register_list.RES.fields.reserved_31_16",
+      "registers.register_list.WEN",
+      "registers.register_list.WEN.fields.unlock_magic",
+      "registers.register_list.WEN.fields.reserved_31_16",
+      "registers.register_list.SR",
+      "registers.register_list.SR.fields.intzero",
+      "registers.register_list.SR.fields.reserved_31_1"
+    ],
+    "status_counts": {
+      "open": 7,
+      "pass": 14
+    },
+    "task_count": 21
+  },
+  "tasks": [
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register VER",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.VER",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "VER width matches SSOT value 32",
+        "VER reset behavior matches SSOT value 50339842",
+        "VER access policy ro is implemented without read/write shortcuts",
+        "VER decode uses SSOT address/offset 0"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.VER.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=VER; width=32; reset=50339842; access=ro; offset=0.",
+      "evidence_terms": [
+        "VER"
+      ],
+      "id": "RTL-0136",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.VER",
+      "ssot_context": {
+        "access": "ro",
+        "name": "VER",
+        "offset": "0",
+        "reset": "50339842",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.VER"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "VER"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "VER"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field VER.id",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.VER.fields.id",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "id reset behavior matches SSOT value 768",
+        "id access policy ro is implemented without read/write shortcuts",
+        "id readback returns implemented RTL state when readable",
+        "id write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.VER.fields.id.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=id; reset=768; access=ro.",
+      "evidence_terms": [
+        "id"
+      ],
+      "id": "RTL-0137",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.VER.fields.id",
+      "ssot_context": {
+        "access": "ro",
+        "name": "id",
+        "reset": "768"
+      },
+      "ssot_refs": [
+        "registers.register_list.VER.fields.id"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "id"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field VER.rev_major",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.VER.fields.rev_major",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "rev_major reset behavior matches SSOT value 512",
+        "rev_major access policy ro is implemented without read/write shortcuts",
+        "rev_major readback returns implemented RTL state when readable",
+        "rev_major write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.VER.fields.rev_major.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=rev_major; reset=512; access=ro.",
+      "evidence_terms": [
+        "major",
+        "rev",
+        "rev_major"
+      ],
+      "id": "RTL-0138",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.VER.fields.rev_major",
+      "ssot_context": {
+        "access": "ro",
+        "name": "rev_major",
+        "reset": "512"
+      },
+      "ssot_refs": [
+        "registers.register_list.VER.fields.rev_major"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "major",
+          "rev",
+          "rev_major"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field VER.rev_minor",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.VER.fields.rev_minor",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "rev_minor reset behavior matches SSOT value 2",
+        "rev_minor access policy ro is implemented without read/write shortcuts",
+        "rev_minor readback returns implemented RTL state when readable",
+        "rev_minor write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.VER.fields.rev_minor.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=rev_minor; reset=2; access=ro.",
+      "evidence_terms": [
+        "minor",
+        "rev",
+        "rev_minor"
+      ],
+      "id": "RTL-0139",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.VER.fields.rev_minor",
+      "ssot_context": {
+        "access": "ro",
+        "name": "rev_minor",
+        "reset": "2"
+      },
+      "ssot_refs": [
+        "registers.register_list.VER.fields.rev_minor"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "minor",
+          "rev",
+          "rev_minor"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CR",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CR",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "CR width matches SSOT value 32",
+        "CR reset behavior matches SSOT value 0",
+        "CR access policy rw is implemented without read/write shortcuts",
+        "CR decode uses SSOT address/offset 16"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CR.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=CR; width=32; reset=0; access=rw; offset=16.",
+      "evidence_terms": [
+        "CR"
+      ],
+      "id": "RTL-0140",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CR",
+      "ssot_context": {
+        "access": "rw",
+        "name": "CR",
+        "offset": "16",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CR"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "CR"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CR"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CR.en",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CR.fields.en",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "en reset behavior matches SSOT value 0",
+        "en access policy rw is implemented without read/write shortcuts",
+        "en readback returns implemented RTL state when readable",
+        "en write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CR.fields.en.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=en; reset=0; access=rw.",
+      "evidence_terms": [
+        "en"
+      ],
+      "id": "RTL-0141",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CR.fields.en",
+      "ssot_context": {
+        "access": "rw",
+        "name": "en",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CR.fields.en"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "en"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "en"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CR.clk",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CR.fields.clk",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "clk reset behavior matches SSOT value 0",
+        "clk access policy rw is implemented without read/write shortcuts",
+        "clk readback returns implemented RTL state when readable",
+        "clk write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CR.fields.clk.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=clk; reset=0; access=rw.",
+      "evidence_terms": [
+        "clk"
+      ],
+      "id": "RTL-0142",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CR.fields.clk",
+      "ssot_context": {
+        "access": "rw",
+        "name": "clk",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CR.fields.clk"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "clk"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CR.inten",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CR.fields.inten",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "inten reset behavior matches SSOT value 0",
+        "inten access policy rw is implemented without read/write shortcuts",
+        "inten readback returns implemented RTL state when readable",
+        "inten write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CR.fields.inten.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=inten; reset=0; access=rw.",
+      "evidence_terms": [
+        "inten"
+      ],
+      "id": "RTL-0143",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CR.fields.inten",
+      "ssot_context": {
+        "access": "rw",
+        "name": "inten",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CR.fields.inten"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "inten"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "inten"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CR.rsten",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CR.fields.rsten",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "rsten reset behavior matches SSOT value 0",
+        "rsten access policy rw is implemented without read/write shortcuts",
+        "rsten readback returns implemented RTL state when readable",
+        "rsten write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CR.fields.rsten.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=rsten; reset=0; access=rw.",
+      "evidence_terms": [
+        "rsten"
+      ],
+      "id": "RTL-0144",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CR.fields.rsten",
+      "ssot_context": {
+        "access": "rw",
+        "name": "rsten",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CR.fields.rsten"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "rsten"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "rsten"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CR.inttime",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CR.fields.inttime",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "inttime reset behavior matches SSOT value 0",
+        "inttime access policy rw is implemented without read/write shortcuts",
+        "inttime readback returns implemented RTL state when readable",
+        "inttime write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CR.fields.inttime.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=inttime; reset=0; access=rw.",
+      "evidence_terms": [
+        "inttime"
+      ],
+      "id": "RTL-0145",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CR.fields.inttime",
+      "ssot_context": {
+        "access": "rw",
+        "name": "inttime",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CR.fields.inttime"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "inttime"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "inttime"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CR.rsttime",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CR.fields.rsttime",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "rsttime reset behavior matches SSOT value 0",
+        "rsttime access policy rw is implemented without read/write shortcuts",
+        "rsttime readback returns implemented RTL state when readable",
+        "rsttime write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CR.fields.rsttime.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=rsttime; reset=0; access=rw.",
+      "evidence_terms": [
+        "rsttime"
+      ],
+      "id": "RTL-0146",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CR.fields.rsttime",
+      "ssot_context": {
+        "access": "rw",
+        "name": "rsttime",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CR.fields.rsttime"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "rsttime"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "rsttime"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CR.reserved_31_11",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CR.fields.reserved_31_11",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "reserved_31_11 reset behavior matches SSOT value 0",
+        "reserved_31_11 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_11 readback returns implemented RTL state when readable",
+        "reserved_31_11 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CR.fields.reserved_31_11.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_11; reset=0; access=reserved.",
+      "evidence_terms": [
+        "11",
+        "31",
+        "reserved",
+        "reserved_31_11"
+      ],
+      "id": "RTL-0147",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CR.fields.reserved_31_11",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_11",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CR.fields.reserved_31_11"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "11",
+          "31",
+          "reserved",
+          "reserved_31_11"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register RES",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.RES",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "RES width matches SSOT value 32",
+        "RES reset behavior matches SSOT value 0",
+        "RES access policy wo is implemented without read/write shortcuts",
+        "RES decode uses SSOT address/offset 20"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.RES.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=RES; width=32; reset=0; access=wo; offset=20.",
+      "evidence_terms": [
+        "RES"
+      ],
+      "id": "RTL-0148",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.RES",
+      "ssot_context": {
+        "access": "wo",
+        "name": "RES",
+        "offset": "20",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.RES"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RES"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RES"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field RES.restart_magic",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.RES.fields.restart_magic",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "restart_magic reset behavior matches SSOT value 0",
+        "restart_magic access policy wo is implemented without read/write shortcuts",
+        "restart_magic readback returns implemented RTL state when readable",
+        "restart_magic write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.RES.fields.restart_magic.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=restart_magic; reset=0; access=wo.",
+      "evidence_terms": [
+        "magic",
+        "restart",
+        "restart_magic"
+      ],
+      "id": "RTL-0149",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.RES.fields.restart_magic",
+      "ssot_context": {
+        "access": "wo",
+        "name": "restart_magic",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.RES.fields.restart_magic"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "restart"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "magic",
+          "restart",
+          "restart_magic"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field RES.reserved_31_16",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.RES.fields.reserved_31_16",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "reserved_31_16 reset behavior matches SSOT value 0",
+        "reserved_31_16 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_16 readback returns implemented RTL state when readable",
+        "reserved_31_16 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.RES.fields.reserved_31_16.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_16; reset=0; access=reserved.",
+      "evidence_terms": [
+        "16",
+        "31",
+        "reserved",
+        "reserved_31_16"
+      ],
+      "id": "RTL-0150",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.RES.fields.reserved_31_16",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_16",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.RES.fields.reserved_31_16"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "16",
+          "31",
+          "reserved",
+          "reserved_31_16"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register WEN",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.WEN",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "WEN width matches SSOT value 32",
+        "WEN reset behavior matches SSOT value 0",
+        "WEN access policy wo is implemented without read/write shortcuts",
+        "WEN decode uses SSOT address/offset 24"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.WEN.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=WEN; width=32; reset=0; access=wo; offset=24.",
+      "evidence_terms": [
+        "WEN"
+      ],
+      "id": "RTL-0151",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.WEN",
+      "ssot_context": {
+        "access": "wo",
+        "name": "WEN",
+        "offset": "24",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.WEN"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "WEN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "WEN"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field WEN.unlock_magic",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.WEN.fields.unlock_magic",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "unlock_magic reset behavior matches SSOT value 0",
+        "unlock_magic access policy wo is implemented without read/write shortcuts",
+        "unlock_magic readback returns implemented RTL state when readable",
+        "unlock_magic write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.WEN.fields.unlock_magic.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=unlock_magic; reset=0; access=wo.",
+      "evidence_terms": [
+        "magic",
+        "unlock",
+        "unlock_magic"
+      ],
+      "id": "RTL-0152",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.WEN.fields.unlock_magic",
+      "ssot_context": {
+        "access": "wo",
+        "name": "unlock_magic",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.WEN.fields.unlock_magic"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "unlock"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "magic",
+          "unlock",
+          "unlock_magic"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field WEN.reserved_31_16",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.WEN.fields.reserved_31_16",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "reserved_31_16 reset behavior matches SSOT value 0",
+        "reserved_31_16 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_16 readback returns implemented RTL state when readable",
+        "reserved_31_16 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.WEN.fields.reserved_31_16.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_16; reset=0; access=reserved.",
+      "evidence_terms": [
+        "16",
+        "31",
+        "reserved",
+        "reserved_31_16"
+      ],
+      "id": "RTL-0153",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.WEN.fields.reserved_31_16",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_16",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.WEN.fields.reserved_31_16"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "16",
+          "31",
+          "reserved",
+          "reserved_31_16"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register SR",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.SR",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "SR width matches SSOT value 32",
+        "SR reset behavior matches SSOT value 0",
+        "SR access policy rw1c is implemented without read/write shortcuts",
+        "SR decode uses SSOT address/offset 28"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.SR.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=SR; width=32; reset=0; access=rw1c; offset=28.",
+      "evidence_terms": [
+        "SR"
+      ],
+      "id": "RTL-0154",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.SR",
+      "ssot_context": {
+        "access": "rw1c",
+        "name": "SR",
+        "offset": "28",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.SR"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "SR"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "SR"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field SR.intzero",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.SR.fields.intzero",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "intzero reset behavior matches SSOT value 0",
+        "intzero access policy rw1c is implemented without read/write shortcuts",
+        "intzero readback returns implemented RTL state when readable",
+        "intzero write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.SR.fields.intzero.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=intzero; reset=0; access=rw1c.",
+      "evidence_terms": [
+        "intzero"
+      ],
+      "id": "RTL-0155",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.SR.fields.intzero",
+      "ssot_context": {
+        "access": "rw1c",
+        "name": "intzero",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.SR.fields.intzero"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "intzero"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "intzero"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field SR.reserved_31_1",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.SR.fields.reserved_31_1",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "reserved_31_1 reset behavior matches SSOT value 0",
+        "reserved_31_1 access policy reserved is implemented without read/write shortcuts",
+        "reserved_31_1 readback returns implemented RTL state when readable",
+        "reserved_31_1 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.SR.fields.reserved_31_1.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via registers.register_list.\nSSOT item context: name=reserved_31_1; reset=0; access=reserved.",
+      "evidence_terms": [
+        "31",
+        "reserved",
+        "reserved_31_1"
+      ],
+      "id": "RTL-0156",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.SR.fields.reserved_31_1",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "reserved_31_1",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.SR.fields.reserved_31_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "31",
+          "reserved",
+          "reserved_31_1"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3348ddb6018966555eeb963ff7b9aa4ed0d14e6293df5093c73330b07393340c",
+  "top": "atcwdt200",
+  "type": "rtl_authoring_packet"
+}

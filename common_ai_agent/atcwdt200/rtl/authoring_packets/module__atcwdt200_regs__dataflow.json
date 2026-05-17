@@ -1,0 +1,599 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 6,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 5,
+      "key": "dataflow",
+      "module_task_count": 75,
+      "rule": "Owner module atcwdt200_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "dataflow",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atcwdt200_regs.sv",
+      "name": "atcwdt200_regs",
+      "refs": [
+        "dataflow.sequence.sequence_0",
+        "dataflow.sequence.sequence_1",
+        "dataflow.sinks.sinks_0",
+        "decomposition.units.apb_register_block",
+        "error_handling",
+        "function_model",
+        "function_model.transactions.apb_read",
+        "function_model.transactions.apb_write",
+        "function_model.transactions.write_unlock",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcwdt200_regs.sv",
+        "name": "atcwdt200_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_core.sv",
+        "name": "atcwdt200_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_sync.sv",
+        "name": "atcwdt200_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200.sv",
+        "name": "atcwdt200",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_regs",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_regs",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 4,
+    "open_required_count": 4,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atcwdt200",
+  "kind": "module",
+  "owner_file": "rtl/atcwdt200_regs.sv",
+  "owner_module": "atcwdt200_regs",
+  "packet_id": "module__atcwdt200_regs__dataflow",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "dataflow.sequence": 6,
+      "dataflow.sinks": 3
+    },
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 5,
+      "key": "dataflow",
+      "module_task_count": 75,
+      "rule": "Owner module atcwdt200_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "dataflow",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 4,
+    "required_count": 9,
+    "source_refs": [
+      "dataflow.sequence.sequence_0",
+      "dataflow.sequence.sequence_1",
+      "dataflow.sequence.sequence_2",
+      "dataflow.sequence.sequence_3",
+      "dataflow.sequence.sequence_4",
+      "dataflow.sequence.sequence_5",
+      "dataflow.sinks.sinks_0",
+      "dataflow.sinks.sinks_1",
+      "dataflow.sinks.sinks_2"
+    ],
+    "status_counts": {
+      "open": 4,
+      "pass": 5
+    },
+    "task_count": 9
+  },
+  "tasks": [
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_0",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via dataflow.sequence.sequence_0.\nSSOT item context: value=APB writes WEN magic to unlock a protected write..",
+      "evidence_terms": [],
+      "id": "RTL-0168",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_0",
+      "ssot_context": {
+        "value": "APB writes WEN magic to unlock a protected write."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_1",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_1",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_1.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via dataflow.sequence.sequence_0.\nSSOT item context: value=APB writes CR to configure enable, tick source, interrupt enable, reset enable, and timeout encodings..",
+      "evidence_terms": [],
+      "id": "RTL-0169",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_1",
+      "ssot_context": {
+        "value": "APB writes CR to configure enable, tick source, interrupt enable, reset enable, and timeout encodings."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_2",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_2",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_2.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via dataflow.sequence.sequence_0.\nSSOT item context: value=The watchdog counter advances on pclk cycles when CR.CLK selects pclk, or on synchronized extclk rising pulses when e....",
+      "evidence_terms": [],
+      "id": "RTL-0170",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_2",
+      "ssot_context": {
+        "value": "The watchdog counter advances on pclk cycles when CR.CLK selects pclk, or on synchronized extclk rising pulses when e..."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_3",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_3",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_3.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via dataflow.sequence.sequence_0.\nSSOT item context: value=INTTIME timeout sets SR.INTZERO and asserts wdt_int when CR.INTEN is set..",
+      "evidence_terms": [
+        "int",
+        "wdt",
+        "wdt_int"
+      ],
+      "id": "RTL-0171",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_3",
+      "ssot_context": {
+        "value": "INTTIME timeout sets SR.INTZERO and asserts wdt_int when CR.INTEN is set."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_3"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "int"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "int",
+          "wdt",
+          "wdt_int"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_4",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_4",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_4.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via dataflow.sequence.sequence_0.\nSSOT item context: value=RSTTIME timeout sets reset status, asserts wdt_rst when CR.RSTEN is set, and clears CR.EN..",
+      "evidence_terms": [
+        "rst",
+        "wdt",
+        "wdt_rst"
+      ],
+      "id": "RTL-0172",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_4",
+      "ssot_context": {
+        "value": "RSTTIME timeout sets reset status, asserts wdt_rst when CR.RSTEN is set, and clears CR.EN."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "rst",
+          "wdt",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_5",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_5",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_5.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via dataflow.sequence.sequence_0.\nSSOT item context: value=RES magic write restarts the watchdog counter and phase..",
+      "evidence_terms": [],
+      "id": "RTL-0173",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_5",
+      "ssot_context": {
+        "value": "RES magic write restarts the watchdog counter and phase."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_5"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sinks",
+      "content": "Implement dataflow sinks: sinks_0",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sinks.sinks_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sinks.sinks_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via dataflow.sinks.sinks_0.\nSSOT item context: value=prdata.",
+      "evidence_terms": [],
+      "id": "RTL-0174",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sinks.sinks_0",
+      "ssot_context": {
+        "value": "prdata"
+      },
+      "ssot_refs": [
+        "dataflow.sinks.sinks_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sinks",
+      "content": "Implement dataflow sinks: sinks_1",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sinks.sinks_1",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sinks.sinks_1.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via dataflow.sinks.sinks_0.\nSSOT item context: value=wdt_int.",
+      "evidence_terms": [
+        "int",
+        "wdt",
+        "wdt_int"
+      ],
+      "id": "RTL-0175",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sinks.sinks_1",
+      "ssot_context": {
+        "value": "wdt_int"
+      },
+      "ssot_refs": [
+        "dataflow.sinks.sinks_1"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "int"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "int",
+          "wdt",
+          "wdt_int"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "dataflow.sinks",
+      "content": "Implement dataflow sinks: sinks_2",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sinks.sinks_2",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sinks.sinks_2.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via dataflow.sinks.sinks_0.\nSSOT item context: value=wdt_rst.",
+      "evidence_terms": [
+        "rst",
+        "wdt",
+        "wdt_rst"
+      ],
+      "id": "RTL-0176",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sinks.sinks_2",
+      "ssot_context": {
+        "value": "wdt_rst"
+      },
+      "ssot_refs": [
+        "dataflow.sinks.sinks_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "rst",
+          "wdt",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3348ddb6018966555eeb963ff7b9aa4ed0d14e6293df5093c73330b07393340c",
+  "top": "atcwdt200",
+  "type": "rtl_authoring_packet"
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "type": "submodule_fl_summary",
+  "ip": "atcwdt200",
+  "sub_modules_total": 4,
+  "submodule_fl_emitted": 2,
+  "emitted": [
+    {
+      "submodule": "atcwdt200_regs",
+      "file": "model/sub/atcwdt200_regs_fl.py",
+      "owned_tx": [
+        "apb_read",
+        "apb_write",
+        "write_unlock"
+      ],
+      "owned_state": [],
+      "owned_protocol_refs": [
+        "registers.register_list"
+      ],
+      "implements": [
+        "registers.register_list",
+        "function_model.transactions.apb_read",
+        "function_model.transactions.apb_write",
+        "function_model.transactions.write_unlock"
+      ]
+    },
+    {
+      "submodule": "atcwdt200_core",
+      "file": "model/sub/atcwdt200_core_fl.py",
+      "owned_tx": [
+        "restart",
+        "watchdog_tick"
+      ],
+      "owned_state": [],
+      "owned_protocol_refs": [
+        "fsm.watchdog"
+      ],
+      "implements": [
+        "function_model.transactions.watchdog_tick",
+        "function_model.transactions.restart",
+        "fsm.watchdog",
+        "interrupts"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,243 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 6,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 3,
+      "key": "error_handling",
+      "module_task_count": 75,
+      "rule": "Owner module atcwdt200_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "error_handling",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atcwdt200_regs.sv",
+      "name": "atcwdt200_regs",
+      "refs": [
+        "dataflow.sequence.sequence_0",
+        "dataflow.sequence.sequence_1",
+        "dataflow.sinks.sinks_0",
+        "decomposition.units.apb_register_block",
+        "error_handling",
+        "function_model",
+        "function_model.transactions.apb_read",
+        "function_model.transactions.apb_write",
+        "function_model.transactions.write_unlock",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcwdt200_regs.sv",
+        "name": "atcwdt200_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_core.sv",
+        "name": "atcwdt200_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_sync.sv",
+        "name": "atcwdt200_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200.sv",
+        "name": "atcwdt200",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_regs",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_regs",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atcwdt200",
+  "kind": "module",
+  "owner_file": "rtl/atcwdt200_regs.sv",
+  "owner_module": "atcwdt200_regs",
+  "packet_id": "module__atcwdt200_regs__error_handling",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "error_handling.recovery": 2
+    },
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 3,
+      "key": "error_handling",
+      "module_task_count": 75,
+      "rule": "Owner module atcwdt200_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "error_handling",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 2,
+    "source_refs": [
+      "error_handling.recovery.recovery_0",
+      "error_handling.recovery.recovery_1"
+    ],
+    "status_counts": {
+      "pass": 2
+    },
+    "task_count": 2
+  },
+  "tasks": [
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via error_handling.\nSSOT item context: action=reset.",
+      "evidence_terms": [],
+      "id": "RTL-0177",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_0",
+      "ssot_context": {
+        "action": "reset"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_1",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_1.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via error_handling.\nSSOT item context: action=SR W1C.",
+      "evidence_terms": [],
+      "id": "RTL-0178",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_1",
+      "ssot_context": {
+        "action": "SR W1C"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3348ddb6018966555eeb963ff7b9aa4ed0d14e6293df5093c73330b07393340c",
+  "top": "atcwdt200",
+  "type": "rtl_authoring_packet"
+}

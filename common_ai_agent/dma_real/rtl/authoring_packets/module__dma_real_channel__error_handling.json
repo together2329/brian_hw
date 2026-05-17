@@ -1,0 +1,410 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 6,
+      "key": "error_handling",
+      "module_task_count": 130,
+      "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "error_handling",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_real_channel.sv",
+      "name": "dma_real_channel",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.performance",
+        "cycle_model.pipeline",
+        "dataflow.ordering.ordering_1",
+        "dataflow.ordering.ordering_2",
+        "dataflow.ordering.ordering_3",
+        "dataflow.ordering.ordering_4",
+        "dataflow.sequence.sequence_10",
+        "dataflow.sequence.sequence_11",
+        "dataflow.sequence.sequence_3",
+        "dataflow.sequence.sequence_4",
+        "dataflow.sequence.sequence_5",
+        "dataflow.sequence.sequence_6",
+        "dataflow.sequence.sequence_7",
+        "dataflow.sequence.sequence_8",
+        "dataflow.sequence.sequence_9",
+        "error_handling",
+        "fsm",
+        "fsm.per_channel",
+        "function_model",
+        "function_model.invariants",
+        "function_model.state_variables",
+        "function_model.transactions.FM_DMA_COMPLETE",
+        "function_model.transactions.FM_DMA_ERROR",
+        "function_model.transactions.FM_DMA_START",
+        "function_model.transactions.FM_DMA_STEP",
+        "io_list",
+        "parameters",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 2,
+    "open_required_count": 2,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "module",
+  "owner_file": "rtl/dma_real_channel.sv",
+  "owner_module": "dma_real_channel",
+  "packet_id": "module__dma_real_channel__error_handling",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "error_handling.recovery": 5
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 6,
+      "key": "error_handling",
+      "module_task_count": 130,
+      "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "error_handling",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 2,
+    "required_count": 5,
+    "source_refs": [
+      "error_handling.recovery.recovery_0",
+      "error_handling.recovery.recovery_1",
+      "error_handling.recovery.recovery_2",
+      "error_handling.recovery.recovery_3",
+      "error_handling.recovery.recovery_4"
+    ],
+    "status_counts": {
+      "open": 2,
+      "pass": 3
+    },
+    "task_count": 5
+  },
+  "tasks": [
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via error_handling.\nSSOT item context: value=Software reads CHx_STATUS to identify error code.",
+      "evidence_terms": [
+        "CHx",
+        "CHx_STATUS",
+        "STATUS"
+      ],
+      "id": "RTL-0358",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_0",
+      "ssot_context": {
+        "value": "Software reads CHx_STATUS to identify error code"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_0"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "STATUS"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CHx",
+          "CHx_STATUS",
+          "STATUS"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via error_handling.\nSSOT item context: value=Software writes INT_CLEAR to clear error and done latches.",
+      "evidence_terms": [
+        "INT",
+        "INT_CLEAR"
+      ],
+      "id": "RTL-0359",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_1",
+      "ssot_context": {
+        "value": "Software writes INT_CLEAR to clear error and done latches"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "INT",
+          "INT_CLEAR"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_2",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_2.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via error_handling.\nSSOT item context: value=Channel returns to IDLE after status is cleared.",
+      "evidence_terms": [],
+      "id": "RTL-0360",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_2",
+      "ssot_context": {
+        "value": "Channel returns to IDLE after status is cleared"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_3",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_3",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_3.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via error_handling.\nSSOT item context: value=No automatic retry (software must reconfigure and restart).",
+      "evidence_terms": [],
+      "id": "RTL-0361",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_3",
+      "ssot_context": {
+        "value": "No automatic retry (software must reconfigure and restart)"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_4",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_4",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_4.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via error_handling.\nSSOT item context: value=For hresp=RETRY, hardware re-requests same transfer automatically.",
+      "evidence_terms": [],
+      "id": "RTL-0362",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_4",
+      "ssot_context": {
+        "value": "For hresp=RETRY, hardware re-requests same transfer automatically"
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

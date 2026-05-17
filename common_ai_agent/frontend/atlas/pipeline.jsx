@@ -139,7 +139,7 @@
       const v = String(value || '').trim().toLowerCase().replace(/_/g, '-');
       if (v === 'single' || v === 'worker' || v === 'serial') return 'single-worker';
       if (v === 'orch' || v === 'multi-worker') return 'orchestrator';
-      return ['single-worker', 'orchestrator'].indexOf(v) >= 0 ? v : 'single-worker';
+      return ['single-worker', 'orchestrator'].indexOf(v) >= 0 ? v : 'orchestrator';
     };
     let savedRun = '';
     let savedExec = '';
@@ -323,6 +323,248 @@ window.DagMap = function DagMap({ state, onNodeClick }) {
 // Graph-first replacement for the old small DAG strip. This renders the
 // IP pipeline as a full canvas with swimlanes, muted global context, and
 // an amber selected route with numbered handoff/order badges.
+function PendingQABanner({ ip }) {
+  const [pending, setPending] = React.useState(0);
+  const [items, setItems] = React.useState([]);
+  React.useEffect(() => {
+    if (!ip) { setPending(0); setItems([]); return; }
+    let dead = false;
+    const fetchQA = async () => {
+      try {
+        const r = await fetch(`/api/ssot/qa?ip=${encodeURIComponent(ip)}`);
+        if (!r.ok) return;
+        const j = await r.json();
+        if (dead) return;
+        const list = Array.isArray(j.items) ? j.items
+                   : Array.isArray(j.pending) ? j.pending
+                   : Array.isArray(j.cards) ? j.cards
+                   : [];
+        const openOnly = list.filter(x => {
+          const s = String(x.status || x.state || '').toLowerCase();
+          return s === '' || s === 'pending' || s === 'open' || s === 'unanswered';
+        });
+        setPending(Number(j.pending_count || openOnly.length || 0));
+        setItems(openOnly.slice(0, 3));
+      } catch (_) {}
+    };
+    fetchQA();
+    const t = setInterval(fetchQA, 5000);
+    return () => { dead = true; clearInterval(t); };
+  }, [ip]);
+  if (!pending) return null;
+  return (
+    <div className="pipe-qa-banner" role="alert">
+      <span className="pipe-qa-icon">⚠</span>
+      <span className="pipe-qa-text">
+        <b>{pending}</b> QA card{pending > 1 ? 's' : ''} pending — orchestrator paused.{' '}
+        Answer to resume.
+      </span>
+      <a className="pipe-qa-link" href={`/ssot/${encodeURIComponent(ip)}/qa`}
+         target="_blank" rel="noreferrer">Answer QA →</a>
+      {items.length > 0 && (
+        <div className="pipe-qa-items">
+          {items.map((it, i) => (
+            <span key={i} className="pipe-qa-chip" title={it.detail || it.question || ''}>
+              {String(it.topic || it.question || `Q${i+1}`).slice(0, 36)}
+            </span>
+          ))}
+          {pending > items.length && (
+            <span className="pipe-qa-more">+{pending - items.length} more</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
+  const [data, setData] = React.useState({ orchestrator: {}, workers: [] });
+  const [traceMap, setTraceMap] = React.useState({}); // worker -> latest event
+  React.useEffect(() => {
+    let dead = false;
+    const fetchAll = async () => {
+      try {
+        const u = `/api/orchestrator/workers${ip ? `?ip=${encodeURIComponent(ip)}` : ''}`;
+        const r = await fetch(u);
+        if (!r.ok) return;
+        const j = await r.json();
+        if (!dead) setData(j || { workers: [] });
+      } catch (_) {}
+      try {
+        if (!ip) return;
+        const r2 = await fetch(`/api/orchestrator/trace?ip=${encodeURIComponent(ip)}&limit=30`);
+        if (!r2.ok) return;
+        const j2 = await r2.json();
+        if (dead) return;
+        const m = {};
+        const evs = (j2 && j2.events) || [];
+        for (const e of evs) {
+          const a = e.actor || '';
+          if (!a.endsWith('-worker')) continue;
+          const wf = a.replace(/-worker$/, '');
+          if (!m[wf] || m[wf].step < e.step) m[wf] = e;
+        }
+        setTraceMap(m);
+      } catch (_) {}
+    };
+    fetchAll();
+    const t = setInterval(fetchAll, 3000);
+    return () => { dead = true; clearInterval(t); };
+  }, [ip]);
+  const orch = data.orchestrator || {};
+  const workers = data.workers || [];
+  const activeTarget = orch.active_target || null;
+  const kindArrow = (k) => {
+    if (!k) return { dir: 'none', color: 'muted', label: '' };
+    if (k === 'http_send' || k === 'http_recv') return { dir: 'down', color: 'amber', label: 'dispatch' };
+    if (k === 'http_accepted') return { dir: 'down', color: 'green', label: 'accepted' };
+    if (k === 'http_rejected') return { dir: 'down', color: 'red', label: 'rejected' };
+    if (k === 'run_completed') return { dir: 'up', color: 'cyan', label: 'completed' };
+    if (k === 'gate_verdict') return { dir: 'up', color: 'purple', label: 'gate' };
+    return { dir: 'none', color: 'muted', label: k };
+  };
+  return (
+    <div className="pipe-orchestra" data-on={orch.enabled ? 'yes' : 'no'}>
+      <div className="pipe-orchestra-conductor"
+           data-active={activeTarget ? 'yes' : 'no'}>
+        <div className="pipe-orchestra-conductor-head">
+          <span className="pipe-orchestra-conductor-icon">🎯</span>
+          <span className="pipe-orchestra-conductor-name">ORCHESTRATOR</span>
+          <span className="pipe-orchestra-conductor-state" data-on={orch.enabled ? 'yes' : 'no'}>
+            {orch.enabled ? '● ON' : '○ OFF'}
+          </span>
+          {orch.model && <span className="pipe-orchestra-conductor-model">{orch.model}</span>}
+        </div>
+        <div className="pipe-orchestra-conductor-activity">
+          {activeTarget
+            ? <>↓ <b>{kindArrow(orch.last_kind).label}</b> → <b>{activeTarget}</b>{orch.active_corr ? ` · ${orch.active_corr}` : ''}</>
+            : 'idle · awaiting user instruction'}
+        </div>
+      </div>
+      <div className="pipe-orchestra-arrows">
+        {workers.map(w => {
+          const ev = traceMap[w.workflow];
+          const arrow = kindArrow(ev && ev.kind);
+          const isActive = activeTarget === w.workflow;
+          return (
+            <div key={w.workflow} className="pipe-orchestra-arrow"
+                 data-dir={arrow.dir} data-color={arrow.color} data-active={isActive ? 'yes' : 'no'}>
+              {arrow.dir === 'down' && <span className="arrow-glyph">▼</span>}
+              {arrow.dir === 'up' && <span className="arrow-glyph">▲</span>}
+              {arrow.dir === 'none' && <span className="arrow-glyph muted">·</span>}
+            </div>
+          );
+        })}
+      </div>
+      <div className="pipe-orchestra-workers">
+        {workers.map(w => {
+          const ev = traceMap[w.workflow];
+          const arrow = kindArrow(ev && ev.kind);
+          const live = w.running_count > 0;
+          const reachable = w.status === 'ok';
+          const sel = currentTarget === w.workflow;
+          return (
+            <button key={w.workflow}
+                    className="pipe-orchestra-worker"
+                    data-state={reachable ? (live ? 'running' : 'idle') : 'down'}
+                    data-selected={sel ? 'yes' : 'no'}
+                    onClick={() => onSelectTarget && onSelectTarget(w.workflow)}
+                    title={`Click to set chat target to ${w.workflow}`}>
+              <span className="pipe-orchestra-worker-head">
+                <span className="pipe-orchestra-worker-dot" data-live={live ? 'yes' : 'no'} />
+                <span className="pipe-orchestra-worker-name">{w.workflow}</span>
+                {sel && <span className="pipe-orchestra-worker-sel">TO</span>}
+              </span>
+              <span className="pipe-orchestra-worker-model">{w.model || w.profile || '?'}</span>
+              <span className="pipe-orchestra-worker-state">
+                {!reachable ? '✗ unreachable'
+                  : live ? `▶ run #${w.running[0] && w.running[0].run_id ? w.running[0].run_id.slice(-6) : '?'}`
+                  : '◯ idle'}
+              </span>
+              <span className="pipe-orchestra-worker-trace" data-color={arrow.color}>
+                {ev ? `${arrow.label} · step #${ev.step}` : '— no recent trace'}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function OrchestratorTraceStrip({ ip }) {
+  const [events, setEvents] = React.useState([]);
+  const [open, setOpen] = React.useState(true);
+  const [autoRefresh, setAutoRefresh] = React.useState(true);
+  React.useEffect(() => {
+    if (!ip) { setEvents([]); return; }
+    let dead = false;
+    const fetchOnce = async () => {
+      try {
+        const r = await fetch(`/api/orchestrator/trace?ip=${encodeURIComponent(ip)}&limit=20`);
+        if (!r.ok) return;
+        const j = await r.json();
+        if (!dead) setEvents(Array.isArray(j.events) ? j.events.slice().reverse() : []);
+      } catch (_) {}
+    };
+    fetchOnce();
+    if (!autoRefresh) return () => { dead = true; };
+    const t = setInterval(fetchOnce, 3000);
+    return () => { dead = true; clearInterval(t); };
+  }, [ip, autoRefresh]);
+  const corrGroups = React.useMemo(() => {
+    const grouped = new Map();
+    for (const e of events) {
+      const c = e.corr || 'no_corr';
+      if (!grouped.has(c)) grouped.set(c, []);
+      grouped.get(c).push(e);
+    }
+    return [...grouped.entries()].slice(0, 6);
+  }, [events]);
+  const lensGlyph = { interaction: '⇄', intermediate: '◐', result: '✓' };
+  return (
+    <div className="pipe-trace-strip" data-open={open ? 'yes' : 'no'}>
+      <div className="pipe-trace-head">
+        <button className="pipe-trace-toggle" onClick={() => setOpen(v => !v)} aria-expanded={open}>
+          <span>ORCHESTRATOR TRACE</span>
+          <span className="pipe-trace-count">{events.length} events</span>
+          <span className="pipe-trace-chev">{open ? '▾' : '▸'}</span>
+        </button>
+        {open && (
+          <label className="pipe-trace-auto">
+            <input type="checkbox" checked={autoRefresh}
+                   onChange={e => setAutoRefresh(e.currentTarget.checked)} />
+            auto-refresh 3s
+          </label>
+        )}
+      </div>
+      {open && (
+        <div className="pipe-trace-body">
+          {events.length === 0 ? (
+            <div className="pipe-trace-empty">No trace events yet for <b>{ip}</b>. Dispatch a worker to populate.</div>
+          ) : corrGroups.map(([corr, group]) => (
+            <div className="pipe-trace-group" key={corr}>
+              <div className="pipe-trace-corr">{corr}</div>
+              {group.map((e, i) => (
+                <div key={`${corr}-${i}`} className="pipe-trace-row" data-lens={e.lens}>
+                  <span className="pipe-trace-glyph">{lensGlyph[e.lens] || '·'}</span>
+                  <span className="pipe-trace-step">#{e.step}</span>
+                  <span className="pipe-trace-kind">{e.kind}</span>
+                  <span className="pipe-trace-actor">{e.actor}{e.peer ? ` → ${e.peer}` : ''}</span>
+                  <span className="pipe-trace-extra">
+                    {e.status ? `${e.status} ` : ''}
+                    {e.requested_workflow || e.run_id || e.detail || e.gate || e.reason || ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 window.PipelineFlowMap = function PipelineFlowMap({
   state,
   selectedFlowId,
@@ -342,15 +584,23 @@ window.PipelineFlowMap = function PipelineFlowMap({
     flowEdges.add(`${flowStages[i]}->${flowStages[i + 1]}`);
   }
 
+  // Hide the synthetic 'orch' lane (Orchestrator/Handoff/take/Worker) from
+  // the DAG — those four are system state, not pipeline stages. They are
+  // surfaced separately as a status strip above the canvas.
+  const allLanes = window.PIPELINE_SWIMLANES || [];
+  const visibleLanes = allLanes.filter(l => l.id !== 'orch');
   const laneById = {};
-  (window.PIPELINE_SWIMLANES || []).forEach(l => { laneById[l.id] = l; });
+  visibleLanes.forEach(l => { laneById[l.id] = l; });
   const nodeLayout = window.PIPELINE_NODE_LAYOUT || {};
   const virtualNodes = window.PIPELINE_VIRTUAL_NODES || {};
   const actualStages = window.PIPELINE_STAGES || [];
-  const nodeIds = [...actualStages, ...Object.keys(virtualNodes)];
+  // Drop virtual nodes from the SVG entirely.
+  const nodeIds = actualStages;
   const BOX_W = 168;
   const BOX_H = 58;
-  const W = 1280;
+  // SVG width tracks the visible lanes (we dropped the synthetic ORCH lane).
+  const lastLane = visibleLanes[visibleLanes.length - 1] || { x: 55, width: 170 };
+  const W = lastLane.x + lastLane.width + 55;
   const H = 670;
 
   const pos = {};
@@ -407,8 +657,21 @@ window.PipelineFlowMap = function PipelineFlowMap({
   const nodeSub = (id) => {
     if (virtualNodes[id]) return virtualNodes[id].sub;
     const data = stagesState[id] || {};
-    return data.top || data.locked_reason || data.secondary || id;
+    const explicit = data.top || data.locked_reason || data.secondary;
+    if (explicit) return explicit;
+    const stName = String(data.state || 'idle').toLowerCase();
+    const layout = nodeLayout[id] || {};
+    if (stName === 'idle' && layout.lane === 'eda') return 'optional · not run';
+    if (stName === 'idle' && !flowSet.has(id)) return 'not in selected flow';
+    if (stName === 'idle') return 'no evidence yet';
+    return id;
   };
+
+  const orch = (state && state.orchestrator) || {};
+  const orchOn = !!orch.enabled;
+  const orchPending = Number(orch.pending_handoffs || 0);
+  const orchClaimed = Number(orch.claimed_handoffs || 0);
+  const orchWorker = orch.worker_bound || orch.worker || '';
 
   return (
     <div className="pipe-flow-map">
@@ -425,6 +688,26 @@ window.PipelineFlowMap = function PipelineFlowMap({
           <span><i className="pipe-leg-muted" /> context</span>
         </div>
       </div>
+      <div className="pipe-flow-orch-strip" data-on={orchOn ? 'yes' : 'no'}>
+        <span className="pipe-flow-orch-label">Orchestrator</span>
+        <span className="pipe-flow-orch-dot" data-on={orchOn ? 'yes' : 'no'} />
+        <span className="pipe-flow-orch-state">{orchOn ? 'ON' : 'OFF'}</span>
+        <span className="pipe-flow-orch-sep">·</span>
+        <span>Pending handoffs: <b>{orchPending}</b></span>
+        {orchClaimed > 0 && (
+          <>
+            <span className="pipe-flow-orch-sep">·</span>
+            <span>Claimed: <b>{orchClaimed}</b></span>
+          </>
+        )}
+        {orchWorker && (
+          <>
+            <span className="pipe-flow-orch-sep">·</span>
+            <span>Worker: <b>{orchWorker}</b></span>
+          </>
+        )}
+        <span className="pipe-flow-orch-hint">system status · not stages</span>
+      </div>
       <div className="pipe-flow-canvas">
         <svg className="pipe-flow-svg" viewBox={`0 0 ${W} ${H}`} role="img"
              aria-label="ATLAS pipeline flow graph">
@@ -439,10 +722,13 @@ window.PipelineFlowMap = function PipelineFlowMap({
             </marker>
           </defs>
 
-          {(window.PIPELINE_SWIMLANES || []).map(lane => (
-            <g key={lane.id} className="pipe-flow-lane">
+          {visibleLanes.map(lane => (
+            <g key={lane.id} className="pipe-flow-lane" data-lane={lane.id}>
               <rect x={lane.x} y="76" width={lane.width} height="542" rx="8" />
               <text x={lane.x + 12} y="102">{lane.title}</text>
+              {lane.id === 'eda' && (
+                <text x={lane.x + 12} y="118" className="pipe-flow-lane-hint">optional</text>
+              )}
             </g>
           ))}
 
@@ -1191,9 +1477,68 @@ function HierarchyList({ activeIp, onSelect }) {
   );
 }
 
-function RunToGreenCard({ summary, ip, onSelectStage }) {
+function deriveStageReadiness(stagesState) {
+  const sids = window.PIPELINE_STAGES || [];
+  if (!stagesState || !sids.length) return null;
+  const labels = window.PIPELINE_LABEL || {};
+  let passed = 0, failed = 0, running = 0, blocked = 0, idle = 0;
+  let firstNonGreen = null;
+  for (const sid of sids) {
+    const info = stagesState[sid] || {};
+    const st = String(info.state || 'idle').toLowerCase();
+    if (st === 'passed' || st === 'pass' || st === 'green') passed++;
+    else if (st === 'running' || st === 'run') { running++; if (!firstNonGreen) firstNonGreen = sid; }
+    else if (st === 'failed' || st === 'fail' || st === 'error' || st === 'red') { failed++; if (!firstNonGreen) firstNonGreen = sid; }
+    else if (st === 'blocked' || st === 'block') { blocked++; if (!firstNonGreen) firstNonGreen = sid; }
+    else { idle++; if (!firstNonGreen) firstNonGreen = sid; }
+  }
+  const total = sids.length;
+  const percent = total ? Math.round((passed / total) * 100) : 0;
+  const nextLabel = firstNonGreen ? (labels[firstNonGreen] || firstNonGreen) : null;
+  let headline, message, nextSteps;
+  if (passed === total) {
+    headline = 'Pipeline complete';
+    message = `All ${total} stages passed. Review evidence and approve sign-off.`;
+    nextSteps = [{ stage: 'audit', label: 'Review goal-audit + approve sign-off', owner: 'human',
+                   reason: 'Final human approval is the only gate left.', status: 'pending' }];
+  } else if (failed) {
+    headline = `${failed} stage${failed > 1 ? 's' : ''} failed`;
+    message = `Fix ${nextLabel} (or other failed stage), then re-run downstream.`;
+    nextSteps = [{ stage: firstNonGreen, label: `Resolve failure in ${nextLabel}`, owner: 'atlas',
+                   reason: 'Failure blocks every downstream stage.', status: 'failed' }];
+  } else if (blocked) {
+    headline = `${blocked} stage${blocked > 1 ? 's' : ''} blocked`;
+    message = `Unblock ${nextLabel} (review decision or missing evidence).`;
+    nextSteps = [{ stage: firstNonGreen, label: `Unblock ${nextLabel}`, owner: 'human',
+                   reason: 'Blocked stages need a review decision or missing evidence.', status: 'blocked' }];
+  } else if (running) {
+    headline = `${running} stage${running > 1 ? 's' : ''} running`;
+    message = `Waiting for ${nextLabel} to finish.`;
+    nextSteps = [{ stage: firstNonGreen, label: `Watch ${nextLabel}`, owner: 'atlas',
+                   reason: 'Stage in progress.', status: 'running' }];
+  } else if (passed > 0) {
+    headline = `${passed} / ${total} stages green`;
+    message = `Next: run ${nextLabel}.`;
+    nextSteps = [{ stage: firstNonGreen, label: `Run ${nextLabel}`, owner: 'atlas',
+                   reason: 'Next stage in the canonical pipeline.', status: 'pending' }];
+  } else {
+    return null;
+  }
+  return { percent, headline, message, next_stage: firstNonGreen, next_steps: nextSteps,
+           state: passed === total ? 'complete' : (failed ? 'failed' : (blocked ? 'blocked' : (running ? 'running' : 'in_progress'))) };
+}
+
+function RunToGreenCard({ summary, stages, ip, onSelectStage }) {
   const [busy, setBusy] = React.useState(false);
-  const data = summary || {};
+  const derived = deriveStageReadiness(stages);
+  const backend = summary || {};
+  const backendPercent = Math.max(0, Math.min(100, Number(backend.percent || 0)));
+  const derivedPercent = derived ? derived.percent : 0;
+  const useDerived = derived && (derivedPercent > backendPercent || backendPercent === 0);
+  const data = useDerived
+    ? { ...backend, percent: derivedPercent, headline: derived.headline, message: derived.message,
+        next_stage: derived.next_stage, next_steps: derived.next_steps, state: derived.state }
+    : backend;
   const state = data.state || 'not_started';
   const percent = Math.max(0, Math.min(100, Number(data.percent || 0)));
   const rawSteps = Array.isArray(data.next_steps) ? data.next_steps : [];
@@ -1312,6 +1657,7 @@ function StageStatusRail({ activeIp, onSelectIp, state, simpleSummary, selectedS
   const stages = window.PIPELINE_STAGES || [];
   const stagesState = (state && state.stages) || {};
   const [ips, setIps] = React.useState([]);
+  const [detailsOpen, setDetailsOpen] = React.useState(false);
 
   React.useEffect(() => {
     let dead = false;
@@ -1356,32 +1702,43 @@ function StageStatusRail({ activeIp, onSelectIp, state, simpleSummary, selectedS
       </div>
       <RunToGreenCard
         summary={simpleSummary}
+        stages={stagesState}
         ip={activeIp}
         onSelectStage={onSelectStage} />
-      <div className="pipe-stage-rail-title">Stage Status</div>
-      <div className="pipe-stage-rail-list">
-        {stages.map(stageId => {
-          const info = stagesState[stageId] || {};
-          const stateName = info.state || 'idle';
-          const meta = window.pipelineStateMeta(stateName);
-          return (
-            <button key={stageId}
-                    className={`pipe-stage-rail-row ${selectedStage === stageId ? 'sel' : ''}`}
-                    data-state={stateName}
-                    onClick={() => onSelectStage && onSelectStage(stageId)}>
-              <span className="pipe-stage-rail-glyph" style={{ color: meta.color }}>{meta.glyph}</span>
-              <span className="pipe-stage-rail-main">
-                <span className="pipe-stage-rail-name">{labels[stageId] || stageId}</span>
-                <span className="pipe-stage-rail-sub">{summarize(info)}</span>
-              </span>
-              <span className="pipe-stage-rail-state">{meta.label}</span>
-            </button>
-          );
-        })}
-      </div>
-      <div className="pipe-stage-rail-legend">
-        ✓ passed · ▶ running · ! failed · ⏸ blocked · ⊘ stale
-      </div>
+      <button className="pipe-stage-rail-title pipe-stage-rail-toggle"
+              onClick={() => setDetailsOpen(v => !v)}
+              aria-expanded={detailsOpen}>
+        <span>Stage Detail</span>
+        <span className="pipe-stage-rail-toggle-hint">{detailsOpen ? '▾ hide' : '▸ show'}</span>
+      </button>
+      {detailsOpen && (
+        <>
+          <div className="pipe-stage-rail-hint">Same info as the flow map. Click a row to focus the stage.</div>
+          <div className="pipe-stage-rail-list">
+            {stages.map(stageId => {
+              const info = stagesState[stageId] || {};
+              const stateName = info.state || 'idle';
+              const meta = window.pipelineStateMeta(stateName);
+              return (
+                <button key={stageId}
+                        className={`pipe-stage-rail-row ${selectedStage === stageId ? 'sel' : ''}`}
+                        data-state={stateName}
+                        onClick={() => onSelectStage && onSelectStage(stageId)}>
+                  <span className="pipe-stage-rail-glyph" style={{ color: meta.color }}>{meta.glyph}</span>
+                  <span className="pipe-stage-rail-main">
+                    <span className="pipe-stage-rail-name">{labels[stageId] || stageId}</span>
+                    <span className="pipe-stage-rail-sub">{summarize(info)}</span>
+                  </span>
+                  <span className="pipe-stage-rail-state">{meta.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="pipe-stage-rail-legend">
+            ✓ passed · ▶ running · ! failed · ⏸ blocked · ⊘ stale
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1466,7 +1823,54 @@ window.AtlasPipeline = function AtlasPipeline() {
   const [chain, setChain] = React.useState([]);
   const [selectedFlowId, setSelectedFlowId] = React.useState('full');
   const [selectedStage, setSelectedStage] = React.useState('ssot');
+  const [chatTarget, setChatTarget] = React.useState('orchestrator');
   const [localPolicy, setLocalPolicy] = React.useState(() => window.pipelinePolicyPayload());
+  const [leftW, setLeftW] = React.useState(() => {
+    try { return Math.max(200, Math.min(600, Number(localStorage.getItem('atlasPipeLeftW')) || 300)); }
+    catch (_) { return 300; }
+  });
+  const [rightW, setRightW] = React.useState(() => {
+    try { return Math.max(280, Math.min(900, Number(localStorage.getItem('atlasPipeRightW')) || 430)); }
+    catch (_) { return 430; }
+  });
+  const dragRef = React.useRef(null);
+  const beginDrag = React.useCallback((edge) => (ev) => {
+    ev.preventDefault();
+    const startX = ev.clientX;
+    const startLeft = leftW;
+    const startRight = rightW;
+    document.body.setAttribute('data-resize-cursor', 'col');
+    dragRef.current = edge;
+    const onMove = (e) => {
+      const dx = e.clientX - startX;
+      if (edge === 'left') {
+        const w = Math.max(200, Math.min(600, startLeft + dx));
+        setLeftW(w);
+      } else if (edge === 'right') {
+        const w = Math.max(280, Math.min(900, startRight - dx));
+        setRightW(w);
+      }
+    };
+    const onUp = () => {
+      document.body.removeAttribute('data-resize-cursor');
+      dragRef.current = null;
+      try {
+        localStorage.setItem('atlasPipeLeftW', String(leftW));
+        localStorage.setItem('atlasPipeRightW', String(rightW));
+      } catch (_) {}
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, [leftW, rightW]);
+  // Persist on every change.
+  React.useEffect(() => {
+    try { localStorage.setItem('atlasPipeLeftW', String(leftW)); } catch (_) {}
+  }, [leftW]);
+  React.useEffect(() => {
+    try { localStorage.setItem('atlasPipeRightW', String(rightW)); } catch (_) {}
+  }, [rightW]);
 
   React.useEffect(() => {
     const onPolicy = (ev) => {
@@ -1479,6 +1883,38 @@ window.AtlasPipeline = function AtlasPipeline() {
     window.addEventListener('atlas-run-policy-changed', onPolicy);
     return () => window.removeEventListener('atlas-run-policy-changed', onPolicy);
   }, []);
+
+  // Pipeline screen is the orchestrator's conversation surface. When this
+  // screen mounts, pivot the active session's workflow to `orchestrator`
+  // so the right-side chat (ArchitectChat → window.backend.send) targets
+  // the orchestrator workflow's system_prompt + commands instead of
+  // whatever workflow the user happened to be on previously.
+  React.useEffect(() => {
+    let dead = false;
+    const ownerId = (typeof window.ATLAS_USER_SESSION_ID === 'string' && window.ATLAS_USER_SESSION_ID)
+      || (() => { try { return localStorage.getItem('atlasUserSessionId') || ''; } catch (_) { return ''; } })()
+      || 'default';
+    fetch('/api/session/activate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: ownerId,
+        ip: ip || 'default',
+        workflow: 'orchestrator',
+      }),
+    })
+      .then(r => r.ok ? r.json().catch(() => ({})) : null)
+      .then(j => {
+        if (dead || !j) return;
+        try {
+          window.dispatchEvent(new CustomEvent('atlas-workflow-switched', {
+            detail: { workflow: 'orchestrator', via: 'pipeline-mount' },
+          }));
+        } catch (_) {}
+      })
+      .catch(() => {});
+    return () => { dead = true; };
+  }, [ip]);
 
   // Poll loop + WS subscription. Re-runs when ip changes.
   React.useEffect(() => {
@@ -1603,7 +2039,7 @@ window.AtlasPipeline = function AtlasPipeline() {
   const runningCount = Object.values(stagesState).filter(v =>
     v && (v.state === 'running' || v.state === 'run')).length;
   const effectiveRunMode = (pipelineState && (pipelineState.run_mode || pipelineState.policy?.run_mode)) || localPolicy.run_mode || 'engineering';
-  const effectiveExecMode = (pipelineState && (pipelineState.exec_mode || pipelineState.policy?.exec_mode)) || localPolicy.exec_mode || 'single-worker';
+  const effectiveExecMode = (pipelineState && (pipelineState.exec_mode || pipelineState.policy?.exec_mode)) || localPolicy.exec_mode || 'orchestrator';
   const provenanceSummary = (pipelineState && (pipelineState.provenance_summary || pipelineState.policy?.provenance_summary)) || {};
   const defaultsCount = Number(provenanceSummary.generated_defaults || 0);
   const reviewCount = Number(provenanceSummary.review_needed || 0);
@@ -1617,7 +2053,7 @@ window.AtlasPipeline = function AtlasPipeline() {
     : 0;
   const firstDecision = decisionItems[0] || null;
   const firstDecisionEvidence = (firstDecision && firstDecision.evidence) || {};
-  const firstDecisionOpenPath = String(firstDecisionEvidence.human_facing_request || firstDecision.path || '').trim();
+  const firstDecisionOpenPath = String(firstDecisionEvidence.human_facing_request || (firstDecision && firstDecision.path) || '').trim();
   const firstDecisionReviewAids = Array.isArray(firstDecisionEvidence.review_aids)
     ? firstDecisionEvidence.review_aids.filter(Boolean).slice(0, 4)
     : [];
@@ -1780,7 +2216,8 @@ window.AtlasPipeline = function AtlasPipeline() {
         </div>
       )}
 
-      <div className="pipe-board">
+      <div className="pipe-board"
+           style={{ '--pipe-left-w': `${leftW}px`, '--pipe-right-w': `${rightW}px` }}>
         <div className="pipe-col-left">
           <StageStatusRail
             activeIp={ip}
@@ -1790,6 +2227,10 @@ window.AtlasPipeline = function AtlasPipeline() {
             selectedStage={selectedStage}
             onSelectStage={setSelectedStage} />
         </div>
+        <div className="pipe-resize-handle"
+             title="Drag to resize left column"
+             data-active={dragRef.current === 'left' ? 'yes' : 'no'}
+             onMouseDown={beginDrag('left')} />
         <div className="pipe-col-center">
           <window.PipelineFlowControl
             ip={ip}
@@ -1798,17 +2239,41 @@ window.AtlasPipeline = function AtlasPipeline() {
             onSelectFlow={setSelectedFlowId}
             selectedStage={selectedStage}
             onSelectStage={setSelectedStage} />
+          <WorkerOrchestraBar
+            ip={ip}
+            currentTarget={chatTarget}
+            onSelectTarget={(wf) => {
+              setChatTarget(wf || 'orchestrator');
+              const ownerId = (typeof window.ATLAS_USER_SESSION_ID === 'string' && window.ATLAS_USER_SESSION_ID)
+                || (() => { try { return localStorage.getItem('atlasUserSessionId') || ''; } catch (_) { return ''; } })()
+                || 'default';
+              fetch('/api/session/activate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  session_id: ownerId,
+                  ip: ip || 'default',
+                  workflow: wf || 'orchestrator',
+                }),
+              }).catch(() => {});
+            }} />
+          <PendingQABanner ip={ip} />
           <window.PipelineFlowMap
             state={pipelineState}
             selectedFlowId={selectedFlowId}
             selectedStage={selectedStage}
             onSelectFlow={setSelectedFlowId}
             onSelectStage={setSelectedStage} />
+          <OrchestratorTraceStrip ip={ip} />
           <window.DispatchRail ip={ip}
                                 chain={chain}
                                 onClearChain={() => setChain([])}
                                 onRemove={removeFromChain} />
         </div>
+        <div className="pipe-resize-handle"
+             title="Drag to resize chat panel"
+             data-active={dragRef.current === 'right' ? 'yes' : 'no'}
+             onMouseDown={beginDrag('right')} />
         <div className="pipe-col-right">
           <PipelineOrchestratorChatPanel ip={ip} />
         </div>

@@ -44,8 +44,10 @@
           "ch_done": 0,
           "state_updates": {
             "remaining_next": 0,
-            "src_addr_next": 12,
-            "dst_addr_next": 12
+            "src_addr_next": 3,
+            "dst_addr_next": 3,
+            "perf_words_next": 3,
+            "perf_cycles_next": 7
           }
         }
       },
@@ -79,8 +81,8 @@
           "sample_accepted": 1,
           "error_assert": 1,
           "ch_error": 1,
-          "error_code_out": 1,
-          "ch_err_code": 1,
+          "error_code_out": 5,
+          "ch_err_code": 5,
           "irq_error": 0,
           "irq": 0
         }
@@ -105,8 +107,8 @@
     ],
     "unsupported_transaction_check": true,
     "trace_entries": 6,
-    "coverage_bins": 58,
-    "invariants_total": 5,
+    "coverage_bins": 82,
+    "invariants_total": 8,
     "invariants_evaluated": 0,
     "invariants_failed": [],
     "invariants_skipped": [
@@ -117,7 +119,7 @@
       },
       {
         "name": "ch_error is asserted only for invalid re",
-        "expr": "ch_error is asserted only for invalid requests or bus errors.",
+        "expr": "ch_error is asserted only for invalid requests, bus errors, timeouts, or FIFO overflows.",
         "reason": "invalid syntax (<unknown>, line 1)"
       },
       {
@@ -134,15 +136,30 @@
         "name": "irq_combined reflects OR of all per-chan",
         "expr": "irq_combined reflects OR of all per-channel irq outputs.",
         "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Each FIFO operates as circular buffer wi",
+        "expr": "Each FIFO operates as circular buffer with gray-code synchronized pointers across clock domains.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "htrans transitions IDLE only when no cha",
+        "expr": "htrans transitions IDLE only when no channel has an active grant.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Performance counters saturate at 32'hFFF",
+        "expr": "Performance counters saturate at 32'hFFFFFFFF and do not wrap.",
+        "reason": "invalid syntax (<unknown>, line 1)"
       }
     ],
     "reset_consistency": true,
     "reset_diff": {},
-    "error_cases_total": 8,
+    "error_cases_total": 11,
     "error_cases_planned": 0
   },
-  "decomposition_units": 11,
-  "fcov_bins": 58,
+  "decomposition_units": 12,
+  "fcov_bins": 82,
   "authority_contract": {
     "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
     "general_evaluation_criteria": [

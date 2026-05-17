@@ -100,7 +100,7 @@
       "class": "scenario",
       "source": "test_requirements.scenarios[4]",
       "scenario": "SC_005",
-      "description": "multi_channel_round_robin"
+      "description": "multi_channel_interleaved"
     },
     {
       "id": "SC_006_executed",
@@ -129,6 +129,41 @@
       "source": "test_requirements.scenarios[8]",
       "scenario": "SC_009",
       "description": "apb_unmapped_address"
+    },
+    {
+      "id": "SC_010_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[9]",
+      "scenario": "SC_010",
+      "description": "stride_transfer"
+    },
+    {
+      "id": "SC_011_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[10]",
+      "scenario": "SC_011",
+      "description": "bus_timeout"
+    },
+    {
+      "id": "SC_012_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[11]",
+      "scenario": "SC_012",
+      "description": "performance_counters"
+    },
+    {
+      "id": "SC_013_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[12]",
+      "scenario": "SC_013",
+      "description": "burst_wrap_boundary"
+    },
+    {
+      "id": "SC_014_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[13]",
+      "scenario": "SC_014",
+      "description": "clock_gating"
     },
     {
       "id": "function_dma_step",
@@ -161,6 +196,14 @@
       "source": "function_model.transactions.FM_DMA_ERROR",
       "source_ref": "function_model.transactions.FM_DMA_ERROR",
       "description": "Bus error during AHB transfer"
+    },
+    {
+      "id": "function_dma_error_timeout",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_DMA_ERROR",
+      "source_ref": "function_model.transactions.FM_DMA_ERROR",
+      "description": "Bus timeout error"
     },
     {
       "id": "function_dma_busy_reject",
@@ -201,6 +244,46 @@
       "source": "function_model.transactions.FM_DMA_START",
       "source_ref": "function_model.transactions.FM_DMA_START",
       "description": "APB error on unmapped address access"
+    },
+    {
+      "id": "function_dma_stride",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.state_variables.ch_stride_q",
+      "source_ref": "function_model.state_variables.ch_stride_q",
+      "description": "Non-default stride address increment"
+    },
+    {
+      "id": "function_dma_timeout",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "function_model.state_variables.timeout_q",
+      "source_ref": "function_model.state_variables.timeout_q",
+      "description": "Bus timeout detection"
+    },
+    {
+      "id": "function_dma_perf_counters",
+      "class": "status",
+      "coverage_domain": "function",
+      "source": "function_model.state_variables.perf_words_q",
+      "source_ref": "function_model.state_variables.perf_words_q",
+      "description": "Performance counter increment"
+    },
+    {
+      "id": "function_dma_burst_boundary",
+      "class": "protocol",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_DMA_STEP",
+      "source_ref": "function_model.transactions.FM_DMA_STEP",
+      "description": "Burst split at 1KB boundary"
+    },
+    {
+      "id": "function_dma_clock_gating",
+      "class": "power",
+      "coverage_domain": "function",
+      "source": "function_model.state_variables.ch_busy_q",
+      "source_ref": "function_model.state_variables.ch_busy_q",
+      "description": "Clock gating enable/disable per channel"
     },
     {
       "id": "cycle_pipeline_idle",
@@ -283,6 +366,22 @@
       "description": "Burst completion latency measured"
     },
     {
+      "id": "cycle_cdc_crossing",
+      "class": "timing",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules.cdc_config",
+      "source_ref": "cycle_model.handshake_rules.cdc_config",
+      "description": "CDC config crossing latency measured"
+    },
+    {
+      "id": "cycle_timeout_path",
+      "class": "timing",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules.timeout_rule",
+      "source_ref": "cycle_model.handshake_rules.timeout_rule",
+      "description": "Timeout counter activation and expiry"
+    },
+    {
       "id": "function_dma_start",
       "class": "transaction_type",
       "coverage_domain": "function",
@@ -320,39 +419,71 @@
       "coverage_domain": "cycle",
       "source": "cycle_model.handshake_rules[0]",
       "source_ref": "cycle_model.handshake_rules[0]",
-      "description": "APB accesses sample on pclk with psel and penable. No wait states."
+      "description": "APB accesses sample on pclk with psel and penable. No wait states. Config data crosses CDC to hclk domain via async FIFO."
+    },
+    {
+      "id": "cycle_cdc_config",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "APB write data pushed into pclk-side FIFO write port. hclk-side read port pops config. Gray-code pointer synchronization prevents metastability."
     },
     {
       "id": "cycle_ahb_address_phase",
       "class": "protocol",
       "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules[1]",
-      "source_ref": "cycle_model.handshake_rules[1]",
-      "description": "AHB address phase drives haddr, htrans, hsize, hburst, hwrite for one cycle."
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "AHB address phase drives haddr, htrans, hsize, hburst, hprot, hmaster, hmastlock for one hclk cycle."
     },
     {
       "id": "cycle_ahb_data_phase",
       "class": "protocol",
       "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules[2]",
-      "source_ref": "cycle_model.handshake_rules[2]",
-      "description": "AHB data phase follows address phase by one cycle with hwdata or hrdata."
+      "source": "cycle_model.handshake_rules[3]",
+      "source_ref": "cycle_model.handshake_rules[3]",
+      "description": "AHB data phase follows address phase by one hclk cycle with hwdata or hrdata."
+    },
+    {
+      "id": "cycle_ahb_1kb_boundary",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[4]",
+      "source_ref": "cycle_model.handshake_rules[4]",
+      "description": "Burst crossing 1KB address boundary starts new NONSEQ beat. hburst recalculated for remaining beats."
+    },
+    {
+      "id": "cycle_ahb_error_response",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[5]",
+      "source_ref": "cycle_model.handshake_rules[5]",
+      "description": "hresp=ERROR (01) completes current beat and aborts burst. hresp=RETRY (10) releases bus and re-requests. hresp=SPLIT (11) releases bus and waits."
     },
     {
       "id": "cycle_arb_grant_rule",
       "class": "protocol",
       "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules[3]",
-      "source_ref": "cycle_model.handshake_rules[3]",
-      "description": "Arbiter evaluates requests every cycle and grants to next round-robin contender."
+      "source": "cycle_model.handshake_rules[6]",
+      "source_ref": "cycle_model.handshake_rules[6]",
+      "description": "Arbiter evaluates requests every hclk cycle and grants to next round-robin contender."
     },
     {
       "id": "cycle_start_accept",
       "class": "protocol",
       "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules[4]",
-      "source_ref": "cycle_model.handshake_rules[4]",
-      "description": "ch_start accepted only when ch_busy is low and dma_en is high."
+      "source": "cycle_model.handshake_rules[7]",
+      "source_ref": "cycle_model.handshake_rules[7]",
+      "description": "ch_start accepted only when ch_busy is low and dma_en is high and CDC config has arrived."
+    },
+    {
+      "id": "cycle_timeout_rule",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[8]",
+      "source_ref": "cycle_model.handshake_rules[8]",
+      "description": "Timeout counter increments each hclk cycle while waiting for hready. Resets on hready assertion. Error code 4 when counter reaches GLOBAL_TIMEOUT."
     },
     {
       "id": "cycle_ordering_0",
@@ -360,7 +491,7 @@
       "coverage_domain": "cycle",
       "source": "cycle_model.ordering[0]",
       "source_ref": "cycle_model.ordering[0]",
-      "description": "Configuration (CFG) precedes transfer execution (READ/WRITE)."
+      "description": "Configuration (APB pclk) must cross CDC before hclk channel FSM reads it."
     },
     {
       "id": "cycle_ordering_1",
@@ -368,7 +499,7 @@
       "coverage_domain": "cycle",
       "source": "cycle_model.ordering[1]",
       "source_ref": "cycle_model.ordering[1]",
-      "description": "Read burst completion precedes write burst for same data."
+      "description": "Read burst completion must precede write burst for same data."
     },
     {
       "id": "cycle_ordering_2",
@@ -376,7 +507,7 @@
       "coverage_domain": "cycle",
       "source": "cycle_model.ordering[2]",
       "source_ref": "cycle_model.ordering[2]",
-      "description": "Address update (UPDATE) precedes next burst request."
+      "description": "Address update (UPDATE) must precede next burst request."
     },
     {
       "id": "cycle_ordering_3",
@@ -385,6 +516,14 @@
       "source": "cycle_model.ordering[3]",
       "source_ref": "cycle_model.ordering[3]",
       "description": "Transfer completion (DONE) precedes done pulse observation."
+    },
+    {
+      "id": "cycle_ordering_4",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[4]",
+      "source_ref": "cycle_model.ordering[4]",
+      "description": "1KB boundary crossing recalculates burst parameters before next address phase."
     },
     {
       "id": "cycle_backpressure_0",
@@ -411,6 +550,22 @@
       "description": "Arbiter queues requests when bus is occupied."
     },
     {
+      "id": "cycle_backpressure_3",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[3]",
+      "source_ref": "cycle_model.backpressure[3]",
+      "description": "FIFO almost_full back-pressures read burst."
+    },
+    {
+      "id": "cycle_backpressure_4",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[4]",
+      "source_ref": "cycle_model.backpressure[4]",
+      "description": "CDC FIFO full back-pressures APB writes (pslverr or pready deassert)."
+    },
+    {
       "id": "cycle_perf_throughput",
       "class": "throughput",
       "coverage_domain": "cycle",
@@ -424,7 +579,7 @@
       "coverage_domain": "cycle",
       "source": "fsm.per_channel.transitions[0]",
       "source_ref": "fsm.per_channel.transitions[0]",
-      "description": "ch_start && ch_en && dma_en && valid_cfg"
+      "description": "ch_start && ch_en && dma_en && valid_cfg && cdc_config_valid"
     },
     {
       "id": "fsm_per_channel_idle_to_error_1",
@@ -456,46 +611,62 @@
       "coverage_domain": "cycle",
       "source": "fsm.per_channel.transitions[4]",
       "source_ref": "fsm.per_channel.transitions[4]",
-      "description": "read_burst_complete"
+      "description": "read_burst_complete && !fifo_full"
     },
     {
-      "id": "fsm_per_channel_write_to_update_5",
+      "id": "fsm_per_channel_read_to_error_5",
       "class": "state_transition",
       "coverage_domain": "cycle",
       "source": "fsm.per_channel.transitions[5]",
       "source_ref": "fsm.per_channel.transitions[5]",
-      "description": "write_burst_complete"
+      "description": "ahb_error || timeout_expired || fifo_overflow"
     },
     {
-      "id": "fsm_per_channel_update_to_read_6",
+      "id": "fsm_per_channel_write_to_update_6",
       "class": "state_transition",
       "coverage_domain": "cycle",
       "source": "fsm.per_channel.transitions[6]",
       "source_ref": "fsm.per_channel.transitions[6]",
-      "description": "remaining_gt_0"
+      "description": "write_burst_complete"
     },
     {
-      "id": "fsm_per_channel_update_to_done_7",
+      "id": "fsm_per_channel_write_to_error_7",
       "class": "state_transition",
       "coverage_domain": "cycle",
       "source": "fsm.per_channel.transitions[7]",
       "source_ref": "fsm.per_channel.transitions[7]",
-      "description": "remaining_eq_0"
+      "description": "ahb_error || timeout_expired"
     },
     {
-      "id": "fsm_per_channel_done_to_idle_8",
+      "id": "fsm_per_channel_update_to_request_8",
       "class": "state_transition",
       "coverage_domain": "cycle",
       "source": "fsm.per_channel.transitions[8]",
       "source_ref": "fsm.per_channel.transitions[8]",
-      "description": "status_sampled"
+      "description": "remaining_gt_0"
     },
     {
-      "id": "fsm_per_channel_error_to_idle_9",
+      "id": "fsm_per_channel_update_to_done_9",
       "class": "state_transition",
       "coverage_domain": "cycle",
       "source": "fsm.per_channel.transitions[9]",
       "source_ref": "fsm.per_channel.transitions[9]",
+      "description": "remaining_eq_0"
+    },
+    {
+      "id": "fsm_per_channel_done_to_idle_10",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.per_channel.transitions[10]",
+      "source_ref": "fsm.per_channel.transitions[10]",
+      "description": "status_sampled"
+    },
+    {
+      "id": "fsm_per_channel_error_to_idle_11",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.per_channel.transitions[11]",
+      "source_ref": "fsm.per_channel.transitions[11]",
       "description": "status_sampled"
     },
     {
@@ -520,15 +691,31 @@
       "coverage_domain": "function",
       "source": "error_handling.error_sources[2]",
       "source_ref": "error_handling.error_sources[2]",
-      "description": "{'id': 'ERR_BUS', 'source': 'ahb_transfer', 'condition': 'hresp == ERROR', 'code': 3, 'description': 'AHB bus error during transfer'}"
+      "description": "{'id': 'ERR_BUS', 'source': 'ahb_transfer', 'condition': \"hresp == 2'b01 (ERROR)\", 'code': 3, 'description': 'AHB bus error during transfer'}"
+    },
+    {
+      "id": "error_error_3",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[3]",
+      "source_ref": "error_handling.error_sources[3]",
+      "description": "{'id': 'ERR_TIMEOUT', 'source': 'bus_timeout', 'condition': 'hready==0 for GLOBAL_TIMEOUT consecutive hclk cycles', 'code': 4, 'description': 'Bus timeout waiting for slave response'}"
+    },
+    {
+      "id": "error_error_4",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[4]",
+      "source_ref": "error_handling.error_sources[4]",
+      "description": "{'id': 'ERR_FIFO_OVERFLOW', 'source': 'fifo_write', 'condition': 'fifo_write when fifo_full (CDC config path)', 'code': 5, 'description': 'FIFO overflow on config data path'}"
     }
   ],
   "summary": {
-    "total_bins": 58,
-    "scenario_bins": 9,
+    "total_bins": 82,
+    "scenario_bins": 14,
     "transaction_bins": 4,
-    "protocol_bins": 6,
-    "state_transition_bins": 10,
-    "error_bins": 6
+    "protocol_bins": 11,
+    "state_transition_bins": 12,
+    "error_bins": 10
   }
 }

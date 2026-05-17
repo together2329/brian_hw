@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "atcwdt200",
+  "source": "model/cycle_model.py",
+  "backend": "python",
+  "pymtl3_available": true,
+  "timestamp": "2026-05-17T07:00:56Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "python",
+    "pymtl3_available": true,
+    "transactions": 6,
+    "results_observed": 5,
+    "coverage_bins": 13,
+    "coverage_hit": 13,
+    "performance_targets": {
+      "frequency_mhz": 50,
+      "throughput": {
+        "register_accesses_per_cycle": 1,
+        "condition": "APB-like access with no wait states if legacy mode is selected"
+      },
+      "outstanding": {
+        "description": "Single APB access at a time"
+      },
+      "pipeline_stages": 5,
+      "queue_depth": 0
+    }
+  },
+  "performance_targets": {
+    "frequency_mhz": 50,
+    "throughput": {
+      "register_accesses_per_cycle": 1,
+      "condition": "APB-like access with no wait states if legacy mode is selected"
+    },
+    "outstanding": {
+      "description": "Single APB access at a time"
+    },
+    "pipeline_stages": 5,
+    "queue_depth": 0
+  },
+  "decomposition_units": 4,
+  "fcov_bins": 13
+}

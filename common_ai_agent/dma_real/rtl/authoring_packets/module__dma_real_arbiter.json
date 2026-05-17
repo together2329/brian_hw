@@ -1,0 +1,1694 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 28,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_real_arbiter.sv",
+      "name": "dma_real_arbiter",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.performance",
+        "dataflow.ordering.ordering_1",
+        "dataflow.sequence.sequence_2",
+        "function_model",
+        "function_model.transactions.FM_ARB_GRANT"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 7,
+    "open_required_count": 7,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "module",
+  "owner_file": "rtl/dma_real_arbiter.sv",
+  "owner_module": "dma_real_arbiter",
+  "packet_id": "module__dma_real_arbiter",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.backpressure": 5,
+      "cycle_model.clock": 1,
+      "cycle_model.handshake_rules": 5,
+      "cycle_model.latency": 1,
+      "cycle_model.ordering": 5,
+      "cycle_model.reset": 1,
+      "equivalence.module": 1,
+      "function_model.output": 1,
+      "function_model.output_rule": 1,
+      "function_model.precondition": 1,
+      "function_model.side_effect": 2,
+      "function_model.state_update": 1,
+      "function_model.transaction": 1,
+      "workflow_todo.rtl_gen": 2
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 28,
+      "task_limit": 48
+    },
+    "open_required_count": 7,
+    "required_count": 28,
+    "source_refs": [
+      "workflow_todos.rtl-gen[2]",
+      "workflow_todos.rtl-gen[4]",
+      "function_model.transactions.FM_ARB_GRANT",
+      "function_model.transactions.FM_ARB_GRANT.preconditions.precondition_0",
+      "function_model.transactions.FM_ARB_GRANT.outputs.output_0",
+      "function_model.transactions.FM_ARB_GRANT.output_rules.grant_next",
+      "function_model.transactions.FM_ARB_GRANT.state_updates.arb_ptr_update",
+      "function_model.transactions.FM_ARB_GRANT.side_effects.side_effect_0",
+      "function_model.transactions.FM_ARB_GRANT.side_effects.side_effect_1",
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.latency",
+      "cycle_model.handshake_rules.apb_access",
+      "cycle_model.handshake_rules.cdc_config",
+      "cycle_model.handshake_rules.arb_grant_rule",
+      "cycle_model.handshake_rules.start_accept",
+      "cycle_model.handshake_rules.timeout_rule",
+      "cycle_model.ordering.ordering_rule_0",
+      "cycle_model.ordering.ordering_rule_1",
+      "cycle_model.ordering.ordering_rule_2",
+      "cycle_model.ordering.ordering_rule_3",
+      "cycle_model.ordering.ordering_rule_4",
+      "cycle_model.backpressure.backpressure_rule_0",
+      "cycle_model.backpressure.backpressure_rule_1"
+    ],
+    "status_counts": {
+      "open": 7,
+      "pass": 21
+    },
+    "task_count": 28
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement round-robin arbiter in hclk domain",
+      "criteria": [
+        "round-robin pointer advances after each grant",
+        "only one channel granted at a time",
+        "idle channels not considered",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[2]",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "Semantic source_refs covered: cycle_model.performance, function_model.transactions.FM_ARB_GRANT"
+      ],
+      "detail": "dma_real_arbiter accepts request from each active channel and grants bus to next channel in round-robin order. Starvation-free.\nSSOT ref: workflow_todos.rtl-gen[2].\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.performance.",
+      "evidence_terms": [
+        "ARB",
+        "FM",
+        "FM_ARB_GRANT",
+        "GRANT"
+      ],
+      "id": "RTL-0022",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[2]",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.performance",
+        "function_model.transactions.FM_ARB_GRANT",
+        "workflow_todos.rtl-gen[2]"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "ARB",
+          "GRANT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "ARB",
+          "FM",
+          "FM_ARB_GRANT",
+          "GRANT"
+        ],
+        "source_scope": "rtl/dma_real_arbiter.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_WORKFLOW_TODO_003",
+        "source_refs": [
+          "cycle_model.performance",
+          "function_model.transactions.FM_ARB_GRANT"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement full AHB-Lite master protocol engine",
+      "criteria": [
+        "address phase and data phase timing correct",
+        "NONSEQ for first beat, SEQ for subsequent",
+        "hburst INCR and WRAP modes encoded correctly",
+        "hprot default 0011, hmaster set to channel ID",
+        "hresp=ERROR aborts, hresp=RETRY re-requests",
+        "1KB boundary detection triggers new NONSEQ",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[4]",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "Semantic source_refs covered: cycle_model.handshake_rules, cycle_model.pipeline, io_list.interfaces.ahb_master"
+      ],
+      "detail": "dma_real_ahb_master drives full AHB-Lite protocol: haddr, htrans, hsize, hburst (INCR4/8/16 + WRAP4/8/16), hprot, hmaster, hmastlock, hwdata. 2-bit hresp handles OKAY/ERROR/RETRY/SPLIT. 1KB boundary detection splits burst.\nSSOT ref: workflow_todos.rtl-gen[4].\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.handshake_rules.",
+      "evidence_terms": [
+        "ahb",
+        "ahb_master",
+        "io",
+        "io_list",
+        "list",
+        "master"
+      ],
+      "id": "RTL-0024",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[4]",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.handshake_rules",
+        "cycle_model.pipeline",
+        "io_list.interfaces.ahb_master",
+        "workflow_todos.rtl-gen[4]"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "ahb"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "ahb",
+          "ahb_master",
+          "io",
+          "io_list",
+          "list",
+          "master"
+        ],
+        "source_scope": "rtl/dma_real_arbiter.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_WORKFLOW_TODO_005",
+        "source_refs": [
+          "cycle_model.handshake_rules",
+          "cycle_model.pipeline",
+          "io_list.interfaces.ahb_master"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_ARB_GRANT",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_ARB_GRANT",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_ARB_GRANT.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via function_model.transactions.FM_ARB_GRANT.\nSSOT item context: id=FM_ARB_GRANT; name=arb_grant.",
+      "evidence_terms": [],
+      "id": "RTL-0149",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ARB_GRANT",
+      "ssot_context": {
+        "id": "FM_ARB_GRANT",
+        "name": "arb_grant"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ARB_GRANT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_ARB_GRANT: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ARB_GRANT.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ARB_GRANT.preconditions.precondition_0.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via function_model.transactions.FM_ARB_GRANT.\nSSOT item context: value=at least one channel is requesting bus access.",
+      "evidence_terms": [],
+      "id": "RTL-0150",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ARB_GRANT.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "at least one channel is requesting bus access"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ARB_GRANT.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_ARB_GRANT: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ARB_GRANT.outputs.output_0",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "DUT port [\"arb_grant\"] is the implementation/observation point for arb_grant"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ARB_GRANT.outputs.output_0.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via function_model.transactions.FM_ARB_GRANT.\nSSOT item context: id=FM_ARB_GRANT; name=arb_grant; port=[\"arb_grant\"]; signal=[\"arb_grant\", \"requester_mask\"]; state=[\"arb_ptr_update\"].",
+      "evidence_terms": [
+        "arb",
+        "arb_grant",
+        "arb_ptr_update",
+        "grant",
+        "mask",
+        "ptr",
+        "requester",
+        "requester_mask",
+        "update"
+      ],
+      "id": "RTL-0151",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ARB_GRANT.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_ARB_GRANT",
+        "name": "arb_grant",
+        "port": "[\"arb_grant\"]",
+        "signal": "[\"arb_grant\", \"requester_mask\"]",
+        "state": "[\"arb_ptr_update\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ARB_GRANT.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "arb",
+          "arb_grant",
+          "grant",
+          "ptr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "arb",
+          "arb_grant",
+          "arb_ptr_update",
+          "grant",
+          "mask",
+          "ptr",
+          "requester",
+          "requester_mask",
+          "update"
+        ],
+        "source_scope": "rtl/dma_real_arbiter.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_ARB_GRANT: grant_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ARB_GRANT.output_rules.grant_next",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "grant_next width matches SSOT value 3",
+        "grant_next RTL expression implements SSOT expression (arb_ptr_q + 1) % N_CHANNELS if requester_mask[arb_ptr_q] == 0 else arb_ptr_q",
+        "DUT port arb_grant is the implementation/observation point for grant_next",
+        "grant_next is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ARB_GRANT.output_rules.grant_next.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via function_model.transactions.FM_ARB_GRANT.\nSSOT item context: name=grant_next; port=arb_grant; expr=(arb_ptr_q + 1) % N_CHANNELS if requester_mask[arb_ptr_q] == 0 else arb_ptr_q; width=3.",
+      "evidence_terms": [
+        "CHANNELS",
+        "N_CHANNELS",
+        "arb",
+        "arb_grant",
+        "arb_ptr_q",
+        "grant",
+        "grant_next",
+        "mask",
+        "next",
+        "ptr",
+        "requester",
+        "requester_mask"
+      ],
+      "id": "RTL-0152",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ARB_GRANT.output_rules.grant_next",
+      "ssot_context": {
+        "expr": "(arb_ptr_q + 1) % N_CHANNELS if requester_mask[arb_ptr_q] == 0 else arb_ptr_q",
+        "name": "grant_next",
+        "port": "arb_grant",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ARB_GRANT.output_rules.grant_next"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "CHANNELS",
+          "N_CHANNELS",
+          "arb",
+          "arb_grant",
+          "grant",
+          "ptr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CHANNELS",
+          "N_CHANNELS",
+          "arb",
+          "arb_grant",
+          "arb_ptr_q",
+          "grant",
+          "grant_next",
+          "mask",
+          "next",
+          "ptr",
+          "requester",
+          "requester_mask"
+        ],
+        "source_scope": "rtl/dma_real_arbiter.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_ARB_GRANT: arb_ptr_update",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ARB_GRANT.state_updates.arb_ptr_update",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "arb_ptr_update width matches SSOT value 3",
+        "arb_ptr_update RTL expression implements SSOT expression (grant_ch + 1) % N_CHANNELS",
+        "arb_ptr_update updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ARB_GRANT.state_updates.arb_ptr_update.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via function_model.transactions.FM_ARB_GRANT.\nSSOT item context: name=arb_ptr_update; expr=(grant_ch + 1) % N_CHANNELS; width=3.",
+      "evidence_terms": [
+        "CHANNELS",
+        "N_CHANNELS",
+        "arb",
+        "arb_ptr_update",
+        "ch",
+        "grant",
+        "grant_ch",
+        "ptr",
+        "update"
+      ],
+      "id": "RTL-0153",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ARB_GRANT.state_updates.arb_ptr_update",
+      "ssot_context": {
+        "expr": "(grant_ch + 1) % N_CHANNELS",
+        "name": "arb_ptr_update",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ARB_GRANT.state_updates.arb_ptr_update"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "CHANNELS",
+          "N_CHANNELS",
+          "arb",
+          "ch",
+          "grant",
+          "ptr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CHANNELS",
+          "N_CHANNELS",
+          "arb",
+          "arb_ptr_update",
+          "ch",
+          "grant",
+          "grant_ch",
+          "ptr",
+          "update"
+        ],
+        "source_scope": "rtl/dma_real_arbiter.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_ARB_GRANT: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ARB_GRANT.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "DUT port [\"arb_grant\"] is the implementation/observation point for arb_grant"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ARB_GRANT.side_effects.side_effect_0.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via function_model.transactions.FM_ARB_GRANT.\nSSOT item context: id=FM_ARB_GRANT; name=arb_grant; port=[\"arb_grant\"]; signal=[\"arb_ptr_q updated to next channel after grant\", \"requester_mask\"]; state=[\"arb_ptr_update\"].",
+      "evidence_terms": [
+        "arb",
+        "arb_grant",
+        "arb_ptr_q",
+        "arb_ptr_update",
+        "grant",
+        "mask",
+        "ptr",
+        "requester",
+        "requester_mask",
+        "update"
+      ],
+      "id": "RTL-0154",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ARB_GRANT.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_ARB_GRANT",
+        "name": "arb_grant",
+        "port": "[\"arb_grant\"]",
+        "signal": "[\"arb_ptr_q updated to next channel after grant\", \"requester_mask\"]",
+        "state": "[\"arb_ptr_update\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ARB_GRANT.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "arb",
+          "arb_grant",
+          "grant",
+          "ptr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "arb",
+          "arb_grant",
+          "arb_ptr_q",
+          "arb_ptr_update",
+          "grant",
+          "mask",
+          "ptr",
+          "requester",
+          "requester_mask",
+          "update"
+        ],
+        "source_scope": "rtl/dma_real_arbiter.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_ARB_GRANT: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_ARB_GRANT.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "DUT port [\"arb_grant\"] is the implementation/observation point for arb_grant"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ARB_GRANT.side_effects.side_effect_1.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via function_model.transactions.FM_ARB_GRANT.\nSSOT item context: id=FM_ARB_GRANT; name=arb_grant; port=[\"arb_grant\"]; signal=[\"granted channel gains AHB bus access\", \"requester_mask\"]; state=[\"arb_ptr_update\"].",
+      "evidence_terms": [
+        "AHB",
+        "arb",
+        "arb_grant",
+        "arb_ptr_update",
+        "grant",
+        "mask",
+        "ptr",
+        "requester",
+        "requester_mask",
+        "update"
+      ],
+      "id": "RTL-0155",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_ARB_GRANT.side_effects.side_effect_1",
+      "ssot_context": {
+        "id": "FM_ARB_GRANT",
+        "name": "arb_grant",
+        "port": "[\"arb_grant\"]",
+        "signal": "[\"granted channel gains AHB bus access\", \"requester_mask\"]",
+        "state": "[\"arb_ptr_update\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_ARB_GRANT.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "AHB",
+          "arb",
+          "arb_grant",
+          "grant",
+          "ptr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "AHB",
+          "arb",
+          "arb_grant",
+          "arb_ptr_update",
+          "grant",
+          "mask",
+          "ptr",
+          "requester",
+          "requester_mask",
+          "update"
+        ],
+        "source_scope": "rtl/dma_real_arbiter.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.\nSSOT item context: value=hclk.",
+      "evidence_terms": [],
+      "id": "RTL-0164",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "hclk"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.\nSSOT item context: value=hresetn.",
+      "evidence_terms": [],
+      "id": "RTL-0165",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {
+        "value": "hresetn"
+      },
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.\nSSOT item context: value=5.",
+      "evidence_terms": [],
+      "id": "RTL-0166",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {
+        "value": "5"
+      },
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: apb_access",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.apb_access",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "apb_access appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.apb_access.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.handshake_rules.\nSSOT item context: name=apb_access.",
+      "evidence_terms": [
+        "apb",
+        "apb_access"
+      ],
+      "id": "RTL-0167",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.apb_access",
+      "ssot_context": {
+        "name": "apb_access"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.apb_access"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "apb",
+          "apb_access"
+        ],
+        "source_scope": "rtl/dma_real_arbiter.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: cdc_config",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.cdc_config",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cdc_config appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.cdc_config.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.handshake_rules.\nSSOT item context: name=cdc_config.",
+      "evidence_terms": [
+        "cdc",
+        "cdc_config",
+        "config"
+      ],
+      "id": "RTL-0168",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.cdc_config",
+      "ssot_context": {
+        "name": "cdc_config"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.cdc_config"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "cdc",
+          "cdc_config",
+          "config"
+        ],
+        "source_scope": "rtl/dma_real_arbiter.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: arb_grant_rule",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.arb_grant_rule",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "arb_grant_rule appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.arb_grant_rule.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.handshake_rules.\nSSOT item context: name=arb_grant_rule.",
+      "evidence_terms": [
+        "arb",
+        "arb_grant_rule",
+        "grant"
+      ],
+      "id": "RTL-0173",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.arb_grant_rule",
+      "ssot_context": {
+        "name": "arb_grant_rule"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.arb_grant_rule"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "arb",
+          "grant"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "arb",
+          "arb_grant_rule",
+          "grant"
+        ],
+        "source_scope": "rtl/dma_real_arbiter.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: start_accept",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.start_accept",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "start_accept appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.start_accept.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.handshake_rules.\nSSOT item context: name=start_accept.",
+      "evidence_terms": [
+        "accept",
+        "start",
+        "start_accept"
+      ],
+      "id": "RTL-0174",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.start_accept",
+      "ssot_context": {
+        "name": "start_accept"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.start_accept"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "accept",
+          "start",
+          "start_accept"
+        ],
+        "source_scope": "rtl/dma_real_arbiter.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: timeout_rule",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.timeout_rule",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "timeout_rule appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.timeout_rule.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.handshake_rules.\nSSOT item context: name=timeout_rule.",
+      "evidence_terms": [
+        "timeout",
+        "timeout_rule"
+      ],
+      "id": "RTL-0175",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.timeout_rule",
+      "ssot_context": {
+        "name": "timeout_rule"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.timeout_rule"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "timeout",
+          "timeout_rule"
+        ],
+        "source_scope": "rtl/dma_real_arbiter.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_0",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.\nSSOT item context: value=Configuration (APB pclk) must cross CDC before hclk channel FSM reads it..",
+      "evidence_terms": [],
+      "id": "RTL-0184",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "ssot_context": {
+        "value": "Configuration (APB pclk) must cross CDC before hclk channel FSM reads it."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_1",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.\nSSOT item context: value=Read burst completion must precede write burst for same data..",
+      "evidence_terms": [],
+      "id": "RTL-0185",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_1",
+      "ssot_context": {
+        "value": "Read burst completion must precede write burst for same data."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_2",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.\nSSOT item context: value=Address update (UPDATE) must precede next burst request..",
+      "evidence_terms": [],
+      "id": "RTL-0186",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_2",
+      "ssot_context": {
+        "value": "Address update (UPDATE) must precede next burst request."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_3",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_3",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cycle_model.ordering.ordering_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_3.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.\nSSOT item context: value=Transfer completion (DONE) precedes done pulse observation..",
+      "evidence_terms": [],
+      "id": "RTL-0187",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_3",
+      "ssot_context": {
+        "value": "Transfer completion (DONE) precedes done pulse observation."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_4",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_4",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cycle_model.ordering.ordering_rule_4 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_4.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.\nSSOT item context: value=1KB boundary crossing recalculates burst parameters before next address phase..",
+      "evidence_terms": [],
+      "id": "RTL-0188",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_4",
+      "ssot_context": {
+        "value": "1KB boundary crossing recalculates burst parameters before next address phase."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.\nSSOT item context: value=New starts blocked while channel busy..",
+      "evidence_terms": [],
+      "id": "RTL-0189",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "ssot_context": {
+        "value": "New starts blocked while channel busy."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_1",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cycle_model.backpressure.backpressure_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_1.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.\nSSOT item context: value=AHB transfers stall when hready is low..",
+      "evidence_terms": [],
+      "id": "RTL-0190",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_1",
+      "ssot_context": {
+        "value": "AHB transfers stall when hready is low."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_2",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cycle_model.backpressure.backpressure_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_2.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.\nSSOT item context: value=Arbiter queues requests when bus is occupied..",
+      "evidence_terms": [],
+      "id": "RTL-0191",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_2",
+      "ssot_context": {
+        "value": "Arbiter queues requests when bus is occupied."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_3",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_3",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cycle_model.backpressure.backpressure_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_3.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.\nSSOT item context: value=FIFO almost_full back-pressures read burst..",
+      "evidence_terms": [
+        "almost",
+        "almost_full",
+        "full"
+      ],
+      "id": "RTL-0192",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_3",
+      "ssot_context": {
+        "value": "FIFO almost_full back-pressures read burst."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "almost",
+          "almost_full",
+          "full"
+        ],
+        "source_scope": "rtl/dma_real_arbiter.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_4",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_4",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv",
+        "cycle_model.backpressure.backpressure_rule_4 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_4.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via cycle_model.\nSSOT item context: value=CDC FIFO full back-pressures APB writes (pslverr or pready deassert)..",
+      "evidence_terms": [],
+      "id": "RTL-0193",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_4",
+      "ssot_context": {
+        "value": "CDC FIFO full back-pressures APB writes (pslverr or pready deassert)."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module dma_real_arbiter is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.dma_real_arbiter.module_equivalence",
+        "Primary implementation evidence is in rtl/dma_real_arbiter.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.dma_real_arbiter.module_equivalence.\nOwner: dma_real_arbiter in rtl/dma_real_arbiter.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0377",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.dma_real_arbiter.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.dma_real_arbiter.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

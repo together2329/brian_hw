@@ -1,0 +1,965 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 6,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 2,
+      "key": "cycle_model",
+      "module_task_count": 67,
+      "rule": "Owner module atcwdt200_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atcwdt200_core.sv",
+      "name": "atcwdt200_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.ordering",
+        "cycle_model.pipeline",
+        "dataflow.sequence.sequence_2",
+        "dataflow.sequence.sequence_3",
+        "dataflow.sequence.sequence_4",
+        "dataflow.sequence.sequence_5",
+        "dataflow.sinks.sinks_1",
+        "dataflow.sinks.sinks_2",
+        "decomposition.units.watchdog_core",
+        "fsm",
+        "fsm.watchdog",
+        "function_model",
+        "function_model.transactions.restart",
+        "function_model.transactions.timeout_decode",
+        "function_model.transactions.watchdog_tick",
+        "interrupts"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcwdt200_regs.sv",
+        "name": "atcwdt200_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_core.sv",
+        "name": "atcwdt200_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_sync.sv",
+        "name": "atcwdt200_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200.sv",
+        "name": "atcwdt200",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_core",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_core",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[3]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 2,
+    "open_required_count": 2,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atcwdt200",
+  "kind": "module",
+  "owner_file": "rtl/atcwdt200_core.sv",
+  "owner_module": "atcwdt200_core",
+  "packet_id": "module__atcwdt200_core__cycle_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.backpressure": 1,
+      "cycle_model.clock": 1,
+      "cycle_model.handshake_rules": 3,
+      "cycle_model.latency": 1,
+      "cycle_model.observability": 1,
+      "cycle_model.ordering": 4,
+      "cycle_model.pipeline": 5,
+      "cycle_model.reset": 1
+    },
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 2,
+      "key": "cycle_model",
+      "module_task_count": 67,
+      "rule": "Owner module atcwdt200_core is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 2,
+    "required_count": 17,
+    "source_refs": [
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.latency",
+      "cycle_model.handshake_rules.psel",
+      "cycle_model.handshake_rules.penable",
+      "cycle_model.handshake_rules.extclk",
+      "cycle_model.pipeline.S0_APB_ADDR",
+      "cycle_model.pipeline.S1_APB_ACCESS",
+      "cycle_model.pipeline.S2_SYNC",
+      "cycle_model.pipeline.S3_COUNT",
+      "cycle_model.pipeline.S4_TIMEOUT_OUTPUT",
+      "cycle_model.ordering.ordering_rule_0",
+      "cycle_model.ordering.ordering_rule_1",
+      "cycle_model.ordering.ordering_rule_2",
+      "cycle_model.ordering.ordering_rule_3",
+      "cycle_model.backpressure.backpressure_rule_0",
+      "cycle_model.observability.observability_signal_0"
+    ],
+    "status_counts": {
+      "open": 2,
+      "pass": 15
+    },
+    "task_count": 17
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.\nSSOT item context: value=pclk.",
+      "evidence_terms": [],
+      "id": "RTL-0119",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "pclk"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0120",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.",
+      "evidence_terms": [],
+      "id": "RTL-0121",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: psel",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.psel",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.handshake_rules.psel appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.psel.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.\nSSOT item context: signal=psel.",
+      "evidence_terms": [
+        "psel"
+      ],
+      "id": "RTL-0122",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.psel",
+      "ssot_context": {
+        "signal": "psel"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.psel"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "psel"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: penable",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.penable",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.handshake_rules.penable appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.penable.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.\nSSOT item context: signal=penable.",
+      "evidence_terms": [
+        "penable"
+      ],
+      "id": "RTL-0123",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.penable",
+      "ssot_context": {
+        "signal": "penable"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.penable"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "penable"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: extclk",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.extclk",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.handshake_rules.extclk appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.extclk.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.\nSSOT item context: signal=extclk.",
+      "evidence_terms": [
+        "extclk"
+      ],
+      "id": "RTL-0124",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.extclk",
+      "ssot_context": {
+        "signal": "extclk"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.extclk"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "extclk"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "extclk"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S0_APB_ADDR",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S0_APB_ADDR",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.pipeline.S0_APB_ADDR timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.S0_APB_ADDR appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_APB_ADDR.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.pipeline.\nSSOT item context: stage=S0_APB_ADDR; action=Capture APB address during select phase.; cycle=0.",
+      "evidence_terms": [],
+      "id": "RTL-0125",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S0_APB_ADDR",
+      "ssot_context": {
+        "action": "Capture APB address during select phase.",
+        "cycle": "0",
+        "stage": "S0_APB_ADDR"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S0_APB_ADDR"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S1_APB_ACCESS",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S1_APB_ACCESS",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.pipeline.S1_APB_ACCESS timing uses SSOT cycle/latency 1",
+        "cycle_model.pipeline.S1_APB_ACCESS appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_APB_ACCESS.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.pipeline.\nSSOT item context: stage=S1_APB_ACCESS; action=Apply APB write side effects or drive selected read data.; cycle=1.",
+      "evidence_terms": [],
+      "id": "RTL-0126",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S1_APB_ACCESS",
+      "ssot_context": {
+        "action": "Apply APB write side effects or drive selected read data.",
+        "cycle": "1",
+        "stage": "S1_APB_ACCESS"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S1_APB_ACCESS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S2_SYNC",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S2_SYNC",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.pipeline.S2_SYNC timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.S2_SYNC appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_SYNC.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.pipeline.\nSSOT item context: stage=S2_SYNC; action=Synchronize extclk and wdt_pause into pclk domain.; cycle=0.",
+      "evidence_terms": [
+        "pause",
+        "wdt",
+        "wdt_pause"
+      ],
+      "id": "RTL-0127",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S2_SYNC",
+      "ssot_context": {
+        "action": "Synchronize extclk and wdt_pause into pclk domain.",
+        "cycle": "0",
+        "stage": "S2_SYNC"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S2_SYNC"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "pause",
+          "wdt",
+          "wdt_pause"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "pause",
+          "wdt",
+          "wdt_pause"
+        ],
+        "source_scope": "rtl/atcwdt200_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S3_COUNT",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S3_COUNT",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.pipeline.S3_COUNT timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.S3_COUNT appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S3_COUNT.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.pipeline.\nSSOT item context: stage=S3_COUNT; action=Increment or clear watchdog counter based on enable; cycle=0.",
+      "evidence_terms": [],
+      "id": "RTL-0128",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S3_COUNT",
+      "ssot_context": {
+        "action": "Increment or clear watchdog counter based on enable",
+        "cycle": "0",
+        "stage": "S3_COUNT"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S3_COUNT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S4_TIMEOUT_OUTPUT",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S4_TIMEOUT_OUTPUT",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.pipeline.S4_TIMEOUT_OUTPUT timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.S4_TIMEOUT_OUTPUT appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S4_TIMEOUT_OUTPUT.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.pipeline.\nSSOT item context: stage=S4_TIMEOUT_OUTPUT; action=Update interrupt/reset status and outputs.; cycle=0.",
+      "evidence_terms": [],
+      "id": "RTL-0129",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S4_TIMEOUT_OUTPUT",
+      "ssot_context": {
+        "action": "Update interrupt/reset status and outputs.",
+        "cycle": "0",
+        "stage": "S4_TIMEOUT_OUTPUT"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S4_TIMEOUT_OUTPUT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.ordering.\nSSOT item context: value=WEN unlock is evaluated before a protected write consumes or clears unlock state according to approved QA policy..",
+      "evidence_terms": [],
+      "id": "RTL-0130",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "ssot_context": {
+        "value": "WEN unlock is evaluated before a protected write consumes or clears unlock state according to approved QA policy."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_1",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.ordering.\nSSOT item context: value=Restart command clears counter and returns state to ST_INTTIME..",
+      "evidence_terms": [],
+      "id": "RTL-0131",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_1",
+      "ssot_context": {
+        "value": "Restart command clears counter and returns state to ST_INTTIME."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_2",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.ordering.\nSSOT item context: value=Interrupt timeout set happens before reset-time phase begins..",
+      "evidence_terms": [],
+      "id": "RTL-0132",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_2",
+      "ssot_context": {
+        "value": "Interrupt timeout set happens before reset-time phase begins."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_3",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_3",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.ordering.ordering_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_3.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.ordering.\nSSOT item context: value=Reset timeout clears CR.EN and asserts reset status..",
+      "evidence_terms": [],
+      "id": "RTL-0133",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_3",
+      "ssot_context": {
+        "value": "Reset timeout clears CR.EN and asserts reset status."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.\nSSOT item context: value=APB interface has no backpressure in the reference; APB4 ready/error behavior is pending QA..",
+      "evidence_terms": [],
+      "id": "RTL-0134",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "ssot_context": {
+        "value": "APB interface has no backpressure in the reference; APB4 ready/error behavior is pending QA."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_0",
+        "Primary implementation evidence is in rtl/atcwdt200_core.sv",
+        "cycle_model.observability.observability_signal_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: atcwdt200_core in rtl/atcwdt200_core.sv via cycle_model.\nSSOT item context: value=Every function_model transaction maps to at least one scenario and coverage bin..",
+      "evidence_terms": [],
+      "id": "RTL-0135",
+      "owner_file": "rtl/atcwdt200_core.sv",
+      "owner_module": "atcwdt200_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "ssot_context": {
+        "value": "Every function_model transaction maps to at least one scenario and coverage bin."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3348ddb6018966555eeb963ff7b9aa4ed0d14e6293df5093c73330b07393340c",
+  "top": "atcwdt200",
+  "type": "rtl_authoring_packet"
+}

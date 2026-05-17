@@ -1,0 +1,347 @@
+{
+  "schema_version": "ip_wiki_graph.v1",
+  "generated_at": "2026-05-17T05:53:47Z",
+  "root": "dma_real/wiki",
+  "node_count": 11,
+  "edge_count": 14,
+  "tags": {
+    "artifact": [
+      "audit",
+      "cl_model",
+      "coverage",
+      "filelist",
+      "fl_model",
+      "last_run",
+      "lint",
+      "rtl",
+      "sim",
+      "ssot",
+      "tb"
+    ],
+    "cl-model-gen": [
+      "cl_model"
+    ],
+    "coverage": [
+      "coverage"
+    ],
+    "equiv-goals": [
+      "audit"
+    ],
+    "fl-model-gen": [
+      "fl_model"
+    ],
+    "lint": [
+      "lint"
+    ],
+    "rtl-gen": [
+      "filelist",
+      "rtl"
+    ],
+    "run-log": [
+      "last_run"
+    ],
+    "sim": [
+      "sim"
+    ],
+    "ssot": [
+      "ssot"
+    ],
+    "tb-gen": [
+      "tb"
+    ]
+  },
+  "types": {
+    "log": [
+      "last_run"
+    ],
+    "reference": [
+      "audit",
+      "cl_model",
+      "coverage",
+      "filelist",
+      "fl_model",
+      "lint",
+      "rtl",
+      "sim",
+      "ssot",
+      "tb"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "audit",
+      "title": "dma_real Equivalence Goals",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "equiv-goals"
+      ],
+      "related": [
+        "fl_model",
+        "rtl"
+      ],
+      "outgoing": [
+        "fl_model",
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-17T05:50:39Z",
+      "summary": "goals=94 blocked=0",
+      "status": "pass",
+      "digest": "goals=94 blocked=0",
+      "path": "dma_real/verify/equivalence_goals.json",
+      "size_bytes": 212426
+    },
+    {
+      "id": "cl_model",
+      "title": "dma_real CycleModel",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "cl-model-gen"
+      ],
+      "related": [
+        "ssot"
+      ],
+      "outgoing": [
+        "ssot"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-17T05:50:56Z",
+      "summary": "cycle_model.py size=20960B",
+      "status": "present",
+      "digest": "cycle_model.py size=20960B",
+      "path": "dma_real/model/cycle_model.py",
+      "size_bytes": 20960
+    },
+    {
+      "id": "coverage",
+      "title": "dma_real Coverage",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "coverage"
+      ],
+      "related": [
+        "sim"
+      ],
+      "outgoing": [
+        "sim"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-17T02:58:34Z",
+      "summary": "reports=3",
+      "status": "present",
+      "digest": "reports=3",
+      "path": "dma_real/cov/coverage.json",
+      "size_bytes": 103590
+    },
+    {
+      "id": "filelist",
+      "title": "dma_real filelist",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "rtl-gen"
+      ],
+      "related": [
+        "rtl"
+      ],
+      "outgoing": [
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-17T05:53:45Z",
+      "summary": "dma_real.f size=238B",
+      "status": "present",
+      "digest": "dma_real.f size=238B",
+      "path": "dma_real/list/dma_real.f",
+      "size_bytes": 238
+    },
+    {
+      "id": "fl_model",
+      "title": "dma_real FunctionalModel",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "fl-model-gen"
+      ],
+      "related": [
+        "ssot"
+      ],
+      "outgoing": [
+        "ssot"
+      ],
+      "incoming": [
+        "rtl",
+        "tb",
+        "sim",
+        "audit"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-17T05:50:27Z",
+      "summary": "check=pass",
+      "status": "pass",
+      "digest": "check=pass",
+      "path": "dma_real/model/functional_model.py",
+      "size_bytes": 82116
+    },
+    {
+      "id": "last_run",
+      "title": "dma_real last run",
+      "type": "log",
+      "tags": [
+        "artifact",
+        "run-log"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-17T05:53:47Z",
+      "summary": "stages=1 last=rtl-gen:blocked",
+      "status": "blocked",
+      "digest": "stages=1 last=rtl-gen:blocked",
+      "path": "dma_real/logs/headless_run.json",
+      "size_bytes": 367
+    },
+    {
+      "id": "lint",
+      "title": "dma_real Lint",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "lint"
+      ],
+      "related": [
+        "rtl"
+      ],
+      "outgoing": [
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-17T02:51:57Z",
+      "summary": "errors=0 warnings=15",
+      "status": "fail",
+      "digest": "errors=0 warnings=15",
+      "path": "dma_real/lint/dut_lint.json",
+      "size_bytes": 7554
+    },
+    {
+      "id": "rtl",
+      "title": "dma_real RTL",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "rtl-gen"
+      ],
+      "related": [
+        "ssot",
+        "fl_model"
+      ],
+      "outgoing": [
+        "ssot",
+        "fl_model"
+      ],
+      "incoming": [
+        "filelist",
+        "lint",
+        "tb",
+        "sim",
+        "audit"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-17T02:52:26Z",
+      "summary": "files=6 compile_errors=0 compile_warnings=[] surface=headless_common_engine",
+      "status": "pass",
+      "digest": "files=6 compile_errors=0 compile_warnings=[] surface=headless_common_engine",
+      "path": "dma_real/rtl",
+      "size_bytes": 544
+    },
+    {
+      "id": "sim",
+      "title": "dma_real Simulation",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "sim"
+      ],
+      "related": [
+        "rtl",
+        "tb",
+        "fl_model"
+      ],
+      "outgoing": [
+        "rtl",
+        "tb",
+        "fl_model"
+      ],
+      "incoming": [
+        "coverage"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-17T02:53:12Z",
+      "summary": "results.xml=present scoreboard_events=present",
+      "status": "present",
+      "digest": "results.xml=present scoreboard_events=present",
+      "path": "dma_real/sim",
+      "size_bytes": 288
+    },
+    {
+      "id": "ssot",
+      "title": "dma_real SSOT",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "fl_model",
+        "cl_model",
+        "rtl"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-17T05:53:29Z",
+      "summary": "sections=36 size=78450B",
+      "status": "present",
+      "digest": "sections=36 size=78450B",
+      "path": "dma_real/yaml/dma_real.ssot.yaml",
+      "size_bytes": 78450
+    },
+    {
+      "id": "tb",
+      "title": "dma_real Testbench",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "tb-gen"
+      ],
+      "related": [
+        "rtl",
+        "fl_model"
+      ],
+      "outgoing": [
+        "rtl",
+        "fl_model"
+      ],
+      "incoming": [
+        "sim"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-17T01:35:07Z",
+      "summary": "manifest=yes",
+      "status": "present",
+      "digest": "manifest=yes",
+      "path": "dma_real/tb",
+      "size_bytes": 96
+    }
+  ],
+  "ip": "dma_real"
+}

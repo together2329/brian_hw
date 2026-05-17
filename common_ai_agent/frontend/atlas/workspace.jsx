@@ -1380,10 +1380,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   // 'split' keeps chat and preview visible side-by-side.
   // 'ssot' shows a reviewer-friendly section-by-section SSOT view.
   // 'sim_summary' / 'debug' / 'coverage' / 'workflow_report' are workflow-specific first tabs.
-  // 'qa' is only available when centerLayout === 'tabbed' — it surfaces
-  // the dedicated ask_user pane with breadcrumb-tabbed batched questions.
+  // 'qa' is the dedicated question-answer pane. 'checklist' is the SSOT
+  // readiness/checklist pane for ssot-gen, kept separate from Q&A.
   // Double-clicking a file in the left tree sets previewPath + flips tab.
-  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | split | preview | sim_summary | debug | coverage | workflow_report
+  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | checklist | split | preview | sim_summary | debug | coverage | workflow_report
   const [previewPath, setPreviewPath] = React.useState(() => {
     try {
       const saved = localStorage.getItem('atlasPreviewPath');
@@ -1402,7 +1402,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       const d = ev && ev.detail || {};
       if (!d.sha) return;
       setGitShow({ sha: d.sha, ip: d.ip || '', subject: d.subject || '' });
-      setMainTab(t => (t === 'chat' || t === 'qa') ? 'split' : t);
+      setMainTab(t => (t === 'chat' || t === 'qa' || t === 'checklist') ? 'split' : t);
     };
     window.addEventListener('atlas-git-show', onShow);
     return () => window.removeEventListener('atlas-git-show', onShow);
@@ -1922,6 +1922,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     ? (qaState[pendingQcard.flowId]?.active || 0)
     : 0;
   const showQaTab = centerLayout === 'tabbed' || workflow === 'ssot-gen' || !!pendingQcard;
+  const showSsotChecklistTab = workflow === 'ssot-gen';
   const showSsotTab = workflow === 'ssot-gen' || (window.SSOT_FILES || []).length > 0 || isSsotYamlPath(previewPath);
   const showSimSummaryTab = workflow === 'sim_debug';
   const showDebugTab = workflow === 'sim_debug';
@@ -1962,7 +1963,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       setMainTab('workflow_report');
       return;
     }
-    setMainTab(t => (t === 'sim_summary' || t === 'debug' || t === 'coverage' || t === 'workflow_report') ? 'split' : t);
+    setMainTab(t => (t === 'sim_summary' || t === 'debug' || t === 'coverage' || t === 'workflow_report' || t === 'checklist') ? 'split' : t);
   }, [workflow]);
   React.useEffect(() => { setAskSel(0); }, [pendingQcard?.flowId, pendingQcardActiveTab]);
 
@@ -3619,6 +3620,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 )}
               </span>
             )}
+            {showSsotChecklistTab && (
+              <span
+                className="tab-chip"
+                onClick={() => setMainTab('checklist')}
+                title="SSOT checklist: import docs, see missing items, and check RTL readiness"
+                style={{
+                  cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                  color: mainTab === 'checklist' ? 'var(--cyan)' : 'var(--fg-mute)',
+                  background: mainTab === 'checklist' ? 'color-mix(in oklch, var(--cyan) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'checklist' ? 'var(--cyan)' : 'transparent'),
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                }}
+              >Check List</span>
+            )}
             <span
               className="tab-chip"
               onClick={() => setMainTab('chat')}
@@ -3727,6 +3743,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 SSOT section review
               </span>
+            ) : mainTab === 'checklist' ? (
+              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
+                SSOT checklist · import · missing items · RTL readiness
+              </span>
             ) : mainTab === 'sim_summary' ? (
               <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 sim_debug summary · scenarios · scoreboard
@@ -3754,7 +3774,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
                 "Running / End of loop / Waiting on you" pill above the
                 input row already conveys this state, and louder, so two
                 redundant indicators just add noise to the tab header. */}
-            {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot') && (
+            {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot' || mainTab === 'checklist') && (
               <span style={{ fontSize: 10 }}>
                 <span className="mute" style={{ marginRight: 8 }}>{mainTab === 'split' ? 'chat only' : 'back to chat'}</span>
                 <span onClick={() => setMainTab('chat')} className="acc"
@@ -3775,6 +3795,19 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
             )
           ) : mainTab === 'workflow_report' ? (
             <WorkflowReportPane workflow={workflow} activeIp={activeIp} />
+          ) : mainTab === 'checklist' ? (
+            <SsotQaBoard
+              data={ssotQaBoardData}
+              sessions={ssotQaSessions}
+              activeSession={currentSession}
+              uiLang={uiLang}
+              onSelectSession={activateSsotQaSession}
+              onBack={() => setMainTab('chat')}
+              onRefresh={() => { refreshSsotQa(); refreshSsotQaSessions(); }}
+              onRunCommand={submitMsg}
+              showChecklist={true}
+              checklistOnly={true}
+            />
           ) : mainTab === 'chat' ? (
             renderChatPane()
           ) : (mainTab === 'split' || mainTab === 'preview') ? (() => {
@@ -4985,7 +5018,19 @@ const AskUserQuestionBlock = ({
   );
 };
 
-const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSession, onBack, onRefresh, onRunCommand, onSubmitPending }) => {
+const SsotQaBoard = ({
+  data,
+  sessions,
+  activeSession,
+  uiLang = 'ko',
+  onSelectSession,
+  onBack,
+  onRefresh,
+  onRunCommand,
+  onSubmitPending,
+  showChecklist = false,
+  checklistOnly = false,
+}) => {
   const sections = Array.isArray(data?.sections) ? data.sections : [];
   const sessionRows = Array.isArray(sessions) ? sessions : [];
   const summary = data?.summary || { total: 0, approved: 0, pending: 0 };
@@ -5018,7 +5063,32 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         noSession: 'No SSOT QA session selected.',
         selectSession: 'Select an IP/session that uses',
         back: 'back to chat',
-        title: 'SSOT QA Preview',
+        title: 'Q&A Session',
+        subtitle: 'Answer questions here. The answers fill the SSOT promise sheet for RTL.',
+        checklistTitle: 'Check List',
+        checklistSubtitle: 'Fill the SSOT promise sheet before making RTL code.',
+        legend: 'SSOT = design promise sheet. RTL = hardware code.',
+        rtlReadiness: 'RTL readiness',
+        nextAction: 'What to do now',
+        needTitle: '9 boxes to fill',
+        missingTitle: 'Empty boxes now',
+        missingEmpty: 'No empty boxes.',
+        readyToGenerate: 'Ready to make RTL.',
+        needsSsotApproval: 'All boxes are filled. Press To SSOT and approve the promise sheet.',
+        blockedByMissing: 'RTL should wait because some boxes are empty.',
+        feedTitle: 'Use these 4 steps',
+        actionChatTitle: '1. New wishes = Chat',
+        actionChatDetail: 'Write what you want in normal words.',
+        actionImportTitle: '2. Old docs = Import',
+        actionImportDetail: 'Choose files you already have. They go into the Import folder and /import reads them.',
+        actionInterviewTitle: '3. Unknowns = Deep Interview',
+        actionInterviewDetail: 'Ask only the questions needed to fill empty boxes.',
+        actionToSsotTitle: '4. Promise sheet = To SSOT',
+        actionToSsotDetail: 'Turn the answers and files into the SSOT document.',
+        chooseFile: 'choose file',
+        openChat: 'open chat',
+        filled: 'filled',
+        missing: 'missing',
         refresh: 'refresh',
         chat: 'chat',
         total: 'total',
@@ -5057,7 +5127,32 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         noSession: '선택된 SSOT QA 세션이 없습니다.',
         selectSession: 'IP/session을 선택하세요:',
         back: '채팅으로',
-        title: 'SSOT QA 미리보기',
+        title: 'Q&A Session',
+        subtitle: '여기는 질문에 답하는 곳입니다. 답변이 SSOT 약속장의 빈칸을 채웁니다.',
+        checklistTitle: 'Check List',
+        checklistSubtitle: 'SSOT는 RTL 코드를 만들기 전에 채우는 약속장입니다. 빈칸을 채우면 RTL을 만들 준비가 됩니다.',
+        legend: 'SSOT = 설계 약속장. RTL = 실제 회로 코드.',
+        rtlReadiness: 'RTL 생성 준비도',
+        nextAction: '지금 할 일',
+        needTitle: '채워야 하는 9칸',
+        missingTitle: '지금 비어 있는 칸',
+        missingEmpty: '비어 있는 칸이 없습니다.',
+        readyToGenerate: 'RTL을 만들 준비가 됐습니다.',
+        needsSsotApproval: '9칸은 다 찼습니다. To SSOT를 눌러 약속장을 만들고 승인하세요.',
+        blockedByMissing: '아직 빈칸이 있어서 RTL 만들기는 이릅니다.',
+        feedTitle: '이 4단계만 보면 됩니다',
+        actionChatTitle: '1. 새로 원하는 것 = Chat',
+        actionChatDetail: '말하듯이 적으면 됩니다.',
+        actionImportTitle: '2. 이미 가진 문서 = Import',
+        actionImportDetail: '파일을 고르면 Import 폴더에 넣고 /import가 읽습니다.',
+        actionInterviewTitle: '3. 모르는 것 = Deep Interview',
+        actionInterviewDetail: '빈칸을 채우는 질문만 받습니다.',
+        actionToSsotTitle: '4. 약속장 만들기 = To SSOT',
+        actionToSsotDetail: '파일과 답변을 모아 SSOT 문서를 만듭니다.',
+        chooseFile: '파일 선택',
+        openChat: '채팅 열기',
+        filled: '채움',
+        missing: '부족',
         refresh: '새로고침',
         chat: '채팅',
         total: '전체',
@@ -5092,6 +5187,84 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
         toSsot: 'To SSOT',
         importReady: '업로드됨',
       };
+  const requirementHelp = uiLang === 'en'
+    ? {
+        purpose: 'What this IP does in one sentence.',
+        bus_interface: 'How software or another block talks to it.',
+        register_map: 'Control/status registers, offsets, and access rules.',
+        clock_reset: 'Clock names, reset names, polarity, and timing assumptions.',
+        interrupt: 'Whether it raises interrupts, and when. Say none if not used.',
+        memory_map: 'Address or memory requirements. Say none if not used.',
+        parameters: 'Configurable parameters and default values.',
+        submodule_structure: 'Internal blocks and who owns each responsibility.',
+        test_expectation: 'Minimum simulation/test behavior that proves it works.',
+      }
+    : {
+        purpose: '이 IP가 한 문장으로 무슨 일을 하는지.',
+        bus_interface: '소프트웨어나 다른 블록이 어떻게 말을 거는지.',
+        register_map: '레지스터 주소, 읽기/쓰기 규칙, 상태값.',
+        clock_reset: '클럭/리셋 이름, 극성, 타이밍 조건.',
+        interrupt: '인터럽트를 쓰는지, 언제 올리는지. 없으면 없다고 적기.',
+        memory_map: '메모리나 주소 요구사항. 없으면 없다고 적기.',
+        parameters: '바꿀 수 있는 파라미터와 기본값.',
+        submodule_structure: '내부 블록 구성과 각 블록의 책임.',
+        test_expectation: '시뮬레이션에서 최소한 무엇을 확인해야 하는지.',
+      };
+  const requirementSimpleName = uiLang === 'en'
+    ? {
+        purpose: 'What are we making?',
+        bus_interface: 'How does it connect?',
+        register_map: 'What knobs and status bits exist?',
+        clock_reset: 'What clock and reset does it use?',
+        interrupt: 'Does it ring an interrupt bell?',
+        memory_map: 'Does it need an address or memory?',
+        parameters: 'What can be configured?',
+        submodule_structure: 'What small blocks are inside?',
+        test_expectation: 'How do we know it works?',
+      }
+    : {
+        purpose: '무엇을 만들까?',
+        bus_interface: '어떻게 연결할까?',
+        register_map: '조작 버튼과 상태표는?',
+        clock_reset: '클럭과 리셋은?',
+        interrupt: '인터럽트 알림은?',
+        memory_map: '주소나 메모리는?',
+        parameters: '바꿀 수 있는 값은?',
+        submodule_structure: '안에는 어떤 작은 블록?',
+        test_expectation: '어떻게 성공을 확인할까?',
+      };
+  const requirementByKey = new Map(requirementItems.map(item => [item?.key, item || {}]));
+  const requirementLabel = (key) => requirementSimpleName[key] || requirementByKey.get(key)?.label || key;
+  const requirementRows = (requirementItems.length ? requirementItems : missingRequirementKeys.map(key => ({ key, status: 'missing' })))
+    .filter(item => item?.key)
+    .map(item => ({
+      key: item.key,
+      label: requirementLabel(item.key),
+      help: requirementHelp[item.key] || item.label || item.key,
+      status: item.status || (missingRequirementKeys.includes(item.key) ? 'missing' : 'filled'),
+    }));
+  const missingRows = missingRequirementKeys.map(key => ({
+    key,
+    label: requirementLabel(key),
+    help: requirementHelp[key] || requirementLabel(key),
+  }));
+  const readyForRtl = requirementTotal > 0 && requirementMissing === 0 && !!data?.approved;
+  const filledButNeedsSsot = requirementTotal > 0 && requirementMissing === 0 && !data?.approved;
+  const rtlReadinessText = readyForRtl
+    ? t.readyToGenerate
+    : (filledButNeedsSsot ? t.needsSsotApproval : t.blockedByMissing);
+  const nextActionText = requirementMissing > 0
+    ? (uiLang === 'en'
+      ? `${requirementMissing} decision${requirementMissing === 1 ? '' : 's'} are missing. Import existing docs first, then run Deep Interview for the gaps.`
+      : `${requirementMissing}개 결정이 부족합니다. 기존 문서가 있으면 먼저 Import하고, 남은 빈칸은 Deep Interview로 채우세요.`)
+    : (data?.approved
+      ? (uiLang === 'en' ? 'SSOT is approved. RTL generation can use it.' : 'SSOT가 승인되었습니다. RTL 생성에 사용할 수 있습니다.')
+      : (uiLang === 'en' ? 'Run To SSOT to document and approve the filled decisions.' : 'To SSOT로 채워진 결정을 문서화하고 승인하세요.'));
+  const uploadDoneText = (count) => (
+    uiLang === 'en'
+      ? `${count} file${count === 1 ? '' : 's'} saved under ${data.ip}/req/imports/; /import started.`
+      : `${count}개 파일을 ${data.ip}/req/imports/에 저장하고 /import를 실행했습니다.`
+  );
   const importInputRef = React.useRef(null);
   const [importBusy, setImportBusy] = React.useState(false);
   const [importStatus, setImportStatus] = React.useState('');
@@ -5132,7 +5305,7 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
       if (!res.ok || !payload?.ok) {
         throw new Error(payload?.error || `upload failed (${res.status})`);
       }
-      setImportStatus(`${t.importReady}: ${(payload.paths || []).length}`);
+      setImportStatus(uploadDoneText((payload.paths || []).length));
       if (payload.command) runSsotCommand(payload.command);
       setTimeout(() => { try { onRefresh && onRefresh(); } catch (_) {} }, 600);
     } catch (err) {
@@ -5432,115 +5605,236 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
       height: '100%',
       minHeight: 0,
     }}>
+      {showChecklist ? (
       <div style={{
         border: '1px solid var(--line)',
         background: 'var(--bg-1)',
-        padding: 12,
+        padding: 14,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <div style={{ color: 'var(--fg)', fontSize: 15, fontWeight: 700 }}>{t.title}</div>
-          <code className="acc">{data.ip}</code>
-          <span style={{ flex: 1 }} />
-          <input
-            ref={importInputRef}
-            type="file"
-            multiple
-            style={{ display: 'none' }}
-            onChange={(ev) => {
-              const files = ev.target.files;
-              ev.target.value = '';
-              uploadImportFiles(files);
-            }}
-          />
-          <button
-            className="mini-btn"
-            type="button"
-            disabled={importBusy}
-            onClick={() => importInputRef.current?.click()}
-            title="Upload requirement docs, notes, RTL, YAML, logs, or filelists into SSOT import evidence"
-          >
-            {importBusy ? t.importing : t.importFiles}
-          </button>
-          <button
-            className="mini-btn"
-            type="button"
-            onClick={() => runSsotCommand(`/grill-me ${data.ip}`)}
-            title="Run /grill-me for unresolved SSOT decisions"
-          >
-            {t.deepInterview}
-          </button>
-          <button
-            className="mini-btn"
-            type="button"
-            onClick={() => runSsotCommand(`/to-ssot ${data.ip}`)}
-            title="Run /to-ssot for this IP"
-            style={{ borderColor: 'var(--ok)', color: 'var(--ok)' }}
-          >
-            {t.toSsot}
-          </button>
-          <button className="mini-btn" type="button" onClick={onRefresh}>{t.refresh}</button>
-          <button className="mini-btn" type="button" onClick={onBack}>{t.chat}</button>
+        <input
+          ref={importInputRef}
+          type="file"
+          multiple
+          style={{ display: 'none' }}
+          onChange={(ev) => {
+            const files = ev.target.files;
+            ev.target.value = '';
+            uploadImportFiles(files);
+          }}
+        />
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 360px', minWidth: 260 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ color: 'var(--fg)', fontSize: 16, fontWeight: 800 }}>{t.checklistTitle}</div>
+              <code className="acc">{data.ip}</code>
+              <AtlasStatusBadge status={readyForRtl ? 'approved' : (requirementMissing ? 'pending' : 'draft')} label={readyForRtl ? t.approved : (requirementMissing ? t.missing : t.draft)} compact soft />
+            </div>
+            <div style={{ marginTop: 5, color: 'var(--fg-mute)', fontSize: 12, lineHeight: 1.45, maxWidth: 820 }}>
+              {t.checklistSubtitle}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <button className="mini-btn" type="button" onClick={onRefresh}>{t.refresh}</button>
+            <button className="mini-btn" type="button" onClick={onBack}>{t.chat}</button>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10, fontSize: 11 }}>
-          <AtlasStatusBadge status="total" label={t.total} count={summary.total || 0} compact soft />
-          <AtlasStatusBadge status="approved" label={t.approved} count={summary.approved || 0} compact soft />
-          <AtlasStatusBadge status="pending" label={t.pending} count={summary.pending || 0} compact soft />
-          {requirementTotal > 0 ? (
-            <AtlasStatusBadge status={requirementMissing ? 'pending' : 'approved'} label={`${t.requirements} ${t.requirementsRemaining}`} count={requirementMissing} compact soft />
-          ) : null}
-          <AtlasStatusBadge status={data.approved ? 'approved' : (data.state_status || 'draft')} label={`${t.ssot} ${data.approved ? t.approved : (data.state_status || t.draft)}`} compact soft />
-        </div>
-        {requirementTotal > 0 ? (
-          <div style={{ marginTop: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: 'var(--fg-mute)' }}>
-              <span>{t.requirements}: {requirementFilled}/{requirementTotal}</span>
-              <span style={{ flex: 1 }} />
-              <span>{requirementMissing} {t.requirementsRemaining}</span>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: 12,
+          marginTop: 14,
+          alignItems: 'stretch',
+        }}>
+          <div style={{
+            border: '1px solid var(--line)',
+            background: 'color-mix(in oklch, var(--bg-2) 72%, transparent)',
+            padding: 10,
+          }}>
+            <div style={{ color: 'var(--fg-mute)', fontSize: 11, marginBottom: 6 }}>{t.rtlReadiness}</div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <div style={{ color: readyForRtl ? 'var(--ok)' : (requirementMissing ? 'var(--warn)' : 'var(--cyan)'), fontSize: 34, fontWeight: 800, lineHeight: 1 }}>
+                {requirementPct}%
+              </div>
+              <div style={{ color: 'var(--fg-mute)', fontSize: 12 }}>
+                {requirementFilled}/{requirementTotal || 0} {t.filled}
+              </div>
             </div>
             <div style={{
-              height: 5,
-              marginTop: 4,
+              height: 8,
+              marginTop: 8,
               border: '1px solid var(--line)',
-              background: 'var(--bg-2)',
+              background: 'var(--bg-0)',
               overflow: 'hidden',
             }}>
               <div style={{
                 width: `${requirementPct}%`,
                 height: '100%',
-                background: requirementMissing ? 'var(--warn)' : 'var(--ok)',
+                background: readyForRtl ? 'var(--ok)' : (requirementMissing ? 'var(--warn)' : 'var(--cyan)'),
               }} />
             </div>
-            {missingRequirementKeys.length ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 6 }}>
-                {missingRequirementKeys.slice(0, 9).map(key => {
-                  const item = requirementItems.find(row => row?.key === key) || {};
+            <div style={{ marginTop: 8, color: 'var(--fg)', fontSize: 12, lineHeight: 1.45 }}>
+              {rtlReadinessText}
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 9 }}>
+              <AtlasStatusBadge status="total" label={t.total} count={summary.total || 0} compact soft />
+              <AtlasStatusBadge status="approved" label={t.approved} count={summary.approved || 0} compact soft />
+              <AtlasStatusBadge status="pending" label={t.pending} count={summary.pending || 0} compact soft />
+            </div>
+          </div>
+
+          <div style={{
+            border: '1px solid var(--line)',
+            background: 'color-mix(in oklch, var(--bg-2) 52%, transparent)',
+            padding: 10,
+          }}>
+            <div style={{ color: 'var(--fg-mute)', fontSize: 11, marginBottom: 6 }}>{t.nextAction}</div>
+            <div style={{ color: 'var(--fg)', fontSize: 13, lineHeight: 1.5 }}>{nextActionText}</div>
+            <div style={{ marginTop: 12, color: 'var(--fg-mute)', fontSize: 11 }}>{t.feedTitle}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8, marginTop: 7 }}>
+              <div style={{ borderTop: '2px solid var(--cyan)', paddingTop: 7 }}>
+                <div style={{ color: 'var(--fg)', fontSize: 12, fontWeight: 700 }}>{t.actionChatTitle}</div>
+                <div style={{ color: 'var(--fg-mute)', fontSize: 11, lineHeight: 1.4, marginTop: 3 }}>{t.actionChatDetail}</div>
+                <button className="mini-btn" type="button" onClick={onBack} style={{ marginTop: 7 }}>{t.openChat}</button>
+              </div>
+              <div style={{ borderTop: '2px solid var(--accent)', paddingTop: 7 }}>
+                <div style={{ color: 'var(--fg)', fontSize: 12, fontWeight: 700 }}>{t.actionImportTitle}</div>
+                <div style={{ color: 'var(--fg-mute)', fontSize: 11, lineHeight: 1.4, marginTop: 3 }}>{t.actionImportDetail}</div>
+                <button
+                  className="mini-btn"
+                  type="button"
+                  disabled={importBusy}
+                  onClick={() => importInputRef.current?.click()}
+                  title="Upload requirement docs, notes, RTL, YAML, logs, or filelists into SSOT import evidence"
+                  style={{ marginTop: 7 }}
+                >
+                  {importBusy ? t.importing : t.chooseFile}
+                </button>
+              </div>
+              <div style={{ borderTop: '2px solid var(--warn)', paddingTop: 7 }}>
+                <div style={{ color: 'var(--fg)', fontSize: 12, fontWeight: 700 }}>{t.actionInterviewTitle}</div>
+                <div style={{ color: 'var(--fg-mute)', fontSize: 11, lineHeight: 1.4, marginTop: 3 }}>{t.actionInterviewDetail}</div>
+                <button
+                  className="mini-btn"
+                  type="button"
+                  onClick={() => runSsotCommand(`/grill-me ${data.ip}`)}
+                  title="Run /grill-me for unresolved SSOT decisions"
+                  style={{ marginTop: 7 }}
+                >
+                  {t.deepInterview}
+                </button>
+              </div>
+              <div style={{ borderTop: '2px solid var(--ok)', paddingTop: 7 }}>
+                <div style={{ color: 'var(--fg)', fontSize: 12, fontWeight: 700 }}>{t.actionToSsotTitle}</div>
+                <div style={{ color: 'var(--fg-mute)', fontSize: 11, lineHeight: 1.4, marginTop: 3 }}>{t.actionToSsotDetail}</div>
+                <button
+                  className="mini-btn"
+                  type="button"
+                  onClick={() => runSsotCommand(`/to-ssot ${data.ip}`)}
+                  title="Run /to-ssot for this IP"
+                  style={{ marginTop: 7, borderColor: 'var(--ok)', color: 'var(--ok)' }}
+                >
+                  {t.toSsot}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {requirementTotal > 0 ? (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: 12,
+            marginTop: 14,
+            borderTop: '1px solid var(--line)',
+            paddingTop: 12,
+          }}>
+            <div>
+              <div style={{ color: 'var(--fg)', fontSize: 13, fontWeight: 800, marginBottom: 8 }}>{t.needTitle}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 7 }}>
+                {requirementRows.map(row => {
+                  const isMissing = row.status === 'missing';
                   return (
-                    <span
-                      key={key}
-                      title={item.label || key}
+                    <div
+                      key={row.key}
                       style={{
                         border: '1px solid var(--line)',
-                        color: 'var(--warn)',
-                        background: 'color-mix(in oklch, var(--warn) 8%, transparent)',
-                        padding: '1px 5px',
-                        fontSize: 10,
+                        borderLeft: `3px solid ${isMissing ? 'var(--warn)' : 'var(--ok)'}`,
+                        padding: '7px 8px',
+                        background: isMissing
+                          ? 'color-mix(in oklch, var(--warn) 6%, transparent)'
+                          : 'color-mix(in oklch, var(--ok) 5%, transparent)',
                       }}
                     >
-                      {key}
-                    </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <AtlasStatusBadge status={isMissing ? 'pending' : 'approved'} label={isMissing ? t.missing : t.filled} compact soft />
+                        <span style={{ color: 'var(--fg)', fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {row.label}
+                        </span>
+                      </div>
+                      <div style={{ marginTop: 5, color: 'var(--fg-mute)', fontSize: 11, lineHeight: 1.4 }}>
+                        {row.help}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
-            ) : null}
+            </div>
+            <div>
+              <div style={{ color: 'var(--fg)', fontSize: 13, fontWeight: 800, marginBottom: 8 }}>{t.missingTitle}</div>
+              {missingRows.length ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                  {missingRows.map(row => (
+                    <div
+                      key={row.key}
+                      style={{
+                        border: '1px solid color-mix(in oklch, var(--warn) 45%, var(--line))',
+                        background: 'color-mix(in oklch, var(--warn) 8%, transparent)',
+                        padding: '7px 8px',
+                      }}
+                    >
+                      <div style={{ color: 'var(--warn)', fontSize: 12, fontWeight: 800 }}>{row.label}</div>
+                      <div style={{ marginTop: 4, color: 'var(--fg-mute)', fontSize: 11, lineHeight: 1.4 }}>{row.help}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ color: 'var(--ok)', fontSize: 12, lineHeight: 1.45 }}>{t.missingEmpty}</div>
+              )}
+            </div>
           </div>
         ) : null}
         {importStatus ? (
-          <div style={{ marginTop: 8, color: importStatus.includes('failed') ? 'var(--warn)' : 'var(--fg-mute)', fontSize: 10 }}>
+          <div style={{ marginTop: 10, color: importStatus.includes('failed') ? 'var(--warn)' : 'var(--fg-mute)', fontSize: 11 }}>
             {importStatus}
           </div>
         ) : null}
       </div>
 
+      ) : (
+        <div style={{
+          border: '1px solid var(--line)',
+          background: 'var(--bg-1)',
+          padding: 12,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ color: 'var(--fg)', fontSize: 15, fontWeight: 800 }}>{t.title}</div>
+            <code className="acc">{data.ip}</code>
+            <span style={{ flex: 1 }} />
+            <AtlasStatusBadge status="approved" label={t.approved} count={summary.approved || 0} compact soft />
+            <AtlasStatusBadge status="pending" label={t.pending} count={summary.pending || 0} compact soft />
+            <button className="mini-btn" type="button" onClick={onRefresh}>{t.refresh}</button>
+            <button className="mini-btn" type="button" onClick={onBack}>{t.chat}</button>
+          </div>
+          <div style={{ marginTop: 7, color: 'var(--fg-mute)', fontSize: 12, lineHeight: 1.45 }}>
+            {t.subtitle}
+          </div>
+        </div>
+      )}
+
+      {!checklistOnly ? (
+        <>
       <div style={{
         border: '1px solid var(--line)',
         padding: 10,
@@ -5779,6 +6073,8 @@ const SsotQaBoard = ({ data, sessions, activeSession, uiLang = 'ko', onSelectSes
           {t.noCards} <code style={{ color: 'var(--cyan)' }}>/new-ip</code> / <code style={{ color: 'var(--cyan)' }}>/grill-me</code>.
         </div>
       )}
+        </>
+      ) : null}
     </div>
   );
 };

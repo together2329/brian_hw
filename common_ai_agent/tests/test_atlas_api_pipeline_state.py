@@ -248,11 +248,11 @@ def test_pipeline_state_locked_reason_names_missing_upstream(tmp_path: Path, mon
     assert fl["locked_reason"] and "ssot" in fl["locked_reason"], fl["locked_reason"]
 
 
-def test_pipeline_state_includes_orchestrator_block_disabled_by_default(
+def test_pipeline_state_includes_orchestrator_block_enabled_by_default(
     tmp_path: Path, monkeypatch
 ) -> None:
     """The orchestrator/handoffs_by_workflow keys are always present in the
-    response, but enabled=False until ATLAS_ORCHESTRATOR_MODE is set."""
+    response, and Pipeline defaults to orchestrator mode unless explicitly disabled."""
     monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
     ip = "orch_off_ip"
     (tmp_path / ip).mkdir()
@@ -262,8 +262,8 @@ def test_pipeline_state_includes_orchestrator_block_disabled_by_default(
     assert "orchestrator" in data
     assert "handoffs_by_workflow" in data
     orch = data["orchestrator"]
-    assert orch["enabled"] is False
-    assert orch["mode"] is None
+    assert orch["enabled"] is True
+    assert orch["mode"] == "json"
     assert orch["pending_handoffs"] == 0
     assert orch["claimed_handoffs"] == 0
     assert orch["review_decisions"] == 0
@@ -475,29 +475,29 @@ def test_orchestrator_mode_post_toggles_env_and_state_payload(
     (tmp_path / ip).mkdir()
     client = _make_client(tmp_path, monkeypatch)
 
-    # baseline: off
+    # baseline: default on
     base = client.get(f"/api/pipeline/state?ip={ip}").json()
-    assert base["orchestrator"]["enabled"] is False
-
-    # toggle on
-    r = client.post("/api/pipeline/orchestrator_mode", json={"enabled": True})
-    assert r.status_code == 200
-    assert r.json() == {"enabled": True, "mode": "json"}
-    assert os.environ.get("ATLAS_ORCHESTRATOR_MODE") == "1"
-
-    # /api/pipeline/state must reflect the new mode on the next call
-    # (the endpoint clears the 2 s micro-cache so this is immediate).
-    on = client.get(f"/api/pipeline/state?ip={ip}").json()
-    assert on["orchestrator"]["enabled"] is True
-    assert on["orchestrator"]["mode"] == "json"
+    assert base["orchestrator"]["enabled"] is True
 
     # toggle off
     r = client.post("/api/pipeline/orchestrator_mode", json={"enabled": False})
     assert r.status_code == 200
     assert r.json() == {"enabled": False, "mode": None}
+    assert os.environ.get("ATLAS_ORCHESTRATOR_MODE") == "0"
+
+    # /api/pipeline/state must reflect the new mode on the next call
+    # (the endpoint clears the 2 s micro-cache so this is immediate).
     off = client.get(f"/api/pipeline/state?ip={ip}").json()
     assert off["orchestrator"]["enabled"] is False
     assert off["orchestrator"]["mode"] is None
+
+    # toggle on
+    r = client.post("/api/pipeline/orchestrator_mode", json={"enabled": True})
+    assert r.status_code == 200
+    assert r.json() == {"enabled": True, "mode": "json"}
+    on = client.get(f"/api/pipeline/state?ip={ip}").json()
+    assert on["orchestrator"]["enabled"] is True
+    assert on["orchestrator"]["mode"] == "json"
 
 
 def test_orchestrator_mode_post_rejects_bad_body(tmp_path: Path, monkeypatch) -> None:
@@ -531,7 +531,7 @@ def test_pipeline_run_policy_get_post_and_state_payload(tmp_path: Path, monkeypa
     base = client.get("/api/pipeline/run_policy")
     assert base.status_code == 200
     assert base.json()["run_mode"] == "engineering"
-    assert base.json()["exec_mode"] == "single-worker"
+    assert base.json()["exec_mode"] == "orchestrator"
 
     r = client.post("/api/pipeline/run_policy", json={
         "run_mode": "starter",

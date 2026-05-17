@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "atcwdt200",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 7,
+    "failed": 0,
+    "transactions": 6,
+    "transaction_results": [
+      {
+        "id": "apb_read",
+        "name": "APB register read",
+        "kind": "apb_read",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "apb_read",
+          "transaction_name": "APB register read",
+          "sample_accepted": 1,
+          "prdata_rule": 0,
+          "prdata": 0
+        }
+      },
+      {
+        "id": "apb_write",
+        "name": "APB register write",
+        "kind": "apb_write",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "apb_write",
+          "transaction_name": "APB register write",
+          "sample_accepted": 1,
+          "state_updates": {
+            "CR_FIELDS": 4,
+            "SR_INTZERO": 0
+          }
+        }
+      },
+      {
+        "id": "write_unlock",
+        "name": "Write protection unlock",
+        "kind": "write_unlock",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "write_unlock",
+          "transaction_name": "Write protection unlock",
+          "sample_accepted": 1,
+          "state_updates": {
+            "REG_WEN": 0
+          }
+        }
+      },
+      {
+        "id": "restart",
+        "name": "Watchdog restart command",
+        "kind": "restart",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "restart",
+          "transaction_name": "Watchdog restart command",
+          "sample_accepted": 1,
+          "state_updates": {
+            "COUNTER": 0,
+            "STATE": 0
+          }
+        }
+      },
+      {
+        "id": "watchdog_tick",
+        "name": "Watchdog tick and timeout update",
+        "kind": "watchdog_tick",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "watchdog_tick",
+          "transaction_name": "Watchdog tick and timeout update",
+          "sample_accepted": 1,
+          "wdt_int_rule": 0,
+          "wdt_int": 0,
+          "wdt_rst_rule": 0,
+          "wdt_rst": 0,
+          "state_updates": {
+            "COUNTER": 0,
+            "SR_INTZERO": 1,
+            "SR_RSTZERO": 1,
+            "STATE": 0,
+            "CR_EN": 0
+          }
+        }
+      },
+      {
+        "id": "timeout_decode",
+        "name": "Timeout interval decode",
+        "kind": "timeout_decode",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "timeout_decode",
+          "transaction_name": "Timeout interval decode",
+          "sample_accepted": 1,
+          "state_updates": {
+            "TIMEOUT_PREDICATES": 0
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 7,
+    "coverage_bins": 48,
+    "invariants_total": 4,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "wdt_int equals SR_INTZERO & CR_INTEN.",
+        "expr": "wdt_int equals SR_INTZERO & CR_INTEN.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "wdt_rst equals SR_RSTZERO & CR_RSTEN.",
+        "expr": "wdt_rst equals SR_RSTZERO & CR_RSTEN.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Counter does not advance while disabled ",
+        "expr": "Counter does not advance while disabled or paused.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "Reserved register bits read as zero and ",
+        "expr": "Reserved register bits read as zero and ignore writes unless QA approves modernized behavior.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 6,
+    "error_cases_planned": 0
+  },
+  "decomposition_units": 10,
+  "fcov_bins": 48,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "atcwdt200/req/",
+      "atcwdt200/yaml/atcwdt200.ssot.yaml",
+      "atcwdt200/model/functional_model.py",
+      "atcwdt200/cov/fcov_plan.json",
+      "atcwdt200/yaml/atcwdt200.ssot.yaml#io_list",
+      "atcwdt200/yaml/atcwdt200.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "atcwdt200/rtl/",
+      "atcwdt200/tb/",
+      "atcwdt200/sim/",
+      "atcwdt200/vectors/",
+      "atcwdt200/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

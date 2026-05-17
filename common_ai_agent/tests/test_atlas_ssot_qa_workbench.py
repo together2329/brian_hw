@@ -31,6 +31,15 @@ def test_ssot_qa_workbench_has_first_class_actions_and_no_history_panel():
     assert "/api/ssot/import/upload" in src
     assert "runSsotCommand(`/grill-me ${data.ip}`)" in src
     assert "runSsotCommand(`/to-ssot ${data.ip}`)" in src
+    assert "Check List" in src
+    assert "checklistOnly={true}" in src
+    assert "무엇을 만들까?" in src
+    assert "채워야 하는 9칸" in src
+    assert "RTL 생성 준비도" in src
+    assert "1. 새로 원하는 것 = Chat" in src
+    assert "2. 이미 가진 문서 = Import" in src
+    assert "3. 모르는 것 = Deep Interview" in src
+    assert "4. 약속장 만들기 = To SSOT" in src
     assert "QaHistoryPanel history={visibleQaHistory}" not in src
 
 

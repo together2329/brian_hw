@@ -1,0 +1,86 @@
+[SSOT TBD REPORT] -> ssot-gen
+Module  : uart_lite_real
+SSOT    : uart_lite_real/yaml/uart_lite_real.ssot.yaml
+Status  : TB generation BLOCKED — SSOT is entirely TBD
+
+Missing :
+- yaml_path: top_module
+  needed_for: TB module name, DUT instantiation, file naming
+  question: What is the top module name?
+  current_tb_action: Cannot instantiate DUT without a known module name
+
+- yaml_path: io_list
+  needed_for: DUT port declarations, signal wiring, driver/monitor creation
+  question: What are the top-level ports (clock, reset, UART TX/RX, bus interface, interrupts)?
+  current_tb_action: Cannot wire DUT ports
+
+- yaml_path: parameters
+  needed_for: TB parameter overrides, signal widths, FIFO depths
+  question: What parameters exist and what are their defaults (DATA_WIDTH, BAUD_DIV, FIFO_DEPTH)?
+  current_tb_action: Cannot declare TB parameters
+
+- yaml_path: clock_reset_domains / io_list.clock_domains + io_list.resets
+  needed_for: Clock generation period, reset polarity and sequence
+  question: What is the clock frequency and reset polarity?
+  current_tb_action: Cannot generate clock/reset
+
+- yaml_path: function_model
+  needed_for: Scoreboard reference model, expected results, transaction semantics
+  question: What is the functional behavior (UART TX/RX, baud-rate gen, frame format, FIFO behavior)?
+  current_tb_action: Cannot build scoreboard or reference model
+
+- yaml_path: cycle_model
+  needed_for: Cycle-accurate checks, latency bounds, handshake timing, timeout values
+  question: What is the cycle-level contract (valid/ready latency, baud-clock division)?
+  current_tb_action: Cannot set timeout bounds or cycle checks
+
+- yaml_path: features
+  needed_for: Test scenario design, coverage bins, feature-level verification
+  question: What are the user-visible features (8N1 UART, programmable baud, TX/RX FIFO, interrupts)?
+  current_tb_action: Cannot derive test scenarios
+
+- yaml_path: dataflow
+  needed_for: Expected value computation in scoreboard
+  question: How do data paths connect (TX write→shift out, RX sample→read)?
+  current_tb_action: Cannot compute expected values
+
+- yaml_path: registers
+  needed_for: Register R/W test tasks, CSR scoreboard checks
+  question: What control/status registers exist, their offsets, fields, and access types?
+  current_tb_action: Cannot test register access
+
+- yaml_path: test_requirements.scenarios
+  needed_for: ALL test case implementations (stimulus, expected results, checkers)
+  question: What are the specific test scenarios, their stimulus, and expected results?
+  current_tb_action: Cannot create any test cases
+
+- yaml_path: coverage_goals
+  needed_for: Functional coverage bins and coverage closure targets
+  question: What coverage goals must be met?
+  current_tb_action: Cannot define coverage bins
+
+- yaml_path: interrupts
+  needed_for: Interrupt flow test cases
+  question: What interrupt sources exist and how are they cleared?
+  current_tb_action: Cannot test interrupt behavior
+
+- yaml_path: error_handling
+  needed_for: Fault injection and error recovery test scenarios
+  question: What error conditions exist and how are they handled?
+  current_tb_action: Cannot create error injection tests
+
+- yaml_path: debug_observability
+  needed_for: VCD signal selection and waveform debug requirements
+  question: What signals must be captured for debug?
+  current_tb_action: Cannot set up waveform probes
+
+- yaml_path: quality_gates
+  needed_for: TB pass/fail criteria and required evidence
+  question: What gates must pass for TB signoff?
+  current_tb_action: Cannot determine DONE criteria
+
+Summary: Every SSOT section required for testbench generation is TBD. The SSOT must be populated
+by ssot-gen with real UART-lite IP requirements before tb-gen can produce any verification artifacts.
+RTL generation is also blocked (see rtl/rtl_blocked.json) for the same reason.
+
+METRICS: tb.complete=0, tb.tests=0, tb.compile_errors=0

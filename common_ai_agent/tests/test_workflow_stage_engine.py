@@ -5189,6 +5189,15 @@ def test_rtl_stage_reports_orphan_groups_from_blocker(tmp_path: Path):
 def test_ssot_to_rtl_preflight_does_not_emit_fixed_template_rtl(tmp_path: Path):
     ip = "rtl_preflight_no_template"
     _write_dynamic_todo_ssot(tmp_path, ip)
+    req_dir = tmp_path / ip / "req"
+    req_dir.mkdir(parents=True, exist_ok=True)
+    (req_dir / "requirements.md").write_text(
+        "Requirement authority: implement a sampled datapath with valid ready "
+        "handshake, one cycle result latency, reset behavior, result_valid pulse, "
+        "scoreboard comparable output rules, and traceable RTL authored by the "
+        "rtl-gen LLM worker before compile and simulation closure.\n",
+        encoding="utf-8",
+    )
     ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
     ssot_path.write_text(
         ssot_path.read_text(encoding="utf-8").replace(
@@ -5217,7 +5226,7 @@ def test_ssot_to_rtl_preflight_does_not_emit_fixed_template_rtl(tmp_path: Path):
     assert derive.returncode == 0, derive.stderr or derive.stdout
 
     result = subprocess.run(
-        [sys.executable, str(SSOT_TO_RTL), ip, "--root", str(tmp_path)],
+        [sys.executable, str(SSOT_TO_RTL), ip, "--root", str(tmp_path), "--mode", "engineering"],
         text=True,
         capture_output=True,
         timeout=30,
@@ -5228,6 +5237,7 @@ def test_ssot_to_rtl_preflight_does_not_emit_fixed_template_rtl(tmp_path: Path):
     assert "LLM-authored RTL" in result.stdout
     assert not (tmp_path / ip / "rtl" / f"{ip}.sv").exists()
     assert not (tmp_path / ip / "list" / f"{ip}.f").exists()
+    assert not (tmp_path / ip / "rtl" / "rtl_authoring_provenance.json").exists()
     blocked = json.loads((tmp_path / ip / "rtl" / "rtl_blocked.json").read_text(encoding="utf-8"))
     assert blocked["questions"][0]["id"] == "LLM_RTL_IMPLEMENTATION_REQUIRED"
 

@@ -268,8 +268,8 @@
     }
   },
   "summary": {
-    "total": 67,
-    "required": 67,
+    "total": 94,
+    "required": 94,
     "optional": 0,
     "blocked": 0,
     "unverified": 1,
@@ -308,10 +308,11 @@
           "ch_id",
           "src_addr",
           "dst_addr",
-          "length"
+          "length",
+          "stride"
         ],
         "constraints": [
-          "presetn is deasserted",
+          "presetn and hresetn are deasserted",
           "dma_en_q == 1",
           "ch_busy_q[ch_id] == 0"
         ]
@@ -321,7 +322,7 @@
         "observables": [
           "ch_busy",
           "ch_error",
-          "ch_error_code",
+          "ch_err_code",
           "ch_busy_next",
           "ch_error_flag",
           "ch_err_code_val"
@@ -330,9 +331,12 @@
         "state_updates": [
           "ch_remaining_q[ch_id] set to length on valid start",
           "ch_src_addr_q[ch_id] set to src_addr on valid start",
-          "ch_dst_addr_q[ch_id] set to dst_addr on valid start"
+          "ch_dst_addr_q[ch_id] set to dst_addr on valid start",
+          "ch_stride_q[ch_id] set to stride on valid start",
+          "perf_cycles_q[ch_id] reset to 0 on valid start",
+          "perf_words_q[ch_id] reset to 0 on valid start"
         ],
-        "error_policy": "zero length (length == 0); misaligned source address (src_addr % 4 != 0); misaligned destination address (dst_addr % 4 != 0); start while busy (ignored, preserves state)"
+        "error_policy": "zero length (length == 0, error code 2); misaligned source address (src_addr % 4 != 0, error code 1); misaligned destination address (dst_addr % 4 != 0, error code 1); start while busy (ignored, preserves state)"
       },
       "pass_criteria": [
         "Scoreboard calls FunctionalModel.apply with the same transaction intent",
@@ -373,7 +377,8 @@
         "dma_real_error_model"
       ],
       "coverage_refs": [
-        "function_dma_step"
+        "function_dma_step",
+        "function_dma_burst_boundary"
       ],
       "stimulus_contract": {
         "transaction_type": "dma_step",
@@ -398,14 +403,18 @@
         "latency": "cycle_model latency/ordering must hold when applicable",
         "state_updates": [
           "ch_remaining_q decrements by burst_len",
-          "ch_src_addr_q increments by burst_len * 4",
-          "ch_dst_addr_q increments by burst_len * 4",
+          "ch_src_addr_q increments by burst_len * ch_stride_q[ch_id]",
+          "ch_dst_addr_q increments by burst_len * ch_stride_q[ch_id]",
+          "perf_words_q increments by burst_len",
+          "perf_cycles_q increments by burst_len plus pipeline overhead",
           "done pulses on terminal step",
           "remaining_next",
           "src_addr_next",
-          "dst_addr_next"
+          "dst_addr_next",
+          "perf_words_next",
+          "perf_cycles_next"
         ],
-        "error_policy": "bus error during AHB transfer (hresp == ERROR)"
+        "error_policy": "bus error during AHB transfer (hresp == ERROR, code 3); timeout waiting for hready (code 4)"
       },
       "pass_criteria": [
         "Scoreboard calls FunctionalModel.apply with the same transaction intent",
@@ -519,6 +528,7 @@
         "function_dma_error_align",
         "function_dma_error_zero_len",
         "function_dma_error_bus",
+        "function_dma_error_timeout",
         "function_dma_error"
       ],
       "stimulus_contract": {
@@ -529,14 +539,14 @@
           "error_code"
         ],
         "constraints": [
-          "error condition detected (alignment, zero-length, or bus error)"
+          "error condition detected (alignment, zero-length, bus error, timeout, or FIFO overflow)"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
           "ch_error",
-          "ch_error_code",
+          "ch_err_code",
           "irq",
           "error_assert",
           "error_code_out",
@@ -548,7 +558,7 @@
           "ch_busy_q[ch_id] cleared",
           "Error code latched in status register"
         ],
-        "error_policy": "alignment error (code 1); zero length (code 2); bus error (code 3)"
+        "error_policy": "alignment error (code 1); zero length (code 2); bus error (code 3); timeout (code 4); FIFO overflow (code 5)"
       },
       "pass_criteria": [
         "Scoreboard calls FunctionalModel.apply with the same transaction intent",
@@ -607,7 +617,7 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "grant_ch",
+          "arb_grant",
           "grant_next"
         ],
         "latency": "cycle_model latency/ordering must hold when applicable",
@@ -655,6 +665,7 @@
         "dma_real_channel",
         "dma_real_ahb_master",
         "dma_real_irq",
+        "dma_real_engine",
         "dma_real_protocol_model",
         "dma_real_register_model",
         "dma_real_datapath_model",
@@ -674,7 +685,7 @@
           "burst_len"
         ],
         "constraints": [
-          "configure CH0 with aligned src=0x1000, dst=0x2000, len=4, start transfer",
+          "configure CH0 with aligned src=0x1000, dst=0x2000, len=4, stride=4, start transfer",
           "ch_busy_q[ch_id] == 1",
           "arbiter has granted bus to ch_id"
         ]
@@ -682,7 +693,7 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "CH0_STATUS.done=1, 4 words transferred, irq[0] asserted",
+          "CH0_STATUS.done=1, 4 words transferred, PERF_WORDS=4, irq[0] asserted",
           "ch_busy",
           "ch_done",
           "busy_next",
@@ -691,14 +702,18 @@
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [
           "ch_remaining_q decrements by burst_len",
-          "ch_src_addr_q increments by burst_len * 4",
-          "ch_dst_addr_q increments by burst_len * 4",
+          "ch_src_addr_q increments by burst_len * ch_stride_q[ch_id]",
+          "ch_dst_addr_q increments by burst_len * ch_stride_q[ch_id]",
+          "perf_words_q increments by burst_len",
+          "perf_cycles_q increments by burst_len plus pipeline overhead",
           "done pulses on terminal step",
           "remaining_next",
           "src_addr_next",
-          "dst_addr_next"
+          "dst_addr_next",
+          "perf_words_next",
+          "perf_cycles_next"
         ],
-        "error_policy": "bus error during AHB transfer (hresp == ERROR)"
+        "error_policy": "bus error during AHB transfer (hresp == ERROR, code 3); timeout waiting for hready (code 4)"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -737,6 +752,7 @@
         "dma_real_channel",
         "dma_real_ahb_master",
         "dma_real_irq",
+        "dma_real_engine",
         "dma_real_protocol_model",
         "dma_real_register_model",
         "dma_real_datapath_model",
@@ -757,7 +773,7 @@
         ],
         "constraints": [
           "configure CH0 with src=0x1001 (misaligned), len=4, start",
-          "error condition detected (alignment, zero-length, or bus error)"
+          "error condition detected (alignment, zero-length, bus error, timeout, or FIFO overflow)"
         ]
       },
       "expected_contract": {
@@ -765,7 +781,7 @@
         "observables": [
           "CH0_STATUS.error=1, err_code=1, no transfer occurs",
           "ch_error",
-          "ch_error_code",
+          "ch_err_code",
           "irq",
           "error_assert",
           "error_code_out",
@@ -777,7 +793,7 @@
           "ch_busy_q[ch_id] cleared",
           "Error code latched in status register"
         ],
-        "error_policy": "alignment error (code 1); zero length (code 2); bus error (code 3)"
+        "error_policy": "alignment error (code 1); zero length (code 2); bus error (code 3); timeout (code 4); FIFO overflow (code 5)"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -816,6 +832,7 @@
         "dma_real_channel",
         "dma_real_ahb_master",
         "dma_real_irq",
+        "dma_real_engine",
         "dma_real_protocol_model",
         "dma_real_register_model",
         "dma_real_datapath_model",
@@ -836,7 +853,7 @@
         ],
         "constraints": [
           "configure CH0 with aligned addresses, len=0, start",
-          "error condition detected (alignment, zero-length, or bus error)"
+          "error condition detected (alignment, zero-length, bus error, timeout, or FIFO overflow)"
         ]
       },
       "expected_contract": {
@@ -844,7 +861,7 @@
         "observables": [
           "CH0_STATUS.error=1, err_code=2, no transfer occurs",
           "ch_error",
-          "ch_error_code",
+          "ch_err_code",
           "irq",
           "error_assert",
           "error_code_out",
@@ -856,7 +873,7 @@
           "ch_busy_q[ch_id] cleared",
           "Error code latched in status register"
         ],
-        "error_policy": "alignment error (code 1); zero length (code 2); bus error (code 3)"
+        "error_policy": "alignment error (code 1); zero length (code 2); bus error (code 3); timeout (code 4); FIFO overflow (code 5)"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -895,6 +912,7 @@
         "dma_real_channel",
         "dma_real_ahb_master",
         "dma_real_irq",
+        "dma_real_engine",
         "dma_real_protocol_model",
         "dma_real_register_model",
         "dma_real_datapath_model",
@@ -949,7 +967,7 @@
     },
     {
       "goal_id": "EQ_SCENARIO_SC_005",
-      "title": "Scenario SC_005: multi_channel_round_robin",
+      "title": "Scenario SC_005: multi_channel_interleaved",
       "kind": "transaction",
       "scope": {
         "level": "top"
@@ -963,6 +981,7 @@
         "dma_real_channel",
         "dma_real_ahb_master",
         "dma_real_irq",
+        "dma_real_engine",
         "dma_real_protocol_model",
         "dma_real_register_model",
         "dma_real_datapath_model",
@@ -1030,6 +1049,7 @@
         "dma_real_channel",
         "dma_real_ahb_master",
         "dma_real_irq",
+        "dma_real_engine",
         "dma_real_protocol_model",
         "dma_real_register_model",
         "dma_real_datapath_model",
@@ -1049,8 +1069,8 @@
           "error_code"
         ],
         "constraints": [
-          "configure CH0, start transfer, inject hresp=ERROR on first read",
-          "error condition detected (alignment, zero-length, or bus error)"
+          "configure CH0, start transfer, inject hresp=ERROR on first read beat",
+          "error condition detected (alignment, zero-length, bus error, timeout, or FIFO overflow)"
         ]
       },
       "expected_contract": {
@@ -1058,7 +1078,7 @@
         "observables": [
           "CH0_STATUS.error=1, err_code=3, transfer aborted",
           "ch_error",
-          "ch_error_code",
+          "ch_err_code",
           "irq",
           "error_assert",
           "error_code_out",
@@ -1070,7 +1090,7 @@
           "ch_busy_q[ch_id] cleared",
           "Error code latched in status register"
         ],
-        "error_policy": "alignment error (code 1); zero length (code 2); bus error (code 3)"
+        "error_policy": "alignment error (code 1); zero length (code 2); bus error (code 3); timeout (code 4); FIFO overflow (code 5)"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -1109,6 +1129,7 @@
         "dma_real_channel",
         "dma_real_ahb_master",
         "dma_real_irq",
+        "dma_real_engine",
         "dma_real_protocol_model",
         "dma_real_register_model",
         "dma_real_datapath_model",
@@ -1176,6 +1197,7 @@
         "dma_real_channel",
         "dma_real_ahb_master",
         "dma_real_irq",
+        "dma_real_engine",
         "dma_real_protocol_model",
         "dma_real_register_model",
         "dma_real_datapath_model",
@@ -1243,6 +1265,7 @@
         "dma_real_channel",
         "dma_real_ahb_master",
         "dma_real_irq",
+        "dma_real_engine",
         "dma_real_protocol_model",
         "dma_real_register_model",
         "dma_real_datapath_model",
@@ -1295,6 +1318,348 @@
       "unverified": false
     },
     {
+      "goal_id": "EQ_SCENARIO_SC_010",
+      "title": "Scenario SC_010: stride_transfer",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[9]"
+      ],
+      "decomposition_refs": [
+        "dma_real_apb_cfg",
+        "dma_real_arbiter",
+        "dma_real_channel",
+        "dma_real_ahb_master",
+        "dma_real_irq",
+        "dma_real_engine",
+        "dma_real_protocol_model",
+        "dma_real_register_model",
+        "dma_real_datapath_model",
+        "dma_real_fsm_model",
+        "dma_real_error_model",
+        "dma_real_security_model"
+      ],
+      "coverage_refs": [
+        "SC_010_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_010",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "configure CH0 with stride=8, src=0x1000, dst=0x2000, len=4"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "addresses increment by 8 per beat, 4 words transferred, PERF_WORDS=4",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_011",
+      "title": "Scenario SC_011: bus_timeout",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[10]"
+      ],
+      "decomposition_refs": [
+        "dma_real_apb_cfg",
+        "dma_real_arbiter",
+        "dma_real_channel",
+        "dma_real_ahb_master",
+        "dma_real_irq",
+        "dma_real_engine",
+        "dma_real_protocol_model",
+        "dma_real_register_model",
+        "dma_real_datapath_model",
+        "dma_real_fsm_model",
+        "dma_real_error_model",
+        "dma_real_security_model"
+      ],
+      "coverage_refs": [
+        "SC_011_executed",
+        "error_error_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_011",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "configure CH0 with GLOBAL_TIMEOUT=100, start transfer, inject hready=0 for 101 cycles"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "CH0_STATUS.error=1, err_code=4, transfer aborted",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_012",
+      "title": "Scenario SC_012: performance_counters",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[11]"
+      ],
+      "decomposition_refs": [
+        "dma_real_apb_cfg",
+        "dma_real_arbiter",
+        "dma_real_channel",
+        "dma_real_ahb_master",
+        "dma_real_irq",
+        "dma_real_engine",
+        "dma_real_protocol_model",
+        "dma_real_register_model",
+        "dma_real_datapath_model",
+        "dma_real_fsm_model",
+        "dma_real_error_model",
+        "dma_real_security_model"
+      ],
+      "coverage_refs": [
+        "SC_012_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_012",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "configure and complete CH0 transfer with len=16, read PERF_WORDS and PERF_CYCLES"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "PERF_WORDS=16, PERF_CYCLES > 0, PERF_CYCLES saturates at 32'hFFFFFFFF",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_013",
+      "title": "Scenario SC_013: burst_wrap_boundary",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[12]"
+      ],
+      "decomposition_refs": [
+        "dma_real_apb_cfg",
+        "dma_real_arbiter",
+        "dma_real_channel",
+        "dma_real_ahb_master",
+        "dma_real_irq",
+        "dma_real_engine",
+        "dma_real_protocol_model",
+        "dma_real_register_model",
+        "dma_real_datapath_model",
+        "dma_real_fsm_model",
+        "dma_real_error_model",
+        "dma_real_security_model"
+      ],
+      "coverage_refs": [
+        "SC_013_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_013",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "configure CH0 with burst_mode=INCR4, start address near 1KB boundary"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "burst splits at 1KB boundary, new NONSEQ beat starts after boundary",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_014",
+      "title": "Scenario SC_014: clock_gating",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[13]"
+      ],
+      "decomposition_refs": [
+        "dma_real_apb_cfg",
+        "dma_real_arbiter",
+        "dma_real_channel",
+        "dma_real_ahb_master",
+        "dma_real_irq",
+        "dma_real_engine",
+        "dma_real_protocol_model",
+        "dma_real_register_model",
+        "dma_real_datapath_model",
+        "dma_real_fsm_model",
+        "dma_real_error_model",
+        "dma_real_security_model"
+      ],
+      "coverage_refs": [
+        "SC_014_executed",
+        "function_dma_clock_gating"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_014",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "start CH0 transfer, observe gated_hclk active. After completion, observe gated_hclk disabled"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "clock gating enable follows ch_busy, no spurious transitions",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
       "goal_id": "EQ_PROTOCOL_APB_ACCESS",
       "title": "Cycle/handshake rule apb_access",
       "kind": "protocol",
@@ -1310,12 +1675,19 @@
       ],
       "coverage_refs": [
         "function_dma_apb_err",
+        "function_dma_burst_boundary",
         "cycle_burst_latency",
+        "cycle_cdc_crossing",
+        "cycle_timeout_path",
         "cycle_apb_access",
+        "cycle_cdc_config",
         "cycle_ahb_address_phase",
         "cycle_ahb_data_phase",
+        "cycle_ahb_1kb_boundary",
+        "cycle_ahb_error_response",
         "cycle_arb_grant_rule",
-        "cycle_start_accept"
+        "cycle_start_accept",
+        "cycle_timeout_rule"
       ],
       "stimulus_contract": {
         "transaction_type": "apb_access",
@@ -1324,7 +1696,7 @@
           "observed_signals"
         ],
         "constraints": [
-          "APB accesses sample on pclk with psel and penable. No wait states."
+          "APB accesses sample on pclk with psel and penable. No wait states. Config data crosses CDC to hclk domain via async FIFO."
         ]
       },
       "expected_contract": {
@@ -1332,7 +1704,77 @@
         "observables": [
           "ready/valid/control observables named by SSOT and DUT ports"
         ],
-        "latency": "4",
+        "latency": "5",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_CDC_CONFIG",
+      "title": "Cycle/handshake rule cdc_config",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[1]"
+      ],
+      "decomposition_refs": [
+        "dma_real_protocol_model",
+        "dma_real_fsm_model"
+      ],
+      "coverage_refs": [
+        "function_dma_apb_err",
+        "function_dma_burst_boundary",
+        "cycle_burst_latency",
+        "cycle_cdc_crossing",
+        "cycle_timeout_path",
+        "cycle_apb_access",
+        "cycle_cdc_config",
+        "cycle_ahb_address_phase",
+        "cycle_ahb_data_phase",
+        "cycle_ahb_1kb_boundary",
+        "cycle_ahb_error_response",
+        "cycle_arb_grant_rule",
+        "cycle_start_accept",
+        "cycle_timeout_rule",
+        "fsm_per_channel_idle_to_cfg_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "cdc_config",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "APB write data pushed into pclk-side FIFO write port. hclk-side read port pops config. Gray-code pointer synchronization prevents metastability."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "5",
         "state_updates": [],
         "error_policy": ""
       },
@@ -1364,7 +1806,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.handshake_rules[1]"
+        "cycle_model.handshake_rules[2]"
       ],
       "decomposition_refs": [
         "dma_real_protocol_model",
@@ -1372,12 +1814,19 @@
       ],
       "coverage_refs": [
         "function_dma_apb_err",
+        "function_dma_burst_boundary",
         "cycle_burst_latency",
+        "cycle_cdc_crossing",
+        "cycle_timeout_path",
         "cycle_apb_access",
+        "cycle_cdc_config",
         "cycle_ahb_address_phase",
         "cycle_ahb_data_phase",
+        "cycle_ahb_1kb_boundary",
+        "cycle_ahb_error_response",
         "cycle_arb_grant_rule",
-        "cycle_start_accept"
+        "cycle_start_accept",
+        "cycle_timeout_rule"
       ],
       "stimulus_contract": {
         "transaction_type": "ahb_address_phase",
@@ -1386,7 +1835,7 @@
           "observed_signals"
         ],
         "constraints": [
-          "AHB address phase drives haddr, htrans, hsize, hburst, hwrite for one cycle."
+          "AHB address phase drives haddr, htrans, hsize, hburst, hprot, hmaster, hmastlock for one hclk cycle."
         ]
       },
       "expected_contract": {
@@ -1394,7 +1843,7 @@
         "observables": [
           "ready/valid/control observables named by SSOT and DUT ports"
         ],
-        "latency": "4",
+        "latency": "5",
         "state_updates": [],
         "error_policy": ""
       },
@@ -1426,7 +1875,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.handshake_rules[2]"
+        "cycle_model.handshake_rules[3]"
       ],
       "decomposition_refs": [
         "dma_real_protocol_model",
@@ -1434,12 +1883,19 @@
       ],
       "coverage_refs": [
         "function_dma_apb_err",
+        "function_dma_burst_boundary",
         "cycle_burst_latency",
+        "cycle_cdc_crossing",
+        "cycle_timeout_path",
         "cycle_apb_access",
+        "cycle_cdc_config",
         "cycle_ahb_address_phase",
         "cycle_ahb_data_phase",
+        "cycle_ahb_1kb_boundary",
+        "cycle_ahb_error_response",
         "cycle_arb_grant_rule",
-        "cycle_start_accept"
+        "cycle_start_accept",
+        "cycle_timeout_rule"
       ],
       "stimulus_contract": {
         "transaction_type": "ahb_data_phase",
@@ -1448,7 +1904,7 @@
           "observed_signals"
         ],
         "constraints": [
-          "AHB data phase follows address phase by one cycle with hwdata or hrdata."
+          "AHB data phase follows address phase by one hclk cycle with hwdata or hrdata."
         ]
       },
       "expected_contract": {
@@ -1456,7 +1912,145 @@
         "observables": [
           "ready/valid/control observables named by SSOT and DUT ports"
         ],
-        "latency": "4",
+        "latency": "5",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_AHB_1KB_BOUNDARY",
+      "title": "Cycle/handshake rule ahb_1kb_boundary",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[4]"
+      ],
+      "decomposition_refs": [
+        "dma_real_protocol_model",
+        "dma_real_fsm_model"
+      ],
+      "coverage_refs": [
+        "function_dma_apb_err",
+        "function_dma_burst_boundary",
+        "cycle_burst_latency",
+        "cycle_cdc_crossing",
+        "cycle_timeout_path",
+        "cycle_apb_access",
+        "cycle_cdc_config",
+        "cycle_ahb_address_phase",
+        "cycle_ahb_data_phase",
+        "cycle_ahb_1kb_boundary",
+        "cycle_ahb_error_response",
+        "cycle_arb_grant_rule",
+        "cycle_start_accept",
+        "cycle_timeout_rule"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ahb_1kb_boundary",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "Burst crossing 1KB address boundary starts new NONSEQ beat. hburst recalculated for remaining beats."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "5",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_AHB_ERROR_RESPONSE",
+      "title": "Cycle/handshake rule ahb_error_response",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[5]"
+      ],
+      "decomposition_refs": [
+        "dma_real_protocol_model",
+        "dma_real_fsm_model"
+      ],
+      "coverage_refs": [
+        "function_dma_apb_err",
+        "function_dma_burst_boundary",
+        "cycle_burst_latency",
+        "cycle_cdc_crossing",
+        "cycle_timeout_path",
+        "cycle_apb_access",
+        "cycle_cdc_config",
+        "cycle_ahb_address_phase",
+        "cycle_ahb_data_phase",
+        "cycle_ahb_1kb_boundary",
+        "cycle_ahb_error_response",
+        "cycle_arb_grant_rule",
+        "cycle_start_accept",
+        "cycle_timeout_rule"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ahb_error_response",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "hresp=ERROR (01) completes current beat and aborts burst. hresp=RETRY (10) releases bus and re-requests. hresp=SPLIT (11) releases bus and waits."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "5",
         "state_updates": [],
         "error_policy": ""
       },
@@ -1488,7 +2082,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.handshake_rules[3]"
+        "cycle_model.handshake_rules[6]"
       ],
       "decomposition_refs": [
         "dma_real_protocol_model",
@@ -1496,12 +2090,19 @@
       ],
       "coverage_refs": [
         "function_dma_apb_err",
+        "function_dma_burst_boundary",
         "cycle_burst_latency",
+        "cycle_cdc_crossing",
+        "cycle_timeout_path",
         "cycle_apb_access",
+        "cycle_cdc_config",
         "cycle_ahb_address_phase",
         "cycle_ahb_data_phase",
+        "cycle_ahb_1kb_boundary",
+        "cycle_ahb_error_response",
         "cycle_arb_grant_rule",
-        "cycle_start_accept"
+        "cycle_start_accept",
+        "cycle_timeout_rule"
       ],
       "stimulus_contract": {
         "transaction_type": "arb_grant_rule",
@@ -1510,7 +2111,7 @@
           "observed_signals"
         ],
         "constraints": [
-          "Arbiter evaluates requests every cycle and grants to next round-robin contender."
+          "Arbiter evaluates requests every hclk cycle and grants to next round-robin contender."
         ]
       },
       "expected_contract": {
@@ -1518,7 +2119,7 @@
         "observables": [
           "ready/valid/control observables named by SSOT and DUT ports"
         ],
-        "latency": "4",
+        "latency": "5",
         "state_updates": [],
         "error_policy": ""
       },
@@ -1550,7 +2151,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.handshake_rules[4]"
+        "cycle_model.handshake_rules[7]"
       ],
       "decomposition_refs": [
         "dma_real_protocol_model",
@@ -1558,12 +2159,19 @@
       ],
       "coverage_refs": [
         "function_dma_apb_err",
+        "function_dma_burst_boundary",
         "cycle_burst_latency",
+        "cycle_cdc_crossing",
+        "cycle_timeout_path",
         "cycle_apb_access",
+        "cycle_cdc_config",
         "cycle_ahb_address_phase",
         "cycle_ahb_data_phase",
+        "cycle_ahb_1kb_boundary",
+        "cycle_ahb_error_response",
         "cycle_arb_grant_rule",
-        "cycle_start_accept"
+        "cycle_start_accept",
+        "cycle_timeout_rule"
       ],
       "stimulus_contract": {
         "transaction_type": "start_accept",
@@ -1572,7 +2180,7 @@
           "observed_signals"
         ],
         "constraints": [
-          "ch_start accepted only when ch_busy is low and dma_en is high."
+          "ch_start accepted only when ch_busy is low and dma_en is high and CDC config has arrived."
         ]
       },
       "expected_contract": {
@@ -1580,7 +2188,76 @@
         "observables": [
           "ready/valid/control observables named by SSOT and DUT ports"
         ],
-        "latency": "4",
+        "latency": "5",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_TIMEOUT_RULE",
+      "title": "Cycle/handshake rule timeout_rule",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[8]"
+      ],
+      "decomposition_refs": [
+        "dma_real_protocol_model",
+        "dma_real_fsm_model"
+      ],
+      "coverage_refs": [
+        "function_dma_apb_err",
+        "function_dma_burst_boundary",
+        "cycle_burst_latency",
+        "cycle_cdc_crossing",
+        "cycle_timeout_path",
+        "cycle_apb_access",
+        "cycle_cdc_config",
+        "cycle_ahb_address_phase",
+        "cycle_ahb_data_phase",
+        "cycle_ahb_1kb_boundary",
+        "cycle_ahb_error_response",
+        "cycle_arb_grant_rule",
+        "cycle_start_accept",
+        "cycle_timeout_rule"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "timeout_rule",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "Timeout counter increments each hclk cycle while waiting for hready. Resets on hready assertion. Error code 4 when counter reaches GLOBAL_TIMEOUT."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "5",
         "state_updates": [],
         "error_policy": ""
       },
@@ -1623,7 +2300,8 @@
         "cycle_ordering_0",
         "cycle_ordering_1",
         "cycle_ordering_2",
-        "cycle_ordering_3"
+        "cycle_ordering_3",
+        "cycle_ordering_4"
       ],
       "stimulus_contract": {
         "transaction_type": "ordering_0",
@@ -1632,7 +2310,7 @@
           "transaction_order"
         ],
         "constraints": [
-          "Configuration (CFG) precedes transfer execution (READ/WRITE)."
+          "Configuration (APB pclk) must cross CDC before hclk channel FSM reads it."
         ]
       },
       "expected_contract": {
@@ -1640,7 +2318,7 @@
         "observables": [
           "ordered RTL observable sequence"
         ],
-        "latency": "4",
+        "latency": "5",
         "state_updates": [],
         "error_policy": ""
       },
@@ -1682,7 +2360,8 @@
         "cycle_ordering_0",
         "cycle_ordering_1",
         "cycle_ordering_2",
-        "cycle_ordering_3"
+        "cycle_ordering_3",
+        "cycle_ordering_4"
       ],
       "stimulus_contract": {
         "transaction_type": "ordering_1",
@@ -1691,7 +2370,7 @@
           "transaction_order"
         ],
         "constraints": [
-          "Read burst completion precedes write burst for same data."
+          "Read burst completion must precede write burst for same data."
         ]
       },
       "expected_contract": {
@@ -1699,7 +2378,7 @@
         "observables": [
           "ordered RTL observable sequence"
         ],
-        "latency": "4",
+        "latency": "5",
         "state_updates": [],
         "error_policy": ""
       },
@@ -1741,7 +2420,8 @@
         "cycle_ordering_0",
         "cycle_ordering_1",
         "cycle_ordering_2",
-        "cycle_ordering_3"
+        "cycle_ordering_3",
+        "cycle_ordering_4"
       ],
       "stimulus_contract": {
         "transaction_type": "ordering_2",
@@ -1750,7 +2430,7 @@
           "transaction_order"
         ],
         "constraints": [
-          "Address update (UPDATE) precedes next burst request."
+          "Address update (UPDATE) must precede next burst request."
         ]
       },
       "expected_contract": {
@@ -1758,7 +2438,7 @@
         "observables": [
           "ordered RTL observable sequence"
         ],
-        "latency": "4",
+        "latency": "5",
         "state_updates": [],
         "error_policy": ""
       },
@@ -1800,7 +2480,8 @@
         "cycle_ordering_0",
         "cycle_ordering_1",
         "cycle_ordering_2",
-        "cycle_ordering_3"
+        "cycle_ordering_3",
+        "cycle_ordering_4"
       ],
       "stimulus_contract": {
         "transaction_type": "ordering_3",
@@ -1817,7 +2498,67 @@
         "observables": [
           "ordered RTL observable sequence"
         ],
-        "latency": "4",
+        "latency": "5",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_4",
+      "title": "Ordering rule ordering_4",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[4]"
+      ],
+      "decomposition_refs": [
+        "dma_real_protocol_model",
+        "dma_real_datapath_model",
+        "dma_real_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3",
+        "cycle_ordering_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_4",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "1KB boundary crossing recalculates burst parameters before next address phase."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "5",
         "state_updates": [],
         "error_policy": ""
       },
@@ -1863,7 +2604,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'GLOBAL_CTRL', 'offset': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Global DMA control register', 'fields': [{'name': 'dma_en', 'lsb': 0, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Global DMA enable. When 0, no new transfers start and in-progress transfers pause after current burst.', 'write_effect': 'enables or disables DMA globally'}, {'name': 'reserved_31_1', 'lsb': 1, 'width': 31, 'access': 'rw', 'reset': 0, 'description': 'Reserved', 'write_effect': 'no side effect'}]}"
+          "{'name': 'GLOBAL_CTRL', 'offset': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Global DMA control register', 'fields': [{'name': 'dma_en', 'lsb': 0, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Global DMA enable', 'write_effect': 'enables or disables DMA globally'}, {'name': 'reserved_31_1', 'lsb': 1, 'width': 31, 'access': 'rw', 'reset': 0, 'description': 'Reserved', 'write_effect': 'no side effect'}]}"
         ]
       },
       "expected_contract": {
@@ -1922,7 +2663,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'INT_STATUS', 'offset': 4, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Per-channel interrupt status (bit per channel)', 'fields': [{'name': 'ch_status', 'lsb': 0, 'width': 4, 'access': 'ro', 'reset': 0, 'description': 'Bit[ch] is 1 when channel ch has pending interrupt (done or error)', 'write_effect': 'read-only, no write effect'}]}"
+          "{'name': 'INT_STATUS', 'offset': 4, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Per-channel interrupt status (bit per channel)', 'fields': [{'name': 'ch_status', 'lsb': 0, 'width': 4, 'access': 'ro', 'reset': 0, 'description': 'Bit[ch] is 1 when channel ch has pending interrupt', 'write_effect': 'read-only'}]}"
         ]
       },
       "expected_contract": {
@@ -2040,7 +2781,68 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'INT_CLEAR', 'offset': 12, 'width': 32, 'access': 'wo', 'reset': 0, 'description': 'Write-1-to-clear per-channel interrupt', 'fields': [{'name': 'ch_clear', 'lsb': 0, 'width': 4, 'access': 'wo', 'reset': 0, 'description': 'Writing 1 to bit[ch] clears done_q and error_q for channel ch', 'write_effect': 'clears latched done and error status for selected channels'}]}"
+          "{'name': 'INT_CLEAR', 'offset': 12, 'width': 32, 'access': 'wo', 'reset': 0, 'description': 'Write-1-to-clear per-channel interrupt', 'fields': [{'name': 'ch_clear', 'lsb': 0, 'width': 4, 'access': 'wo', 'reset': 0, 'description': 'Writing 1 to bit[ch] clears done_q and error_q for channel ch', 'write_effect': 'clears latched done and error status'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_GLOBAL_TIMEOUT",
+      "title": "Register access GLOBAL_TIMEOUT",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[4]"
+      ],
+      "decomposition_refs": [
+        "dma_real_register_model"
+      ],
+      "coverage_refs": [
+        "function_dma_irq_clear",
+        "cycle_timeout_rule",
+        "error_error_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'GLOBAL_TIMEOUT', 'offset': 16, 'width': 32, 'access': 'rw', 'reset': 1024, 'description': 'Bus timeout threshold in hclk cycles. 0 disables timeout.', 'fields': [{'name': 'timeout_val', 'lsb': 0, 'width': 16, 'access': 'rw', 'reset': 1024, 'description': 'Max hclk cycles to wait for hready. 0 = disabled.', 'write_effect': 'updates timeout threshold for all channels'}, {'name': 'reserved_31_16', 'lsb': 16, 'width': 16, 'access': 'rw', 'reset': 0, 'description': 'Reserved', 'write_effect': 'no side effect'}]}"
         ]
       },
       "expected_contract": {
@@ -2084,7 +2886,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[4]"
+        "registers.register_list[5]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2099,7 +2901,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH0_CTRL', 'offset': 128, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 0 control register', 'fields': [{'name': 'ch_en', 'lsb': 0, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Channel enable. Must be set before ch_start is accepted.', 'write_effect': 'enables or disables the channel'}, {'name': 'ch_start', 'lsb': 1, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Write 1 to start transfer. Self-clearing.', 'write_effect': 'initiates DMA transfer if ch_en and dma_en are set'}, {'name': 'ch_mode', 'lsb': 2, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Transfer mode (0 = memory-to-memory). Fixed at 0 for this version.', 'write_effect': 'selects transfer mode'}]}"
+          "{'name': 'CH0_CTRL', 'offset': 256, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 0 control register', 'fields': [{'name': 'ch_en', 'lsb': 0, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Channel enable', 'write_effect': 'enables or disables the channel'}, {'name': 'ch_start', 'lsb': 1, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Write 1 to start transfer (self-clearing)', 'write_effect': 'initiates DMA transfer if ch_en and dma_en are set'}, {'name': 'hsize', 'lsb': 2, 'width': 2, 'access': 'rw', 'reset': 0, 'description': 'Transfer size (00=byte, 01=halfword, 10=word)', 'write_effect': 'sets hsize for AHB transfers'}, {'name': 'burst_mode', 'lsb': 4, 'width': 2, 'access': 'rw', 'reset': 0, 'description': 'Burst mode (00=INCR, 01=INCR4, 10=INCR8, 11=INCR16)', 'write_effect': 'selects burst type for AHB'}, {'name': 'reserved_31_6', 'lsb': 6, 'width': 26, 'access': 'rw', 'reset': 0, 'description': 'Reserved', 'write_effect': 'no side effect'}]}"
         ]
       },
       "expected_contract": {
@@ -2143,7 +2945,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[5]"
+        "registers.register_list[6]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2158,7 +2960,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH0_SRC_ADDR', 'offset': 132, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 0 source start address (must be word-aligned)', 'fields': [{'name': 'src_addr', 'lsb': 0, 'width': 'ADDR_WIDTH', 'access': 'rw', 'reset': 0, 'description': 'Source address. Bits [1:0] must be 0.', 'write_effect': 'latches source address for transfer'}]}"
+          "{'name': 'CH0_SRC_ADDR', 'offset': 260, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 0 source start address (must be word-aligned for word transfers)', 'fields': [{'name': 'src_addr', 'lsb': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Source address', 'write_effect': 'latches source address for transfer'}]}"
         ]
       },
       "expected_contract": {
@@ -2202,7 +3004,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[6]"
+        "registers.register_list[7]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2217,7 +3019,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH0_DST_ADDR', 'offset': 136, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 0 destination start address (must be word-aligned)', 'fields': [{'name': 'dst_addr', 'lsb': 0, 'width': 'ADDR_WIDTH', 'access': 'rw', 'reset': 0, 'description': 'Destination address. Bits [1:0] must be 0.', 'write_effect': 'latches destination address for transfer'}]}"
+          "{'name': 'CH0_DST_ADDR', 'offset': 264, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 0 destination start address', 'fields': [{'name': 'dst_addr', 'lsb': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Destination address', 'write_effect': 'latches destination address for transfer'}]}"
         ]
       },
       "expected_contract": {
@@ -2261,7 +3063,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[7]"
+        "registers.register_list[8]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2276,7 +3078,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH0_LEN', 'offset': 140, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 0 transfer length in words (1..65536). 0 is invalid.', 'fields': [{'name': 'length', 'lsb': 0, 'width': 16, 'access': 'rw', 'reset': 0, 'description': 'Transfer length in words', 'write_effect': 'sets number of words to transfer'}]}"
+          "{'name': 'CH0_LEN', 'offset': 268, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 0 transfer length in words (1..65536). 0 is invalid.', 'fields': [{'name': 'length', 'lsb': 0, 'width': 16, 'access': 'rw', 'reset': 0, 'description': 'Transfer length in words', 'write_effect': 'sets number of words to transfer'}, {'name': 'reserved_31_16', 'lsb': 16, 'width': 16, 'access': 'rw', 'reset': 0, 'description': 'Reserved', 'write_effect': 'no side effect'}]}"
         ]
       },
       "expected_contract": {
@@ -2320,7 +3122,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[8]"
+        "registers.register_list[9]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2335,7 +3137,184 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH0_STATUS', 'offset': 144, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 0 status register', 'fields': [{'name': 'busy', 'lsb': 0, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Channel is actively transferring', 'write_effect': 'read-only'}, {'name': 'done', 'lsb': 1, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Transfer completed successfully. Cleared by INT_CLEAR.', 'write_effect': 'read-only, cleared via INT_CLEAR'}, {'name': 'error', 'lsb': 2, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Error occurred. Cleared by INT_CLEAR.', 'write_effect': 'read-only, cleared via INT_CLEAR'}, {'name': 'err_code', 'lsb': 3, 'width': 2, 'access': 'ro', 'reset': 0, 'description': 'Error code (0=none, 1=alignment, 2=zero_len, 3=bus_err)', 'write_effect': 'read-only'}]}"
+          "{'name': 'CH0_STATUS', 'offset': 272, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 0 status register', 'fields': [{'name': 'busy', 'lsb': 0, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Channel is actively transferring', 'write_effect': 'read-only'}, {'name': 'done', 'lsb': 1, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Transfer completed (sticky, cleared by INT_CLEAR)', 'write_effect': 'read-only'}, {'name': 'error', 'lsb': 2, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Error occurred (sticky, cleared by INT_CLEAR)', 'write_effect': 'read-only'}, {'name': 'err_code', 'lsb': 3, 'width': 3, 'access': 'ro', 'reset': 0, 'description': 'Error code (0=none, 1=align, 2=zero_len, 3=bus_err, 4=timeout, 5=fifo_overflow)', 'write_effect': 'read-only'}, {'name': 'reserved_31_6', 'lsb': 6, 'width': 26, 'access': 'ro', 'reset': 0, 'description': 'Reserved', 'write_effect': 'read-only'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH0_STRIDE",
+      "title": "Register access CH0_STRIDE",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[10]"
+      ],
+      "decomposition_refs": [
+        "dma_real_register_model"
+      ],
+      "coverage_refs": [
+        "function_dma_irq_clear"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CH0_STRIDE', 'offset': 276, 'width': 32, 'access': 'rw', 'reset': 4, 'description': 'Channel 0 address stride per beat. Default 4 (word). Set 0 for fixed-address peripheral.', 'fields': [{'name': 'stride', 'lsb': 0, 'width': 32, 'access': 'rw', 'reset': 4, 'description': 'Address increment per beat', 'write_effect': 'sets address stride for transfer'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH0_PERF_WORDS",
+      "title": "Register access CH0_PERF_WORDS",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[11]"
+      ],
+      "decomposition_refs": [
+        "dma_real_register_model"
+      ],
+      "coverage_refs": [
+        "function_dma_irq_clear"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CH0_PERF_WORDS', 'offset': 284, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 0 total words transferred (saturating counter)', 'fields': [{'name': 'word_count', 'lsb': 0, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Cumulative words transferred', 'write_effect': 'read-only'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH0_PERF_CYCLES",
+      "title": "Register access CH0_PERF_CYCLES",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[12]"
+      ],
+      "decomposition_refs": [
+        "dma_real_register_model"
+      ],
+      "coverage_refs": [
+        "function_dma_irq_clear"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CH0_PERF_CYCLES', 'offset': 288, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 0 total active cycles (saturating counter)', 'fields': [{'name': 'cycle_count', 'lsb': 0, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Cumulative active hclk cycles', 'write_effect': 'read-only'}]}"
         ]
       },
       "expected_contract": {
@@ -2379,7 +3358,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[9]"
+        "registers.register_list[13]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2394,7 +3373,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH1_CTRL', 'offset': 160, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 1 control register', 'fields': [{'name': 'ch_en', 'lsb': 0, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Channel enable', 'write_effect': 'enables or disables the channel'}, {'name': 'ch_start', 'lsb': 1, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Write 1 to start transfer', 'write_effect': 'initiates DMA transfer'}, {'name': 'ch_mode', 'lsb': 2, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Transfer mode (0 = memory-to-memory)', 'write_effect': 'selects transfer mode'}]}"
+          "{'name': 'CH1_CTRL', 'offset': 320, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 1 control register', 'fields': [{'name': 'ch_en', 'lsb': 0, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Channel enable', 'write_effect': 'enables or disables the channel'}, {'name': 'ch_start', 'lsb': 1, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Write 1 to start transfer', 'write_effect': 'initiates DMA transfer'}, {'name': 'hsize', 'lsb': 2, 'width': 2, 'access': 'rw', 'reset': 0, 'description': 'Transfer size', 'write_effect': 'sets hsize for AHB transfers'}, {'name': 'burst_mode', 'lsb': 4, 'width': 2, 'access': 'rw', 'reset': 0, 'description': 'Burst mode', 'write_effect': 'selects burst type'}, {'name': 'reserved_31_6', 'lsb': 6, 'width': 26, 'access': 'rw', 'reset': 0, 'description': 'Reserved', 'write_effect': 'no side effect'}]}"
         ]
       },
       "expected_contract": {
@@ -2438,7 +3417,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[10]"
+        "registers.register_list[14]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2453,7 +3432,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH1_SRC_ADDR', 'offset': 164, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 1 source start address', 'fields': [{'name': 'src_addr', 'lsb': 0, 'width': 'ADDR_WIDTH', 'access': 'rw', 'reset': 0, 'description': 'Source address', 'write_effect': 'latches source address'}]}"
+          "{'name': 'CH1_SRC_ADDR', 'offset': 324, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 1 source start address', 'fields': [{'name': 'src_addr', 'lsb': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Source address', 'write_effect': 'latches source address'}]}"
         ]
       },
       "expected_contract": {
@@ -2497,7 +3476,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[11]"
+        "registers.register_list[15]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2512,7 +3491,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH1_DST_ADDR', 'offset': 168, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 1 destination start address', 'fields': [{'name': 'dst_addr', 'lsb': 0, 'width': 'ADDR_WIDTH', 'access': 'rw', 'reset': 0, 'description': 'Destination address', 'write_effect': 'latches destination address'}]}"
+          "{'name': 'CH1_DST_ADDR', 'offset': 328, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 1 destination start address', 'fields': [{'name': 'dst_addr', 'lsb': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Destination address', 'write_effect': 'latches destination address'}]}"
         ]
       },
       "expected_contract": {
@@ -2556,7 +3535,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[12]"
+        "registers.register_list[16]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2571,7 +3550,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH1_LEN', 'offset': 172, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 1 transfer length in words', 'fields': [{'name': 'length', 'lsb': 0, 'width': 16, 'access': 'rw', 'reset': 0, 'description': 'Transfer length', 'write_effect': 'sets transfer length'}]}"
+          "{'name': 'CH1_LEN', 'offset': 332, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 1 transfer length in words', 'fields': [{'name': 'length', 'lsb': 0, 'width': 16, 'access': 'rw', 'reset': 0, 'description': 'Transfer length', 'write_effect': 'sets transfer length'}, {'name': 'reserved_31_16', 'lsb': 16, 'width': 16, 'access': 'rw', 'reset': 0, 'description': 'Reserved', 'write_effect': 'no side effect'}]}"
         ]
       },
       "expected_contract": {
@@ -2615,7 +3594,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[13]"
+        "registers.register_list[17]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2630,7 +3609,184 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH1_STATUS', 'offset': 176, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 1 status register', 'fields': [{'name': 'busy', 'lsb': 0, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Channel busy', 'write_effect': 'read-only'}, {'name': 'done', 'lsb': 1, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Transfer done', 'write_effect': 'read-only, cleared via INT_CLEAR'}, {'name': 'error', 'lsb': 2, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Error flag', 'write_effect': 'read-only, cleared via INT_CLEAR'}, {'name': 'err_code', 'lsb': 3, 'width': 2, 'access': 'ro', 'reset': 0, 'description': 'Error code', 'write_effect': 'read-only'}]}"
+          "{'name': 'CH1_STATUS', 'offset': 336, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 1 status register', 'fields': [{'name': 'busy', 'lsb': 0, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Channel busy', 'write_effect': 'read-only'}, {'name': 'done', 'lsb': 1, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Transfer done', 'write_effect': 'read-only'}, {'name': 'error', 'lsb': 2, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Error flag', 'write_effect': 'read-only'}, {'name': 'err_code', 'lsb': 3, 'width': 3, 'access': 'ro', 'reset': 0, 'description': 'Error code', 'write_effect': 'read-only'}, {'name': 'reserved_31_6', 'lsb': 6, 'width': 26, 'access': 'ro', 'reset': 0, 'description': 'Reserved', 'write_effect': 'read-only'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH1_STRIDE",
+      "title": "Register access CH1_STRIDE",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[18]"
+      ],
+      "decomposition_refs": [
+        "dma_real_register_model"
+      ],
+      "coverage_refs": [
+        "function_dma_irq_clear"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CH1_STRIDE', 'offset': 340, 'width': 32, 'access': 'rw', 'reset': 4, 'description': 'Channel 1 address stride per beat', 'fields': [{'name': 'stride', 'lsb': 0, 'width': 32, 'access': 'rw', 'reset': 4, 'description': 'Address increment per beat', 'write_effect': 'sets address stride'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH1_PERF_WORDS",
+      "title": "Register access CH1_PERF_WORDS",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[19]"
+      ],
+      "decomposition_refs": [
+        "dma_real_register_model"
+      ],
+      "coverage_refs": [
+        "function_dma_irq_clear"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CH1_PERF_WORDS', 'offset': 348, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 1 total words transferred', 'fields': [{'name': 'word_count', 'lsb': 0, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Cumulative words transferred', 'write_effect': 'read-only'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH1_PERF_CYCLES",
+      "title": "Register access CH1_PERF_CYCLES",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[20]"
+      ],
+      "decomposition_refs": [
+        "dma_real_register_model"
+      ],
+      "coverage_refs": [
+        "function_dma_irq_clear"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CH1_PERF_CYCLES', 'offset': 352, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 1 total active cycles', 'fields': [{'name': 'cycle_count', 'lsb': 0, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Cumulative active hclk cycles', 'write_effect': 'read-only'}]}"
         ]
       },
       "expected_contract": {
@@ -2674,7 +3830,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[14]"
+        "registers.register_list[21]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2689,7 +3845,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH2_CTRL', 'offset': 192, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 2 control register', 'fields': [{'name': 'ch_en', 'lsb': 0, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Channel enable', 'write_effect': 'enables or disables the channel'}, {'name': 'ch_start', 'lsb': 1, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Write 1 to start transfer', 'write_effect': 'initiates DMA transfer'}, {'name': 'ch_mode', 'lsb': 2, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Transfer mode (0 = memory-to-mem)', 'write_effect': 'selects transfer mode'}]}"
+          "{'name': 'CH2_CTRL', 'offset': 384, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 2 control register', 'fields': [{'name': 'ch_en', 'lsb': 0, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Channel enable', 'write_effect': 'enables or disables the channel'}, {'name': 'ch_start', 'lsb': 1, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Write 1 to start transfer', 'write_effect': 'initiates DMA transfer'}, {'name': 'hsize', 'lsb': 2, 'width': 2, 'access': 'rw', 'reset': 0, 'description': 'Transfer size', 'write_effect': 'sets hsize for AHB transfers'}, {'name': 'burst_mode', 'lsb': 4, 'width': 2, 'access': 'rw', 'reset': 0, 'description': 'Burst mode', 'write_effect': 'selects burst type'}, {'name': 'reserved_31_6', 'lsb': 6, 'width': 26, 'access': 'rw', 'reset': 0, 'description': 'Reserved', 'write_effect': 'no side effect'}]}"
         ]
       },
       "expected_contract": {
@@ -2733,7 +3889,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[15]"
+        "registers.register_list[22]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2748,7 +3904,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH2_SRC_ADDR', 'offset': 196, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 2 source start address', 'fields': [{'name': 'src_addr', 'lsb': 0, 'width': 'ADDR_WIDTH', 'access': 'rw', 'reset': 0, 'description': 'Source address', 'write_effect': 'latches source address'}]}"
+          "{'name': 'CH2_SRC_ADDR', 'offset': 388, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 2 source start address', 'fields': [{'name': 'src_addr', 'lsb': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Source address', 'write_effect': 'latches source address'}]}"
         ]
       },
       "expected_contract": {
@@ -2792,7 +3948,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[16]"
+        "registers.register_list[23]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2807,7 +3963,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH2_DST_ADDR', 'offset': 200, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 2 destination start address', 'fields': [{'name': 'dst_addr', 'lsb': 0, 'width': 'ADDR_WIDTH', 'access': 'rw', 'reset': 0, 'description': 'Destination address', 'write_effect': 'latches destination address'}]}"
+          "{'name': 'CH2_DST_ADDR', 'offset': 392, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 2 destination start address', 'fields': [{'name': 'dst_addr', 'lsb': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Destination address', 'write_effect': 'latches destination address'}]}"
         ]
       },
       "expected_contract": {
@@ -2851,7 +4007,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[17]"
+        "registers.register_list[24]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2866,7 +4022,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH2_LEN', 'offset': 204, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 2 transfer length in words', 'fields': [{'name': 'length', 'lsb': 0, 'width': 16, 'access': 'rw', 'reset': 0, 'description': 'Transfer length', 'write_effect': 'sets transfer length'}]}"
+          "{'name': 'CH2_LEN', 'offset': 396, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 2 transfer length', 'fields': [{'name': 'length', 'lsb': 0, 'width': 16, 'access': 'rw', 'reset': 0, 'description': 'Transfer length', 'write_effect': 'sets transfer length'}, {'name': 'reserved_31_16', 'lsb': 16, 'width': 16, 'access': 'rw', 'reset': 0, 'description': 'Reserved', 'write_effect': 'no side effect'}]}"
         ]
       },
       "expected_contract": {
@@ -2910,7 +4066,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[18]"
+        "registers.register_list[25]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2925,7 +4081,184 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH2_STATUS', 'offset': 208, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 2 status register', 'fields': [{'name': 'busy', 'lsb': 0, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Channel busy', 'write_effect': 'read-only'}, {'name': 'done', 'lsb': 1, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Transfer done', 'write_effect': 'read-only, cleared via INT_CLEAR'}, {'name': 'error', 'lsb': 2, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Error flag', 'write_effect': 'read-only, cleared via INT_CLEAR'}, {'name': 'err_code', 'lsb': 3, 'width': 2, 'access': 'ro', 'reset': 0, 'description': 'Error code', 'write_effect': 'read-only'}]}"
+          "{'name': 'CH2_STATUS', 'offset': 400, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 2 status register', 'fields': [{'name': 'busy', 'lsb': 0, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Channel busy', 'write_effect': 'read-only'}, {'name': 'done', 'lsb': 1, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Transfer done', 'write_effect': 'read-only'}, {'name': 'error', 'lsb': 2, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Error flag', 'write_effect': 'read-only'}, {'name': 'err_code', 'lsb': 3, 'width': 3, 'access': 'ro', 'reset': 0, 'description': 'Error code', 'write_effect': 'read-only'}, {'name': 'reserved_31_6', 'lsb': 6, 'width': 26, 'access': 'ro', 'reset': 0, 'description': 'Reserved', 'write_effect': 'read-only'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH2_STRIDE",
+      "title": "Register access CH2_STRIDE",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[26]"
+      ],
+      "decomposition_refs": [
+        "dma_real_register_model"
+      ],
+      "coverage_refs": [
+        "function_dma_irq_clear"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CH2_STRIDE', 'offset': 404, 'width': 32, 'access': 'rw', 'reset': 4, 'description': 'Channel 2 address stride', 'fields': [{'name': 'stride', 'lsb': 0, 'width': 32, 'access': 'rw', 'reset': 4, 'description': 'Address increment per beat', 'write_effect': 'sets address stride'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH2_PERF_WORDS",
+      "title": "Register access CH2_PERF_WORDS",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[27]"
+      ],
+      "decomposition_refs": [
+        "dma_real_register_model"
+      ],
+      "coverage_refs": [
+        "function_dma_irq_clear"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CH2_PERF_WORDS', 'offset': 412, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 2 words transferred', 'fields': [{'name': 'word_count', 'lsb': 0, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Cumulative words transferred', 'write_effect': 'read-only'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH2_PERF_CYCLES",
+      "title": "Register access CH2_PERF_CYCLES",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[28]"
+      ],
+      "decomposition_refs": [
+        "dma_real_register_model"
+      ],
+      "coverage_refs": [
+        "function_dma_irq_clear"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CH2_PERF_CYCLES', 'offset': 416, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 2 active cycles', 'fields': [{'name': 'cycle_count', 'lsb': 0, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Cumulative active hclk cycles', 'write_effect': 'read-only'}]}"
         ]
       },
       "expected_contract": {
@@ -2969,7 +4302,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[19]"
+        "registers.register_list[29]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -2984,7 +4317,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH3_CTRL', 'offset': 224, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 3 control register', 'fields': [{'name': 'ch_en', 'lsb': 0, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Channel enable', 'write_effect': 'enables or disables the channel'}, {'name': 'ch_start', 'lsb': 1, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Write 1 to start transfer', 'write_effect': 'initiates DMA transfer'}, {'name': 'ch_mode', 'lsb': 2, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Transfer mode (0 = memory-to-mem)', 'write_effect': 'selects transfer mode'}]}"
+          "{'name': 'CH3_CTRL', 'offset': 448, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 3 control register', 'fields': [{'name': 'ch_en', 'lsb': 0, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Channel enable', 'write_effect': 'enables or disables the channel'}, {'name': 'ch_start', 'lsb': 1, 'width': 1, 'access': 'rw', 'reset': 0, 'description': 'Write 1 to start transfer', 'write_effect': 'initiates DMA transfer'}, {'name': 'hsize', 'lsb': 2, 'width': 2, 'access': 'rw', 'reset': 0, 'description': 'Transfer size', 'write_effect': 'sets hsize for AHB transfers'}, {'name': 'burst_mode', 'lsb': 4, 'width': 2, 'access': 'rw', 'reset': 0, 'description': 'Burst mode', 'write_effect': 'selects burst type'}, {'name': 'reserved_31_6', 'lsb': 6, 'width': 26, 'access': 'rw', 'reset': 0, 'description': 'Reserved', 'write_effect': 'no side effect'}]}"
         ]
       },
       "expected_contract": {
@@ -3028,7 +4361,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[20]"
+        "registers.register_list[30]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -3043,7 +4376,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH3_SRC_ADDR', 'offset': 228, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 3 source start address', 'fields': [{'name': 'src_addr', 'lsb': 0, 'width': 'ADDR_WIDTH', 'access': 'rw', 'reset': 0, 'description': 'Source address', 'write_effect': 'latches source address'}]}"
+          "{'name': 'CH3_SRC_ADDR', 'offset': 452, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 3 source start address', 'fields': [{'name': 'src_addr', 'lsb': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Source address', 'write_effect': 'latches source address'}]}"
         ]
       },
       "expected_contract": {
@@ -3087,7 +4420,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[21]"
+        "registers.register_list[31]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -3102,7 +4435,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH3_DST_ADDR', 'offset': 232, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 3 destination start address', 'fields': [{'name': 'dst_addr', 'lsb': 0, 'width': 'ADDR_WIDTH', 'access': 'rw', 'reset': 0, 'description': 'Destination address', 'write_effect': 'latches destination address'}]}"
+          "{'name': 'CH3_DST_ADDR', 'offset': 456, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 3 destination start address', 'fields': [{'name': 'dst_addr', 'lsb': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Destination address', 'write_effect': 'latches destination address'}]}"
         ]
       },
       "expected_contract": {
@@ -3146,7 +4479,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[22]"
+        "registers.register_list[32]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -3161,7 +4494,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH3_LEN', 'offset': 236, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 3 transfer length in words', 'fields': [{'name': 'length', 'lsb': 0, 'width': 16, 'access': 'rw', 'reset': 0, 'description': 'Transfer length', 'write_effect': 'sets transfer length'}]}"
+          "{'name': 'CH3_LEN', 'offset': 460, 'width': 32, 'access': 'rw', 'reset': 0, 'description': 'Channel 3 transfer length', 'fields': [{'name': 'length', 'lsb': 0, 'width': 16, 'access': 'rw', 'reset': 0, 'description': 'Transfer length', 'write_effect': 'sets transfer length'}, {'name': 'reserved_31_16', 'lsb': 16, 'width': 16, 'access': 'rw', 'reset': 0, 'description': 'Reserved', 'write_effect': 'no side effect'}]}"
         ]
       },
       "expected_contract": {
@@ -3205,7 +4538,7 @@
         "level": "top"
       },
       "ssot_refs": [
-        "registers.register_list[23]"
+        "registers.register_list[33]"
       ],
       "decomposition_refs": [
         "dma_real_register_model"
@@ -3220,7 +4553,184 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CH3_STATUS', 'offset': 240, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 3 status register', 'fields': [{'name': 'busy', 'lsb': 0, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Channel busy', 'write_effect': 'read-only'}, {'name': 'done', 'lsb': 1, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Transfer done', 'write_effect': 'read-only, cleared via INT_CLEAR'}, {'name': 'error', 'lsb': 2, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Error flag', 'write_effect': 'read-only, cleared via INT_CLEAR'}, {'name': 'err_code', 'lsb': 3, 'width': 2, 'access': 'ro', 'reset': 0, 'description': 'Error code', 'write_effect': 'read-only'}]}"
+          "{'name': 'CH3_STATUS', 'offset': 464, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 3 status register', 'fields': [{'name': 'busy', 'lsb': 0, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Channel busy', 'write_effect': 'read-only'}, {'name': 'done', 'lsb': 1, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Transfer done', 'write_effect': 'read-only'}, {'name': 'error', 'lsb': 2, 'width': 1, 'access': 'ro', 'reset': 0, 'description': 'Error flag', 'write_effect': 'read-only'}, {'name': 'err_code', 'lsb': 3, 'width': 3, 'access': 'ro', 'reset': 0, 'description': 'Error code', 'write_effect': 'read-only'}, {'name': 'reserved_31_6', 'lsb': 6, 'width': 26, 'access': 'ro', 'reset': 0, 'description': 'Reserved', 'write_effect': 'read-only'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH3_STRIDE",
+      "title": "Register access CH3_STRIDE",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[34]"
+      ],
+      "decomposition_refs": [
+        "dma_real_register_model"
+      ],
+      "coverage_refs": [
+        "function_dma_irq_clear"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CH3_STRIDE', 'offset': 468, 'width': 32, 'access': 'rw', 'reset': 4, 'description': 'Channel 3 address stride', 'fields': [{'name': 'stride', 'lsb': 0, 'width': 32, 'access': 'rw', 'reset': 4, 'description': 'Address increment per beat', 'write_effect': 'sets address stride'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH3_PERF_WORDS",
+      "title": "Register access CH3_PERF_WORDS",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[35]"
+      ],
+      "decomposition_refs": [
+        "dma_real_register_model"
+      ],
+      "coverage_refs": [
+        "function_dma_irq_clear"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CH3_PERF_WORDS', 'offset': 476, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 3 words transferred', 'fields': [{'name': 'word_count', 'lsb': 0, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Cumulative words transferred', 'write_effect': 'read-only'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH3_PERF_CYCLES",
+      "title": "Register access CH3_PERF_CYCLES",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[36]"
+      ],
+      "decomposition_refs": [
+        "dma_real_register_model"
+      ],
+      "coverage_refs": [
+        "function_dma_irq_clear"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CH3_PERF_CYCLES', 'offset': 480, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Channel 3 active cycles', 'fields': [{'name': 'cycle_count', 'lsb': 0, 'width': 32, 'access': 'ro', 'reset': 0, 'description': 'Cumulative active hclk cycles', 'write_effect': 'read-only'}]}"
         ]
       },
       "expected_contract": {
@@ -3277,15 +4787,23 @@
         "function_dma_error_align",
         "function_dma_error_zero_len",
         "function_dma_error_bus",
+        "function_dma_error_timeout",
         "function_dma_busy_reject",
         "function_dma_apb_err",
+        "function_dma_timeout",
         "cycle_pipeline_error",
         "function_dma_error",
+        "cycle_ahb_error_response",
+        "cycle_timeout_rule",
         "fsm_per_channel_idle_to_error_1",
-        "fsm_per_channel_error_to_idle_9",
+        "fsm_per_channel_read_to_error_5",
+        "fsm_per_channel_write_to_error_7",
+        "fsm_per_channel_error_to_idle_11",
         "error_error_0",
         "error_error_1",
-        "error_error_2"
+        "error_error_2",
+        "error_error_3",
+        "error_error_4"
       ],
       "stimulus_contract": {
         "transaction_type": "None",
@@ -3344,17 +4862,18 @@
       "coverage_refs": [
         "cycle_pipeline_idle",
         "cycle_pipeline_cfg",
-        "cycle_ordering_0",
         "fsm_per_channel_idle_to_cfg_0",
         "fsm_per_channel_idle_to_error_1",
         "fsm_per_channel_cfg_to_request_2",
         "fsm_per_channel_request_to_read_3",
         "fsm_per_channel_read_to_write_4",
-        "fsm_per_channel_write_to_update_5",
-        "fsm_per_channel_update_to_read_6",
-        "fsm_per_channel_update_to_done_7",
-        "fsm_per_channel_done_to_idle_8",
-        "fsm_per_channel_error_to_idle_9"
+        "fsm_per_channel_read_to_error_5",
+        "fsm_per_channel_write_to_update_6",
+        "fsm_per_channel_write_to_error_7",
+        "fsm_per_channel_update_to_request_8",
+        "fsm_per_channel_update_to_done_9",
+        "fsm_per_channel_done_to_idle_10",
+        "fsm_per_channel_error_to_idle_11"
       ],
       "stimulus_contract": {
         "transaction_type": "per_channel_IDLE_to_CFG_0",
@@ -3363,7 +4882,7 @@
           "stimulus"
         ],
         "constraints": [
-          "ch_start && ch_en && dma_en && valid_cfg"
+          "ch_start && ch_en && dma_en && valid_cfg && cdc_config_valid"
         ]
       },
       "expected_contract": {
@@ -3417,24 +4936,32 @@
         "function_dma_error_align",
         "function_dma_error_zero_len",
         "function_dma_error_bus",
+        "function_dma_error_timeout",
         "function_dma_busy_reject",
         "function_dma_apb_err",
+        "function_dma_timeout",
         "cycle_pipeline_idle",
         "cycle_pipeline_error",
         "function_dma_error",
+        "cycle_ahb_error_response",
+        "cycle_timeout_rule",
         "fsm_per_channel_idle_to_cfg_0",
         "fsm_per_channel_idle_to_error_1",
         "fsm_per_channel_cfg_to_request_2",
         "fsm_per_channel_request_to_read_3",
         "fsm_per_channel_read_to_write_4",
-        "fsm_per_channel_write_to_update_5",
-        "fsm_per_channel_update_to_read_6",
-        "fsm_per_channel_update_to_done_7",
-        "fsm_per_channel_done_to_idle_8",
-        "fsm_per_channel_error_to_idle_9",
+        "fsm_per_channel_read_to_error_5",
+        "fsm_per_channel_write_to_update_6",
+        "fsm_per_channel_write_to_error_7",
+        "fsm_per_channel_update_to_request_8",
+        "fsm_per_channel_update_to_done_9",
+        "fsm_per_channel_done_to_idle_10",
+        "fsm_per_channel_error_to_idle_11",
         "error_error_0",
         "error_error_1",
-        "error_error_2"
+        "error_error_2",
+        "error_error_3",
+        "error_error_4"
       ],
       "stimulus_contract": {
         "transaction_type": "per_channel_IDLE_to_ERROR_1",
@@ -3493,8 +5020,8 @@
       "coverage_refs": [
         "cycle_pipeline_cfg",
         "cycle_pipeline_request",
+        "cycle_ahb_error_response",
         "cycle_arb_grant_rule",
-        "cycle_ordering_0",
         "cycle_ordering_2",
         "cycle_backpressure_2",
         "fsm_per_channel_idle_to_cfg_0",
@@ -3502,11 +5029,13 @@
         "fsm_per_channel_cfg_to_request_2",
         "fsm_per_channel_request_to_read_3",
         "fsm_per_channel_read_to_write_4",
-        "fsm_per_channel_write_to_update_5",
-        "fsm_per_channel_update_to_read_6",
-        "fsm_per_channel_update_to_done_7",
-        "fsm_per_channel_done_to_idle_8",
-        "fsm_per_channel_error_to_idle_9",
+        "fsm_per_channel_read_to_error_5",
+        "fsm_per_channel_write_to_update_6",
+        "fsm_per_channel_write_to_error_7",
+        "fsm_per_channel_update_to_request_8",
+        "fsm_per_channel_update_to_done_9",
+        "fsm_per_channel_done_to_idle_10",
+        "fsm_per_channel_error_to_idle_11",
         "error_error_1"
       ],
       "stimulus_contract": {
@@ -3566,23 +5095,31 @@
       "coverage_refs": [
         "cycle_pipeline_request",
         "cycle_pipeline_read",
+        "cycle_cdc_config",
+        "cycle_ahb_error_response",
         "cycle_arb_grant_rule",
+        "cycle_timeout_rule",
         "cycle_ordering_0",
         "cycle_ordering_1",
         "cycle_ordering_2",
         "cycle_backpressure_1",
         "cycle_backpressure_2",
+        "cycle_backpressure_3",
+        "cycle_backpressure_4",
         "fsm_per_channel_idle_to_cfg_0",
         "fsm_per_channel_idle_to_error_1",
         "fsm_per_channel_cfg_to_request_2",
         "fsm_per_channel_request_to_read_3",
         "fsm_per_channel_read_to_write_4",
-        "fsm_per_channel_write_to_update_5",
-        "fsm_per_channel_update_to_read_6",
-        "fsm_per_channel_update_to_done_7",
-        "fsm_per_channel_done_to_idle_8",
-        "fsm_per_channel_error_to_idle_9",
-        "error_error_1"
+        "fsm_per_channel_read_to_error_5",
+        "fsm_per_channel_write_to_update_6",
+        "fsm_per_channel_write_to_error_7",
+        "fsm_per_channel_update_to_request_8",
+        "fsm_per_channel_update_to_done_9",
+        "fsm_per_channel_done_to_idle_10",
+        "fsm_per_channel_error_to_idle_11",
+        "error_error_1",
+        "error_error_3"
       ],
       "stimulus_contract": {
         "transaction_type": "per_channel_REQUEST_to_READ_3",
@@ -3641,20 +5178,27 @@
       "coverage_refs": [
         "cycle_pipeline_read",
         "cycle_pipeline_write",
-        "cycle_ahb_address_phase",
+        "cycle_cdc_config",
+        "cycle_timeout_rule",
         "cycle_ordering_0",
         "cycle_ordering_1",
         "cycle_backpressure_1",
+        "cycle_backpressure_3",
+        "cycle_backpressure_4",
         "fsm_per_channel_idle_to_cfg_0",
         "fsm_per_channel_idle_to_error_1",
         "fsm_per_channel_cfg_to_request_2",
         "fsm_per_channel_request_to_read_3",
         "fsm_per_channel_read_to_write_4",
-        "fsm_per_channel_write_to_update_5",
-        "fsm_per_channel_update_to_read_6",
-        "fsm_per_channel_update_to_done_7",
-        "fsm_per_channel_done_to_idle_8",
-        "fsm_per_channel_error_to_idle_9"
+        "fsm_per_channel_read_to_error_5",
+        "fsm_per_channel_write_to_update_6",
+        "fsm_per_channel_write_to_error_7",
+        "fsm_per_channel_update_to_request_8",
+        "fsm_per_channel_update_to_done_9",
+        "fsm_per_channel_done_to_idle_10",
+        "fsm_per_channel_error_to_idle_11",
+        "error_error_3",
+        "error_error_4"
       ],
       "stimulus_contract": {
         "transaction_type": "per_channel_READ_to_WRITE_4",
@@ -3663,7 +5207,7 @@
           "stimulus"
         ],
         "constraints": [
-          "read_burst_complete"
+          "read_burst_complete && !fifo_full"
         ]
       },
       "expected_contract": {
@@ -3698,8 +5242,8 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_STATE_PER_CHANNEL_WRITE_TO_UPDATE_5",
-      "title": "FSM transition per_channel: WRITE -> UPDATE",
+      "goal_id": "EQ_STATE_PER_CHANNEL_READ_TO_ERROR_5",
+      "title": "FSM transition per_channel: READ -> ERROR",
       "kind": "state",
       "scope": {
         "level": "top"
@@ -3711,25 +5255,122 @@
         "dma_real_fsm_model"
       ],
       "coverage_refs": [
-        "cycle_pipeline_write",
-        "cycle_pipeline_update",
-        "cycle_ahb_address_phase",
+        "SC_002_executed",
+        "SC_003_executed",
+        "SC_006_executed",
+        "function_dma_error_align",
+        "function_dma_error_zero_len",
+        "function_dma_error_bus",
+        "function_dma_error_timeout",
+        "function_dma_busy_reject",
+        "function_dma_apb_err",
+        "function_dma_timeout",
+        "cycle_pipeline_read",
+        "cycle_pipeline_error",
+        "function_dma_error",
+        "cycle_cdc_config",
+        "cycle_ahb_error_response",
+        "cycle_timeout_rule",
         "cycle_ordering_0",
         "cycle_ordering_1",
-        "cycle_ordering_2",
+        "cycle_backpressure_1",
+        "cycle_backpressure_3",
+        "cycle_backpressure_4",
         "fsm_per_channel_idle_to_cfg_0",
         "fsm_per_channel_idle_to_error_1",
         "fsm_per_channel_cfg_to_request_2",
         "fsm_per_channel_request_to_read_3",
         "fsm_per_channel_read_to_write_4",
-        "fsm_per_channel_write_to_update_5",
-        "fsm_per_channel_update_to_read_6",
-        "fsm_per_channel_update_to_done_7",
-        "fsm_per_channel_done_to_idle_8",
-        "fsm_per_channel_error_to_idle_9"
+        "fsm_per_channel_read_to_error_5",
+        "fsm_per_channel_write_to_update_6",
+        "fsm_per_channel_write_to_error_7",
+        "fsm_per_channel_update_to_request_8",
+        "fsm_per_channel_update_to_done_9",
+        "fsm_per_channel_done_to_idle_10",
+        "fsm_per_channel_error_to_idle_11",
+        "error_error_0",
+        "error_error_1",
+        "error_error_2",
+        "error_error_3",
+        "error_error_4"
       ],
       "stimulus_contract": {
-        "transaction_type": "per_channel_WRITE_to_UPDATE_5",
+        "transaction_type": "per_channel_READ_to_ERROR_5",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "ahb_error || timeout_expired || fifo_overflow"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "per_channel state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_WRITE_TO_UPDATE_6",
+      "title": "FSM transition per_channel: WRITE -> UPDATE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions[6]"
+      ],
+      "decomposition_refs": [
+        "dma_real_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_write",
+        "cycle_pipeline_update",
+        "cycle_cdc_config",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_backpressure_4",
+        "fsm_per_channel_idle_to_cfg_0",
+        "fsm_per_channel_idle_to_error_1",
+        "fsm_per_channel_cfg_to_request_2",
+        "fsm_per_channel_request_to_read_3",
+        "fsm_per_channel_read_to_write_4",
+        "fsm_per_channel_read_to_error_5",
+        "fsm_per_channel_write_to_update_6",
+        "fsm_per_channel_write_to_error_7",
+        "fsm_per_channel_update_to_request_8",
+        "fsm_per_channel_update_to_done_9",
+        "fsm_per_channel_done_to_idle_10",
+        "fsm_per_channel_error_to_idle_11",
+        "error_error_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "per_channel_WRITE_to_UPDATE_6",
         "required_fields": [
           "pre_state",
           "stimulus"
@@ -3770,38 +5411,132 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_READ_6",
-      "title": "FSM transition per_channel: UPDATE -> READ",
+      "goal_id": "EQ_STATE_PER_CHANNEL_WRITE_TO_ERROR_7",
+      "title": "FSM transition per_channel: WRITE -> ERROR",
       "kind": "state",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "fsm.per_channel.transitions[6]"
+        "fsm.per_channel.transitions[7]"
       ],
       "decomposition_refs": [
         "dma_real_fsm_model"
       ],
       "coverage_refs": [
-        "cycle_pipeline_read",
-        "cycle_pipeline_update",
-        "cycle_ordering_0",
+        "SC_002_executed",
+        "SC_003_executed",
+        "SC_006_executed",
+        "function_dma_error_align",
+        "function_dma_error_zero_len",
+        "function_dma_error_bus",
+        "function_dma_error_timeout",
+        "function_dma_busy_reject",
+        "function_dma_apb_err",
+        "function_dma_timeout",
+        "cycle_pipeline_write",
+        "cycle_pipeline_error",
+        "function_dma_error",
+        "cycle_cdc_config",
+        "cycle_ahb_error_response",
+        "cycle_timeout_rule",
         "cycle_ordering_1",
-        "cycle_ordering_2",
-        "cycle_backpressure_1",
+        "cycle_backpressure_4",
         "fsm_per_channel_idle_to_cfg_0",
         "fsm_per_channel_idle_to_error_1",
         "fsm_per_channel_cfg_to_request_2",
         "fsm_per_channel_request_to_read_3",
         "fsm_per_channel_read_to_write_4",
-        "fsm_per_channel_write_to_update_5",
-        "fsm_per_channel_update_to_read_6",
-        "fsm_per_channel_update_to_done_7",
-        "fsm_per_channel_done_to_idle_8",
-        "fsm_per_channel_error_to_idle_9"
+        "fsm_per_channel_read_to_error_5",
+        "fsm_per_channel_write_to_update_6",
+        "fsm_per_channel_write_to_error_7",
+        "fsm_per_channel_update_to_request_8",
+        "fsm_per_channel_update_to_done_9",
+        "fsm_per_channel_done_to_idle_10",
+        "fsm_per_channel_error_to_idle_11",
+        "error_error_0",
+        "error_error_1",
+        "error_error_2",
+        "error_error_3",
+        "error_error_4"
       ],
       "stimulus_contract": {
-        "transaction_type": "per_channel_UPDATE_to_READ_6",
+        "transaction_type": "per_channel_WRITE_to_ERROR_7",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "ahb_error || timeout_expired"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "per_channel state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_REQUEST_8",
+      "title": "FSM transition per_channel: UPDATE -> REQUEST",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.per_channel.transitions[8]"
+      ],
+      "decomposition_refs": [
+        "dma_real_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_request",
+        "cycle_pipeline_update",
+        "cycle_ahb_error_response",
+        "cycle_arb_grant_rule",
+        "cycle_ordering_2",
+        "cycle_backpressure_2",
+        "fsm_per_channel_idle_to_cfg_0",
+        "fsm_per_channel_idle_to_error_1",
+        "fsm_per_channel_cfg_to_request_2",
+        "fsm_per_channel_request_to_read_3",
+        "fsm_per_channel_read_to_write_4",
+        "fsm_per_channel_read_to_error_5",
+        "fsm_per_channel_write_to_update_6",
+        "fsm_per_channel_write_to_error_7",
+        "fsm_per_channel_update_to_request_8",
+        "fsm_per_channel_update_to_done_9",
+        "fsm_per_channel_done_to_idle_10",
+        "fsm_per_channel_error_to_idle_11",
+        "error_error_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "per_channel_UPDATE_to_REQUEST_8",
         "required_fields": [
           "pre_state",
           "stimulus"
@@ -3842,14 +5577,14 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_DONE_7",
+      "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_DONE_9",
       "title": "FSM transition per_channel: UPDATE -> DONE",
       "kind": "state",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "fsm.per_channel.transitions[7]"
+        "fsm.per_channel.transitions[9]"
       ],
       "decomposition_refs": [
         "dma_real_fsm_model"
@@ -3864,14 +5599,16 @@
         "fsm_per_channel_cfg_to_request_2",
         "fsm_per_channel_request_to_read_3",
         "fsm_per_channel_read_to_write_4",
-        "fsm_per_channel_write_to_update_5",
-        "fsm_per_channel_update_to_read_6",
-        "fsm_per_channel_update_to_done_7",
-        "fsm_per_channel_done_to_idle_8",
-        "fsm_per_channel_error_to_idle_9"
+        "fsm_per_channel_read_to_error_5",
+        "fsm_per_channel_write_to_update_6",
+        "fsm_per_channel_write_to_error_7",
+        "fsm_per_channel_update_to_request_8",
+        "fsm_per_channel_update_to_done_9",
+        "fsm_per_channel_done_to_idle_10",
+        "fsm_per_channel_error_to_idle_11"
       ],
       "stimulus_contract": {
-        "transaction_type": "per_channel_UPDATE_to_DONE_7",
+        "transaction_type": "per_channel_UPDATE_to_DONE_9",
         "required_fields": [
           "pre_state",
           "stimulus"
@@ -3912,14 +5649,14 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_STATE_PER_CHANNEL_DONE_TO_IDLE_8",
+      "goal_id": "EQ_STATE_PER_CHANNEL_DONE_TO_IDLE_10",
       "title": "FSM transition per_channel: DONE -> IDLE",
       "kind": "state",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "fsm.per_channel.transitions[8]"
+        "fsm.per_channel.transitions[10]"
       ],
       "decomposition_refs": [
         "dma_real_fsm_model"
@@ -3933,14 +5670,16 @@
         "fsm_per_channel_cfg_to_request_2",
         "fsm_per_channel_request_to_read_3",
         "fsm_per_channel_read_to_write_4",
-        "fsm_per_channel_write_to_update_5",
-        "fsm_per_channel_update_to_read_6",
-        "fsm_per_channel_update_to_done_7",
-        "fsm_per_channel_done_to_idle_8",
-        "fsm_per_channel_error_to_idle_9"
+        "fsm_per_channel_read_to_error_5",
+        "fsm_per_channel_write_to_update_6",
+        "fsm_per_channel_write_to_error_7",
+        "fsm_per_channel_update_to_request_8",
+        "fsm_per_channel_update_to_done_9",
+        "fsm_per_channel_done_to_idle_10",
+        "fsm_per_channel_error_to_idle_11"
       ],
       "stimulus_contract": {
-        "transaction_type": "per_channel_DONE_to_IDLE_8",
+        "transaction_type": "per_channel_DONE_to_IDLE_10",
         "required_fields": [
           "pre_state",
           "stimulus"
@@ -3981,14 +5720,14 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9",
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_11",
       "title": "FSM transition per_channel: ERROR -> IDLE",
       "kind": "state",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "fsm.per_channel.transitions[9]"
+        "fsm.per_channel.transitions[11]"
       ],
       "decomposition_refs": [
         "dma_real_fsm_model"
@@ -4000,27 +5739,35 @@
         "function_dma_error_align",
         "function_dma_error_zero_len",
         "function_dma_error_bus",
+        "function_dma_error_timeout",
         "function_dma_busy_reject",
         "function_dma_apb_err",
+        "function_dma_timeout",
         "cycle_pipeline_idle",
         "cycle_pipeline_error",
         "function_dma_error",
+        "cycle_ahb_error_response",
+        "cycle_timeout_rule",
         "fsm_per_channel_idle_to_cfg_0",
         "fsm_per_channel_idle_to_error_1",
         "fsm_per_channel_cfg_to_request_2",
         "fsm_per_channel_request_to_read_3",
         "fsm_per_channel_read_to_write_4",
-        "fsm_per_channel_write_to_update_5",
-        "fsm_per_channel_update_to_read_6",
-        "fsm_per_channel_update_to_done_7",
-        "fsm_per_channel_done_to_idle_8",
-        "fsm_per_channel_error_to_idle_9",
+        "fsm_per_channel_read_to_error_5",
+        "fsm_per_channel_write_to_update_6",
+        "fsm_per_channel_write_to_error_7",
+        "fsm_per_channel_update_to_request_8",
+        "fsm_per_channel_update_to_done_9",
+        "fsm_per_channel_done_to_idle_10",
+        "fsm_per_channel_error_to_idle_11",
         "error_error_0",
         "error_error_1",
-        "error_error_2"
+        "error_error_2",
+        "error_error_3",
+        "error_error_4"
       ],
       "stimulus_contract": {
-        "transaction_type": "per_channel_ERROR_to_IDLE_9",
+        "transaction_type": "per_channel_ERROR_to_IDLE_11",
         "required_fields": [
           "pre_state",
           "stimulus"
@@ -4084,14 +5831,18 @@
           "waveform_path"
         ],
         "constraints": [
-          "pclk",
-          "presetn",
+          "pclk, hclk, presetn, hresetn",
           "psel, penable, pwrite, paddr, pwdata, prdata, pready, pslverr",
-          "haddr, htrans, hsize, hburst, hwrite, hwdata, hrdata, hready, hresp, hbusreq, hgrant",
+          "haddr, htrans, hsize, hburst, hprot, hmaster, hmastlock, hwrite, hwdata, hrdata, hready, hresp, hbusreq, hgrant",
           "irq, irq_combined",
-          "per_channel state FSM",
+          "per_channel FSM state",
           "per_channel remaining counter",
-          "per_channel src_addr and dst_addr counters"
+          "per_channel src_addr and dst_addr counters",
+          "per_channel stride register",
+          "per_channel FIFO wr_ptr and rd_ptr (gray and binary)",
+          "per_channel timeout counter",
+          "per_channel perf_words and perf_cycles",
+          "CDC sync pointers"
         ]
       },
       "expected_contract": {
@@ -4140,8 +5891,12 @@
         "function_model.state_variables.ch_error_q",
         "function_model.state_variables.ch_remaining_q",
         "function_model.state_variables.ch_src_addr_q",
+        "function_model.state_variables.ch_stride_q",
         "function_model.state_variables.dma_en_q",
         "function_model.state_variables.int_enable_q",
+        "function_model.state_variables.perf_cycles_q",
+        "function_model.state_variables.perf_words_q",
+        "function_model.state_variables.timeout_q",
         "io_list",
         "io_list.interfaces.apb_slave",
         "registers",
@@ -4149,24 +5904,37 @@
         "registers.register_list.ch0_ctrl",
         "registers.register_list.ch0_dst_addr",
         "registers.register_list.ch0_len",
+        "registers.register_list.ch0_perf_cycles",
+        "registers.register_list.ch0_perf_words",
         "registers.register_list.ch0_src_addr",
         "registers.register_list.ch0_status",
+        "registers.register_list.ch0_stride",
         "registers.register_list.ch1_ctrl",
         "registers.register_list.ch1_dst_addr",
         "registers.register_list.ch1_len",
+        "registers.register_list.ch1_perf_cycles",
+        "registers.register_list.ch1_perf_words",
         "registers.register_list.ch1_src_addr",
         "registers.register_list.ch1_status",
+        "registers.register_list.ch1_stride",
         "registers.register_list.ch2_ctrl",
         "registers.register_list.ch2_dst_addr",
         "registers.register_list.ch2_len",
+        "registers.register_list.ch2_perf_cycles",
+        "registers.register_list.ch2_perf_words",
         "registers.register_list.ch2_src_addr",
         "registers.register_list.ch2_status",
+        "registers.register_list.ch2_stride",
         "registers.register_list.ch3_ctrl",
         "registers.register_list.ch3_dst_addr",
         "registers.register_list.ch3_len",
+        "registers.register_list.ch3_perf_cycles",
+        "registers.register_list.ch3_perf_words",
         "registers.register_list.ch3_src_addr",
         "registers.register_list.ch3_status",
+        "registers.register_list.ch3_stride",
         "registers.register_list.global_ctrl",
+        "registers.register_list.global_timeout",
         "registers.register_list.int_clear",
         "registers.register_list.int_enable",
         "registers.register_list.int_status"
@@ -4189,7 +5957,7 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "grant_ch",
+          "arb_grant",
           "grant_next"
         ],
         "latency": "cycle_model latency/ordering must hold at the module boundary",
@@ -4236,16 +6004,21 @@
         "cycle_model.backpressure.backpressure_0",
         "cycle_model.backpressure.backpressure_1",
         "cycle_model.backpressure.backpressure_2",
+        "cycle_model.backpressure.backpressure_3",
+        "cycle_model.backpressure.backpressure_4",
         "cycle_model.clock",
         "cycle_model.handshake_rules",
         "cycle_model.handshake_rules.apb_access",
         "cycle_model.handshake_rules.arb_grant_rule",
+        "cycle_model.handshake_rules.cdc_config",
         "cycle_model.handshake_rules.start_accept",
+        "cycle_model.handshake_rules.timeout_rule",
         "cycle_model.latency",
         "cycle_model.ordering.ordering_0",
         "cycle_model.ordering.ordering_1",
         "cycle_model.ordering.ordering_2",
         "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
         "cycle_model.performance",
         "cycle_model.reset",
         "features.round_robin_arb",
@@ -4277,7 +6050,7 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "grant_ch",
+          "arb_grant",
           "grant_next"
         ],
         "latency": "cycle_model latency/ordering must hold at the module boundary",
@@ -4333,8 +6106,12 @@
         "cycle_model.pipeline.update",
         "cycle_model.pipeline.write",
         "error_handling",
+        "features.bus_timeout",
+        "features.clock_gating",
         "features.error_detection",
         "features.multi_channel",
+        "features.performance_counters",
+        "features.programmable_stride",
         "fsm",
         "fsm.per_channel",
         "function_model",
@@ -4344,6 +6121,9 @@
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
         "function_model.invariants.invariant_4",
+        "function_model.invariants.invariant_5",
+        "function_model.invariants.invariant_6",
+        "function_model.invariants.invariant_7",
         "function_model.state_variables",
         "function_model.transactions.FM_DMA_COMPLETE",
         "function_model.transactions.FM_DMA_ERROR",
@@ -4365,6 +6145,8 @@
         "function_model.transactions.fm_dma_error.error_cases.error_case_0",
         "function_model.transactions.fm_dma_error.error_cases.error_case_1",
         "function_model.transactions.fm_dma_error.error_cases.error_case_2",
+        "function_model.transactions.fm_dma_error.error_cases.error_case_3",
+        "function_model.transactions.fm_dma_error.error_cases.error_case_4",
         "function_model.transactions.fm_dma_error.output_rules.error_assert",
         "function_model.transactions.fm_dma_error.output_rules.error_code_out",
         "function_model.transactions.fm_dma_error.output_rules.irq_error",
@@ -4392,8 +6174,12 @@
         "function_model.transactions.fm_dma_start.side_effects.side_effect_0",
         "function_model.transactions.fm_dma_start.side_effects.side_effect_1",
         "function_model.transactions.fm_dma_start.side_effects.side_effect_2",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_3",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_4",
+        "function_model.transactions.fm_dma_start.side_effects.side_effect_5",
         "function_model.transactions.fm_dma_step",
         "function_model.transactions.fm_dma_step.error_cases.error_case_0",
+        "function_model.transactions.fm_dma_step.error_cases.error_case_1",
         "function_model.transactions.fm_dma_step.output_rules.busy_next",
         "function_model.transactions.fm_dma_step.output_rules.done_pulse",
         "function_model.transactions.fm_dma_step.outputs.output_0",
@@ -4404,7 +6190,11 @@
         "function_model.transactions.fm_dma_step.side_effects.side_effect_1",
         "function_model.transactions.fm_dma_step.side_effects.side_effect_2",
         "function_model.transactions.fm_dma_step.side_effects.side_effect_3",
+        "function_model.transactions.fm_dma_step.side_effects.side_effect_4",
+        "function_model.transactions.fm_dma_step.side_effects.side_effect_5",
         "function_model.transactions.fm_dma_step.state_updates.dst_addr_next",
+        "function_model.transactions.fm_dma_step.state_updates.perf_cycles_next",
+        "function_model.transactions.fm_dma_step.state_updates.perf_words_next",
         "function_model.transactions.fm_dma_step.state_updates.remaining_next",
         "function_model.transactions.fm_dma_step.state_updates.src_addr_next",
         "io_list",
@@ -4414,6 +6204,7 @@
         "parameters.data_width",
         "parameters.fifo_depth",
         "parameters.n_channels",
+        "parameters.timeout_default",
         "registers",
         "registers.register_list"
       ],
@@ -4435,7 +6226,7 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "grant_ch",
+          "arb_grant",
           "grant_next"
         ],
         "latency": "cycle_model latency/ordering must hold at the module boundary",
@@ -4480,10 +6271,12 @@
       "ssot_refs": [
         "cycle_model",
         "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.ahb_1kb_boundary",
         "cycle_model.handshake_rules.ahb_address_phase",
         "cycle_model.handshake_rules.ahb_data_phase",
+        "cycle_model.handshake_rules.ahb_error_response",
         "cycle_model.pipeline",
-        "features.burst_transfer",
+        "features.full_ahb_lite",
         "function_model.transactions.FM_DMA_STEP",
         "io_list",
         "io_list.interfaces.ahb_master"
@@ -4506,7 +6299,7 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "grant_ch",
+          "arb_grant",
           "grant_next"
         ],
         "latency": "cycle_model latency/ordering must hold at the module boundary",
@@ -4554,6 +6347,7 @@
         "dma_real_channel",
         "dma_real_ahb_master",
         "dma_real_irq",
+        "dma_real_engine",
         "dma_real_protocol_model",
         "dma_real_register_model",
         "dma_real_datapath_model",
@@ -4578,7 +6372,149 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "grant_ch",
+          "arb_grant",
+          "grant_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "arb_ptr_q updated to next channel after grant",
+          "granted channel gains AHB bus access",
+          "arb_ptr_update"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FUNCTION_DMA_STRIDE",
+      "title": "Functional coverage bin function_dma_stride: Non-default stride address increment",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ch_stride_q"
+      ],
+      "decomposition_refs": [
+        "dma_real_apb_cfg",
+        "dma_real_arbiter",
+        "dma_real_channel",
+        "dma_real_ahb_master",
+        "dma_real_irq",
+        "dma_real_engine",
+        "dma_real_protocol_model",
+        "dma_real_register_model",
+        "dma_real_datapath_model",
+        "dma_real_fsm_model",
+        "dma_real_error_model",
+        "dma_real_security_model"
+      ],
+      "coverage_refs": [
+        "function_dma_stride"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "arb_grant",
+        "required_fields": [
+          "kind",
+          "requester_mask"
+        ],
+        "constraints": [
+          "at least one channel is requesting bus access",
+          "Non-default stride address increment"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "arb_grant",
+          "grant_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "arb_ptr_q updated to next channel after grant",
+          "granted channel gains AHB bus access",
+          "arb_ptr_update"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FUNCTION_DMA_PERF_COUNTERS",
+      "title": "Functional coverage bin function_dma_perf_counters: Performance counter increment",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.perf_words_q"
+      ],
+      "decomposition_refs": [
+        "dma_real_apb_cfg",
+        "dma_real_arbiter",
+        "dma_real_channel",
+        "dma_real_ahb_master",
+        "dma_real_irq",
+        "dma_real_engine",
+        "dma_real_protocol_model",
+        "dma_real_register_model",
+        "dma_real_datapath_model",
+        "dma_real_fsm_model",
+        "dma_real_error_model",
+        "dma_real_security_model"
+      ],
+      "coverage_refs": [
+        "function_dma_perf_counters"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "arb_grant",
+        "required_fields": [
+          "kind",
+          "requester_mask"
+        ],
+        "constraints": [
+          "at least one channel is requesting bus access",
+          "Performance counter increment"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "arb_grant",
           "grant_next"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
@@ -4624,6 +6560,7 @@
         "dma_real_channel",
         "dma_real_ahb_master",
         "dma_real_irq",
+        "dma_real_engine",
         "dma_real_protocol_model",
         "dma_real_register_model",
         "dma_real_datapath_model",
@@ -4648,7 +6585,7 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "grant_ch",
+          "arb_grant",
           "grant_next"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
@@ -4694,6 +6631,7 @@
         "dma_real_channel",
         "dma_real_ahb_master",
         "dma_real_irq",
+        "dma_real_engine",
         "dma_real_protocol_model",
         "dma_real_register_model",
         "dma_real_datapath_model",
@@ -4718,7 +6656,7 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "grant_ch",
+          "arb_grant",
           "grant_next"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
@@ -4764,6 +6702,7 @@
         "dma_real_channel",
         "dma_real_ahb_master",
         "dma_real_irq",
+        "dma_real_engine",
         "dma_real_protocol_model",
         "dma_real_register_model",
         "dma_real_datapath_model",
@@ -4788,7 +6727,7 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "grant_ch",
+          "arb_grant",
           "grant_next"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",

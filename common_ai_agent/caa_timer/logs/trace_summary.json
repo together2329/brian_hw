@@ -1,0 +1,34 @@
+{
+  "blocked_at_stage": "ssot-gen",
+  "ip": "caa_timer",
+  "llm": {
+    "by_stage": {
+      "ssot-gen": {
+        "cache_read_tokens": 31232,
+        "calls": 3,
+        "cost_usd": 0.08897192,
+        "input_tokens": 39876,
+        "models": [
+          "gpt-5.3-codex"
+        ],
+        "output_tokens": 15625,
+        "repair_calls": 2,
+        "repair_rate": 0.6666666666666666,
+        "total_tokens": 55501
+      }
+    },
+    "totals": {
+      "cache_read_tokens": 31232,
+      "calls": 3,
+      "cost_usd": 0.08897192,
+      "input_tokens": 39876,
+      "output_tokens": 15625,
+      "repair_calls": 2,
+      "repair_rate": 0.6666666666666666,
+      "total_tokens": 55501
+    }
+  },
+  "llm_log_files": 3,
+  "run_status": "blocked",
+  "stage_engine_order": []
+}

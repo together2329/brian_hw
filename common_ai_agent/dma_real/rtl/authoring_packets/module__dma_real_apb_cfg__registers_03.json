@@ -1,0 +1,1213 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 5,
+      "key": "registers_03",
+      "module_task_count": 152,
+      "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 3,
+      "section_chunk_index": 3,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_real_apb_cfg.sv",
+      "name": "dma_real_apb_cfg",
+      "refs": [
+        "dataflow.ordering.ordering_0",
+        "dataflow.sequence.sequence_0",
+        "dataflow.sequence.sequence_1",
+        "function_model.state_variables",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 5,
+    "open_required_count": 5,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "module",
+  "owner_file": "rtl/dma_real_apb_cfg.sv",
+  "owner_module": "dma_real_apb_cfg",
+  "packet_id": "module__dma_real_apb_cfg__registers_03",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "registers.field": 11,
+      "registers.register": 5
+    },
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 5,
+      "key": "registers_03",
+      "module_task_count": 152,
+      "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 3,
+      "section_chunk_index": 3,
+      "task_limit": 48
+    },
+    "open_required_count": 5,
+    "required_count": 16,
+    "source_refs": [
+      "registers.register_list.CH3_DST_ADDR.fields.dst_addr",
+      "registers.register_list.CH3_LEN",
+      "registers.register_list.CH3_LEN.fields.length",
+      "registers.register_list.CH3_LEN.fields.reserved_31_16",
+      "registers.register_list.CH3_STATUS",
+      "registers.register_list.CH3_STATUS.fields.busy",
+      "registers.register_list.CH3_STATUS.fields.done",
+      "registers.register_list.CH3_STATUS.fields.error",
+      "registers.register_list.CH3_STATUS.fields.err_code",
+      "registers.register_list.CH3_STATUS.fields.reserved_31_6",
+      "registers.register_list.CH3_STRIDE",
+      "registers.register_list.CH3_STRIDE.fields.stride",
+      "registers.register_list.CH3_PERF_WORDS",
+      "registers.register_list.CH3_PERF_WORDS.fields.word_count",
+      "registers.register_list.CH3_PERF_CYCLES",
+      "registers.register_list.CH3_PERF_CYCLES.fields.cycle_count"
+    ],
+    "status_counts": {
+      "open": 5,
+      "pass": 11
+    },
+    "task_count": 16
+  },
+  "tasks": [
+    {
+      "category": "registers.field",
+      "content": "Implement field CH3_DST_ADDR.dst_addr",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CH3_DST_ADDR.fields.dst_addr",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "dst_addr width matches SSOT value 32",
+        "dst_addr reset behavior matches SSOT value 0",
+        "dst_addr access policy rw is implemented without read/write shortcuts",
+        "dst_addr readback returns implemented RTL state when readable",
+        "dst_addr write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CH3_DST_ADDR.fields.dst_addr.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=dst_addr; width=32; reset=0; access=rw.",
+      "evidence_terms": [
+        "ADDR",
+        "CH3",
+        "CH3_DST_ADDR",
+        "DST",
+        "addr",
+        "dst",
+        "dst_addr"
+      ],
+      "id": "RTL-0290",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_DST_ADDR.fields.dst_addr",
+      "ssot_context": {
+        "access": "rw",
+        "name": "dst_addr",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_DST_ADDR.fields.dst_addr"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "ADDR",
+          "CH3",
+          "DST",
+          "addr",
+          "dst",
+          "dst_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ADDR",
+          "CH3",
+          "CH3_DST_ADDR",
+          "DST",
+          "addr",
+          "dst",
+          "dst_addr"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CH3_LEN",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CH3_LEN",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "CH3_LEN width matches SSOT value 32",
+        "CH3_LEN reset behavior matches SSOT value 0",
+        "CH3_LEN access policy rw is implemented without read/write shortcuts",
+        "CH3_LEN decode uses SSOT address/offset 460"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CH3_LEN.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=CH3_LEN; width=32; reset=0; access=rw; offset=460.",
+      "evidence_terms": [
+        "CH3",
+        "CH3_LEN",
+        "LEN"
+      ],
+      "id": "RTL-0291",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_LEN",
+      "ssot_context": {
+        "access": "rw",
+        "name": "CH3_LEN",
+        "offset": "460",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_LEN"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "CH3",
+          "LEN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CH3",
+          "CH3_LEN",
+          "LEN"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CH3_LEN.length",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CH3_LEN.fields.length",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "length width matches SSOT value 16",
+        "length reset behavior matches SSOT value 0",
+        "length access policy rw is implemented without read/write shortcuts",
+        "length readback returns implemented RTL state when readable",
+        "length write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CH3_LEN.fields.length.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=length; width=16; reset=0; access=rw.",
+      "evidence_terms": [
+        "length"
+      ],
+      "id": "RTL-0292",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_LEN.fields.length",
+      "ssot_context": {
+        "access": "rw",
+        "name": "length",
+        "reset": "0",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_LEN.fields.length"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "length"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CH3_LEN.reserved_31_16",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CH3_LEN.fields.reserved_31_16",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "reserved_31_16 width matches SSOT value 16",
+        "reserved_31_16 reset behavior matches SSOT value 0",
+        "reserved_31_16 access policy rw is implemented without read/write shortcuts",
+        "reserved_31_16 readback returns implemented RTL state when readable",
+        "reserved_31_16 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CH3_LEN.fields.reserved_31_16.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=reserved_31_16; width=16; reset=0; access=rw.",
+      "evidence_terms": [
+        "16",
+        "31",
+        "reserved",
+        "reserved_31_16"
+      ],
+      "id": "RTL-0293",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_LEN.fields.reserved_31_16",
+      "ssot_context": {
+        "access": "rw",
+        "name": "reserved_31_16",
+        "reset": "0",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_LEN.fields.reserved_31_16"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "16",
+          "31",
+          "reserved",
+          "reserved_31_16"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CH3_STATUS",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CH3_STATUS",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "CH3_STATUS width matches SSOT value 32",
+        "CH3_STATUS reset behavior matches SSOT value 0",
+        "CH3_STATUS access policy ro is implemented without read/write shortcuts",
+        "CH3_STATUS decode uses SSOT address/offset 464"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CH3_STATUS.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=CH3_STATUS; width=32; reset=0; access=ro; offset=464.",
+      "evidence_terms": [
+        "CH3",
+        "CH3_STATUS",
+        "STATUS"
+      ],
+      "id": "RTL-0294",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_STATUS",
+      "ssot_context": {
+        "access": "ro",
+        "name": "CH3_STATUS",
+        "offset": "464",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_STATUS"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "CH3",
+          "STATUS"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CH3",
+          "CH3_STATUS",
+          "STATUS"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CH3_STATUS.busy",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CH3_STATUS.fields.busy",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "busy width matches SSOT value 1",
+        "busy reset behavior matches SSOT value 0",
+        "busy access policy ro is implemented without read/write shortcuts",
+        "busy readback returns implemented RTL state when readable",
+        "busy write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CH3_STATUS.fields.busy.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=busy; width=1; reset=0; access=ro.",
+      "evidence_terms": [
+        "busy"
+      ],
+      "id": "RTL-0295",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_STATUS.fields.busy",
+      "ssot_context": {
+        "access": "ro",
+        "name": "busy",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_STATUS.fields.busy"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "busy"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CH3_STATUS.done",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CH3_STATUS.fields.done",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "done width matches SSOT value 1",
+        "done reset behavior matches SSOT value 0",
+        "done access policy ro is implemented without read/write shortcuts",
+        "done readback returns implemented RTL state when readable",
+        "done write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CH3_STATUS.fields.done.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=done; width=1; reset=0; access=ro.",
+      "evidence_terms": [
+        "done"
+      ],
+      "id": "RTL-0296",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_STATUS.fields.done",
+      "ssot_context": {
+        "access": "ro",
+        "name": "done",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_STATUS.fields.done"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "done"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "done"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CH3_STATUS.error",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CH3_STATUS.fields.error",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "error width matches SSOT value 1",
+        "error reset behavior matches SSOT value 0",
+        "error access policy ro is implemented without read/write shortcuts",
+        "error readback returns implemented RTL state when readable",
+        "error write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CH3_STATUS.fields.error.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=error; width=1; reset=0; access=ro.",
+      "evidence_terms": [],
+      "id": "RTL-0297",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_STATUS.fields.error",
+      "ssot_context": {
+        "access": "ro",
+        "name": "error",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_STATUS.fields.error"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CH3_STATUS.err_code",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CH3_STATUS.fields.err_code",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "err_code width matches SSOT value 3",
+        "err_code reset behavior matches SSOT value 0",
+        "err_code access policy ro is implemented without read/write shortcuts",
+        "err_code readback returns implemented RTL state when readable",
+        "err_code write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CH3_STATUS.fields.err_code.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=err_code; width=3; reset=0; access=ro.",
+      "evidence_terms": [
+        "code",
+        "err",
+        "err_code"
+      ],
+      "id": "RTL-0298",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_STATUS.fields.err_code",
+      "ssot_context": {
+        "access": "ro",
+        "name": "err_code",
+        "reset": "0",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_STATUS.fields.err_code"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "code",
+          "err",
+          "err_code"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "code",
+          "err",
+          "err_code"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CH3_STATUS.reserved_31_6",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CH3_STATUS.fields.reserved_31_6",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "reserved_31_6 width matches SSOT value 26",
+        "reserved_31_6 reset behavior matches SSOT value 0",
+        "reserved_31_6 access policy ro is implemented without read/write shortcuts",
+        "reserved_31_6 readback returns implemented RTL state when readable",
+        "reserved_31_6 write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CH3_STATUS.fields.reserved_31_6.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=reserved_31_6; width=26; reset=0; access=ro.",
+      "evidence_terms": [
+        "31",
+        "reserved",
+        "reserved_31_6"
+      ],
+      "id": "RTL-0299",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_STATUS.fields.reserved_31_6",
+      "ssot_context": {
+        "access": "ro",
+        "name": "reserved_31_6",
+        "reset": "0",
+        "width": "26"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_STATUS.fields.reserved_31_6"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "31",
+          "reserved",
+          "reserved_31_6"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CH3_STRIDE",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CH3_STRIDE",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "CH3_STRIDE width matches SSOT value 32",
+        "CH3_STRIDE reset behavior matches SSOT value 4",
+        "CH3_STRIDE access policy rw is implemented without read/write shortcuts",
+        "CH3_STRIDE decode uses SSOT address/offset 468"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CH3_STRIDE.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=CH3_STRIDE; width=32; reset=4; access=rw; offset=468.",
+      "evidence_terms": [
+        "CH3",
+        "CH3_STRIDE",
+        "STRIDE"
+      ],
+      "id": "RTL-0300",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_STRIDE",
+      "ssot_context": {
+        "access": "rw",
+        "name": "CH3_STRIDE",
+        "offset": "468",
+        "reset": "4",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_STRIDE"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "CH3"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CH3",
+          "CH3_STRIDE",
+          "STRIDE"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CH3_STRIDE.stride",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CH3_STRIDE.fields.stride",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "stride width matches SSOT value 32",
+        "stride reset behavior matches SSOT value 4",
+        "stride access policy rw is implemented without read/write shortcuts",
+        "stride readback returns implemented RTL state when readable",
+        "stride write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CH3_STRIDE.fields.stride.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=stride; width=32; reset=4; access=rw.",
+      "evidence_terms": [
+        "CH3",
+        "CH3_STRIDE",
+        "STRIDE",
+        "stride"
+      ],
+      "id": "RTL-0301",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_STRIDE.fields.stride",
+      "ssot_context": {
+        "access": "rw",
+        "name": "stride",
+        "reset": "4",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_STRIDE.fields.stride"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "CH3"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CH3",
+          "CH3_STRIDE",
+          "STRIDE",
+          "stride"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CH3_PERF_WORDS",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CH3_PERF_WORDS",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "CH3_PERF_WORDS width matches SSOT value 32",
+        "CH3_PERF_WORDS reset behavior matches SSOT value 0",
+        "CH3_PERF_WORDS access policy ro is implemented without read/write shortcuts",
+        "CH3_PERF_WORDS decode uses SSOT address/offset 476"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CH3_PERF_WORDS.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=CH3_PERF_WORDS; width=32; reset=0; access=ro; offset=476.",
+      "evidence_terms": [
+        "CH3",
+        "CH3_PERF_WORDS",
+        "PERF",
+        "WORDS"
+      ],
+      "id": "RTL-0302",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_PERF_WORDS",
+      "ssot_context": {
+        "access": "ro",
+        "name": "CH3_PERF_WORDS",
+        "offset": "476",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_PERF_WORDS"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "CH3"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CH3",
+          "CH3_PERF_WORDS",
+          "PERF",
+          "WORDS"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CH3_PERF_WORDS.word_count",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CH3_PERF_WORDS.fields.word_count",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "word_count width matches SSOT value 32",
+        "word_count reset behavior matches SSOT value 0",
+        "word_count access policy ro is implemented without read/write shortcuts",
+        "word_count readback returns implemented RTL state when readable",
+        "word_count write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CH3_PERF_WORDS.fields.word_count.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=word_count; width=32; reset=0; access=ro.",
+      "evidence_terms": [
+        "count",
+        "word",
+        "word_count"
+      ],
+      "id": "RTL-0303",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_PERF_WORDS.fields.word_count",
+      "ssot_context": {
+        "access": "ro",
+        "name": "word_count",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_PERF_WORDS.fields.word_count"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count",
+          "word",
+          "word_count"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CH3_PERF_CYCLES",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CH3_PERF_CYCLES",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "CH3_PERF_CYCLES width matches SSOT value 32",
+        "CH3_PERF_CYCLES reset behavior matches SSOT value 0",
+        "CH3_PERF_CYCLES access policy ro is implemented without read/write shortcuts",
+        "CH3_PERF_CYCLES decode uses SSOT address/offset 480"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CH3_PERF_CYCLES.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=CH3_PERF_CYCLES; width=32; reset=0; access=ro; offset=480.",
+      "evidence_terms": [
+        "CH3",
+        "CH3_PERF_CYCLES",
+        "CYCLES",
+        "PERF"
+      ],
+      "id": "RTL-0304",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_PERF_CYCLES",
+      "ssot_context": {
+        "access": "ro",
+        "name": "CH3_PERF_CYCLES",
+        "offset": "480",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_PERF_CYCLES"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "CH3"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CH3",
+          "CH3_PERF_CYCLES",
+          "CYCLES",
+          "PERF"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CH3_PERF_CYCLES.cycle_count",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CH3_PERF_CYCLES.fields.cycle_count",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "cycle_count width matches SSOT value 32",
+        "cycle_count reset behavior matches SSOT value 0",
+        "cycle_count access policy ro is implemented without read/write shortcuts",
+        "cycle_count readback returns implemented RTL state when readable",
+        "cycle_count write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CH3_PERF_CYCLES.fields.cycle_count.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via registers.register_list.\nSSOT item context: name=cycle_count; width=32; reset=0; access=ro.",
+      "evidence_terms": [
+        "count",
+        "cycle_count"
+      ],
+      "id": "RTL-0305",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CH3_PERF_CYCLES.fields.cycle_count",
+      "ssot_context": {
+        "access": "ro",
+        "name": "cycle_count",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CH3_PERF_CYCLES.fields.cycle_count"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count",
+          "cycle_count"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 12,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

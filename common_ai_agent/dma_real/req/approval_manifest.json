@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "requirement_approval_manifest",
+  "ip": "dma_real",
+  "approved": true,
+  "approved_by": "ssot-gen-auto-select",
+  "approved_at_utc": "2026-05-17T15:00:00Z",
+  "target": "dma_real/req/dma_real_requirements.md",
+  "target_sha256": "f41c4c24604f8dbe613f7a3729367c6726c0df5c95354f62be501829e39bc943",
+  "source": "dma_real/yaml/dma_real.ssot.yaml",
+  "source_sha256": "eec55664009b21236f6b9d811d700f947dbbfba5ce624305e5fa8722c535719f"
+}

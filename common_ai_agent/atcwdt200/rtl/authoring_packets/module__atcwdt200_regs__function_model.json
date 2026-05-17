@@ -1,0 +1,2785 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 6,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model",
+      "module_task_count": 75,
+      "rule": "Owner module atcwdt200_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atcwdt200_regs.sv",
+      "name": "atcwdt200_regs",
+      "refs": [
+        "dataflow.sequence.sequence_0",
+        "dataflow.sequence.sequence_1",
+        "dataflow.sinks.sinks_0",
+        "decomposition.units.apb_register_block",
+        "error_handling",
+        "function_model",
+        "function_model.transactions.apb_read",
+        "function_model.transactions.apb_write",
+        "function_model.transactions.write_unlock",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcwdt200_regs.sv",
+        "name": "atcwdt200_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_core.sv",
+        "name": "atcwdt200_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_sync.sv",
+        "name": "atcwdt200_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200.sv",
+        "name": "atcwdt200",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_regs",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_regs",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 5,
+    "open_required_count": 5,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atcwdt200",
+  "kind": "module",
+  "owner_file": "rtl/atcwdt200_regs.sv",
+  "owner_module": "atcwdt200_regs",
+  "packet_id": "module__atcwdt200_regs__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 3,
+      "function_model.input": 4,
+      "function_model.invariant": 4,
+      "function_model.output": 3,
+      "function_model.output_rule": 1,
+      "function_model.precondition": 4,
+      "function_model.side_effect": 6,
+      "function_model.state_update": 3,
+      "function_model.state_variable": 11,
+      "function_model.transaction": 3
+    },
+    "module_slice": {
+      "count": 5,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model",
+      "module_task_count": 75,
+      "rule": "Owner module atcwdt200_regs is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 5,
+    "required_count": 42,
+    "source_refs": [
+      "function_model.state_variables.CR_EN",
+      "function_model.state_variables.CR_CLK",
+      "function_model.state_variables.CR_INTEN",
+      "function_model.state_variables.CR_RSTEN",
+      "function_model.state_variables.CR_INTTIME",
+      "function_model.state_variables.CR_RSTTIME",
+      "function_model.state_variables.SR_INTZERO",
+      "function_model.state_variables.SR_RSTZERO",
+      "function_model.state_variables.REG_WEN",
+      "function_model.state_variables.COUNTER",
+      "function_model.state_variables.STATE",
+      "function_model.transactions.apb_read",
+      "function_model.transactions.apb_read.preconditions.precondition_0",
+      "function_model.transactions.apb_read.preconditions.precondition_1",
+      "function_model.transactions.apb_read.inputs.input_0",
+      "function_model.transactions.apb_read.outputs.output_0",
+      "function_model.transactions.apb_read.output_rules.prdata_rule",
+      "function_model.transactions.apb_read.side_effects.side_effect_0",
+      "function_model.transactions.apb_read.error_cases.error_case_0",
+      "function_model.transactions.apb_write",
+      "function_model.transactions.apb_write.preconditions.precondition_0",
+      "function_model.transactions.apb_write.inputs.input_0",
+      "function_model.transactions.apb_write.inputs.input_1",
+      "function_model.transactions.apb_write.outputs.output_0"
+    ],
+    "status_counts": {
+      "open": 5,
+      "pass": 37
+    },
+    "task_count": 42
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state CR_EN",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.CR_EN",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "CR_EN width matches SSOT value 1",
+        "CR_EN reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.CR_EN.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: name=CR_EN; width=1; reset=0.",
+      "evidence_terms": [
+        "CR",
+        "CR_EN",
+        "EN"
+      ],
+      "id": "RTL-0037",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.CR_EN",
+      "ssot_context": {
+        "name": "CR_EN",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.CR_EN"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "CR",
+          "CR_EN",
+          "EN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_EN",
+          "EN"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state CR_CLK",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.CR_CLK",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "CR_CLK width matches SSOT value 1",
+        "CR_CLK reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.CR_CLK.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: name=CR_CLK; width=1; reset=0.",
+      "evidence_terms": [
+        "CLK",
+        "CR",
+        "CR_CLK"
+      ],
+      "id": "RTL-0038",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.CR_CLK",
+      "ssot_context": {
+        "name": "CR_CLK",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.CR_CLK"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "CLK",
+          "CR",
+          "CR_CLK"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CLK",
+          "CR",
+          "CR_CLK"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state CR_INTEN",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.CR_INTEN",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "CR_INTEN width matches SSOT value 1",
+        "CR_INTEN reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.CR_INTEN.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: name=CR_INTEN; width=1; reset=0.",
+      "evidence_terms": [
+        "CR",
+        "CR_INTEN",
+        "INTEN"
+      ],
+      "id": "RTL-0039",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.CR_INTEN",
+      "ssot_context": {
+        "name": "CR_INTEN",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.CR_INTEN"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "CR",
+          "CR_INTEN",
+          "INTEN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_INTEN",
+          "INTEN"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state CR_RSTEN",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.CR_RSTEN",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "CR_RSTEN width matches SSOT value 1",
+        "CR_RSTEN reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.CR_RSTEN.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: name=CR_RSTEN; width=1; reset=0.",
+      "evidence_terms": [
+        "CR",
+        "CR_RSTEN",
+        "RSTEN"
+      ],
+      "id": "RTL-0040",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.CR_RSTEN",
+      "ssot_context": {
+        "name": "CR_RSTEN",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.CR_RSTEN"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "CR",
+          "CR_RSTEN",
+          "RSTEN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_RSTEN",
+          "RSTEN"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state CR_INTTIME",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.CR_INTTIME",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "CR_INTTIME width matches SSOT value INT_TIME_WIDTH",
+        "CR_INTTIME reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.CR_INTTIME.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: name=CR_INTTIME; width=INT_TIME_WIDTH; reset=0.",
+      "evidence_terms": [
+        "CR",
+        "CR_INTTIME",
+        "INTTIME"
+      ],
+      "id": "RTL-0041",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.CR_INTTIME",
+      "ssot_context": {
+        "name": "CR_INTTIME",
+        "reset": "0",
+        "width": "INT_TIME_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.CR_INTTIME"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "CR",
+          "CR_INTTIME",
+          "INTTIME"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_INTTIME",
+          "INTTIME"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state CR_RSTTIME",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.CR_RSTTIME",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "CR_RSTTIME width matches SSOT value 3",
+        "CR_RSTTIME reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.CR_RSTTIME.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: name=CR_RSTTIME; width=3; reset=0.",
+      "evidence_terms": [
+        "CR",
+        "CR_RSTTIME",
+        "RSTTIME"
+      ],
+      "id": "RTL-0042",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.CR_RSTTIME",
+      "ssot_context": {
+        "name": "CR_RSTTIME",
+        "reset": "0",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.CR_RSTTIME"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "CR",
+          "CR_RSTTIME",
+          "RSTTIME"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_RSTTIME",
+          "RSTTIME"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state SR_INTZERO",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.SR_INTZERO",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "SR_INTZERO width matches SSOT value 1",
+        "SR_INTZERO reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.SR_INTZERO.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: name=SR_INTZERO; width=1; reset=0.",
+      "evidence_terms": [
+        "INTZERO",
+        "SR",
+        "SR_INTZERO"
+      ],
+      "id": "RTL-0043",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.SR_INTZERO",
+      "ssot_context": {
+        "name": "SR_INTZERO",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.SR_INTZERO"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "INTZERO",
+          "SR",
+          "SR_INTZERO"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "INTZERO",
+          "SR",
+          "SR_INTZERO"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state SR_RSTZERO",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.SR_RSTZERO",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "SR_RSTZERO width matches SSOT value 1",
+        "SR_RSTZERO reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.SR_RSTZERO.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: name=SR_RSTZERO; width=1; reset=0.",
+      "evidence_terms": [
+        "RSTZERO",
+        "SR",
+        "SR_RSTZERO"
+      ],
+      "id": "RTL-0044",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.SR_RSTZERO",
+      "ssot_context": {
+        "name": "SR_RSTZERO",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.SR_RSTZERO"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "SR"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "RSTZERO",
+          "SR",
+          "SR_RSTZERO"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state REG_WEN",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.REG_WEN",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "REG_WEN width matches SSOT value 1",
+        "REG_WEN reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.REG_WEN.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: name=REG_WEN; width=1; reset=0.",
+      "evidence_terms": [
+        "REG",
+        "REG_WEN",
+        "WEN"
+      ],
+      "id": "RTL-0045",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.REG_WEN",
+      "ssot_context": {
+        "name": "REG_WEN",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.REG_WEN"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "REG",
+          "REG_WEN",
+          "WEN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "REG",
+          "REG_WEN",
+          "WEN"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state COUNTER",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.COUNTER",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "COUNTER width matches SSOT value COUNTER_WIDTH",
+        "COUNTER reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.COUNTER.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: name=COUNTER; width=COUNTER_WIDTH; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0046",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.COUNTER",
+      "ssot_context": {
+        "name": "COUNTER",
+        "reset": "0",
+        "width": "COUNTER_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.COUNTER"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state STATE",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.STATE",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "STATE width matches SSOT value 1",
+        "STATE reset behavior matches SSOT value ST_INTTIME"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.STATE.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: name=STATE; width=1; reset=ST_INTTIME.",
+      "evidence_terms": [],
+      "id": "RTL-0047",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.STATE",
+      "ssot_context": {
+        "name": "STATE",
+        "reset": "ST_INTTIME",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.STATE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction apb_read",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.apb_read",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.apb_read.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_read.\nSSOT item context: id=apb_read; name=APB register read.",
+      "evidence_terms": [],
+      "id": "RTL-0048",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_read",
+      "ssot_context": {
+        "id": "apb_read",
+        "name": "APB register read"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_read"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for apb_read: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_read.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_read.preconditions.precondition_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_read.\nSSOT item context: value=psel and penable are asserted.",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_read.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "psel and penable are asserted"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_read.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for apb_read: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_read.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_read.preconditions.precondition_1.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_read.\nSSOT item context: value=pwrite is low.",
+      "evidence_terms": [],
+      "id": "RTL-0050",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_read.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "pwrite is low"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_read.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for apb_read: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_read.inputs.input_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "DUT port [\"prdata\"] is the implementation/observation point for APB register read"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_read.inputs.input_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_read.\nSSOT item context: id=apb_read; name=APB register read; port=[\"prdata\"]; signal=[\"paddr\"].",
+      "evidence_terms": [
+        "paddr",
+        "prdata"
+      ],
+      "id": "RTL-0051",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_read.inputs.input_0",
+      "ssot_context": {
+        "id": "apb_read",
+        "name": "APB register read",
+        "port": "[\"prdata\"]",
+        "signal": "[\"paddr\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_read.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "paddr",
+          "prdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "paddr",
+          "prdata"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for apb_read: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_read.outputs.output_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "DUT port [\"prdata\"] is the implementation/observation point for APB register read"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_read.outputs.output_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_read.\nSSOT item context: id=apb_read; name=APB register read; port=[\"prdata\"]; signal=[\"prdata returns selected register value\"].",
+      "evidence_terms": [
+        "prdata"
+      ],
+      "id": "RTL-0052",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_read.outputs.output_0",
+      "ssot_context": {
+        "id": "apb_read",
+        "name": "APB register read",
+        "port": "[\"prdata\"]",
+        "signal": "[\"prdata returns selected register value\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_read.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "prdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "prdata"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for apb_read: prdata_rule",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_read.output_rules.prdata_rule",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "prdata_rule width matches SSOT value 32",
+        "prdata_rule RTL expression implements SSOT expression 0",
+        "DUT port prdata is the implementation/observation point for prdata_rule",
+        "prdata_rule is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_read.output_rules.prdata_rule.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_read.\nSSOT item context: name=prdata_rule; port=prdata; expr=0; width=32.",
+      "evidence_terms": [
+        "prdata",
+        "prdata_rule"
+      ],
+      "id": "RTL-0053",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_read.output_rules.prdata_rule",
+      "ssot_context": {
+        "expr": "0",
+        "name": "prdata_rule",
+        "port": "prdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_read.output_rules.prdata_rule"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "prdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "prdata",
+          "prdata_rule"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for apb_read: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_read.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "DUT port [\"prdata\"] is the implementation/observation point for APB register read"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_read.side_effects.side_effect_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_read.\nSSOT item context: id=apb_read; name=APB register read; port=[\"prdata\"]; signal=[\"No architectural state changes on read\"].",
+      "evidence_terms": [
+        "prdata"
+      ],
+      "id": "RTL-0054",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_read.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "apb_read",
+        "name": "APB register read",
+        "port": "[\"prdata\"]",
+        "signal": "[\"No architectural state changes on read\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_read.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "prdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "prdata"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for apb_read: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_read.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "DUT port [\"prdata\"] is the implementation/observation point for APB register read"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_read.error_cases.error_case_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_read.\nSSOT item context: id=apb_read; name=APB register read; port=[\"prdata\"]; signal=[\"Unsupported offsets return zero in legacy-compatible mode.\"].",
+      "evidence_terms": [
+        "Unsupported",
+        "prdata"
+      ],
+      "id": "RTL-0055",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_read.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "apb_read",
+        "name": "APB register read",
+        "port": "[\"prdata\"]",
+        "signal": "[\"Unsupported offsets return zero in legacy-compatible mode.\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_read.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "prdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Unsupported",
+          "prdata"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction apb_write",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.apb_write",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.apb_write.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_write.\nSSOT item context: id=apb_write; name=APB register write.",
+      "evidence_terms": [],
+      "id": "RTL-0056",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_write",
+      "ssot_context": {
+        "id": "apb_write",
+        "name": "APB register write"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_write"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for apb_write: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_write.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_write.preconditions.precondition_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_write.\nSSOT item context: value=psel and penable and pwrite are asserted.",
+      "evidence_terms": [],
+      "id": "RTL-0057",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_write.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "psel and penable and pwrite are asserted"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_write.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for apb_write: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_write.inputs.input_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_write.inputs.input_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_write.\nSSOT item context: id=apb_write; name=APB register write; signal=[\"paddr\"]; state=[\"CR_FIELDS\", \"SR_INTZERO\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_FIELDS",
+        "INTZERO",
+        "SR",
+        "SR_INTZERO",
+        "paddr"
+      ],
+      "id": "RTL-0058",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_write.inputs.input_0",
+      "ssot_context": {
+        "id": "apb_write",
+        "name": "APB register write",
+        "signal": "[\"paddr\"]",
+        "state": "[\"CR_FIELDS\", \"SR_INTZERO\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_write.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "CR",
+          "INTZERO",
+          "SR",
+          "SR_INTZERO",
+          "paddr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_FIELDS",
+          "INTZERO",
+          "SR",
+          "SR_INTZERO",
+          "paddr"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for apb_write: input_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_write.inputs.input_1",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_write.inputs.input_1.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_write.\nSSOT item context: id=apb_write; name=APB register write; signal=[\"pwdata\"]; state=[\"CR_FIELDS\", \"SR_INTZERO\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_FIELDS",
+        "INTZERO",
+        "SR",
+        "SR_INTZERO",
+        "pwdata"
+      ],
+      "id": "RTL-0059",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_write.inputs.input_1",
+      "ssot_context": {
+        "id": "apb_write",
+        "name": "APB register write",
+        "signal": "[\"pwdata\"]",
+        "state": "[\"CR_FIELDS\", \"SR_INTZERO\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_write.inputs.input_1"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "CR",
+          "INTZERO",
+          "SR",
+          "SR_INTZERO",
+          "pwdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_FIELDS",
+          "INTZERO",
+          "SR",
+          "SR_INTZERO",
+          "pwdata"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for apb_write: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_write.outputs.output_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_write.outputs.output_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_write.\nSSOT item context: id=apb_write; name=APB register write; signal=[\"Protected registers update only when REG_WEN is set according to approved policy\"]; state=[\"CR_FIELDS\", \"SR_INTZERO\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_FIELDS",
+        "INTZERO",
+        "Protected",
+        "REG",
+        "REG_WEN",
+        "SR",
+        "SR_INTZERO",
+        "WEN"
+      ],
+      "id": "RTL-0060",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_write.outputs.output_0",
+      "ssot_context": {
+        "id": "apb_write",
+        "name": "APB register write",
+        "signal": "[\"Protected registers update only when REG_WEN is set according to approved policy\"]",
+        "state": "[\"CR_FIELDS\", \"SR_INTZERO\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_write.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "CR",
+          "INTZERO",
+          "REG",
+          "REG_WEN",
+          "SR",
+          "SR_INTZERO",
+          "WEN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_FIELDS",
+          "INTZERO",
+          "Protected",
+          "REG",
+          "REG_WEN",
+          "SR",
+          "SR_INTZERO",
+          "WEN"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for apb_write: CR_FIELDS",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_write.state_updates.CR_FIELDS",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "CR_FIELDS width matches SSOT value 11",
+        "CR_FIELDS RTL expression implements SSOT expression pwdata & 0x7ff",
+        "CR_FIELDS updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_write.state_updates.CR_FIELDS.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_write.\nSSOT item context: name=CR_FIELDS; expr=pwdata & 0x7ff; width=11.",
+      "evidence_terms": [
+        "CR",
+        "CR_FIELDS",
+        "x7ff"
+      ],
+      "id": "RTL-0061",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_write.state_updates.CR_FIELDS",
+      "ssot_context": {
+        "expr": "pwdata & 0x7ff",
+        "name": "CR_FIELDS",
+        "width": "11"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_write.state_updates.CR_FIELDS"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "CR"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_FIELDS",
+          "x7ff"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for apb_write: SR_INTZERO",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_write.state_updates.SR_INTZERO",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "SR_INTZERO width matches SSOT value 1",
+        "SR_INTZERO RTL expression implements SSOT expression SR_INTZERO & (((pwdata & 1) ^ 1) & 1)",
+        "SR_INTZERO updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_write.state_updates.SR_INTZERO.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_write.\nSSOT item context: name=SR_INTZERO; expr=SR_INTZERO & (((pwdata & 1) ^ 1) & 1); width=1.",
+      "evidence_terms": [
+        "INTZERO",
+        "SR",
+        "SR_INTZERO"
+      ],
+      "id": "RTL-0062",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_write.state_updates.SR_INTZERO",
+      "ssot_context": {
+        "expr": "SR_INTZERO & (((pwdata & 1) ^ 1) & 1)",
+        "name": "SR_INTZERO",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_write.state_updates.SR_INTZERO"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "INTZERO",
+          "SR",
+          "SR_INTZERO"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "INTZERO",
+          "SR",
+          "SR_INTZERO"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for apb_write: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_write.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_write.side_effects.side_effect_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_write.\nSSOT item context: id=apb_write; name=APB register write; signal=[\"May update CR\"]; state=[\"CR_FIELDS\", \"SR_INTZERO\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_FIELDS",
+        "INTZERO",
+        "May",
+        "SR",
+        "SR_INTZERO"
+      ],
+      "id": "RTL-0063",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_write.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "apb_write",
+        "name": "APB register write",
+        "signal": "[\"May update CR\"]",
+        "state": "[\"CR_FIELDS\", \"SR_INTZERO\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_write.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "CR",
+          "INTZERO",
+          "SR",
+          "SR_INTZERO"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_FIELDS",
+          "INTZERO",
+          "May",
+          "SR",
+          "SR_INTZERO"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for apb_write: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_write.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_write.side_effects.side_effect_1.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_write.\nSSOT item context: id=apb_write; name=APB register write; signal=[\"set REG_WEN\"]; state=[\"CR_FIELDS\", \"SR_INTZERO\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_FIELDS",
+        "INTZERO",
+        "REG",
+        "REG_WEN",
+        "SR",
+        "SR_INTZERO",
+        "WEN"
+      ],
+      "id": "RTL-0064",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_write.side_effects.side_effect_1",
+      "ssot_context": {
+        "id": "apb_write",
+        "name": "APB register write",
+        "signal": "[\"set REG_WEN\"]",
+        "state": "[\"CR_FIELDS\", \"SR_INTZERO\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_write.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "CR",
+          "INTZERO",
+          "REG",
+          "REG_WEN",
+          "SR",
+          "SR_INTZERO",
+          "WEN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_FIELDS",
+          "INTZERO",
+          "REG",
+          "REG_WEN",
+          "SR",
+          "SR_INTZERO",
+          "WEN"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for apb_write: side_effect_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_write.side_effects.side_effect_2",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_write.side_effects.side_effect_2.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_write.\nSSOT item context: id=apb_write; name=APB register write; signal=[\"clear SR_INTZERO\"]; state=[\"CR_FIELDS\", \"SR_INTZERO\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_FIELDS",
+        "INTZERO",
+        "SR",
+        "SR_INTZERO"
+      ],
+      "id": "RTL-0065",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_write.side_effects.side_effect_2",
+      "ssot_context": {
+        "id": "apb_write",
+        "name": "APB register write",
+        "signal": "[\"clear SR_INTZERO\"]",
+        "state": "[\"CR_FIELDS\", \"SR_INTZERO\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_write.side_effects.side_effect_2"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "CR",
+          "INTZERO",
+          "SR",
+          "SR_INTZERO"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_FIELDS",
+          "INTZERO",
+          "SR",
+          "SR_INTZERO"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for apb_write: side_effect_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_write.side_effects.side_effect_3",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_write.side_effects.side_effect_3.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_write.\nSSOT item context: id=apb_write; name=APB register write; signal=[\"or issue restart command\"]; state=[\"CR_FIELDS\", \"SR_INTZERO\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_FIELDS",
+        "INTZERO",
+        "SR",
+        "SR_INTZERO"
+      ],
+      "id": "RTL-0066",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_write.side_effects.side_effect_3",
+      "ssot_context": {
+        "id": "apb_write",
+        "name": "APB register write",
+        "signal": "[\"or issue restart command\"]",
+        "state": "[\"CR_FIELDS\", \"SR_INTZERO\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_write.side_effects.side_effect_3"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "CR",
+          "INTZERO",
+          "SR",
+          "SR_INTZERO"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_FIELDS",
+          "INTZERO",
+          "SR",
+          "SR_INTZERO"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for apb_write: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.apb_write.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.apb_write.error_cases.error_case_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.apb_write.\nSSOT item context: id=apb_write; name=APB register write; signal=[\"Writes without unlock to protected registers have no effect\"]; state=[\"CR_FIELDS\", \"SR_INTZERO\"].",
+      "evidence_terms": [
+        "CR",
+        "CR_FIELDS",
+        "INTZERO",
+        "SR",
+        "SR_INTZERO",
+        "Writes"
+      ],
+      "id": "RTL-0067",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.apb_write.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "apb_write",
+        "name": "APB register write",
+        "signal": "[\"Writes without unlock to protected registers have no effect\"]",
+        "state": "[\"CR_FIELDS\", \"SR_INTZERO\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.apb_write.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "CR",
+          "INTZERO",
+          "SR",
+          "SR_INTZERO"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CR",
+          "CR_FIELDS",
+          "INTZERO",
+          "SR",
+          "SR_INTZERO",
+          "Writes"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction write_unlock",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.write_unlock",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.write_unlock.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.write_unlock.\nSSOT item context: id=write_unlock; name=Write protection unlock.",
+      "evidence_terms": [],
+      "id": "RTL-0068",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.write_unlock",
+      "ssot_context": {
+        "id": "write_unlock",
+        "name": "Write protection unlock"
+      },
+      "ssot_refs": [
+        "function_model.transactions.write_unlock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for write_unlock: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.write_unlock.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.write_unlock.preconditions.precondition_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.write_unlock.\nSSOT item context: value=APB write to WEN offset 0x18.",
+      "evidence_terms": [],
+      "id": "RTL-0069",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.write_unlock.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "APB write to WEN offset 0x18"
+      },
+      "ssot_refs": [
+        "function_model.transactions.write_unlock.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for write_unlock: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.write_unlock.inputs.input_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.write_unlock.inputs.input_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.write_unlock.\nSSOT item context: id=write_unlock; name=Write protection unlock; signal=[\"pwdata\"]; state=[\"REG_WEN\"].",
+      "evidence_terms": [
+        "REG",
+        "REG_WEN",
+        "WEN",
+        "pwdata"
+      ],
+      "id": "RTL-0070",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.write_unlock.inputs.input_0",
+      "ssot_context": {
+        "id": "write_unlock",
+        "name": "Write protection unlock",
+        "signal": "[\"pwdata\"]",
+        "state": "[\"REG_WEN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.write_unlock.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "REG",
+          "REG_WEN",
+          "WEN",
+          "pwdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "REG",
+          "REG_WEN",
+          "WEN",
+          "pwdata"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for write_unlock: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.write_unlock.outputs.output_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.write_unlock.outputs.output_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.write_unlock.\nSSOT item context: id=write_unlock; name=Write protection unlock; signal=[\"REG_WEN becomes one when lower 16 bits match 0x5aa5\"]; state=[\"REG_WEN\"].",
+      "evidence_terms": [
+        "REG",
+        "REG_WEN",
+        "WEN",
+        "x5aa5"
+      ],
+      "id": "RTL-0071",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.write_unlock.outputs.output_0",
+      "ssot_context": {
+        "id": "write_unlock",
+        "name": "Write protection unlock",
+        "signal": "[\"REG_WEN becomes one when lower 16 bits match 0x5aa5\"]",
+        "state": "[\"REG_WEN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.write_unlock.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "REG",
+          "REG_WEN",
+          "WEN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "REG",
+          "REG_WEN",
+          "WEN",
+          "x5aa5"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for write_unlock: REG_WEN",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.write_unlock.state_updates.REG_WEN",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "REG_WEN width matches SSOT value 1",
+        "REG_WEN RTL expression implements SSOT expression (pwdata & 0xffff) == 0x5aa5",
+        "REG_WEN updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.write_unlock.state_updates.REG_WEN.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.write_unlock.\nSSOT item context: name=REG_WEN; expr=(pwdata & 0xffff) == 0x5aa5; width=1.",
+      "evidence_terms": [
+        "REG",
+        "REG_WEN",
+        "WEN",
+        "x5aa5"
+      ],
+      "id": "RTL-0072",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.write_unlock.state_updates.REG_WEN",
+      "ssot_context": {
+        "expr": "(pwdata & 0xffff) == 0x5aa5",
+        "name": "REG_WEN",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.write_unlock.state_updates.REG_WEN"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "REG",
+          "REG_WEN",
+          "WEN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "REG",
+          "REG_WEN",
+          "WEN",
+          "x5aa5"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for write_unlock: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.write_unlock.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.write_unlock.side_effects.side_effect_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.write_unlock.\nSSOT item context: id=write_unlock; name=Write protection unlock; signal=[\"Unlock consumption policy pending QA\"]; state=[\"REG_WEN\"].",
+      "evidence_terms": [
+        "QA",
+        "REG",
+        "REG_WEN",
+        "Unlock",
+        "WEN"
+      ],
+      "id": "RTL-0073",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.write_unlock.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "write_unlock",
+        "name": "Write protection unlock",
+        "signal": "[\"Unlock consumption policy pending QA\"]",
+        "state": "[\"REG_WEN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.write_unlock.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "REG",
+          "REG_WEN",
+          "Unlock",
+          "WEN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "QA",
+          "REG",
+          "REG_WEN",
+          "Unlock",
+          "WEN"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for write_unlock: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.write_unlock.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.write_unlock.error_cases.error_case_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.transactions.write_unlock.\nSSOT item context: id=write_unlock; name=Write protection unlock; signal=[\"Wrong magic value does not unlock\"]; state=[\"REG_WEN\"].",
+      "evidence_terms": [
+        "REG",
+        "REG_WEN",
+        "WEN",
+        "Wrong"
+      ],
+      "id": "RTL-0074",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.write_unlock.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "write_unlock",
+        "name": "Write protection unlock",
+        "signal": "[\"Wrong magic value does not unlock\"]",
+        "state": "[\"REG_WEN\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.write_unlock.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "REG",
+          "REG_WEN",
+          "WEN"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "REG",
+          "REG_WEN",
+          "WEN",
+          "Wrong"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for [\"wdt_int\", \"wdt_rst\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: port=[\"wdt_int\", \"wdt_rst\"]; signal=wdt_int equals SR_INTZERO & CR_INTEN.; state=[\"CR_EN\", \"CR_CLK\", \"CR_INTEN\", \"CR_RSTEN\", \"CR_INTTIME\", \"CR_RSTTIME\", \"SR_INTZERO\", \"SR_RSTZERO\"].",
+      "evidence_terms": [
+        "CLK",
+        "CR",
+        "CR_CLK",
+        "CR_EN",
+        "CR_INTEN",
+        "CR_INTTIME",
+        "CR_RSTEN",
+        "CR_RSTTIME",
+        "EN",
+        "INTEN",
+        "INTTIME",
+        "INTZERO",
+        "RSTEN",
+        "RSTTIME",
+        "RSTZERO",
+        "SR"
+      ],
+      "id": "RTL-0115",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "wdt_int equals SR_INTZERO & CR_INTEN.",
+        "state": "[\"CR_EN\", \"CR_CLK\", \"CR_INTEN\", \"CR_RSTEN\", \"CR_INTTIME\", \"CR_RSTTIME\", \"SR_INTZERO\", \"SR_RSTZERO\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "static_evidence": {
+        "matched_count": 15,
+        "matched_terms": [
+          "CLK",
+          "CR",
+          "CR_CLK",
+          "CR_EN",
+          "CR_INTEN",
+          "CR_INTTIME",
+          "CR_RSTEN",
+          "CR_RSTTIME",
+          "EN",
+          "INTEN",
+          "INTTIME",
+          "INTZERO",
+          "RSTEN",
+          "RSTTIME",
+          "SR"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CLK",
+          "CR",
+          "CR_CLK",
+          "CR_EN",
+          "CR_INTEN",
+          "CR_INTTIME",
+          "CR_RSTEN",
+          "CR_RSTTIME",
+          "EN",
+          "INTEN",
+          "INTTIME",
+          "INTZERO",
+          "RSTEN",
+          "RSTTIME",
+          "RSTZERO",
+          "SR"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for [\"wdt_int\", \"wdt_rst\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: port=[\"wdt_int\", \"wdt_rst\"]; signal=wdt_rst equals SR_RSTZERO & CR_RSTEN.; state=[\"CR_EN\", \"CR_CLK\", \"CR_INTEN\", \"CR_RSTEN\", \"CR_INTTIME\", \"CR_RSTTIME\", \"SR_INTZERO\", \"SR_RSTZERO\"].",
+      "evidence_terms": [
+        "CLK",
+        "CR",
+        "CR_CLK",
+        "CR_EN",
+        "CR_INTEN",
+        "CR_INTTIME",
+        "CR_RSTEN",
+        "CR_RSTTIME",
+        "EN",
+        "INTEN",
+        "INTTIME",
+        "INTZERO",
+        "RSTEN",
+        "RSTTIME",
+        "RSTZERO",
+        "SR"
+      ],
+      "id": "RTL-0116",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "wdt_rst equals SR_RSTZERO & CR_RSTEN.",
+        "state": "[\"CR_EN\", \"CR_CLK\", \"CR_INTEN\", \"CR_RSTEN\", \"CR_INTTIME\", \"CR_RSTTIME\", \"SR_INTZERO\", \"SR_RSTZERO\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "static_evidence": {
+        "matched_count": 15,
+        "matched_terms": [
+          "CLK",
+          "CR",
+          "CR_CLK",
+          "CR_EN",
+          "CR_INTEN",
+          "CR_INTTIME",
+          "CR_RSTEN",
+          "CR_RSTTIME",
+          "EN",
+          "INTEN",
+          "INTTIME",
+          "INTZERO",
+          "RSTEN",
+          "RSTTIME",
+          "SR"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CLK",
+          "CR",
+          "CR_CLK",
+          "CR_EN",
+          "CR_INTEN",
+          "CR_INTTIME",
+          "CR_RSTEN",
+          "CR_RSTTIME",
+          "EN",
+          "INTEN",
+          "INTTIME",
+          "INTZERO",
+          "RSTEN",
+          "RSTTIME",
+          "RSTZERO",
+          "SR"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "DUT port [\"wdt_int\", \"wdt_rst\"] is the implementation/observation point for [\"wdt_int\", \"wdt_rst\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: port=[\"wdt_int\", \"wdt_rst\"]; signal=Counter does not advance while disabled or paused.; state=[\"STATE\"].",
+      "evidence_terms": [
+        "int",
+        "rst",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0117",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "port": "[\"wdt_int\", \"wdt_rst\"]",
+        "signal": "Counter does not advance while disabled or paused.",
+        "state": "[\"STATE\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "int"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_3",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_3",
+        "Primary implementation evidence is in rtl/atcwdt200_regs.sv",
+        "DUT port [\"prdata\", \"wdt_int\", \"wdt_rst\"] is the implementation/observation point for [\"prdata\", \"wdt_int\", \"wdt_rst\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: atcwdt200_regs in rtl/atcwdt200_regs.sv via function_model.\nSSOT item context: port=[\"prdata\", \"wdt_int\", \"wdt_rst\"]; signal=Reserved register bits read as zero and ignore writes unless QA approves modernized behavior..",
+      "evidence_terms": [
+        "QA",
+        "Reserved",
+        "int",
+        "prdata",
+        "rst",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0118",
+      "owner_file": "rtl/atcwdt200_regs.sv",
+      "owner_module": "atcwdt200_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_3",
+      "ssot_context": {
+        "port": "[\"prdata\", \"wdt_int\", \"wdt_rst\"]",
+        "signal": "Reserved register bits read as zero and ignore writes unless QA approves modernized behavior."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_3"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "int",
+          "prdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "QA",
+          "Reserved",
+          "int",
+          "prdata",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3348ddb6018966555eeb963ff7b9aa4ed0d14e6293df5093c73330b07393340c",
+  "top": "atcwdt200",
+  "type": "rtl_authoring_packet"
+}

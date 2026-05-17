@@ -1,0 +1,68 @@
+{
+  "schema_version": "ip_wiki_graph.v1",
+  "generated_at": "2026-05-17T05:38:33Z",
+  "root": "caa_timer/wiki",
+  "node_count": 2,
+  "edge_count": 0,
+  "tags": {
+    "artifact": [
+      "last_run",
+      "ssot"
+    ],
+    "run-log": [
+      "last_run"
+    ],
+    "ssot": [
+      "ssot"
+    ]
+  },
+  "types": {
+    "log": [
+      "last_run"
+    ],
+    "reference": [
+      "ssot"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "last_run",
+      "title": "caa_timer last run",
+      "type": "log",
+      "tags": [
+        "artifact",
+        "run-log"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-17T05:38:33Z",
+      "summary": "stages=2 last=ssot-gen:human_gate",
+      "status": "human_gate",
+      "digest": "stages=2 last=ssot-gen:human_gate",
+      "path": "caa_timer/logs/headless_run.json",
+      "size_bytes": 1055
+    },
+    {
+      "id": "ssot",
+      "title": "caa_timer SSOT",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-17T05:38:33Z",
+      "summary": "sections=0 size=18838B",
+      "status": "present",
+      "digest": "sections=0 size=18838B",
+      "path": "caa_timer/yaml/caa_timer.ssot.yaml",
+      "size_bytes": 18838
+    }
+  ],
+  "ip": "caa_timer"
+}

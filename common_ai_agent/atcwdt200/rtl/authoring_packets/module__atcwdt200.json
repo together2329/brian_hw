@@ -1,0 +1,2232 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 6,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 42,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atcwdt200.sv",
+      "name": "atcwdt200",
+      "refs": [
+        "filelist",
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcwdt200_regs.sv",
+        "name": "atcwdt200_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_core.sv",
+        "name": "atcwdt200_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_sync.sv",
+        "name": "atcwdt200_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200.sv",
+        "name": "atcwdt200",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_regs",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_regs",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_core",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_core",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_sync",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_sync",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[5]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "pclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pclk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "presetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "presetn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_control_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_control_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_control_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "apb_control_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_control_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_control_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "extclk",
+          "watchdog_sideband_extclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "extclk",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "watchdog_sideband_wdt_pause",
+          "wdt_pause"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wdt_pause",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "watchdog_sideband_wdt_int",
+          "wdt_int"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "wdt_int",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "watchdog_sideband_wdt_rst",
+          "wdt_rst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "wdt_rst",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atcwdt200",
+  "kind": "module",
+  "owner_file": "rtl/atcwdt200.sv",
+  "owner_module": "atcwdt200",
+  "packet_id": "module__atcwdt200",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "features.item": 3,
+      "integration.connections": 6,
+      "integration.dependencies": 3,
+      "io_list.port": 10,
+      "parameters.item": 4,
+      "rtl_flow.seed": 1,
+      "rtl_flow.top": 1,
+      "security.assets": 2,
+      "synthesis.constraints": 3,
+      "synthesis.ppa_targets": 3,
+      "test_requirements.scenario": 6
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 42,
+      "task_limit": 48
+    },
+    "open_required_count": 1,
+    "required_count": 42,
+    "source_refs": [
+      "top_module",
+      "io_list",
+      "features.apb_register_access",
+      "features.watchdog_timeout",
+      "features.restart_and_pause",
+      "security.assets.watchdog_reset_control",
+      "security.assets.watchdog_disable_control",
+      "integration.dependencies.external_modules",
+      "integration.dependencies.external_clocks",
+      "integration.dependencies.external_resets",
+      "integration.connections.pclk",
+      "integration.connections.presetn",
+      "integration.connections.pclk",
+      "integration.connections.presetn",
+      "integration.connections.pclk",
+      "integration.connections.presetn",
+      "synthesis.constraints.constraint_0",
+      "synthesis.constraints.constraint_1",
+      "synthesis.constraints.constraint_2",
+      "synthesis.ppa_targets.area_um2_max",
+      "synthesis.ppa_targets.power_mw_max",
+      "synthesis.ppa_targets.frequency_mhz_min",
+      "parameters.COUNTER_WIDTH",
+      "parameters.INT_TIME_WIDTH"
+    ],
+    "status_counts": {
+      "open": 1,
+      "pass": 41
+    },
+    "task_count": 42
+  },
+  "tasks": [
+    {
+      "category": "rtl_flow.seed",
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "criteria": [
+        "rtl_todo_plan.json was regenerated from the current SSOT",
+        "Every required task in the plan is either implemented, evidenced, or escalated",
+        "No IP-specific fixed template is used as the source of truth",
+        "Traceability keeps source_ref top_module",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_module.",
+      "evidence_terms": [],
+      "id": "RTL-0001",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {},
+      "ssot_refs": [
+        "top_module"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_flow.top",
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "criteria": [
+        "Top module name matches SSOT top_module",
+        "Every SSOT top-level port appears with matching direction and width",
+        "Filelist contains all LLM-authored RTL sources and no stale sources",
+        "Traceability keeps source_ref io_list",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_module.\nSSOT item context: value=atcwdt200.",
+      "evidence_terms": [],
+      "id": "RTL-0002",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "io_list",
+      "ssot_context": {
+        "value": "atcwdt200"
+      },
+      "ssot_refs": [
+        "io_list"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature apb_register_access",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.apb_register_access",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.apb_register_access.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: name=apb_register_access; output=prdata, CR state, SR state, restart pulse..",
+      "evidence_terms": [
+        "CR",
+        "SR"
+      ],
+      "id": "RTL-0165",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.apb_register_access",
+      "ssot_context": {
+        "name": "apb_register_access",
+        "output": "prdata, CR state, SR state, restart pulse."
+      },
+      "ssot_refs": [
+        "features.apb_register_access"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "CR",
+          "SR"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CR",
+          "SR"
+        ],
+        "source_scope": "rtl/atcwdt200.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature watchdog_timeout",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.watchdog_timeout",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.watchdog_timeout.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: name=watchdog_timeout; output=wdt_int, wdt_rst, SR.INTZERO..",
+      "evidence_terms": [
+        "INTZERO",
+        "SR",
+        "int",
+        "rst",
+        "wdt",
+        "wdt_int",
+        "wdt_rst"
+      ],
+      "id": "RTL-0166",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.watchdog_timeout",
+      "ssot_context": {
+        "name": "watchdog_timeout",
+        "output": "wdt_int, wdt_rst, SR.INTZERO."
+      },
+      "ssot_refs": [
+        "features.watchdog_timeout"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "INTZERO",
+          "SR",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "INTZERO",
+          "SR",
+          "int",
+          "rst",
+          "wdt",
+          "wdt_int",
+          "wdt_rst"
+        ],
+        "source_scope": "rtl/atcwdt200.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature restart_and_pause",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.restart_and_pause",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.restart_and_pause.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: name=restart_and_pause; output=Counter/state update only; no APB read side effect..",
+      "evidence_terms": [
+        "APB"
+      ],
+      "id": "RTL-0167",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.restart_and_pause",
+      "ssot_context": {
+        "name": "restart_and_pause",
+        "output": "Counter/state update only; no APB read side effect."
+      },
+      "ssot_refs": [
+        "features.restart_and_pause"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "APB"
+        ],
+        "source_scope": "rtl/atcwdt200.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item watchdog_reset_control",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.watchdog_reset_control",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.watchdog_reset_control.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: name=watchdog_reset_control.",
+      "evidence_terms": [],
+      "id": "RTL-0179",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.watchdog_reset_control",
+      "ssot_context": {
+        "name": "watchdog_reset_control"
+      },
+      "ssot_refs": [
+        "security.assets.watchdog_reset_control"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item watchdog_disable_control",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.watchdog_disable_control",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.watchdog_disable_control.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: name=watchdog_disable_control.",
+      "evidence_terms": [],
+      "id": "RTL-0180",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.watchdog_disable_control",
+      "ssot_context": {
+        "name": "watchdog_disable_control"
+      },
+      "ssot_refs": [
+        "security.assets.watchdog_disable_control"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_modules",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_modules",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_modules.\nOwner: atcwdt200 in rtl/atcwdt200.sv via integration.\nSSOT item context: name=external_modules; value=[{\"name\": \"nds_sync_l2l\", \"policy\": \"replaced_by_local_manifest_sync\", \"source\": \"imported flist references external ....",
+      "evidence_terms": [],
+      "id": "RTL-0181",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_modules",
+      "ssot_context": {
+        "name": "external_modules",
+        "value": "[{\"name\": \"nds_sync_l2l\", \"policy\": \"replaced_by_local_manifest_sync\", \"source\": \"imported flist references external ..."
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_modules"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_clocks",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_clocks",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_clocks.\nOwner: atcwdt200 in rtl/atcwdt200.sv via integration.\nSSOT item context: name=external_clocks; value=[\"pclk\", \"extclk\"].",
+      "evidence_terms": [],
+      "id": "RTL-0182",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_clocks",
+      "ssot_context": {
+        "name": "external_clocks",
+        "value": "[\"pclk\", \"extclk\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_clocks"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item external_resets",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.external_resets",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_resets.\nOwner: atcwdt200 in rtl/atcwdt200.sv via integration.\nSSOT item context: name=external_resets; value=[\"presetn\"].",
+      "evidence_terms": [],
+      "id": "RTL-0183",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.external_resets",
+      "ssot_context": {
+        "name": "external_resets",
+        "value": "[\"presetn\"]"
+      },
+      "ssot_refs": [
+        "integration.dependencies.external_resets"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pclk",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pclk",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "DUT port pclk is the implementation/observation point for pclk"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pclk.\nOwner: atcwdt200 in rtl/atcwdt200.sv via integration.connections.\nSSOT item context: port=pclk; signal=pclk.",
+      "evidence_terms": [
+        "pclk"
+      ],
+      "id": "RTL-0184",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pclk",
+      "ssot_context": {
+        "port": "pclk",
+        "signal": "pclk"
+      },
+      "ssot_refs": [
+        "integration.connections.pclk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item presetn",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.presetn",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "DUT port presetn is the implementation/observation point for presetn"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.presetn.\nOwner: atcwdt200 in rtl/atcwdt200.sv via integration.connections.\nSSOT item context: port=presetn; signal=presetn.",
+      "evidence_terms": [
+        "presetn"
+      ],
+      "id": "RTL-0185",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.presetn",
+      "ssot_context": {
+        "port": "presetn",
+        "signal": "presetn"
+      },
+      "ssot_refs": [
+        "integration.connections.presetn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pclk",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pclk",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "DUT port pclk is the implementation/observation point for pclk"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pclk.\nOwner: atcwdt200 in rtl/atcwdt200.sv via integration.connections.\nSSOT item context: port=pclk; signal=pclk.",
+      "evidence_terms": [
+        "pclk"
+      ],
+      "id": "RTL-0186",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pclk",
+      "ssot_context": {
+        "port": "pclk",
+        "signal": "pclk"
+      },
+      "ssot_refs": [
+        "integration.connections.pclk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item presetn",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.presetn",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "DUT port presetn is the implementation/observation point for presetn"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.presetn.\nOwner: atcwdt200 in rtl/atcwdt200.sv via integration.connections.\nSSOT item context: port=presetn; signal=presetn.",
+      "evidence_terms": [
+        "presetn"
+      ],
+      "id": "RTL-0187",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.presetn",
+      "ssot_context": {
+        "port": "presetn",
+        "signal": "presetn"
+      },
+      "ssot_refs": [
+        "integration.connections.presetn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item pclk",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.pclk",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "DUT port pclk is the implementation/observation point for pclk"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.pclk.\nOwner: atcwdt200 in rtl/atcwdt200.sv via integration.connections.\nSSOT item context: port=pclk; signal=pclk.",
+      "evidence_terms": [
+        "pclk"
+      ],
+      "id": "RTL-0188",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.pclk",
+      "ssot_context": {
+        "port": "pclk",
+        "signal": "pclk"
+      },
+      "ssot_refs": [
+        "integration.connections.pclk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item presetn",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.presetn",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "DUT port presetn is the implementation/observation point for presetn"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.presetn.\nOwner: atcwdt200 in rtl/atcwdt200.sv via integration.connections.\nSSOT item context: port=presetn; signal=presetn.",
+      "evidence_terms": [
+        "presetn"
+      ],
+      "id": "RTL-0189",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.presetn",
+      "ssot_context": {
+        "port": "presetn",
+        "signal": "presetn"
+      },
+      "ssot_refs": [
+        "integration.connections.presetn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_0",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_0.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: value=No inferred latches..",
+      "evidence_terms": [],
+      "id": "RTL-0190",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_0",
+      "ssot_context": {
+        "value": "No inferred latches."
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_1",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_1.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: value=Single pclk sequential domain after synchronizers..",
+      "evidence_terms": [],
+      "id": "RTL-0191",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_1",
+      "ssot_context": {
+        "value": "Single pclk sequential domain after synchronizers."
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_2",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_2.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: value=Generated RTL must be clean-room from SSOT behavior..",
+      "evidence_terms": [],
+      "id": "RTL-0192",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_2",
+      "ssot_context": {
+        "value": "Generated RTL must be clean-room from SSOT behavior."
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item area_um2_max",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.area_um2_max",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.area_um2_max.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: name=area_um2_max.",
+      "evidence_terms": [],
+      "id": "RTL-0193",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.area_um2_max",
+      "ssot_context": {
+        "name": "area_um2_max"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.area_um2_max"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item power_mw_max",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.power_mw_max",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.power_mw_max.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: name=power_mw_max.",
+      "evidence_terms": [],
+      "id": "RTL-0194",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.power_mw_max",
+      "ssot_context": {
+        "name": "power_mw_max"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.power_mw_max"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item frequency_mhz_min",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.frequency_mhz_min",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.frequency_mhz_min.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: name=frequency_mhz_min; value=50.",
+      "evidence_terms": [],
+      "id": "RTL-0195",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.frequency_mhz_min",
+      "ssot_context": {
+        "name": "frequency_mhz_min",
+        "value": "50"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.frequency_mhz_min"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter COUNTER_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.COUNTER_WIDTH",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.COUNTER_WIDTH.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: name=COUNTER_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0021",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.COUNTER_WIDTH",
+      "ssot_context": {
+        "name": "COUNTER_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.COUNTER_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter INT_TIME_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.INT_TIME_WIDTH",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.INT_TIME_WIDTH.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: name=INT_TIME_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0022",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.INT_TIME_WIDTH",
+      "ssot_context": {
+        "name": "INT_TIME_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.INT_TIME_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter APB_ADDR_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.APB_ADDR_WIDTH",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.APB_ADDR_WIDTH.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: name=APB_ADDR_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0023",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.APB_ADDR_WIDTH",
+      "ssot_context": {
+        "name": "APB_ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.APB_ADDR_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter DATA_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.DATA_WIDTH",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.DATA_WIDTH.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: name=DATA_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0024",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.DATA_WIDTH",
+      "ssot_context": {
+        "name": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.DATA_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port psel",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_control.ports.psel",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "psel width matches SSOT value 1",
+        "psel port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_control.ports.psel.\nOwner: atcwdt200 in rtl/atcwdt200.sv via io_list.interfaces.\nSSOT item context: name=psel; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0027",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_control.ports.psel",
+      "ssot_context": {
+        "direction": "input",
+        "name": "psel",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_control.ports.psel"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port penable",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_control.ports.penable",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "penable width matches SSOT value 1",
+        "penable port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_control.ports.penable.\nOwner: atcwdt200 in rtl/atcwdt200.sv via io_list.interfaces.\nSSOT item context: name=penable; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0028",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_control.ports.penable",
+      "ssot_context": {
+        "direction": "input",
+        "name": "penable",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_control.ports.penable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port paddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_control.ports.paddr",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "paddr width matches SSOT value 3",
+        "paddr port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_control.ports.paddr.\nOwner: atcwdt200 in rtl/atcwdt200.sv via io_list.interfaces.\nSSOT item context: name=paddr; width=3; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0029",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_control.ports.paddr",
+      "ssot_context": {
+        "direction": "input",
+        "name": "paddr",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_control.ports.paddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwrite",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_control.ports.pwrite",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "pwrite width matches SSOT value 1",
+        "pwrite port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_control.ports.pwrite.\nOwner: atcwdt200 in rtl/atcwdt200.sv via io_list.interfaces.\nSSOT item context: name=pwrite; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0030",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_control.ports.pwrite",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwrite",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_control.ports.pwrite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_control.ports.pwdata",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "pwdata width matches SSOT value 32",
+        "pwdata port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_control.ports.pwdata.\nOwner: atcwdt200 in rtl/atcwdt200.sv via io_list.interfaces.\nSSOT item context: name=pwdata; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0031",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_control.ports.pwdata",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_control.ports.pwdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port prdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_control.ports.prdata",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "prdata width matches SSOT value 32",
+        "prdata port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_control.ports.prdata.\nOwner: atcwdt200 in rtl/atcwdt200.sv via io_list.interfaces.\nSSOT item context: name=prdata; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0032",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_control.ports.prdata",
+      "ssot_context": {
+        "direction": "output",
+        "name": "prdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_control.ports.prdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port extclk",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.watchdog_sideband.ports.extclk",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "extclk width matches SSOT value 1",
+        "extclk port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.watchdog_sideband.ports.extclk.\nOwner: atcwdt200 in rtl/atcwdt200.sv via io_list.interfaces.\nSSOT item context: name=extclk; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.watchdog_sideband.ports.extclk",
+      "ssot_context": {
+        "direction": "input",
+        "name": "extclk",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.watchdog_sideband.ports.extclk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port wdt_pause",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.watchdog_sideband.ports.wdt_pause",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "wdt_pause width matches SSOT value 1",
+        "wdt_pause port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.watchdog_sideband.ports.wdt_pause.\nOwner: atcwdt200 in rtl/atcwdt200.sv via io_list.interfaces.\nSSOT item context: name=wdt_pause; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.watchdog_sideband.ports.wdt_pause",
+      "ssot_context": {
+        "direction": "input",
+        "name": "wdt_pause",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.watchdog_sideband.ports.wdt_pause"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port wdt_int",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.watchdog_sideband.ports.wdt_int",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "wdt_int width matches SSOT value 1",
+        "wdt_int port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.watchdog_sideband.ports.wdt_int.\nOwner: atcwdt200 in rtl/atcwdt200.sv via io_list.interfaces.\nSSOT item context: name=wdt_int; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.watchdog_sideband.ports.wdt_int",
+      "ssot_context": {
+        "direction": "output",
+        "name": "wdt_int",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.watchdog_sideband.ports.wdt_int"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port wdt_rst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.watchdog_sideband.ports.wdt_rst",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "wdt_rst width matches SSOT value 1",
+        "wdt_rst port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.watchdog_sideband.ports.wdt_rst.\nOwner: atcwdt200 in rtl/atcwdt200.sv via io_list.interfaces.\nSSOT item context: name=wdt_rst; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.watchdog_sideband.ports.wdt_rst",
+      "ssot_context": {
+        "direction": "output",
+        "name": "wdt_rst",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.watchdog_sideband.ports.wdt_rst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario reset_defaults",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.reset_defaults",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: CR, SR, REG_WEN, COUNTER, and STATE reset to declared values; outputs deassert."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.reset_defaults.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: id=reset_defaults; name=Reset defaults; expected=CR, SR, REG_WEN, COUNTER, and STATE reset to declared values; outputs deassert..",
+      "evidence_terms": [],
+      "id": "RTL-0199",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.reset_defaults",
+      "ssot_context": {
+        "expected": "CR, SR, REG_WEN, COUNTER, and STATE reset to declared values; outputs deassert.",
+        "id": "reset_defaults",
+        "name": "Reset defaults"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.reset_defaults"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario apb_register_access",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.apb_register_access",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Register readback follows register map and protected write policy."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.apb_register_access.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: id=apb_register_access; name=APB register read/write; expected=Register readback follows register map and protected write policy..",
+      "evidence_terms": [],
+      "id": "RTL-0200",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.apb_register_access",
+      "ssot_context": {
+        "expected": "Register readback follows register map and protected write policy.",
+        "id": "apb_register_access",
+        "name": "APB register read/write"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.apb_register_access"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario restart_command",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.restart_command",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: COUNTER clears and STATE returns to ST_INTTIME."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.restart_command.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: id=restart_command; name=Restart command; expected=COUNTER clears and STATE returns to ST_INTTIME..",
+      "evidence_terms": [],
+      "id": "RTL-0201",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.restart_command",
+      "ssot_context": {
+        "expected": "COUNTER clears and STATE returns to ST_INTTIME.",
+        "id": "restart_command",
+        "name": "Restart command"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.restart_command"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario interrupt_timeout",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.interrupt_timeout",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: SR.INTZERO sets and wdt_int asserts when timeout is reached."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.interrupt_timeout.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: id=interrupt_timeout; name=Interrupt timeout; expected=SR.INTZERO sets and wdt_int asserts when timeout is reached..",
+      "evidence_terms": [],
+      "id": "RTL-0202",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.interrupt_timeout",
+      "ssot_context": {
+        "expected": "SR.INTZERO sets and wdt_int asserts when timeout is reached.",
+        "id": "interrupt_timeout",
+        "name": "Interrupt timeout"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.interrupt_timeout"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario reset_timeout",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.reset_timeout",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: wdt_rst asserts and CR.EN clears on reset timeout."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.reset_timeout.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: id=reset_timeout; name=Reset timeout; expected=wdt_rst asserts and CR.EN clears on reset timeout..",
+      "evidence_terms": [],
+      "id": "RTL-0203",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.reset_timeout",
+      "ssot_context": {
+        "expected": "wdt_rst asserts and CR.EN clears on reset timeout.",
+        "id": "reset_timeout",
+        "name": "Reset timeout"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.reset_timeout"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario pause_and_extclk",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.pause_and_extclk",
+        "Primary implementation evidence is in rtl/atcwdt200.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Counter advances only on approved ticks while pause is deasserted."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.pause_and_extclk.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_fallback.\nSSOT item context: id=pause_and_extclk; name=Pause and external clock behavior; expected=Counter advances only on approved ticks while pause is deasserted..",
+      "evidence_terms": [],
+      "id": "RTL-0204",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.pause_and_extclk",
+      "ssot_context": {
+        "expected": "Counter advances only on approved ticks while pause is deasserted.",
+        "id": "pause_and_extclk",
+        "name": "Pause and external clock behavior"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.pause_and_extclk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3348ddb6018966555eeb963ff7b9aa4ed0d14e6293df5093c73330b07393340c",
+  "top": "atcwdt200",
+  "type": "rtl_authoring_packet"
+}

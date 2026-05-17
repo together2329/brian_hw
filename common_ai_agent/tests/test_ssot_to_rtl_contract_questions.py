@@ -840,7 +840,7 @@ def test_manifest_submodule_contract_requires_behavior_refs_not_just_prose():
     ]
 
 
-def test_starter_mode_generates_preview_from_minimal_output_rules(tmp_path: Path):
+def test_starter_mode_requires_llm_authored_rtl_from_minimal_output_rules(tmp_path: Path):
     rtl_gen = _load_rtl_gen()
     ip = "tiny_starter_and"
     ip_dir = tmp_path / ip
@@ -866,18 +866,21 @@ function_model:
         encoding="utf-8",
     )
 
-    rtl_gen.generate(ip, tmp_path, mode="starter")
+    try:
+        rtl_gen.generate(ip, tmp_path, mode="starter")
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:
+        raise AssertionError("Starter RTL handoff should stop before RTL authoring")
 
-    rtl = (ip_dir / "rtl" / f"{ip}.sv").read_text(encoding="utf-8")
+    contract_doc = json.loads((ip_dir / "rtl" / "rtl_contract.json").read_text(encoding="utf-8"))
     gates = json.loads((ip_dir / "rtl" / "rtl_preview_gates.json").read_text(encoding="utf-8"))
-    provenance = json.loads((ip_dir / "rtl" / "rtl_authoring_provenance.json").read_text(encoding="utf-8"))
 
-    assert "module tiny_starter_and" in rtl
-    assert "assign y_o = a_i & b_i;" in rtl
-    assert "!= 0" not in rtl
-    assert (ip_dir / "list" / f"{ip}.f").read_text(encoding="utf-8") == f"rtl/{ip}.sv\n"
-    assert not (ip_dir / "rtl" / "rtl_blocked.json").exists()
-    assert gates["status"] == "pass"
+    assert contract_doc["type"] == "starter_llm_rtl_authoring_contract"
+    assert (ip_dir / "rtl" / "starter_llm_rtl_handoff.json").is_file()
+    assert not (ip_dir / "rtl" / f"{ip}.sv").exists()
+    assert (ip_dir / "rtl" / "rtl_blocked.json").is_file()
+    assert gates["status"] == "handoff"
     assert gates["mode"] == "starter"
     assert any(item["id"] == "STARTER_CYCLE_MODEL_DEFERRED" for item in gates["soft_gates"])
-    assert provenance["generator"] == "starter_ssot_preview_seed"
+    assert any(item["id"] == "STARTER_LLM_RTL_AUTHORING_REQUIRED" for item in gates["soft_gates"])

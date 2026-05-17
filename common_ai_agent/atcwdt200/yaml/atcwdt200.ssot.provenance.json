@@ -1,0 +1,58 @@
+{
+  "ip": "atcwdt200",
+  "policy": "doc/wiki/run-mode-and-provenance-policy.md",
+  "visible_ssot": "atcwdt200/yaml/atcwdt200.ssot.yaml",
+  "resolved_ssot": "atcwdt200/yaml/atcwdt200.ssot.yaml",
+  "review_decisions": "atcwdt200/review/review_decisions.json",
+  "fields": {
+    "/top_module/name": {
+      "authority": "derived",
+      "source": "/Users/brian/Desktop/andes/atcwdt200/hdl/atcwdt200.v",
+      "value": "atcwdt200"
+    },
+    "/top_module/type": {
+      "authority": "derived",
+      "source": "reference interface/register evidence",
+      "value": "peripheral"
+    },
+    "/io_list/interfaces/apb_control": {
+      "authority": "approved_qna",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json#apb_protocol_variant",
+      "selected": "legacy_apb_like",
+      "answer": "Keep the reference APB-like psel/penable/pwrite/paddr/pwdata/prdata interface for the first compatibility pass; no pready/pslverr."
+    },
+    "/parameters/COUNTER_WIDTH": {
+      "authority": "approved_qna",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json#counter_width_policy",
+      "selected": "param_default_16",
+      "answer": "Keep 16-bit and 32-bit modes parameterized, defaulting to the reference 16-bit configuration."
+    },
+    "/cdc_requirements/crossings": {
+      "authority": "approved_qna",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json#extclk_cdc_policy",
+      "selected": "internal_sync_async",
+      "answer": "Treat extclk and wdt_pause as asynchronous inputs synchronized into pclk by generated local logic."
+    },
+    "/registers/register_list": {
+      "authority": "tool_evidence",
+      "source": "atcwdt200/req/import_manifest.json"
+    },
+    "/function_model/transactions": {
+      "authority": "approved_qna",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json#timeout_interval_table",
+      "selected": "lock_observed_taps",
+      "answer": "Lock the observed CR.INTTIME and CR.RSTTIME counter-bit tap tables for compatibility."
+    },
+    "/quality_gates/rtl_gen/profile": {
+      "authority": "approved_qna",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json#flow_quality_profile",
+      "selected": "standard_first",
+      "answer": "Use standard local evidence for this first FL -> RTL -> TB -> sim -> lint iteration; production gates can follow after behavior stabilizes."
+    },
+    "/custom/assumptions": {
+      "authority": "approved_qna",
+      "source": "review/review_decisions.json",
+      "answer": "RTL engineer approved all first-pass recommended defaults."
+    }
+  }
+}

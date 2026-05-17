@@ -1,0 +1,14 @@
+`ifndef ATCWDT200_PARAM_VH
+`define ATCWDT200_PARAM_VH
+
+`define ATCWDT200_WP_NUM       16'h5aa5
+`define ATCWDT200_RESTART_NUM  16'hcafe
+`define ATCWDT200_VERSION      32'h0300_2002
+
+`define ATCWDT200_ADDR_VER     3'h0
+`define ATCWDT200_ADDR_CR      3'h4
+`define ATCWDT200_ADDR_RES     3'h5
+`define ATCWDT200_ADDR_WEN     3'h6
+`define ATCWDT200_ADDR_SR      3'h7
+
+`endif

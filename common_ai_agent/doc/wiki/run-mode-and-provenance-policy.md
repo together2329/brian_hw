@@ -239,24 +239,27 @@ Implemented on 2026-05-17:
   can be traced separately.
 - `headless_workflow.py` passes Run Mode into SSOT validation and repair.
 - `ssot_to_rtl.py` accepts `--mode starter|engineering|signoff`.
-- In `Starter`, `ssot_to_rtl.py` can emit deterministic RTL preview from
-  direct `function_model.output_rules` without requiring LLM-authored RTL
-  evidence first.
-- Starter RTL preview writes `rtl/rtl_preview_gates.json`, keeping hard gates
+- In `Starter`, `ssot_to_rtl.py` writes an LLM authoring handoff instead of RTL.
+  Starter gates are relaxed, but the RTL artifact is still real LLM-authored
+  RTL.
+- Starter handoff writes `rtl/rtl_preview_gates.json`, keeping hard gates
   separate from soft/deferred gates. Missing `cycle_model` is warning/deferred
-  for same-cycle combinational previews, not a blocking gate.
-- Starter preview artifacts are marked as preview evidence only; deferred gates
-  must still close before Engineering or Signoff approval.
+  for same-cycle starter contracts, not a blocking gate.
+- Starter artifacts are real authoring and verification artifacts. They are not
+  signoff evidence; deferred gates must still close before Engineering or
+  Signoff approval.
 - `workflow/sim/scripts/starter_preview_sim.py` extends the same Starter lane
   from RTL preview to simulation smoke. It emits `tb/tb_<ip>.sv`, runs
   `iverilog` + `vvp`, and writes `sim/starter_preview_sim.json`,
   `sim/results.xml`, and `sim/sim_report.txt`.
 - Starter sim uses direct output-rule checks only. It is fast feedback that the
-  generated RTL matches the preview contract; it is not a substitute for
+  LLM-authored RTL matches the Starter contract; it is not a substitute for
   Engineering/Signoff cocotb, scoreboard, coverage, or equivalence evidence.
-- Starter RTL preview now treats readability as a gate for simple one-bit
-  boolean rules. A rule such as `a_i and b_i` must emit reviewable RTL such as
-  `assign y_o = a_i & b_i;`, not nested defensive `!= 0` casts.
+- Starter now stops at an LLM authoring handoff for all RTL, including tiny
+  combinational examples. The contract may contain `output_rules`,
+  `function_model.state_variables`, and `state_updates`, but default Starter
+  must not compile those rules into RTL. The LLM/worker authors RTL, then
+  compile/sim gates verify it.
 
 Mode-specific validator behavior now starts with this contract:
 
@@ -277,44 +280,89 @@ Mode-specific validator behavior now starts with this contract:
 ## APB Timer in Starter
 
 Starter is not an IP-size label. An APB timer can start in Starter mode, but it
-needs a different Starter generator shape from the direct combinational
-`output_rules` preview.
+must be LLM-authored RTL, not template RTL and not generic rule-to-RTL compiler
+output. The rule contract guides authoring and verification; it is not a hidden
+HDL.
 
 Recommended split:
 
-- Direct expression preview: minimal combinational behavior from
-  `function_model.output_rules`.
-- Template-backed peripheral preview: deterministic seed RTL for known
-  peripheral shapes such as APB timer, UART-lite, GPIO, and simple interrupt
-  controllers.
+- Starter authoring contract: compact SSOT plus machine-checkable rules for
+  LLM/worker guidance.
+- Starter gates: relaxed compile/smoke evidence to move fast.
+- Engineering/Signoff gates: stricter coverage, scoreboard, equivalence,
+  timing, DFT, PNR, and review evidence.
 
 For an APB timer, Starter should require only the compact behavioral contract:
 
 - `top_module`
 - APB port/interface declaration
 - clock/reset
-- register map fields such as control, reload/compare/value, interrupt status
-- timer behavior: enable, tick source/prescale, reload or one-shot policy,
-  compare/terminal-count interrupt policy
+- executable state variables such as enable, compare/reload, count, interrupt
+  state
+- executable state updates for APB writes, tick/count behavior, interrupt set
+  and clear
+- executable output rules for ready/error/read-data/interrupt outputs
 
-Starter should then generate:
+Starter should then produce handoff and verification artifacts:
 
-- APB read/write shell
-- counter state
-- interrupt/status logic
-- small smoke simulation: reset, APB write, readback, count/tick, interrupt
-  assertion/clear
+- `rtl/rtl_contract.json` with type `starter_llm_rtl_authoring_contract`
+- `rtl/starter_llm_rtl_handoff.json` for the worker
+- no RTL file from `ssot_to_rtl.py` by default
+- after the LLM writes RTL, compile and smoke simulation from the same contract
 
 Deferred gates stay explicit:
 
 - CDC, DFT, PNR, timing IO delays, security review, full coverage, formal/equiv,
   and signoff-quality scoreboard remain Engineering/Signoff evidence.
 
-Current implementation status: direct expression Starter RTL-to-sim is
-implemented. APB timer Starter requires adding the template-backed peripheral
-preview lane; without it, current Starter correctly blocks stateful behavior via
-`STARTER_SEQUENTIAL_CONTRACT` rather than emitting misleading combinational RTL.
+Correction from 2026-05-17: rule-driven RTL generation was tried and rejected
+as the default because it turns Starter into a YAML-to-RTL generator DSL.
+Default Starter now writes an LLM handoff for RTL. A fresh APB Timer smoke
+(`starter_apb_timer`) confirmed the corrected flow: `ssot_to_rtl.py --mode
+starter` stopped at LLM handoff, an LLM-authored RTL file was supplied, then
+compile passed with `errors=0 diagnostics=0 style_violations=0` and sim passed
+with `tests=64 pass=64 fail=0`.
 
 Current caveat: resolved-SSOT diff views are not yet exposed in the UI. The
 sidecar already has nested paths, but the user-facing view currently summarizes
 counts and examples rather than showing a field-by-field review table.
+
+## Engineering Mode RTL Policy
+
+Engineering is the default serious implementation lane. It is not a larger-IP
+mode and it is not a deterministic YAML-to-RTL generator. The difference from
+Starter is gate depth:
+
+- Starter: compact SSOT, relaxed/deferred gates, real LLM-authored RTL, fast
+  compile/smoke feedback.
+- Engineering: full SSOT contract, real LLM-authored RTL, provenance, compile,
+  lint/smoke simulation, coverage plan, scoreboard scenarios, and concrete
+  review evidence.
+- Signoff: Engineering evidence plus signoff-only domains such as DFT, PNR,
+  timing closure, and full coverage/equivalence closure.
+
+Decision from 2026-05-17:
+
+- `ssot_to_rtl.py --mode engineering` must not write RTL from rules by default,
+  even when `req/requirements.md` is present.
+- If RTL/list/provenance are absent or stale, Engineering must stop with
+  `[RTL BLOCKED] LLM_RTL_IMPLEMENTATION_REQUIRED` or
+  `COMMON_AI_AGENT_RTL_PROVENANCE_REQUIRED`.
+- The existing rule-contract helpers remain useful for authoring context,
+  scoreboard/TB generation, and validation. They are not authorization to emit
+  default RTL.
+
+Engineering APB Timer smoke result:
+
+- Root: `/tmp/atlas_engineering_apb_timer_smoke_20260517`
+- `check_ssot_disk.sh apb_timer --mode engineering`: PASS, 11.6 KB YAML,
+  34 sections, 0 TBDs.
+- `derive_rtl_todos.py`: PASS, `tasks=95 blockers=0 orphans=0 gate=planned`.
+- Before RTL authoring, `ssot_to_rtl.py --mode engineering` stopped at
+  `[RTL BLOCKED]` with `LLM_RTL_IMPLEMENTATION_REQUIRED`.
+- After LLM-authored `rtl/apb_timer.sv`, `list/apb_timer.f`, and
+  `rtl/rtl_authoring_provenance.json`, RTL preflight passed with
+  `1 manifest file`.
+- `rtl_compile_report.py`: PASS, `errors=0 diagnostics=0 style_violations=0`.
+- Icarus/VVP smoke: `TESTS=9 PASS=9 FAIL=0`.
+- `check_sim_disk.sh`: PASS, `tests=9 failures=0 errors=0`.

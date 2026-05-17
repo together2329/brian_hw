@@ -1,0 +1,84 @@
+{
+  "ip": "atcwdt200",
+  "workflow": "ssot-gen",
+  "run_mode": "engineering",
+  "exec_mode": "orchestrator",
+  "status": "approved",
+  "qa_source": ".session/default/atcwdt200/ssot-gen/qa.json",
+  "ssot_draft": "atcwdt200/yaml/atcwdt200.ssot.yaml",
+  "import_manifest": "atcwdt200/req/import_manifest.json",
+  "policy_refs": [
+    "doc/wiki/ssot-qa-workbench.md",
+    "doc/wiki/run-mode-and-provenance-policy.md",
+    "doc/wiki/rtl-gen-ssot-contract.md",
+    "doc/wiki/deterministic-emit-stages.md"
+  ],
+  "pending_decisions": [],
+  "accepted_facts_from_reference": [
+    "top module name atcwdt200",
+    "ports extclk, wdt_pause, wdt_rst, wdt_int, pclk, presetn, psel, penable, paddr[4:2], pwrite, pwdata[31:0], prdata[31:0]",
+    "register offsets VER 0x00, CR 0x10, RES 0x14, WEN 0x18, SR 0x1c",
+    "magic values WEN 0x5aa5 and RES 0xcafe",
+    "watchdog states ST_INTTIME and ST_RSTTIME",
+    "pclk target period 20 ns from imported SDC"
+  ],
+  "blocked_until_review": [],
+  "approved_at": 1779001221.502434,
+  "approved_decisions": [
+    {
+      "key": "compatibility_target",
+      "selected": "clean_room_compatible",
+      "answer": "Clean-room compatible; reference RTL is behavioral evidence only and generated RTL is SSOT-owned clean-room output.",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json"
+    },
+    {
+      "key": "apb_protocol_variant",
+      "selected": "legacy_apb_like",
+      "answer": "Keep the reference APB-like psel/penable/pwrite/paddr/pwdata/prdata interface for the first compatibility pass; no pready/pslverr.",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json"
+    },
+    {
+      "key": "counter_width_policy",
+      "selected": "param_default_16",
+      "answer": "Keep 16-bit and 32-bit modes parameterized, defaulting to the reference 16-bit configuration.",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json"
+    },
+    {
+      "key": "extclk_cdc_policy",
+      "selected": "internal_sync_async",
+      "answer": "Treat extclk and wdt_pause as asynchronous inputs synchronized into pclk by generated local logic.",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json"
+    },
+    {
+      "key": "write_protection_semantics",
+      "selected": "one_shot_unlock",
+      "answer": "WEN magic 0x5aa5 unlocks exactly one following protected write and then auto-clears.",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json"
+    },
+    {
+      "key": "timeout_interval_table",
+      "selected": "lock_observed_taps",
+      "answer": "Lock the observed CR.INTTIME and CR.RSTTIME counter-bit tap tables for compatibility.",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json"
+    },
+    {
+      "key": "wdt_reset_status_visibility",
+      "selected": "match_reference_output_only",
+      "answer": "Match reference visibility: SR bit0 reports interrupt timeout; reset timeout is visible through wdt_rst only.",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json"
+    },
+    {
+      "key": "synchronizer_dependency_policy",
+      "selected": "local_manifest_sync",
+      "answer": "Generated RTL implements manifest-owned local synchronizers instead of depending on external nds_sync_l2l.",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json"
+    },
+    {
+      "key": "flow_quality_profile",
+      "selected": "standard_first",
+      "answer": "Use standard local evidence for this first FL -> RTL -> TB -> sim -> lint iteration; production gates can follow after behavior stabilizes.",
+      "source": ".session/default/atcwdt200/ssot-gen/qa.json"
+    }
+  ],
+  "validation_state": "check_ssot_disk PASS before downstream handoff"
+}

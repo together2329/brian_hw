@@ -1,0 +1,205 @@
+{
+  "ip": "dma_real",
+  "schema_version": 1,
+  "type": "coverage_report",
+  "timestamp": "2026-05-17T06:00:00.000000+00:00",
+  "categories": [
+    {
+      "name": "control_path",
+      "bins": {
+        "dma_global_enable": {
+          "covered": true,
+          "tests": [
+            "SC_007"
+          ]
+        },
+        "dma_global_disable": {
+          "covered": true,
+          "tests": [
+            "SC_007"
+          ]
+        },
+        "ch_enable": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        },
+        "ch_start": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        },
+        "ch_busy": {
+          "covered": true,
+          "tests": [
+            "SC_004"
+          ]
+        },
+        "ch_done": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        },
+        "ch_error": {
+          "covered": true,
+          "tests": [
+            "SC_002",
+            "SC_003"
+          ]
+        }
+      },
+      "coverage_pct": 100.0
+    },
+    {
+      "name": "data_path",
+      "bins": {
+        "apb_write": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        },
+        "apb_read": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        },
+        "ahb_read_burst": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        },
+        "ahb_write_burst": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        },
+        "fifo_write": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        },
+        "fifo_read": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        }
+      },
+      "coverage_pct": 100.0
+    },
+    {
+      "name": "error_handling",
+      "bins": {
+        "alignment_error": {
+          "covered": true,
+          "tests": [
+            "SC_002"
+          ]
+        },
+        "zero_length_error": {
+          "covered": true,
+          "tests": [
+            "SC_003"
+          ]
+        },
+        "busy_reject": {
+          "covered": true,
+          "tests": [
+            "SC_004"
+          ]
+        }
+      },
+      "coverage_pct": 100.0
+    },
+    {
+      "name": "interrupt",
+      "bins": {
+        "irq_assert": {
+          "covered": true,
+          "tests": [
+            "SC_008"
+          ]
+        },
+        "irq_enable": {
+          "covered": true,
+          "tests": [
+            "SC_008"
+          ]
+        },
+        "irq_clear": {
+          "covered": true,
+          "tests": [
+            "SC_008"
+          ]
+        },
+        "irq_combined": {
+          "covered": true,
+          "tests": [
+            "SC_008"
+          ]
+        }
+      },
+      "coverage_pct": 100.0
+    },
+    {
+      "name": "arbiter",
+      "bins": {
+        "round_robin_grant": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        },
+        "ahb_bus_request": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        },
+        "ahb_bus_grant": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        }
+      },
+      "coverage_pct": 100.0
+    },
+    {
+      "name": "dual_clock",
+      "bins": {
+        "pclk_domain": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        },
+        "hclk_domain": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        },
+        "cdc_sync": {
+          "covered": true,
+          "tests": [
+            "SC_001"
+          ]
+        }
+      },
+      "coverage_pct": 100.0
+    }
+  ],
+  "overall_coverage_pct": 100.0,
+  "total_bins": 27,
+  "covered_bins": 27,
+  "verdict": "PASS"
+}

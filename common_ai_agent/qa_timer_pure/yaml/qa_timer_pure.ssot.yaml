@@ -1,0 +1,650 @@
+# =============================================================================
+# qa_timer_pure.ssot.yaml — Single Source of Truth
+# 4-channel 32-bit general-purpose count-down timer with APB4 interface
+# =============================================================================
+top_module:
+  name: "qa_timer_pure"
+  file: "rtl/qa_timer_pure.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "4-channel 32-bit general-purpose count-down timer with APB4 slave interface, per-channel 8-bit prescaler, configurable match outputs, and match interrupts with W1C clear."
+  reference_spec: "Custom — derived from grill-me Q&A discovery"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+sub_modules:
+  - { name: "qa_timer_pure_regs",    file: "rtl/qa_timer_pure_regs.sv",    ownership: "manifest", ssot_gen: true,  implements: ["registers.register_list", "io_list.interfaces.apb_slave"], source_sections: ["registers", "io_list"], register_refs: ["registers.register_list"], description: "APB4 register decode, read mux, and write strobe gating" }
+  - { name: "qa_timer_pure_channel", file: "rtl/qa_timer_pure_channel.sv", ownership: "manifest", ssot_gen: true,  implements: ["function_model.transactions", "fsm.channel_fsm", "dataflow.count_path", "dataflow.match_output_path"], source_sections: ["function_model", "fsm", "dataflow"], function_model_refs: ["function_model.transactions"], fsm_refs: ["fsm.channel_fsm"], dataflow_refs: ["dataflow.count_path", "dataflow.match_output_path"], description: "Per-channel prescaler, 32-bit down-counter, match detector, and match output generator" }
+  - { name: "qa_timer_pure_core",    file: "rtl/qa_timer_pure_core.sv",    ownership: "manifest", ssot_gen: true,  implements: ["interrupts", "features", "function_model"], source_sections: ["interrupts", "features", "function_model"], function_model_refs: ["function_model"], description: "Top-level aggregation: 4 channel instances, IRQ combine, match_out routing" }
+  - { name: "qa_timer_pure",         file: "rtl/qa_timer_pure.sv",         ownership: "manifest", ssot_gen: true,  wiring_only: true, source_sections: ["io_list", "integration"], ports: ["pclk", "presetn", "paddr[11:0]", "psel", "penable", "pwrite", "pwdata[31:0]", "pstrb[3:0]", "prdata[31:0]", "pready", "pslverr", "match_out[3:0]", "timer_irq"], connections: "qa_timer_pure_core instantiated with all top-level ports passed through", description: "Integration wrapper — passes top-level ports to qa_timer_pure_core instance" }
+
+decomposition:
+  units:
+    - { id: "reg_decode", kind: "control", source_refs: ["registers.register_list", "io_list.interfaces.apb_slave"], rtl_candidates: ["qa_timer_pure_regs"], verification_impact: ["test_requirements.scenarios.SC1"] }
+    - { id: "timer_channel", kind: "datapath/control", source_refs: ["function_model.transactions", "fsm.channel_fsm", "dataflow"], rtl_candidates: ["qa_timer_pure_channel"], verification_impact: ["test_requirements.scenarios.SC2", "test_requirements.scenarios.SC3"] }
+    - { id: "irq_combine", kind: "control", source_refs: ["interrupts"], rtl_candidates: ["qa_timer_pure_core"], verification_impact: ["test_requirements.scenarios.SC5"] }
+parameters:
+  - name: "DATA_WIDTH"
+    default: 32
+    type: int
+    description: "APB data width and counter width in bits"
+    drives: ["qa_timer_pure_regs.sv", "qa_timer_pure_channel.sv", "qa_timer_pure_core.sv"]
+  - name: "ADDR_WIDTH"
+    default: 12
+    type: int
+    description: "APB address width in bits"
+    drives: ["qa_timer_pure_regs.sv"]
+  - name: "NUM_CHANNELS"
+    default: 4
+    type: int
+    description: "Number of independent timer channels"
+    drives: ["qa_timer_pure_regs.sv", "qa_timer_pure_core.sv", "qa_timer_pure.sv"]
+  - name: "PRESCALER_WIDTH"
+    default: 8
+    type: int
+    description: "Width of per-channel prescaler divisor (÷1 to ÷256)"
+    drives: ["qa_timer_pure_channel.sv"]
+  - name: "CLOCK_FREQ_MHZ"
+    default: 100
+    type: int
+    description: "APB clock frequency in MHz"
+    drives: ["tb_top.sv", "doc/README.md"]
+  - name: "RESET_POLARITY"
+    default: "active_low"
+    type: enum
+    values: ["active_low", "active_high"]
+    drives: ["ALL .sv files"]
+io_list:
+  clock_domains:
+    - name: "pclk"
+      frequency_mhz: 100
+      description: "APB peripheral clock"
+      ports:
+        - { name: "pclk", width: 1, direction: "input", description: "APB clock" }
+  resets:
+    - name: "presetn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "APB reset"
+      ports:
+        - { name: "presetn", width: 1, direction: "input", description: "Active-low asynchronous reset" }
+  interfaces:
+    - name: "apb_slave"
+      type: "APB4"
+      role: "slave"
+      description: "Register access interface"
+      ports:
+        - { name: "paddr",   width: 12, direction: "input",  description: "APB address" }
+        - { name: "psel",    width: 1,  direction: "input",  description: "APB select" }
+        - { name: "penable", width: 1,  direction: "input",  description: "APB enable" }
+        - { name: "pwrite",  width: 1,  direction: "input",  description: "APB write (1=write, 0=read)" }
+        - { name: "pwdata",  width: 32, direction: "input",  description: "APB write data" }
+        - { name: "pstrb",   width: 4,  direction: "input",  description: "APB byte strobes" }
+        - { name: "prdata",  width: 32, direction: "output", description: "APB read data" }
+        - { name: "pready",  width: 1,  direction: "output", description: "APB ready (zero-wait-state)" }
+        - { name: "pslverr", width: 1,  direction: "output", description: "APB slave error (asserted on bad address)" }
+    - name: "match_outputs"
+      type: "custom"
+      description: "Per-channel configurable match output pins"
+      ports:
+        - { name: "match_out", width: 4, direction: "output", description: "Match output vector [3:0] — one per channel" }
+    - name: "interrupt"
+      type: "custom"
+      description: "Combined interrupt output"
+      ports:
+        - { name: "timer_irq", width: 1, direction: "output", description: "Combined match interrupt (OR of all enabled channel match flags)" }
+features:
+  - name: "Multi-channel count-down timers"
+    trigger: "CTRL.EN bit written to 1 after LOAD register is programmed"
+    datapath: "LOAD register → counter (32-bit) → decrement on prescaler tick → zero-detect → match action + interrupt"
+    control: "CTRL.EN enables counting; CTRL.MODE selects one-shot vs auto-reload; CTRL.IE enables interrupt"
+    output: "Counter reaches zero → STATUS.MATCH flag set → match_out pin action → timer_irq asserted if CTRL.IE=1"
+  - name: "Per-channel 8-bit prescaler"
+    trigger: "Counter enabled (CTRL.EN=1)"
+    datapath: "PRESCALE register ÷ (N+1) input clock ticks → one counter decrement tick"
+    control: "PRESCALE register value 0..255 maps to ÷1..÷256"
+    output: "One decrement pulse to the 32-bit counter per (PRESCALE+1) pclk cycles"
+  - name: "Configurable match output"
+    trigger: "Counter reaches zero (match event)"
+    datapath: "MATCH_CTRL.MODE[1:0] selects output behavior: 00=toggle, 01=pulse-high-1-cycle, 10=pulse-low-1-cycle, 11=reserved"
+    control: "MATCH_CTRL register per channel"
+    output: "match_out[n] pin updates on the clock edge following the match event"
+  - name: "One-shot and auto-reload modes"
+    trigger: "Counter reaches zero"
+    datapath: "One-shot: counter stops at 0, STATUS.RUN clears. Auto-reload: counter reloads from LOAD register, STATUS.RUN stays set."
+    control: "CTRL.MODE bit: 0=one-shot, 1=auto-reload"
+    output: "STATUS.RUN reflects whether the counter is actively counting"
+dataflow:
+  count_path:
+    source: "LOAD register (APB-writable, 32-bit)"
+    prescaler: "PRESCALE register (APB-writable, 8-bit) divides pclk by (N+1)"
+    counter: "32-bit count-down register, loaded from LOAD on enable or auto-reload"
+    sequence: "CTRL.EN=1 → load LOAD into counter → prescaler ticks → counter decrements → reaches 0 → match event"
+  match_output_path:
+    source: "Zero-detect from counter"
+    control: "MATCH_CTRL.MODE[1:0] selects toggle (00), pulse-high (01), pulse-low (10)"
+    output: "match_out[n] pin updates synchronously on the cycle after zero-detect"
+  interrupt_path:
+    source: "Zero-detect AND CTRL.IE=1"
+    status: "STATUS.MATCH bit set (W1C clear)"
+    output: "timer_irq = OR of (STATUS.MATCH & CTRL.IE) across all channels"
+  loop_control:
+    one_shot: "Zero-detect → counter stops at 0, STATUS.RUN=0"
+    auto_reload: "Zero-detect → counter reloads from LOAD, STATUS.RUN stays 1, continues counting"
+function_model:
+  purpose: "Executable behavioral contract for rtl-gen and tb-gen. Describes what the timer computes independent of cycle timing."
+  state_variables:
+    - { name: "load",          source: "registers.LOAD",        reset: 0, description: "Reload value for channel" }
+    - { name: "counter",       source: "registers.COUNTER",     reset: 0, description: "Current down-counter value" }
+    - { name: "ctrl_en",       source: "registers.CTRL.EN",     reset: 0, description: "Enable bit" }
+    - { name: "ctrl_mode",     source: "registers.CTRL.MODE",   reset: 0, description: "0=one-shot, 1=auto-reload" }
+    - { name: "ctrl_ie",       source: "registers.CTRL.IE",     reset: 0, description: "Interrupt enable" }
+    - { name: "prescale",      source: "registers.PRESCALE",    reset: 0, description: "Prescaler divisor (0=÷1)" }
+    - { name: "match_out_mode",source: "registers.MATCH_CTRL.OUT_MODE", reset: 0, description: "00=toggle, 01=pulse-h, 10=pulse-l" }
+    - { name: "status_match",  source: "registers.STATUS.MATCH",reset: 0, description: "Match flag (W1C)" }
+    - { name: "status_run",    source: "registers.STATUS.RUN",  reset: 0, description: "Run indicator" }
+    - { name: "match_out_state", source: "internal",            reset: 0, description: "Current match_out pin level (0 or 1)" }
+    - { name: "prescale_tick_counter", source: "internal",      reset: 0, description: "Internal prescaler tick accumulator" }
+  transactions:
+    - id: "FM_ENABLE"
+      name: "enable_channel"
+      preconditions:
+        - "ctrl_en == 0"
+        - "APB write to CTRL with EN=1"
+      inputs:
+        - "load register value"
+      outputs:
+        - "counter becomes load"
+        - "status_run becomes 1"
+        - "prescale_tick_counter becomes 0"
+        - "match_out_state unchanged"
+      side_effects:
+        - "Channel begins counting on next prescaler tick"
+      output_rules:
+        - { name: "counter_next", expr: "load", width: 32, port: "internal" }
+      state_updates:
+        - { name: "counter", expr: "load" }
+        - { name: "status_run", expr: "1" }
+        - { name: "prescale_tick_counter", expr: "0" }
+      error_cases: []
+    - id: "FM_DISABLE"
+      name: "disable_channel"
+      preconditions:
+        - "ctrl_en == 1"
+        - "APB write to CTRL with EN=0"
+      inputs: []
+      outputs:
+        - "status_run becomes 0"
+        - "counter holds current value"
+      side_effects:
+        - "Channel stops counting immediately"
+      output_rules: []
+      state_updates:
+        - { name: "status_run", expr: "0" }
+        - { name: "ctrl_en", expr: "0" }
+      error_cases: []
+    - id: "FM_TICK"
+      name: "prescaler_tick_decrement"
+      preconditions:
+        - "status_run == 1"
+        - "prescale_tick_counter == prescale"
+      inputs: []
+      outputs:
+        - "counter decrements by 1 if counter > 0"
+      side_effects:
+        - "prescale_tick_counter resets to 0"
+        - "If counter becomes 0 after decrement, match event triggers"
+      output_rules:
+        - { name: "counter_next", expr: "counter - 1 if counter > 0 else 0", width: 32, port: "internal" }
+      state_updates:
+        - { name: "counter", expr: "counter - 1 if counter > 0 else 0" }
+        - { name: "prescale_tick_counter", expr: "0" }
+      error_cases: []
+    - id: "FM_MATCH_ONESHOT"
+      name: "match_event_one_shot"
+      preconditions:
+        - "status_run == 1"
+        - "ctrl_mode == 0"
+        - "counter == 1"
+        - "prescale_tick_counter == prescale"
+      inputs: []
+      outputs:
+        - "counter becomes 0"
+        - "status_match set to 1"
+        - "status_run becomes 0"
+        - "match_out updates per match_out_mode"
+      side_effects:
+        - "timer_irq asserts if ctrl_ie == 1"
+        - "Channel stops"
+      output_rules:
+        - { name: "match_out_next", expr: "(1 - match_out_state) if match_out_mode == 0 else (1 if match_out_mode == 1 else 0)", width: 1, port: "match_out" }
+      state_updates:
+        - { name: "counter", expr: "0" }
+        - { name: "status_match", expr: "1" }
+        - { name: "status_run", expr: "0" }
+        - { name: "match_out_state", expr: "(1 - match_out_state) if match_out_mode == 0 else (1 if match_out_mode == 1 else 0)" }
+      error_cases: []
+    - id: "FM_MATCH_AUTORELOAD"
+      name: "match_event_auto_reload"
+      preconditions:
+        - "status_run == 1"
+        - "ctrl_mode == 1"
+        - "counter == 1"
+        - "prescale_tick_counter == prescale"
+      inputs:
+        - "load register value"
+      outputs:
+        - "counter reloads from load"
+        - "status_match set to 1"
+        - "status_run stays 1"
+        - "match_out updates per match_out_mode"
+      side_effects:
+        - "timer_irq asserts if ctrl_ie == 1"
+        - "Channel continues counting from load value"
+      output_rules:
+        - { name: "match_out_next", expr: "(1 - match_out_state) if match_out_mode == 0 else (1 if match_out_mode == 1 else 0)", width: 1, port: "match_out" }
+      state_updates:
+        - { name: "counter", expr: "load" }
+        - { name: "status_match", expr: "1" }
+        - { name: "match_out_state", expr: "(1 - match_out_state) if match_out_mode == 0 else (1 if match_out_mode == 1 else 0)" }
+      error_cases: []
+    - id: "FM_MATCH_CLR"
+      name: "clear_match_status"
+      preconditions:
+        - "APB write to STATUS with MATCH bit = 1"
+      inputs: []
+      outputs:
+        - "status_match cleared to 0"
+        - "match_out_state unchanged"
+      side_effects:
+        - "timer_irq may deassert if no other channels have pending match"
+      output_rules: []
+      state_updates:
+        - { name: "status_match", expr: "0" }
+      error_cases: []
+  invariants:
+    - "counter never decrements below 0"
+    - "status_run is 1 iff channel is actively counting (EN=1 and not stopped after one-shot)"
+    - "match_out_state only changes on a match event — it holds its value between matches"
+    - "timer_irq = any(ch.status_match && ch.ctrl_ie for ch in channels)"
+    - "Writing LOAD or PRESCALE while EN=0 takes effect on next enable; writing while EN=1 takes effect immediately on next reload or immediately for PRESCALE"
+    - "Reserved register fields read as 0 and ignore writes"
+  reference_model_hint: "tb-gen should implement a Python scoreboard model from this section and compare expected/got for every scenario."
+cycle_model:
+  purpose: "Cycle/handshake contract for rtl-gen. Describes when state, valid/ready, outputs, and interrupts may change."
+  executable: "pymtl3"
+  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle."
+  clock: "pclk"
+  reset:
+    assertion: "presetn low asynchronously clears all registers to their reset values"
+    deassertion: "Registers are usable on the first rising edge after synchronized deassertion of presetn"
+  latency:
+    register_read: { min_cycles: 0, max_cycles: 0, description: "APB reads complete in same cycle (zero-wait-state). prdata driven combinationally from address on psel && penable && !pwrite." }
+    register_write: { min_cycles: 0, max_cycles: 0, description: "APB writes accepted in same cycle (zero-wait-state). pready asserted immediately on psel && penable." }
+    match_to_output: { min_cycles: 1, max_cycles: 1, description: "match_out updates 1 pclk cycle after the counter reaches zero." }
+    match_to_irq: { min_cycles: 1, max_cycles: 1, description: "timer_irq updates 1 pclk cycle after the counter reaches zero (same cycle as STATUS.MATCH)." }
+  handshake_rules:
+    - { signal: "psel/penable/pwrite/paddr/pwdata/pstrb", rule: "All APB input signals are sampled on the rising edge of pclk." }
+    - { signal: "pready", rule: "Driven combinationally: pready = psel && penable. Always ready — no wait states." }
+    - { signal: "prdata", rule: "Driven combinationally: when psel && penable && !pwrite, prdata reflects the register at paddr. Otherwise 0." }
+    - { signal: "pslverr", rule: "Asserted combinationally when psel && penable and paddr targets an unimplemented register offset. Deasserted otherwise." }
+    - { signal: "match_out[n]", rule: "Updates on the rising edge after the counter reaches zero. Holds its value between match events. Reset to 0." }
+    - { signal: "timer_irq", rule: "Updates on the rising edge after any channel's match event (if IE=1). Deasserts on the rising edge after the last pending STATUS.MATCH is cleared via W1C." }
+  pipeline:
+    - { stage: "S0_IDLE", cycle: "N/A", action: "Channel disabled (EN=0). Counter holds last value. prescale_tick_counter frozen." }
+    - { stage: "S1_COUNTING", cycle: "N/A", action: "Channel enabled (EN=1). prescale_tick_counter increments every pclk. When prescale_tick_counter == PRESCALE, counter decrements and prescale_tick_counter resets to 0." }
+    - { stage: "S2_MATCH_EVENT", cycle: "1 cycle after counter reaches 0", action: "STATUS.MATCH=1, STATUS.RUN=(MODE==1), match_out updates per MATCH_CTRL.OUT_MODE, timer_irq evaluates." }
+  ordering:
+    - "APB write to CTRL.EN takes effect on the next rising edge of pclk."
+    - "STATUS.MATCH and match_out update on the same rising edge (1 cycle after counter-zero)."
+    - "W1C clear of STATUS.MATCH takes effect on the next rising edge after the APB write."
+    - "Counter decrement and prescale_tick_counter reset happen on the same rising edge."
+  backpressure:
+    - "No backpressure sources. APB always accepts writes/reads with zero wait states. Counter decrement is self-timed via prescaler."
+  observability:
+    - "Every function_model transaction maps to a cycle_model observation point: FM_ENABLE→S0→S1 transition, FM_TICK→S1 behavior, FM_MATCH_*→S2, FM_MATCH_CLR→S2→S0/S1."
+clock_reset_domains:
+  domains:
+    - { name: "pclk", frequency_mhz: 100, description: "APB peripheral clock — single domain" }
+  reset_scheme:
+    signal: "presetn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain — no CDC required"
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain — no RDC required"
+registers:
+  config:
+    register_width: 32
+    addr_width: 12
+    byte_addressable: true
+    channel_stride: 0x20
+    channel_base: [0x000, 0x020, 0x040, 0x060]
+    num_channels: 4
+  register_list:
+    # --- Per-channel registers (repeat=4, stride=0x20) ---
+    - name: "LOAD"
+      offset: 0x00
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      repeat: 4
+      stride: 0x20
+      category: "channel"
+      description: "Load / Reload Value Register — holds the value loaded into the counter on enable and on auto-reload."
+      fields:
+        - { name: "load_value", bits: [31, 0], access: "rw", reset: 0x00000000, description: "32-bit value loaded into the down-counter" }
+    - name: "COUNTER"
+      offset: 0x04
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      repeat: 4
+      stride: 0x20
+      category: "channel"
+      description: "Current Counter Value Register — read-only live value of the down-counter."
+      fields:
+        - { name: "counter_value", bits: [31, 0], access: "ro", reset: 0x00000000, description: "Current 32-bit counter value. Reads as 0 when channel is stopped after one-shot expiry." }
+    - name: "CTRL"
+      offset: 0x08
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      repeat: 4
+      stride: 0x20
+      category: "channel"
+      description: "Control Register — enable, mode, and interrupt enable per channel."
+      fields:
+        - { name: "EN",   bits: [0, 0], access: "rw", reset: 0x0, description: "Enable bit: 0=stopped, 1=counting. Writing 1 loads LOAD into counter and starts count-down. Writing 0 halts the counter." }
+        - { name: "MODE", bits: [1, 1], access: "rw", reset: 0x0, description: "Mode: 0=one-shot (stop at zero), 1=auto-reload (reload LOAD and continue)" }
+        - { name: "IE",   bits: [2, 2], access: "rw", reset: 0x0, description: "Interrupt Enable: 1=enable match interrupt for this channel" }
+        - { name: "reserved", bits: [31, 3], access: "ro", reset: 0x0, description: "Reserved — reads as 0" }
+    - name: "PRESCALE"
+      offset: 0x0C
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      repeat: 4
+      stride: 0x20
+      category: "channel"
+      description: "Prescaler Divisor Register — clock divider value. Counter decrements every (PRESCALE+1) pclk cycles."
+      fields:
+        - { name: "divisor", bits: [7, 0], access: "rw", reset: 0x00, description: "8-bit divisor: 0=÷1, 255=÷256" }
+        - { name: "reserved", bits: [31, 8], access: "ro", reset: 0x0, description: "Reserved — reads as 0" }
+    - name: "MATCH_CTRL"
+      offset: 0x10
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      repeat: 4
+      stride: 0x20
+      category: "channel"
+      description: "Match Output Control Register — selects output pin behavior on match event."
+      fields:
+        - { name: "OUT_MODE", bits: [1, 0], access: "rw", reset: 0x0, description: "Output mode: 00=toggle, 01=pulse-high (1 cycle), 10=pulse-low (1 cycle), 11=reserved" }
+        - { name: "reserved", bits: [31, 2], access: "ro", reset: 0x0, description: "Reserved — reads as 0" }
+    - name: "STATUS"
+      offset: 0x14
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      repeat: 4
+      stride: 0x20
+      category: "channel"
+      description: "Status Register — match flag (W1C) and run indicator (RO)."
+      fields:
+        - { name: "MATCH", bits: [0, 0], access: "rw", reset: 0x0, description: "Match flag: set to 1 on counter-zero event. Write 1 to clear. Write 0 has no effect." }
+        - { name: "RUN", bits: [1, 1], access: "ro", reset: 0x0, description: "Run indicator: 1=counter is actively counting, 0=stopped." }
+        - { name: "reserved", bits: [31, 2], access: "ro", reset: 0x0, description: "Reserved — reads as 0" }
+    # --- Global registers ---
+    - name: "MODULE_ID"
+      offset: 0xFFC
+      width: 32
+      access: "ro"
+      reset: 0x54494D52
+      repeat: 1
+      stride: 0
+      category: "global"
+      description: "Module Identification Register — returns ASCII 'TIMR' (0x54494D52)."
+      fields:
+        - { name: "id", bits: [31, 0], access: "ro", reset: 0x54494D52, description: "Module ID: 0x54494D52 ('TIMR')" }
+memory:
+  instances: []
+  note: "All storage is register-based (LOAD, COUNTER, CTRL, PRESCALE, MATCH_CTRL, STATUS per channel). No SRAM/FIFO required."
+interrupts:
+  sources:
+    - { name: "CH0_MATCH", bit: 0, type: "level", enable_reg: "CTRL_ch0.IE", status_reg: "STATUS_ch0.MATCH", clear: "W1C", description: "Channel 0 match (counter reached zero)" }
+    - { name: "CH1_MATCH", bit: 1, type: "level", enable_reg: "CTRL_ch1.IE", status_reg: "STATUS_ch1.MATCH", clear: "W1C", description: "Channel 1 match" }
+    - { name: "CH2_MATCH", bit: 2, type: "level", enable_reg: "CTRL_ch2.IE", status_reg: "STATUS_ch2.MATCH", clear: "W1C", description: "Channel 2 match" }
+    - { name: "CH3_MATCH", bit: 3, type: "level", enable_reg: "CTRL_ch3.IE", status_reg: "STATUS_ch3.MATCH", clear: "W1C", description: "Channel 3 match" }
+  output:
+    signal: "timer_irq"
+    polarity: "active_high"
+    type: "level"
+    description: "Combined interrupt: OR of (STATUS.MATCH && CTRL.IE) across all 4 channels. Held high until all pending MATCH flags are cleared via W1C."
+fsm:
+  channel_fsm:
+    description: "Per-channel control FSM — one instance per timer channel"
+    states:
+      - "IDLE"
+      - "COUNTING"
+    transitions:
+      - { from: "IDLE",     to: "COUNTING", condition: "CTRL.EN written to 1 via APB write" }
+      - { from: "COUNTING", to: "IDLE",     condition: "CTRL.EN written to 0 via APB write (software halt)" }
+      - { from: "COUNTING", to: "IDLE",     condition: "counter reaches zero AND CTRL.MODE==0 (one-shot expiry)" }
+      - { from: "COUNTING", to: "COUNTING", condition: "counter reaches zero AND CTRL.MODE==1 (auto-reload: reload LOAD into counter)" }
+    on_entry:
+      IDLE: "counter holds last value; STATUS.RUN=0; prescaler tick counter frozen"
+      COUNTING: "counter loaded from LOAD on IDLE→COUNTING edge; STATUS.RUN=1; prescaler begins counting"
+    outputs:
+      STATUS_RUN: "1 in COUNTING, 0 in IDLE"
+      match_event: "pulsed for 1 cycle when counter transitions from 1→0 in COUNTING state"
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  parameter_header: "rtl/qa_timer_pure_param.vh"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge pclk or negedge presetn)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs"
+    - "Active-low async reset (presetn)"
+    - "Parameterize widths via qa_timer_pure_param.vh"
+    - "Use rtl/qa_timer_pure_param.vh for shared parameter declarations; include it inside consuming modules"
+    - "ALLOW: input logic / output logic ANSI ports and internal single-driver logic"
+    - "BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv"
+  lint_waivers:
+    - "WIDTHEXPAND: prescaler tick counter width expansion"
+    - "UNUSEDPARAM: CHANNEL_ID when used in generate loops"
+
+reuse_modules: []
+
+custom:
+  note: "All custom decisions recorded via grill-me Q&A discovery. No extensions beyond standard template sections."
+
+dir_structure:
+  template_dirs:
+    rtl: "templates/rtl/"
+    sim: "templates/sim/"
+  output_dirs:
+    rtl: "rtl/"
+    sim: "sim/"
+    firmware: "firmware/"
+    docs: "doc/"
+  yaml_dir: "yaml/"
+  generators_dir: "generators/"
+
+filelist:
+  headers:
+    - "rtl/qa_timer_pure_param.vh"
+  rtl:
+    - "rtl/qa_timer_pure_regs.sv"
+    - "rtl/qa_timer_pure_channel.sv"
+    - "rtl/qa_timer_pure_core.sv"
+    - "rtl/qa_timer_pure.sv"
+  sim:
+    - "sim/tb_top.sv"
+    - "sim/tb_program.sv"
+    - "sim/qa_timer_pure_model.sv"
+  firmware:
+    - "firmware/qa_timer_pure_regs.h"
+  docs:
+    - "doc/register_map.md"
+    - "doc/fsm_diagram.md"
+    - "doc/qa_timer_pure_mas.md"
+test_requirements:
+  scenarios:
+    - { id: "SC1", name: "Register read/write", stimulus: "APB reads and writes to all register offsets for all 4 channels", expected: "Writes reflect on read-back. RO fields ignore writes. Reserved addresses return pslverr.", checker: "Scoreboard register model vs RTL read-back", coverage: ["function_model.FM_ENABLE", "function_model.FM_DISABLE", "function_model.FM_MATCH_CLR"] }
+    - { id: "SC2", name: "One-shot countdown", stimulus: "Program LOAD=10, PRESCALE=0, MODE=0, EN=1. Wait for expiry.", expected: "Counter decrements from 10 to 0 in 10 pclk cycles. STATUS.RUN=1 during count, 0 after. STATUS.MATCH=1 after expiry.", checker: "Scoreboard compares expected counter trajectory and final state", coverage: ["function_model.FM_ENABLE", "function_model.FM_TICK", "function_model.FM_MATCH_ONESHOT"] }
+    - { id: "SC3", name: "Auto-reload periodic", stimulus: "Program LOAD=5, PRESCALE=1, MODE=1, IE=1, EN=1. Observe 3 full periods.", expected: "Counter reloads from 5 after each zero. STATUS.MATCH pulses every (5+1)*2=12 pclk cycles. timer_irq asserted when MATCH=1.", checker: "Scoreboard verifies period timing, reload, and interrupt assertions", coverage: ["function_model.FM_MATCH_AUTORELOAD", "cycle_model.match_to_irq"] }
+    - { id: "SC4", name: "Prescaler accuracy", stimulus: "Program LOAD=100, PRESCALE=9 (÷10), MODE=0, EN=1.", expected: "Counter decrements every 10 pclk cycles. Total time = 100*10 = 1000 cycles.", checker: "Scoreboard counts pclk cycles between decrements", coverage: ["function_model.FM_TICK", "dataflow.count_path"] }
+    - { id: "SC5", name: "Match output modes", stimulus: "Program LOAD=3, PRESCALE=0, MODE=1, EN=1. Test OUT_MODE=00,01,10.", expected: "Toggle: output flips each match. Pulse-high: 1-cycle high pulse. Pulse-low: 1-cycle low pulse.", checker: "Scoreboard checks match_out waveform per mode", coverage: ["function_model.FM_MATCH_AUTORELOAD", "dataflow.match_output_path"] }
+    - { id: "SC6", name: "Multi-channel independence", stimulus: "Run ch0 one-shot (LOAD=10), ch1 auto-reload (LOAD=5), ch2 one-shot (LOAD=20), ch3 stopped. Verify all simultaneously.", expected: "Each channel behaves independently per its configuration. Ch3 remains stopped. timer_irq asserts when any enabled channel has MATCH=1.", checker: "Scoreboard tracks all 4 channels independently", coverage: ["features.Multi-channel", "interrupts"] }
+    - { id: "SC7", name: "Software halt", stimulus: "Start channel with LOAD=1000, MODE=0. After 5 decrements, write CTRL.EN=0.", expected: "Counter stops at current value. STATUS.RUN=0. No match event. Counter can be restarted with EN=1.", checker: "Scoreboard verifies mid-count halt and restart", coverage: ["function_model.FM_DISABLE", "fsm.channel_fsm"] }
+    - { id: "SC8", name: "W1C interrupt clear", stimulus: "Start channel with LOAD=1, PRESCALE=0, MODE=0, IE=1. After match, write 1 then 0 to STATUS.MATCH.", expected: "Write 1 clears MATCH and deasserts timer_irq. Write 0 has no effect. Read reflects current state.", checker: "Scoreboard verifies W1C semantics", coverage: ["function_model.FM_MATCH_CLR", "interrupts"] }
+    - { id: "SC9", name: "Reserved address error", stimulus: "APB read/write to unimplemented offsets (e.g., 0x018, 0x080-0xFF8 except 0xFFC).", expected: "pslverr asserted. prdata=0 on reads. No register state change on writes.", checker: "Scoreboard checks pslverr and register immunity", coverage: ["io_list.interfaces.apb_slave"] }
+    - { id: "SC10", name: "Reset behavior", stimulus: "Configure all channels, start counting, assert presetn for 5 cycles, deassert.", expected: "All registers return to reset values. All counters stop. match_out=0, timer_irq=0.", checker: "Scoreboard verifies reset values for all registers", coverage: ["cycle_model.reset"] }
+  scoreboard_checks: 40
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: "function_model"
+      description: "All function_model transactions and invariants covered."
+      bins:
+        - { id: "FCOV_FM_ENABLE", source_ref: "function_model.transactions.FM_ENABLE", class: "transaction", description: "Channel enable transaction observed" }
+        - { id: "FCOV_FM_DISABLE", source_ref: "function_model.transactions.FM_DISABLE", class: "transaction", description: "Channel disable (software halt) observed" }
+        - { id: "FCOV_FM_TICK", source_ref: "function_model.transactions.FM_TICK", class: "transaction", description: "Prescaler tick / counter decrement observed" }
+        - { id: "FCOV_FM_MATCH_ONESHOT", source_ref: "function_model.transactions.FM_MATCH_ONESHOT", class: "transaction", description: "One-shot match observed" }
+        - { id: "FCOV_FM_MATCH_AUTORELOAD", source_ref: "function_model.transactions.FM_MATCH_AUTORELOAD", class: "transaction", description: "Auto-reload match observed" }
+        - { id: "FCOV_FM_MATCH_CLR", source_ref: "function_model.transactions.FM_MATCH_CLR", class: "transaction", description: "W1C match clear observed" }
+    cycle:
+      target_pct: 100
+      model: "cycle_model"
+      description: "All cycle_model handshake rules and pipeline stages covered."
+      bins:
+        - { id: "CCOV_APB_READ", source_ref: "cycle_model.handshake_rules", class: "handshake", description: "APB read handshake observed" }
+        - { id: "CCOV_APB_WRITE", source_ref: "cycle_model.handshake_rules", class: "handshake", description: "APB write handshake observed" }
+        - { id: "CCOV_MATCH_OUTPUT", source_ref: "cycle_model.latency.match_to_output", class: "handshake", description: "Match output update timing observed" }
+        - { id: "CCOV_IRQ_TIMING", source_ref: "cycle_model.latency.match_to_irq", class: "handshake", description: "IRQ update timing observed" }
+        - { id: "CCOV_PIPELINE_S0_S1", source_ref: "cycle_model.pipeline", class: "pipeline_stage", description: "S0→S1 transition (enable) observed" }
+        - { id: "CCOV_PIPELINE_S2", source_ref: "cycle_model.pipeline", class: "pipeline_stage", description: "S2 match event stage observed" }
+    functional: "Coverage_goals.function + coverage_goals.cycle must both close at 100%."
+    code: "line >= 90%, branch >= 85%"
+
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers: { horizontal: "met3", vertical: "met2" }
+  cts: { buf_list: ["sky130_fd_sc_hd__clkbuf_4", "sky130_fd_sc_hd__clkbuf_8"] }
+  routing: { signal_layers: { min: "met1", max: "met5" }, drc_waivers: [] }
+
+quality_gates:
+  rtl_gen:
+    profile: "standard"
+    target_scale:
+      basis: "4-channel 32-bit timer — small peripheral IP"
+      source_files_min: 4
+      modules_min: 4
+      procedural_blocks_min: 8
+      state_updates_min: 12
+      depth_score_min: 3
+      logic_modules_min: 3
+      behavior_owner_logic_modules_min: 2
+    target_scale_waiver:
+      approved: false
+      reason: ""
+      owner: ""
+    pass: "Every SSOT-derived RTL TODO and rtl_gate.rtl_gen gate closes with fresh evidence."
+    evidence: ["rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json", "sim/fl_rtl_goal_audit.json", "cov/coverage.json"]
+  rtl:
+    pass: "RTL implements function_model and cycle_model, compiles, lints, and matches locked FL/CL authority."
+    evidence: ["rtl compile report", "dut lint report", "FL-vs-RTL scoreboard/audit"]
+  coverage:
+    pass: "SSOT-declared functional/code/toggle/FSM/assertion coverage goals pass or have approved SSOT waivers."
+    evidence: ["cov/coverage.json", "sim/coverage_report.md"]
+  eda:
+    pass: "Synthesis, STA, PnR, and post-route STA meet SSOT timing/area/power/physical targets or have approved SSOT waivers."
+    evidence: ["syn report", "sta reports", "pnr report", "routed.spef", "sta-post reports"]
+
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "ALL files (module name)" }
+    - { yaml: "parameters", output: "qa_timer_pure_param.vh + consuming modules" }
+    - { yaml: "io_list.interfaces", output: "qa_timer_pure.sv (port list)" }
+    - { yaml: "registers.register_list", output: "qa_timer_pure_regs.sv + firmware + docs" }
+    - { yaml: "function_model", output: "qa_timer_pure_channel.sv + tb scoreboard" }
+    - { yaml: "cycle_model", output: "qa_timer_pure_channel.sv + qa_timer_pure_regs.sv" }
+    - { yaml: "interrupts", output: "qa_timer_pure_core.sv" }
+    - { yaml: "fsm", output: "qa_timer_pure_channel.sv + doc/fsm_diagram.md" }
+    - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
+    - { yaml: "quality_gates", output: "ATLAS progress and signoff criteria" }
+
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: "RTL_IMPLEMENT_CHANNEL"
+      content: "Implement per-channel timer logic (prescaler, counter, FSM, match output)"
+      detail: "Translate function_model FM_TICK, FM_MATCH_ONESHOT, FM_MATCH_AUTORELOAD, and fsm.channel_fsm into synthesizable RTL with parameterized prescaler and counter."
+      criteria:
+        - "Channel FSM implements IDLE→COUNTING transitions per fsm.channel_fsm"
+        - "Counter decrements on prescaler tick per function_model.FM_TICK"
+        - "Match output updates per MATCH_CTRL.OUT_MODE within 1 cycle of counter-zero"
+        - "STATUS.MATCH and STATUS.RUN reflect correct state"
+      source_refs: ["function_model.transactions", "fsm.channel_fsm", "cycle_model.pipeline"]
+      owner_module: "qa_timer_pure_channel"
+      owner_file: "rtl/qa_timer_pure_channel.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_IMPLEMENT_REGS"
+      content: "Implement APB4 register file with decode, read mux, and W1C status"
+      detail: "Translate registers.register_list into APB4 slave logic: address decode, write strobe gating, read mux, pslverr on bad address, W1C for STATUS.MATCH."
+      criteria:
+        - "Zero-wait-state APB4 handshake (pready always asserted when psel && penable)"
+        - "All declared register fields accessible at correct offsets"
+        - "W1C semantics on STATUS.MATCH: write 1 clears, write 0 no effect"
+        - "pslverr asserted for unimplemented addresses"
+        - "Reserved fields read as 0"
+      source_refs: ["registers.register_list", "io_list.interfaces.apb_slave", "cycle_model.handshake_rules"]
+      owner_module: "qa_timer_pure_regs"
+      owner_file: "rtl/qa_timer_pure_regs.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_IMPLEMENT_CORE"
+      content: "Implement top-level aggregation: instantiate regs + 4 channels, combine IRQ"
+      detail: "Instantiate qa_timer_pure_regs and 4× qa_timer_pure_channel. Wire per-channel register interfaces. Combine timer_irq = OR(ch.match && ch.ie). Route match_out[3:0]."
+      criteria:
+        - "All submodule instances correctly connected"
+        - "timer_irq = OR of (STATUS.MATCH && CTRL.IE) across all 4 channels"
+        - "match_out[3:0] routed from each channel instance"
+      source_refs: ["interrupts", "sub_modules"]
+      owner_module: "qa_timer_pure_core"
+      owner_file: "rtl/qa_timer_pure_core.sv"
+      priority: "high"
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+
+generation_flow:
+  steps:
+    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh qa_timer_pure", description: "Validate production SSOT structure and quality gates" }
+    - { name: "handoff_fl_model", command: "/ssot-fl-model qa_timer_pure", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT" }
+    - { name: "handoff_rtl", command: "/ssot-rtl qa_timer_pure", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_tb", command: "/ssot-tb qa_timer_pure", description: "Downstream pyuvm/cocotb verification from validated SSOT" }
+    - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream waveform, failure, and coverage inspection after sim exists" }
+    - { name: "handoff_coverage", command: "/coverage qa_timer_pure", description: "Measure SSOT-declared coverage goals" }
+    - { name: "handoff_eda", command: "/syn qa_timer_pure && /sta qa_timer_pure && /pnr qa_timer_pure && /sta-post qa_timer_pure", description: "Produce SSOT-declared synthesis, STA, PnR, and post-route STA evidence" }

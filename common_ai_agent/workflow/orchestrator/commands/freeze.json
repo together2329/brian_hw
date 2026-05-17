@@ -1,0 +1,8 @@
+{
+  "name": "freeze",
+  "description": "Pause the orchestrator loop. No further dispatches until /resume. Running workers keep going; pending handoffs stay queued.",
+  "aliases": ["stop", "pause"],
+  "usage": "/freeze",
+  "side_effects": ["orchestrator_state.paused = true"],
+  "post_action": "confirm_paused"
+}

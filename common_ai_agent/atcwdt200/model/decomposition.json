@@ -1,0 +1,1338 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "atcwdt200",
+  "source": "atcwdt200/yaml/atcwdt200.ssot.yaml",
+  "units": [
+    {
+      "name": "atcwdt200_regs",
+      "kind": "rtl_module",
+      "source_sections": [
+        "error_handling",
+        "features",
+        "function_model",
+        "parameters",
+        "registers"
+      ],
+      "rtl_candidates": [
+        "atcwdt200_regs"
+      ],
+      "rtl_file": "rtl/atcwdt200_regs.sv",
+      "ssot_refs": [
+        "error_handling",
+        "features.restart_and_pause",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.counter",
+        "function_model.state_variables.cr_clk",
+        "function_model.state_variables.cr_en",
+        "function_model.state_variables.cr_inten",
+        "function_model.state_variables.cr_inttime",
+        "function_model.state_variables.cr_rsten",
+        "function_model.state_variables.cr_rsttime",
+        "function_model.state_variables.reg_wen",
+        "function_model.state_variables.sr_intzero",
+        "function_model.state_variables.sr_rstzero",
+        "function_model.state_variables.state",
+        "function_model.transactions.apb_read",
+        "function_model.transactions.apb_read.error_cases.error_case_0",
+        "function_model.transactions.apb_read.inputs.input_0",
+        "function_model.transactions.apb_read.output_rules.prdata_rule",
+        "function_model.transactions.apb_read.outputs.output_0",
+        "function_model.transactions.apb_read.preconditions.precondition_0",
+        "function_model.transactions.apb_read.preconditions.precondition_1",
+        "function_model.transactions.apb_read.side_effects.side_effect_0",
+        "function_model.transactions.apb_write",
+        "function_model.transactions.apb_write.error_cases.error_case_0",
+        "function_model.transactions.apb_write.inputs.input_0",
+        "function_model.transactions.apb_write.inputs.input_1",
+        "function_model.transactions.apb_write.outputs.output_0",
+        "function_model.transactions.apb_write.preconditions.precondition_0",
+        "function_model.transactions.apb_write.side_effects.side_effect_0",
+        "function_model.transactions.apb_write.side_effects.side_effect_1",
+        "function_model.transactions.apb_write.side_effects.side_effect_2",
+        "function_model.transactions.apb_write.side_effects.side_effect_3",
+        "function_model.transactions.apb_write.state_updates.cr_fields",
+        "function_model.transactions.apb_write.state_updates.sr_intzero",
+        "function_model.transactions.write_unlock",
+        "function_model.transactions.write_unlock.error_cases.error_case_0",
+        "function_model.transactions.write_unlock.inputs.input_0",
+        "function_model.transactions.write_unlock.outputs.output_0",
+        "function_model.transactions.write_unlock.preconditions.precondition_0",
+        "function_model.transactions.write_unlock.side_effects.side_effect_0",
+        "function_model.transactions.write_unlock.state_updates.reg_wen",
+        "parameters.apb_addr_width",
+        "parameters.data_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.cr",
+        "registers.register_list.res",
+        "registers.register_list.sr",
+        "registers.register_list.ver",
+        "registers.register_list.wen"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.counter",
+        "function_model.state_variables.cr_clk",
+        "function_model.state_variables.cr_en",
+        "function_model.state_variables.cr_inten",
+        "function_model.state_variables.cr_inttime",
+        "function_model.state_variables.cr_rsten",
+        "function_model.state_variables.cr_rsttime",
+        "function_model.state_variables.reg_wen",
+        "function_model.state_variables.sr_intzero",
+        "function_model.state_variables.sr_rstzero",
+        "function_model.state_variables.state",
+        "function_model.transactions.apb_read",
+        "function_model.transactions.apb_read.error_cases.error_case_0",
+        "function_model.transactions.apb_read.inputs.input_0",
+        "function_model.transactions.apb_read.output_rules.prdata_rule",
+        "function_model.transactions.apb_read.outputs.output_0",
+        "function_model.transactions.apb_read.preconditions.precondition_0",
+        "function_model.transactions.apb_read.preconditions.precondition_1",
+        "function_model.transactions.apb_read.side_effects.side_effect_0",
+        "function_model.transactions.apb_write",
+        "function_model.transactions.apb_write.error_cases.error_case_0",
+        "function_model.transactions.apb_write.inputs.input_0",
+        "function_model.transactions.apb_write.inputs.input_1",
+        "function_model.transactions.apb_write.outputs.output_0",
+        "function_model.transactions.apb_write.preconditions.precondition_0",
+        "function_model.transactions.apb_write.side_effects.side_effect_0",
+        "function_model.transactions.apb_write.side_effects.side_effect_1",
+        "function_model.transactions.apb_write.side_effects.side_effect_2",
+        "function_model.transactions.apb_write.side_effects.side_effect_3",
+        "function_model.transactions.apb_write.state_updates.cr_fields",
+        "function_model.transactions.apb_write.state_updates.sr_intzero",
+        "function_model.transactions.write_unlock",
+        "function_model.transactions.write_unlock.error_cases.error_case_0",
+        "function_model.transactions.write_unlock.inputs.input_0",
+        "function_model.transactions.write_unlock.outputs.output_0",
+        "function_model.transactions.write_unlock.preconditions.precondition_0",
+        "function_model.transactions.write_unlock.side_effects.side_effect_0",
+        "function_model.transactions.write_unlock.state_updates.reg_wen"
+      ],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "features.restart_and_pause",
+        "parameters.apb_addr_width",
+        "parameters.data_width",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list.cr",
+        "registers.register_list.res",
+        "registers.register_list.sr",
+        "registers.register_list.ver",
+        "registers.register_list.wen"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atcwdt200_core",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "features",
+        "fsm",
+        "function_model",
+        "interrupts",
+        "parameters"
+      ],
+      "rtl_candidates": [
+        "atcwdt200_core"
+      ],
+      "rtl_file": "rtl/atcwdt200_core.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.extclk",
+        "cycle_model.handshake_rules.penable",
+        "cycle_model.handshake_rules.psel",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.s0_apb_addr",
+        "cycle_model.pipeline.s1_apb_access",
+        "cycle_model.pipeline.s2_sync",
+        "cycle_model.pipeline.s3_count",
+        "cycle_model.pipeline.s4_timeout_output",
+        "cycle_model.reset",
+        "features.watchdog_timeout",
+        "fsm",
+        "fsm.watchdog",
+        "function_model",
+        "function_model.transactions.restart",
+        "function_model.transactions.restart.error_cases.error_case_0",
+        "function_model.transactions.restart.inputs.input_0",
+        "function_model.transactions.restart.inputs.input_1",
+        "function_model.transactions.restart.outputs.output_0",
+        "function_model.transactions.restart.preconditions.precondition_0",
+        "function_model.transactions.restart.side_effects.side_effect_0",
+        "function_model.transactions.restart.state_updates.counter",
+        "function_model.transactions.restart.state_updates.state",
+        "function_model.transactions.timeout_decode",
+        "function_model.transactions.timeout_decode.error_cases.error_case_0",
+        "function_model.transactions.timeout_decode.inputs.input_0",
+        "function_model.transactions.timeout_decode.inputs.input_1",
+        "function_model.transactions.timeout_decode.inputs.input_2",
+        "function_model.transactions.timeout_decode.outputs.output_0",
+        "function_model.transactions.timeout_decode.preconditions.precondition_0",
+        "function_model.transactions.timeout_decode.side_effects.side_effect_0",
+        "function_model.transactions.timeout_decode.state_updates.timeout_predicates",
+        "function_model.transactions.watchdog_tick",
+        "function_model.transactions.watchdog_tick.error_cases.error_case_0",
+        "function_model.transactions.watchdog_tick.inputs.input_0",
+        "function_model.transactions.watchdog_tick.inputs.input_1",
+        "function_model.transactions.watchdog_tick.inputs.input_2",
+        "function_model.transactions.watchdog_tick.inputs.input_3",
+        "function_model.transactions.watchdog_tick.inputs.input_4",
+        "function_model.transactions.watchdog_tick.inputs.input_5",
+        "function_model.transactions.watchdog_tick.inputs.input_6",
+        "function_model.transactions.watchdog_tick.inputs.input_7",
+        "function_model.transactions.watchdog_tick.inputs.input_8",
+        "function_model.transactions.watchdog_tick.output_rules.wdt_int_rule",
+        "function_model.transactions.watchdog_tick.output_rules.wdt_rst_rule",
+        "function_model.transactions.watchdog_tick.outputs.output_0",
+        "function_model.transactions.watchdog_tick.preconditions.precondition_0",
+        "function_model.transactions.watchdog_tick.preconditions.precondition_1",
+        "function_model.transactions.watchdog_tick.side_effects.side_effect_0",
+        "function_model.transactions.watchdog_tick.state_updates.counter",
+        "function_model.transactions.watchdog_tick.state_updates.cr_en",
+        "function_model.transactions.watchdog_tick.state_updates.sr_intzero",
+        "function_model.transactions.watchdog_tick.state_updates.sr_rstzero",
+        "function_model.transactions.watchdog_tick.state_updates.state",
+        "interrupts",
+        "parameters.counter_width"
+      ],
+      "function_model_refs": [
+        "function_model.transactions.restart",
+        "function_model.transactions.restart.error_cases.error_case_0",
+        "function_model.transactions.restart.inputs.input_0",
+        "function_model.transactions.restart.inputs.input_1",
+        "function_model.transactions.restart.outputs.output_0",
+        "function_model.transactions.restart.preconditions.precondition_0",
+        "function_model.transactions.restart.side_effects.side_effect_0",
+        "function_model.transactions.restart.state_updates.counter",
+        "function_model.transactions.restart.state_updates.state",
+        "function_model.transactions.timeout_decode",
+        "function_model.transactions.timeout_decode.error_cases.error_case_0",
+        "function_model.transactions.timeout_decode.inputs.input_0",
+        "function_model.transactions.timeout_decode.inputs.input_1",
+        "function_model.transactions.timeout_decode.inputs.input_2",
+        "function_model.transactions.timeout_decode.outputs.output_0",
+        "function_model.transactions.timeout_decode.preconditions.precondition_0",
+        "function_model.transactions.timeout_decode.side_effects.side_effect_0",
+        "function_model.transactions.timeout_decode.state_updates.timeout_predicates",
+        "function_model.transactions.watchdog_tick",
+        "function_model.transactions.watchdog_tick.error_cases.error_case_0",
+        "function_model.transactions.watchdog_tick.inputs.input_0",
+        "function_model.transactions.watchdog_tick.inputs.input_1",
+        "function_model.transactions.watchdog_tick.inputs.input_2",
+        "function_model.transactions.watchdog_tick.inputs.input_3",
+        "function_model.transactions.watchdog_tick.inputs.input_4",
+        "function_model.transactions.watchdog_tick.inputs.input_5",
+        "function_model.transactions.watchdog_tick.inputs.input_6",
+        "function_model.transactions.watchdog_tick.inputs.input_7",
+        "function_model.transactions.watchdog_tick.inputs.input_8",
+        "function_model.transactions.watchdog_tick.output_rules.wdt_int_rule",
+        "function_model.transactions.watchdog_tick.output_rules.wdt_rst_rule",
+        "function_model.transactions.watchdog_tick.outputs.output_0",
+        "function_model.transactions.watchdog_tick.preconditions.precondition_0",
+        "function_model.transactions.watchdog_tick.preconditions.precondition_1",
+        "function_model.transactions.watchdog_tick.side_effects.side_effect_0",
+        "function_model.transactions.watchdog_tick.state_updates.counter",
+        "function_model.transactions.watchdog_tick.state_updates.cr_en",
+        "function_model.transactions.watchdog_tick.state_updates.sr_intzero",
+        "function_model.transactions.watchdog_tick.state_updates.sr_rstzero",
+        "function_model.transactions.watchdog_tick.state_updates.state"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.extclk",
+        "cycle_model.handshake_rules.penable",
+        "cycle_model.handshake_rules.psel",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.pipeline.s0_apb_addr",
+        "cycle_model.pipeline.s1_apb_access",
+        "cycle_model.pipeline.s2_sync",
+        "cycle_model.pipeline.s3_count",
+        "cycle_model.pipeline.s4_timeout_output",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.watchdog_timeout",
+        "parameters.counter_width"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atcwdt200_sync",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cdc_requirements",
+        "io_list"
+      ],
+      "rtl_candidates": [
+        "atcwdt200_sync"
+      ],
+      "rtl_file": "rtl/atcwdt200_sync.sv",
+      "ssot_refs": [
+        "cdc_requirements",
+        "cdc_requirements.crossings.extclk_to_pclk",
+        "cdc_requirements.crossings.wdt_pause_to_pclk",
+        "io_list"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atcwdt200",
+      "kind": "rtl_module",
+      "source_sections": [
+        "filelist",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "rtl_candidates": [
+        "atcwdt200"
+      ],
+      "rtl_file": "rtl/atcwdt200.sv",
+      "ssot_refs": [
+        "filelist",
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces",
+        "top_module"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces",
+        "top_module"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atcwdt200_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "atcwdt200_axi_slv",
+        "atcwdt200_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "atcwdt200_register_model",
+      "kind": "register",
+      "source_sections": [
+        "registers",
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "atcwdt200_regs",
+        "atcwdt200_apb_regs"
+      ],
+      "verification_impact": [
+        "register sequences",
+        "readback scoreboard"
+      ]
+    },
+    {
+      "name": "atcwdt200_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "atcwdt200_core",
+        "atcwdt200_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    },
+    {
+      "name": "atcwdt200_fsm_model",
+      "kind": "fsm",
+      "source_sections": [
+        "fsm",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "atcwdt200_core"
+      ],
+      "verification_impact": [
+        "state transition coverage",
+        "waveform debug"
+      ]
+    },
+    {
+      "name": "atcwdt200_error_model",
+      "kind": "error",
+      "source_sections": [
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "atcwdt200_core",
+        "atcwdt200_error"
+      ],
+      "verification_impact": [
+        "negative tests",
+        "mismatch classification"
+      ]
+    },
+    {
+      "name": "atcwdt200_security_model",
+      "kind": "security",
+      "source_sections": [
+        "security",
+        "debug_observability"
+      ],
+      "rtl_candidates": [
+        "atcwdt200_security",
+        "atcwdt200_core"
+      ],
+      "verification_impact": [
+        "security bins",
+        "debug observability checks"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "atcwdt200_regs",
+      "kind": "rtl_module",
+      "rtl_module": "atcwdt200_regs",
+      "rtl_file": "rtl/atcwdt200_regs.sv",
+      "source_sections": [
+        "error_handling",
+        "features",
+        "function_model",
+        "parameters",
+        "registers"
+      ],
+      "ssot_refs": [
+        "error_handling",
+        "features.restart_and_pause",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.counter",
+        "function_model.state_variables.cr_clk",
+        "function_model.state_variables.cr_en",
+        "function_model.state_variables.cr_inten",
+        "function_model.state_variables.cr_inttime",
+        "function_model.state_variables.cr_rsten",
+        "function_model.state_variables.cr_rsttime",
+        "function_model.state_variables.reg_wen",
+        "function_model.state_variables.sr_intzero",
+        "function_model.state_variables.sr_rstzero",
+        "function_model.state_variables.state",
+        "function_model.transactions.apb_read",
+        "function_model.transactions.apb_read.error_cases.error_case_0",
+        "function_model.transactions.apb_read.inputs.input_0",
+        "function_model.transactions.apb_read.output_rules.prdata_rule",
+        "function_model.transactions.apb_read.outputs.output_0",
+        "function_model.transactions.apb_read.preconditions.precondition_0",
+        "function_model.transactions.apb_read.preconditions.precondition_1",
+        "function_model.transactions.apb_read.side_effects.side_effect_0",
+        "function_model.transactions.apb_write",
+        "function_model.transactions.apb_write.error_cases.error_case_0",
+        "function_model.transactions.apb_write.inputs.input_0",
+        "function_model.transactions.apb_write.inputs.input_1",
+        "function_model.transactions.apb_write.outputs.output_0",
+        "function_model.transactions.apb_write.preconditions.precondition_0",
+        "function_model.transactions.apb_write.side_effects.side_effect_0",
+        "function_model.transactions.apb_write.side_effects.side_effect_1",
+        "function_model.transactions.apb_write.side_effects.side_effect_2",
+        "function_model.transactions.apb_write.side_effects.side_effect_3",
+        "function_model.transactions.apb_write.state_updates.cr_fields",
+        "function_model.transactions.apb_write.state_updates.sr_intzero",
+        "function_model.transactions.write_unlock",
+        "function_model.transactions.write_unlock.error_cases.error_case_0",
+        "function_model.transactions.write_unlock.inputs.input_0",
+        "function_model.transactions.write_unlock.outputs.output_0",
+        "function_model.transactions.write_unlock.preconditions.precondition_0",
+        "function_model.transactions.write_unlock.side_effects.side_effect_0",
+        "function_model.transactions.write_unlock.state_updates.reg_wen",
+        "parameters.apb_addr_width",
+        "parameters.data_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.cr",
+        "registers.register_list.res",
+        "registers.register_list.sr",
+        "registers.register_list.ver",
+        "registers.register_list.wen"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.state_variables.counter",
+        "function_model.state_variables.cr_clk",
+        "function_model.state_variables.cr_en",
+        "function_model.state_variables.cr_inten",
+        "function_model.state_variables.cr_inttime",
+        "function_model.state_variables.cr_rsten",
+        "function_model.state_variables.cr_rsttime",
+        "function_model.state_variables.reg_wen",
+        "function_model.state_variables.sr_intzero",
+        "function_model.state_variables.sr_rstzero",
+        "function_model.state_variables.state",
+        "function_model.transactions.apb_read",
+        "function_model.transactions.apb_read.error_cases.error_case_0",
+        "function_model.transactions.apb_read.inputs.input_0",
+        "function_model.transactions.apb_read.output_rules.prdata_rule",
+        "function_model.transactions.apb_read.outputs.output_0",
+        "function_model.transactions.apb_read.preconditions.precondition_0",
+        "function_model.transactions.apb_read.preconditions.precondition_1",
+        "function_model.transactions.apb_read.side_effects.side_effect_0",
+        "function_model.transactions.apb_write",
+        "function_model.transactions.apb_write.error_cases.error_case_0",
+        "function_model.transactions.apb_write.inputs.input_0",
+        "function_model.transactions.apb_write.inputs.input_1",
+        "function_model.transactions.apb_write.outputs.output_0",
+        "function_model.transactions.apb_write.preconditions.precondition_0",
+        "function_model.transactions.apb_write.side_effects.side_effect_0",
+        "function_model.transactions.apb_write.side_effects.side_effect_1",
+        "function_model.transactions.apb_write.side_effects.side_effect_2",
+        "function_model.transactions.apb_write.side_effects.side_effect_3",
+        "function_model.transactions.apb_write.state_updates.cr_fields",
+        "function_model.transactions.apb_write.state_updates.sr_intzero",
+        "function_model.transactions.write_unlock",
+        "function_model.transactions.write_unlock.error_cases.error_case_0",
+        "function_model.transactions.write_unlock.inputs.input_0",
+        "function_model.transactions.write_unlock.outputs.output_0",
+        "function_model.transactions.write_unlock.preconditions.precondition_0",
+        "function_model.transactions.write_unlock.side_effects.side_effect_0",
+        "function_model.transactions.write_unlock.state_updates.reg_wen"
+      ],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "features.restart_and_pause",
+        "parameters.apb_addr_width",
+        "parameters.data_width",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list.cr",
+        "registers.register_list.res",
+        "registers.register_list.sr",
+        "registers.register_list.ver",
+        "registers.register_list.wen"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.cr_en",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.cr_clk",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.cr_inten",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.cr_rsten",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.cr_inttime",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.cr_rsttime",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.sr_intzero",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.sr_rstzero",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.reg_wen",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.counter",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.state_variables.state",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.transactions.apb_read",
+          "matched_ref": "function_model.transactions.apb_read"
+        },
+        {
+          "ref": "function_model.transactions.apb_read.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.apb_read"
+        },
+        {
+          "ref": "function_model.transactions.apb_read.preconditions.precondition_1",
+          "matched_ref": "function_model.transactions.apb_read"
+        },
+        {
+          "ref": "function_model.transactions.apb_read.inputs.input_0",
+          "matched_ref": "function_model.transactions.apb_read"
+        },
+        {
+          "ref": "function_model.transactions.apb_read.outputs.output_0",
+          "matched_ref": "function_model.transactions.apb_read"
+        },
+        {
+          "ref": "function_model.transactions.apb_read.output_rules.prdata_rule",
+          "matched_ref": "function_model.transactions.apb_read"
+        },
+        {
+          "ref": "function_model.transactions.apb_read.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.apb_read"
+        },
+        {
+          "ref": "function_model.transactions.apb_read.error_cases.error_case_0",
+          "matched_ref": "function_model.transactions.apb_read"
+        },
+        {
+          "ref": "function_model.transactions.apb_write",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
+          "ref": "function_model.transactions.apb_write.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
+          "ref": "function_model.transactions.apb_write.inputs.input_0",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
+          "ref": "function_model.transactions.apb_write.inputs.input_1",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
+          "ref": "function_model.transactions.apb_write.outputs.output_0",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
+          "ref": "function_model.transactions.apb_write.state_updates.cr_fields",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
+          "ref": "function_model.transactions.apb_write.state_updates.sr_intzero",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
+          "ref": "function_model.transactions.apb_write.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
+          "ref": "function_model.transactions.apb_write.side_effects.side_effect_1",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
+          "ref": "function_model.transactions.apb_write.side_effects.side_effect_2",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
+          "ref": "function_model.transactions.apb_write.side_effects.side_effect_3",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
+          "ref": "function_model.transactions.apb_write.error_cases.error_case_0",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
+          "ref": "function_model.transactions.write_unlock",
+          "matched_ref": "function_model.transactions.write_unlock"
+        },
+        {
+          "ref": "function_model.transactions.write_unlock.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.write_unlock"
+        },
+        {
+          "ref": "function_model.transactions.write_unlock.inputs.input_0",
+          "matched_ref": "function_model.transactions.write_unlock"
+        },
+        {
+          "ref": "function_model.transactions.write_unlock.outputs.output_0",
+          "matched_ref": "function_model.transactions.write_unlock"
+        },
+        {
+          "ref": "function_model.transactions.write_unlock.state_updates.reg_wen",
+          "matched_ref": "function_model.transactions.write_unlock"
+        },
+        {
+          "ref": "function_model.transactions.write_unlock.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.write_unlock"
+        },
+        {
+          "ref": "function_model.transactions.write_unlock.error_cases.error_case_0",
+          "matched_ref": "function_model.transactions.write_unlock"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_2",
+          "matched_ref": "function_model"
+        },
+        {
+          "ref": "function_model.invariants.invariant_3",
+          "matched_ref": "function_model"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.apb_addr_width",
+          "matched_ref": "semantic_terms:apb,atcwdt200_regs,regs"
+        },
+        {
+          "ref": "parameters.data_width",
+          "matched_ref": "semantic_terms:apb,atcwdt200_regs,regs"
+        },
+        {
+          "ref": "registers.register_list.ver",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.cr",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.res",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.wen",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.register_list.sr",
+          "matched_ref": "registers.register_list"
+        },
+        {
+          "ref": "registers.config.register_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.addr_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.byte_addressable",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "features.restart_and_pause",
+          "matched_ref": "semantic_terms:apb,read,write"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atcwdt200_core",
+      "kind": "rtl_module",
+      "rtl_module": "atcwdt200_core",
+      "rtl_file": "rtl/atcwdt200_core.sv",
+      "source_sections": [
+        "cycle_model",
+        "features",
+        "fsm",
+        "function_model",
+        "interrupts",
+        "parameters"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.extclk",
+        "cycle_model.handshake_rules.penable",
+        "cycle_model.handshake_rules.psel",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.s0_apb_addr",
+        "cycle_model.pipeline.s1_apb_access",
+        "cycle_model.pipeline.s2_sync",
+        "cycle_model.pipeline.s3_count",
+        "cycle_model.pipeline.s4_timeout_output",
+        "cycle_model.reset",
+        "features.watchdog_timeout",
+        "fsm",
+        "fsm.watchdog",
+        "function_model",
+        "function_model.transactions.restart",
+        "function_model.transactions.restart.error_cases.error_case_0",
+        "function_model.transactions.restart.inputs.input_0",
+        "function_model.transactions.restart.inputs.input_1",
+        "function_model.transactions.restart.outputs.output_0",
+        "function_model.transactions.restart.preconditions.precondition_0",
+        "function_model.transactions.restart.side_effects.side_effect_0",
+        "function_model.transactions.restart.state_updates.counter",
+        "function_model.transactions.restart.state_updates.state",
+        "function_model.transactions.timeout_decode",
+        "function_model.transactions.timeout_decode.error_cases.error_case_0",
+        "function_model.transactions.timeout_decode.inputs.input_0",
+        "function_model.transactions.timeout_decode.inputs.input_1",
+        "function_model.transactions.timeout_decode.inputs.input_2",
+        "function_model.transactions.timeout_decode.outputs.output_0",
+        "function_model.transactions.timeout_decode.preconditions.precondition_0",
+        "function_model.transactions.timeout_decode.side_effects.side_effect_0",
+        "function_model.transactions.timeout_decode.state_updates.timeout_predicates",
+        "function_model.transactions.watchdog_tick",
+        "function_model.transactions.watchdog_tick.error_cases.error_case_0",
+        "function_model.transactions.watchdog_tick.inputs.input_0",
+        "function_model.transactions.watchdog_tick.inputs.input_1",
+        "function_model.transactions.watchdog_tick.inputs.input_2",
+        "function_model.transactions.watchdog_tick.inputs.input_3",
+        "function_model.transactions.watchdog_tick.inputs.input_4",
+        "function_model.transactions.watchdog_tick.inputs.input_5",
+        "function_model.transactions.watchdog_tick.inputs.input_6",
+        "function_model.transactions.watchdog_tick.inputs.input_7",
+        "function_model.transactions.watchdog_tick.inputs.input_8",
+        "function_model.transactions.watchdog_tick.output_rules.wdt_int_rule",
+        "function_model.transactions.watchdog_tick.output_rules.wdt_rst_rule",
+        "function_model.transactions.watchdog_tick.outputs.output_0",
+        "function_model.transactions.watchdog_tick.preconditions.precondition_0",
+        "function_model.transactions.watchdog_tick.preconditions.precondition_1",
+        "function_model.transactions.watchdog_tick.side_effects.side_effect_0",
+        "function_model.transactions.watchdog_tick.state_updates.counter",
+        "function_model.transactions.watchdog_tick.state_updates.cr_en",
+        "function_model.transactions.watchdog_tick.state_updates.sr_intzero",
+        "function_model.transactions.watchdog_tick.state_updates.sr_rstzero",
+        "function_model.transactions.watchdog_tick.state_updates.state",
+        "interrupts",
+        "parameters.counter_width"
+      ],
+      "function_model_refs": [
+        "function_model.transactions.restart",
+        "function_model.transactions.restart.error_cases.error_case_0",
+        "function_model.transactions.restart.inputs.input_0",
+        "function_model.transactions.restart.inputs.input_1",
+        "function_model.transactions.restart.outputs.output_0",
+        "function_model.transactions.restart.preconditions.precondition_0",
+        "function_model.transactions.restart.side_effects.side_effect_0",
+        "function_model.transactions.restart.state_updates.counter",
+        "function_model.transactions.restart.state_updates.state",
+        "function_model.transactions.timeout_decode",
+        "function_model.transactions.timeout_decode.error_cases.error_case_0",
+        "function_model.transactions.timeout_decode.inputs.input_0",
+        "function_model.transactions.timeout_decode.inputs.input_1",
+        "function_model.transactions.timeout_decode.inputs.input_2",
+        "function_model.transactions.timeout_decode.outputs.output_0",
+        "function_model.transactions.timeout_decode.preconditions.precondition_0",
+        "function_model.transactions.timeout_decode.side_effects.side_effect_0",
+        "function_model.transactions.timeout_decode.state_updates.timeout_predicates",
+        "function_model.transactions.watchdog_tick",
+        "function_model.transactions.watchdog_tick.error_cases.error_case_0",
+        "function_model.transactions.watchdog_tick.inputs.input_0",
+        "function_model.transactions.watchdog_tick.inputs.input_1",
+        "function_model.transactions.watchdog_tick.inputs.input_2",
+        "function_model.transactions.watchdog_tick.inputs.input_3",
+        "function_model.transactions.watchdog_tick.inputs.input_4",
+        "function_model.transactions.watchdog_tick.inputs.input_5",
+        "function_model.transactions.watchdog_tick.inputs.input_6",
+        "function_model.transactions.watchdog_tick.inputs.input_7",
+        "function_model.transactions.watchdog_tick.inputs.input_8",
+        "function_model.transactions.watchdog_tick.output_rules.wdt_int_rule",
+        "function_model.transactions.watchdog_tick.output_rules.wdt_rst_rule",
+        "function_model.transactions.watchdog_tick.outputs.output_0",
+        "function_model.transactions.watchdog_tick.preconditions.precondition_0",
+        "function_model.transactions.watchdog_tick.preconditions.precondition_1",
+        "function_model.transactions.watchdog_tick.side_effects.side_effect_0",
+        "function_model.transactions.watchdog_tick.state_updates.counter",
+        "function_model.transactions.watchdog_tick.state_updates.cr_en",
+        "function_model.transactions.watchdog_tick.state_updates.sr_intzero",
+        "function_model.transactions.watchdog_tick.state_updates.sr_rstzero",
+        "function_model.transactions.watchdog_tick.state_updates.state"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.extclk",
+        "cycle_model.handshake_rules.penable",
+        "cycle_model.handshake_rules.psel",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.pipeline.s0_apb_addr",
+        "cycle_model.pipeline.s1_apb_access",
+        "cycle_model.pipeline.s2_sync",
+        "cycle_model.pipeline.s3_count",
+        "cycle_model.pipeline.s4_timeout_output",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.watchdog_timeout",
+        "parameters.counter_width"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.transactions.restart",
+          "matched_ref": "function_model.transactions.restart"
+        },
+        {
+          "ref": "function_model.transactions.restart.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.restart"
+        },
+        {
+          "ref": "function_model.transactions.restart.inputs.input_0",
+          "matched_ref": "function_model.transactions.restart"
+        },
+        {
+          "ref": "function_model.transactions.restart.inputs.input_1",
+          "matched_ref": "function_model.transactions.restart"
+        },
+        {
+          "ref": "function_model.transactions.restart.outputs.output_0",
+          "matched_ref": "function_model.transactions.restart"
+        },
+        {
+          "ref": "function_model.transactions.restart.state_updates.counter",
+          "matched_ref": "function_model.transactions.restart"
+        },
+        {
+          "ref": "function_model.transactions.restart.state_updates.state",
+          "matched_ref": "function_model.transactions.restart"
+        },
+        {
+          "ref": "function_model.transactions.restart.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.restart"
+        },
+        {
+          "ref": "function_model.transactions.restart.error_cases.error_case_0",
+          "matched_ref": "function_model.transactions.restart"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.preconditions.precondition_1",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.inputs.input_0",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.inputs.input_1",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.inputs.input_2",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.inputs.input_3",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.inputs.input_4",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.inputs.input_5",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.inputs.input_6",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.inputs.input_7",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.inputs.input_8",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.outputs.output_0",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.output_rules.wdt_int_rule",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.output_rules.wdt_rst_rule",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.state_updates.counter",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.state_updates.sr_intzero",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.state_updates.sr_rstzero",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.state_updates.state",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.state_updates.cr_en",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.watchdog_tick.error_cases.error_case_0",
+          "matched_ref": "function_model.transactions.watchdog_tick"
+        },
+        {
+          "ref": "function_model.transactions.timeout_decode",
+          "matched_ref": "function_model.transactions.timeout_decode"
+        },
+        {
+          "ref": "function_model.transactions.timeout_decode.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.timeout_decode"
+        },
+        {
+          "ref": "function_model.transactions.timeout_decode.inputs.input_0",
+          "matched_ref": "function_model.transactions.timeout_decode"
+        },
+        {
+          "ref": "function_model.transactions.timeout_decode.inputs.input_1",
+          "matched_ref": "function_model.transactions.timeout_decode"
+        },
+        {
+          "ref": "function_model.transactions.timeout_decode.inputs.input_2",
+          "matched_ref": "function_model.transactions.timeout_decode"
+        },
+        {
+          "ref": "function_model.transactions.timeout_decode.outputs.output_0",
+          "matched_ref": "function_model.transactions.timeout_decode"
+        },
+        {
+          "ref": "function_model.transactions.timeout_decode.state_updates.timeout_predicates",
+          "matched_ref": "function_model.transactions.timeout_decode"
+        },
+        {
+          "ref": "function_model.transactions.timeout_decode.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.timeout_decode"
+        },
+        {
+          "ref": "function_model.transactions.timeout_decode.error_cases.error_case_0",
+          "matched_ref": "function_model.transactions.timeout_decode"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.psel",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.penable",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.extclk",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.pipeline.s0_apb_addr",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.pipeline.s1_apb_access",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.pipeline.s2_sync",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.pipeline.s3_count",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.pipeline.s4_timeout_output",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_0",
+          "matched_ref": "cycle_model.ordering"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_1",
+          "matched_ref": "cycle_model.ordering"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_2",
+          "matched_ref": "cycle_model.ordering"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_3",
+          "matched_ref": "cycle_model.ordering"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.observability.observability_0",
+          "matched_ref": "cycle_model"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.counter_width",
+          "matched_ref": "semantic_terms:atcwdt200_core,core,watchdog"
+        },
+        {
+          "ref": "features.watchdog_timeout",
+          "matched_ref": "semantic_terms:tick,timeout,watchdog"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atcwdt200_sync",
+      "kind": "rtl_module",
+      "rtl_module": "atcwdt200_sync",
+      "rtl_file": "rtl/atcwdt200_sync.sv",
+      "source_sections": [
+        "cdc_requirements",
+        "io_list"
+      ],
+      "ssot_refs": [
+        "cdc_requirements",
+        "cdc_requirements.crossings.extclk_to_pclk",
+        "cdc_requirements.crossings.wdt_pause_to_pclk",
+        "io_list"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "atcwdt200",
+      "kind": "rtl_module",
+      "rtl_module": "atcwdt200",
+      "rtl_file": "rtl/atcwdt200.sv",
+      "source_sections": [
+        "filelist",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "ssot_refs": [
+        "filelist",
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces",
+        "top_module"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces",
+        "top_module"
+      ],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 99,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "atcwdt200/req/",
+      "atcwdt200/yaml/atcwdt200.ssot.yaml",
+      "atcwdt200/model/functional_model.py",
+      "atcwdt200/cov/fcov_plan.json",
+      "atcwdt200/yaml/atcwdt200.ssot.yaml#io_list",
+      "atcwdt200/yaml/atcwdt200.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "atcwdt200/rtl/",
+      "atcwdt200/tb/",
+      "atcwdt200/sim/",
+      "atcwdt200/vectors/",
+      "atcwdt200/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": true
+}

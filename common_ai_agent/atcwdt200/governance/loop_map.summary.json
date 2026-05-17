@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "type": "loop_map_summary",
+  "ip": "atcwdt200",
+  "mmd": "governance/loop_map.mmd",
+  "svg": null,
+  "svg_status": "TimeoutExpired: Command '['/opt/homebrew/bin/npx', '-y', '@mermaid-js/mermaid-cli', '-i', '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcwdt200/governance/loop_map.mmd', '-o', '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcwdt200/governance/loop_map.svg']' timed out after 60 seconds",
+  "gates": 9,
+  "loops": 9,
+  "rules": 6
+}

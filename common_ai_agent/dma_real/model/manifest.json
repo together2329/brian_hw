@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "ip": "dma_real",
-  "generated_at": "2026-05-17T01:12:29Z",
+  "generated_at": "2026-05-17T05:50:27Z",
   "emitter": "fl-model-gen",
   "produced": [
     "model/functional_model.py",

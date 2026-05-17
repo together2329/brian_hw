@@ -1,0 +1,1 @@
+{"elapsed_sec": 0.0, "error": "ATLAS_RUN_REAL_LLM_TDD=1 is not set", "log_stage": "rtl-gen-packet-00-module__dma_real_engine", "model": "glm-5.1", "stage": "rtl-gen", "status": "blocked", "ts": "2026-05-17T05:53:47Z", "usage": {}}

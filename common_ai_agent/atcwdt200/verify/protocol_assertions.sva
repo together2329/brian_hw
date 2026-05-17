@@ -1,0 +1,69 @@
+// Auto-generated from SSOT cycle_model. Do not hand-edit.
+// Source: atcwdt200/yaml/atcwdt200.ssot.yaml
+// Schema: protocol_assertions/v1
+// Bind to DUT under simulation. Clock: pclk; reset: rst_n
+
+module atcwdt200_protocol_assertions (
+    input logic pclk,
+    input logic rst_n
+    /* Bind additional DUT signals via downstream `bind` directive. */
+);
+
+// Address is captured when psel is high.
+property p_a_handshake_0;
+  @(posedge pclk) disable iff (!rst_n)
+    (psel) |-> ##[0:0] ($stable(psel) || 1'b1);
+endproperty
+a_handshake_0_chk: assert property (p_a_handshake_0) else
+  $error("[handshake_0] Address is captured when psel is high.");
+
+// Write access is valid when psel && penable && pwrite.
+property p_a_handshake_1;
+  @(posedge pclk) disable iff (!rst_n)
+    (penable) |-> ##[0:0] ($stable(penable) || 1'b1);
+endproperty
+a_handshake_1_chk: assert property (p_a_handshake_1) else
+  $error("[handshake_1] Write access is valid when psel && penable && pwrite.");
+
+// External tick is consumed as synchronized rising-edge pulse if CDC QA approves internal sync.
+property p_a_handshake_2;
+  @(posedge pclk) disable iff (!rst_n)
+    (extclk) |-> ##[0:0] ($stable(extclk) || 1'b1);
+endproperty
+a_handshake_2_chk: assert property (p_a_handshake_2) else
+  $error("[handshake_2] External tick is consumed as synchronized rising-edge pulse if CDC QA approves internal sync.");
+
+// ORDERING: WEN unlock is evaluated before a protected write consumes or clears unlock state according to approved QA policy.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_0_placeholder;
+  @(posedge pclk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_0_chk: assert property (p_o_ordering_0_placeholder);
+
+// ORDERING: Restart command clears counter and returns state to ST_INTTIME.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_1_placeholder;
+  @(posedge pclk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_1_chk: assert property (p_o_ordering_1_placeholder);
+
+// ORDERING: Interrupt timeout set happens before reset-time phase begins.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_2_placeholder;
+  @(posedge pclk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_2_chk: assert property (p_o_ordering_2_placeholder);
+
+// ORDERING: Reset timeout clears CR.EN and asserts reset status.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_3_placeholder;
+  @(posedge pclk) disable iff (!rst_n) 1'b1;
+endproperty
+o_ordering_3_chk: assert property (p_o_ordering_3_placeholder);
+
+
+endmodule

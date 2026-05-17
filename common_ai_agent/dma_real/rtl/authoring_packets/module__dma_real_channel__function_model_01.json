@@ -1,0 +1,4220 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model_01",
+      "module_task_count": 130,
+      "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 2,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_real_channel.sv",
+      "name": "dma_real_channel",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.performance",
+        "cycle_model.pipeline",
+        "dataflow.ordering.ordering_1",
+        "dataflow.ordering.ordering_2",
+        "dataflow.ordering.ordering_3",
+        "dataflow.ordering.ordering_4",
+        "dataflow.sequence.sequence_10",
+        "dataflow.sequence.sequence_11",
+        "dataflow.sequence.sequence_3",
+        "dataflow.sequence.sequence_4",
+        "dataflow.sequence.sequence_5",
+        "dataflow.sequence.sequence_6",
+        "dataflow.sequence.sequence_7",
+        "dataflow.sequence.sequence_8",
+        "dataflow.sequence.sequence_9",
+        "error_handling",
+        "fsm",
+        "fsm.per_channel",
+        "function_model",
+        "function_model.invariants",
+        "function_model.state_variables",
+        "function_model.transactions.FM_DMA_COMPLETE",
+        "function_model.transactions.FM_DMA_ERROR",
+        "function_model.transactions.FM_DMA_START",
+        "function_model.transactions.FM_DMA_STEP",
+        "io_list",
+        "parameters",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "module",
+  "owner_file": "rtl/dma_real_channel.sv",
+  "owner_module": "dma_real_channel",
+  "packet_id": "module__dma_real_channel__function_model_01",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 6,
+      "function_model.output": 8,
+      "function_model.output_rule": 7,
+      "function_model.precondition": 7,
+      "function_model.side_effect": 12,
+      "function_model.state_update": 5,
+      "function_model.transaction": 3
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model_01",
+      "module_task_count": 130,
+      "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 2,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 48,
+    "source_refs": [
+      "function_model.transactions.FM_DMA_START",
+      "function_model.transactions.FM_DMA_START.preconditions.precondition_0",
+      "function_model.transactions.FM_DMA_START.preconditions.precondition_1",
+      "function_model.transactions.FM_DMA_START.preconditions.precondition_2",
+      "function_model.transactions.FM_DMA_START.outputs.output_0",
+      "function_model.transactions.FM_DMA_START.outputs.output_1",
+      "function_model.transactions.FM_DMA_START.outputs.output_2",
+      "function_model.transactions.FM_DMA_START.output_rules.ch_busy_next",
+      "function_model.transactions.FM_DMA_START.output_rules.ch_error_flag",
+      "function_model.transactions.FM_DMA_START.output_rules.ch_err_code_val",
+      "function_model.transactions.FM_DMA_START.side_effects.side_effect_0",
+      "function_model.transactions.FM_DMA_START.side_effects.side_effect_1",
+      "function_model.transactions.FM_DMA_START.side_effects.side_effect_2",
+      "function_model.transactions.FM_DMA_START.side_effects.side_effect_3",
+      "function_model.transactions.FM_DMA_START.side_effects.side_effect_4",
+      "function_model.transactions.FM_DMA_START.side_effects.side_effect_5",
+      "function_model.transactions.FM_DMA_START.error_cases.error_case_0",
+      "function_model.transactions.FM_DMA_START.error_cases.error_case_1",
+      "function_model.transactions.FM_DMA_START.error_cases.error_case_2",
+      "function_model.transactions.FM_DMA_START.error_cases.error_case_3",
+      "function_model.transactions.FM_DMA_STEP",
+      "function_model.transactions.FM_DMA_STEP.preconditions.precondition_0",
+      "function_model.transactions.FM_DMA_STEP.preconditions.precondition_1",
+      "function_model.transactions.FM_DMA_STEP.outputs.output_0"
+    ],
+    "status_counts": {
+      "pass": 48
+    },
+    "task_count": 48
+  },
+  "tasks": [
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_DMA_START",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_DMA_START.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start.",
+      "evidence_terms": [],
+      "id": "RTL-0081",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMA_START: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.preconditions.precondition_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: value=presetn and hresetn are deasserted.",
+      "evidence_terms": [],
+      "id": "RTL-0082",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "presetn and hresetn are deasserted"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMA_START: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.preconditions.precondition_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: value=dma_en_q == 1.",
+      "evidence_terms": [
+        "dma",
+        "dma_en_q",
+        "en"
+      ],
+      "id": "RTL-0083",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "dma_en_q == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "dma",
+          "en"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "dma",
+          "dma_en_q",
+          "en"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMA_START: precondition_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.preconditions.precondition_2",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.preconditions.precondition_2.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: value=ch_busy_q[ch_id] == 0.",
+      "evidence_terms": [
+        "busy",
+        "ch",
+        "ch_busy_q",
+        "ch_id",
+        "id"
+      ],
+      "id": "RTL-0084",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.preconditions.precondition_2",
+      "ssot_context": {
+        "value": "ch_busy_q[ch_id] == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.preconditions.precondition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "busy",
+          "ch",
+          "ch_id",
+          "id"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "busy",
+          "ch",
+          "ch_busy_q",
+          "ch_id",
+          "id"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMA_START: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.outputs.output_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_error\", \"ch_err_code\"] is the implementation/observation point for dma_start"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.outputs.output_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start; port=[\"ch_busy\", \"ch_error\", \"ch_err_code\"]; signal=[\"ch_busy\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"].",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_err_code",
+        "ch_error",
+        "ch_id",
+        "code",
+        "dst",
+        "dst_addr",
+        "err",
+        "id",
+        "length",
+        "src",
+        "src_addr",
+        "stride"
+      ],
+      "id": "RTL-0085",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "port": "[\"ch_busy\", \"ch_error\", \"ch_err_code\"]",
+        "signal": "[\"ch_busy\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "src",
+          "src_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_err_code",
+          "ch_error",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "length",
+          "src",
+          "src_addr",
+          "stride"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMA_START: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.outputs.output_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_error\", \"ch_err_code\"] is the implementation/observation point for dma_start"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.outputs.output_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start; port=[\"ch_busy\", \"ch_error\", \"ch_err_code\"]; signal=[\"ch_error\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"].",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_err_code",
+        "ch_error",
+        "ch_id",
+        "code",
+        "dst",
+        "dst_addr",
+        "err",
+        "id",
+        "length",
+        "src",
+        "src_addr",
+        "stride"
+      ],
+      "id": "RTL-0086",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.outputs.output_1",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "port": "[\"ch_busy\", \"ch_error\", \"ch_err_code\"]",
+        "signal": "[\"ch_error\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "src",
+          "src_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_err_code",
+          "ch_error",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "length",
+          "src",
+          "src_addr",
+          "stride"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMA_START: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.outputs.output_2",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_error\", \"ch_err_code\"] is the implementation/observation point for dma_start"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.outputs.output_2.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start; port=[\"ch_busy\", \"ch_error\", \"ch_err_code\"]; signal=[\"ch_err_code\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"].",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_err_code",
+        "ch_error",
+        "ch_id",
+        "code",
+        "dst",
+        "dst_addr",
+        "err",
+        "id",
+        "length",
+        "src",
+        "src_addr",
+        "stride"
+      ],
+      "id": "RTL-0087",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.outputs.output_2",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "port": "[\"ch_busy\", \"ch_error\", \"ch_err_code\"]",
+        "signal": "[\"ch_err_code\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.outputs.output_2"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "src",
+          "src_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_err_code",
+          "ch_error",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "length",
+          "src",
+          "src_addr",
+          "stride"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_DMA_START: ch_busy_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.output_rules.ch_busy_next",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "ch_busy_next width matches SSOT value 1",
+        "ch_busy_next RTL expression implements SSOT expression 1 if (dma_en_q and not ch_busy_q[ch_id] and length > 0 and (src_addr % 4 == 0) and (dst_addr % 4 == 0)) else 0",
+        "DUT port ch_busy is the implementation/observation point for ch_busy_next",
+        "ch_busy_next is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.output_rules.ch_busy_next.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: name=ch_busy_next; port=ch_busy; expr=1 if (dma_en_q and not ch_busy_q[ch_id] and length > 0 and (src_addr % 4 == 0) and (dst_addr % 4 == 0)) else 0; width=1.",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_busy_next",
+        "ch_busy_q",
+        "ch_id",
+        "dma",
+        "dma_en_q",
+        "dst",
+        "dst_addr",
+        "en",
+        "id",
+        "next",
+        "src",
+        "src_addr"
+      ],
+      "id": "RTL-0088",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.output_rules.ch_busy_next",
+      "ssot_context": {
+        "expr": "1 if (dma_en_q and not ch_busy_q[ch_id] and length > 0 and (src_addr % 4 == 0) and (dst_addr % 4 == 0)) else 0",
+        "name": "ch_busy_next",
+        "port": "ch_busy",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.output_rules.ch_busy_next"
+      ],
+      "static_evidence": {
+        "matched_count": 12,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "dma",
+          "dst",
+          "dst_addr",
+          "en",
+          "id",
+          "next",
+          "src",
+          "src_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_busy_next",
+          "ch_busy_q",
+          "ch_id",
+          "dma",
+          "dma_en_q",
+          "dst",
+          "dst_addr",
+          "en",
+          "id",
+          "next",
+          "src",
+          "src_addr"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_DMA_START: ch_error_flag",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.output_rules.ch_error_flag",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "ch_error_flag width matches SSOT value 1",
+        "ch_error_flag RTL expression implements SSOT expression 1 if (length == 0 or src_addr % 4 != 0 or dst_addr % 4 != 0) else 0",
+        "DUT port ch_error is the implementation/observation point for ch_error_flag",
+        "ch_error_flag is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.output_rules.ch_error_flag.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: name=ch_error_flag; port=ch_error; expr=1 if (length == 0 or src_addr % 4 != 0 or dst_addr % 4 != 0) else 0; width=1.",
+      "evidence_terms": [
+        "addr",
+        "ch",
+        "ch_error",
+        "ch_error_flag",
+        "dst",
+        "dst_addr",
+        "flag",
+        "src",
+        "src_addr"
+      ],
+      "id": "RTL-0089",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.output_rules.ch_error_flag",
+      "ssot_context": {
+        "expr": "1 if (length == 0 or src_addr % 4 != 0 or dst_addr % 4 != 0) else 0",
+        "name": "ch_error_flag",
+        "port": "ch_error",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.output_rules.ch_error_flag"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "addr",
+          "ch",
+          "dst",
+          "dst_addr",
+          "src",
+          "src_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "ch",
+          "ch_error",
+          "ch_error_flag",
+          "dst",
+          "dst_addr",
+          "flag",
+          "src",
+          "src_addr"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_DMA_START: ch_err_code_val",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.output_rules.ch_err_code_val",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "ch_err_code_val width matches SSOT value 3",
+        "ch_err_code_val RTL expression implements SSOT expression 2 if (length == 0) else 1 if (src_addr % 4 != 0 or dst_addr % 4 != 0) else 0",
+        "DUT port ch_err_code is the implementation/observation point for ch_err_code_val",
+        "ch_err_code_val is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.output_rules.ch_err_code_val.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: name=ch_err_code_val; port=ch_err_code; expr=2 if (length == 0) else 1 if (src_addr % 4 != 0 or dst_addr % 4 != 0) else 0; width=3.",
+      "evidence_terms": [
+        "addr",
+        "ch",
+        "ch_err_code",
+        "ch_err_code_val",
+        "code",
+        "dst",
+        "dst_addr",
+        "err",
+        "src",
+        "src_addr",
+        "val"
+      ],
+      "id": "RTL-0090",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.output_rules.ch_err_code_val",
+      "ssot_context": {
+        "expr": "2 if (length == 0) else 1 if (src_addr % 4 != 0 or dst_addr % 4 != 0) else 0",
+        "name": "ch_err_code_val",
+        "port": "ch_err_code",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.output_rules.ch_err_code_val"
+      ],
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "addr",
+          "ch",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "src",
+          "src_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "ch",
+          "ch_err_code",
+          "ch_err_code_val",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "src",
+          "src_addr",
+          "val"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMA_START: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_error\", \"ch_err_code\"] is the implementation/observation point for dma_start"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.side_effects.side_effect_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start; port=[\"ch_busy\", \"ch_error\", \"ch_err_code\"]; signal=[\"ch_remaining_q[ch_id] set to length on valid start\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"].",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_err_code",
+        "ch_error",
+        "ch_id",
+        "ch_remaining_q",
+        "code",
+        "dst",
+        "dst_addr",
+        "err",
+        "id",
+        "length",
+        "remaining",
+        "src"
+      ],
+      "id": "RTL-0091",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "port": "[\"ch_busy\", \"ch_error\", \"ch_err_code\"]",
+        "signal": "[\"ch_remaining_q[ch_id] set to length on valid start\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "remaining",
+          "src"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_err_code",
+          "ch_error",
+          "ch_id",
+          "ch_remaining_q",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "length",
+          "remaining",
+          "src"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMA_START: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_error\", \"ch_err_code\"] is the implementation/observation point for dma_start"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.side_effects.side_effect_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start; port=[\"ch_busy\", \"ch_error\", \"ch_err_code\"]; signal=[\"ch_src_addr_q[ch_id] set to src_addr on valid start\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"].",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_err_code",
+        "ch_error",
+        "ch_id",
+        "ch_src_addr_q",
+        "code",
+        "dst",
+        "dst_addr",
+        "err",
+        "id",
+        "length",
+        "src",
+        "src_addr"
+      ],
+      "id": "RTL-0092",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.side_effects.side_effect_1",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "port": "[\"ch_busy\", \"ch_error\", \"ch_err_code\"]",
+        "signal": "[\"ch_src_addr_q[ch_id] set to src_addr on valid start\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "src",
+          "src_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_err_code",
+          "ch_error",
+          "ch_id",
+          "ch_src_addr_q",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "length",
+          "src",
+          "src_addr"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMA_START: side_effect_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.side_effects.side_effect_2",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_error\", \"ch_err_code\"] is the implementation/observation point for dma_start"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.side_effects.side_effect_2.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start; port=[\"ch_busy\", \"ch_error\", \"ch_err_code\"]; signal=[\"ch_dst_addr_q[ch_id] set to dst_addr on valid start\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"].",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_dst_addr_q",
+        "ch_err_code",
+        "ch_error",
+        "ch_id",
+        "code",
+        "dst",
+        "dst_addr",
+        "err",
+        "id",
+        "length",
+        "src",
+        "src_addr"
+      ],
+      "id": "RTL-0093",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.side_effects.side_effect_2",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "port": "[\"ch_busy\", \"ch_error\", \"ch_err_code\"]",
+        "signal": "[\"ch_dst_addr_q[ch_id] set to dst_addr on valid start\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.side_effects.side_effect_2"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "src",
+          "src_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_dst_addr_q",
+          "ch_err_code",
+          "ch_error",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "length",
+          "src",
+          "src_addr"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMA_START: side_effect_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.side_effects.side_effect_3",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_error\", \"ch_err_code\"] is the implementation/observation point for dma_start"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.side_effects.side_effect_3.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start; port=[\"ch_busy\", \"ch_error\", \"ch_err_code\"]; signal=[\"ch_stride_q[ch_id] set to stride on valid start\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"].",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_err_code",
+        "ch_error",
+        "ch_id",
+        "ch_stride_q",
+        "code",
+        "dst",
+        "dst_addr",
+        "err",
+        "id",
+        "length",
+        "src",
+        "src_addr"
+      ],
+      "id": "RTL-0094",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.side_effects.side_effect_3",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "port": "[\"ch_busy\", \"ch_error\", \"ch_err_code\"]",
+        "signal": "[\"ch_stride_q[ch_id] set to stride on valid start\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.side_effects.side_effect_3"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "src",
+          "src_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_err_code",
+          "ch_error",
+          "ch_id",
+          "ch_stride_q",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "length",
+          "src",
+          "src_addr"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMA_START: side_effect_4",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.side_effects.side_effect_4",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_error\", \"ch_err_code\"] is the implementation/observation point for dma_start"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.side_effects.side_effect_4.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start; port=[\"ch_busy\", \"ch_error\", \"ch_err_code\"]; signal=[\"perf_cycles_q[ch_id] reset to 0 on valid start\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"].",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_err_code",
+        "ch_error",
+        "ch_id",
+        "code",
+        "cycles",
+        "dst",
+        "dst_addr",
+        "err",
+        "id",
+        "length",
+        "perf",
+        "perf_cycles_q"
+      ],
+      "id": "RTL-0095",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.side_effects.side_effect_4",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "port": "[\"ch_busy\", \"ch_error\", \"ch_err_code\"]",
+        "signal": "[\"perf_cycles_q[ch_id] reset to 0 on valid start\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.side_effects.side_effect_4"
+      ],
+      "static_evidence": {
+        "matched_count": 9,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_err_code",
+          "ch_error",
+          "ch_id",
+          "code",
+          "cycles",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "length",
+          "perf",
+          "perf_cycles_q"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMA_START: side_effect_5",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.side_effects.side_effect_5",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_error\", \"ch_err_code\"] is the implementation/observation point for dma_start"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.side_effects.side_effect_5.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start; port=[\"ch_busy\", \"ch_error\", \"ch_err_code\"]; signal=[\"perf_words_q[ch_id] reset to 0 on valid start\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"].",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_err_code",
+        "ch_error",
+        "ch_id",
+        "code",
+        "dst",
+        "dst_addr",
+        "err",
+        "id",
+        "length",
+        "perf",
+        "perf_words_q",
+        "src"
+      ],
+      "id": "RTL-0096",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.side_effects.side_effect_5",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "port": "[\"ch_busy\", \"ch_error\", \"ch_err_code\"]",
+        "signal": "[\"perf_words_q[ch_id] reset to 0 on valid start\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.side_effects.side_effect_5"
+      ],
+      "static_evidence": {
+        "matched_count": 10,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "src"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_err_code",
+          "ch_error",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "length",
+          "perf",
+          "perf_words_q",
+          "src"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_DMA_START: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_error\", \"ch_err_code\"] is the implementation/observation point for dma_start"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.error_cases.error_case_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start; port=[\"ch_busy\", \"ch_error\", \"ch_err_code\"]; signal=[\"zero length (length == 0, error code 2)\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"].",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_err_code",
+        "ch_error",
+        "ch_id",
+        "code",
+        "dst",
+        "dst_addr",
+        "err",
+        "id",
+        "length",
+        "src",
+        "src_addr",
+        "stride"
+      ],
+      "id": "RTL-0097",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "port": "[\"ch_busy\", \"ch_error\", \"ch_err_code\"]",
+        "signal": "[\"zero length (length == 0, error code 2)\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "src",
+          "src_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_err_code",
+          "ch_error",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "length",
+          "src",
+          "src_addr",
+          "stride"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_DMA_START: error_case_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.error_cases.error_case_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_error\", \"ch_err_code\"] is the implementation/observation point for dma_start"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.error_cases.error_case_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start; port=[\"ch_busy\", \"ch_error\", \"ch_err_code\"]; signal=[\"misaligned source address (src_addr % 4 != 0, error code 1)\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"].",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_err_code",
+        "ch_error",
+        "ch_id",
+        "code",
+        "dst",
+        "dst_addr",
+        "err",
+        "id",
+        "length",
+        "src",
+        "src_addr",
+        "stride"
+      ],
+      "id": "RTL-0098",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.error_cases.error_case_1",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "port": "[\"ch_busy\", \"ch_error\", \"ch_err_code\"]",
+        "signal": "[\"misaligned source address (src_addr % 4 != 0, error code 1)\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.error_cases.error_case_1"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "src",
+          "src_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_err_code",
+          "ch_error",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "length",
+          "src",
+          "src_addr",
+          "stride"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_DMA_START: error_case_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.error_cases.error_case_2",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_error\", \"ch_err_code\"] is the implementation/observation point for dma_start"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.error_cases.error_case_2.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start; port=[\"ch_busy\", \"ch_error\", \"ch_err_code\"]; signal=[\"misaligned destination address (dst_addr % 4 != 0, error code 1)\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stri....",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_err_code",
+        "ch_error",
+        "ch_id",
+        "code",
+        "dst",
+        "dst_addr",
+        "err",
+        "id",
+        "length",
+        "src",
+        "src_addr",
+        "stride"
+      ],
+      "id": "RTL-0099",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.error_cases.error_case_2",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "port": "[\"ch_busy\", \"ch_error\", \"ch_err_code\"]",
+        "signal": "[\"misaligned destination address (dst_addr % 4 != 0, error code 1)\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stri..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.error_cases.error_case_2"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "src",
+          "src_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_err_code",
+          "ch_error",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "length",
+          "src",
+          "src_addr",
+          "stride"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_DMA_START: error_case_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_START.error_cases.error_case_3",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_error\", \"ch_err_code\"] is the implementation/observation point for dma_start"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_START.error_cases.error_case_3.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_START.\nSSOT item context: id=FM_DMA_START; name=dma_start; port=[\"ch_busy\", \"ch_error\", \"ch_err_code\"]; signal=[\"start while busy (ignored, preserves state)\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"].",
+      "evidence_terms": [
+        "addr",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_err_code",
+        "ch_error",
+        "ch_id",
+        "code",
+        "dst",
+        "dst_addr",
+        "err",
+        "id",
+        "length",
+        "src",
+        "src_addr",
+        "stride"
+      ],
+      "id": "RTL-0100",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_START.error_cases.error_case_3",
+      "ssot_context": {
+        "id": "FM_DMA_START",
+        "name": "dma_start",
+        "port": "[\"ch_busy\", \"ch_error\", \"ch_err_code\"]",
+        "signal": "[\"start while busy (ignored, preserves state)\", \"ch_id\", \"src_addr\", \"dst_addr\", \"length\", \"stride\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_START.error_cases.error_case_3"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "src",
+          "src_addr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_err_code",
+          "ch_error",
+          "ch_id",
+          "code",
+          "dst",
+          "dst_addr",
+          "err",
+          "id",
+          "length",
+          "src",
+          "src_addr",
+          "stride"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_DMA_STEP",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_DMA_STEP.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: id=FM_DMA_STEP; name=dma_step.",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP",
+      "ssot_context": {
+        "id": "FM_DMA_STEP",
+        "name": "dma_step"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMA_STEP: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.preconditions.precondition_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: value=ch_busy_q[ch_id] == 1.",
+      "evidence_terms": [
+        "busy",
+        "ch",
+        "ch_busy_q",
+        "ch_id",
+        "id"
+      ],
+      "id": "RTL-0102",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "ch_busy_q[ch_id] == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "busy",
+          "ch",
+          "ch_id",
+          "id"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "busy",
+          "ch",
+          "ch_busy_q",
+          "ch_id",
+          "id"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMA_STEP: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.preconditions.precondition_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: value=arbiter has granted bus to ch_id.",
+      "evidence_terms": [
+        "ch",
+        "ch_id",
+        "id"
+      ],
+      "id": "RTL-0103",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "arbiter has granted bus to ch_id"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "ch",
+          "ch_id",
+          "id"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ch",
+          "ch_id",
+          "id"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMA_STEP: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.outputs.output_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_done\"] is the implementation/observation point for dma_step"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.outputs.output_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: id=FM_DMA_STEP; name=dma_step; port=[\"ch_busy\", \"ch_done\"]; signal=[\"ch_busy\", \"ch_id\", \"burst_len\"]; state=[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"].",
+      "evidence_terms": [
+        "addr",
+        "burst",
+        "burst_len",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_done",
+        "ch_id",
+        "cycles",
+        "done",
+        "dst",
+        "dst_addr_next",
+        "id",
+        "len",
+        "next",
+        "perf"
+      ],
+      "id": "RTL-0104",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_DMA_STEP",
+        "name": "dma_step",
+        "port": "[\"ch_busy\", \"ch_done\"]",
+        "signal": "[\"ch_busy\", \"ch_id\", \"burst_len\"]",
+        "state": "[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_id",
+          "done",
+          "dst",
+          "id",
+          "len",
+          "next"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_done",
+          "ch_id",
+          "cycles",
+          "done",
+          "dst",
+          "dst_addr_next",
+          "id",
+          "len",
+          "next",
+          "perf"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMA_STEP: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.outputs.output_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_done\"] is the implementation/observation point for dma_step"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.outputs.output_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: id=FM_DMA_STEP; name=dma_step; port=[\"ch_busy\", \"ch_done\"]; signal=[\"ch_done\", \"ch_id\", \"burst_len\"]; state=[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"].",
+      "evidence_terms": [
+        "addr",
+        "burst",
+        "burst_len",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_done",
+        "ch_id",
+        "cycles",
+        "done",
+        "dst",
+        "dst_addr_next",
+        "id",
+        "len",
+        "next",
+        "perf"
+      ],
+      "id": "RTL-0105",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.outputs.output_1",
+      "ssot_context": {
+        "id": "FM_DMA_STEP",
+        "name": "dma_step",
+        "port": "[\"ch_busy\", \"ch_done\"]",
+        "signal": "[\"ch_done\", \"ch_id\", \"burst_len\"]",
+        "state": "[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_id",
+          "done",
+          "dst",
+          "id",
+          "len",
+          "next"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_done",
+          "ch_id",
+          "cycles",
+          "done",
+          "dst",
+          "dst_addr_next",
+          "id",
+          "len",
+          "next",
+          "perf"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_DMA_STEP: busy_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.output_rules.busy_next",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "busy_next width matches SSOT value 1",
+        "busy_next RTL expression implements SSOT expression 1 if (ch_remaining_q[ch_id] > burst_len) else 0",
+        "DUT port ch_busy is the implementation/observation point for busy_next",
+        "busy_next is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.output_rules.busy_next.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: name=busy_next; port=ch_busy; expr=1 if (ch_remaining_q[ch_id] > burst_len) else 0; width=1.",
+      "evidence_terms": [
+        "burst",
+        "burst_len",
+        "busy",
+        "busy_next",
+        "ch",
+        "ch_busy",
+        "ch_id",
+        "ch_remaining_q",
+        "id",
+        "len",
+        "next",
+        "remaining"
+      ],
+      "id": "RTL-0106",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.output_rules.busy_next",
+      "ssot_context": {
+        "expr": "1 if (ch_remaining_q[ch_id] > burst_len) else 0",
+        "name": "busy_next",
+        "port": "ch_busy",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.output_rules.busy_next"
+      ],
+      "static_evidence": {
+        "matched_count": 9,
+        "matched_terms": [
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_id",
+          "id",
+          "len",
+          "next",
+          "remaining"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "burst",
+          "burst_len",
+          "busy",
+          "busy_next",
+          "ch",
+          "ch_busy",
+          "ch_id",
+          "ch_remaining_q",
+          "id",
+          "len",
+          "next",
+          "remaining"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_DMA_STEP: done_pulse",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.output_rules.done_pulse",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "done_pulse width matches SSOT value 1",
+        "done_pulse RTL expression implements SSOT expression 1 if (ch_remaining_q[ch_id] <= burst_len and ch_remaining_q[ch_id] > 0) else 0",
+        "DUT port ch_done is the implementation/observation point for done_pulse",
+        "done_pulse is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.output_rules.done_pulse.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: name=done_pulse; port=ch_done; expr=1 if (ch_remaining_q[ch_id] <= burst_len and ch_remaining_q[ch_id] > 0) else 0; width=1.",
+      "evidence_terms": [
+        "burst",
+        "burst_len",
+        "ch",
+        "ch_done",
+        "ch_id",
+        "ch_remaining_q",
+        "done",
+        "done_pulse",
+        "id",
+        "len",
+        "pulse",
+        "remaining"
+      ],
+      "id": "RTL-0107",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.output_rules.done_pulse",
+      "ssot_context": {
+        "expr": "1 if (ch_remaining_q[ch_id] <= burst_len and ch_remaining_q[ch_id] > 0) else 0",
+        "name": "done_pulse",
+        "port": "ch_done",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.output_rules.done_pulse"
+      ],
+      "static_evidence": {
+        "matched_count": 10,
+        "matched_terms": [
+          "burst",
+          "burst_len",
+          "ch",
+          "ch_id",
+          "done",
+          "done_pulse",
+          "id",
+          "len",
+          "pulse",
+          "remaining"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "burst",
+          "burst_len",
+          "ch",
+          "ch_done",
+          "ch_id",
+          "ch_remaining_q",
+          "done",
+          "done_pulse",
+          "id",
+          "len",
+          "pulse",
+          "remaining"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_DMA_STEP: remaining_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.state_updates.remaining_next",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "remaining_next width matches SSOT value 32",
+        "remaining_next RTL expression implements SSOT expression ch_remaining_q[ch_id] - burst_len if ch_remaining_q[ch_id] > burst_len else 0",
+        "remaining_next updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.state_updates.remaining_next.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: name=remaining_next; expr=ch_remaining_q[ch_id] - burst_len if ch_remaining_q[ch_id] > burst_len else 0; width=32.",
+      "evidence_terms": [
+        "burst",
+        "burst_len",
+        "ch",
+        "ch_id",
+        "ch_remaining_q",
+        "id",
+        "len",
+        "next",
+        "remaining",
+        "remaining_next"
+      ],
+      "id": "RTL-0108",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.state_updates.remaining_next",
+      "ssot_context": {
+        "expr": "ch_remaining_q[ch_id] - burst_len if ch_remaining_q[ch_id] > burst_len else 0",
+        "name": "remaining_next",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.state_updates.remaining_next"
+      ],
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "burst",
+          "burst_len",
+          "ch",
+          "ch_id",
+          "id",
+          "len",
+          "next",
+          "remaining"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "burst",
+          "burst_len",
+          "ch",
+          "ch_id",
+          "ch_remaining_q",
+          "id",
+          "len",
+          "next",
+          "remaining",
+          "remaining_next"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_DMA_STEP: src_addr_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.state_updates.src_addr_next",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "src_addr_next width matches SSOT value ADDR_WIDTH",
+        "src_addr_next RTL expression implements SSOT expression ch_src_addr_q[ch_id] + burst_len * ch_stride_q[ch_id]",
+        "src_addr_next updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.state_updates.src_addr_next.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: name=src_addr_next; expr=ch_src_addr_q[ch_id] + burst_len * ch_stride_q[ch_id]; width=ADDR_WIDTH.",
+      "evidence_terms": [
+        "addr",
+        "burst",
+        "burst_len",
+        "ch",
+        "ch_id",
+        "ch_src_addr_q",
+        "ch_stride_q",
+        "id",
+        "len",
+        "next",
+        "src",
+        "src_addr_next",
+        "stride"
+      ],
+      "id": "RTL-0109",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.state_updates.src_addr_next",
+      "ssot_context": {
+        "expr": "ch_src_addr_q[ch_id] + burst_len * ch_stride_q[ch_id]",
+        "name": "src_addr_next",
+        "width": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.state_updates.src_addr_next"
+      ],
+      "static_evidence": {
+        "matched_count": 9,
+        "matched_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "ch",
+          "ch_id",
+          "id",
+          "len",
+          "next",
+          "src"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "ch",
+          "ch_id",
+          "ch_src_addr_q",
+          "ch_stride_q",
+          "id",
+          "len",
+          "next",
+          "src",
+          "src_addr_next",
+          "stride"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_DMA_STEP: dst_addr_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.state_updates.dst_addr_next",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "dst_addr_next width matches SSOT value ADDR_WIDTH",
+        "dst_addr_next RTL expression implements SSOT expression ch_dst_addr_q[ch_id] + burst_len * ch_stride_q[ch_id]",
+        "dst_addr_next updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.state_updates.dst_addr_next.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: name=dst_addr_next; expr=ch_dst_addr_q[ch_id] + burst_len * ch_stride_q[ch_id]; width=ADDR_WIDTH.",
+      "evidence_terms": [
+        "addr",
+        "burst",
+        "burst_len",
+        "ch",
+        "ch_dst_addr_q",
+        "ch_id",
+        "ch_stride_q",
+        "dst",
+        "dst_addr_next",
+        "id",
+        "len",
+        "next",
+        "stride"
+      ],
+      "id": "RTL-0110",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.state_updates.dst_addr_next",
+      "ssot_context": {
+        "expr": "ch_dst_addr_q[ch_id] + burst_len * ch_stride_q[ch_id]",
+        "name": "dst_addr_next",
+        "width": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.state_updates.dst_addr_next"
+      ],
+      "static_evidence": {
+        "matched_count": 9,
+        "matched_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "ch",
+          "ch_id",
+          "dst",
+          "id",
+          "len",
+          "next"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "ch",
+          "ch_dst_addr_q",
+          "ch_id",
+          "ch_stride_q",
+          "dst",
+          "dst_addr_next",
+          "id",
+          "len",
+          "next",
+          "stride"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_DMA_STEP: perf_words_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.state_updates.perf_words_next",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "perf_words_next width matches SSOT value 32",
+        "perf_words_next RTL expression implements SSOT expression perf_words_q[ch_id] + burst_len",
+        "perf_words_next updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.state_updates.perf_words_next.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: name=perf_words_next; expr=perf_words_q[ch_id] + burst_len; width=32.",
+      "evidence_terms": [
+        "burst",
+        "burst_len",
+        "ch",
+        "ch_id",
+        "id",
+        "len",
+        "next",
+        "perf",
+        "perf_words_next",
+        "perf_words_q",
+        "words"
+      ],
+      "id": "RTL-0111",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.state_updates.perf_words_next",
+      "ssot_context": {
+        "expr": "perf_words_q[ch_id] + burst_len",
+        "name": "perf_words_next",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.state_updates.perf_words_next"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "burst",
+          "burst_len",
+          "ch",
+          "ch_id",
+          "id",
+          "len",
+          "next"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "burst",
+          "burst_len",
+          "ch",
+          "ch_id",
+          "id",
+          "len",
+          "next",
+          "perf",
+          "perf_words_next",
+          "perf_words_q",
+          "words"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_DMA_STEP: perf_cycles_next",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.state_updates.perf_cycles_next",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "perf_cycles_next width matches SSOT value 32",
+        "perf_cycles_next RTL expression implements SSOT expression perf_cycles_q[ch_id] + burst_len + 4",
+        "perf_cycles_next updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.state_updates.perf_cycles_next.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: name=perf_cycles_next; expr=perf_cycles_q[ch_id] + burst_len + 4; width=32.",
+      "evidence_terms": [
+        "burst",
+        "burst_len",
+        "ch",
+        "ch_id",
+        "cycles",
+        "id",
+        "len",
+        "next",
+        "perf",
+        "perf_cycles_next",
+        "perf_cycles_q"
+      ],
+      "id": "RTL-0112",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.state_updates.perf_cycles_next",
+      "ssot_context": {
+        "expr": "perf_cycles_q[ch_id] + burst_len + 4",
+        "name": "perf_cycles_next",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.state_updates.perf_cycles_next"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "burst",
+          "burst_len",
+          "ch",
+          "ch_id",
+          "id",
+          "len",
+          "next"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "burst",
+          "burst_len",
+          "ch",
+          "ch_id",
+          "cycles",
+          "id",
+          "len",
+          "next",
+          "perf",
+          "perf_cycles_next",
+          "perf_cycles_q"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMA_STEP: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_done\"] is the implementation/observation point for dma_step"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.side_effects.side_effect_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: id=FM_DMA_STEP; name=dma_step; port=[\"ch_busy\", \"ch_done\"]; signal=[\"ch_remaining_q decrements by burst_len\", \"ch_id\", \"burst_len\"]; state=[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"].",
+      "evidence_terms": [
+        "addr",
+        "burst",
+        "burst_len",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_done",
+        "ch_id",
+        "ch_remaining_q",
+        "cycles",
+        "done",
+        "dst",
+        "dst_addr_next",
+        "id",
+        "len",
+        "next"
+      ],
+      "id": "RTL-0113",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_DMA_STEP",
+        "name": "dma_step",
+        "port": "[\"ch_busy\", \"ch_done\"]",
+        "signal": "[\"ch_remaining_q decrements by burst_len\", \"ch_id\", \"burst_len\"]",
+        "state": "[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_id",
+          "done",
+          "dst",
+          "id",
+          "len",
+          "next"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_done",
+          "ch_id",
+          "ch_remaining_q",
+          "cycles",
+          "done",
+          "dst",
+          "dst_addr_next",
+          "id",
+          "len",
+          "next"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMA_STEP: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_done\"] is the implementation/observation point for dma_step"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.side_effects.side_effect_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: id=FM_DMA_STEP; name=dma_step; port=[\"ch_busy\", \"ch_done\"]; signal=[\"ch_src_addr_q increments by burst_len * ch_stride_q[ch_id]\", \"ch_id\", \"burst_len\"]; state=[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"].",
+      "evidence_terms": [
+        "addr",
+        "burst",
+        "burst_len",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_done",
+        "ch_id",
+        "ch_src_addr_q",
+        "ch_stride_q",
+        "cycles",
+        "done",
+        "dst",
+        "dst_addr_next",
+        "id",
+        "len"
+      ],
+      "id": "RTL-0114",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.side_effects.side_effect_1",
+      "ssot_context": {
+        "id": "FM_DMA_STEP",
+        "name": "dma_step",
+        "port": "[\"ch_busy\", \"ch_done\"]",
+        "signal": "[\"ch_src_addr_q increments by burst_len * ch_stride_q[ch_id]\", \"ch_id\", \"burst_len\"]",
+        "state": "[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "matched_count": 10,
+        "matched_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_id",
+          "done",
+          "dst",
+          "id",
+          "len"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_done",
+          "ch_id",
+          "ch_src_addr_q",
+          "ch_stride_q",
+          "cycles",
+          "done",
+          "dst",
+          "dst_addr_next",
+          "id",
+          "len"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMA_STEP: side_effect_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.side_effects.side_effect_2",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_done\"] is the implementation/observation point for dma_step"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.side_effects.side_effect_2.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: id=FM_DMA_STEP; name=dma_step; port=[\"ch_busy\", \"ch_done\"]; signal=[\"ch_dst_addr_q increments by burst_len * ch_stride_q[ch_id]\", \"ch_id\", \"burst_len\"]; state=[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"].",
+      "evidence_terms": [
+        "addr",
+        "burst",
+        "burst_len",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_done",
+        "ch_dst_addr_q",
+        "ch_id",
+        "ch_stride_q",
+        "cycles",
+        "done",
+        "dst",
+        "dst_addr_next",
+        "id",
+        "len"
+      ],
+      "id": "RTL-0115",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.side_effects.side_effect_2",
+      "ssot_context": {
+        "id": "FM_DMA_STEP",
+        "name": "dma_step",
+        "port": "[\"ch_busy\", \"ch_done\"]",
+        "signal": "[\"ch_dst_addr_q increments by burst_len * ch_stride_q[ch_id]\", \"ch_id\", \"burst_len\"]",
+        "state": "[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.side_effects.side_effect_2"
+      ],
+      "static_evidence": {
+        "matched_count": 10,
+        "matched_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_id",
+          "done",
+          "dst",
+          "id",
+          "len"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_done",
+          "ch_dst_addr_q",
+          "ch_id",
+          "ch_stride_q",
+          "cycles",
+          "done",
+          "dst",
+          "dst_addr_next",
+          "id",
+          "len"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMA_STEP: side_effect_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.side_effects.side_effect_3",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_done\"] is the implementation/observation point for dma_step"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.side_effects.side_effect_3.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: id=FM_DMA_STEP; name=dma_step; port=[\"ch_busy\", \"ch_done\"]; signal=[\"perf_words_q increments by burst_len\", \"ch_id\", \"burst_len\"]; state=[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"].",
+      "evidence_terms": [
+        "addr",
+        "burst",
+        "burst_len",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_done",
+        "ch_id",
+        "cycles",
+        "done",
+        "dst",
+        "dst_addr_next",
+        "id",
+        "len",
+        "next",
+        "perf"
+      ],
+      "id": "RTL-0116",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.side_effects.side_effect_3",
+      "ssot_context": {
+        "id": "FM_DMA_STEP",
+        "name": "dma_step",
+        "port": "[\"ch_busy\", \"ch_done\"]",
+        "signal": "[\"perf_words_q increments by burst_len\", \"ch_id\", \"burst_len\"]",
+        "state": "[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.side_effects.side_effect_3"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_id",
+          "done",
+          "dst",
+          "id",
+          "len",
+          "next"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_done",
+          "ch_id",
+          "cycles",
+          "done",
+          "dst",
+          "dst_addr_next",
+          "id",
+          "len",
+          "next",
+          "perf"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMA_STEP: side_effect_4",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.side_effects.side_effect_4",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_done\"] is the implementation/observation point for dma_step"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.side_effects.side_effect_4.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: id=FM_DMA_STEP; name=dma_step; port=[\"ch_busy\", \"ch_done\"]; signal=[\"perf_cycles_q increments by burst_len plus pipeline overhead\", \"ch_id\", \"burst_len\"]; state=[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"].",
+      "evidence_terms": [
+        "addr",
+        "burst",
+        "burst_len",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_done",
+        "ch_id",
+        "cycles",
+        "done",
+        "dst",
+        "dst_addr_next",
+        "id",
+        "len",
+        "next",
+        "perf"
+      ],
+      "id": "RTL-0117",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.side_effects.side_effect_4",
+      "ssot_context": {
+        "id": "FM_DMA_STEP",
+        "name": "dma_step",
+        "port": "[\"ch_busy\", \"ch_done\"]",
+        "signal": "[\"perf_cycles_q increments by burst_len plus pipeline overhead\", \"ch_id\", \"burst_len\"]",
+        "state": "[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.side_effects.side_effect_4"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_id",
+          "done",
+          "dst",
+          "id",
+          "len",
+          "next"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_done",
+          "ch_id",
+          "cycles",
+          "done",
+          "dst",
+          "dst_addr_next",
+          "id",
+          "len",
+          "next",
+          "perf"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_DMA_STEP: side_effect_5",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.side_effects.side_effect_5",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_done\"] is the implementation/observation point for dma_step"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.side_effects.side_effect_5.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: id=FM_DMA_STEP; name=dma_step; port=[\"ch_busy\", \"ch_done\"]; signal=[\"done pulses on terminal step\", \"ch_id\", \"burst_len\"]; state=[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"].",
+      "evidence_terms": [
+        "addr",
+        "burst",
+        "burst_len",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_done",
+        "ch_id",
+        "cycles",
+        "done",
+        "dst",
+        "dst_addr_next",
+        "id",
+        "len",
+        "next",
+        "perf"
+      ],
+      "id": "RTL-0118",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.side_effects.side_effect_5",
+      "ssot_context": {
+        "id": "FM_DMA_STEP",
+        "name": "dma_step",
+        "port": "[\"ch_busy\", \"ch_done\"]",
+        "signal": "[\"done pulses on terminal step\", \"ch_id\", \"burst_len\"]",
+        "state": "[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.side_effects.side_effect_5"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_id",
+          "done",
+          "dst",
+          "id",
+          "len",
+          "next"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_done",
+          "ch_id",
+          "cycles",
+          "done",
+          "dst",
+          "dst_addr_next",
+          "id",
+          "len",
+          "next",
+          "perf"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_DMA_STEP: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_done\"] is the implementation/observation point for dma_step"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.error_cases.error_case_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: id=FM_DMA_STEP; name=dma_step; port=[\"ch_busy\", \"ch_done\"]; signal=[\"bus error during AHB transfer (hresp == ERROR, code 3)\", \"ch_id\", \"burst_len\"]; state=[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"].",
+      "evidence_terms": [
+        "AHB",
+        "addr",
+        "burst",
+        "burst_len",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_done",
+        "ch_id",
+        "cycles",
+        "done",
+        "dst",
+        "dst_addr_next",
+        "id",
+        "len",
+        "next"
+      ],
+      "id": "RTL-0119",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM_DMA_STEP",
+        "name": "dma_step",
+        "port": "[\"ch_busy\", \"ch_done\"]",
+        "signal": "[\"bus error during AHB transfer (hresp == ERROR, code 3)\", \"ch_id\", \"burst_len\"]",
+        "state": "[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 12,
+        "matched_terms": [
+          "AHB",
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_id",
+          "done",
+          "dst",
+          "id",
+          "len",
+          "next"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "AHB",
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_done",
+          "ch_id",
+          "cycles",
+          "done",
+          "dst",
+          "dst_addr_next",
+          "id",
+          "len",
+          "next"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_DMA_STEP: error_case_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_STEP.error_cases.error_case_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_done\"] is the implementation/observation point for dma_step"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_STEP.error_cases.error_case_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_STEP.\nSSOT item context: id=FM_DMA_STEP; name=dma_step; port=[\"ch_busy\", \"ch_done\"]; signal=[\"timeout waiting for hready (code 4)\", \"ch_id\", \"burst_len\"]; state=[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"].",
+      "evidence_terms": [
+        "addr",
+        "burst",
+        "burst_len",
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_done",
+        "ch_id",
+        "cycles",
+        "done",
+        "dst",
+        "dst_addr_next",
+        "id",
+        "len",
+        "next",
+        "perf"
+      ],
+      "id": "RTL-0120",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_STEP.error_cases.error_case_1",
+      "ssot_context": {
+        "id": "FM_DMA_STEP",
+        "name": "dma_step",
+        "port": "[\"ch_busy\", \"ch_done\"]",
+        "signal": "[\"timeout waiting for hready (code 4)\", \"ch_id\", \"burst_len\"]",
+        "state": "[\"remaining_next\", \"src_addr_next\", \"dst_addr_next\", \"perf_words_next\", \"perf_cycles_next\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_STEP.error_cases.error_case_1"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_id",
+          "done",
+          "dst",
+          "id",
+          "len",
+          "next"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "burst",
+          "burst_len",
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_done",
+          "ch_id",
+          "cycles",
+          "done",
+          "dst",
+          "dst_addr_next",
+          "id",
+          "len",
+          "next",
+          "perf"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_DMA_COMPLETE",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_COMPLETE",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_DMA_COMPLETE.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_COMPLETE.\nSSOT item context: id=FM_DMA_COMPLETE; name=dma_complete.",
+      "evidence_terms": [],
+      "id": "RTL-0121",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_COMPLETE",
+      "ssot_context": {
+        "id": "FM_DMA_COMPLETE",
+        "name": "dma_complete"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_COMPLETE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMA_COMPLETE: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_COMPLETE.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_COMPLETE.preconditions.precondition_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_COMPLETE.\nSSOT item context: value=ch_remaining_q[ch_id] == 0.",
+      "evidence_terms": [
+        "ch",
+        "ch_id",
+        "ch_remaining_q",
+        "id",
+        "remaining"
+      ],
+      "id": "RTL-0122",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_COMPLETE.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "ch_remaining_q[ch_id] == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_COMPLETE.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "ch",
+          "ch_id",
+          "id",
+          "remaining"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ch",
+          "ch_id",
+          "ch_remaining_q",
+          "id",
+          "remaining"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_DMA_COMPLETE: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_COMPLETE.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_COMPLETE.preconditions.precondition_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_COMPLETE.\nSSOT item context: value=ch_busy_q[ch_id] == 1.",
+      "evidence_terms": [
+        "busy",
+        "ch",
+        "ch_busy_q",
+        "ch_id",
+        "id"
+      ],
+      "id": "RTL-0123",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_COMPLETE.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "ch_busy_q[ch_id] == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_COMPLETE.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "busy",
+          "ch",
+          "ch_id",
+          "id"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "busy",
+          "ch",
+          "ch_busy_q",
+          "ch_id",
+          "id"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMA_COMPLETE: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_COMPLETE.outputs.output_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_done\", \"irq\"] is the implementation/observation point for dma_complete"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_COMPLETE.outputs.output_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_COMPLETE.\nSSOT item context: id=FM_DMA_COMPLETE; name=dma_complete; port=[\"ch_busy\", \"ch_done\", \"irq\"]; signal=[\"ch_busy\", \"ch_id\"].",
+      "evidence_terms": [
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_done",
+        "ch_id",
+        "done",
+        "id",
+        "irq"
+      ],
+      "id": "RTL-0124",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_COMPLETE.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_DMA_COMPLETE",
+        "name": "dma_complete",
+        "port": "[\"ch_busy\", \"ch_done\", \"irq\"]",
+        "signal": "[\"ch_busy\", \"ch_id\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_COMPLETE.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "busy",
+          "ch",
+          "ch_id",
+          "done",
+          "id"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_done",
+          "ch_id",
+          "done",
+          "id",
+          "irq"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMA_COMPLETE: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_COMPLETE.outputs.output_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_done\", \"irq\"] is the implementation/observation point for dma_complete"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_COMPLETE.outputs.output_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_COMPLETE.\nSSOT item context: id=FM_DMA_COMPLETE; name=dma_complete; port=[\"ch_busy\", \"ch_done\", \"irq\"]; signal=[\"ch_done\", \"ch_id\"].",
+      "evidence_terms": [
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_done",
+        "ch_id",
+        "done",
+        "id",
+        "irq"
+      ],
+      "id": "RTL-0125",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_COMPLETE.outputs.output_1",
+      "ssot_context": {
+        "id": "FM_DMA_COMPLETE",
+        "name": "dma_complete",
+        "port": "[\"ch_busy\", \"ch_done\", \"irq\"]",
+        "signal": "[\"ch_done\", \"ch_id\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_COMPLETE.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "busy",
+          "ch",
+          "ch_id",
+          "done",
+          "id"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_done",
+          "ch_id",
+          "done",
+          "id",
+          "irq"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_DMA_COMPLETE: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_COMPLETE.outputs.output_2",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "DUT port [\"ch_busy\", \"ch_done\", \"irq\"] is the implementation/observation point for dma_complete"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_COMPLETE.outputs.output_2.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_COMPLETE.\nSSOT item context: id=FM_DMA_COMPLETE; name=dma_complete; port=[\"ch_busy\", \"ch_done\", \"irq\"]; signal=[\"irq\", \"ch_id\"].",
+      "evidence_terms": [
+        "busy",
+        "ch",
+        "ch_busy",
+        "ch_done",
+        "ch_id",
+        "done",
+        "id",
+        "irq"
+      ],
+      "id": "RTL-0126",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_COMPLETE.outputs.output_2",
+      "ssot_context": {
+        "id": "FM_DMA_COMPLETE",
+        "name": "dma_complete",
+        "port": "[\"ch_busy\", \"ch_done\", \"irq\"]",
+        "signal": "[\"irq\", \"ch_id\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_COMPLETE.outputs.output_2"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "busy",
+          "ch",
+          "ch_id",
+          "done",
+          "id"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "busy",
+          "ch",
+          "ch_busy",
+          "ch_done",
+          "ch_id",
+          "done",
+          "id",
+          "irq"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_DMA_COMPLETE: busy_clear",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_COMPLETE.output_rules.busy_clear",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "busy_clear width matches SSOT value 1",
+        "busy_clear RTL expression implements SSOT expression 0",
+        "DUT port ch_busy is the implementation/observation point for busy_clear",
+        "busy_clear is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_COMPLETE.output_rules.busy_clear.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_COMPLETE.\nSSOT item context: name=busy_clear; port=ch_busy; expr=0; width=1.",
+      "evidence_terms": [
+        "busy",
+        "busy_clear",
+        "ch",
+        "ch_busy"
+      ],
+      "id": "RTL-0127",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_COMPLETE.output_rules.busy_clear",
+      "ssot_context": {
+        "expr": "0",
+        "name": "busy_clear",
+        "port": "ch_busy",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_COMPLETE.output_rules.busy_clear"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "busy",
+          "ch"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "busy",
+          "busy_clear",
+          "ch",
+          "ch_busy"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_DMA_COMPLETE: done_assert",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_DMA_COMPLETE.output_rules.done_assert",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "done_assert width matches SSOT value 1",
+        "done_assert RTL expression implements SSOT expression 1",
+        "DUT port ch_done is the implementation/observation point for done_assert",
+        "done_assert is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DMA_COMPLETE.output_rules.done_assert.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via function_model.transactions.FM_DMA_COMPLETE.\nSSOT item context: name=done_assert; port=ch_done; expr=1; width=1.",
+      "evidence_terms": [
+        "assert",
+        "ch",
+        "ch_done",
+        "done",
+        "done_assert"
+      ],
+      "id": "RTL-0128",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_DMA_COMPLETE.output_rules.done_assert",
+      "ssot_context": {
+        "expr": "1",
+        "name": "done_assert",
+        "port": "ch_done",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_DMA_COMPLETE.output_rules.done_assert"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "ch",
+          "done"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "assert",
+          "ch",
+          "ch_done",
+          "done",
+          "done_assert"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

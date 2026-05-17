@@ -1,0 +1,445 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 6,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_real_irq.sv",
+      "name": "dma_real_irq",
+      "refs": [
+        "function_model.state_variables",
+        "interrupts",
+        "io_list.interfaces.irq_outputs",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 1,
+    "open_required_count": 1,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "module",
+  "owner_file": "rtl/dma_real_irq.sv",
+  "owner_module": "dma_real_irq",
+  "packet_id": "module__dma_real_irq",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "interrupts.outputs": 2,
+      "io_list.port": 2,
+      "workflow_todo.rtl_gen": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 6,
+      "task_limit": 48
+    },
+    "open_required_count": 1,
+    "required_count": 6,
+    "source_refs": [
+      "workflow_todos.rtl-gen[5]",
+      "interrupts.outputs.irq",
+      "interrupts.outputs.irq_combined",
+      "sub_modules.dma_real_irq.module_equivalence",
+      "io_list.interfaces.irq_outputs.ports.irq",
+      "io_list.interfaces.irq_outputs.ports.irq_combined"
+    ],
+    "status_counts": {
+      "open": 1,
+      "pass": 5
+    },
+    "task_count": 6
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement interrupt aggregation with sticky latch",
+      "criteria": [
+        "irq[ch] reflects (done_q[ch] OR error_q[ch]) AND int_enable_q[ch]",
+        "INT_CLEAR clears done_q and error_q with priority over new pulse",
+        "pulse synchronizer for hclk-to-pclk crossing",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[5]",
+        "Primary implementation evidence is in rtl/dma_real_irq.sv",
+        "Semantic source_refs covered: cdc_requirements, interrupts, io_list.interfaces.irq_outputs"
+      ],
+      "detail": "dma_real_irq aggregates per-channel done/error status with INT_ENABLE mask in pclk domain. Done/error pulses from hclk domain cross via pulse synchronizer.\nSSOT ref: workflow_todos.rtl-gen[5].\nOwner: dma_real_irq in rtl/dma_real_irq.sv via interrupts.",
+      "evidence_terms": [
+        "cdc",
+        "cdc_requirements",
+        "io",
+        "io_list",
+        "irq",
+        "irq_outputs",
+        "list",
+        "requirements"
+      ],
+      "id": "RTL-0025",
+      "owner_file": "rtl/dma_real_irq.sv",
+      "owner_module": "dma_real_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[5]",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cdc_requirements",
+        "interrupts",
+        "io_list.interfaces.irq_outputs",
+        "workflow_todos.rtl-gen[5]"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "irq"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "cdc",
+          "cdc_requirements",
+          "io",
+          "io_list",
+          "irq",
+          "irq_outputs",
+          "list",
+          "requirements"
+        ],
+        "source_scope": "rtl/dma_real_irq.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_WORKFLOW_TODO_006",
+        "source_refs": [
+          "cdc_requirements",
+          "interrupts",
+          "io_list.interfaces.irq_outputs"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "interrupts.outputs",
+      "content": "Implement interrupt item irq",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref interrupts.outputs.irq",
+        "Primary implementation evidence is in rtl/dma_real_irq.sv",
+        "irq width matches SSOT value N_CHANNELS"
+      ],
+      "detail": "This SSOT interrupts.outputs item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: interrupts.outputs.irq.\nOwner: dma_real_irq in rtl/dma_real_irq.sv via interrupts.\nSSOT item context: name=irq; width=N_CHANNELS.",
+      "evidence_terms": [],
+      "id": "RTL-0306",
+      "owner_file": "rtl/dma_real_irq.sv",
+      "owner_module": "dma_real_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "interrupts.outputs.irq",
+      "ssot_context": {
+        "name": "irq",
+        "width": "N_CHANNELS"
+      },
+      "ssot_refs": [
+        "interrupts.outputs.irq"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "interrupts.outputs",
+      "content": "Implement interrupt item irq_combined",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref interrupts.outputs.irq_combined",
+        "Primary implementation evidence is in rtl/dma_real_irq.sv",
+        "irq_combined width matches SSOT value 1"
+      ],
+      "detail": "This SSOT interrupts.outputs item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: interrupts.outputs.irq_combined.\nOwner: dma_real_irq in rtl/dma_real_irq.sv via interrupts.\nSSOT item context: name=irq_combined; width=1.",
+      "evidence_terms": [],
+      "id": "RTL-0307",
+      "owner_file": "rtl/dma_real_irq.sv",
+      "owner_module": "dma_real_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "interrupts.outputs.irq_combined",
+      "ssot_context": {
+        "name": "irq_combined",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "interrupts.outputs.irq_combined"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module dma_real_irq is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.dma_real_irq.module_equivalence",
+        "Primary implementation evidence is in rtl/dma_real_irq.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.dma_real_irq.module_equivalence.\nOwner: dma_real_irq in rtl/dma_real_irq.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0380",
+      "owner_file": "rtl/dma_real_irq.sv",
+      "owner_module": "dma_real_irq",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.dma_real_irq.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.dma_real_irq.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port irq",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.irq_outputs.ports.irq",
+        "Primary implementation evidence is in rtl/dma_real_irq.sv",
+        "irq width matches SSOT value N_CHANNELS",
+        "irq port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.irq_outputs.ports.irq.\nOwner: dma_real_irq in rtl/dma_real_irq.sv via io_list.interfaces.irq_outputs.\nSSOT item context: name=irq; width=N_CHANNELS; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0061",
+      "owner_file": "rtl/dma_real_irq.sv",
+      "owner_module": "dma_real_irq",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.irq_outputs.ports.irq",
+      "ssot_context": {
+        "direction": "output",
+        "name": "irq",
+        "width": "N_CHANNELS"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.irq_outputs.ports.irq"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port irq_combined",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.irq_outputs.ports.irq_combined",
+        "Primary implementation evidence is in rtl/dma_real_irq.sv",
+        "irq_combined width matches SSOT value 1",
+        "irq_combined port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.irq_outputs.ports.irq_combined.\nOwner: dma_real_irq in rtl/dma_real_irq.sv via io_list.interfaces.irq_outputs.\nSSOT item context: name=irq_combined; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0062",
+      "owner_file": "rtl/dma_real_irq.sv",
+      "owner_module": "dma_real_irq",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.irq_outputs.ports.irq_combined",
+      "ssot_context": {
+        "direction": "output",
+        "name": "irq_combined",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.irq_outputs.ports.irq_combined"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

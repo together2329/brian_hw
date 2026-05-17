@@ -1,0 +1,726 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 9,
+      "key": "dataflow",
+      "module_task_count": 130,
+      "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "dataflow",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_real_channel.sv",
+      "name": "dma_real_channel",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.performance",
+        "cycle_model.pipeline",
+        "dataflow.ordering.ordering_1",
+        "dataflow.ordering.ordering_2",
+        "dataflow.ordering.ordering_3",
+        "dataflow.ordering.ordering_4",
+        "dataflow.sequence.sequence_10",
+        "dataflow.sequence.sequence_11",
+        "dataflow.sequence.sequence_3",
+        "dataflow.sequence.sequence_4",
+        "dataflow.sequence.sequence_5",
+        "dataflow.sequence.sequence_6",
+        "dataflow.sequence.sequence_7",
+        "dataflow.sequence.sequence_8",
+        "dataflow.sequence.sequence_9",
+        "error_handling",
+        "fsm",
+        "fsm.per_channel",
+        "function_model",
+        "function_model.invariants",
+        "function_model.state_variables",
+        "function_model.transactions.FM_DMA_COMPLETE",
+        "function_model.transactions.FM_DMA_ERROR",
+        "function_model.transactions.FM_DMA_START",
+        "function_model.transactions.FM_DMA_STEP",
+        "io_list",
+        "parameters",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 2,
+    "open_required_count": 2,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "module",
+  "owner_file": "rtl/dma_real_channel.sv",
+  "owner_module": "dma_real_channel",
+  "packet_id": "module__dma_real_channel__dataflow",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "dataflow.sequence": 12
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 9,
+      "key": "dataflow",
+      "module_task_count": 130,
+      "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "dataflow",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 2,
+    "required_count": 12,
+    "source_refs": [
+      "dataflow.sequence.sequence_0",
+      "dataflow.sequence.sequence_1",
+      "dataflow.sequence.sequence_2",
+      "dataflow.sequence.sequence_3",
+      "dataflow.sequence.sequence_4",
+      "dataflow.sequence.sequence_5",
+      "dataflow.sequence.sequence_6",
+      "dataflow.sequence.sequence_7",
+      "dataflow.sequence.sequence_8",
+      "dataflow.sequence.sequence_9",
+      "dataflow.sequence.sequence_10",
+      "dataflow.sequence.sequence_11"
+    ],
+    "status_counts": {
+      "open": 2,
+      "pass": 10
+    },
+    "task_count": 12
+  },
+  "tasks": [
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_0",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_0",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_0.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via dataflow.sequence.sequence_10.\nSSOT item context: value=Software configures channel registers via APB in pclk domain (SRC, DST, LEN, STRIDE, CTRL)..",
+      "evidence_terms": [],
+      "id": "RTL-0338",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_0",
+      "ssot_context": {
+        "value": "Software configures channel registers via APB in pclk domain (SRC, DST, LEN, STRIDE, CTRL)."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_1",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_1",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_1.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via dataflow.sequence.sequence_10.\nSSOT item context: value=APB config written to CDC async FIFO for crossing to hclk domain..",
+      "evidence_terms": [],
+      "id": "RTL-0339",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_1",
+      "ssot_context": {
+        "value": "APB config written to CDC async FIFO for crossing to hclk domain."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_2",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_2",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_2.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via dataflow.sequence.sequence_10.\nSSOT item context: value=Software sets CTRL.ch_start to initiate transfer..",
+      "evidence_terms": [
+        "ch",
+        "ch_start",
+        "start"
+      ],
+      "id": "RTL-0340",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_2",
+      "ssot_context": {
+        "value": "Software sets CTRL.ch_start to initiate transfer."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_2"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "ch",
+          "ch_start",
+          "start"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ch",
+          "ch_start",
+          "start"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_3",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_3",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_3.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via dataflow.sequence.sequence_10.\nSSOT item context: value=Channel FSM (hclk) transitions IDLE to CFG, latches config from CDC bridge..",
+      "evidence_terms": [],
+      "id": "RTL-0341",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_3",
+      "ssot_context": {
+        "value": "Channel FSM (hclk) transitions IDLE to CFG, latches config from CDC bridge."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_4",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_4",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_4.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via dataflow.sequence.sequence_10.\nSSOT item context: value=Channel requests AHB bus via arbiter (hclk)..",
+      "evidence_terms": [],
+      "id": "RTL-0342",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_4",
+      "ssot_context": {
+        "value": "Channel requests AHB bus via arbiter (hclk)."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_5",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_5",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_5.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via dataflow.sequence.sequence_10.\nSSOT item context: value=Arbiter grants bus round-robin among active channels..",
+      "evidence_terms": [],
+      "id": "RTL-0343",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_5",
+      "ssot_context": {
+        "value": "Arbiter grants bus round-robin among active channels."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_5"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_6",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_6",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_6.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via dataflow.sequence.sequence_10.\nSSOT item context: value=AHB master drives read burst from source address into pointer-based FIFO..",
+      "evidence_terms": [],
+      "id": "RTL-0344",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_6",
+      "ssot_context": {
+        "value": "AHB master drives read burst from source address into pointer-based FIFO."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_6"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_7",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_7",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_7.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via dataflow.sequence.sequence_10.\nSSOT item context: value=AHB master drives write burst from FIFO to destination address..",
+      "evidence_terms": [],
+      "id": "RTL-0345",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_7",
+      "ssot_context": {
+        "value": "AHB master drives write burst from FIFO to destination address."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_7"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_8",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_8",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_8.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via dataflow.sequence.sequence_10.\nSSOT item context: value=Addresses increment by CHx_STRIDE per beat (default 4)..",
+      "evidence_terms": [
+        "CHx",
+        "CHx_STRIDE",
+        "STRIDE"
+      ],
+      "id": "RTL-0346",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_8",
+      "ssot_context": {
+        "value": "Addresses increment by CHx_STRIDE per beat (default 4)."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_8"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CHx",
+          "CHx_STRIDE",
+          "STRIDE"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_9",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_9",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_9.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via dataflow.sequence.sequence_10.\nSSOT item context: value=Timeout counter monitors hready latency; error code 4 on expiry..",
+      "evidence_terms": [],
+      "id": "RTL-0347",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_9",
+      "ssot_context": {
+        "value": "Timeout counter monitors hready latency; error code 4 on expiry."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_9"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_10",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_10",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_10.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via dataflow.sequence.sequence_10.\nSSOT item context: value=Performance counters increment (PERF_WORDS per word, PERF_CYCLES per active cycle)..",
+      "evidence_terms": [
+        "CYCLES",
+        "PERF",
+        "PERF_CYCLES",
+        "PERF_WORDS",
+        "WORDS"
+      ],
+      "id": "RTL-0348",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_10",
+      "ssot_context": {
+        "value": "Performance counters increment (PERF_WORDS per word, PERF_CYCLES per active cycle)."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_10"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "CYCLES",
+          "PERF",
+          "PERF_CYCLES",
+          "PERF_WORDS",
+          "WORDS"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "dataflow.sequence",
+      "content": "Implement dataflow sequence: sequence_11",
+      "criteria": [
+        "RTL data/control path implements the described step",
+        "Ordering/backpressure is consistent with cycle_model",
+        "Downstream checks can observe the result or side effect",
+        "Traceability keeps source_ref dataflow.sequence.sequence_11",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv"
+      ],
+      "detail": "Dataflow steps must be reflected in real datapath/control/storage logic.\nSSOT ref: dataflow.sequence.sequence_11.\nOwner: dma_real_channel in rtl/dma_real_channel.sv via dataflow.sequence.sequence_11.\nSSOT item context: value=Repeat read/write bursts until remaining count reaches zero..",
+      "evidence_terms": [],
+      "id": "RTL-0349",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "dataflow.sequence.sequence_11",
+      "ssot_context": {
+        "value": "Repeat read/write bursts until remaining count reaches zero."
+      },
+      "ssot_refs": [
+        "dataflow.sequence.sequence_11"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

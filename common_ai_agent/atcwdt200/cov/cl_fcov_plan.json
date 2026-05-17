@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "type": "cl_functional_coverage_plan",
+  "ip": "atcwdt200",
+  "source": "atcwdt200/yaml/atcwdt200.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "cl",
+  "summary": {
+    "total_bins": 14,
+    "by_class": {
+      "protocol_handshake": 3,
+      "latency_bin": 11
+    }
+  },
+  "bins": [
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "description": "handshake_0"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[1]",
+      "description": "handshake_1"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[2]",
+      "description": "handshake_2"
+    },
+    {
+      "id": "latency_register_read_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_read",
+      "description": "register_read latency == 0 cycles",
+      "bucket": "min",
+      "cycles": 0
+    },
+    {
+      "id": "latency_register_read_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_read",
+      "description": "register_read latency ~mid (0 cycles)",
+      "bucket": "mid",
+      "cycles": 0
+    },
+    {
+      "id": "latency_register_read_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_read",
+      "description": "register_read latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_register_read_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_read",
+      "description": "register_read latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_register_write_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_write",
+      "description": "register_write latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_register_write_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_write",
+      "description": "register_write latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_register_write_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_write",
+      "description": "register_write latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_register_write_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.register_write",
+      "description": "register_write latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_watchdog_timeout_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.watchdog_timeout",
+      "description": "watchdog_timeout latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_watchdog_timeout_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.watchdog_timeout",
+      "description": "watchdog_timeout latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_watchdog_timeout_unbounded",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.watchdog_timeout",
+      "description": "watchdog_timeout latency unbounded (no max_cycles)",
+      "bucket": "unbounded"
+    }
+  ]
+}

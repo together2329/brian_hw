@@ -1,0 +1,955 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model",
+      "module_task_count": 152,
+      "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_real_apb_cfg.sv",
+      "name": "dma_real_apb_cfg",
+      "refs": [
+        "dataflow.ordering.ordering_0",
+        "dataflow.sequence.sequence_0",
+        "dataflow.sequence.sequence_1",
+        "function_model.state_variables",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 7,
+    "open_required_count": 7,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "module",
+  "owner_file": "rtl/dma_real_apb_cfg.sv",
+  "owner_module": "dma_real_apb_cfg",
+  "packet_id": "module__dma_real_apb_cfg__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.state_variable": 13
+    },
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model",
+      "module_task_count": 152,
+      "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 7,
+    "required_count": 13,
+    "source_refs": [
+      "function_model.state_variables.ch_busy_q",
+      "function_model.state_variables.ch_done_q",
+      "function_model.state_variables.ch_error_q",
+      "function_model.state_variables.ch_remaining_q",
+      "function_model.state_variables.ch_src_addr_q",
+      "function_model.state_variables.ch_dst_addr_q",
+      "function_model.state_variables.ch_stride_q",
+      "function_model.state_variables.dma_en_q",
+      "function_model.state_variables.int_enable_q",
+      "function_model.state_variables.arb_ptr_q",
+      "function_model.state_variables.timeout_q",
+      "function_model.state_variables.perf_words_q",
+      "function_model.state_variables.perf_cycles_q"
+    ],
+    "status_counts": {
+      "open": 7,
+      "pass": 6
+    },
+    "task_count": 13
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state ch_busy_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.ch_busy_q",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "ch_busy_q width matches SSOT value N_CHANNELS",
+        "ch_busy_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ch_busy_q.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via function_model.state_variables.\nSSOT item context: name=ch_busy_q; width=N_CHANNELS; reset=0.",
+      "evidence_terms": [
+        "busy",
+        "ch",
+        "ch_busy_q"
+      ],
+      "id": "RTL-0068",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.ch_busy_q",
+      "ssot_context": {
+        "name": "ch_busy_q",
+        "reset": "0",
+        "width": "N_CHANNELS"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ch_busy_q"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "busy",
+          "ch"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "busy",
+          "ch",
+          "ch_busy_q"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state ch_done_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.ch_done_q",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "ch_done_q width matches SSOT value N_CHANNELS",
+        "ch_done_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ch_done_q.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via function_model.state_variables.\nSSOT item context: name=ch_done_q; width=N_CHANNELS; reset=0.",
+      "evidence_terms": [
+        "ch",
+        "ch_done_q",
+        "done"
+      ],
+      "id": "RTL-0069",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.ch_done_q",
+      "ssot_context": {
+        "name": "ch_done_q",
+        "reset": "0",
+        "width": "N_CHANNELS"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ch_done_q"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "ch",
+          "done"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ch",
+          "ch_done_q",
+          "done"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state ch_error_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.ch_error_q",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "ch_error_q width matches SSOT value N_CHANNELS",
+        "ch_error_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ch_error_q.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via function_model.state_variables.\nSSOT item context: name=ch_error_q; width=N_CHANNELS; reset=0.",
+      "evidence_terms": [
+        "ch",
+        "ch_error_q"
+      ],
+      "id": "RTL-0070",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.ch_error_q",
+      "ssot_context": {
+        "name": "ch_error_q",
+        "reset": "0",
+        "width": "N_CHANNELS"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ch_error_q"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "ch"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ch",
+          "ch_error_q"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state ch_remaining_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.ch_remaining_q",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "ch_remaining_q width matches SSOT value 32",
+        "ch_remaining_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ch_remaining_q.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via function_model.state_variables.\nSSOT item context: name=ch_remaining_q; width=32; reset=0.",
+      "evidence_terms": [
+        "ch",
+        "ch_remaining_q",
+        "remaining"
+      ],
+      "id": "RTL-0071",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.ch_remaining_q",
+      "ssot_context": {
+        "name": "ch_remaining_q",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ch_remaining_q"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "ch"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ch",
+          "ch_remaining_q",
+          "remaining"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state ch_src_addr_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.ch_src_addr_q",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "ch_src_addr_q width matches SSOT value ADDR_WIDTH",
+        "ch_src_addr_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ch_src_addr_q.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via function_model.state_variables.\nSSOT item context: name=ch_src_addr_q; width=ADDR_WIDTH; reset=0.",
+      "evidence_terms": [
+        "addr",
+        "ch",
+        "ch_src_addr_q",
+        "src"
+      ],
+      "id": "RTL-0072",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.ch_src_addr_q",
+      "ssot_context": {
+        "name": "ch_src_addr_q",
+        "reset": "0",
+        "width": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ch_src_addr_q"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "addr",
+          "ch",
+          "src"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "ch",
+          "ch_src_addr_q",
+          "src"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state ch_dst_addr_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.ch_dst_addr_q",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "ch_dst_addr_q width matches SSOT value ADDR_WIDTH",
+        "ch_dst_addr_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ch_dst_addr_q.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via function_model.state_variables.\nSSOT item context: name=ch_dst_addr_q; width=ADDR_WIDTH; reset=0.",
+      "evidence_terms": [
+        "addr",
+        "ch",
+        "ch_dst_addr_q",
+        "dst"
+      ],
+      "id": "RTL-0073",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.ch_dst_addr_q",
+      "ssot_context": {
+        "name": "ch_dst_addr_q",
+        "reset": "0",
+        "width": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ch_dst_addr_q"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "addr",
+          "ch",
+          "dst"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "ch",
+          "ch_dst_addr_q",
+          "dst"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state ch_stride_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.ch_stride_q",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "ch_stride_q width matches SSOT value ADDR_WIDTH",
+        "ch_stride_q reset behavior matches SSOT value 4"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ch_stride_q.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via function_model.state_variables.\nSSOT item context: name=ch_stride_q; width=ADDR_WIDTH; reset=4.",
+      "evidence_terms": [
+        "ch",
+        "ch_stride_q",
+        "stride"
+      ],
+      "id": "RTL-0074",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.ch_stride_q",
+      "ssot_context": {
+        "name": "ch_stride_q",
+        "reset": "4",
+        "width": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ch_stride_q"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "ch"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ch",
+          "ch_stride_q",
+          "stride"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state dma_en_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.dma_en_q",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "dma_en_q width matches SSOT value 1",
+        "dma_en_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.dma_en_q.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via function_model.state_variables.\nSSOT item context: name=dma_en_q; width=1; reset=0.",
+      "evidence_terms": [
+        "dma",
+        "dma_en_q",
+        "en"
+      ],
+      "id": "RTL-0075",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.dma_en_q",
+      "ssot_context": {
+        "name": "dma_en_q",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.dma_en_q"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "dma",
+          "en"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "dma",
+          "dma_en_q",
+          "en"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state int_enable_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.int_enable_q",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "int_enable_q width matches SSOT value N_CHANNELS",
+        "int_enable_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.int_enable_q.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via function_model.state_variables.\nSSOT item context: name=int_enable_q; width=N_CHANNELS; reset=0.",
+      "evidence_terms": [
+        "enable",
+        "int",
+        "int_enable_q"
+      ],
+      "id": "RTL-0076",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.int_enable_q",
+      "ssot_context": {
+        "name": "int_enable_q",
+        "reset": "0",
+        "width": "N_CHANNELS"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.int_enable_q"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "enable",
+          "int"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "enable",
+          "int",
+          "int_enable_q"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state arb_ptr_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.arb_ptr_q",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "arb_ptr_q width matches SSOT value 3",
+        "arb_ptr_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.arb_ptr_q.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via function_model.state_variables.\nSSOT item context: name=arb_ptr_q; width=3; reset=0.",
+      "evidence_terms": [
+        "arb",
+        "arb_ptr_q",
+        "ptr"
+      ],
+      "id": "RTL-0077",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.arb_ptr_q",
+      "ssot_context": {
+        "name": "arb_ptr_q",
+        "reset": "0",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.arb_ptr_q"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "arb",
+          "arb_ptr_q",
+          "ptr"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state timeout_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.timeout_q",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "timeout_q width matches SSOT value 16",
+        "timeout_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.timeout_q.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via function_model.state_variables.\nSSOT item context: name=timeout_q; width=16; reset=0.",
+      "evidence_terms": [
+        "timeout",
+        "timeout_q"
+      ],
+      "id": "RTL-0078",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.timeout_q",
+      "ssot_context": {
+        "name": "timeout_q",
+        "reset": "0",
+        "width": "16"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.timeout_q"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "timeout",
+          "timeout_q"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state perf_words_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.perf_words_q",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "perf_words_q width matches SSOT value 32",
+        "perf_words_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.perf_words_q.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via function_model.state_variables.\nSSOT item context: name=perf_words_q; width=32; reset=0.",
+      "evidence_terms": [
+        "perf",
+        "perf_words_q",
+        "words"
+      ],
+      "id": "RTL-0079",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.perf_words_q",
+      "ssot_context": {
+        "name": "perf_words_q",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.perf_words_q"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "perf",
+          "perf_words_q",
+          "words"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state perf_cycles_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.perf_cycles_q",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "perf_cycles_q width matches SSOT value 32",
+        "perf_cycles_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.perf_cycles_q.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via function_model.state_variables.\nSSOT item context: name=perf_cycles_q; width=32; reset=0.",
+      "evidence_terms": [
+        "cycles",
+        "perf",
+        "perf_cycles_q"
+      ],
+      "id": "RTL-0080",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.perf_cycles_q",
+      "ssot_context": {
+        "name": "perf_cycles_q",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.perf_cycles_q"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "cycles",
+          "perf",
+          "perf_cycles_q"
+        ],
+        "source_scope": "rtl/dma_real_apb_cfg.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

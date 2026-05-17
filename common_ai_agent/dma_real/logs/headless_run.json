@@ -1,0 +1,16 @@
+{
+  "ip": "dma_real",
+  "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "run_log": "dma_real/logs/headless_run.json",
+  "stages": [
+    {
+      "artifacts": [],
+      "blocker": "",
+      "message": "ATLAS_RUN_REAL_LLM_TDD=1 is not set",
+      "returncode": 1,
+      "stage": "rtl-gen",
+      "status": "blocked"
+    }
+  ],
+  "status": "blocked"
+}

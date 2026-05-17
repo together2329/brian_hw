@@ -8,7 +8,8 @@
   },
   "env": {
     "_comment": "Env vars to override. Shell env > workspace.json > .config > .env",
-    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa"
+    "_disabled_tools_comment": "ask_user is allowed by default; only orchestrator disables it explicitly. record_ssot_qa stays disabled in default and is re-enabled per workflow that needs it (ssot-gen, req-gen, architect).",
+    "WORKFLOW_DISABLED_TOOLS": "record_ssot_qa"
   },
   "prompt": {
     "system_prompt_mode": "append",

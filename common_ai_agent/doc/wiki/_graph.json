@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-17T04:24:52Z",
+  "generated_at": "2026-05-17T05:06:56Z",
   "root": "doc/wiki",
   "node_count": 38,
   "edge_count": 231,
@@ -889,7 +889,7 @@
       "updated": "",
       "summary": "Status: product/design decision, 2026-05-17.",
       "path": "doc/wiki/run-mode-and-provenance-policy.md",
-      "size_bytes": 11881
+      "size_bytes": 14306
     },
     {
       "id": "ssot-gen-pass-pipeline",

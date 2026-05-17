@@ -1,0 +1,139 @@
+{
+  "ip": "atcwdt200",
+  "workflow": "ssot-gen",
+  "evidence_kind": "rtl_reference_import",
+  "source_paths": [
+    "/Users/brian/Desktop/andes/atcwdt200/hdl/atcwdt200.v",
+    "/Users/brian/Desktop/andes/atcwdt200/hdl/include/atcwdt200_config.vh",
+    "/Users/brian/Desktop/andes/atcwdt200/hdl/include/atcwdt200_const.vh",
+    "/Users/brian/Desktop/andes/atcwdt200/syn/flist.tcl",
+    "/Users/brian/Desktop/andes/atcwdt200/syn/atcwdt200.sdc"
+  ],
+  "import_policy": {
+    "rtl_is_evidence_only": true,
+    "ssot_is_authority": true,
+    "do_not_copy_reference_rtl_as_generated_output": true
+  },
+  "facts": {
+    "top_module": "atcwdt200",
+    "ip_type": "peripheral",
+    "purpose": "APB-accessed watchdog timer with programmable interrupt timeout, reset timeout, restart command, pause input, and selectable internal/external tick source.",
+    "clocks": [
+      {
+        "name": "pclk",
+        "role": "register/control clock",
+        "sdc_period_ns": 20.0,
+        "frequency_mhz": 50
+      },
+      {
+        "name": "extclk",
+        "role": "external watchdog tick source, synchronized into pclk before use",
+        "edge_used": "rising"
+      }
+    ],
+    "reset": {
+      "name": "presetn",
+      "polarity": "active_low",
+      "style_seen_in_rtl": "async_assert"
+    },
+    "parameters": [
+      {
+        "name": "COUNTER_WIDTH",
+        "default_without_ATCWDT200_32BIT_TIMER": 16,
+        "default_with_ATCWDT200_32BIT_TIMER": 32
+      },
+      {
+        "name": "INT_TIME_WIDTH",
+        "default_without_ATCWDT200_32BIT_TIMER": 3,
+        "default_with_ATCWDT200_32BIT_TIMER": 4
+      }
+    ],
+    "ports": [
+      {"name": "extclk", "direction": "input", "width": 1},
+      {"name": "wdt_pause", "direction": "input", "width": 1},
+      {"name": "wdt_rst", "direction": "output", "width": 1},
+      {"name": "wdt_int", "direction": "output", "width": 1},
+      {"name": "pclk", "direction": "input", "width": 1},
+      {"name": "presetn", "direction": "input", "width": 1},
+      {"name": "psel", "direction": "input", "width": 1},
+      {"name": "penable", "direction": "input", "width": 1},
+      {"name": "paddr", "direction": "input", "width": 3, "bits": "4:2"},
+      {"name": "pwrite", "direction": "input", "width": 1},
+      {"name": "pwdata", "direction": "input", "width": 32},
+      {"name": "prdata", "direction": "output", "width": 32}
+    ],
+    "registers": [
+      {
+        "name": "VER",
+        "offset": "0x00",
+        "access": "ro",
+        "read_value": "{ATCWDT200_ID, ATCWDT200_REV_MAJOR, ATCWDT200_REV_MINOR}",
+        "constants": {
+          "ATCWDT200_ID": "16'h0300",
+          "ATCWDT200_REV_MAJOR": "12'h200",
+          "ATCWDT200_REV_MINOR": "4'h2"
+        }
+      },
+      {
+        "name": "CR",
+        "offset": "0x10",
+        "access": "rw_when_unlocked",
+        "fields": [
+          {"name": "EN", "bits": "0", "reset": 0},
+          {"name": "CLK", "bits": "1", "reset": 0},
+          {"name": "INTEN", "bits": "2", "reset": 0},
+          {"name": "RSTEN", "bits": "3", "reset": 0},
+          {"name": "INTTIME", "bits": "7:4", "reset": 0, "implemented_width": "INT_TIME_WIDTH"},
+          {"name": "RSTTIME", "bits": "10:8", "reset": 0}
+        ]
+      },
+      {
+        "name": "RES",
+        "offset": "0x14",
+        "access": "wo_when_unlocked",
+        "write_magic": "16'hcafe",
+        "effect": "restart watchdog counter and return state machine to interrupt-time state"
+      },
+      {
+        "name": "WEN",
+        "offset": "0x18",
+        "access": "wo",
+        "write_magic": "16'h5aa5",
+        "effect": "enable the next protected CR/RES/SR write"
+      },
+      {
+        "name": "SR",
+        "offset": "0x1c",
+        "access": "rw1c_bit0",
+        "fields": [
+          {"name": "INTZERO", "bits": "0", "reset": 0, "effect": "set when interrupt timeout expires, write-one clears"}
+        ]
+      }
+    ],
+    "fsm": {
+      "states": ["ST_INTTIME", "ST_RSTTIME"],
+      "transition_summary": [
+        "INTTIME timeout sets interrupt status and advances to RSTTIME unless restart command wins.",
+        "RSTTIME timeout sets reset status and clears enable.",
+        "Restart command clears the counter and returns to ST_INTTIME."
+      ]
+    },
+    "outputs": {
+      "wdt_int": "sr_intzero_reg & cr_inten_reg",
+      "wdt_rst": "sr_rstzero_reg & cr_rsten_reg"
+    },
+    "external_dependency": {
+      "module": "nds_sync_l2l",
+      "source_from_flist": "$NDS_HOME/andes_ip/macro/nds_sync_l2l.v",
+      "used_for": ["extclk rising-edge pulse synchronization", "wdt_pause level synchronization"]
+    }
+  },
+  "conflicts_or_questions": [
+    "Reference port set omits APB PREADY/PSLVERR, so target protocol must be confirmed as legacy APB-like or upgraded APB3/APB4.",
+    "The reference source carries proprietary header text; generated RTL should be clean-room from SSOT behavior.",
+    "External synchronizer nds_sync_l2l is referenced but not included in the local atcwdt200 directory.",
+    "extclk asynchronous timing policy and STA exception policy need human signoff.",
+    "Counter-width configuration should be frozen for the first generated target or kept parameterized."
+  ],
+  "recommended_next_command": "/grill-me atcwdt200"
+}

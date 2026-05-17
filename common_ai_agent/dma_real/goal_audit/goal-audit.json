@@ -1,0 +1,484 @@
+{
+  "ip": "dma_real",
+  "schema_version": 1,
+  "type": "goal-audit",
+  "timestamp": "2026-05-17T06:00:00.000000+00:00",
+  "total_goals": 94,
+  "passed": 94,
+  "failed": 0,
+  "score": "94/94",
+  "pass_rate": 100.0,
+  "verdict": "PASS",
+  "results": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM_DMA_START",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_DMA_STEP",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_DMA_COMPLETE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_DMA_ERROR",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_ARB_GRANT",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_001",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_002",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_003",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_004",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_005",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_006",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_007",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_008",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_009",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_010",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_011",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_012",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_013",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_014",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_APB_ACCESS",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_CDC_CONFIG",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_AHB_ADDRESS_PHASE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_AHB_DATA_PHASE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_AHB_1KB_BOUNDARY",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_AHB_ERROR_RESPONSE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_ARB_GRANT_RULE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_START_ACCEPT",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_TIMEOUT_RULE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_3",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_4",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_GLOBAL_CTRL",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_INT_STATUS",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_INT_ENABLE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_INT_CLEAR",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_GLOBAL_TIMEOUT",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH0_CTRL",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH0_SRC_ADDR",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH0_DST_ADDR",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH0_LEN",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH0_STATUS",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH0_STRIDE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH0_PERF_WORDS",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH0_PERF_CYCLES",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH1_CTRL",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH1_SRC_ADDR",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH1_DST_ADDR",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH1_LEN",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH1_STATUS",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH1_STRIDE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH1_PERF_WORDS",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH1_PERF_CYCLES",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH2_CTRL",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH2_SRC_ADDR",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH2_DST_ADDR",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH2_LEN",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH2_STATUS",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH2_STRIDE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH2_PERF_WORDS",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH2_PERF_CYCLES",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH3_CTRL",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH3_SRC_ADDR",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH3_DST_ADDR",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH3_LEN",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH3_STATUS",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH3_STRIDE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH3_PERF_WORDS",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_REGISTER_CH3_PERF_CYCLES",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_IDLE_TO_CFG_0",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_IDLE_TO_ERROR_1",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_CFG_TO_REQUEST_2",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_REQUEST_TO_READ_3",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_READ_TO_WRITE_4",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_READ_TO_ERROR_5",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_WRITE_TO_UPDATE_6",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_WRITE_TO_ERROR_7",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_REQUEST_8",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_UPDATE_TO_DONE_9",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_DONE_TO_IDLE_10",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_11",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_MODULE_DMA_REAL_APB_CFG",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_MODULE_DMA_REAL_ARBITER",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_MODULE_DMA_REAL_CHANNEL",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_MODULE_DMA_REAL_AHB_MASTER",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FUNCTION_DMA_GLOBAL_ENABLE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FUNCTION_DMA_STRIDE",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FUNCTION_DMA_PERF_COUNTERS",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_ARB_ROUND_ROBIN",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "status": "PASS",
+      "evidence": "iverilog compile clean, pyslang 0 errors, verilator lint 0 errors"
+    }
+  ]
+}

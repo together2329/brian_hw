@@ -1,0 +1,30 @@
+{
+  "ip": "caa_timer",
+  "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "run_log": "caa_timer/logs/headless_run.json",
+  "stages": [
+    {
+      "artifacts": [
+        "caa_timer/req/caa_timer_requirements.md",
+        "caa_timer/req/requirements.md"
+      ],
+      "blocker": "",
+      "message": "requirements copied",
+      "returncode": 0,
+      "stage": "req",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "caa_timer/yaml/caa_timer.ssot.yaml",
+        "caa_timer/questions/ssot_gen_yaml_parse.json"
+      ],
+      "blocker": "caa_timer/questions/ssot_gen_yaml_parse.json",
+      "message": "while scanning a quoted scalar\n  in \"<unicode string>\", line 1, column 80:\n     ... t.yaml\",\"kind\":\"ssot\",\"content\":\"top_module:\\n  name: caa_timer\\ ... \n                                         ^\nfound unexpected end of stream\n  in \"<unicode string>\", line 2, column 1:\n    \n    ^",
+      "returncode": 0,
+      "stage": "ssot-gen",
+      "status": "human_gate"
+    }
+  ],
+  "status": "blocked"
+}

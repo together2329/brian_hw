@@ -1,0 +1,44 @@
+cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/repair_ssot_schema.py caa_timer --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --mode engineering
+cwd: /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+returncode: 1
+reason: canonicalize_llm_repair_2
+stderr:
+Traceback (most recent call last):
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/repair_ssot_schema.py", line 3854, in <module>
+    raise SystemExit(main())
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/repair_ssot_schema.py", line 3811, in main
+    doc = _load_yaml(ssot)
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/repair_ssot_schema.py", line 310, in _load_yaml
+    doc = yaml.safe_load(normalized)
+  File "/Users/brian/Library/Python/3.9/lib/python/site-packages/yaml/__init__.py", line 125, in safe_load
+    return load(stream, SafeLoader)
+  File "/Users/brian/Library/Python/3.9/lib/python/site-packages/yaml/__init__.py", line 81, in load
+    return loader.get_single_data()
+  File "/Users/brian/Library/Python/3.9/lib/python/site-packages/yaml/constructor.py", line 49, in get_single_data
+    node = self.get_single_node()
+  File "/Users/brian/Library/Python/3.9/lib/python/site-packages/yaml/composer.py", line 35, in get_single_node
+    if not self.check_event(StreamEndEvent):
+  File "/Users/brian/Library/Python/3.9/lib/python/site-packages/yaml/parser.py", line 98, in check_event
+    self.current_event = self.state()
+  File "/Users/brian/Library/Python/3.9/lib/python/site-packages/yaml/parser.py", line 142, in parse_implicit_document_start
+    if not self.check_token(DirectiveToken, DocumentStartToken,
+  File "/Users/brian/Library/Python/3.9/lib/python/site-packages/yaml/scanner.py", line 116, in check_token
+    self.fetch_more_tokens()
+  File "/Users/brian/Library/Python/3.9/lib/python/site-packages/yaml/scanner.py", line 251, in fetch_more_tokens
+    return self.fetch_double()
+  File "/Users/brian/Library/Python/3.9/lib/python/site-packages/yaml/scanner.py", line 655, in fetch_double
+    self.fetch_flow_scalar(style='"')
+  File "/Users/brian/Library/Python/3.9/lib/python/site-packages/yaml/scanner.py", line 666, in fetch_flow_scalar
+    self.tokens.append(self.scan_flow_scalar(style))
+  File "/Users/brian/Library/Python/3.9/lib/python/site-packages/yaml/scanner.py", line 1151, in scan_flow_scalar
+    chunks.extend(self.scan_flow_scalar_spaces(double, start_mark))
+  File "/Users/brian/Library/Python/3.9/lib/python/site-packages/yaml/scanner.py", line 1238, in scan_flow_scalar_spaces
+    raise ScannerError("while scanning a quoted scalar", start_mark,
+yaml.scanner.ScannerError: while scanning a quoted scalar
+  in "<unicode string>", line 1, column 80:
+     ... t.yaml","kind":"ssot","content":"top_module:\n  name: caa_timer\ ... 
+                                         ^
+found unexpected end of stream
+  in "<unicode string>", line 2, column 1:
+    
+    ^

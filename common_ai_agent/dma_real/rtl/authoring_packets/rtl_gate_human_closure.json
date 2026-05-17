@@ -1,0 +1,712 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "owner": {
+      "file": "rtl/dma_real_top.sv",
+      "name": "dma_real_top",
+      "refs": [
+        "top_module",
+        "io_list",
+        "parameters",
+        "interrupts",
+        "features",
+        "error_handling",
+        "security",
+        "debug_observability",
+        "integration",
+        "timing",
+        "power",
+        "synthesis",
+        "dft",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "next_step_todos"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "pclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pclk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "hclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hclk",
+        "source_ref": "io_list.clock_domains[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "presetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "presetn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "hresetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hresetn",
+        "source_ref": "io_list.resets[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "12"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_haddr",
+          "haddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "haddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "ahb_master_hwrite",
+          "hwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hwrite",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_htrans",
+          "htrans"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "htrans",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_master_hsize",
+          "hsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hsize",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_master_hburst",
+          "hburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hburst",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_master_hprot",
+          "hprot"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hprot",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "ahb_master_hmaster",
+          "hmaster"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hmaster",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "ahb_master_hmastlock",
+          "hmastlock"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hmastlock",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_hwdata",
+          "hwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hwdata",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "ahb_master_hrdata",
+          "hrdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hrdata",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "ahb_master_hready",
+          "hready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hready",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_hresp",
+          "hresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hresp",
+        "source_ref": "io_list.interfaces[1].ports[11]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_master_hbusreq",
+          "hbusreq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hbusreq",
+        "source_ref": "io_list.interfaces[1].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_hgrant",
+          "hgrant"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hgrant",
+        "source_ref": "io_list.interfaces[1].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "irq",
+          "irq_outputs_irq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "N_CHANNELS"
+      },
+      {
+        "aliases": [
+          "irq_combined",
+          "irq_outputs_irq_combined"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq_combined",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ch_busy",
+          "dma_status_ch_busy"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "ch_busy",
+        "source_ref": "io_list.interfaces[3].ports[0]",
+        "width": "N_CHANNELS"
+      },
+      {
+        "aliases": [
+          "ch_done",
+          "dma_status_ch_done"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "ch_done",
+        "source_ref": "io_list.interfaces[3].ports[1]",
+        "width": "N_CHANNELS"
+      },
+      {
+        "aliases": [
+          "ch_error",
+          "dma_status_ch_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "ch_error",
+        "source_ref": "io_list.interfaces[3].ports[2]",
+        "width": "N_CHANNELS"
+      },
+      {
+        "aliases": [
+          "ch_err_code",
+          "dma_status_ch_err_code"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "ch_err_code",
+        "source_ref": "io_list.interfaces[3].ports[3]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "arb_grant",
+          "dma_status_arb_grant"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "arb_grant",
+        "source_ref": "io_list.interfaces[3].ports[4]",
+        "width": "3"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": false,
+    "evidence_closure_allowed": true,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "gate",
+  "owner_file": "rtl/dma_real_top.sv",
+  "owner_module": "dma_real_top",
+  "packet_id": "rtl_gate_human_closure",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "rtl_gate.rtl_gen": 4
+    },
+    "module_slice": {},
+    "open_required_count": 0,
+    "required_count": 4,
+    "source_refs": [
+      "quality_gates.rtl_gen.ssot_required_sections",
+      "quality_gates.rtl_gen.workflow_todo_contract",
+      "quality_gates.rtl_gen.owner_traceability",
+      "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+    ],
+    "status_counts": {
+      "pass": 4
+    },
+    "task_count": 4
+  },
+  "tasks": [
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "criteria": [
+        "function_model is present and non-empty in the SSOT",
+        "cycle_model is present and non-empty in the SSOT",
+        "Missing authority artifacts open a human/ssot-gen gate instead of being bypassed in RTL",
+        "Traceability keeps source_ref quality_gates.rtl_gen.ssot_required_sections",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "rtl-gen cannot implement production RTL until the SSOT contains both the functional golden behavior and the cycle/handshake contract.\nSSOT ref: quality_gates.rtl_gen.ssot_required_sections.\nOwner: dma_real_top in rtl/dma_real_top.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "yaml/<ip>.ssot.yaml",
+        "kind": "ssot_required_sections",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0003",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.ssot_required_sections"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "yaml/<ip>.ssot.yaml"
+        ],
+        "reason": "SSOT function_model and cycle_model authority is present.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "criteria": [
+        "Every workflow_todos.rtl-gen item has content",
+        "Every workflow_todos.rtl-gen item has detail",
+        "Every workflow_todos.rtl-gen item has at least one criteria entry",
+        "Traceability keeps source_ref quality_gates.rtl_gen.workflow_todo_contract",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Every SSOT workflow_todos.rtl-gen item must be executable by rtl-gen and therefore must carry content, detail, and criteria.\nSSOT ref: quality_gates.rtl_gen.workflow_todo_contract.\nOwner: dma_real_top in rtl/dma_real_top.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "ssot_workflow_todo_format",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0004",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.workflow_todo_contract"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "SSOT-authored rtl-gen workflow TODOs are well formed.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: every SSOT-derived RTL behavior has an owner module",
+      "criteria": [
+        "No required function_model task is orphaned",
+        "No required cycle_model task is orphaned",
+        "No required register/dataflow/FSM task is orphaned",
+        "Owner module and owner file are recorded in rtl_todo_plan.json",
+        "Traceability keeps source_ref quality_gates.rtl_gen.owner_traceability",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Function-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.\nSSOT ref: quality_gates.rtl_gen.owner_traceability.\nOwner: dma_real_top in rtl/dma_real_top.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "owner_traceability",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0005",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.owner_traceability",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.owner_traceability"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "Every required SSOT-derived RTL behavior has an owner module.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT connection contracts match RTL child port maps",
+      "criteria": [
+        "Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections",
+        "Each SSOT connection contract resolves to a reachable manifest child module and port",
+        "RTL named port-map expressions match the SSOT-intended signal terms or carry an explicit SSOT waiver",
+        "Traceability keeps source_ref quality_gates.rtl_gen.manifest_connection_contract_evidence",
+        "Primary implementation evidence is in rtl/dma_real_top.sv"
+      ],
+      "detail": "Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.\nSSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.\nOwner: dma_real_top in rtl/dma_real_top.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "manifest_connection_contract_evidence",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0016",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "SSOT connection contracts are satisfied by reachable RTL named port maps.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

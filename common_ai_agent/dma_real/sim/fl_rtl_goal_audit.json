@@ -2,7 +2,7 @@
   "schema_version": 1,
   "type": "fl_rtl_goal_audit",
   "ip": "dma_real",
-  "generated_at": "2026-05-17T02:58:34Z",
+  "generated_at": "2026-05-17T05:54:32Z",
   "status": "fail",
   "source_of_truth": {
     "ssot": "dma_real/yaml/dma_real.ssot.yaml",
@@ -12,22 +12,25 @@
   },
   "summary": {
     "total_checks": 16,
-    "passed_checks": 15,
-    "failed_checks": 1,
+    "passed_checks": 13,
+    "failed_checks": 3,
     "blockers": [
-      "req"
+      "scoreboard_contract",
+      "functional_coverage",
+      "fresh_evidence"
     ]
   },
   "checks": [
     {
       "id": "req",
       "label": "Human-approved requirement artifact exists",
-      "status": "fail",
+      "status": "pass",
       "owner": "human gate",
       "evidence": [
-        "dma_real/req/dma_real_requirements.md"
+        "dma_real/req/dma_real_requirements.md",
+        "dma_real/req/approval_manifest.json"
       ],
-      "detail": "requirement markdown must exist under req/, contain at least 1000 bytes, contain no TODO/TBD markers, and match req/approval_manifest.json; bytes=8413; approval_manifest=False; pending_review=False; review_decision=False; missing or invalid approval manifest: missing req/approval_manifest.json",
+      "detail": "requirement markdown must exist under req/, contain at least 1000 bytes, contain no TODO/TBD markers, and match req/approval_manifest.json; bytes=8413; approval_manifest=True; pending_review=False; review_decision=False; approved_by=ssot-gen-auto-select target=dma_real/req/dma_real_requirements.md source=dma_real/yaml/dma_real.ssot.yaml",
       "next_action": "capture requirement intent in dma_real/req/*.md before SSOT signoff"
     },
     {
@@ -57,7 +60,7 @@
       "status": "pass",
       "owner": "fl-model-gen",
       "evidence": "dma_real/model/decomposition.json",
-      "detail": "complete=True units=11",
+      "detail": "complete=True units=12",
       "next_action": "split FunctionalModel behavior into units before coverage/equivalence planning"
     },
     {
@@ -66,7 +69,7 @@
       "status": "pass",
       "owner": "fl-model-gen",
       "evidence": "dma_real/cov/fcov_plan.json",
-      "detail": "planned_before_rtl=True bins=58",
+      "detail": "planned_before_rtl=True bins=82",
       "next_action": "derive functional coverage bins from SSOT/decomposition before RTL/TB signoff"
     },
     {
@@ -75,7 +78,7 @@
       "status": "pass",
       "owner": "fl-model-gen",
       "evidence": "dma_real/verify/equivalence_goals.json",
-      "detail": "total=67 blocked=0 errors=[]",
+      "detail": "total=94 blocked=0 errors=[]",
       "next_action": "rerun /ssot-equiv-goals dma_real or answer SSOT blockers"
     },
     {
@@ -84,7 +87,7 @@
       "status": "pass",
       "owner": "fl-model-gen",
       "evidence": "dma_real/verify/equivalence_goals.json",
-      "detail": "module_contracts=5 module_goals=4 missing=[] blocked=[]",
+      "detail": "module_contracts=6 module_goals=4 missing=[] blocked=[]",
       "next_action": "rerun /ssot-fl-model and /ssot-equiv-goals; every module owning function_model refs needs a scope.level=module goal"
     },
     {
@@ -96,12 +99,14 @@
         "dma_real/rtl/dma_real_ahb_master.sv",
         "dma_real/rtl/dma_real_apb_cfg.sv",
         "dma_real/rtl/dma_real_arbiter.sv",
+        "dma_real/rtl/dma_real_cdc_sync.sv",
+        "dma_real/rtl/dma_real_cg_cell.sv",
         "dma_real/rtl/dma_real_channel.sv",
         "dma_real/rtl/dma_real_irq.sv",
         "dma_real/rtl/dma_real_top.sv",
         "dma_real/list/dma_real.f"
       ],
-      "detail": "rtl_files=6 list_exists=True",
+      "detail": "rtl_files=8 list_exists=True",
       "next_action": "run /ssot-rtl dma_real; repair only RTL when SSOT/FL behavior is clear"
     },
     {
@@ -125,13 +130,13 @@
     {
       "id": "scoreboard_contract",
       "label": "TB consumes equivalence_goals.json and emits required scoreboard rows",
-      "status": "pass",
+      "status": "fail",
       "owner": "tb-gen",
       "evidence": [
         "dma_real/sim/scoreboard_events.jsonl",
         "workflow/tb-gen/scripts/check_scoreboard_events.py"
       ],
-      "detail": "[check_scoreboard_events] PASS: goals=67 required=67 scoreboard_rows=67 goals_with_rows=67",
+      "detail": "[check_scoreboard_events] FAIL: line 54: unknown goal_id EQ_STATE_PER_CHANNEL_WRITE_TO_UPDATE_5\n[check_scoreboard_events] FAIL: line 55: unknown goal_id EQ_STATE_PER_CHANNEL_UPDATE_TO_READ_6\n[check_scoreboard_events] FAIL: line 56: unknown goal_id EQ_STATE_PER_CHANNEL_UPDATE_TO_DONE_7\n[check_scoreboard_events] FAIL: line 57: unknown goal_id EQ_STATE_PER_CHANNEL_DONE_TO_IDLE_8\n[check_scoreboard_events] FAIL: line 58: unknown goal_id EQ_STATE_PER_CHANNEL_ERROR_TO_IDLE_9\n[check_scoreboard_events] FAIL: missing scoreboard rows for required goals: EQ_COVERAGE_FUNCTION_DMA_PERF_COUNTERS, EQ_COVERAGE_FUNCTION_DMA_STRIDE, EQ_PROTOCOL_AHB_1KB_BOUNDARY, EQ_PROTOCOL_AHB_ERROR_RESPONSE, EQ_PROTOCOL_CDC_CONFIG, EQ_PROTOCOL_TIMEOUT_RULE, EQ_REGISTER_CH0_PERF_CYCLES, EQ_REGISTER_CH0_PERF_WORDS, EQ_REGISTER_CH0_STRIDE, EQ_REGISTER_CH1_PERF_CYCLES, EQ_REGISTER_CH1_PERF_WORDS, EQ_REGISTER_CH1_STRIDE, ... +20",
       "next_action": "repair cocotb/pyuvm TB to instantiate EquivalenceScoreboard and cover all required goals"
     },
     {
@@ -167,33 +172,39 @@
     {
       "id": "functional_coverage",
       "label": "Functional coverage is backed by RTL-observed scoreboard evidence",
-      "status": "pass",
+      "status": "fail",
       "owner": "tb-gen",
       "evidence": "dma_real/cov/coverage.json",
-      "detail": "source=ssot_coverage_summary status=pass pct=100.0 required_refs=58 missing_refs=[] missing_rtl_bins=[] invalid_rows=[] rtl_observed_status=pass function_domain_ok=True cycle_domain_ok=True",
+      "detail": "source=ssot_coverage_summary status=pass pct=100.0 required_refs=82 missing_refs=['SC_010_executed', 'SC_011_executed', 'SC_012_executed', 'SC_013_executed', 'SC_014_executed', 'cycle_ahb_1kb_boundary', 'cycle_ahb_error_response', 'cycle_backpressure_3'] missing_rtl_bins=[] invalid_rows=[] rtl_observed_status=pass function_domain_ok=True cycle_domain_ok=True",
       "next_action": "rerun /coverage after /sim; coverage must be proven by passing scoreboard rows with real rtl_observed signals"
     },
     {
       "id": "fresh_evidence",
       "label": "Simulation, compare, and coverage evidence is newer than SSOT/model inputs",
-      "status": "pass",
+      "status": "fail",
       "owner": "LLM loop",
-      "evidence": [],
-      "detail": "evidence is fresh",
+      "evidence": [
+        "dma_real/sim/scoreboard_events.jsonl older than dma_real/yaml/dma_real.ssot.yaml",
+        "dma_real/sim/results.xml older than dma_real/yaml/dma_real.ssot.yaml",
+        "dma_real/cov/coverage.json older than dma_real/yaml/dma_real.ssot.yaml",
+        "dma_real/sim/fl_rtl_compare.json older than dma_real/yaml/dma_real.ssot.yaml",
+        "dma_real/sim/mismatch_classification.json older than dma_real/yaml/dma_real.ssot.yaml"
+      ],
+      "detail": "dma_real/sim/scoreboard_events.jsonl older than dma_real/yaml/dma_real.ssot.yaml; dma_real/sim/results.xml older than dma_real/yaml/dma_real.ssot.yaml; dma_real/cov/coverage.json older than dma_real/yaml/dma_real.ssot.yaml; dma_real/sim/fl_rtl_compare.json older than dma_real/yaml/dma_real.ssot.yaml; dma_real/sim/mismatch_classification.json older than dma_real/yaml/dma_real.ssot.yaml",
       "next_action": "rerun /sim dma_real and /sim-debug dma_real after source artifact changes"
     }
   ],
   "stop_condition": {
-    "req_ok": false,
+    "req_ok": true,
     "ssot_ok": true,
     "fl_model_pass": true,
     "cycle_model_present": true,
     "equivalence_goals_generated": true,
-    "scoreboard_from_goals": true,
+    "scoreboard_from_goals": false,
     "simulation_complete": true,
     "fl_rtl_compare_complete": true,
     "mismatches_classified_or_zero": true,
-    "coverage_linked": true,
+    "coverage_linked": false,
     "signoff_evidence_backed": false
   }
 }

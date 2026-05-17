@@ -1250,12 +1250,40 @@ def create_app():
     async def health():
         """Liveness check.
 
-        Exposes the worker's startup `workflow` binding so the
-        dispatcher can verify it before posting `/run`.
+        Exposes the worker's startup `workflow` binding plus a compact
+        activity snapshot so the orchestrator UI can render live status
+        without having to follow up with /runs and /metrics calls.
         """
-        body = {"status": "ok", "runs": len(_runs)}
+        with _runs_lock:
+            running_runs = [
+                {
+                    "run_id": r.run_id,
+                    "iter": getattr(r, "iter_count", None) or getattr(r, "iter", None),
+                    "started_at": getattr(r, "started_at", None),
+                }
+                for r in _runs.values()
+                if getattr(r, "status", "") in ("running", "run", "pending")
+            ]
+            total_runs = len(_runs)
+        body = {
+            "status": "ok",
+            "runs": total_runs,
+            "running": running_runs[:3],
+            "uptime_s": round(time.time() - _START_TIME, 1),
+        }
         if _SERVER_WORKFLOW:
             body["workflow"] = _SERVER_WORKFLOW
+        # Best-effort model name — read from common env vars set at startup.
+        model_name = (
+            os.environ.get("LLM_MODEL_NAME", "")
+            or os.environ.get("OPENCODE_MODEL", "")
+            or os.environ.get("ATLAS_MODEL", "")
+        ).strip()
+        if model_name:
+            body["model"] = model_name
+        provider = os.environ.get("LLM_PROFILE", "").strip()
+        if provider:
+            body["profile"] = provider
         return body
 
     @app.get("/metrics")
@@ -1427,7 +1455,27 @@ def create_app():
         session_name = normalize_session_name(session_raw)
         context = str(request.get("context", ""))
         sync = bool(request.get("sync", False))
+        corr_in = str(request.get("trace_corr", "")).strip()
+        ip_for_trace = str(request.get("ip", "")).strip() or "_unknown"
+        try:
+            from core.orchestrator_trace import record_trace, new_corr as _new_corr
+            corr_eff = corr_in or _new_corr()
+            actor_self = f"{_SERVER_WORKFLOW or 'worker'}-worker"
+            record_trace(
+                ip_for_trace, lens="interaction", actor=actor_self, peer="orchestrator",
+                kind="http_recv", corr=corr_eff,
+                requested_workflow=workflow or None, task_preview=task[:80],
+                sync=sync, has_todos=bool(todos), template=template or None,
+            )
+        except Exception:
+            corr_eff = corr_in or ""
         if not task:
+            try:
+                from core.orchestrator_trace import record_trace
+                record_trace(ip_for_trace, lens="result", actor=actor_self, kind="http_rejected",
+                             corr=corr_eff, status=400, detail="'task' is required")
+            except Exception:
+                pass
             raise HTTPException(status_code=400, detail="'task' is required")
         if session_raw.strip() and not session_name:
             raise HTTPException(status_code=400, detail="invalid 'session'")
@@ -1437,6 +1485,13 @@ def create_app():
         # without silently accepting cross-workflow work. See
         # doc/wiki/multi-user-worker-conflicts.md F3.
         if _SERVER_WORKFLOW and workflow.strip() and workflow.strip() != _SERVER_WORKFLOW:
+            try:
+                from core.orchestrator_trace import record_trace
+                record_trace(ip_for_trace, lens="result", actor=actor_self, kind="http_rejected",
+                             corr=corr_eff, status=403, bound=_SERVER_WORKFLOW,
+                             requested=workflow.strip())
+            except Exception:
+                pass
             raise HTTPException(
                 status_code=403,
                 detail=(
@@ -1485,10 +1540,26 @@ def create_app():
                     entry, task, model, todos, context, workflow, session_name,
                     template_ip, rtl_version_id, project_root, artifact_versions,
                 )
+                try:
+                    from core.orchestrator_trace import record_trace
+                    record_trace(template_ip or ip_for_trace, lens="result",
+                                 actor=actor_self, kind="run_completed",
+                                 corr=corr_eff, run_id=entry.run_id,
+                                 status=getattr(entry, "status", "unknown"))
+                except Exception:
+                    pass
             finally:
                 _concurrency_semaphore.release()
         _executor.submit(_wrapped_run)
-        return {"run_id": entry.run_id, "status": "pending"}
+        try:
+            from core.orchestrator_trace import record_trace
+            record_trace(template_ip or ip_for_trace, lens="interaction",
+                         actor=actor_self, peer="orchestrator",
+                         kind="http_accepted", corr=corr_eff,
+                         status=200, run_id=entry.run_id)
+        except Exception:
+            pass
+        return {"run_id": entry.run_id, "status": "pending", "trace_corr": corr_eff}
 
     @app.get("/status/{run_id}")
     async def get_status(run_id: str):

@@ -1,0 +1,930 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 1,
+      "key": "io_list",
+      "module_task_count": 152,
+      "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_real_apb_cfg.sv",
+      "name": "dma_real_apb_cfg",
+      "refs": [
+        "dataflow.ordering.ordering_0",
+        "dataflow.sequence.sequence_0",
+        "dataflow.sequence.sequence_1",
+        "function_model.state_variables",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "module",
+  "owner_file": "rtl/dma_real_apb_cfg.sv",
+  "owner_module": "dma_real_apb_cfg",
+  "packet_id": "module__dma_real_apb_cfg__io_list",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "io_list.port": 17
+    },
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 1,
+      "key": "io_list",
+      "module_task_count": 152,
+      "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 17,
+    "source_refs": [
+      "io_list.clock_domains.pclk_domain.ports.pclk",
+      "io_list.clock_domains.hclk_domain.ports.hclk",
+      "io_list.resets.presetn_domain.ports.presetn",
+      "io_list.resets.hresetn_domain.ports.hresetn",
+      "io_list.interfaces.apb_slave.ports.psel",
+      "io_list.interfaces.apb_slave.ports.penable",
+      "io_list.interfaces.apb_slave.ports.pwrite",
+      "io_list.interfaces.apb_slave.ports.paddr",
+      "io_list.interfaces.apb_slave.ports.pwdata",
+      "io_list.interfaces.apb_slave.ports.prdata",
+      "io_list.interfaces.apb_slave.ports.pready",
+      "io_list.interfaces.apb_slave.ports.pslverr",
+      "io_list.interfaces.dma_status.ports.ch_busy",
+      "io_list.interfaces.dma_status.ports.ch_done",
+      "io_list.interfaces.dma_status.ports.ch_error",
+      "io_list.interfaces.dma_status.ports.ch_err_code",
+      "io_list.interfaces.dma_status.ports.arb_grant"
+    ],
+    "status_counts": {
+      "pass": 17
+    },
+    "task_count": 17
+  },
+  "tasks": [
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pclk",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.pclk_domain.ports.pclk",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "pclk width matches SSOT value 1",
+        "pclk port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.pclk_domain.ports.pclk.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.\nSSOT item context: name=pclk; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.pclk_domain.ports.pclk",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pclk",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.pclk_domain.ports.pclk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hclk",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.hclk_domain.ports.hclk",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "hclk width matches SSOT value 1",
+        "hclk port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.hclk_domain.ports.hclk.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.\nSSOT item context: name=hclk; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.hclk_domain.ports.hclk",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hclk",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.hclk_domain.ports.hclk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port presetn",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.presetn_domain.ports.presetn",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "presetn width matches SSOT value 1",
+        "presetn port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.presetn_domain.ports.presetn.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.\nSSOT item context: name=presetn; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.presetn_domain.ports.presetn",
+      "ssot_context": {
+        "direction": "input",
+        "name": "presetn",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.presetn_domain.ports.presetn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hresetn",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.hresetn_domain.ports.hresetn",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "hresetn width matches SSOT value 1",
+        "hresetn port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.hresetn_domain.ports.hresetn.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.\nSSOT item context: name=hresetn; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.hresetn_domain.ports.hresetn",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hresetn",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.hresetn_domain.ports.hresetn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port psel",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.psel",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "psel width matches SSOT value 1",
+        "psel port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.psel.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=psel; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.psel",
+      "ssot_context": {
+        "direction": "input",
+        "name": "psel",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.psel"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port penable",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.penable",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "penable width matches SSOT value 1",
+        "penable port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.penable.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=penable; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.penable",
+      "ssot_context": {
+        "direction": "input",
+        "name": "penable",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.penable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwrite",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pwrite",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "pwrite width matches SSOT value 1",
+        "pwrite port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pwrite.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=pwrite; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pwrite",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwrite",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pwrite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port paddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.paddr",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "paddr width matches SSOT value 12",
+        "paddr port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.paddr.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=paddr; width=12; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0042",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.paddr",
+      "ssot_context": {
+        "direction": "input",
+        "name": "paddr",
+        "width": "12"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.paddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pwdata",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "pwdata width matches SSOT value 32",
+        "pwdata port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pwdata.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=pwdata; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pwdata",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pwdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port prdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.prdata",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "prdata width matches SSOT value 32",
+        "prdata port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.prdata.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=prdata; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.prdata",
+      "ssot_context": {
+        "direction": "output",
+        "name": "prdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.prdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pready",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "pready width matches SSOT value 1",
+        "pready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pready.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=pready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0045",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pslverr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pslverr",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "pslverr width matches SSOT value 1",
+        "pslverr port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pslverr.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.interfaces.apb_slave.\nSSOT item context: name=pslverr; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0046",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pslverr",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pslverr",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pslverr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port ch_busy",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.dma_status.ports.ch_busy",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "ch_busy width matches SSOT value N_CHANNELS",
+        "ch_busy port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_status.ports.ch_busy.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.\nSSOT item context: name=ch_busy; width=N_CHANNELS; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0063",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.dma_status.ports.ch_busy",
+      "ssot_context": {
+        "direction": "output",
+        "name": "ch_busy",
+        "width": "N_CHANNELS"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.dma_status.ports.ch_busy"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port ch_done",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.dma_status.ports.ch_done",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "ch_done width matches SSOT value N_CHANNELS",
+        "ch_done port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_status.ports.ch_done.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.\nSSOT item context: name=ch_done; width=N_CHANNELS; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0064",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.dma_status.ports.ch_done",
+      "ssot_context": {
+        "direction": "output",
+        "name": "ch_done",
+        "width": "N_CHANNELS"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.dma_status.ports.ch_done"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port ch_error",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.dma_status.ports.ch_error",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "ch_error width matches SSOT value N_CHANNELS",
+        "ch_error port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_status.ports.ch_error.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.\nSSOT item context: name=ch_error; width=N_CHANNELS; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0065",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.dma_status.ports.ch_error",
+      "ssot_context": {
+        "direction": "output",
+        "name": "ch_error",
+        "width": "N_CHANNELS"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.dma_status.ports.ch_error"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port ch_err_code",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.dma_status.ports.ch_err_code",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "ch_err_code width matches SSOT value 8",
+        "ch_err_code port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_status.ports.ch_err_code.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.\nSSOT item context: name=ch_err_code; width=8; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0066",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.dma_status.ports.ch_err_code",
+      "ssot_context": {
+        "direction": "output",
+        "name": "ch_err_code",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.dma_status.ports.ch_err_code"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port arb_grant",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.dma_status.ports.arb_grant",
+        "Primary implementation evidence is in rtl/dma_real_apb_cfg.sv",
+        "arb_grant width matches SSOT value 3",
+        "arb_grant port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_status.ports.arb_grant.\nOwner: dma_real_apb_cfg in rtl/dma_real_apb_cfg.sv via io_list.\nSSOT item context: name=arb_grant; width=3; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0067",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.dma_status.ports.arb_grant",
+      "ssot_context": {
+        "direction": "output",
+        "name": "arb_grant",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.dma_status.ports.arb_grant"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

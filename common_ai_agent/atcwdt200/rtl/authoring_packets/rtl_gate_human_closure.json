@@ -1,0 +1,503 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 6,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "owner": {
+      "file": "rtl/atcwdt200.sv",
+      "name": "atcwdt200",
+      "refs": [
+        "filelist",
+        "integration",
+        "integration.connections",
+        "io_list",
+        "io_list.interfaces",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcwdt200_regs.sv",
+        "name": "atcwdt200_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_core.sv",
+        "name": "atcwdt200_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200_sync.sv",
+        "name": "atcwdt200_sync",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcwdt200.sv",
+        "name": "atcwdt200",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_regs",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_regs",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_core",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_core",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_sync",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcwdt200_sync",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[5]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "pclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pclk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "presetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "presetn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_control_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_control_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_control_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "apb_control_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_control_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_control_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "extclk",
+          "watchdog_sideband_extclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "extclk",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "watchdog_sideband_wdt_pause",
+          "wdt_pause"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wdt_pause",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "watchdog_sideband_wdt_int",
+          "wdt_int"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "wdt_int",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "watchdog_sideband_wdt_rst",
+          "wdt_rst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "wdt_rst",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": false,
+    "evidence_closure_allowed": true,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atcwdt200",
+  "kind": "gate",
+  "owner_file": "rtl/atcwdt200.sv",
+  "owner_module": "atcwdt200",
+  "packet_id": "rtl_gate_human_closure",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "rtl_gate.rtl_gen": 4
+    },
+    "module_slice": {},
+    "open_required_count": 0,
+    "required_count": 4,
+    "source_refs": [
+      "quality_gates.rtl_gen.ssot_required_sections",
+      "quality_gates.rtl_gen.workflow_todo_contract",
+      "quality_gates.rtl_gen.owner_traceability",
+      "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+    ],
+    "status_counts": {
+      "pass": 4
+    },
+    "task_count": 4
+  },
+  "tasks": [
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "criteria": [
+        "function_model is present and non-empty in the SSOT",
+        "cycle_model is present and non-empty in the SSOT",
+        "Missing authority artifacts open a human/ssot-gen gate instead of being bypassed in RTL",
+        "Traceability keeps source_ref quality_gates.rtl_gen.ssot_required_sections",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "rtl-gen cannot implement production RTL until the SSOT contains both the functional golden behavior and the cycle/handshake contract.\nSSOT ref: quality_gates.rtl_gen.ssot_required_sections.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "yaml/<ip>.ssot.yaml",
+        "kind": "ssot_required_sections",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0003",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.ssot_required_sections"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "yaml/<ip>.ssot.yaml"
+        ],
+        "reason": "SSOT function_model and cycle_model authority is present.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "criteria": [
+        "Every workflow_todos.rtl-gen item has content",
+        "Every workflow_todos.rtl-gen item has detail",
+        "Every workflow_todos.rtl-gen item has at least one criteria entry",
+        "Traceability keeps source_ref quality_gates.rtl_gen.workflow_todo_contract",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "Every SSOT workflow_todos.rtl-gen item must be executable by rtl-gen and therefore must carry content, detail, and criteria.\nSSOT ref: quality_gates.rtl_gen.workflow_todo_contract.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "ssot_workflow_todo_format",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0004",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.workflow_todo_contract"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "SSOT-authored rtl-gen workflow TODOs are well formed.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: every SSOT-derived RTL behavior has an owner module",
+      "criteria": [
+        "No required function_model task is orphaned",
+        "No required cycle_model task is orphaned",
+        "No required register/dataflow/FSM task is orphaned",
+        "Owner module and owner file are recorded in rtl_todo_plan.json",
+        "Traceability keeps source_ref quality_gates.rtl_gen.owner_traceability",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "Function-level, cycle-level, register, dataflow, and FSM behavior must map to an RTL owner module before approval.\nSSOT ref: quality_gates.rtl_gen.owner_traceability.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "owner_traceability",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0005",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.owner_traceability",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.owner_traceability"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "Every required SSOT-derived RTL behavior has an owner module.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: SSOT connection contracts match RTL child port maps",
+      "criteria": [
+        "Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections",
+        "Each SSOT connection contract resolves to a reachable manifest child module and port",
+        "RTL named port-map expressions match the SSOT-intended signal terms or carry an explicit SSOT waiver",
+        "Traceability keeps source_ref quality_gates.rtl_gen.manifest_connection_contract_evidence",
+        "Primary implementation evidence is in rtl/atcwdt200.sv"
+      ],
+      "detail": "Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.\nSSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.\nOwner: atcwdt200 in rtl/atcwdt200.sv via top_module.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "manifest_connection_contract_evidence",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0016",
+      "owner_file": "rtl/atcwdt200.sv",
+      "owner_module": "atcwdt200",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "SSOT connection contracts are satisfied by reachable RTL named port maps.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3348ddb6018966555eeb963ff7b9aa4ed0d14e6293df5093c73330b07393340c",
+  "top": "atcwdt200",
+  "type": "rtl_authoring_packet"
+}

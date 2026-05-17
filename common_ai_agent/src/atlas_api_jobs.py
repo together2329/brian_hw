@@ -1079,6 +1079,8 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
 
 
 def _orchestrator_mode_enabled() -> bool:
+    if os.environ.get("ATLAS_ORCHESTRATOR_MODE") is None:
+        return True
     return _truthy_env("ATLAS_ORCHESTRATOR_MODE")
 
 
@@ -2041,6 +2043,147 @@ def register_jobs_routes(
         _state_cache.clear()
         enabled = _orchestrator_mode_enabled()
         return JSONResponse({"enabled": enabled, "mode": "json" if enabled else None})
+
+    # ── /api/orchestrator/trace ─────────────────────────────────────
+    #
+    # Read the append-only orchestrator trace log for an IP. Powers the
+    # Pipeline UI's right-side debug strip and the `jq`-friendly CLI use case.
+
+    @app.get("/api/orchestrator/trace")
+    async def api_orchestrator_trace_get(request: Request):
+        params = dict(request.query_params)
+        ip = (params.get("ip") or "").strip()
+        if not ip:
+            return JSONResponse({"error": "ip query param required"}, status_code=400)
+        try:
+            limit = int(params.get("limit") or "100")
+        except Exception:
+            limit = 100
+        corr = (params.get("corr") or "").strip() or None
+        lens = (params.get("lens") or "").strip() or None
+        try:
+            from core.orchestrator_trace import read_trace
+            events = read_trace(ip, limit=max(1, min(1000, limit)), corr=corr, lens=lens)
+        except Exception as e:
+            return JSONResponse({"error": str(e), "events": []}, status_code=500)
+        return JSONResponse({"ip": ip, "count": len(events), "events": events})
+
+    @app.delete("/api/orchestrator/trace")
+    async def api_orchestrator_trace_clear(request: Request):
+        params = dict(request.query_params)
+        ip = (params.get("ip") or "").strip()
+        if not ip:
+            return JSONResponse({"error": "ip query param required"}, status_code=400)
+        try:
+            from core.orchestrator_trace import clear_trace
+            ok = clear_trace(ip)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"ip": ip, "cleared": bool(ok)})
+
+    # ── /api/orchestrator/workers ─────────────────────────────────────
+    #
+    # Aggregated live worker status — orchestrator's view of its workers.
+    # Powers the Pipeline screen WorkerStatusBar (orchestra view).
+    #
+    # For each known workflow (ssot-gen, rtl-gen, fl-model-gen, tb-gen,
+    # sim_debug, lint, sim, coverage, goal-audit) we read WORKER_URL_<wf>
+    # from env and probe /health. The response is small enough to poll
+    # every 3 s from the UI.
+
+    @app.get("/api/orchestrator/workers")
+    async def api_orchestrator_workers(request: Request):
+        import asyncio
+        import urllib.request
+
+        params = dict(request.query_params)
+        ip = (params.get("ip") or "").strip()
+
+        # Workflows the orchestrator can dispatch. Order matters for UI.
+        workflows = [
+            "ssot-gen", "fl-model-gen", "rtl-gen", "tb-gen", "sim_debug",
+        ]
+        extra = params.get("include_optional", "").strip()
+        if extra and extra not in ("0", "false", "no"):
+            workflows.extend(["lint", "sim", "coverage", "goal-audit"])
+
+        def _probe(url: str) -> dict[str, Any]:
+            try:
+                req = urllib.request.Request(f"{url.rstrip('/')}/health",
+                                             headers={"Accept": "application/json"})
+                with urllib.request.urlopen(req, timeout=2.0) as r:
+                    import json as _json
+                    return _json.loads(r.read())
+            except Exception as exc:
+                return {"status": "unreachable", "error": str(exc)[:120]}
+
+        async def _gather() -> list[dict[str, Any]]:
+            loop = asyncio.get_event_loop()
+            tasks = []
+            for wf in workflows:
+                url = _resolve_worker_url(wf)
+                tasks.append((wf, url, loop.run_in_executor(None, _probe, url)))
+            out = []
+            for wf, url, t in tasks:
+                health = await t
+                running = health.get("running") if isinstance(health, dict) else []
+                running_list = running if isinstance(running, list) else []
+                out.append({
+                    "workflow": wf,
+                    "url": url,
+                    "status": health.get("status", "unreachable"),
+                    "bound_workflow": health.get("workflow"),
+                    "model": health.get("model"),
+                    "profile": health.get("profile"),
+                    "uptime_s": health.get("uptime_s"),
+                    "total_runs": health.get("runs"),
+                    "running": running_list,
+                    "running_count": len(running_list),
+                    "error": health.get("error"),
+                })
+            return out
+
+        try:
+            workers = await _gather()
+        except Exception as e:
+            return JSONResponse({"error": str(e), "workers": []}, status_code=500)
+
+        # Orchestrator block — read last trace event to infer current activity.
+        orch_active_target = None
+        orch_active_corr = None
+        orch_last_kind = None
+        if ip:
+            try:
+                from core.orchestrator_trace import read_trace
+                recent = read_trace(ip, limit=20)
+                for ev in reversed(recent):
+                    actor = ev.get("actor") or ""
+                    kind = ev.get("kind") or ""
+                    if kind == "http_send" or (kind == "http_recv" and actor.endswith("-worker")):
+                        # Worker that received a recent dispatch
+                        bound = actor.replace("-worker", "")
+                        orch_active_target = bound
+                        orch_active_corr = ev.get("corr")
+                        orch_last_kind = kind
+                        break
+            except Exception:
+                pass
+
+        return JSONResponse({
+            "ip": ip or None,
+            "orchestrator": {
+                "enabled": _orchestrator_mode_enabled(),
+                "mode": "json" if _orchestrator_mode_enabled() else None,
+                "active_target": orch_active_target,
+                "active_corr": orch_active_corr,
+                "last_kind": orch_last_kind,
+                "model": os.environ.get("ATLAS_ORCHESTRATOR_MODEL", "")
+                         or os.environ.get("LLM_MODEL_NAME", "")
+                         or None,
+            },
+            "workers": workers,
+            "count": len(workers),
+        })
 
     # ── /api/pipeline/run_policy ────────────────────────────────────
 

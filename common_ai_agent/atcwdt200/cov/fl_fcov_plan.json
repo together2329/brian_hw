@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "type": "fl_functional_coverage_plan",
+  "ip": "atcwdt200",
+  "source": "atcwdt200/yaml/atcwdt200.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "fl",
+  "summary": {
+    "total_bins": 18,
+    "by_class": {
+      "scenario": 6,
+      "transaction_type": 6,
+      "state_transition": 4,
+      "error": 2
+    }
+  },
+  "bins": [
+    {
+      "id": "reset_defaults_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "reset_defaults",
+      "description": "Reset defaults"
+    },
+    {
+      "id": "apb_register_access_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "apb_register_access",
+      "description": "APB register read/write"
+    },
+    {
+      "id": "restart_command_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "restart_command",
+      "description": "Restart command"
+    },
+    {
+      "id": "interrupt_timeout_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "interrupt_timeout",
+      "description": "Interrupt timeout"
+    },
+    {
+      "id": "reset_timeout_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "reset_timeout",
+      "description": "Reset timeout"
+    },
+    {
+      "id": "pause_and_extclk_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "pause_and_extclk",
+      "description": "Pause and external clock behavior"
+    },
+    {
+      "id": "function_apb_register_read",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "apb_register_read"
+    },
+    {
+      "id": "function_apb_register_write",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "description": "apb_register_write"
+    },
+    {
+      "id": "function_write_protection_unlock",
+      "class": "transaction_type",
+      "source": "function_model.transactions[2]",
+      "description": "write_protection_unlock"
+    },
+    {
+      "id": "function_watchdog_restart_command",
+      "class": "transaction_type",
+      "source": "function_model.transactions[3]",
+      "description": "watchdog_restart_command"
+    },
+    {
+      "id": "function_watchdog_tick_and_timeout_update",
+      "class": "transaction_type",
+      "source": "function_model.transactions[4]",
+      "description": "watchdog_tick_and_timeout_update"
+    },
+    {
+      "id": "function_timeout_interval_decode",
+      "class": "transaction_type",
+      "source": "function_model.transactions[5]",
+      "description": "timeout_interval_decode"
+    },
+    {
+      "id": "fsm_watchdog_st_inttime_to_st_rsttime_0",
+      "class": "state_transition",
+      "source": "fsm.watchdog.transitions[0]",
+      "description": "inttime_end and not restart_cmd"
+    },
+    {
+      "id": "fsm_watchdog_st_rsttime_to_st_inttime_1",
+      "class": "state_transition",
+      "source": "fsm.watchdog.transitions[1]",
+      "description": "restart_cmd"
+    },
+    {
+      "id": "fsm_watchdog_st_inttime_to_st_inttime_2",
+      "class": "state_transition",
+      "source": "fsm.watchdog.transitions[2]",
+      "description": "restart_cmd or not inttime_end"
+    },
+    {
+      "id": "fsm_watchdog_st_rsttime_to_st_rsttime_3",
+      "class": "state_transition",
+      "source": "fsm.watchdog.transitions[3]",
+      "description": "not restart_cmd"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_UNSUPPORTED_APB_OFFSET', 'condition': 'APB access to unsupported offset', 'architectural_effect': 'Legacy-compatible mode returns zero on reads and ignores writes because no pslverr output exists.'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "source": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_BAD_MAGIC', 'condition': 'RES or WEN magic mismatch', 'architectural_effect': 'No state-changing command effect'}"
+    }
+  ]
+}

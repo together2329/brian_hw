@@ -1,0 +1,322 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 8,
+      "key": "workflow_todo",
+      "module_task_count": 130,
+      "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_real_channel.sv",
+      "name": "dma_real_channel",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.performance",
+        "cycle_model.pipeline",
+        "dataflow.ordering.ordering_1",
+        "dataflow.ordering.ordering_2",
+        "dataflow.ordering.ordering_3",
+        "dataflow.ordering.ordering_4",
+        "dataflow.sequence.sequence_10",
+        "dataflow.sequence.sequence_11",
+        "dataflow.sequence.sequence_3",
+        "dataflow.sequence.sequence_4",
+        "dataflow.sequence.sequence_5",
+        "dataflow.sequence.sequence_6",
+        "dataflow.sequence.sequence_7",
+        "dataflow.sequence.sequence_8",
+        "dataflow.sequence.sequence_9",
+        "error_handling",
+        "fsm",
+        "fsm.per_channel",
+        "function_model",
+        "function_model.invariants",
+        "function_model.state_variables",
+        "function_model.transactions.FM_DMA_COMPLETE",
+        "function_model.transactions.FM_DMA_ERROR",
+        "function_model.transactions.FM_DMA_START",
+        "function_model.transactions.FM_DMA_STEP",
+        "io_list",
+        "parameters",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_real_apb_cfg.sv",
+        "name": "dma_real_apb_cfg",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_arbiter.sv",
+        "name": "dma_real_arbiter",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_channel.sv",
+        "name": "dma_real_channel",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_ahb_master.sv",
+        "name": "dma_real_ahb_master",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_irq.sv",
+        "name": "dma_real_irq",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_engine.sv",
+        "name": "dma_real_engine",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/dma_real_top.sv",
+        "name": "dma_real_top",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 2,
+    "open_required_count": 2,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_real",
+  "kind": "module",
+  "owner_file": "rtl/dma_real_channel.sv",
+  "owner_module": "dma_real_channel",
+  "packet_id": "module__dma_real_channel__workflow_todo",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "workflow_todo.rtl_gen": 2
+    },
+    "module_slice": {
+      "count": 9,
+      "enabled": true,
+      "index": 8,
+      "key": "workflow_todo",
+      "module_task_count": 130,
+      "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 2,
+    "required_count": 2,
+    "source_refs": [
+      "workflow_todos.rtl-gen[3]",
+      "workflow_todos.rtl-gen[8]"
+    ],
+    "status_counts": {
+      "open": 2
+    },
+    "task_count": 2
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement per-channel FSM with stride, timeout, and performance counters",
+      "criteria": [
+        "all FSM states and transitions match SSOT including timeout and FIFO overflow",
+        "address counters increment by stride per beat",
+        "timeout counter triggers error code 4",
+        "perf_words increments per word, perf_cycles per active cycle",
+        "generate block for N_CHANNELS",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[3]",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "Semantic source_refs covered: error_handling, fsm.per_channel, function_model.transactions, registers.register_list"
+      ],
+      "detail": "dma_real_channel implements IDLE/CFG/REQUEST/READ/WRITE/UPDATE/DONE/ERROR FSM. Latches src_addr, dst_addr, remaining, stride from CDC config. Addresses increment by stride (not hardcoded 4). Timeout counter monitors hready. Performance counters increment. Generate-based instantiation for N_CHANNELS.\nSSOT ref: workflow_todos.rtl-gen[3].\nOwner: dma_real_channel in rtl/dma_real_channel.sv via error_handling.",
+      "evidence_terms": [
+        "channel",
+        "error_handling",
+        "handling",
+        "per",
+        "per_channel"
+      ],
+      "id": "RTL-0023",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[3]",
+      "ssot_context": {},
+      "ssot_refs": [
+        "error_handling",
+        "fsm.per_channel",
+        "function_model.transactions",
+        "registers.register_list",
+        "workflow_todos.rtl-gen[3]"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "channel"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "channel",
+          "error_handling",
+          "handling",
+          "per",
+          "per_channel"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 10,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_WORKFLOW_TODO_004",
+        "source_refs": [
+          "error_handling",
+          "fsm.per_channel",
+          "function_model.transactions",
+          "registers.register_list"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement hclk-domain engine connecting arbiter, channels, AHB master, and clock gating",
+      "criteria": [
+        "generate block instantiates N_CHANNELS channel and FIFO instances",
+        "per-channel CG cell enable tied to ch_busy or ch_start_pending",
+        "AHB master mux selects granted channel",
+        "compile clean",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[8]",
+        "Primary implementation evidence is in rtl/dma_real_channel.sv",
+        "Semantic source_refs covered: cycle_model.pipeline, power.domains, sub_modules"
+      ],
+      "detail": "dma_real_engine instantiates arbiter, N_CHANNELS channel instances (via generate), shared AHB master, and per-channel clock gating cells. Mux channel requests to AHB master based on arbiter grant.\nSSOT ref: workflow_todos.rtl-gen[8].\nOwner: dma_real_channel in rtl/dma_real_channel.sv via cycle_model.pipeline.",
+      "evidence_terms": [
+        "modules",
+        "sub",
+        "sub_modules"
+      ],
+      "id": "RTL-0028",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[8]",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.pipeline",
+        "power.domains",
+        "sub_modules",
+        "workflow_todos.rtl-gen[8]"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "modules",
+          "sub",
+          "sub_modules"
+        ],
+        "source_scope": "rtl/dma_real_channel.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Required RTL static evidence is missing.",
+        "required": true,
+        "status": "open"
+      },
+      "workflow_todo": {
+        "id": "RTL_WORKFLOW_TODO_009",
+        "source_refs": [
+          "cycle_model.pipeline",
+          "power.domains",
+          "sub_modules"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    }
+  ],
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_packet"
+}

@@ -1,0 +1,2122 @@
+{
+  "execution_policy": {
+    "allowed_draft_work": [
+      "Author module RTL from SSOT-derived TODO packets.",
+      "Add tests, vectors, assertions, reports, and repair RTL under LLM-editable surfaces.",
+      "Leave unresolved locked-truth decisions as human_gate/change-request records instead of changing SSOT authority."
+    ],
+    "blocked_by_llm_work": [
+      {
+        "gate_kind": "static_rtl_evidence",
+        "owner_module": "dma_real_top",
+        "reason": "64 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
+        "status": "open",
+        "task_id": "RTL-0007"
+      },
+      {
+        "gate_kind": "owner_logic_structure_evidence",
+        "owner_module": "dma_real_top",
+        "reason": "1 owner logic structure issue(s) remain. dma_real_engine: Behavior-owner module is not declared in its owner file",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
+        "status": "open",
+        "task_id": "RTL-0008"
+      },
+      {
+        "gate_kind": "rtl_placeholder_free_evidence",
+        "owner_module": "dma_real_top",
+        "reason": "6 RTL placeholder/policy issue(s) remain. rtl/dma_real_apb_cfg.sv:81: for ( (RTL source uses a for loop); rtl/dma_real_apb_cfg.sv:96: for ( (RTL source uses a for loop); rtl/dma_real_apb_cfg.sv:117: for ( (RTL source uses a for loop)",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+        "status": "open",
+        "task_id": "RTL-0009"
+      },
+      {
+        "gate_kind": "top_io_contract_evidence",
+        "owner_module": "dma_real_top",
+        "reason": "6 top IO contract issue(s) remain. hclk: SSOT top IO port is missing from RTL top declaration; hresetn: SSOT top IO port is missing from RTL top declaration; hprot: SSOT top IO port is missing from RTL top declaration",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
+        "status": "open",
+        "task_id": "RTL-0010"
+      },
+      {
+        "gate_kind": "top_output_drive_evidence",
+        "owner_module": "dma_real_top",
+        "reason": "2 top output drive issue(s) remain. ch_done: RTL top output has no nonconstant assignment or declared child-output drive evidence; ch_error: RTL top output has no nonconstant assignment or declared child-output drive evidence",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
+        "status": "open",
+        "task_id": "RTL-0011"
+      },
+      {
+        "gate_kind": "manifest_hierarchy_integration",
+        "owner_module": "dma_real_top",
+        "reason": "1 manifest hierarchy integration issue(s) remain. dma_real_engine: SSOT manifest child module is not declared in listed RTL sources",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
+        "status": "open",
+        "task_id": "RTL-0013"
+      },
+      {
+        "gate_kind": "manifest_port_connection_evidence",
+        "owner_module": "dma_real_top",
+        "reason": "1 manifest port connection issue(s) remain. dma_real_channel: Reachable child instance has missing or empty named port connections",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_port_connection_evidence",
+        "status": "open",
+        "task_id": "RTL-0014"
+      },
+      {
+        "gate_kind": "manifest_signal_flow_evidence",
+        "owner_module": "dma_real_top",
+        "reason": "1 manifest signal-flow issue(s) remain. dma_real_ahb_master: write_data: Manifest child output does not feed a top output, parent RTL logic, or another child input/inout",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+        "status": "open",
+        "task_id": "RTL-0015"
+      }
+    ],
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [
+      {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "dma_real_top",
+        "reason": "RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/dma_real_engine.sv",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "gate_kind": "dut_compile",
+        "owner_module": "dma_real_top",
+        "reason": "DUT compile report does not list rtl_files for current filelist coverage.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "status": "open",
+        "task_id": "RTL-0017"
+      },
+      {
+        "gate_kind": "dut_lint",
+        "owner_module": "dma_real_top",
+        "reason": "DUT lint artifact is not clean.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "gate_kind": "dynamic_todo_closure",
+        "owner_module": "dma_real_top",
+        "reason": "76 required non-closure TODO(s) remain open.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ],
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rule": "Suggestions are emitted only when production connection contracts are missing.",
+      "sample_rows": [],
+      "summary": {
+        "applied_to_ssot": false,
+        "pending_review": 0,
+        "status": "not_required",
+        "suggested_rows": 0
+      }
+    },
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "gate_status": "fail",
+    "hard_blockers": [],
+    "open_required_todos": 77,
+    "pass_allowed": false,
+    "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
+    "stop_conditions": [
+      "Do not edit SSOT/FL/coverage/interface/performance authority artifacts without human approval.",
+      "Do not claim rtl-gen PASS while pass_allowed is false.",
+      "Do not sign off top integration while required connection contracts are missing."
+    ],
+    "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "dma_real/rtl/rtl_authoring_provenance.json",
+          "dma_real/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip dma_real --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_real --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/dma_real_engine.sv",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "artifact": "rtl/rtl_compile.json",
+        "artifacts": [
+          "dma_real/rtl/rtl_compile.json",
+          "dma_real/rtl/rtl_compile.log"
+        ],
+        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py dma_real --top dma_real_top --project-root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_real --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_compile",
+        "prerequisites": [
+          "dma_real/list/dma_real.f covers the current DUT RTL sources."
+        ],
+        "reason": "DUT compile report does not list rtl_files for current filelist coverage.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "stage_sequence": [
+          "ssot-rtl",
+          "dut_compile"
+        ],
+        "status": "open",
+        "task_id": "RTL-0017"
+      },
+      {
+        "artifact": "lint/dut_lint.json",
+        "artifacts": [
+          "dma_real/lint/dut_lint.json"
+        ],
+        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+        "commands": [
+          "python3 workflow/lint/scripts/dut_lint_report.py dma_real --top dma_real_top",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_real --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_lint",
+        "prerequisites": [
+          "dma_real/list/dma_real.f covers the current DUT RTL/header sources."
+        ],
+        "reason": "DUT lint artifact is not clean.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "stage_sequence": [
+          "lint",
+          "dut_lint"
+        ],
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "artifacts": [
+          "dma_real/rtl/rtl_todo_plan.json",
+          "dma_real/rtl/rtl_authoring_status.md"
+        ],
+        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_real --root . --audit-rtl"
+        ],
+        "gate_kind": "dynamic_todo_closure",
+        "prerequisites": [
+          "All non-closure required TODOs have pass status."
+        ],
+        "reason": "76 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "stage_sequence": [
+          "audit-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ]
+  },
+  "ip": "dma_real",
+  "packet_dir": "rtl/authoring_packets",
+  "packets": [
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_engine.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_engine.md",
+      "owner_file": "rtl/dma_real_engine.sv",
+      "owner_module": "dma_real_engine",
+      "packet_id": "module__dma_real_engine",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.dma_real_engine.module_equivalence"
+        ],
+        "status_counts": {
+          "open": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 16,
+        "open_required_count": 16,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_apb_cfg__registers_02.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_apb_cfg__registers_02.md",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "packet_id": "module__dma_real_apb_cfg__registers_02",
+      "summary": {
+        "categories": {
+          "registers.field": 33,
+          "registers.register": 15
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 4,
+          "key": "registers_02",
+          "module_task_count": 152,
+          "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "registers",
+          "section_chunk_count": 3,
+          "section_chunk_index": 2,
+          "task_limit": 48
+        },
+        "open_required_count": 16,
+        "required_count": 48,
+        "source_refs": [
+          "registers.register_list.CH1_LEN.fields.length",
+          "registers.register_list.CH1_LEN.fields.reserved_31_16",
+          "registers.register_list.CH1_STATUS",
+          "registers.register_list.CH1_STATUS.fields.busy",
+          "registers.register_list.CH1_STATUS.fields.done",
+          "registers.register_list.CH1_STATUS.fields.error",
+          "registers.register_list.CH1_STATUS.fields.err_code",
+          "registers.register_list.CH1_STATUS.fields.reserved_31_6",
+          "registers.register_list.CH1_STRIDE",
+          "registers.register_list.CH1_STRIDE.fields.stride",
+          "registers.register_list.CH1_PERF_WORDS",
+          "registers.register_list.CH1_PERF_WORDS.fields.word_count",
+          "registers.register_list.CH1_PERF_CYCLES",
+          "registers.register_list.CH1_PERF_CYCLES.fields.cycle_count",
+          "registers.register_list.CH2_CTRL",
+          "registers.register_list.CH2_CTRL.fields.ch_en",
+          "registers.register_list.CH2_CTRL.fields.ch_start",
+          "registers.register_list.CH2_CTRL.fields.hsize",
+          "registers.register_list.CH2_CTRL.fields.burst_mode",
+          "registers.register_list.CH2_CTRL.fields.reserved_31_6",
+          "registers.register_list.CH2_SRC_ADDR",
+          "registers.register_list.CH2_SRC_ADDR.fields.src_addr",
+          "registers.register_list.CH2_DST_ADDR",
+          "registers.register_list.CH2_DST_ADDR.fields.dst_addr"
+        ],
+        "status_counts": {
+          "open": 16,
+          "pass": 32
+        },
+        "task_count": 48
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 14,
+        "open_required_count": 14,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_apb_cfg__registers_01.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_apb_cfg__registers_01.md",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "packet_id": "module__dma_real_apb_cfg__registers_01",
+      "summary": {
+        "categories": {
+          "registers.field": 31,
+          "registers.register": 17
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 3,
+          "key": "registers_01",
+          "module_task_count": 152,
+          "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "registers",
+          "section_chunk_count": 3,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 14,
+        "required_count": 48,
+        "source_refs": [
+          "registers.register_list.GLOBAL_CTRL",
+          "registers.register_list.GLOBAL_CTRL.fields.dma_en",
+          "registers.register_list.GLOBAL_CTRL.fields.reserved_31_1",
+          "registers.register_list.INT_STATUS",
+          "registers.register_list.INT_STATUS.fields.ch_status",
+          "registers.register_list.INT_ENABLE",
+          "registers.register_list.INT_ENABLE.fields.ch_enable",
+          "registers.register_list.INT_CLEAR",
+          "registers.register_list.INT_CLEAR.fields.ch_clear",
+          "registers.register_list.GLOBAL_TIMEOUT",
+          "registers.register_list.GLOBAL_TIMEOUT.fields.timeout_val",
+          "registers.register_list.GLOBAL_TIMEOUT.fields.reserved_31_16",
+          "registers.register_list.CH0_CTRL",
+          "registers.register_list.CH0_CTRL.fields.ch_en",
+          "registers.register_list.CH0_CTRL.fields.ch_start",
+          "registers.register_list.CH0_CTRL.fields.hsize",
+          "registers.register_list.CH0_CTRL.fields.burst_mode",
+          "registers.register_list.CH0_CTRL.fields.reserved_31_6",
+          "registers.register_list.CH0_SRC_ADDR",
+          "registers.register_list.CH0_SRC_ADDR.fields.src_addr",
+          "registers.register_list.CH0_DST_ADDR",
+          "registers.register_list.CH0_DST_ADDR.fields.dst_addr",
+          "registers.register_list.CH0_LEN",
+          "registers.register_list.CH0_LEN.fields.length"
+        ],
+        "status_counts": {
+          "open": 14,
+          "pass": 34
+        },
+        "task_count": 48
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 7,
+        "open_required_count": 7,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_apb_cfg__function_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_apb_cfg__function_model.md",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "packet_id": "module__dma_real_apb_cfg__function_model",
+      "summary": {
+        "categories": {
+          "function_model.state_variable": 13
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 2,
+          "key": "function_model",
+          "module_task_count": 152,
+          "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 7,
+        "required_count": 13,
+        "source_refs": [
+          "function_model.state_variables.ch_busy_q",
+          "function_model.state_variables.ch_done_q",
+          "function_model.state_variables.ch_error_q",
+          "function_model.state_variables.ch_remaining_q",
+          "function_model.state_variables.ch_src_addr_q",
+          "function_model.state_variables.ch_dst_addr_q",
+          "function_model.state_variables.ch_stride_q",
+          "function_model.state_variables.dma_en_q",
+          "function_model.state_variables.int_enable_q",
+          "function_model.state_variables.arb_ptr_q",
+          "function_model.state_variables.timeout_q",
+          "function_model.state_variables.perf_words_q",
+          "function_model.state_variables.perf_cycles_q"
+        ],
+        "status_counts": {
+          "open": 7,
+          "pass": 6
+        },
+        "task_count": 13
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 5,
+        "open_required_count": 5,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_apb_cfg__registers_03.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_apb_cfg__registers_03.md",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "packet_id": "module__dma_real_apb_cfg__registers_03",
+      "summary": {
+        "categories": {
+          "registers.field": 11,
+          "registers.register": 5
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 5,
+          "key": "registers_03",
+          "module_task_count": 152,
+          "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "registers",
+          "section_chunk_count": 3,
+          "section_chunk_index": 3,
+          "task_limit": 48
+        },
+        "open_required_count": 5,
+        "required_count": 16,
+        "source_refs": [
+          "registers.register_list.CH3_DST_ADDR.fields.dst_addr",
+          "registers.register_list.CH3_LEN",
+          "registers.register_list.CH3_LEN.fields.length",
+          "registers.register_list.CH3_LEN.fields.reserved_31_16",
+          "registers.register_list.CH3_STATUS",
+          "registers.register_list.CH3_STATUS.fields.busy",
+          "registers.register_list.CH3_STATUS.fields.done",
+          "registers.register_list.CH3_STATUS.fields.error",
+          "registers.register_list.CH3_STATUS.fields.err_code",
+          "registers.register_list.CH3_STATUS.fields.reserved_31_6",
+          "registers.register_list.CH3_STRIDE",
+          "registers.register_list.CH3_STRIDE.fields.stride",
+          "registers.register_list.CH3_PERF_WORDS",
+          "registers.register_list.CH3_PERF_WORDS.fields.word_count",
+          "registers.register_list.CH3_PERF_CYCLES",
+          "registers.register_list.CH3_PERF_CYCLES.fields.cycle_count"
+        ],
+        "status_counts": {
+          "open": 5,
+          "pass": 11
+        },
+        "task_count": 16
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_apb_cfg__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_apb_cfg__workflow_todo.md",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "packet_id": "module__dma_real_apb_cfg__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 7,
+          "key": "workflow_todo",
+          "module_task_count": 152,
+          "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[1]"
+        ],
+        "status_counts": {
+          "open": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 7,
+        "open_required_count": 7,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_arbiter.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_arbiter.md",
+      "owner_file": "rtl/dma_real_arbiter.sv",
+      "owner_module": "dma_real_arbiter",
+      "packet_id": "module__dma_real_arbiter",
+      "summary": {
+        "categories": {
+          "cycle_model.backpressure": 5,
+          "cycle_model.clock": 1,
+          "cycle_model.handshake_rules": 5,
+          "cycle_model.latency": 1,
+          "cycle_model.ordering": 5,
+          "cycle_model.reset": 1,
+          "equivalence.module": 1,
+          "function_model.output": 1,
+          "function_model.output_rule": 1,
+          "function_model.precondition": 1,
+          "function_model.side_effect": 2,
+          "function_model.state_update": 1,
+          "function_model.transaction": 1,
+          "workflow_todo.rtl_gen": 2
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 28,
+          "task_limit": 48
+        },
+        "open_required_count": 7,
+        "required_count": 28,
+        "source_refs": [
+          "workflow_todos.rtl-gen[2]",
+          "workflow_todos.rtl-gen[4]",
+          "function_model.transactions.FM_ARB_GRANT",
+          "function_model.transactions.FM_ARB_GRANT.preconditions.precondition_0",
+          "function_model.transactions.FM_ARB_GRANT.outputs.output_0",
+          "function_model.transactions.FM_ARB_GRANT.output_rules.grant_next",
+          "function_model.transactions.FM_ARB_GRANT.state_updates.arb_ptr_update",
+          "function_model.transactions.FM_ARB_GRANT.side_effects.side_effect_0",
+          "function_model.transactions.FM_ARB_GRANT.side_effects.side_effect_1",
+          "cycle_model.clock",
+          "cycle_model.reset",
+          "cycle_model.latency",
+          "cycle_model.handshake_rules.apb_access",
+          "cycle_model.handshake_rules.cdc_config",
+          "cycle_model.handshake_rules.arb_grant_rule",
+          "cycle_model.handshake_rules.start_accept",
+          "cycle_model.handshake_rules.timeout_rule",
+          "cycle_model.ordering.ordering_rule_0",
+          "cycle_model.ordering.ordering_rule_1",
+          "cycle_model.ordering.ordering_rule_2",
+          "cycle_model.ordering.ordering_rule_3",
+          "cycle_model.ordering.ordering_rule_4",
+          "cycle_model.backpressure.backpressure_rule_0",
+          "cycle_model.backpressure.backpressure_rule_1"
+        ],
+        "status_counts": {
+          "open": 7,
+          "pass": 21
+        },
+        "task_count": 28
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 2,
+        "open_required_count": 2,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_channel__dataflow.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_channel__dataflow.md",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "packet_id": "module__dma_real_channel__dataflow",
+      "summary": {
+        "categories": {
+          "dataflow.sequence": 12
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 9,
+          "key": "dataflow",
+          "module_task_count": 130,
+          "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "dataflow",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 2,
+        "required_count": 12,
+        "source_refs": [
+          "dataflow.sequence.sequence_0",
+          "dataflow.sequence.sequence_1",
+          "dataflow.sequence.sequence_2",
+          "dataflow.sequence.sequence_3",
+          "dataflow.sequence.sequence_4",
+          "dataflow.sequence.sequence_5",
+          "dataflow.sequence.sequence_6",
+          "dataflow.sequence.sequence_7",
+          "dataflow.sequence.sequence_8",
+          "dataflow.sequence.sequence_9",
+          "dataflow.sequence.sequence_10",
+          "dataflow.sequence.sequence_11"
+        ],
+        "status_counts": {
+          "open": 2,
+          "pass": 10
+        },
+        "task_count": 12
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 2,
+        "open_required_count": 2,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_channel__error_handling.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_channel__error_handling.md",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "packet_id": "module__dma_real_channel__error_handling",
+      "summary": {
+        "categories": {
+          "error_handling.recovery": 5
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 6,
+          "key": "error_handling",
+          "module_task_count": 130,
+          "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "error_handling",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 2,
+        "required_count": 5,
+        "source_refs": [
+          "error_handling.recovery.recovery_0",
+          "error_handling.recovery.recovery_1",
+          "error_handling.recovery.recovery_2",
+          "error_handling.recovery.recovery_3",
+          "error_handling.recovery.recovery_4"
+        ],
+        "status_counts": {
+          "open": 2,
+          "pass": 3
+        },
+        "task_count": 5
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 2,
+        "open_required_count": 2,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_channel__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_channel__workflow_todo.md",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "packet_id": "module__dma_real_channel__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 2
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 8,
+          "key": "workflow_todo",
+          "module_task_count": 130,
+          "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 2,
+        "required_count": 2,
+        "source_refs": [
+          "workflow_todos.rtl-gen[3]",
+          "workflow_todos.rtl-gen[8]"
+        ],
+        "status_counts": {
+          "open": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_channel__function_model_02.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_channel__function_model_02.md",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "packet_id": "module__dma_real_channel__function_model_02",
+      "summary": {
+        "categories": {
+          "function_model.error_case": 5,
+          "function_model.invariant": 8,
+          "function_model.output": 3,
+          "function_model.output_rule": 4,
+          "function_model.precondition": 1,
+          "function_model.side_effect": 6,
+          "function_model.transaction": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 3,
+          "key": "function_model_02",
+          "module_task_count": 130,
+          "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 2,
+          "section_chunk_index": 2,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 28,
+        "source_refs": [
+          "function_model.transactions.FM_DMA_COMPLETE.output_rules.irq_assert",
+          "function_model.transactions.FM_DMA_COMPLETE.side_effects.side_effect_0",
+          "function_model.transactions.FM_DMA_COMPLETE.side_effects.side_effect_1",
+          "function_model.transactions.FM_DMA_COMPLETE.side_effects.side_effect_2",
+          "function_model.transactions.FM_DMA_ERROR",
+          "function_model.transactions.FM_DMA_ERROR.preconditions.precondition_0",
+          "function_model.transactions.FM_DMA_ERROR.outputs.output_0",
+          "function_model.transactions.FM_DMA_ERROR.outputs.output_1",
+          "function_model.transactions.FM_DMA_ERROR.outputs.output_2",
+          "function_model.transactions.FM_DMA_ERROR.output_rules.error_assert",
+          "function_model.transactions.FM_DMA_ERROR.output_rules.error_code_out",
+          "function_model.transactions.FM_DMA_ERROR.output_rules.irq_error",
+          "function_model.transactions.FM_DMA_ERROR.side_effects.side_effect_0",
+          "function_model.transactions.FM_DMA_ERROR.side_effects.side_effect_1",
+          "function_model.transactions.FM_DMA_ERROR.side_effects.side_effect_2",
+          "function_model.transactions.FM_DMA_ERROR.error_cases.error_case_0",
+          "function_model.transactions.FM_DMA_ERROR.error_cases.error_case_1",
+          "function_model.transactions.FM_DMA_ERROR.error_cases.error_case_2",
+          "function_model.transactions.FM_DMA_ERROR.error_cases.error_case_3",
+          "function_model.transactions.FM_DMA_ERROR.error_cases.error_case_4",
+          "function_model.invariants.invariant_0",
+          "function_model.invariants.invariant_1",
+          "function_model.invariants.invariant_2",
+          "function_model.invariants.invariant_3"
+        ],
+        "status_counts": {
+          "open": 1,
+          "pass": 27
+        },
+        "task_count": 28
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 3,
+        "open_required_count": 3,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_ahb_master.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_ahb_master.md",
+      "owner_file": "rtl/dma_real_ahb_master.sv",
+      "owner_module": "dma_real_ahb_master",
+      "packet_id": "module__dma_real_ahb_master",
+      "summary": {
+        "categories": {
+          "cycle_model.handshake_rules": 4,
+          "equivalence.module": 1,
+          "io_list.port": 14
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 19,
+          "task_limit": 48
+        },
+        "open_required_count": 3,
+        "required_count": 19,
+        "source_refs": [
+          "cycle_model.handshake_rules.ahb_address_phase",
+          "cycle_model.handshake_rules.ahb_data_phase",
+          "cycle_model.handshake_rules.ahb_1kb_boundary",
+          "cycle_model.handshake_rules.ahb_error_response",
+          "sub_modules.dma_real_ahb_master.module_equivalence",
+          "io_list.interfaces.ahb_master.ports.haddr",
+          "io_list.interfaces.ahb_master.ports.hwrite",
+          "io_list.interfaces.ahb_master.ports.htrans",
+          "io_list.interfaces.ahb_master.ports.hsize",
+          "io_list.interfaces.ahb_master.ports.hburst",
+          "io_list.interfaces.ahb_master.ports.hprot",
+          "io_list.interfaces.ahb_master.ports.hmaster",
+          "io_list.interfaces.ahb_master.ports.hmastlock",
+          "io_list.interfaces.ahb_master.ports.hwdata",
+          "io_list.interfaces.ahb_master.ports.hrdata",
+          "io_list.interfaces.ahb_master.ports.hready",
+          "io_list.interfaces.ahb_master.ports.hresp",
+          "io_list.interfaces.ahb_master.ports.hbusreq",
+          "io_list.interfaces.ahb_master.ports.hgrant"
+        ],
+        "status_counts": {
+          "open": 3,
+          "pass": 16
+        },
+        "task_count": 19
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_irq.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_irq.md",
+      "owner_file": "rtl/dma_real_irq.sv",
+      "owner_module": "dma_real_irq",
+      "packet_id": "module__dma_real_irq",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1,
+          "interrupts.outputs": 2,
+          "io_list.port": 2,
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 6,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 6,
+        "source_refs": [
+          "workflow_todos.rtl-gen[5]",
+          "interrupts.outputs.irq",
+          "interrupts.outputs.irq_combined",
+          "sub_modules.dma_real_irq.module_equivalence",
+          "io_list.interfaces.irq_outputs.ports.irq",
+          "io_list.interfaces.irq_outputs.ports.irq_combined"
+        ],
+        "status_counts": {
+          "open": 1,
+          "pass": 5
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 3,
+        "open_required_count": 3,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_top.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_top.md",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "packet_id": "module__dma_real_top",
+      "summary": {
+        "categories": {
+          "dft.scan": 2,
+          "equivalence.module": 1,
+          "features.item": 10,
+          "integration.dependencies": 4,
+          "rtl_flow.seed": 1,
+          "rtl_flow.top": 1,
+          "security.assets": 3,
+          "synthesis.constraints": 4,
+          "test_requirements.scenario": 14,
+          "workflow_todo.rtl_gen": 3
+        },
+        "module_slice": {
+          "count": 1,
+          "enabled": false,
+          "index": 1,
+          "key": "all",
+          "module_task_count": 43,
+          "task_limit": 48
+        },
+        "open_required_count": 3,
+        "required_count": 43,
+        "source_refs": [
+          "top_module",
+          "io_list",
+          "workflow_todos.rtl-gen[0]",
+          "workflow_todos.rtl-gen[6]",
+          "workflow_todos.rtl-gen[7]",
+          "features.multi_channel",
+          "features.dual_clock_cdc",
+          "features.round_robin_arb",
+          "features.full_ahb_lite",
+          "features.per_channel_irq",
+          "features.error_detection",
+          "features.programmable_stride",
+          "features.bus_timeout",
+          "features.performance_counters",
+          "features.clock_gating",
+          "security.assets.channel_config",
+          "security.assets.transfer_data",
+          "security.assets.perf_counters",
+          "integration.dependencies.dependencie_0",
+          "integration.dependencies.dependencie_1",
+          "integration.dependencies.dependencie_2",
+          "integration.dependencies.dependencie_3",
+          "dft.scan.mode",
+          "dft.scan.description"
+        ],
+        "status_counts": {
+          "open": 3,
+          "pass": 40
+        },
+        "task_count": 43
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 8,
+        "open_required_count": 8,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "packet_id": "rtl_gate_evidence_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 9
+        },
+        "module_slice": {},
+        "open_required_count": 8,
+        "required_count": 9,
+        "source_refs": [
+          "quality_gates.rtl_gen.static_rtl_evidence",
+          "quality_gates.rtl_gen.owner_logic_structure_evidence",
+          "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+          "quality_gates.rtl_gen.top_io_contract_evidence",
+          "quality_gates.rtl_gen.top_output_drive_evidence",
+          "quality_gates.rtl_gen.top_input_consumption_evidence",
+          "quality_gates.rtl_gen.manifest_hierarchy_integration",
+          "quality_gates.rtl_gen.manifest_port_connection_evidence",
+          "quality_gates.rtl_gen.manifest_signal_flow_evidence"
+        ],
+        "status_counts": {
+          "open": 8,
+          "pass": 1
+        },
+        "task_count": 9
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [
+          {
+            "gate_kind": "common_ai_agent_authoring",
+            "owner_module": "dma_real_top",
+            "reason": "RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/dma_real_engine.sv",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
+          {
+            "gate_kind": "dut_compile",
+            "owner_module": "dma_real_top",
+            "reason": "DUT compile report does not list rtl_files for current filelist coverage.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dut_compile",
+            "status": "open",
+            "task_id": "RTL-0017"
+          },
+          {
+            "gate_kind": "dut_lint",
+            "owner_module": "dma_real_top",
+            "reason": "DUT lint artifact is not clean.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dut_lint",
+            "status": "open",
+            "task_id": "RTL-0018"
+          },
+          {
+            "gate_kind": "dynamic_todo_closure",
+            "owner_module": "dma_real_top",
+            "reason": "76 required non-closure TODO(s) remain open.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "status": "open",
+            "task_id": "RTL-0019"
+          }
+        ],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 4,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 4,
+        "tool_evidence_plan": [
+          {
+            "artifact": "rtl/rtl_authoring_provenance.json",
+            "artifacts": [
+              "dma_real/rtl/rtl_authoring_provenance.json",
+              "dma_real/rtl/rtl_todo_plan.json"
+            ],
+            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+            "commands": [
+              "python3 src/headless_workflow.py --root . --ip dma_real --stages rtl-gen",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_real --root . --audit-rtl"
+            ],
+            "gate_kind": "common_ai_agent_authoring",
+            "prerequisites": [
+              "An LLM authoring pass emitted or repaired DUT RTL files."
+            ],
+            "reason": "RTL authoring provenance is incomplete: rtl_files_missing_manifest:rtl/dma_real_engine.sv",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "stage_sequence": [
+              "ssot-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
+          {
+            "artifact": "rtl/rtl_compile.json",
+            "artifacts": [
+              "dma_real/rtl/rtl_compile.json",
+              "dma_real/rtl/rtl_compile.log"
+            ],
+            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+            "commands": [
+              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py dma_real --top dma_real_top --project-root .",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_real --root . --audit-rtl"
+            ],
+            "gate_kind": "dut_compile",
+            "prerequisites": [
+              "dma_real/list/dma_real.f covers the current DUT RTL sources."
+            ],
+            "reason": "DUT compile report does not list rtl_files for current filelist coverage.",
+            "source_ref": "quality_gates.rtl_gen.dut_compile",
+            "stage_sequence": [
+              "ssot-rtl",
+              "dut_compile"
+            ],
+            "status": "open",
+            "task_id": "RTL-0017"
+          },
+          {
+            "artifact": "lint/dut_lint.json",
+            "artifacts": [
+              "dma_real/lint/dut_lint.json"
+            ],
+            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+            "commands": [
+              "python3 workflow/lint/scripts/dut_lint_report.py dma_real --top dma_real_top",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_real --root . --audit-rtl"
+            ],
+            "gate_kind": "dut_lint",
+            "prerequisites": [
+              "dma_real/list/dma_real.f covers the current DUT RTL/header sources."
+            ],
+            "reason": "DUT lint artifact is not clean.",
+            "source_ref": "quality_gates.rtl_gen.dut_lint",
+            "stage_sequence": [
+              "lint",
+              "dut_lint"
+            ],
+            "status": "open",
+            "task_id": "RTL-0018"
+          },
+          {
+            "artifact": "rtl/rtl_todo_plan.json",
+            "artifacts": [
+              "dma_real/rtl/rtl_todo_plan.json",
+              "dma_real/rtl/rtl_authoring_status.md"
+            ],
+            "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+            "commands": [
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_real --root . --audit-rtl"
+            ],
+            "gate_kind": "dynamic_todo_closure",
+            "prerequisites": [
+              "All non-closure required TODOs have pass status."
+            ],
+            "reason": "76 required non-closure TODO(s) remain open.",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "stage_sequence": [
+              "audit-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0019"
+          }
+        ],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "packet_id": "rtl_gate_tool_evidence",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 4
+        },
+        "module_slice": {},
+        "open_required_count": 4,
+        "required_count": 4,
+        "source_refs": [
+          "quality_gates.rtl_gen.common_ai_agent_authoring",
+          "quality_gates.rtl_gen.dut_compile",
+          "quality_gates.rtl_gen.dut_lint",
+          "quality_gates.rtl_gen.dynamic_todo_closure"
+        ],
+        "status_counts": {
+          "open": 4
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_apb_cfg__dataflow.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_apb_cfg__dataflow.md",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "packet_id": "module__dma_real_apb_cfg__dataflow",
+      "summary": {
+        "categories": {
+          "dataflow.ordering": 6,
+          "dataflow.sequence": 2
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 8,
+          "key": "dataflow",
+          "module_task_count": 152,
+          "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "dataflow",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 8,
+        "source_refs": [
+          "dataflow.sequence.sequence_12",
+          "dataflow.sequence.sequence_13",
+          "dataflow.ordering.ordering_0",
+          "dataflow.ordering.ordering_1",
+          "dataflow.ordering.ordering_2",
+          "dataflow.ordering.ordering_3",
+          "dataflow.ordering.ordering_4",
+          "dataflow.ordering.ordering_5"
+        ],
+        "status_counts": {
+          "pass": 8
+        },
+        "task_count": 8
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_apb_cfg__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_apb_cfg__equivalence.md",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "packet_id": "module__dma_real_apb_cfg__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 6,
+          "key": "equivalence",
+          "module_task_count": 152,
+          "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.dma_real_apb_cfg.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_apb_cfg__io_list.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_apb_cfg__io_list.md",
+      "owner_file": "rtl/dma_real_apb_cfg.sv",
+      "owner_module": "dma_real_apb_cfg",
+      "packet_id": "module__dma_real_apb_cfg__io_list",
+      "summary": {
+        "categories": {
+          "io_list.port": 17
+        },
+        "module_slice": {
+          "count": 8,
+          "enabled": true,
+          "index": 1,
+          "key": "io_list",
+          "module_task_count": 152,
+          "rule": "Owner module dma_real_apb_cfg is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "io_list",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 17,
+        "source_refs": [
+          "io_list.clock_domains.pclk_domain.ports.pclk",
+          "io_list.clock_domains.hclk_domain.ports.hclk",
+          "io_list.resets.presetn_domain.ports.presetn",
+          "io_list.resets.hresetn_domain.ports.hresetn",
+          "io_list.interfaces.apb_slave.ports.psel",
+          "io_list.interfaces.apb_slave.ports.penable",
+          "io_list.interfaces.apb_slave.ports.pwrite",
+          "io_list.interfaces.apb_slave.ports.paddr",
+          "io_list.interfaces.apb_slave.ports.pwdata",
+          "io_list.interfaces.apb_slave.ports.prdata",
+          "io_list.interfaces.apb_slave.ports.pready",
+          "io_list.interfaces.apb_slave.ports.pslverr",
+          "io_list.interfaces.dma_status.ports.ch_busy",
+          "io_list.interfaces.dma_status.ports.ch_done",
+          "io_list.interfaces.dma_status.ports.ch_error",
+          "io_list.interfaces.dma_status.ports.ch_err_code",
+          "io_list.interfaces.dma_status.ports.arb_grant"
+        ],
+        "status_counts": {
+          "pass": 17
+        },
+        "task_count": 17
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_channel__cycle_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_channel__cycle_model.md",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "packet_id": "module__dma_real_channel__cycle_model",
+      "summary": {
+        "categories": {
+          "cycle_model.pipeline": 8
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 4,
+          "key": "cycle_model",
+          "module_task_count": 130,
+          "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "cycle_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 8,
+        "source_refs": [
+          "cycle_model.pipeline.IDLE",
+          "cycle_model.pipeline.CFG",
+          "cycle_model.pipeline.REQUEST",
+          "cycle_model.pipeline.READ",
+          "cycle_model.pipeline.WRITE",
+          "cycle_model.pipeline.UPDATE",
+          "cycle_model.pipeline.DONE",
+          "cycle_model.pipeline.ERROR"
+        ],
+        "status_counts": {
+          "pass": 8
+        },
+        "task_count": 8
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_channel__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_channel__equivalence.md",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "packet_id": "module__dma_real_channel__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 7,
+          "key": "equivalence",
+          "module_task_count": 130,
+          "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.dma_real_channel.module_equivalence"
+        ],
+        "status_counts": {
+          "pass": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_channel__fsm.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_channel__fsm.md",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "packet_id": "module__dma_real_channel__fsm",
+      "summary": {
+        "categories": {
+          "fsm.state": 8,
+          "fsm.transition": 12
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 5,
+          "key": "fsm",
+          "module_task_count": 130,
+          "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "fsm",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 20,
+        "source_refs": [
+          "fsm.per_channel.states.state_0",
+          "fsm.per_channel.states.state_1",
+          "fsm.per_channel.states.state_2",
+          "fsm.per_channel.states.state_3",
+          "fsm.per_channel.states.state_4",
+          "fsm.per_channel.states.state_5",
+          "fsm.per_channel.states.state_6",
+          "fsm.per_channel.states.state_7",
+          "fsm.per_channel.transitions.transition_0",
+          "fsm.per_channel.transitions.transition_1",
+          "fsm.per_channel.transitions.transition_2",
+          "fsm.per_channel.transitions.transition_3",
+          "fsm.per_channel.transitions.transition_4",
+          "fsm.per_channel.transitions.transition_5",
+          "fsm.per_channel.transitions.transition_6",
+          "fsm.per_channel.transitions.transition_7",
+          "fsm.per_channel.transitions.transition_8",
+          "fsm.per_channel.transitions.transition_9",
+          "fsm.per_channel.transitions.transition_10",
+          "fsm.per_channel.transitions.transition_11"
+        ],
+        "status_counts": {
+          "pass": 20
+        },
+        "task_count": 20
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_channel__function_model_01.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_channel__function_model_01.md",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "packet_id": "module__dma_real_channel__function_model_01",
+      "summary": {
+        "categories": {
+          "function_model.error_case": 6,
+          "function_model.output": 8,
+          "function_model.output_rule": 7,
+          "function_model.precondition": 7,
+          "function_model.side_effect": 12,
+          "function_model.state_update": 5,
+          "function_model.transaction": 3
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 2,
+          "key": "function_model_01",
+          "module_task_count": 130,
+          "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 2,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 48,
+        "source_refs": [
+          "function_model.transactions.FM_DMA_START",
+          "function_model.transactions.FM_DMA_START.preconditions.precondition_0",
+          "function_model.transactions.FM_DMA_START.preconditions.precondition_1",
+          "function_model.transactions.FM_DMA_START.preconditions.precondition_2",
+          "function_model.transactions.FM_DMA_START.outputs.output_0",
+          "function_model.transactions.FM_DMA_START.outputs.output_1",
+          "function_model.transactions.FM_DMA_START.outputs.output_2",
+          "function_model.transactions.FM_DMA_START.output_rules.ch_busy_next",
+          "function_model.transactions.FM_DMA_START.output_rules.ch_error_flag",
+          "function_model.transactions.FM_DMA_START.output_rules.ch_err_code_val",
+          "function_model.transactions.FM_DMA_START.side_effects.side_effect_0",
+          "function_model.transactions.FM_DMA_START.side_effects.side_effect_1",
+          "function_model.transactions.FM_DMA_START.side_effects.side_effect_2",
+          "function_model.transactions.FM_DMA_START.side_effects.side_effect_3",
+          "function_model.transactions.FM_DMA_START.side_effects.side_effect_4",
+          "function_model.transactions.FM_DMA_START.side_effects.side_effect_5",
+          "function_model.transactions.FM_DMA_START.error_cases.error_case_0",
+          "function_model.transactions.FM_DMA_START.error_cases.error_case_1",
+          "function_model.transactions.FM_DMA_START.error_cases.error_case_2",
+          "function_model.transactions.FM_DMA_START.error_cases.error_case_3",
+          "function_model.transactions.FM_DMA_STEP",
+          "function_model.transactions.FM_DMA_STEP.preconditions.precondition_0",
+          "function_model.transactions.FM_DMA_STEP.preconditions.precondition_1",
+          "function_model.transactions.FM_DMA_STEP.outputs.output_0"
+        ],
+        "status_counts": {
+          "pass": 48
+        },
+        "task_count": 48
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_real_channel__parameters.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_real_channel__parameters.md",
+      "owner_file": "rtl/dma_real_channel.sv",
+      "owner_module": "dma_real_channel",
+      "packet_id": "module__dma_real_channel__parameters",
+      "summary": {
+        "categories": {
+          "parameters.item": 6
+        },
+        "module_slice": {
+          "count": 9,
+          "enabled": true,
+          "index": 1,
+          "key": "parameters",
+          "module_task_count": 130,
+          "rule": "Owner module dma_real_channel is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "parameters",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 6,
+        "source_refs": [
+          "parameters.ADDR_WIDTH",
+          "parameters.DATA_WIDTH",
+          "parameters.N_CHANNELS",
+          "parameters.BURST_MAX",
+          "parameters.FIFO_DEPTH",
+          "parameters.TIMEOUT_DEFAULT"
+        ],
+        "status_counts": {
+          "pass": 6
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_human_closure.md",
+      "owner_file": "rtl/dma_real_top.sv",
+      "owner_module": "dma_real_top",
+      "packet_id": "rtl_gate_human_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 4
+        },
+        "module_slice": {},
+        "open_required_count": 0,
+        "required_count": 4,
+        "source_refs": [
+          "quality_gates.rtl_gen.ssot_required_sections",
+          "quality_gates.rtl_gen.workflow_todo_contract",
+          "quality_gates.rtl_gen.owner_traceability",
+          "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+        ],
+        "status_counts": {
+          "pass": 4
+        },
+        "task_count": 4
+      }
+    }
+  ],
+  "policy": {
+    "dynamic_task_rule": "Use every required task in this file as the authoritative RTL implementation/evidence ledger. Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the existing flat TodoTracker executes one SSOT-derived RTL task at a time.",
+    "fixed_template_role": "seed_only",
+    "no_orphan_function_level": true,
+    "reference_profile_rule": "Optional rtl_reference_profile artifacts are calibration-only scale reports; they must not be copied, transformed, or used as fixed RTL templates.",
+    "rtl_gate_todo_rule": "RTL-gen quality gates are first-class rtl_gate.rtl_gen TODOs; compile/lint/static/ownership/owner-logic/placeholder-free/implementation-depth/top-io/top-output-drive/top-input-consumption/hierarchy/port-connection/signal-flow/connection-contract gates must close as TODOs before PASS.",
+    "rtl_quality_profile": "standard",
+    "rtl_target_scale": {},
+    "rtl_target_scale_waiver": {},
+    "single_source_of_truth": "SSOT YAML is the only authority for function_model, cycle_model, RTL ownership, DV plan, and coverage.",
+    "ssot_workflow_todo_rule": "workflow_todos.rtl-gen[] entries are first-class downstream tasks; content/detail/criteria must be preserved and satisfied by RTL evidence.",
+    "target_scale_rule": "Optional quality_gates.rtl_gen.target_scale is SSOT-locked human policy. It can be calibrated from a reference profile, but it is enforced as generic structural depth evidence, not as copied reference RTL."
+  },
+  "reference_profile": null,
+  "reference_scale_gap": {},
+  "rules": [
+    "Use rtl_todo_plan.json as the complete ledger and rtl_authoring_plan.json as the LLM work queue.",
+    "Process one authoring packet at a time: module packets first, then unowned tasks if any, then rtl_gate_evidence_closure; leave rtl_gate_tool_evidence to tools and rtl_gate_contract_blocked/rtl_gate_human_closure to human-locked authority gaps.",
+    "Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.",
+    "Do not close static RTL evidence with comments: derive_rtl_todos.py strips comments before matching, so evidence_terms must be preserved in live lint-clean RTL identifiers/logic.",
+    "Do not close static RTL evidence with evidence-only alias wires or marker-only helper wires; the matched identifiers must participate in real RTL behavior.",
+    "If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.",
+    "After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.",
+    "Keep locked authority artifacts unchanged unless a human approves a change request.",
+    "Rerun rtl_todo_plan audit, compile, lint, sim, and coverage evidence until required TODOs pass."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "status_markdown": "rtl/rtl_authoring_status.md",
+  "summary": {
+    "connection_contract_suggestions_present": false,
+    "deferred_human_qa_allowed": true,
+    "gate_packets": 3,
+    "human_locked_packets": 0,
+    "human_locked_tasks": 0,
+    "llm_actionable_packets": 15,
+    "llm_actionable_tasks": 73,
+    "max_packet_required_tasks": 48,
+    "module_packets": 22,
+    "next_llm_packets": [
+      "module__dma_real_engine",
+      "module__dma_real_apb_cfg__registers_02",
+      "module__dma_real_apb_cfg__registers_01",
+      "module__dma_real_apb_cfg__function_model",
+      "module__dma_real_apb_cfg__registers_03",
+      "module__dma_real_apb_cfg__workflow_todo",
+      "module__dma_real_arbiter",
+      "module__dma_real_channel__dataflow"
+    ],
+    "packet_task_limit": 48,
+    "packets": 25,
+    "pass_allowed": false,
+    "pending_connection_contract_suggestions": 0,
+    "recommended_packet_batch_limit": 4,
+    "reference_profile_present": false,
+    "reference_scale_gap_present": false,
+    "required_tasks": 396,
+    "sliced_module_packets": 17,
+    "target_scale_present": false,
+    "tool_evidence_packets": 1,
+    "tool_evidence_tasks": 4,
+    "total_tasks": 396,
+    "unowned_packets": 0
+  },
+  "target_scale": {},
+  "todo_plan_sha256": "08a17cccf5914d45200fe4745d1e515b35dfeed4fddb483eb6daaabc71eaacf3",
+  "top": "dma_real_top",
+  "type": "rtl_authoring_plan"
+}
