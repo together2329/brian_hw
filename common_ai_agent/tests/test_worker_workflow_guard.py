@@ -26,9 +26,23 @@ class TestWorkerWorkflowGuard(unittest.TestCase):
 
         self._srv = srv
         self._saved_workflow = srv._SERVER_WORKFLOW
+        self._saved_run_react_task = srv._run_react_task
+
+        def _fake_run_react_task(entry, *_args, **_kwargs):
+            import time
+
+            entry.status = "completed"
+            entry.started_at = entry.started_at or time.time()
+            entry.finished_at = time.time()
+            entry.result = {"run_id": entry.run_id, "status": "completed"}
+
+        srv._run_react_task = _fake_run_react_task
 
     def tearDown(self):
         self._srv._SERVER_WORKFLOW = self._saved_workflow
+        self._srv._run_react_task = self._saved_run_react_task
+        with self._srv._runs_lock:
+            self._srv._runs.clear()
 
     def _client_with_binding(self, workflow: str):
         from fastapi.testclient import TestClient
@@ -68,7 +82,7 @@ class TestWorkerWorkflowGuard(unittest.TestCase):
             json={
                 "task": "do something",
                 "workflow": "rtl-gen",
-                "sync": False,
+                "sync": True,
             },
         )
         # The request body is otherwise legal; the run starts (or is queued)
@@ -80,7 +94,7 @@ class TestWorkerWorkflowGuard(unittest.TestCase):
         client = self._client_with_binding("rtl-gen")
         resp = client.post(
             "/run",
-            json={"task": "do something", "sync": False},
+            json={"task": "do something", "sync": True},
         )
         # Empty/missing `workflow` is intentionally not rejected so existing
         # un-namespaced callers keep working; the guard fires only when the

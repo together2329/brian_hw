@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "quad_spi_ctrl",
+  "source": "quad_spi_ctrl/yaml/quad_spi_ctrl.ssot.yaml",
+  "units": [
+    {
+      "name": "quad_spi_ctrl_apb",
+      "kind": "rtl_module",
+      "source_sections": ["registers", "interrupts", "error_handling", "io_list"],
+      "rtl_candidates": ["quad_spi_ctrl_apb"],
+      "rtl_file": "rtl/quad_spi_ctrl_apb.sv",
+      "requires_module_equivalence": true,
+      "blocked": false
+    },
+    {
+      "name": "quad_spi_ctrl_fifo",
+      "kind": "rtl_module",
+      "source_sections": ["memory", "cycle_model", "dataflow", "function_model"],
+      "rtl_candidates": ["quad_spi_ctrl_fifo"],
+      "rtl_file": "rtl/quad_spi_ctrl_fifo.sv",
+      "requires_module_equivalence": true,
+      "blocked": false
+    },
+    {
+      "name": "quad_spi_ctrl_sclk_gen",
+      "kind": "rtl_module",
+      "source_sections": ["parameters", "cycle_model", "timing"],
+      "rtl_candidates": ["quad_spi_ctrl_sclk_gen"],
+      "rtl_file": "rtl/quad_spi_ctrl_sclk_gen.sv",
+      "requires_module_equivalence": true,
+      "blocked": false
+    },
+    {
+      "name": "quad_spi_ctrl_fsm",
+      "kind": "rtl_module",
+      "source_sections": ["function_model", "cycle_model", "fsm", "features", "dataflow"],
+      "rtl_candidates": ["quad_spi_ctrl_fsm"],
+      "rtl_file": "rtl/quad_spi_ctrl_fsm.sv",
+      "requires_module_equivalence": true,
+      "blocked": false
+    },
+    {
+      "name": "quad_spi_ctrl_top",
+      "kind": "rtl_module",
+      "source_sections": ["top_module", "io_list", "filelist", "integration"],
+      "rtl_candidates": ["quad_spi_ctrl_top"],
+      "rtl_file": "rtl/quad_spi_ctrl_top.sv",
+      "requires_module_equivalence": false,
+      "blocked": false
+    }
+  ],
+  "complete": true
+}

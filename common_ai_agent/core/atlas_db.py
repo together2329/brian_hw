@@ -3372,7 +3372,7 @@ class AtlasDB:
             summary = item.get("summary") if isinstance(item.get("summary"), dict) else {}
             item["ip"] = summary.get("ip") or item.get("project_id") or ""
             item["workflow"] = item.get("latest_workflow") or summary.get("workflow") or ""
-            item["pipeline_run_id"] = item.get("latest_workflow_run_id") or summary.get("pipeline_run_id") or ""
+            item["pipeline_run_id"] = summary.get("pipeline_run_id") or item.get("latest_workflow_run_id") or ""
             sessions.append(item)
         return sessions
 

@@ -1,0 +1,715 @@
+# quad_spi_ctrl.ssot.yaml — Single Source of Truth
+# CRITICAL: top_module.name != ip_name (quad-spi/octa-ddr pattern)
+# No redundant sub_module with name==ip_name
+# All expressions in Python syntax (a if cond else b, not cond ? a : b)
+# No Verilog-style literals (0x0 not 32'h0)
+# filelist.rtl MUST include top_module.file
+
+top_module:
+  name: "quad_spi_ctrl_top"
+  file: "rtl/quad_spi_ctrl_top.sv"
+  version: "1.0"
+  type: "peripheral"
+  description: "APB-lite controlled Quad SPI master with 1/2/4 lane SDR mode, TX/RX FIFOs, programmable SCLK/CS_N/prescaler, interrupts, and debug observability."
+  reference_spec: "Project requirement seed: quad_spi_ctrl/req/quad_spi_ctrl_requirements.md"
+  target:
+    technology: "generic"
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+
+sub_modules:
+  - name: "quad_spi_ctrl_apb"
+    file: "rtl/quad_spi_ctrl_apb.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    implements:
+      - "registers.register_list"
+      - "interrupts"
+      - "error_handling"
+      - "io_list.interfaces.apb_slave"
+    source_sections: ["registers", "interrupts", "error_handling", "io_list"]
+    ssot_refs:
+      - "registers"
+      - "registers.config"
+      - "registers.register_list"
+      - "io_list.interfaces.apb_slave"
+      - "error_handling.error_sources"
+    register_refs:
+      - "registers.register_list"
+      - "registers.register_list.CTRL"
+      - "registers.register_list.STATUS"
+      - "registers.register_list.PRESCALE"
+      - "registers.register_list.TXDATA"
+      - "registers.register_list.RXDATA"
+      - "registers.register_list.CS_IDLE"
+      - "registers.register_list.IE"
+      - "registers.register_list.DEBUG"
+    interrupt_refs:
+      - "interrupts.sources"
+    error_handling_refs:
+      - "error_handling.error_sources"
+    description: "APB register decode, access policy, interrupt mask/pending/clear logic, W1C ownership, sticky error status, and irq_o generation"
+
+  - name: "quad_spi_ctrl_fifo"
+    file: "rtl/quad_spi_ctrl_fifo.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    implements:
+      - "memory.instances"
+      - "cycle_model.backpressure"
+      - "dataflow"
+      - "function_model.state_variables.tx_fifo"
+      - "function_model.state_variables.rx_fifo"
+    source_sections: ["memory", "cycle_model", "dataflow", "function_model"]
+    ssot_refs:
+      - "memory.instances"
+      - "dataflow.tx_path"
+      - "dataflow.rx_path"
+      - "function_model.state_variables.tx_fifo"
+      - "function_model.state_variables.rx_fifo"
+      - "function_model.transactions.FM_APB_TX_PUSH"
+      - "function_model.transactions.FM_APB_RX_POP"
+      - "function_model.transactions.FM_FRAME_COMPLETE"
+    dataflow_refs:
+      - "dataflow.tx_path"
+      - "dataflow.rx_path"
+    cycle_model_refs:
+      - "cycle_model.backpressure"
+    function_model_refs:
+      - "function_model.state_variables.tx_fifo"
+      - "function_model.state_variables.rx_fifo"
+    description: "TX/RX FIFO storage with level tracking, full/empty flags, APB push/pop ownership, and frame-complete RX enqueue"
+
+  - name: "quad_spi_ctrl_sclk_gen"
+    file: "rtl/quad_spi_ctrl_sclk_gen.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    implements:
+      - "cycle_model.handshake_rules.sclk_o"
+      - "cycle_model.handshake_rules.sample_edge"
+      - "cycle_model.pipeline"
+      - "timing"
+    source_sections: ["parameters", "cycle_model", "timing"]
+    ssot_refs:
+      - "cycle_model.handshake_rules.sclk_o"
+      - "cycle_model.handshake_rules.sample_edge"
+      - "cycle_model.pipeline"
+      - "timing.protocol_timing"
+    cycle_model_refs:
+      - "cycle_model.handshake_rules.sclk_o"
+      - "cycle_model.handshake_rules.sample_edge"
+      - "cycle_model.pipeline"
+    description: "SCLK waveform generation from PCLK prescaler, CPOL/CPHA edge timing, prescale tick, and SCLK toggle control"
+
+  - name: "quad_spi_ctrl_fsm"
+    file: "rtl/quad_spi_ctrl_fsm.sv"
+    ownership: "manifest"
+    ssot_gen: false
+    implements:
+      - "function_model.transactions.FM_FRAME_LAUNCH"
+      - "function_model.transactions.FM_SHIFT_SAMPLE"
+      - "function_model.transactions.FM_FRAME_COMPLETE"
+      - "cycle_model.pipeline"
+      - "cycle_model.ordering"
+      - "fsm.channel_level"
+      - "features"
+    source_sections: ["function_model", "cycle_model", "fsm", "features", "dataflow"]
+    ssot_refs:
+      - "function_model.state_variables.busy"
+      - "function_model.transactions.FM_FRAME_LAUNCH"
+      - "function_model.transactions.FM_SHIFT_SAMPLE"
+      - "function_model.transactions.FM_FRAME_COMPLETE"
+      - "cycle_model.pipeline"
+      - "cycle_model.ordering"
+      - "fsm.channel_level"
+      - "features"
+      - "dataflow.control_path"
+    function_model_refs:
+      - "function_model.state_variables.ctrl_enable"
+      - "function_model.state_variables.ctrl_mode"
+      - "function_model.state_variables.active_cs"
+      - "function_model.state_variables.frame_bits"
+      - "function_model.state_variables.busy"
+      - "function_model.transactions.FM_FRAME_LAUNCH"
+      - "function_model.transactions.FM_SHIFT_SAMPLE"
+      - "function_model.transactions.FM_FRAME_COMPLETE"
+    cycle_model_refs:
+      - "cycle_model.pipeline"
+      - "cycle_model.ordering"
+      - "cycle_model.handshake_rules.launch_gate"
+    fsm_refs:
+      - "fsm.channel_level"
+    feature_refs:
+      - "features"
+    dataflow_refs:
+      - "dataflow.control_path"
+    description: "Main FSM (IDLE→CMD→ADDR→DATA→WAIT_CS→DONE), shift engine with 1/2/4 lane support, IO_OE generation, CS_N control, launch gate evaluation, and frame completion"
+
+  - name: "quad_spi_ctrl_irq"
+    file: "rtl/quad_spi_ctrl_irq.sv"
+    ownership: "manifest"
+    ssot_gen: true
+    implements:
+      - "interrupts"
+      - "features.Interrupt and sticky error reporting"
+    source_sections: ["interrupts", "error_handling"]
+    ssot_refs:
+      - "interrupts.sources"
+      - "interrupts.output"
+    interrupt_refs:
+      - "interrupts.sources"
+    feature_refs:
+      - "features.Interrupt and sticky error reporting"
+    description: "Interrupt generation: irq_o = OR(masked_sources), latch-based pending for sticky sources"
+
+decomposition:
+  units:
+    - id: "apb_decode"
+      kind: "control"
+      source_refs: ["registers.register_list", "io_list.interfaces.apb_slave"]
+      rtl_candidates: ["quad_spi_ctrl_apb"]
+      verification_impact: ["test_requirements.scenarios.SC_APB_CONFIG"]
+    - id: "fifo_buffering"
+      kind: "datapath"
+      source_refs: ["memory.instances", "dataflow"]
+      rtl_candidates: ["quad_spi_ctrl_fifo"]
+      verification_impact: ["test_requirements.scenarios.SC_FIFO_LIMITS"]
+    - id: "serial_engine"
+      kind: "datapath/control"
+      source_refs: ["function_model.transactions", "cycle_model", "fsm.channel_level"]
+      rtl_candidates: ["quad_spi_ctrl_fsm", "quad_spi_ctrl_sclk_gen"]
+      verification_impact: ["test_requirements.scenarios.SC_BASIC_TRANSFER", "test_requirements.scenarios.SC_LANE_MODE_SWEEP"]
+
+rtl_contract:
+  top_owner: "quad_spi_ctrl_top"
+  architectural_state_owner: "quad_spi_ctrl_fsm"
+  register_owner: "quad_spi_ctrl_apb"
+  fifo_owner: "quad_spi_ctrl_fifo"
+  interrupt_owner: "quad_spi_ctrl_irq"
+  clocking_owner: "quad_spi_ctrl_sclk_gen"
+  integration_notes:
+    - "All sequential logic uses PCLK only; sclk_o is generated waveform and not an internal clock domain."
+    - "PSLVERR is asserted on access cycle for illegal APB address or write to read-only register."
+
+parameters:
+  - name: "TX_FIFO_DEPTH"
+    default: 16
+    type: int
+    description: "TX FIFO entries (must be power of two)"
+    drives: ["rtl/quad_spi_ctrl_fifo.sv", "rtl/quad_spi_ctrl_top.sv"]
+  - name: "RX_FIFO_DEPTH"
+    default: 16
+    type: int
+    description: "RX FIFO entries (must be power of two)"
+    drives: ["rtl/quad_spi_ctrl_fifo.sv", "rtl/quad_spi_ctrl_top.sv"]
+  - name: "APB_ADDR_WIDTH"
+    default: 12
+    type: int
+    description: "APB address bus width"
+    drives: ["rtl/quad_spi_ctrl_apb.sv", "rtl/quad_spi_ctrl_top.sv"]
+  - name: "APB_DATA_WIDTH"
+    default: 32
+    type: int
+    description: "APB data bus width"
+    drives: ["rtl/quad_spi_ctrl_apb.sv", "rtl/quad_spi_ctrl_top.sv"]
+  - name: "PRESCALE_WIDTH"
+    default: 16
+    type: int
+    description: "Width of prescale divisor"
+    drives: ["rtl/quad_spi_ctrl_sclk_gen.sv"]
+
+io_list:
+  clock_domains:
+    - name: "pclk"
+      frequency_mhz: 100
+      description: "Primary APB and engine clock"
+      ports:
+        - { name: "PCLK", width: 1, direction: "input", description: "Peripheral clock" }
+  resets:
+    - name: "presetn"
+      polarity: "active_low"
+      sync_async: "async_assert_sync_deassert"
+      description: "Global reset"
+      ports:
+        - { name: "PRESETn", width: 1, direction: "input", description: "Active-low reset" }
+  interfaces:
+    - name: "apb_slave"
+      type: "APB4-lite"
+      role: "slave"
+      description: "Control/status register interface"
+      ports:
+        - { name: "PSEL", width: 1, direction: "input", description: "Peripheral select" }
+        - { name: "PENABLE", width: 1, direction: "input", description: "Enable phase" }
+        - { name: "PADDR", width: 12, direction: "input", description: "Byte address" }
+        - { name: "PWDATA", width: 32, direction: "input", description: "Write data" }
+        - { name: "PWRITE", width: 1, direction: "input", description: "Write/read select" }
+        - { name: "PRDATA", width: 32, direction: "output", description: "Read data" }
+        - { name: "PREADY", width: 1, direction: "output", description: "Transfer ready" }
+        - { name: "PSLVERR", width: 1, direction: "output", description: "Access error" }
+    - name: "spi_master"
+      type: "custom_quad_spi"
+      role: "master"
+      description: "External Quad SPI pins"
+      ports:
+        - { name: "SCLK", width: 1, direction: "output", description: "SPI serial clock" }
+        - { name: "CS_N", width: 4, direction: "output", description: "Active-low chip selects" }
+        - { name: "IO", width: 4, direction: "bidir", description: "Bidirectional data lanes" }
+        - { name: "IO_OE", width: 4, direction: "output", description: "Output enable per lane" }
+    - name: "irq"
+      type: "custom"
+      role: "output"
+      description: "Combined interrupt"
+      ports:
+        - { name: "IRQ", width: 1, direction: "output", description: "Masked interrupt output" }
+
+features:
+  - name: "APB-programmed Quad SPI frame transfer"
+    trigger: "SW writes CTRL.START with legal launch conditions"
+    datapath: "TX FIFO word -> shift register -> IO lanes; sampled IO bits -> RX shift register -> RX FIFO"
+    control: "IDLE -> CMD -> ADDR -> DATA -> WAIT_CS -> DONE"
+    output: "Serialized frame on IO/SCLK and optional received frame in RX FIFO"
+  - name: "Programmable SPI mode and bit order"
+    trigger: "CTRL.{CPOL, CPHA, LSB_FIRST, LANE_MODE} programmed"
+    datapath: "Edge select controls launch/sample timing; lane count controls per-SCLK bit count"
+    control: "Mode latched per frame at launch"
+    output: "Protocol-compliant phase/polarity/width behavior and chosen bit ordering"
+  - name: "Interrupt and sticky error reporting"
+    trigger: "Status/error/fifo events"
+    datapath: "Raw event -> latched pending bit, mask via IE -> IRQ"
+    control: "Sticky bits clear on W1C write to STATUS clear; level bits follow source"
+    output: "IRQ and software-readable status telemetry"
+
+dataflow:
+  tx_path:
+    source: "APB write to TXDATA"
+    enqueue: "Accepted when TX FIFO not full; otherwise dropped"
+    sequence: "TXDATA write -> tx_fifo push -> frame launch pops word -> shift register -> IO lanes"
+  rx_path:
+    source: "IO lanes sampled during active frame"
+    enqueue: "At frame complete, sampled word pushed if RX FIFO not full; else dropped"
+    sequence: "sample IO bits -> rx_shift_reg -> rx_fifo push -> APB read RXDATA pop"
+  control_path:
+    launch_gate: "START == 1 and not busy and tx_fifo not empty"
+    completion: "DONE state reached -> STATUS.DONE set -> auto-clear on next START"
+    cs_idle: "CS_N held at CS_IDLE value after WAIT_CS completes"
+
+function_model:
+  purpose: "Executable behavioral contract for Quad SPI transactions independent of exact cycle latency."
+  state_variables:
+    - { name: "ctrl_enable", source: "registers.CTRL", reset: 0, description: "1 when not in reset" }
+    - { name: "lane_mode", source: "registers.CTRL.LANE_MODE", reset: 0, description: "0=1-lane, 1=2-lane, 2=4-lane" }
+    - { name: "cpol", source: "registers.CTRL.CPOL", reset: 0, description: "SCLK polarity" }
+    - { name: "cpha", source: "registers.CTRL.CPHA", reset: 0, description: "SCLK phase" }
+    - { name: "lsb_first", source: "registers.CTRL.LSB_FIRST", reset: 0, description: "0=MSB first, 1=LSB first" }
+    - { name: "active_cs", source: "registers.CS_IDLE", reset: 0xF, description: "CS_N output value when idle" }
+    - { name: "addr_len", source: "registers.CTRL.ADDR_LEN", reset: 0, description: "Address bytes to send after CMD (0-4)" }
+    - { name: "data_len", source: "registers.CTRL.DATA_LEN", reset: 0, description: "Data bytes to transfer (0-256)" }
+    - { name: "prescale", source: "registers.PRESCALE", reset: 0, description: "SCLK half-period divisor" }
+    - { name: "tx_fifo", source: "memory.instances.tx_fifo", reset: "empty", description: "Pending TX bytes" }
+    - { name: "rx_fifo", source: "memory.instances.rx_fifo", reset: "empty", description: "Received RX bytes" }
+    - { name: "busy", source: "registers.STATUS.BUSY", reset: 0, description: "Frame in progress" }
+    - { name: "fsm_state", source: "fsm.channel_level", reset: "IDLE", description: "Current FSM state" }
+  transactions:
+    - id: "FM_APB_TX_PUSH"
+      name: "apb_write_txdata"
+      preconditions:
+        - "APB write handshake to TXDATA"
+      inputs:
+        - "PWDATA[7:0]"
+      outputs:
+        - "TX FIFO occupancy increments by one when not full"
+      side_effects:
+        - "If tx_fifo full, payload is discarded"
+        - "tx_full and tx_empty level indicators update"
+      error_cases:
+        - { condition: "write to TXDATA when tx_fifo full", result: "data dropped" }
+    - id: "FM_FRAME_LAUNCH"
+      name: "launch_frame"
+      preconditions:
+        - "CTRL.START pulse observed"
+        - "busy == 0"
+        - "tx_fifo not empty"
+      outputs:
+        - "busy transitions to 1"
+        - "One CMD byte consumed from TX FIFO"
+      side_effects:
+        - "CS_N drives active-low for selected CS"
+        - "SCLK idle level driven per CPOL before first active edge"
+        - "Start bit self-clears"
+      error_cases:
+        - { condition: "tx_fifo empty or busy == 1", result: "Launch suppressed; START self-clears without frame" }
+    - id: "FM_SHIFT_SAMPLE"
+      name: "shift_and_sample"
+      preconditions:
+        - "busy == 1"
+        - "FSM in CMD, ADDR, or DATA state"
+      inputs:
+        - "IO lanes sampled on SCLK sample edges"
+      outputs:
+        - "IO[0] presents serialized bits in 1-lane mode"
+        - "IO[1:0] present serialized bits in 2-lane mode"
+        - "IO[3:0] present serialized bits in 4-lane mode"
+        - "rx_shift_reg accumulates sampled bits"
+      side_effects:
+        - "bit_count progresses per SCLK edge"
+        - "LSB/MSB ordering per CTRL.LSB_FIRST"
+      error_cases: []
+    - id: "FM_FRAME_COMPLETE"
+      name: "complete_frame"
+      preconditions:
+        - "FSM reaches DONE state"
+      outputs:
+        - "busy transitions to 0"
+        - "STATUS.DONE set"
+      side_effects:
+        - "Received frame pushed to RX FIFO if space available"
+        - "CS_N returns to CS_IDLE value"
+        - "IRQ pending for DONE if IE.DONE set"
+      error_cases:
+        - { condition: "RX FIFO full", result: "received byte dropped" }
+    - id: "FM_APB_RX_POP"
+      name: "apb_read_rxdata"
+      preconditions:
+        - "APB read handshake to RXDATA"
+      outputs:
+        - "Returns oldest RX byte when FIFO non-empty"
+      side_effects:
+        - "RX FIFO occupancy decrements on successful pop"
+      error_cases:
+        - { condition: "RX FIFO empty", result: "Read returns 0" }
+  invariants:
+    - "CS_N[3:0] are all high when busy == 0 (idle state)"
+    - "No frame launch consumes TX FIFO unless all launch preconditions are true"
+    - "IRQ equals OR of all (status_bit AND ie_bit)"
+    - "SCLK is generated output waveform; no internal sequential process is clocked by SCLK"
+  reference_model_hint: "tb-gen scoreboard should model FIFO queues, lane-mode-dependent shift behavior, CPOL/CPHA edge ordering, and sticky interrupt semantics from these transactions."
+
+cycle_model:
+  purpose: "Cycle-level timing and handshake contract for APB access and Quad SPI serial engine"
+  executable: "pymtl3"
+  backend_policy: "Use Python behavioral model for expected values and cycle checkers"
+  clock: "PCLK"
+  reset:
+    assertion: "PRESETn low asynchronously clears control/FIFOs/status/interrupt pending"
+    deassertion: "State valid after first rising PCLK edge following PRESETn release"
+  latency:
+    apb_read: { min_cycles: 0, max_cycles: 1, description: "PRDATA/PREADY returned same or next cycle" }
+    apb_write: { min_cycles: 0, max_cycles: 1, description: "Register writes accepted same or next cycle" }
+    sclk_half_period: { min_cycles: 1, max_cycles: null, description: "PRESCALE + 1 PCLK cycles" }
+    frame_total: { min_cycles: 2, max_cycles: null, description: "Proportional to (1+addr_len+data_len)*8/pins_per_lane * sclk_half_period" }
+  handshake_rules:
+    - { signal: "APB", rule: "Transfer when PSEL and PENABLE and PREADY; PSLVERR valid in same transfer" }
+    - { signal: "CTRL.START", rule: "Sampled as pulse; auto-clears after acceptance" }
+    - { signal: "launch_gate", rule: "FSM leaves IDLE only when START and not busy and tx_fifo_not_empty" }
+    - { signal: "sclk_o", rule: "Half-period equals PRESCALE+1 PCLK cycles; CPOL controls idle level" }
+    - { signal: "sample_edge", rule: "CPHA selects first edge; 0=sample on first edge, 1=sample on second edge" }
+  pipeline:
+    - { stage: "S0_IDLE", cycle: "t", action: "Wait for START with tx_fifo non-empty" }
+    - { stage: "S1_CMD", cycle: "t+1..t+N", action: "Shift out CMD byte from TX FIFO" }
+    - { stage: "S2_ADDR", cycle: "continuing", action: "Shift out ADDR_LEN address bytes" }
+    - { stage: "S3_DATA", cycle: "continuing", action: "Shift out DATA_LEN bytes / receive data" }
+    - { stage: "S4_WAIT_CS", cycle: "continuing", action: "Hold CS_N idle for CS_IDLE half-cycles" }
+    - { stage: "S5_DONE", cycle: "terminal", action: "Set STATUS.DONE, update FIFOs, deassert busy" }
+  ordering:
+    - "CMD byte always shifts first before ADDR bytes"
+    - "ADDR bytes shift before DATA bytes"
+    - "Final DATA shift precedes DONE event"
+  backpressure:
+    - "TX backpressure: writes to TXDATA dropped when tx_fifo full"
+    - "RX backpressure: received byte dropped when rx_fifo full at frame completion"
+  performance:
+    throughput: "One byte per 2*(PRESCALE+1) PCLK cycles in 1-lane mode; 4x in 4-lane mode"
+    max_sclk_hz_formula: "PCLK_FREQ_MHZ*1000000 / (2*(PRESCALE+1))"
+  observability:
+    - "Probe fsm_state, bit_count, byte_count, sclk_toggle, cs_active, tx_fifo_count, rx_fifo_count, irq_pending"
+
+clock_reset_domains:
+  domains:
+    - { name: "pclk", frequency_mhz: 100, description: "Single synchronous domain" }
+  reset_scheme:
+    signal: "PRESETn"
+    polarity: "active_low"
+    type: "async_assert_sync_deassert"
+
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain; no CDC crossings in this revision"
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain; no RDC crossings"
+
+registers:
+  config:
+    register_width: 32
+    addr_width: 12
+    byte_addressable: true
+  register_list:
+    - name: "CTRL"
+      offset: 0x000
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      description: "Control register"
+      fields:
+        - { name: "START", bits: [0,0], access: "wo", reset: 0x0, description: "Write 1 to start transfer, self-clearing" }
+        - { name: "SW_RESET", bits: [1,1], access: "wo", reset: 0x0, description: "Write 1 to reset controller and FIFOs" }
+        - { name: "LANE_MODE", bits: [3,2], access: "rw", reset: 0x0, description: "0=1-lane, 1=2-lane, 2=4-lane, 3=reserved" }
+        - { name: "CPOL", bits: [4,4], access: "rw", reset: 0x0, description: "SCLK polarity: 0=idle-low, 1=idle-high" }
+        - { name: "CPHA", bits: [5,5], access: "rw", reset: 0x0, description: "SCLK phase: 0=first-edge, 1=second-edge" }
+        - { name: "LSB_FIRST", bits: [6,6], access: "rw", reset: 0x0, description: "0=MSB first, 1=LSB first" }
+        - { name: "ADDR_LEN", bits: [10,8], access: "rw", reset: 0x0, description: "Address bytes after CMD (0-4)" }
+        - { name: "DATA_LEN", bits: [18,11], access: "rw", reset: 0x00, description: "Data bytes to transfer (0-256)" }
+    - name: "STATUS"
+      offset: 0x004
+      width: 32
+      access: "ro"
+      reset: 0x00000006
+      description: "Status register"
+      fields:
+        - { name: "TX_FULL", bits: [0,0], access: "ro", reset: 0x0, description: "TX FIFO full" }
+        - { name: "TX_EMPTY", bits: [1,1], access: "ro", reset: 0x1, description: "TX FIFO empty" }
+        - { name: "RX_FULL", bits: [2,2], access: "ro", reset: 0x0, description: "RX FIFO full" }
+        - { name: "RX_EMPTY", bits: [3,3], access: "ro", reset: 0x1, description: "RX FIFO empty" }
+        - { name: "DONE", bits: [4,4], access: "ro", reset: 0x0, description: "Transfer completed" }
+        - { name: "BUSY", bits: [5,5], access: "ro", reset: 0x0, description: "Transfer in progress" }
+        - { name: "ERROR_FLAG", bits: [6,6], access: "ro", reset: 0x0, description: "Error condition latched" }
+    - name: "PRESCALE"
+      offset: 0x008
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      description: "SCLK prescaler divisor"
+      fields:
+        - { name: "DIV", bits: [15,0], access: "rw", reset: 0x0000, description: "SCLK half-period = DIV+1 PCLK cycles" }
+    - name: "TXDATA"
+      offset: 0x00C
+      width: 32
+      access: "wo"
+      reset: 0x00000000
+      description: "TX FIFO write port"
+      fields:
+        - { name: "TXDATA", bits: [7,0], access: "wo", reset: 0x00, description: "Byte to push to TX FIFO" }
+    - name: "RXDATA"
+      offset: 0x010
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      description: "RX FIFO read port"
+      fields:
+        - { name: "RXDATA", bits: [7,0], access: "ro", reset: 0x00, description: "Byte popped from RX FIFO" }
+    - name: "CS_IDLE"
+      offset: 0x014
+      width: 32
+      access: "rw"
+      reset: 0x0000000F
+      description: "CS_N idle value and hold time"
+      fields:
+        - { name: "CS_VAL", bits: [3,0], access: "rw", reset: 0xF, description: "CS_N value when idle (all high)" }
+        - { name: "HOLD", bits: [15,8], access: "rw", reset: 0x01, description: "CS idle hold time in SCLK half-cycles" }
+    - name: "IE"
+      offset: 0x018
+      width: 32
+      access: "rw"
+      reset: 0x00000000
+      description: "Interrupt enable"
+      fields:
+        - { name: "TX_EMPTY", bits: [0,0], access: "rw", reset: 0x0, description: "TX FIFO empty interrupt enable" }
+        - { name: "RX_AVAIL", bits: [1,1], access: "rw", reset: 0x0, description: "RX data available interrupt enable" }
+        - { name: "DONE", bits: [2,2], access: "rw", reset: 0x0, description: "Transfer done interrupt enable" }
+        - { name: "ERROR", bits: [3,3], access: "rw", reset: 0x0, description: "Error interrupt enable" }
+    - name: "DEBUG"
+      offset: 0x01C
+      width: 32
+      access: "ro"
+      reset: 0x00000000
+      description: "Debug observability"
+      fields:
+        - { name: "FSM_STATE", bits: [3,0], access: "ro", reset: 0x0, description: "Current FSM state encoding" }
+        - { name: "IO_OE", bits: [7,4], access: "ro", reset: 0x0, description: "Current IO output enables" }
+        - { name: "IO_IN", bits: [11,8], access: "ro", reset: 0x0, description: "Current IO input values" }
+        - { name: "TX_COUNT", bits: [19,16], access: "ro", reset: 0x0, description: "TX FIFO occupancy" }
+        - { name: "RX_COUNT", bits: [23,20], access: "ro", reset: 0x0, description: "RX FIFO occupancy" }
+
+memory:
+  instances:
+    - { name: "tx_fifo", type: "sync_fifo", depth: 16, width: 8, read_ports: 1, write_ports: 1, latency: 0, description: "Transmit byte queue" }
+    - { name: "rx_fifo", type: "sync_fifo", depth: 16, width: 8, read_ports: 1, write_ports: 1, latency: 0, description: "Receive byte queue" }
+  note: "TX_FIFO_DEPTH/RX_FIFO_DEPTH parameters scale each queue independently"
+
+interrupts:
+  sources:
+    - { name: "TX_EMPTY", bit: 0, type: "level", enable_reg: "IE.TX_EMPTY", status_reg: "STATUS.TX_EMPTY", clear: "not_w1c", description: "TX FIFO empty level" }
+    - { name: "RX_AVAIL", bit: 1, type: "level", enable_reg: "IE.RX_AVAIL", status_reg: "STATUS.RX_EMPTY", clear: "not_w1c", description: "RX data available (not RX_EMPTY)" }
+    - { name: "DONE", bit: 2, type: "sticky", enable_reg: "IE.DONE", status_reg: "STATUS.DONE", clear: "W1C", description: "Transfer complete event" }
+    - { name: "ERROR", bit: 3, type: "sticky", enable_reg: "IE.ERROR", status_reg: "STATUS.ERROR_FLAG", clear: "W1C", description: "Error condition latched" }
+  output:
+    signal: "IRQ"
+    polarity: "active_high"
+    type: "level"
+    formula: "OR of (source_active AND ie_bit) for all sources"
+
+fsm:
+  channel_level:
+    states:
+      - "IDLE"
+      - "CMD"
+      - "ADDR"
+      - "DATA"
+      - "WAIT_CS"
+      - "DONE"
+    transitions:
+      - { from: "IDLE", to: "CMD", condition: "START and tx_fifo_not_empty" }
+      - { from: "CMD", to: "ADDR", condition: "cmd_byte_done and ADDR_LEN > 0" }
+      - { from: "CMD", to: "DATA", condition: "cmd_byte_done and ADDR_LEN == 0 and DATA_LEN > 0" }
+      - { from: "CMD", to: "WAIT_CS", condition: "cmd_byte_done and ADDR_LEN == 0 and DATA_LEN == 0" }
+      - { from: "ADDR", to: "DATA", condition: "addr_done and DATA_LEN > 0" }
+      - { from: "ADDR", to: "WAIT_CS", condition: "addr_done and DATA_LEN == 0" }
+      - { from: "DATA", to: "WAIT_CS", condition: "data_done" }
+      - { from: "WAIT_CS", to: "DONE", condition: "cs_idle_done" }
+      - { from: "DONE", to: "IDLE", condition: "unconditional next cycle" }
+
+timing:
+  target_clocks:
+    - { domain: "pclk", freq_mhz: 100, duty_cycle: 50 }
+  protocol_timing:
+    - "SCLK half-period is PRESCALE.DIV+1 PCLK cycles"
+    - "CPOL sets idle SCLK level when busy=0"
+    - "CPHA selects first active edge for launch vs sample"
+
+error_handling:
+  error_sources:
+    - { name: "illegal_apb_address", detect: "decode miss", effect: "PSLVERR=1, STATUS.ERROR_FLAG=1" }
+    - { name: "write_ro_register", detect: "PWRITE=1 to RO register", effect: "PSLVERR=1, STATUS.ERROR_FLAG=1" }
+    - { name: "tx_overflow", detect: "TXDATA write when TX_FULL=1", effect: "data dropped" }
+    - { name: "rx_overflow", detect: "frame completion when RX_FULL=1", effect: "received byte dropped" }
+  recovery:
+    - "STATUS.ERROR_FLAG cleared by W1C write or SW_RESET"
+    - "SW_RESET in CTRL clears FIFOs, status, and returns FSM to IDLE"
+
+debug_observability:
+  waveform_probes:
+    - "quad_spi_ctrl_fsm.state"
+    - "quad_spi_ctrl_fsm.bit_count"
+    - "quad_spi_ctrl_fsm.byte_count"
+    - "quad_spi_ctrl_sclk_gen.prescale_cnt"
+    - "quad_spi_ctrl_sclk_gen.sclk_toggle"
+    - "quad_spi_ctrl_fifo.tx_count"
+    - "quad_spi_ctrl_fifo.rx_count"
+    - "quad_spi_ctrl_apb.irq_pending"
+
+coding_rules:
+  verilog_style: "systemverilog_2012"
+  file_extension: ".sv"
+  conventions:
+    - "nonblocking (<=) in sequential always @(posedge PCLK or negedge PRESETn)"
+    - "blocking (=) in combinational always @(*)"
+    - "No latches: every combinational branch assigns all outputs"
+    - "SCLK is output waveform only; never used as internal RTL clock"
+    - "Parameterize widths and limits via Verilog parameters"
+  lint_waivers: []
+
+filelist:
+  rtl:
+    - "rtl/quad_spi_ctrl_top.sv"
+    - "rtl/quad_spi_ctrl_apb.sv"
+    - "rtl/quad_spi_ctrl_fifo.sv"
+    - "rtl/quad_spi_ctrl_sclk_gen.sv"
+    - "rtl/quad_spi_ctrl_fsm.sv"
+    - "rtl/quad_spi_ctrl_irq.sv"
+
+test_requirements:
+  scenarios:
+    - { id: "SC_APB_CONFIG", name: "APB config/readback", stimulus: "Program CTRL/PRESCALE/CS_IDLE/IE and read back", expected: "Readback matches writes; PSLVERR on illegal access", checker: "APB scoreboard", coverage: ["registers.register_list"] }
+    - { id: "SC_BASIC_TRANSFER", name: "Basic 1-byte transfer (1-lane)", stimulus: "Write TXDATA with 0xA5, set DATA_LEN=1, START=1", expected: "busy asserts then clears, DONE sets, RXDATA shows loopback/IO value", checker: "frame scoreboard", coverage: ["function_model.transactions", "fsm.channel_level"] }
+    - { id: "SC_LANE_MODE_SWEEP", name: "Lane mode sweep", stimulus: "Run frames in 1-lane, 2-lane, 4-lane modes", expected: "Correct per-lane bit shifting behavior", checker: "lane-mode-aware scoreboard", coverage: ["function_model.state_variables.lane_mode"] }
+    - { id: "SC_CPOL_CPHA_SWEEP", name: "CPOL/CPHA sweep", stimulus: "Run frames in all four CPOL/CPHA combos", expected: "Edge launch/sample ordering follows mode", checker: "edge timing monitor", coverage: ["cycle_model.handshake_rules"] }
+    - { id: "SC_FIFO_LIMITS", name: "FIFO boundary behavior", stimulus: "Fill TX FIFO (16 writes), overflow write, fill RX FIFO then complete", expected: "TX drops on full, RX drops on full, status reflects", checker: "FIFO occupancy scoreboard", coverage: ["memory.instances", "cycle_model.backpressure"] }
+    - { id: "SC_IRQ_MASK", name: "Interrupt mask and status", stimulus: "Trigger DONE, enable/disable IE.DONE, check IRQ", expected: "IRQ follows IE mask", checker: "interrupt equation checker", coverage: ["interrupts.sources"] }
+    - { id: "SC_ERROR_PATHS", name: "Error paths", stimulus: "Illegal address, write RO register, TX overrun", expected: "PSLVERR and ERROR_FLAG set appropriately", checker: "error monitor", coverage: ["error_handling.error_sources"] }
+    - { id: "SC_PRESCALE_TIMING", name: "Prescale timing", stimulus: "Sweep DIV values 0/1/7/255", expected: "SCLK period = 2*(DIV+1)*PCLK", checker: "cycle-accurate period checker", coverage: ["timing.protocol_timing"] }
+
+quality_gates:
+  ssot:
+    pass: "YAML parses and check_ssot_disk.sh passes with all required production sections present"
+    evidence: ["quad_spi_ctrl/yaml/quad_spi_ctrl.ssot.yaml"]
+  rtl_gen:
+    pass: "All SSOT-derived rtl-gen TODO items close with provenance"
+    evidence: ["rtl/rtl_todo_plan.json"]
+  rtl:
+    pass: "RTL compiles (iverilog -g2012 clean) and lints (verilator clean)"
+    evidence: ["rtl/rtl_compile.json", "lint/dut_lint.json"]
+  coverage:
+    pass: "Function/cycle coverage goals met"
+    evidence: ["cov/coverage.json"]
+
+traceability:
+  yaml_to_output:
+    - { yaml: "top_module.name", output: "rtl/quad_spi_ctrl_top.sv module name" }
+    - { yaml: "io_list.interfaces.apb_slave", output: "rtl/quad_spi_ctrl_top.sv APB ports" }
+    - { yaml: "io_list.interfaces.spi_master", output: "rtl/quad_spi_ctrl_top.sv SPI ports" }
+    - { yaml: "registers.register_list", output: "rtl/quad_spi_ctrl_apb.sv register decode" }
+    - { yaml: "function_model", output: "rtl/quad_spi_ctrl_fsm.sv behavior" }
+    - { yaml: "cycle_model", output: "rtl/quad_spi_ctrl_sclk_gen.sv timing" }
+    - { yaml: "interrupts", output: "rtl/quad_spi_ctrl_irq.sv" }
+    - { yaml: "error_handling", output: "RTL sticky/error paths" }
+    - { yaml: "test_requirements.scenarios", output: "tb stimulus plan" }
+
+workflow_todos:
+  fl-model-gen:
+    - id: "FL_QSPI_SCOREBOARD"
+      content: "Build functional Quad SPI reference model"
+      detail: "Implement FIFO queues, lane-mode-dependent shift, CPOL/CPHA/bit-order, and interrupt semantics"
+      criteria:
+        - "Model reproduces all function_model transactions and error cases"
+        - "Model emits expected outputs for every test scenario"
+      source_refs: ["function_model", "registers.register_list", "interrupts"]
+      owner_module: "quad_spi_ctrl_fsm"
+      owner_file: "rtl/quad_spi_ctrl_fsm.sv"
+    - id: "FL_QSPI_LANE_MODES"
+      content: "Implement lane-mode-dependent shift and sample behavior"
+      detail: "1-lane: 1 bit per SCLK edge on IO[0]; 2-lane: 2 bits on IO[1:0]; 4-lane: 4 bits on IO[3:0]"
+      criteria:
+        - "Correct bit distribution across lanes per SCLK edge"
+        - "LSB/MSB ordering respected"
+      source_refs: ["function_model.state_variables.lane_mode", "function_model.transactions.FM_SHIFT_SAMPLE"]
+      owner_module: "quad_spi_ctrl_fsm"
+      owner_file: "rtl/quad_spi_ctrl_fsm.sv"
+  rtl-gen:
+    - id: "RTL_QSPI_TOP"
+      content: "Implement quad_spi_ctrl_top integration module"
+      detail: "Instantiate all 5 sub-modules, connect APB/SPI/IRQ ports, wire inter-module signals"
+      criteria:
+        - "All 5 sub-modules instantiated with correct parameterization"
+        - "APB slave interface connected to quad_spi_ctrl_apb"
+        - "SPI external ports connected to quad_spi_ctrl_fsm + quad_spi_ctrl_sclk_gen"
+        - "IRQ output connected from quad_spi_ctrl_irq"
+      source_refs: ["top_module", "io_list.interfaces", "integration"]
+      owner_module: "quad_spi_ctrl_top"
+      owner_file: "rtl/quad_spi_ctrl_top.sv"
+      priority: "high"
+      required: true
+    - id: "RTL_QSPI_APB"
+      content: "Implement APB register decode and access policy"
+      detail: "Decode CSR map, enforce RO/WO policy, assert PSLVERR on illegal access"
+      criteria:
+        - "Register map offsets/fields match SSOT register_list"
+        - "Error handling semantics match error_handling section"
+      source_refs: ["registers.register_list", "error_handling"]
+      owner_module: "quad_spi_ctrl_apb"
+      owner_file: "rtl/quad_spi_ctrl_apb.sv"
+    - id: "RTL_QSPI_FSM"
+      content: "Implement main FSM and shift engine"
+      detail: "IDLE→CMD→ADDR→DATA→WAIT_CS→DONE states, lane-mode-dependent shift/sample, CS_N control"
+      criteria:
+        - "All fsm states and transitions implemented"
+        - "Lane mode 0/1/2 produce correct per-SCLK bit counts"
+        - "CPOL/CPHA respected for edge timing"
+      source_refs: ["fsm.channel_level", "function_model.transactions"]
+      owner_module: "quad_spi_ctrl_fsm"
+      owner_file: "rtl/quad_spi_ctrl_fsm.sv"
+      priority: "high"
+      required: true

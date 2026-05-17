@@ -83,6 +83,23 @@ module uart_lite_real_regs (
     reg frame_err_pend;
     reg parity_err_pend;
 
+    // Edge detection for level-triggered sources
+    reg tx_fifo_empty_prev;
+    reg rx_fifo_empty_prev;
+
+    always @(posedge PCLK or negedge PRESETn) begin
+        if (!PRESETn) begin
+            tx_fifo_empty_prev <= 1'b1;
+            rx_fifo_empty_prev <= 1'b1;
+        end else begin
+            tx_fifo_empty_prev <= tx_fifo_empty_i;
+            rx_fifo_empty_prev <= rx_fifo_empty_i;
+        end
+    end
+
+    wire tx_became_empty = tx_fifo_empty_i && !tx_fifo_empty_prev;
+    wire rx_became_not_empty = !rx_fifo_empty_i && rx_fifo_empty_prev;
+
     // TX FIFO write from APB
     assign tx_fifo_wr_o       = apb_write && (PADDR == 8'h0C) && !tx_fifo_full_i;
     assign tx_fifo_wr_data_o  = PWDATA[DATA_WIDTH-1:0];
@@ -194,11 +211,11 @@ module uart_lite_real_regs (
             if (overrun_err_i)  sticky_overrun_err <= 1'b1;
             if (underrun_err_i) sticky_underrun_err <= 1'b1;
 
-            // Update pending interrupts
-            if (tx_fifo_empty_i && tx_empty_en) begin
+            // Update pending interrupts (edge-triggered for level sources)
+            if (tx_became_empty && tx_empty_en) begin
                 tx_empty_pend <= 1'b1;
             end
-            if (!rx_fifo_empty_i && rx_not_empty_en) begin
+            if (rx_became_not_empty && rx_not_empty_en) begin
                 rx_not_empty_pend <= 1'b1;
             end
             if (sticky_overrun_err && rx_overrun_en) begin

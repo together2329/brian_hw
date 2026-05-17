@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "quad_spi_ctrl",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 6,
+    "failed": 0,
+    "transactions": 5,
+    "unsupported_transaction_check": true,
+    "trace_entries": 6,
+    "coverage_bins": 24,
+    "invariants_total": 4,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 6,
+    "error_cases_planned": 6
+  },
+  "decomposition_units": 5,
+  "fcov_bins": 24
+}

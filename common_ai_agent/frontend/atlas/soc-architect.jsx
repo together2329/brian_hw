@@ -3678,6 +3678,37 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
         .finally(() => setStreaming(false));
       return;
     }
+    if (isPipelineChat) {
+      setStreaming(true);
+      const ipName = ((selModule && (selModule.name || selModule.id)) || activeSessionIp || '').trim();
+      const policy = (typeof window.pipelinePolicyPayload === 'function')
+        ? window.pipelinePolicyPayload()
+        : {};
+      fetch('/api/pipeline/orchestrator/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          ip: ipName,
+          session: window.ACTIVE_SESSION || '',
+          ...policy,
+        }),
+      })
+        .then(async r => {
+          const d = await r.json().catch(() => ({}));
+          if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
+          setFeed(l => [...l, { kind: 'agent', text: d.reply || 'orchestrator updated.' }]);
+          if (d.action === 'dispatch') {
+            window.dispatchEvent(new CustomEvent('atlas:pipeline-dispatched', { detail: d }));
+            window.dispatchEvent(new CustomEvent('atlas:pipeline-poll', { detail: d }));
+          }
+        })
+        .catch(err => {
+          setFeed(l => [...l, { kind: 'agent', text: `[orchestrator error] ${err.message || err}` }]);
+        })
+        .finally(() => setStreaming(false));
+      return;
+    }
     setStreaming(true);
     // Mirror Workspace's scope-prefix behaviour: when an IP scope is
     // active (set automatically by drilling into a module on the

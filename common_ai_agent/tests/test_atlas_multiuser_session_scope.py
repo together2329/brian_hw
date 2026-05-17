@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 
@@ -104,6 +105,115 @@ def test_session_activate_records_db_control_plane_namespace(tmp_path, monkeypat
         listed = {row["id"]: row for row in db.list_all_sessions()}
         assert listed["alice/spi_core/orchestrator"]["ip"] == "spi_core"
         assert listed["alice/spi_core/orchestrator"]["workflow"] == "orchestrator"
+
+
+def test_session_activate_policy_and_mode_sweep_keeps_namespace_todos_isolated(tmp_path, monkeypatch):
+    import os
+
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.delenv("ATLAS_RUN_MODE", raising=False)
+    monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
+    monkeypatch.delenv("AGENT_MODE_OVERRIDE", raising=False)
+    monkeypatch.delenv("PLAN_MODE", raising=False)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    cases = [
+        ("spi_core", "ssot-gen", "starter", "orchestrator", "/mode plan", "true"),
+        ("spi_core", "rtl-gen", "engineering", "single-worker", "/normal", "false"),
+        ("uart_core", "tb-gen", "signoff", "orchestrator", "/mode plan", "true"),
+        ("uart_core", "sim_debug", "starter", "single-worker", "/normal", "false"),
+        ("spi_core", "coverage", "engineering", "orchestrator", "/mode plan", "true"),
+        ("uart_core", "orchestrator", "signoff", "orchestrator", "/normal", "false"),
+    ]
+    sentinels: dict[str, str] = {}
+
+    for idx, (ip, workflow, run_mode, exec_mode, slash, expected_plan_mode) in enumerate(cases):
+        canonical = f"alice/{ip}/{workflow}"
+        response = _activate(client, "alice", ip, workflow)
+        assert response.status_code == 200, response.text
+        assert response.json()["active_session"] == canonical
+        assert os.environ["ATLAS_ACTIVE_SESSION"] == canonical
+        assert os.environ["ATLAS_ACTIVE_IP"] == ip
+        assert os.environ["ATLAS_DEFAULT_WORKFLOW"] == workflow
+
+        session_dir = tmp_path / ".session" / "alice" / ip / workflow
+        todo_path = session_dir / "todo.json"
+        sentinel = f"{canonical}:todo:{idx}"
+        todo_path.write_text(
+            json.dumps({"todos": [{"id": sentinel, "title": sentinel, "status": "pending"}]}),
+            encoding="utf-8",
+        )
+        sentinels[canonical] = sentinel
+
+        policy = client.post(
+            "/api/pipeline/run_policy",
+            json={"run_mode": run_mode, "exec_mode": exec_mode},
+        )
+        assert policy.status_code == 200, policy.text
+        assert policy.json()["run_mode"] == run_mode
+        assert policy.json()["exec_mode"] == exec_mode
+
+        bridge_session = app.state.bridge._ensure_session(canonical)
+        while not bridge_session._outbox.empty():
+            bridge_session._outbox.get_nowait()
+        bridge_session.agent_running = True
+        with client.websocket_connect(f"/ws/agent?session_id={canonical}") as ws:
+            assert ws.receive_json()["type"] == "hello"
+            ws.send_json({"type": "prompt", "text": slash, "msg_id": f"mode-{idx}"})
+            seen = [ws.receive_json() for _ in range(3)]
+
+        assert os.environ["PLAN_MODE"] == expected_plan_mode
+        assert any(msg.get("type") == "mode_change" for msg in seen)
+        assert any(msg.get("type") == "slash_output" for msg in seen)
+        assert bridge_session._inbox.empty()
+
+        health = client.get("/healthz")
+        assert health.status_code == 200, health.text
+        health_data = health.json()
+        assert health_data["active_session"] == canonical
+        assert health_data["active_ip"] == ip
+        assert health_data["active_workflow"] == workflow
+        assert Path(health_data["todo_file"]).resolve() == todo_path.resolve()
+        assert Path(health_data["session_dir"]).resolve() == session_dir.resolve()
+
+        state = client.get("/api/session/state", params={"session": canonical})
+        assert state.status_code == 200, state.text
+        todos = state.json()["todos"]["todos"]
+        assert [todo["id"] for todo in todos] == [sentinel]
+
+        for previous, previous_sentinel in sentinels.items():
+            previous_state = client.get("/api/session/state", params={"session": previous})
+            assert previous_state.status_code == 200, previous_state.text
+            previous_ids = [todo["id"] for todo in previous_state.json()["todos"]["todos"]]
+            assert previous_ids == [previous_sentinel]
+
+    listed = client.get("/api/session/list")
+    assert listed.status_code == 200, listed.text
+    listed_sessions = {row["session"] for row in listed.json()["sessions"]}
+    assert set(sentinels) <= listed_sessions
+
+    with AtlasDB(os.environ["ATLAS_DB_PATH"]) as db:
+        db_sessions = {row["id"]: row for row in db.list_all_sessions()}
+        for canonical in sentinels:
+            _, ip, workflow = canonical.split("/")
+            assert db_sessions[canonical]["ip"] == ip
+            assert db_sessions[canonical]["workflow"] == workflow
+            session_row = db.get_session(canonical)
+            assert session_row is not None
+            assert session_row["summary"]["owner"] == "alice"
+            assert session_row["summary"]["namespace"] == canonical
 
 
 def test_ip_create_endpoint_does_not_pre_scaffold_ip_root(tmp_path, monkeypatch):

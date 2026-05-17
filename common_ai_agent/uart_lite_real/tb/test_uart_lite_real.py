@@ -229,27 +229,18 @@ async def test_02_loopback(dut):
     dut.PSTRB <= 0xF
     await tb.reset()
     await tb.config(tx_en=1, rx_en=1, loopback=1, baud=BAUD_FAST)
-    
-    # Send only 2 bytes for clear diagnosis
-    test_bytes = [0xFF, 0x00]
+
+    test_bytes = [0x00, 0xFF, 0x55, 0xAA, 0x42]
     for b in test_bytes:
         await tb.tx_push(b)
         await tb.wait_for_tx_complete()
-        # Extra wait: ensure RX has fully completed before next TX
-        await ClockCycles(dut.PCLK, 200)
+        await tb.wait_rx_frame()
 
     # Read back RX FIFO
     for i, expected in enumerate(test_bytes):
         rx_data = int(await tb.rx_pop())
-        if rx_data != expected:
-            # Debug: check how many bytes are in RX FIFO
-            stat = int(await tb.get_stat())
-            rx_empty = (stat >> 2) & 1
-            bytes_rx = int(await tb.apb_read(DBG_BYTES_RX))
-            raise AssertionError(
-                f"Loopback mismatch [{i}]: got {rx_data:#x}, expected {expected:#x}, "
-                f"STAT={stat:#x}, rx_empty={rx_empty}, bytes_rx={bytes_rx}"
-            )
+        assert rx_data == expected, \
+            f"Loopback mismatch [{i}]: got {rx_data:#x}, expected {expected:#x}"
 
 
 @cocotb.test()
@@ -504,3 +495,39 @@ async def test_13_loopback_multi_byte(dut):
         rx_data = int(await tb.rx_pop())
         assert rx_data == expected, \
             f"Loopback mismatch: got {rx_data:#x}, expected {expected:#x}"
+
+
+@cocotb.test()
+async def test_14_break_send(dut):
+    """SC14: Break send — TX line held low while break asserted."""
+    tb = UartLiteRealTB(dut)
+    cocotb.start_soon(Clock(dut.PCLK, CLK_PERIOD_NS, units='ns').start())
+    dut.rx <= 1
+    dut.PSTRB <= 0xF
+    await tb.reset()
+    await tb.config(tx_en=1, rx_en=0, baud=BAUD_FAST)
+
+    # Push a byte and wait for TX to complete
+    await tb.tx_push(0x42)
+    await tb.wait_for_tx_complete()
+
+    # Assert break via CTRL register (bit 3)
+    ctrl = int(await tb.apb_read(0x00))
+    await tb.apb_write(0x00, ctrl | (1 << 3))
+
+    # Wait several bit periods
+    await ClockCycles(dut.PCLK, 500)
+
+    # TX line should be held low (0) during break
+    assert int(dut.tx.value) == 0, f"TX not low during break: tx={int(dut.tx.value)}"
+
+    # De-assert break
+    await tb.apb_write(0x00, ctrl & ~(1 << 3))
+    await ClockCycles(dut.PCLK, 200)
+
+    # TX should return high after break released and frame completes
+    for _ in range(2000):
+        if int(dut.tx.value) == 1:
+            break
+        await RisingEdge(dut.PCLK)
+    assert int(dut.tx.value) == 1, f"TX did not return high after break"

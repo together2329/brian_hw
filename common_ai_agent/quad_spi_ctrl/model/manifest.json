@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_manifest",
+  "ip": "quad_spi_ctrl",
+  "source": "quad_spi_ctrl/yaml/quad_spi_ctrl.ssot.yaml",
+  "decomposition_units": 5,
+  "fcov_bins": 24,
+  "complete": true
+}

@@ -3249,6 +3249,10 @@ body[data-resize-cursor="col"] {
   font-size: 10px;
   color: var(--fg-mute);
 }
+.pipe-orchestra-worker-toolchain {
+  font-size: 9px;
+  color: color-mix(in srgb, var(--fg-mute) 82%, var(--cyan));
+}
 .pipe-orchestra-worker-state {
   font-size: 10px;
   color: var(--fg-mute);

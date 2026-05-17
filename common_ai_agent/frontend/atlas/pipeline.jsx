@@ -476,6 +476,9 @@ function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
                 {sel && <span className="pipe-orchestra-worker-sel">TO</span>}
               </span>
               <span className="pipe-orchestra-worker-model">{w.model || w.profile || '?'}</span>
+              {w.toolchain && (
+                <span className="pipe-orchestra-worker-toolchain">{w.toolchain}</span>
+              )}
               <span className="pipe-orchestra-worker-state">
                 {!reachable ? '✗ unreachable'
                   : live ? `▶ run #${w.running[0] && w.running[0].run_id ? w.running[0].run_id.slice(-6) : '?'}`
@@ -945,6 +948,7 @@ window.StageCard = function StageCard({ stageId, info, ip, onChain }) {
   const iter  = data.iter != null ? `${data.iter} it` : '';
   const dur   = data.duration_s ? `${Math.round(data.duration_s)}s` : '';
   const model = data.model || '';
+  const toolchain = data.toolchain || '';
   const effort = data.effort || '';
   const top = data.top || '';
   const secondary = data.secondary || '';
@@ -982,6 +986,7 @@ window.StageCard = function StageCard({ stageId, info, ip, onChain }) {
         {iter && <span className="pipe-stage-meta">{iter}</span>}
         {dur && <span className="pipe-stage-meta">{dur}</span>}
         {model && <span className="pipe-stage-meta" title={effort ? `effort ${effort}` : ''}>{model}</span>}
+        {!model && toolchain && <span className="pipe-stage-meta" title="toolchain">{toolchain}</span>}
       </div>
       <div className="pipe-stage-row2">
         <window.MiniScoresheet scoresheet={data.scoresheet}

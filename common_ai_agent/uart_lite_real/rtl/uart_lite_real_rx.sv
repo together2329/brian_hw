@@ -53,9 +53,6 @@ module uart_lite_real_rx (
     reg [$clog2(DATA_WIDTH+1)-1:0] rx_bit_cnt;
     reg computed_parity;
 
-    // Start detect output for baud_gen oversample counter reset
-    assign start_detect_o = (rx_state == S_RX_IDLE) && rx_enable_i && rx_falling;
-
     // 2-FF synchronizer for external RX only
     reg rx_sync_1;
     reg rx_sync_2;
@@ -83,6 +80,9 @@ module uart_lite_real_rx (
 
     // Edge detection on the muxed sample
     wire rx_falling = rx_prev & ~rx_sample;
+
+    // Start detect output for baud_gen oversample counter reset
+    assign start_detect_o = (rx_state == S_RX_IDLE) && rx_enable_i && rx_falling;
 
     // State register
     always @(posedge PCLK or negedge PRESETn) begin
@@ -204,19 +204,12 @@ module uart_lite_real_rx (
 
                 S_RX_PARITY: begin
                     if (mid_sample_i) begin
-                        // Check parity
-                        if (parity_odd_i) begin
-                            // odd parity: computed_parity should be 0 when data has odd 1s
-                            if (computed_parity ^ rx_sample) begin
-                                parity_err_o <= 1'b1;
-                                parities_errored_o <= parities_errored_o + 32'd1;
-                            end
-                        end else begin
-                            // even parity: computed_parity should equal rx parity bit
-                            if (computed_parity != rx_sample) begin
-                                parity_err_o <= 1'b1;
-                                parities_errored_o <= parities_errored_o + 32'd1;
-                            end
+                        // Check parity: total XOR (data + parity bit) should be
+                        // 0 for even parity, 1 for odd parity.
+                        // Error when actual != expected.
+                        if ((computed_parity ^ rx_sample) != parity_odd_i) begin
+                            parity_err_o <= 1'b1;
+                            parities_errored_o <= parities_errored_o + 32'd1;
                         end
                     end
                 end

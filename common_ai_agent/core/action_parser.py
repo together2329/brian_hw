@@ -623,15 +623,130 @@ def _convert_dsml_invoke(text: str) -> str:
     return result
 
 
+def _convert_kimi_tool_calls(text: str) -> str:
+    """Convert Kimi K2 / Moonshot tool call format to Action: format.
+
+    Kimi K2 native format (special tokens):
+      <|tool_calls_section_begin|>
+        <|tool_call_begin|>functions.NAME:INDEX<|tool_call_argument_begin|>{json}<|tool_call_end|>
+      <|tool_calls_section_end|>
+
+    Also recovers the post-strip / hybrid form where special tokens have
+    already been stripped or replaced by whitespace / a stray ">":
+      functions.NAME:INDEX{json}
+      functions.NAME:INDEX>{json}
+
+    Must run BEFORE the generic <|...|> token strip so we can still see the
+    full token boundaries when present.
+    """
+    # Pattern 1 — Full Kimi token form
+    full_re = re.compile(
+        r'<\|tool_call_begin\|>\s*functions\.(?P<name>\w+)\s*:\s*\d+\s*'
+        r'<\|tool_call_argument_begin\|>\s*',
+        re.IGNORECASE,
+    )
+
+    out: List[str] = []
+    pos = 0
+    while True:
+        m = full_re.search(text, pos)
+        if not m:
+            out.append(text[pos:])
+            break
+        out.append(text[pos:m.start()])
+        name = _resolve_tool_name(m.group('name'))
+        json_start = m.end()
+        json_block, json_end = _scan_balanced_json(text, json_start)
+        if json_block is None:
+            out.append(text[m.start():])
+            break
+        # Optional <|tool_call_end|> after the JSON
+        after = json_end
+        end_m = re.match(r'\s*<\|tool_call_end\|>', text[after:], re.IGNORECASE)
+        if end_m:
+            after += end_m.end()
+        out.append(_emit_action(name, json_block))
+        pos = after
+    text = ''.join(out)
+
+    # Strip outer section tokens (now empty)
+    text = re.sub(r'<\|tool_calls_section_(?:begin|end)\|>', '', text, flags=re.IGNORECASE)
+
+    # Pattern 2 — Bare form left over from prior token-stripping:
+    #   functions.NAME:INDEX{json}  or  functions.NAME:INDEX>{json}
+    bare_re = re.compile(r'functions\.(?P<name>\w+)\s*:\s*\d+\s*>?\s*(?=\{)')
+    out2: List[str] = []
+    pos = 0
+    while True:
+        m = bare_re.search(text, pos)
+        if not m:
+            out2.append(text[pos:])
+            break
+        out2.append(text[pos:m.start()])
+        name = _resolve_tool_name(m.group('name'))
+        json_block, json_end = _scan_balanced_json(text, m.end())
+        if json_block is None:
+            out2.append(text[m.start():])
+            break
+        out2.append(_emit_action(name, json_block))
+        pos = json_end
+    return ''.join(out2)
+
+
+def _scan_balanced_json(text: str, start: int) -> Tuple[Optional[str], int]:
+    """Scan a balanced JSON object beginning at text[start] == '{'.
+
+    Returns (json_str, end_pos) where end_pos is one past the closing brace,
+    or (None, start) if no balanced object is found.
+    """
+    if start >= len(text) or text[start] != '{':
+        return None, start
+    depth = 0
+    in_str = False
+    esc = False
+    i = start
+    while i < len(text):
+        c = text[i]
+        if esc:
+            esc = False
+        elif c == '\\':
+            esc = True
+        elif c == '"' and not esc:
+            in_str = not in_str
+        elif not in_str:
+            if c == '{':
+                depth += 1
+            elif c == '}':
+                depth -= 1
+                if depth == 0:
+                    return text[start:i + 1], i + 1
+        i += 1
+    return None, start
+
+
+def _emit_action(name: str, json_block: str) -> str:
+    """Render an Action: line from a JSON arguments object."""
+    try:
+        data = json.loads(json_block)
+    except (json.JSONDecodeError, AttributeError):
+        return f"\nAction: {name}(command={json.dumps(json_block, ensure_ascii=False)})\n"
+    if isinstance(data, dict):
+        args = ", ".join(f'{k}={json.dumps(v, ensure_ascii=False)}' for k, v in data.items())
+        return f"\nAction: {name}({args})\n" if args else f"\nAction: {name}()\n"
+    return f"\nAction: {name}(command={json.dumps(str(data), ensure_ascii=False)})\n"
+
+
 def _strip_native_tool_tokens(text: str) -> str:
     """Strip native tool call tokens and convert to ReAct Action: format.
 
-    Handles GLM 4.7, Qwen, DeepSeek, Mistral native formats:
+    Handles GLM 4.7, Qwen, DeepSeek, Mistral, Kimi K2 native formats:
       <think>...</think>           — reasoning tokens
       <tool_call>{json}</tool_call> — JSON tool calls (depth-counting extract)
       <tool>name</tool><parameter>  — XML tool calls
       <tool_use>...</tool_use>      — Anthropic-style XML (GLM imitation)
       <invoke name="X">            — DSML (DeepSeek non-native) parameter blocks
+      <|tool_call_begin|>functions.NAME:INDEX<|tool_call_argument_begin|>{json}<|tool_call_end|>
+                                    — Kimi K2 / Moonshot special-token format
       bare function calls           — prepends Action: for known tools
       bare JSON {"name":...,"arguments":...} — fallback parsing
 
@@ -649,6 +764,10 @@ def _strip_native_tool_tokens(text: str) -> str:
 
     # Strip reasoning tokens leaked into content
     text = _strip_thinking_tags(text)
+
+    # ── Kimi K2 / Moonshot: convert functions.NAME:INDEX special-token form ──
+    # MUST run before the generic <|...|> token strip below.
+    text = _convert_kimi_tool_calls(text)
 
     def _json_tool_call_to_action(json_str: str) -> str:
         try:

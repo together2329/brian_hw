@@ -99,10 +99,20 @@ _WORKER_MODEL_DEFAULTS = {
     "rtl-gen": "gpt-5.3-codex",
     "tb-gen": "kimi",
     "sim_debug": "glm-5.1",
+    "lint": "gpt-5.3-codex",
+    "sim": "gpt-5.3-codex",
+    "coverage": "gpt-5.3-codex",
+    "goal-audit": "gpt-5.5",
+    "syn": "gpt-5.3-codex",
+    "sta": "gpt-5.3-codex",
+    "pnr": "gpt-5.3-codex",
+    "sta-post": "gpt-5.3-codex",
+}
+_WORKFLOW_TOOLCHAIN_DEFAULTS = {
     "lint": "pyslang + verilator",
     "sim": "icarus/verilator",
-    "coverage": "verilator coverage + vcd",
-    "goal-audit": "gpt-5.5",
+    "coverage": "verilator coverage + VCD",
+    "sim_debug": "pyslang + verilator + VCD",
     "syn": "yosys",
     "sta": "opensta",
     "pnr": "openroad",
@@ -122,6 +132,217 @@ def _worker_model_for(workflow: str) -> str:
         or os.environ.get(f"WORKER_MODEL_{suffix}", "")
         or _WORKER_MODEL_DEFAULTS.get(wf, "")
     )
+
+
+def _workflow_toolchain_for(workflow: str) -> str:
+    wf = str(workflow or "").strip()
+    suffix = _workflow_env_suffix(wf)
+    return (
+        os.environ.get(f"ATLAS_WORKFLOW_TOOLCHAIN_{suffix}", "")
+        or os.environ.get(f"WORKFLOW_TOOLCHAIN_{suffix}", "")
+        or _WORKFLOW_TOOLCHAIN_DEFAULTS.get(wf, "")
+    )
+
+
+def _atlas_job_db_path(project_root: Path) -> str:
+    return (
+        os.environ.get("ATLAS_TRACE_DB_PATH")
+        or os.environ.get("ATLAS_DB_PATH")
+        or str(project_root / "atlas.db")
+    )
+
+
+def _resolve_db_user_id(db: Any, owner_name: str, explicit_user_id: str = "") -> str:
+    if explicit_user_id:
+        return explicit_user_id
+    owner = str(owner_name or "").strip()
+    if owner:
+        try:
+            row = db.get_user_by_username(owner)
+            if row and row.get("id"):
+                return str(row["id"])
+        except Exception:
+            pass
+    return owner or "local-admin"
+
+
+def _record_job_db_start(job: dict[str, Any]) -> None:
+    project_root = Path(job.get("project_root") or ".").resolve()
+    owner_name = str(job.get("user_id") or "").strip()
+    try:
+        from core.atlas_db import AtlasDB
+
+        with AtlasDB(_atlas_job_db_path(project_root)) as db:
+            db_user_id = _resolve_db_user_id(db, owner_name, str(job.get("db_user_id") or ""))
+            workspace = db.upsert_workspace(
+                project_root.name or "default",
+                owner_user_id=db_user_id,
+                local_path=str(project_root),
+            )
+            ip_name = str(job.get("ip") or "").strip()
+            ip_row = db.upsert_ip_block(
+                workspace["id"],
+                ip_name or "soc",
+                ssot_path=f"{ip_name}/yaml/{ip_name}.ssot.yaml" if ip_name else "",
+            )
+            db_session_id = str(job.get("db_session_id") or "").strip()
+            if not db_session_id:
+                created = db.create_session(
+                    db_user_id,
+                    f"{ip_name or 'soc'} pipeline {job.get('pipeline_id') or job.get('job_id')}",
+                    ip_name,
+                )
+                db_session_id = created["id"]
+            summary = {
+                "ip": ip_name,
+                "workflow": "pipeline" if job.get("pipeline_id") else job.get("workflow"),
+                "stage_id": job.get("stage_id") or "",
+                "pipeline_run_id": job.get("pipeline_run_id") or job.get("pipeline_id") or "",
+                "pipeline_id": job.get("pipeline_id") or "",
+                "job_id": job.get("job_id") or "",
+                "user_id": owner_name,
+                "worker_session": job.get("session") or "",
+                "model": job.get("model") or "",
+                "toolchain": job.get("toolchain") or "",
+                "run_mode": job.get("run_mode") or "",
+                "exec_mode": job.get("exec_mode") or "",
+                "project_root": str(project_root),
+            }
+            try:
+                db.update_session(
+                    db_session_id,
+                    project_id=ip_name,
+                    summary=summary,
+                )
+            except Exception:
+                pass
+            status = "running" if job.get("status") in {"pending", "running"} else "queued"
+            run = db.start_workflow_run(
+                session_id=db_session_id,
+                workspace_id=workspace["id"],
+                ip_id=ip_row["id"],
+                rtl_version_id=str(job.get("rtl_version_id") or ""),
+                workflow=str(job.get("workflow") or ""),
+                mode=str(job.get("exec_mode") or "orchestrator"),
+                model_profile=str(job.get("model") or ""),
+                reasoning_effort=str(job.get("reasoning_effort") or ""),
+                trigger="pipeline_dispatch" if job.get("pipeline_id") else "job_dispatch",
+                input_summary=json.dumps(summary, ensure_ascii=False),
+                status=status,
+            )
+            job["workflow_run_id"] = run.get("id") or ""
+            job["db_session_id"] = db_session_id
+            job["db_user_id"] = db_user_id
+            job["db_workspace_id"] = workspace["id"]
+            job["db_ip_id"] = ip_row["id"]
+            db.record_trace_event(
+                event_type="workflow_dispatch",
+                payload=summary,
+                session_id=db_session_id,
+                workspace_id=workspace["id"],
+                ip_id=ip_row["id"],
+                workflow=str(job.get("workflow") or ""),
+                run_id=str(job.get("workflow_run_id") or ""),
+                stage_id=str(job.get("stage_id") or ""),
+                actor_user_id=db_user_id,
+                idempotency_key=f"dispatch:{job.get('job_id')}",
+            )
+    except Exception as exc:
+        job["db_error"] = str(exc)
+
+
+def _record_job_db_running(job: dict[str, Any]) -> None:
+    run_id = str(job.get("workflow_run_id") or "")
+    if not run_id:
+        return
+    try:
+        from core.atlas_db import AtlasDB
+
+        project_root = Path(job.get("project_root") or ".").resolve()
+        with AtlasDB(_atlas_job_db_path(project_root)) as db:
+            db._execute(
+                "UPDATE workflow_runs SET status = ?, updated_at = ? WHERE id = ?",
+                ("running", time.time(), run_id),
+            )
+            db.record_trace_event(
+                event_type="worker_started",
+                payload={
+                    "job_id": job.get("job_id") or "",
+                    "worker_run_id": job.get("run_id") or "",
+                    "pipeline_run_id": job.get("pipeline_run_id") or job.get("pipeline_id") or "",
+                    "model": job.get("model") or "",
+                    "toolchain": job.get("toolchain") or "",
+                },
+                session_id=str(job.get("db_session_id") or ""),
+                workspace_id=str(job.get("db_workspace_id") or ""),
+                ip_id=str(job.get("db_ip_id") or ""),
+                workflow=str(job.get("workflow") or ""),
+                run_id=run_id,
+                stage_id=str(job.get("stage_id") or ""),
+                actor_user_id=str(job.get("db_user_id") or ""),
+                idempotency_key=f"worker-start:{job.get('job_id')}",
+            )
+    except Exception as exc:
+        job["db_error"] = str(exc)
+
+
+def _finish_job_db_run(job: dict[str, Any], status: str | None = None, error_summary: str | None = None) -> None:
+    run_id = str(job.get("workflow_run_id") or "")
+    if not run_id:
+        return
+    final_status = str(status or job.get("status") or "").strip()
+    if final_status == "completed":
+        final_status = "completed"
+    elif final_status in {"error", "failed"}:
+        final_status = "error"
+    elif final_status == "blocked":
+        final_status = "blocked"
+    elif final_status == "cancelled":
+        final_status = "cancelled"
+    else:
+        return
+    if job.get("_db_finished_status") == final_status:
+        return
+    try:
+        from core.atlas_db import AtlasDB
+
+        project_root = Path(job.get("project_root") or ".").resolve()
+        error_text = error_summary if error_summary is not None else str(job.get("error") or "")
+        with AtlasDB(_atlas_job_db_path(project_root)) as db:
+            db.finish_workflow_run(run_id, final_status, error_summary=error_text or None)
+            db.record_trace_event(
+                event_type="workflow_finished",
+                payload={
+                    "job_id": job.get("job_id") or "",
+                    "worker_run_id": job.get("run_id") or "",
+                    "pipeline_run_id": job.get("pipeline_run_id") or job.get("pipeline_id") or "",
+                    "status": final_status,
+                    "result_summary": job.get("result_summary") or "",
+                    "error": error_text or "",
+                    "files_modified": job.get("files_modified") or [],
+                },
+                session_id=str(job.get("db_session_id") or ""),
+                workspace_id=str(job.get("db_workspace_id") or ""),
+                ip_id=str(job.get("db_ip_id") or ""),
+                workflow=str(job.get("workflow") or ""),
+                run_id=run_id,
+                stage_id=str(job.get("stage_id") or ""),
+                actor_user_id=str(job.get("db_user_id") or ""),
+                idempotency_key=f"worker-finish:{job.get('job_id')}:{final_status}",
+            )
+            for item in _artifact_versions_map(job).values():
+                artifact_version_id = item.get("id") or ""
+                if artifact_version_id:
+                    db.attach_run_artifact_version(
+                        run_id,
+                        artifact_version_id,
+                        stage_id=str(job.get("stage_id") or ""),
+                        role="output" if item.get("artifact_type") == _STAGE_ARTIFACT_TYPES.get(str(job.get("stage_id") or "")) else "input",
+                        metadata={"job_id": job.get("job_id") or ""},
+                    )
+        job["_db_finished_status"] = final_status
+    except Exception as exc:
+        job["db_error"] = str(exc)
 
 
 def _normalize_run_mode(value: Any) -> str:
@@ -371,6 +592,7 @@ def _mark_downstream_blocked_locked(pipeline_id: str, failed_job_id: str, reason
             queued["status"] = "blocked"
             queued["error"] = reason
             queued["finished_at"] = time.time()
+            _finish_job_db_run(queued, "blocked", reason)
             blocked_ids.add(queued.get("job_id", ""))
             changed = True
 
@@ -404,6 +626,7 @@ def _summarize_worker_progress(ip_jobs: list[dict[str, Any]]) -> dict[str, Any]:
             "status": job.get("status") or "",
             "worker": job.get("worker") or "",
             "model": job.get("model") or "",
+            "toolchain": job.get("toolchain") or "",
             "user_id": job.get("user_id") or "",
             "session": job.get("session") or "",
             "scope_path": job.get("scope_path") or "",
@@ -689,6 +912,39 @@ def _set_artifact_version_context(job: dict[str, Any], row: dict[str, Any]) -> N
     job["artifact_versions"] = versions
 
 
+def _job_db_workspace_and_ip(
+    db: Any,
+    job: dict[str, Any],
+    project_root: Path,
+    ip: str,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    workspace = None
+    ip_row = None
+    workspace_id = str(job.get("db_workspace_id") or "")
+    ip_id = str(job.get("db_ip_id") or "")
+    if workspace_id:
+        try:
+            workspace = db.get_workspace(workspace_id)
+        except Exception:
+            workspace = None
+    if ip_id:
+        try:
+            ip_row = db.get_ip_block(ip_id)
+        except Exception:
+            ip_row = None
+    if workspace is None:
+        workspace = db.upsert_workspace(
+            project_root.name or "default",
+            owner_user_id=str(job.get("db_user_id") or ""),
+            local_path=str(project_root),
+        )
+        job["db_workspace_id"] = workspace["id"]
+    if ip_row is None or ip_row.get("workspace_id") != workspace["id"]:
+        ip_row = db.upsert_ip_block(workspace["id"], ip)
+        job["db_ip_id"] = ip_row["id"]
+    return workspace, ip_row
+
+
 def _ensure_rtl_version_for_job(job: dict[str, Any], project_root: Path) -> dict[str, Any] | None:
     if job.get("rtl_version_id") or job.get("stage_id") != "rtl":
         return None
@@ -703,11 +959,7 @@ def _ensure_rtl_version_for_job(job: dict[str, Any], project_root: Path) -> dict
 
         db_path = os.environ.get("ATLAS_TRACE_DB_PATH") or os.environ.get("ATLAS_DB_PATH")
         with (AtlasDB(db_path) if db_path else AtlasDB()) as db:
-            workspace = db.upsert_workspace(
-                project_root.name or "default",
-                local_path=str(project_root),
-            )
-            ip_row = db.upsert_ip_block(workspace["id"], ip)
+            workspace, ip_row = _job_db_workspace_and_ip(db, job, project_root, ip)
             version = _next_rtl_version_name(db.list_rtl_versions(ip_id=ip_row["id"]))
             git_commit = _safe_git_commit(project_root)
             git_tag = _maybe_create_git_tag(project_root, f"atlas/{ip}/{version}") if git_commit else ""
@@ -812,11 +1064,7 @@ def _ensure_stage_artifact_version_for_job(
 
         db_path = os.environ.get("ATLAS_TRACE_DB_PATH") or os.environ.get("ATLAS_DB_PATH")
         with (AtlasDB(db_path) if db_path else AtlasDB()) as db:
-            workspace = db.upsert_workspace(
-                project_root.name or "default",
-                local_path=str(project_root),
-            )
-            ip_row = db.upsert_ip_block(workspace["id"], ip)
+            workspace, ip_row = _job_db_workspace_and_ip(db, job, project_root, ip)
             existing = db.list_artifact_versions(ip_id=ip_row["id"], artifact_type=artifact_type)
             version = _next_artifact_version_name(existing, artifact_type)
             git_commit = _safe_git_commit(project_root)
@@ -1009,6 +1257,7 @@ def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
             "workflow": job["workflow"],
             "session":  job.get("session", ""),
             "model":    job.get("model", ""),
+            "toolchain": job.get("toolchain", ""),
             "run_mode": job.get("run_mode", ""),
             "exec_mode": job.get("exec_mode", ""),
             "context":  context,
@@ -1048,12 +1297,14 @@ def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
             live["status"]     = "running"
             live["started_at"] = time.time()
             live["error"]      = ""
+            _record_job_db_running(live)
     except Exception as e:
         with _jobs_lock:
             live = _jobs.get(job["job_id"], job)
             live["status"]      = "error"
             live["error"]       = f"worker dispatch failed at {job.get('worker')}: {e}"
             live["finished_at"] = time.time()
+            _finish_job_db_run(live, "error", live["error"])
 
 
 def _advance_pipeline_from(job: dict[str, Any]) -> None:
@@ -1096,6 +1347,7 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
                 candidate["status"] = "blocked"
                 candidate["error"] = "blocked by failed dependency"
                 candidate["finished_at"] = time.time()
+                _finish_job_db_run(candidate, "blocked", candidate["error"])
                 continue
             if deps and all(
                 status == "completed" or _job_allows_failed_dependency(candidate, dep_job)
@@ -1278,6 +1530,12 @@ def _job_artifact_recovery(
         cov_dir   = ip_dir / "cov"
         artifacts: list = []
         if sim_dir.is_dir():
+            artifacts.extend([p for p in (
+                sim_dir / "mismatch_classification.json",
+                sim_dir / "debug_tap.json",
+                sim_dir / "rtl_elaboration.json",
+                sim_dir / "source_tracking.json",
+            ) if p.is_file()])
             artifacts.extend(list(sim_dir.rglob("*.vcd")))
             artifacts.extend(list(sim_dir.rglob("coverage_report.*")))
         if cov_dir.is_dir():
@@ -1306,6 +1564,38 @@ def _job_artifact_failure(
     if not ip_dir.is_dir():
         return False, ""
     stage = str(job.get("stage_id") or job.get("workflow") or "").strip()
+    workflow = str(job.get("workflow") or "").strip()
+    if stage == "lint" or workflow == "lint":
+        for rel in ("lint/dut_lint.json", "lint/lint_report.json"):
+            path = ip_dir / rel
+            if not path.is_file():
+                continue
+            try:
+                doc = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                return True, f"unparseable artifact: {ip}/{rel}"
+            errors = doc.get("errors", doc.get("error_count", doc.get("errorCount", 0)))
+            try:
+                error_count = int(errors)
+            except Exception:
+                error_count = 0
+            if error_count > 0:
+                return True, f"{ip}/{rel} errors={error_count}"
+            return False, ""
+    if stage == "sim" or workflow == "sim":
+        results_xml = ip_dir / "sim" / "results.xml"
+        if not results_xml.is_file():
+            results_xml = ip_dir / "tb" / "cocotb" / "results.xml"
+        if results_xml.is_file():
+            try:
+                import xml.etree.ElementTree as _ET
+                root_el = _ET.parse(str(results_xml)).getroot()
+                failures = int(root_el.get("failures", 0)) + int(root_el.get("errors", 0))
+            except Exception:
+                return True, f"unparseable artifact: {ip}/{results_xml.relative_to(ip_dir).as_posix()}"
+            if failures > 0:
+                return True, f"{ip}/{results_xml.relative_to(ip_dir).as_posix()} failures={failures}"
+            return False, ""
     if stage != "goal-audit":
         return False, ""
     audit_path = ip_dir / "sim" / "fl_rtl_goal_audit.json"
@@ -1322,6 +1612,110 @@ def _job_artifact_failure(
             return True, "blockers=" + ",".join(str(item) for item in blockers)
         return True, f"status={status or 'missing'}"
     return False, ""
+
+
+def _job_requires_completion_evidence(job: dict[str, Any]) -> bool:
+    stage_id = str(job.get("stage_id") or "").strip()
+    if stage_id in _PIPELINE_BY_ID:
+        return True
+    workflow = str(job.get("workflow") or "").strip()
+    return workflow in _PIPELINE_BY_WORKFLOW
+
+
+def _enforce_completion_evidence_gate(job: dict[str, Any], project_root: Path) -> None:
+    if job.get("status") != "completed" or not _job_requires_completion_evidence(job):
+        return
+    failed, failure_reason = _job_artifact_failure(job, project_root)
+    if failed:
+        job["status"] = "error"
+        job["error"] = f"stage evidence failed: {failure_reason}"
+        job["finished_at"] = job.get("finished_at") or time.time()
+        return
+    ok, evidence_summary = _job_artifact_recovery(job, project_root)
+    if ok:
+        job["evidence_summary"] = evidence_summary
+        return
+    stage_id = str(job.get("stage_id") or job.get("workflow") or "").strip()
+    job["status"] = "error"
+    job["error"] = (
+        f"missing required evidence for {stage_id}; "
+        "worker reported completed but no stage artifact was found"
+    )
+    job["finished_at"] = job.get("finished_at") or time.time()
+
+
+def _refresh_tracked_jobs(project_root_path: Path | None = None) -> tuple[list[dict[str, Any]], bool]:
+    """Poll running workers and advance ready pipeline jobs.
+
+    `/api/jobs` used to be the only endpoint that performed this refresh. The
+    pipeline UI mainly polls `/api/pipeline/state`, so a run-to-green pipeline
+    could stay visually stuck on the first running stage until another widget
+    happened to hit `/api/jobs`.
+    """
+    pr = project_root_path or project_root()
+    now = time.time()
+    changed = False
+    with _jobs_lock:
+        snapshot = list(_jobs.values())
+    for job in snapshot:
+        if job["status"] in ("running",) and (now - job.get("_last_polled", 0)) > 1.5:
+            try:
+                import urllib.request as _u
+                req = _u.Request(
+                    f"{job['worker'].rstrip('/')}/status/{job['run_id']}",
+                    method="GET",
+                )
+                with _u.urlopen(req, timeout=5) as resp:
+                    s = json.loads(resp.read().decode("utf-8"))
+                job["_last_polled"] = now
+                before = job.get("status")
+                job["status"] = s.get("status", job["status"])
+                changed = changed or job.get("status") != before
+                if isinstance(s.get("iterations"), int):
+                    job["iterations"] = s["iterations"]
+                if s.get("status") in ("completed", "error", "cancelled"):
+                    try:
+                        req2 = _u.Request(
+                            f"{job['worker'].rstrip('/')}/result/{job['run_id']}",
+                            method="GET",
+                        )
+                        with _u.urlopen(req2, timeout=5) as r2:
+                            rr = json.loads(r2.read().decode("utf-8"))
+                        job["files_modified"] = rr.get("files_modified") or []
+                        job["result_summary"] = (rr.get("result") or "")[:600]
+                        job["error"] = rr.get("error") or ""
+                        job["finished_at"] = now
+                        if rr.get("execution_time_ms"):
+                            job["duration_ms"] = rr["execution_time_ms"]
+                    except Exception:
+                        pass
+                    _enforce_completion_evidence_gate(job, pr)
+                    if job.get("status") == "completed":
+                        _ensure_stage_artifact_version_for_job(job, pr)
+                    _finish_job_db_run(job, job.get("status"))
+                    _advance_pipeline_from(job)
+            except Exception as e:
+                recovered, detail = _job_artifact_recovery(job, pr)
+                if recovered:
+                    job["status"] = "completed"
+                    job["error"] = ""
+                    job["result_summary"] = detail
+                    job["finished_at"] = now
+                    _finish_job_db_run(job, "completed")
+                    _advance_pipeline_from(job)
+                    changed = True
+                else:
+                    job["error"] = f"poll failed: {e}"
+        if job.get("status") == "completed":
+            before_gate = job.get("status")
+            _enforce_completion_evidence_gate(job, pr)
+            changed = changed or job.get("status") != before_gate
+            if job.get("status") == "completed":
+                _ensure_stage_artifact_version_for_job(job, pr)
+        if job.get("status") in ("completed", "error", "cancelled"):
+            _finish_job_db_run(job, job.get("status"))
+            _advance_pipeline_from(job)
+    return snapshot, changed
 
 
 # ── Factory ─────────────────────────────────────────────────────────
@@ -1348,6 +1742,10 @@ def register_jobs_routes(
     def _request_username(request: Request) -> str:
         user = request.scope.get("user") or {}
         return normalize_session_name(str(user.get("username") or user.get("id") or ""))
+
+    def _request_db_user_id(request: Request) -> str:
+        user = request.scope.get("user") or {}
+        return str(user.get("id") or "").strip()
 
     def _default_job_session_for_owner(owner: str, ip: str, workflow: str) -> str:
         if _multi_user_enabled() and owner and owner != "local-admin":
@@ -1380,6 +1778,7 @@ def register_jobs_routes(
         worker_override: str = "", auto_start: bool = True, template: str = "",
         pipeline_schedule: str = "", rtl_version_id: str = "",
         run_mode: str = "", exec_mode: str = "", user_id: str = "",
+        db_user_id: str = "", db_session_id: str = "",
     ) -> dict[str, Any]:
         pr = project_root()
         stage_id    = stage_id or (_PIPELINE_BY_WORKFLOW.get(workflow, {}).get("id") or workflow)
@@ -1387,6 +1786,7 @@ def register_jobs_routes(
         run_mode    = _normalize_run_mode(run_mode) or _current_run_mode()
         exec_mode   = _normalize_exec_mode(exec_mode) or _current_exec_mode()
         model       = str(model or "").strip() or _worker_model_for(workflow)
+        toolchain   = _workflow_toolchain_for(workflow)
         session_name = normalize_session_name(session_name or (f"{ip}/{workflow}" if ip else workflow))
         if not session_name:
             raise ValueError("invalid session namespace")
@@ -1428,6 +1828,7 @@ def register_jobs_routes(
             "template":       template,
             "ip":             ip,
             "model":          model,
+            "toolchain":      toolchain,
             "session":        session_name,
             "session_dir":    session_dir.relative_to(pr).as_posix(),
             "scope_path":     rel_scope,
@@ -1451,7 +1852,11 @@ def register_jobs_routes(
             "_last_polled":   0.0,
             "pipeline_run_id": pipeline_id,
             "user_id":         user_id,
+            "db_user_id":      db_user_id,
+            "db_session_id":   db_session_id,
+            "workflow_run_id": "",
         }
+        _record_job_db_start(job)
         with _jobs_lock:
             _jobs[job["job_id"]] = job
         if auto_start:
@@ -1521,6 +1926,7 @@ def register_jobs_routes(
             worker_override=worker_override, auto_start=True, template=template,
             rtl_version_id=rtl_version_id, run_mode=run_mode, exec_mode=exec_mode,
             user_id=_request_username(request),
+            db_user_id=_request_db_user_id(request),
         )
         if job.get("status") == "error":
             return JSONResponse({"error": job.get("error"), "worker": job.get("worker")}, status_code=502)
@@ -1533,10 +1939,13 @@ def register_jobs_routes(
             "session_dir":    job["session_dir"],
             "scope_path":     job["scope_path"],
             "stage_id":       job["stage_id"],
-            "model":          model,
+            "model":          job["model"],
+            "toolchain":      job.get("toolchain", ""),
             "run_mode":       job["run_mode"],
             "exec_mode":      job["exec_mode"],
             "user_id":        job["user_id"],
+            "workflow_run_id": job.get("workflow_run_id", ""),
+            "db_session_id":   job.get("db_session_id", ""),
             "worker_command": job["worker_command"],
             "status":         job["status"],
         })
@@ -1622,6 +2031,7 @@ def register_jobs_routes(
                 worker_override=worker_override, auto_start=True, template=template,
                 rtl_version_id=rtl_version_id, run_mode=run_mode, exec_mode=exec_mode,
                 user_id=_request_username(request),
+                db_user_id=_request_db_user_id(request),
             )
             created.append(_public_job(job))
 
@@ -1678,15 +2088,22 @@ def register_jobs_routes(
         # leak across users either. Surfaced by deep^6 round T41.
         scoped_user = request.scope.get("user") or {}
         user_id = str(scoped_user.get("username") or scoped_user.get("id") or "")
+        db_user_id = _request_db_user_id(request) or user_id
         scope_filter = {"user_id": user_id} if user_id else None
         cache_key = (ip, user_id)
+
+        pr = project_root()
+        _, jobs_changed = _refresh_tracked_jobs(pr)
+        if jobs_changed:
+            for k in list(_state_cache.keys()):
+                if isinstance(k, tuple) and k[0] == ip:
+                    _state_cache.pop(k, None)
 
         import time as _t
         cached = _state_cache.get(cache_key)
         if cached and (_t.monotonic() - cached[0]) < _STATE_CACHE_TTL:
             return JSONResponse(cached[1])
 
-        pr = project_root()
         ip_dir = pr / ip
         run_mode = _current_run_mode()
         exec_mode = _current_exec_mode()
@@ -1716,22 +2133,38 @@ def register_jobs_routes(
                 # workspace + ip_block lookup (creates rows if missing — same
                 # pattern as register_rtl_version in this file)
                 try:
-                    _ws = _db.upsert_workspace(pr.name or "default", local_path=str(pr))
-                    _ipb = _db.upsert_ip_block(_ws["id"], ip)
-                    _runs = _db._fetchall(
-                        """
-                        SELECT workflow, status, error_summary, started_at, ended_at
-                        FROM workflow_runs
-                        WHERE workspace_id = ? AND ip_id = ?
-                        ORDER BY started_at DESC
-                        """,
-                        (_ws["id"], _ipb["id"]),
+                    workspace_candidates: list[dict[str, Any]] = []
+                    if db_user_id:
+                        workspace_candidates.append(_db.upsert_workspace(
+                            pr.name or "default",
+                            owner_user_id=db_user_id,
+                            local_path=str(pr),
+                        ))
+                    legacy_ws = _db.upsert_workspace(
+                        pr.name or "default",
+                        owner_user_id="",
+                        local_path=str(pr),
                     )
-                    # First (latest) row per workflow wins.
-                    for _r in _runs:
-                        wf = _r["workflow"]
-                        if wf not in db_state_by_workflow:
-                            db_state_by_workflow[wf] = dict(_r)
+                    if not workspace_candidates or legacy_ws["id"] != workspace_candidates[0]["id"]:
+                        workspace_candidates.append(legacy_ws)
+                    for _ws in workspace_candidates:
+                        _ipb = _db.upsert_ip_block(_ws["id"], ip)
+                        _runs = _db._fetchall(
+                            """
+                            SELECT workflow, status, error_summary, started_at, ended_at
+                            FROM workflow_runs
+                            WHERE workspace_id = ? AND ip_id = ?
+                            ORDER BY started_at DESC
+                            """,
+                            (_ws["id"], _ipb["id"]),
+                        )
+                        # First (latest) row per workflow wins. User-scoped
+                        # workspace rows are considered before legacy
+                        # ownerless rows for backward compatibility.
+                        for _r in _runs:
+                            wf = _r["workflow"]
+                            if wf not in db_state_by_workflow:
+                                db_state_by_workflow[wf] = dict(_r)
                 except Exception:
                     pass
             ip_versions = [v for v in versions if v.get("ip") == ip or v.get("ip_id")]
@@ -1967,6 +2400,7 @@ def register_jobs_routes(
                 stage_blame = blame_workflow
 
             model = (running_job or last_job or {}).get("model") or None
+            toolchain = (running_job or last_job or {}).get("toolchain") or _workflow_toolchain_for(stage["workflow"]) or None
             effort = (running_job or last_job or {}).get("effort") or None
 
             stage_workflow = stage["workflow"]
@@ -1986,6 +2420,7 @@ def register_jobs_routes(
                 "evidence_paths": evidence_paths,
                 "abortable": abortable,
                 "model": model,
+                "toolchain": toolchain,
                 "effort": effort,
                 "history": _stage_history(sid),
                 "blame": stage_blame,
@@ -2017,6 +2452,47 @@ def register_jobs_routes(
         return JSONResponse(payload)
 
     # ── /api/pipeline/dispatch ─────────────────────────────────────
+
+    def _create_pipeline_db_session_for_request(
+        request: Request,
+        *,
+        ip: str,
+        pipeline_id: str,
+        run_mode: str,
+        exec_mode: str,
+        selected_stage_ids: list[str],
+        prompt: str = "",
+    ) -> str:
+        db_user_id = _request_db_user_id(request)
+        if not db_user_id:
+            return ""
+        pr = project_root()
+        try:
+            from core.atlas_db import AtlasDB
+
+            with AtlasDB(_atlas_job_db_path(pr)) as db:
+                created = db.create_session(
+                    db_user_id,
+                    f"{ip or 'soc'} pipeline {pipeline_id}",
+                    ip,
+                )
+                db.update_session(
+                    created["id"],
+                    summary={
+                        "ip": ip,
+                        "workflow": "pipeline",
+                        "pipeline_run_id": pipeline_id,
+                        "pipeline_id": pipeline_id,
+                        "run_mode": run_mode,
+                        "exec_mode": exec_mode,
+                        "stages": selected_stage_ids,
+                        "prompt": prompt[:400],
+                        "project_root": str(pr),
+                    },
+                )
+                return str(created["id"] or "")
+        except Exception:
+            return ""
 
     @app.post("/api/pipeline/dispatch")
     async def api_pipeline_dispatch(request: Request):
@@ -2061,6 +2537,16 @@ def register_jobs_routes(
         jobs: list       = []
         stage_job_ids: dict[str, str] = {}
         selected_stage_ids = [stage["id"] for stage in resolved]
+        db_user_id = _request_db_user_id(request)
+        db_session_id = _create_pipeline_db_session_for_request(
+            request,
+            ip=ip,
+            pipeline_id=pipeline_id,
+            run_mode=run_mode,
+            exec_mode=exec_mode,
+            selected_stage_ids=selected_stage_ids,
+            prompt=user_prompt,
+        )
         for idx, stage in enumerate(resolved):
             workflow     = stage["workflow"]
             stage_prompt = _default_workflow_prompt(workflow, ip, stage["id"])
@@ -2086,6 +2572,8 @@ def register_jobs_routes(
                 rtl_version_id=rtl_version_id if stage["id"] in _RTL_VERSION_DOWNSTREAM_STAGES else "",
                 run_mode=run_mode, exec_mode=exec_mode,
                 user_id=owner_user_id,
+                db_user_id=db_user_id,
+                db_session_id=db_session_id,
             )
             stage_job_ids[stage["id"]] = job["job_id"]
             jobs.append(_public_job(job))
@@ -2101,6 +2589,248 @@ def register_jobs_routes(
             "ip":          ip,
             "stages":      resolved,
             "jobs":        jobs,
+        })
+
+    def _extract_ip_from_orchestrator_message(message: str, fallback: str = "") -> str:
+        candidate = str(fallback or "").strip()
+        if not candidate:
+            match = re.search(r"\b([A-Za-z][A-Za-z0-9_]*)\s*(?:ip|IP)\b", message)
+            if match:
+                candidate = match.group(1).strip()
+        if candidate:
+            candidate = re.sub(r"[^A-Za-z0-9_]", "_", candidate)
+            if candidate and candidate[0].isdigit():
+                candidate = f"ip_{candidate}"
+        return candidate
+
+    def _orchestrator_stage_selection(message: str) -> tuple[str, list[str]]:
+        text = str(message or "").lower()
+        full_markers = (
+            "run to green", "full pipeline", "full ip", "끝까지", "green",
+            "만들", "생성", "create", "make", "pipeline", "파이프라인",
+        )
+        status_markers = ("status", "상태", "어디", "progress", "현황", "what")
+        stage_aliases = [
+            ("ssot", ("ssot", "req", "intent")),
+            ("fl-model", ("fl", "functional")),
+            ("cl-model", ("cl", "cycle")),
+            ("equivalence", ("equiv", "equivalence")),
+            ("rtl", ("rtl", "rtl-gen", "rtl gen")),
+            ("lint", ("lint", "pyslang", "verilator")),
+            ("tb", ("tb", "testbench", "tb-gen")),
+            ("sim", ("sim ", " simulation", "시뮬")),
+            ("coverage", ("coverage", "cover", "커버리지")),
+            ("sim-debug", ("sim_debug", "sim-debug", "debug", "wave", "waveform")),
+            ("goal-audit", ("audit", "goal-audit", "signoff")),
+        ]
+        selected = [
+            stage_id
+            for stage_id, aliases in stage_aliases
+            if any(alias in text for alias in aliases)
+        ]
+        if any(marker in text for marker in full_markers) and not (
+            selected and not {"ssot", "rtl", "tb", "sim", "coverage"}.issubset(set(selected))
+        ):
+            return "dispatch", [stage["id"] for stage in _PIPELINE_STAGES]
+        if selected:
+            return "dispatch", selected
+        if any(marker in text for marker in status_markers):
+            return "status", []
+        return "status", []
+
+    def _record_orchestrator_chat(
+        request: Request,
+        *,
+        ip: str,
+        message: str,
+        reply: str = "",
+        pipeline_id: str = "",
+    ) -> None:
+        try:
+            from core.atlas_db import AtlasDB
+
+            pr = project_root()
+            user = request.scope.get("user") or {}
+            db_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
+            with AtlasDB(_atlas_job_db_path(pr)) as db:
+                workspace = db.upsert_workspace(
+                    pr.name or "default",
+                    owner_user_id=db_user_id,
+                    local_path=str(pr),
+                )
+                ip_row = db.upsert_ip_block(
+                    workspace["id"],
+                    ip or "soc",
+                    ssot_path=f"{ip}/yaml/{ip}.ssot.yaml" if ip else "",
+                )
+                if message:
+                    db.record_chat_message(
+                        ip_row["id"],
+                        db_user_id,
+                        message,
+                        display_name=str(user.get("username") or ""),
+                        workspace_id=workspace["id"],
+                    )
+                if reply:
+                    db.record_trace_event(
+                        event_type="chat_response",
+                        payload={"content": reply, "pipeline_run_id": pipeline_id},
+                        workspace_id=workspace["id"],
+                        ip_id=ip_row["id"],
+                        workflow="orchestrator",
+                        actor_user_id=db_user_id,
+                    )
+        except Exception:
+            return
+
+    def _pipeline_status_reply(ip: str) -> tuple[str, dict[str, Any]]:
+        with _jobs_lock:
+            jobs = [dict(job) for job in _jobs.values() if not ip or job.get("ip") == ip]
+        counts: dict[str, int] = {}
+        for job in jobs:
+            status = str(job.get("status") or "unknown")
+            counts[status] = counts.get(status, 0) + 1
+        latest = sorted(jobs, key=lambda job: job.get("started_at", 0), reverse=True)[:5]
+        if not jobs:
+            return (
+                f"{ip or 'current IP'} has no worker jobs in this UI process yet. "
+                "Say 'run to green' to dispatch the full IP pipeline.",
+                {"counts": counts, "latest": []},
+            )
+        bits = [f"{status}={count}" for status, count in sorted(counts.items())]
+        latest_text = ", ".join(
+            f"{job.get('stage_id')}:{job.get('status')}"
+            for job in latest
+            if job.get("stage_id")
+        )
+        return (
+            f"{ip or 'current IP'} pipeline jobs: " + " ".join(bits)
+            + (f". Latest: {latest_text}." if latest_text else "."),
+            {"counts": counts, "latest": [_public_job(job) for job in latest]},
+        )
+
+    @app.post("/api/pipeline/orchestrator/chat")
+    async def api_pipeline_orchestrator_chat(request: Request):
+        try:
+            body = await request.json()
+        except Exception as e:
+            return JSONResponse({"error": f"bad json: {e}"}, status_code=400)
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "expected JSON object"}, status_code=400)
+
+        message = str(body.get("message") or body.get("text") or "").strip()
+        if not message:
+            return JSONResponse({"error": "message required"}, status_code=400)
+        ip = _extract_ip_from_orchestrator_message(message, str(body.get("ip") or ""))
+        if not ip or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
+            return JSONResponse({"error": "valid ip required"}, status_code=400)
+
+        action, selected_stage_ids = _orchestrator_stage_selection(message)
+        run_mode = _normalize_run_mode(body.get("run_mode")) or _current_run_mode()
+        exec_mode = _normalize_exec_mode(body.get("exec_mode")) or _current_exec_mode()
+        if body.get("run_mode") is not None and not _normalize_run_mode(body.get("run_mode")):
+            return JSONResponse({"error": "run_mode must be starter, engineering, or signoff"}, status_code=400)
+        if body.get("exec_mode") is not None and not _normalize_exec_mode(body.get("exec_mode")):
+            return JSONResponse({"error": "exec_mode must be single-worker or orchestrator"}, status_code=400)
+
+        if action != "dispatch":
+            reply, status_payload = _pipeline_status_reply(ip)
+            _record_orchestrator_chat(request, ip=ip, message=message, reply=reply)
+            return JSONResponse({
+                "ok": True,
+                "action": "status",
+                "ip": ip,
+                "reply": reply,
+                "status": status_payload,
+            })
+
+        resolved = _ordered_pipeline_stages([
+            _PIPELINE_BY_ID[stage_id]
+            for stage_id in selected_stage_ids
+            if stage_id in _PIPELINE_BY_ID
+        ])
+        if not resolved:
+            return JSONResponse({"error": "no valid stages selected"}, status_code=400)
+        requested_schedule = str(body.get("schedule") or "auto").strip().lower()
+        if requested_schedule not in {"auto", "dag", "serial"}:
+            return JSONResponse({"error": "schedule must be 'auto', 'dag', or 'serial'"}, status_code=400)
+        schedule = (
+            "serial"
+            if requested_schedule == "auto" and exec_mode == "single-worker"
+            else _resolve_pipeline_schedule(requested_schedule, resolved)
+        )
+        pipeline_id = uuid.uuid4().hex[:12]
+        owner_user_id = _request_username(request)
+        db_user_id = _request_db_user_id(request)
+        selected_stage_ids = [stage["id"] for stage in resolved]
+        db_session_id = _create_pipeline_db_session_for_request(
+            request,
+            ip=ip,
+            pipeline_id=pipeline_id,
+            run_mode=run_mode,
+            exec_mode=exec_mode,
+            selected_stage_ids=selected_stage_ids,
+            prompt=message,
+        )
+        jobs: list[dict[str, Any]] = []
+        stage_job_ids: dict[str, str] = {}
+        for idx, stage in enumerate(resolved):
+            workflow = stage["workflow"]
+            stage_prompt = _default_workflow_prompt(workflow, ip, stage["id"])
+            stage_prompt += (
+                "\n\n[ATLAS ORCHESTRATOR CHAT GOAL]\n"
+                f"{message}\n\n"
+                "[ATLAS RUN POLICY]\n"
+                f"- run_mode: {run_mode}\n"
+                f"- exec_mode: {exec_mode}\n"
+            )
+            session = f"{_pipeline_session_prefix(request, ip, pipeline_id)}/{idx + 1:02d}-{workflow}"
+            dep_stage_ids = _pipeline_stage_dependencies(
+                stage["id"], selected_stage_ids, schedule=schedule,
+            )
+            dep_job_ids = [stage_job_ids[dep] for dep in dep_stage_ids if dep in stage_job_ids]
+            depends_on: str | list[str]
+            depends_on = dep_job_ids[0] if schedule == "serial" and dep_job_ids else dep_job_ids
+            job = _make_job_record(
+                workflow=workflow,
+                ip=ip,
+                prompt=stage_prompt,
+                model="",
+                session_name=session,
+                stage_id=stage["id"],
+                pipeline_id=pipeline_id,
+                pipeline_index=idx,
+                depends_on=depends_on,
+                auto_start=(not dep_job_ids),
+                pipeline_schedule=schedule,
+                run_mode=run_mode,
+                exec_mode=exec_mode,
+                user_id=owner_user_id,
+                db_user_id=db_user_id,
+                db_session_id=db_session_id,
+            )
+            stage_job_ids[stage["id"]] = job["job_id"]
+            jobs.append(_public_job(job))
+
+        reply = (
+            f"Dispatched {len(jobs)} stage(s) for {ip}: "
+            + ", ".join(stage["id"] for stage in resolved)
+            + f". pipeline_run_id={pipeline_id}."
+        )
+        _record_orchestrator_chat(request, ip=ip, message=message, reply=reply, pipeline_id=pipeline_id)
+        return JSONResponse({
+            "ok": True,
+            "action": "dispatch",
+            "ip": ip,
+            "reply": reply,
+            "pipeline_id": pipeline_id,
+            "pipeline_run_id": pipeline_id,
+            "user_id": owner_user_id,
+            "run_mode": run_mode,
+            "exec_mode": exec_mode,
+            "schedule": schedule,
+            "stages": resolved,
+            "jobs": jobs,
         })
 
     def _dispatch_workflow_tool_bridge(
@@ -2316,11 +3046,12 @@ def register_jobs_routes(
 
         # Workflows the orchestrator can dispatch. Order matters for UI.
         workflows = [
-            "ssot-gen", "fl-model-gen", "rtl-gen", "tb-gen", "sim_debug",
+            "ssot-gen", "fl-model-gen", "rtl-gen", "lint", "tb-gen",
+            "sim", "coverage", "sim_debug", "goal-audit",
         ]
         extra = params.get("include_optional", "").strip()
         if extra and extra not in ("0", "false", "no"):
-            workflows.extend(["lint", "sim", "coverage", "goal-audit"])
+            workflows.extend(["syn", "sta", "pnr", "sta-post"])
 
         def _probe(url: str) -> dict[str, Any]:
             try:
@@ -2350,6 +3081,7 @@ def register_jobs_routes(
                     "bound_workflow": health.get("workflow"),
                     "expected_model": _worker_model_for(wf),
                     "model": health.get("model") or _worker_model_for(wf),
+                    "toolchain": _workflow_toolchain_for(wf),
                     "profile": health.get("profile"),
                     "uptime_s": health.get("uptime_s"),
                     "total_runs": health.get("runs"),
@@ -2641,56 +3373,8 @@ def register_jobs_routes(
         started_at descending so the most-recent job is first.
         """
         pr  = project_root()
-        out = []
-        now = time.time()
-        with _jobs_lock:
-            snapshot = list(_jobs.values())
-        for job in snapshot:
-            if job["status"] in ("running",) and (now - job.get("_last_polled", 0)) > 1.5:
-                # Poll worker for fresh state.
-                try:
-                    import urllib.request as _u
-                    req = _u.Request(
-                        f"{job['worker'].rstrip('/')}/status/{job['run_id']}",
-                        method="GET",
-                    )
-                    with _u.urlopen(req, timeout=5) as resp:
-                        s = json.loads(resp.read().decode("utf-8"))
-                    job["_last_polled"] = now
-                    job["status"]       = s.get("status", job["status"])
-                    if isinstance(s.get("iterations"), int):
-                        job["iterations"] = s["iterations"]
-                    if s.get("status") in ("completed", "error", "cancelled"):
-                        # Fetch full result body once on completion.
-                        try:
-                            req2 = _u.Request(
-                                f"{job['worker'].rstrip('/')}/result/{job['run_id']}",
-                                method="GET",
-                            )
-                            with _u.urlopen(req2, timeout=5) as r2:
-                                rr = json.loads(r2.read().decode("utf-8"))
-                            job["files_modified"] = rr.get("files_modified") or []
-                            job["result_summary"] = (rr.get("result") or "")[:600]
-                            job["error"]          = rr.get("error") or ""
-                            job["finished_at"]    = now
-                            if rr.get("execution_time_ms"):
-                                job["duration_ms"] = rr["execution_time_ms"]
-                        except Exception:
-                            pass
-                        _advance_pipeline_from(job)
-                except Exception as e:
-                    recovered, detail = _job_artifact_recovery(job, pr)
-                    if recovered:
-                        job["status"]         = "completed"
-                        job["error"]          = ""
-                        job["result_summary"] = detail
-                        job["finished_at"]    = now
-                        _advance_pipeline_from(job)
-                    else:
-                        job["error"] = f"poll failed: {e}"
-            if job.get("status") in ("completed", "error", "cancelled"):
-                _advance_pipeline_from(job)
-            out.append(_public_job(job))
+        snapshot, _ = _refresh_tracked_jobs(pr)
+        out = [_public_job(job) for job in snapshot]
         out.sort(key=lambda j: j.get("started_at", 0), reverse=True)
         return JSONResponse({"jobs": out, "count": len(out)})
 
@@ -2805,6 +3489,8 @@ def register_jobs_routes(
             return JSONResponse({"error": f"cancel failed: {e}"}, status_code=502)
         with _jobs_lock:
             job["status"] = "cancelled"
+            job["finished_at"] = time.time()
+            _finish_job_db_run(job, "cancelled")
         return JSONResponse({"ok": True})
 
     # ── /api/jobs/clear ────────────────────────────────────────────

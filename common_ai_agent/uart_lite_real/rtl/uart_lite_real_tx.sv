@@ -53,11 +53,15 @@ module uart_lite_real_tx (
     always @(*) begin
         tx_next    = tx_state;
         tx_o       = 1'b1; // default: mark (idle high)
-        fifo_pop_o = 1'b0;
 
         case (tx_state)
             S_TX_IDLE: begin
-                tx_o = 1'b1;
+                // Break: hold TX low when idle
+                if (break_i) begin
+                    tx_o = 1'b0;
+                end else begin
+                    tx_o = 1'b1;
+                end
                 if (tx_enable_i && !fifo_empty_i && baud_tick_i && !break_i) begin
                     tx_next = S_TX_START;
                 end
@@ -123,6 +127,7 @@ module uart_lite_real_tx (
             tx_active_o  <= 1'b0;
             bytes_tx_o   <= 32'd0;
         end else begin
+            fifo_pop_o <= 1'b0; // default: no pop each cycle
             case (tx_state)
                 S_TX_IDLE: begin
                     tx_active_o <= 1'b0;

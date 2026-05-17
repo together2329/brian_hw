@@ -1,0 +1,29 @@
+{
+  "ip": "uart_lite_real",
+  "coverage_report": {
+    "total_bins": 13,
+    "bins_hit": 13,
+    "hit_pct": 100.0,
+    "bin_status": [
+      {"id": "FCOV_FM_TX_BYTE", "hit": true, "tests": ["test_01", "test_02", "test_04", "test_13"]},
+      {"id": "FCOV_FM_RX_BYTE", "hit": true, "tests": ["test_02", "test_03", "test_13"]},
+      {"id": "FCOV_FM_BREAK", "hit": true, "tests": ["test_14"]},
+      {"id": "FCOV_FM_LOOPBACK", "hit": true, "tests": ["test_02", "test_13"]},
+      {"id": "FCOV_ERR_PARITY", "hit": true, "tests": ["test_05"]},
+      {"id": "FCOV_ERR_FRAME", "hit": true, "tests": ["test_06"]},
+      {"id": "FCOV_ERR_OVERRUN", "hit": true, "tests": ["test_07"]},
+      {"id": "CCOV_TX_IDLE", "hit": true, "tests": ["test_01"]},
+      {"id": "CCOV_TX_DATA", "hit": true, "tests": ["test_01"]},
+      {"id": "CCOV_RX_START_CONFIRM", "hit": true, "tests": ["test_03"]},
+      {"id": "CCOV_RX_DATA", "hit": true, "tests": ["test_03"]},
+      {"id": "CCOV_BAUD_TICK", "hit": true, "tests": ["test_01"]},
+      {"id": "CCOV_PERF_FIFO_DEPTH", "hit": true, "tests": ["test_07", "test_08"]}
+    ]
+  },
+  "regression": {
+    "total_tests": 14,
+    "passed": 14,
+    "failed": 0,
+    "results_xml": "tb/results.xml"
+  }
+}

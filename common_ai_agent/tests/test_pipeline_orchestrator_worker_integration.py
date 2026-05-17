@@ -39,8 +39,15 @@ def _wait_for_port(port: int, timeout_s: float = 5.0) -> None:
 
 
 class _MockWorkerState:
-    def __init__(self, name: str) -> None:
+    def __init__(
+        self,
+        name: str,
+        fail_workflows: set[str] | None = None,
+        write_artifacts: bool = True,
+    ) -> None:
         self.name = name
+        self.fail_workflows = fail_workflows or set()
+        self.write_artifacts = write_artifacts
         self.lock = threading.Lock()
         self.requests: list[dict] = []
         self.status_hits: list[str] = []
@@ -59,10 +66,70 @@ class _MockWorkerState:
                 if item.get("payload", {}).get("workflow") == workflow
             ]
 
+    def workflow_for_run(self, run_id: str) -> str:
+        with self.lock:
+            for item in self.requests:
+                if item.get("run_id") == run_id:
+                    return str(item.get("payload", {}).get("workflow") or "")
+        return ""
+
+
+def _write_mock_stage_artifact(payload: dict) -> None:
+    project_root = Path(str(payload.get("project_root") or ""))
+    ip = str(payload.get("ip") or "").strip()
+    if not project_root or not ip:
+        return
+    ip_dir = project_root / ip
+    stage = str(payload.get("stage_id") or "").strip()
+    workflow = str(payload.get("workflow") or "").strip()
+
+    def write(rel: str, text: str) -> None:
+        path = ip_dir / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    if stage == "ssot" or workflow == "ssot-gen":
+        write(f"yaml/{ip}.ssot.yaml", f"ip: {ip}\nrequirements: []\n")
+    elif stage == "fl-model":
+        write("model/fl_model_check.json", '{"status":"pass"}\n')
+    elif stage == "cl-model":
+        write("model/cl_model_check.json", '{"status":"pass"}\n')
+    elif stage == "equivalence":
+        write("verify/equivalence_goals.json", '{"status":"pass"}\n')
+    elif stage == "rtl" or workflow == "rtl-gen":
+        write(f"rtl/{ip}.sv", f"module {ip}(input logic clk); endmodule\n")
+        write(f"list/{ip}.f", f"../rtl/{ip}.sv\n")
+    elif stage == "lint" or workflow == "lint":
+        write("lint/dut_lint.json", '{"errors":0,"warnings":0,"pyslang":[],"verilator":[]}\n')
+    elif stage == "tb" or workflow == "tb-gen":
+        write("tb/run_tests.py", "def test_smoke():\n    assert True\n")
+    elif stage == "sim" or workflow == "sim":
+        write("sim/results.xml", '<testsuite tests="1" failures="0" errors="0"></testsuite>\n')
+    elif stage == "coverage" or workflow == "coverage":
+        write("cov/coverage.json", '{"status":"pass","line":100,"condition":100,"function":100}\n')
+    elif stage == "sim-debug" or (workflow == "sim_debug" and stage != "goal-audit"):
+        write("sim/mismatch_classification.json", '{"status":"pass","owner_workflow":""}\n')
+        write("sim/source_tracking.json", '{"top":"dut","source_files":[]}\n')
+    elif stage == "syn" or workflow == "syn":
+        write("syn/out/synth.v", f"module {ip}; endmodule\n")
+    elif stage == "sta" or workflow == "sta":
+        write("sta/out/wns.json", '{"wns":0.1}\n')
+    elif stage == "pnr" or workflow == "pnr":
+        write("pnr/out/routed.v", f"module {ip}; endmodule\n")
+    elif stage == "sta-post" or workflow == "sta-post":
+        write("sta-post/out/wns.json", '{"wns":0.1}\n')
+    elif stage == "goal-audit":
+        write("sim/fl_rtl_goal_audit.json", '{"status":"pass","summary":{"blockers":[]}}\n')
+
 
 @contextmanager
-def _mock_worker(name: str) -> Iterator[tuple[str, _MockWorkerState]]:
-    state = _MockWorkerState(name)
+def _mock_worker(
+    name: str,
+    *,
+    fail_workflows: set[str] | None = None,
+    write_artifacts: bool = True,
+) -> Iterator[tuple[str, _MockWorkerState]]:
+    state = _MockWorkerState(name, fail_workflows=fail_workflows, write_artifacts=write_artifacts)
 
     class Handler(BaseHTTPRequestHandler):
         def _json(self, status: int, body: dict) -> None:
@@ -79,17 +146,30 @@ def _mock_worker(name: str) -> Iterator[tuple[str, _MockWorkerState]]:
                 return
             size = int(self.headers.get("Content-Length") or "0")
             payload = json.loads(self.rfile.read(size).decode("utf-8") or "{}")
+            if state.write_artifacts and str(payload.get("workflow") or "") not in state.fail_workflows:
+                _write_mock_stage_artifact(payload)
             self._json(200, {"run_id": state.add_run(payload)})
 
         def do_GET(self) -> None:  # noqa: N802 - stdlib handler hook
             if self.path.startswith("/status/"):
                 run_id = self.path.rsplit("/", 1)[-1]
                 state.status_hits.append(run_id)
-                self._json(200, {"status": "completed", "iterations": 1})
+                workflow = state.workflow_for_run(run_id)
+                status = "error" if workflow in state.fail_workflows else "completed"
+                self._json(200, {"status": status, "iterations": 1})
                 return
             if self.path.startswith("/result/"):
                 run_id = self.path.rsplit("/", 1)[-1]
                 state.result_hits.append(run_id)
+                workflow = state.workflow_for_run(run_id)
+                if workflow in state.fail_workflows:
+                    self._json(200, {
+                        "result": f"{name} failed {run_id}",
+                        "files_modified": [],
+                        "error": "mock failure",
+                        "execution_time_ms": 10,
+                    })
+                    return
                 self._json(200, {
                     "result": f"{name} completed {run_id}",
                     "files_modified": [],
@@ -133,6 +213,12 @@ def _agent_server_worker(monkeypatch, calls: list[dict]) -> Iterator[str]:
         entry.status = "running"
         entry.started_at = time.time()
         entry.add_log("system", f"fake worker executing {workflow}", role="system")
+        _write_mock_stage_artifact({
+            "project_root": project_root,
+            "ip": ip,
+            "workflow": workflow,
+            "stage_id": "lint" if workflow == "lint" else ("rtl" if workflow == "rtl-gen" else workflow),
+        })
         calls.append({
             "run_id": entry.run_id,
             "workflow": workflow,
@@ -442,6 +528,46 @@ def test_orchestrator_worker_status_exposes_default_model_bindings(
     assert models["rtl-gen"] == "gpt-5.3-codex"
     assert models["tb-gen"] == "kimi"
     assert models["sim_debug"] == "glm-5.1"
+    assert models["lint"] == "gpt-5.3-codex"
+    toolchains = {item["workflow"]: item.get("toolchain") for item in body["workers"]}
+    assert toolchains["lint"] == "pyslang + verilator"
+    assert toolchains["coverage"] == "verilator coverage + VCD"
+
+
+def test_job_dispatch_keeps_llm_model_separate_from_lint_toolchain(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    ip = "lint_model_ip"
+    (tmp_path / ip / "rtl").mkdir(parents=True)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("lint") as (lint_url, lint_worker):
+        monkeypatch.setenv("WORKER_URL_LINT", lint_url)
+        client = _make_client(tmp_path, monkeypatch)
+
+        resp = client.post("/api/job/dispatch", json={
+            "workflow": "lint",
+            "ip": ip,
+        })
+
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        assert body["model"] == "gpt-5.3-codex"
+        assert body["toolchain"] == "pyslang + verilator"
+        assert "--model gpt-5.3-codex" in body["worker_command"]
+        assert "pyslang" not in body["worker_command"]
+        assert len(lint_worker.runs_for_workflow("lint")) == 1
+        payload = lint_worker.requests[0]["payload"]
+        assert payload["model"] == "gpt-5.3-codex"
+        assert payload["toolchain"] == "pyslang + verilator"
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
 
 
 def test_full_ip_pipeline_can_complete_all_stages_across_two_workers(
@@ -526,6 +652,536 @@ def test_full_ip_pipeline_can_complete_all_stages_across_two_workers(
         assert "ssot:" in sim_payload["context"]
         assert "rtl:" in sim_payload["context"]
         assert "tb:" in sim_payload["context"]
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_pipeline_dispatch_persists_db_identity_for_admin_sessions(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core.atlas_db import AtlasDB
+
+    ip = "db_identity_ip"
+    (tmp_path / ip / "rtl").mkdir(parents=True)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("pipeline") as (worker_url, _worker):
+        monkeypatch.setenv("ATLAS_ADMIN_USERS", "u")
+        monkeypatch.setenv("WORKER_URL_DEFAULT", worker_url)
+        client = _make_client(tmp_path, monkeypatch)
+
+        dispatch = client.post("/api/pipeline/dispatch", json={
+            "ip": ip,
+            "stages": ["rtl", "lint"],
+            "schedule": "auto",
+            "exec_mode": "orchestrator",
+        })
+        assert dispatch.status_code == 200, dispatch.text
+        pipeline_id = dispatch.json()["pipeline_id"]
+
+        rows = []
+        for _ in range(20):
+            jobs_resp = client.get("/api/jobs")
+            assert jobs_resp.status_code == 200, jobs_resp.text
+            rows = jobs_resp.json()["jobs"]
+            if len(rows) == 2 and all(row["status"] == "completed" for row in rows):
+                break
+            time.sleep(0.1)
+
+        assert {row["stage_id"] for row in rows} == {"rtl", "lint"}
+        assert all(row["pipeline_run_id"] == pipeline_id for row in rows)
+        assert all(row["workflow_run_id"] for row in rows)
+        assert len({row["db_session_id"] for row in rows}) == 1
+
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            run_rows = db._fetchall(
+                """
+                SELECT id, workflow, status, model_profile, session_id, workspace_id, ip_id
+                  FROM workflow_runs
+                 ORDER BY started_at ASC
+                """
+            )
+            assert [row["workflow"] for row in run_rows] == ["rtl-gen", "lint"]
+            assert {row["status"] for row in run_rows} == {"completed"}
+            assert [row["model_profile"] for row in run_rows] == ["gpt-5.3-codex", "gpt-5.3-codex"]
+            assert len({row["session_id"] for row in run_rows}) == 1
+            sessions = db.list_all_sessions()
+            assert len(sessions) == 1
+            assert sessions[0]["ip"] == ip
+            assert sessions[0]["pipeline_run_id"] == pipeline_id
+            rtl_versions = db._fetchall("SELECT workspace_id, ip_id FROM rtl_versions")
+            assert len(rtl_versions) == 1
+            assert rtl_versions[0]["workspace_id"] == run_rows[0]["workspace_id"]
+            assert rtl_versions[0]["ip_id"] == run_rows[0]["ip_id"]
+            attached = db._fetchall(
+                "SELECT role FROM run_artifact_versions WHERE run_id = ?",
+                (run_rows[0]["id"],),
+            )
+            assert [row["role"] for row in attached] == ["output"]
+
+        admin = client.get("/api/admin/sessions")
+        assert admin.status_code == 200, admin.text
+        admin_sessions = admin.json()["sessions"]
+        assert admin_sessions[0]["ip"] == ip
+        assert admin_sessions[0]["pipeline_run_id"] == pipeline_id
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_pipeline_dependency_failure_blocks_downstream_and_records_db_status(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core.atlas_db import AtlasDB
+
+    ip = "blocked_dependency_ip"
+    (tmp_path / ip / "rtl").mkdir(parents=True)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("pipeline", fail_workflows={"rtl-gen"}) as (worker_url, _worker):
+        monkeypatch.setenv("WORKER_URL_DEFAULT", worker_url)
+        client = _make_client(tmp_path, monkeypatch)
+
+        dispatch = client.post("/api/pipeline/dispatch", json={
+            "ip": ip,
+            "stages": ["rtl", "lint"],
+            "schedule": "auto",
+            "exec_mode": "orchestrator",
+        })
+        assert dispatch.status_code == 200, dispatch.text
+        pipeline_id = dispatch.json()["pipeline_id"]
+
+        rows = []
+        for _ in range(20):
+            jobs_resp = client.get("/api/jobs")
+            assert jobs_resp.status_code == 200, jobs_resp.text
+            rows = jobs_resp.json()["jobs"]
+            by_stage = {row["stage_id"]: row for row in rows}
+            if by_stage.get("rtl", {}).get("status") == "error" and by_stage.get("lint", {}).get("status") == "blocked":
+                break
+            time.sleep(0.1)
+
+        by_stage = {row["stage_id"]: row for row in rows}
+        assert by_stage["rtl"]["status"] == "error"
+        assert by_stage["lint"]["status"] == "blocked"
+        assert by_stage["lint"]["error"] == "blocked by rtl-gen error"
+        assert all(row["pipeline_run_id"] == pipeline_id for row in rows)
+
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            run_rows = db._fetchall(
+                "SELECT workflow, status, error_summary FROM workflow_runs ORDER BY started_at ASC"
+            )
+            assert [(row["workflow"], row["status"]) for row in run_rows] == [
+                ("rtl-gen", "error"),
+                ("lint", "blocked"),
+            ]
+            assert run_rows[1]["error_summary"] == "blocked by rtl-gen error"
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_worker_completion_without_stage_evidence_is_not_marked_green(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core.atlas_db import AtlasDB
+
+    ip = "missing_evidence_ip"
+    (tmp_path / ip).mkdir(parents=True)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("pipeline", write_artifacts=False) as (worker_url, _worker):
+        monkeypatch.setenv("WORKER_URL_DEFAULT", worker_url)
+        client = _make_client(tmp_path, monkeypatch)
+
+        dispatch = client.post("/api/pipeline/dispatch", json={
+            "ip": ip,
+            "stages": ["rtl", "lint"],
+            "schedule": "auto",
+            "exec_mode": "orchestrator",
+        })
+        assert dispatch.status_code == 200, dispatch.text
+        pipeline_id = dispatch.json()["pipeline_id"]
+
+        rows = []
+        for _ in range(20):
+            jobs_resp = client.get("/api/jobs")
+            assert jobs_resp.status_code == 200, jobs_resp.text
+            rows = jobs_resp.json()["jobs"]
+            by_stage = {row["stage_id"]: row for row in rows}
+            if by_stage.get("rtl", {}).get("status") == "error" and by_stage.get("lint", {}).get("status") == "blocked":
+                break
+            time.sleep(0.1)
+
+        by_stage = {row["stage_id"]: row for row in rows}
+        assert by_stage["rtl"]["status"] == "error"
+        assert "missing required evidence for rtl" in by_stage["rtl"]["error"]
+        assert by_stage["lint"]["status"] == "blocked"
+        assert all(row["pipeline_run_id"] == pipeline_id for row in rows)
+
+        state = client.get(f"/api/pipeline/state?ip={ip}")
+        assert state.status_code == 200, state.text
+        assert state.json()["stages"]["rtl"]["state"] == "failed"
+
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            run_rows = db._fetchall(
+                "SELECT workflow, status, error_summary FROM workflow_runs ORDER BY started_at ASC"
+            )
+            assert [(row["workflow"], row["status"]) for row in run_rows] == [
+                ("rtl-gen", "error"),
+                ("lint", "blocked"),
+            ]
+            assert "missing required evidence for rtl" in run_rows[0]["error_summary"]
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_orchestrator_chat_run_to_green_dispatches_workers_and_records_chat(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core.atlas_db import AtlasDB
+
+    ip = "chat_green_ip"
+    (tmp_path / ip / "yaml").mkdir(parents=True)
+    (tmp_path / ip / "rtl").mkdir(parents=True)
+    (tmp_path / ip / "tb").mkdir(parents=True)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("orch") as (worker_url, worker):
+        monkeypatch.setenv("WORKER_URL_DEFAULT", worker_url)
+        client = _make_client(tmp_path, monkeypatch)
+
+        resp = client.post("/api/pipeline/orchestrator/chat", json={
+            "ip": ip,
+            "message": "SPI IP 하나 run to green 해줘",
+            "exec_mode": "orchestrator",
+        })
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        assert body["ok"] is True
+        assert body["action"] == "dispatch"
+        assert body["ip"] == ip
+        assert body["pipeline_run_id"] == body["pipeline_id"]
+        assert "pipeline_run_id=" in body["reply"]
+        assert [job["stage_id"] for job in body["jobs"]] == [stage["id"] for stage in jobs._PIPELINE_STAGES]
+
+        rows = []
+        for _ in range(30):
+            jobs_resp = client.get("/api/jobs")
+            assert jobs_resp.status_code == 200, jobs_resp.text
+            rows = jobs_resp.json()["jobs"]
+            if len(rows) == len(jobs._PIPELINE_STAGES) and all(row["status"] == "completed" for row in rows):
+                break
+            time.sleep(0.1)
+
+        assert len(rows) == len(jobs._PIPELINE_STAGES)
+        by_stage = {row["stage_id"]: row for row in rows}
+        assert by_stage["ssot"]["model"] == "deepseek"
+        assert by_stage["rtl"]["model"] == "gpt-5.3-codex"
+        assert by_stage["tb"]["model"] == "kimi"
+        assert by_stage["lint"]["toolchain"] == "pyslang + verilator"
+        assert by_stage["coverage"]["toolchain"] == "verilator coverage + VCD"
+        assert by_stage["sim-debug"]["model"] == "glm-5.1"
+        assert all(row["pipeline_run_id"] == body["pipeline_id"] for row in rows)
+        assert all(row["user_id"] == "u" for row in rows)
+        assert worker.requests
+        assert all(req["payload"]["user_id"] == "u" for req in worker.requests)
+        assert all(req["payload"]["pipeline_run_id"] == body["pipeline_id"] for req in worker.requests)
+
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            ip_rows = db._fetchall("SELECT id FROM ip_blocks WHERE ip_name = ?", (ip,))
+            assert ip_rows
+            events = [
+                db._row_to_dict(row, "trace_events")
+                for row in db._fetchall(
+                    "SELECT * FROM trace_events WHERE ip_id = ? ORDER BY created_at ASC",
+                    (ip_rows[0]["id"],),
+                )
+            ]
+            assert any(event["event_type"] == "chat_message" for event in events)
+            assert any(event["event_type"] == "chat_response" for event in events)
+            assert sum(1 for event in events if event["event_type"] == "workflow_dispatch") == len(jobs._PIPELINE_STAGES)
+
+        status = client.post("/api/pipeline/orchestrator/chat", json={
+            "ip": ip,
+            "message": "status?",
+        })
+        assert status.status_code == 200, status.text
+        assert status.json()["action"] == "status"
+        assert "completed" in status.json()["reply"]
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_pipeline_state_poll_advances_run_to_green_without_jobs_endpoint(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core.atlas_db import AtlasDB
+
+    ip = "state_poll_green_ip"
+    (tmp_path / ip).mkdir(parents=True)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("statepoll") as (worker_url, worker):
+        monkeypatch.setenv("WORKER_URL_DEFAULT", worker_url)
+        client = _make_client(tmp_path, monkeypatch)
+
+        resp = client.post("/api/pipeline/orchestrator/chat", json={
+            "ip": ip,
+            "message": "run to green",
+            "exec_mode": "orchestrator",
+        })
+        assert resp.status_code == 200, resp.text
+        pipeline_id = resp.json()["pipeline_id"]
+
+        state_data = {}
+        for _ in range(20):
+            state_resp = client.get(f"/api/pipeline/state?ip={ip}")
+            assert state_resp.status_code == 200, state_resp.text
+            state_data = state_resp.json()
+            states = [
+                state_data["stages"][stage["id"]]["state"]
+                for stage in jobs._PIPELINE_STAGES
+            ]
+            if all(state == "passed" for state in states):
+                break
+            time.sleep(0.1)
+
+        assert state_data["rtl_version_id"] == "rtl-v001"
+        assert all(
+            state_data["stages"][stage["id"]]["state"] == "passed"
+            for stage in jobs._PIPELINE_STAGES
+        )
+        assert len(worker.status_hits) == len(jobs._PIPELINE_STAGES)
+        assert len(worker.result_hits) == len(jobs._PIPELINE_STAGES)
+
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            run_rows = db._fetchall(
+                "SELECT status, input_summary FROM workflow_runs ORDER BY started_at ASC"
+            )
+            assert len(run_rows) == len(jobs._PIPELINE_STAGES)
+            assert {row["status"] for row in run_rows} == {"completed"}
+            assert all(pipeline_id in row["input_summary"] for row in run_rows)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_three_team_members_run_orchestrated_ips_without_identity_mixing(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ADMIN_AUTH_MODE", "db")
+    monkeypatch.setenv("ATLAS_ADMIN_LOGIN_REQUIRED", "1")
+    monkeypatch.setenv("ATLAS_ADMIN_USERS", "lead")
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_TRACE_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.delenv("ATLAS_LOCAL_ADMIN", raising=False)
+    monkeypatch.delenv("ATLAS_ADMIN_BYPASS", raising=False)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    lead = TestClient(app)
+    users = {
+        "alice": (TestClient(app), "team_spi"),
+        "bob": (TestClient(app), "team_uart"),
+        "carol": (TestClient(app), "team_dma"),
+    }
+
+    lead_reg = lead.post("/api/auth/register", json={"username": "lead", "password": "pw"})
+    assert lead_reg.status_code == 200, lead_reg.text
+    assert lead_reg.json()["user"]["role"] == "admin"
+
+    for username, (client, _ip) in users.items():
+        reg = client.post("/api/auth/register", json={"username": username, "password": "pw"})
+        assert reg.status_code == 200, reg.text
+        assert reg.json()["user"]["role"] == "user"
+
+    with _mock_worker("team") as (worker_url, worker):
+        monkeypatch.setenv("WORKER_URL_DEFAULT", worker_url)
+
+        pipelines: dict[str, str] = {}
+        for username, (client, ip) in users.items():
+            resp = client.post("/api/pipeline/orchestrator/chat", json={
+                "ip": ip,
+                "message": f"{ip} IP run to green",
+                "exec_mode": "orchestrator",
+            })
+            assert resp.status_code == 200, resp.text
+            body = resp.json()
+            assert body["action"] == "dispatch"
+            assert body["user_id"] == username
+            assert body["ip"] == ip
+            pipelines[ip] = body["pipeline_id"]
+
+        state_by_ip: dict[str, dict] = {}
+        for _username, (client, ip) in users.items():
+            state_data = {}
+            for _ in range(60):
+                state_resp = client.get(f"/api/pipeline/state?ip={ip}")
+                assert state_resp.status_code == 200, state_resp.text
+                state_data = state_resp.json()
+                stage_states = [
+                    state_data["stages"][stage["id"]]["state"]
+                    for stage in jobs._PIPELINE_STAGES
+                ]
+                if all(state == "passed" for state in stage_states):
+                    break
+                time.sleep(0.1)
+            state_by_ip[ip] = state_data
+
+        for username, (_client, ip) in users.items():
+            state_data = state_by_ip[ip]
+            assert state_data["ip"] == ip
+            assert all(
+                state_data["stages"][stage["id"]]["state"] == "passed"
+                for stage in jobs._PIPELINE_STAGES
+            ), f"{username}/{ip} did not reach green: {state_data}"
+
+        expected_jobs = len(users) * len(jobs._PIPELINE_STAGES)
+        assert len(worker.requests) == expected_jobs
+        for req in worker.requests:
+            payload = req["payload"]
+            ip = payload["ip"]
+            username = next(name for name, (_client, candidate_ip) in users.items() if candidate_ip == ip)
+            assert payload["user_id"] == username
+            assert payload["pipeline_run_id"] == pipelines[ip]
+            assert payload["session"].startswith(f"{username}/{ip}/pipeline/{pipelines[ip]}/")
+
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            db_users = {
+                row["username"]: row["id"]
+                for row in db._fetchall("SELECT id, username FROM users")
+            }
+            assert {"lead", *users.keys()}.issubset(db_users)
+
+            run_rows = db._fetchall(
+                """
+                SELECT r.workflow, r.status, r.model_profile, r.input_summary,
+                       s.user_id AS session_user_id,
+                       w.owner_user_id AS workspace_owner_user_id,
+                       i.ip_name
+                  FROM workflow_runs r
+                  JOIN sessions s ON s.id = r.session_id
+                  JOIN workspaces w ON w.id = r.workspace_id
+                  JOIN ip_blocks i ON i.id = r.ip_id
+                 ORDER BY r.started_at ASC
+                """
+            )
+            assert len(run_rows) == expected_jobs
+
+            runs_by_ip: dict[str, list[dict]] = {}
+            for row in run_rows:
+                runs_by_ip.setdefault(row["ip_name"], []).append(dict(row))
+            assert set(runs_by_ip) == {ip for _client, ip in users.values()}
+
+            for username, (_client, ip) in users.items():
+                rows = runs_by_ip[ip]
+                summaries = [json.loads(row["input_summary"] or "{}") for row in rows]
+                assert len(rows) == len(jobs._PIPELINE_STAGES)
+                assert {row["status"] for row in rows} == {"completed"}
+                assert {row["session_user_id"] for row in rows} == {db_users[username]}
+                assert {row["workspace_owner_user_id"] for row in rows} == {db_users[username]}
+                assert {summary["user_id"] for summary in summaries} == {username}
+                assert {summary["ip"] for summary in summaries} == {ip}
+                assert {summary["pipeline_run_id"] for summary in summaries} == {pipelines[ip]}
+                assert {summary["exec_mode"] for summary in summaries} == {"orchestrator"}
+                assert [row["workflow"] for row in rows] == [
+                    stage["workflow"] for stage in jobs._PIPELINE_STAGES
+                ]
+                assert rows[0]["model_profile"] == "deepseek"
+                assert any(row["model_profile"] == "gpt-5.3-codex" for row in rows)
+                assert any(row["model_profile"] == "kimi" for row in rows)
+                assert any(row["model_profile"] == "glm-5.1" for row in rows)
+
+            artifact_rows = db._fetchall(
+                """
+                SELECT i.ip_name, w.owner_user_id, av.artifact_type, av.primary_path
+                  FROM artifact_versions av
+                  JOIN ip_blocks i ON i.id = av.ip_id
+                  JOIN workspaces w ON w.id = av.workspace_id
+                 ORDER BY av.created_at ASC
+                """
+            )
+            artifacts_by_ip: dict[str, list[dict]] = {}
+            for row in artifact_rows:
+                artifacts_by_ip.setdefault(row["ip_name"], []).append(dict(row))
+            assert set(artifacts_by_ip) == {ip for _client, ip in users.values()}
+            for username, (_client, ip) in users.items():
+                artifacts = artifacts_by_ip[ip]
+                assert {row["owner_user_id"] for row in artifacts} == {db_users[username]}
+                assert {row["artifact_type"] for row in artifacts} >= {"ssot", "rtl", "tb"}
+                assert all((row["primary_path"] or "").startswith(f"{ip}/") for row in artifacts)
+
+            trace_rows = db._fetchall(
+                """
+                SELECT te.event_type, te.actor_user_id, i.ip_name
+                  FROM trace_events te
+                  JOIN ip_blocks i ON i.id = te.ip_id
+                 WHERE te.event_type IN ('chat_message', 'chat_response', 'workflow_dispatch')
+                """
+            )
+            trace_by_ip: dict[str, list[dict]] = {}
+            for row in trace_rows:
+                trace_by_ip.setdefault(row["ip_name"], []).append(dict(row))
+            for username, (_client, ip) in users.items():
+                events = trace_by_ip[ip]
+                assert {event["actor_user_id"] for event in events} == {db_users[username]}
+                assert any(event["event_type"] == "chat_message" for event in events)
+                assert any(event["event_type"] == "chat_response" for event in events)
+                assert sum(
+                    1 for event in events if event["event_type"] == "workflow_dispatch"
+                ) == len(jobs._PIPELINE_STAGES)
+
+        admin = lead.get("/api/admin/sessions")
+        assert admin.status_code == 200, admin.text
+        admin_sessions = admin.json()["sessions"]
+        session_by_pipeline = {
+            row["pipeline_run_id"]: row
+            for row in admin_sessions
+            if row.get("pipeline_run_id") in set(pipelines.values())
+        }
+        assert set(session_by_pipeline) == set(pipelines.values())
+        for username, (_client, ip) in users.items():
+            session = session_by_pipeline[pipelines[ip]]
+            assert session["owner_username"] == username
+            assert session["ip"] == ip
+            assert session["workflow"] == jobs._PIPELINE_STAGES[-1]["workflow"]
+            assert session["latest_workflow_status"] == "completed"
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
