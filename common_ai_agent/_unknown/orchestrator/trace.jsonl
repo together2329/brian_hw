@@ -86,3 +86,6 @@
 {"ts": "2026-05-17T11:08:39.926Z", "step": 4, "lens": "interaction", "actor": "rtl-gen-worker", "kind": "http_recv", "corr": "corr_483e2f36", "peer": "orchestrator", "task_preview": "Stage 2 rtl-gen for IP simple_uart_tx.\n\nworkflow: rtl-gen\nip: simple_uart_tx\npro", "sync": false, "has_todos": false}
 {"ts": "2026-05-17T11:08:40.007Z", "step": 5, "lens": "interaction", "actor": "rtl-gen-worker", "kind": "http_accepted", "corr": "corr_483e2f36", "peer": "orchestrator", "status": 200, "run_id": "run_9e1eb2e4"}
 {"ts": "2026-05-17T11:09:02.806Z", "step": 6, "lens": "result", "actor": "rtl-gen-worker", "kind": "run_completed", "corr": "corr_483e2f36", "run_id": "run_9e1eb2e4", "status": "completed"}
+{"ts": "2026-05-17T13:30:26.135Z", "step": 1, "lens": "interaction", "actor": "fl-model-gen-worker", "kind": "http_recv", "corr": "corr_af3a77bb", "peer": "orchestrator", "task_preview": "ping", "sync": false, "has_todos": false}
+{"ts": "2026-05-17T13:30:26.148Z", "step": 2, "lens": "interaction", "actor": "fl-model-gen-worker", "kind": "http_accepted", "corr": "corr_af3a77bb", "peer": "orchestrator", "status": 200, "run_id": "run_5ea5032d"}
+{"ts": "2026-05-17T13:30:29.348Z", "step": 3, "lens": "result", "actor": "fl-model-gen-worker", "kind": "run_completed", "corr": "corr_af3a77bb", "run_id": "run_5ea5032d", "status": "completed"}

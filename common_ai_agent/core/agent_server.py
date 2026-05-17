@@ -460,7 +460,11 @@ def _load_todo_template(name: str, workflow: str = "", ip: str = "") -> Optional
         if path.exists():
             try:
                 data = json.loads(path.read_text(encoding="utf-8"))
-                tasks = data.get("tasks", data if isinstance(data, list) else None)
+                tasks = (
+                    data.get("tasks")
+                    or data.get("items")
+                    or (data if isinstance(data, list) else None)
+                )
                 if tasks:
                     print(f"[template] Loaded '{name}' ({len(tasks)} tasks) from {path}")
                     return tasks

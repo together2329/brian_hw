@@ -2400,6 +2400,8 @@ def register_jobs_routes(
             db_state, db_error = _state_from_db(stage["workflow"])
             if running_job:
                 state = "running"
+            elif db_state == "failed" and sid in passed_stages:
+                state = "passed"
             elif db_state is not None:
                 state = db_state  # DB is source of truth for completed runs
             elif sid in failed_stages:
@@ -3109,12 +3111,12 @@ def register_jobs_routes(
                 state = "running" if any(j.get("status") == "running" for j in active) else "pending"
             elif latest and latest.get("status") == "completed":
                 state = "passed" if sid in passed or evidence_paths else "completed_no_gate"
+            elif sid in passed:
+                state = "passed"
             elif latest and latest.get("status") in {"error", "failed", "cancelled"}:
                 state = "failed"
             elif sid in failed:
                 state = "failed"
-            elif sid in passed:
-                state = "passed"
             else:
                 deps = _PIPELINE_STAGE_DEPS.get(sid, ())
                 state = "idle" if not deps else ("ready" if all(dep in passed for dep in deps) else "locked")
