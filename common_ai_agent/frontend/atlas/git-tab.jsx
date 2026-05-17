@@ -46,6 +46,7 @@
     useEffect(() => {
       const next = initialIp || '';
       setIp(prev => prev === next ? prev : next);
+      setGitStatus(null);
       clearSelection();
     }, [initialIp, clearSelection]);
 
@@ -75,7 +76,12 @@
     }, [initialIp]);
 
     const refresh = useCallback(() => {
-      if (!ip) return;
+      if (!ip) {
+        setGraph('');
+        setCommits([]);
+        setGitStatus(null);
+        return;
+      }
       setBusy(true); setErr(null);
       const graphUrl = `/api/ip/${encodeURIComponent(ip)}/git/graph?limit=120`;
       const statusUrl = `/api/git/status?ip=${encodeURIComponent(ip)}`;
@@ -145,7 +151,7 @@
           else setErr(d && (d.error || d.stderr) || 'revert failed');
         })
         .catch(e => { setRevertBusy(false); setErr(String(e)); });
-    }, [revertTarget, ip, refresh]);
+    }, [revertTarget, ip, refresh, clearSelection]);
 
     const sxFrame = {
       display: 'flex', flexDirection: 'column', height: '100%',
@@ -158,20 +164,56 @@
       background: 'var(--bg-2)',
       display: 'flex', alignItems: 'center', gap: 10,
     };
-    const sxBody = { flex: 1, overflow: 'hidden', display: 'flex' };
+    const sxBody = { flex: 1, overflow: 'hidden', display: 'flex', minHeight: 0 };
     const sxGraphPane = {
-      flex: '1 1 60%', overflow: 'auto', padding: '8px 12px',
+      flex: '0 0 30%', minWidth: 240, overflow: 'auto', padding: '8px 12px',
       borderRight: '1px solid var(--line)',
       whiteSpace: 'pre',
     };
     const sxListPane = {
-      flex: '1 1 40%', overflow: 'auto',
+      flex: '0 0 32%', minWidth: 280, overflow: 'auto',
+      borderRight: '1px solid var(--line)',
+    };
+    const sxDiffPane = {
+      flex: '1 1 38%', minWidth: 320, overflow: 'hidden',
+      display: 'flex', flexDirection: 'column', background: 'var(--bg-3)',
     };
     const sxRow = (selected) => ({
       padding: '6px 12px',
       borderBottom: '1px solid var(--line)',
       cursor: 'pointer',
       background: selected ? 'color-mix(in oklch, var(--accent) 12%, transparent)' : 'transparent',
+      borderLeft: '3px solid ' + (selected ? 'var(--accent)' : 'transparent'),
+    });
+    const sxChip = {
+      border: '1px solid var(--line)', borderRadius: 4,
+      padding: '2px 6px', color: 'var(--fg-mute)', fontSize: 10,
+      whiteSpace: 'nowrap',
+    };
+    const sxMiniButton = {
+      background: 'transparent', color: 'var(--accent)',
+      border: '1px solid var(--accent)', borderRadius: 4,
+      padding: '2px 7px', fontFamily: 'inherit', fontSize: 10,
+      cursor: 'pointer',
+    };
+    const statusFiles = gitStatus && Array.isArray(gitStatus.files) ? gitStatus.files : [];
+    const dirtyCount = statusFiles.length;
+    const splitIdx = diffBody.indexOf('\ndiff --git');
+    const diffHeader = splitIdx >= 0 ? diffBody.slice(0, splitIdx) : diffBody;
+    const diffPatch = splitIdx >= 0 ? diffBody.slice(splitIdx + 1) : '';
+    const diffLineStyle = (line) => ({
+      padding: '0 12px',
+      whiteSpace: 'pre',
+      background: line.startsWith('+') && !line.startsWith('+++')
+        ? 'color-mix(in oklch, var(--ok, #22c55e) 12%, transparent)'
+        : line.startsWith('-') && !line.startsWith('---')
+          ? 'color-mix(in oklch, var(--red, #ef4444) 12%, transparent)'
+          : 'transparent',
+      color: line.startsWith('+') && !line.startsWith('+++')
+        ? 'var(--ok, #22c55e)'
+        : line.startsWith('-') && !line.startsWith('---')
+          ? 'var(--red, #ef4444)'
+          : 'var(--fg)',
     });
 
     return (
@@ -180,7 +222,11 @@
           <span style={{ fontWeight: 600 }}>Git</span>
           <select
             value={ip}
-            onChange={e => setIp(e.target.value)}
+            onChange={e => {
+              setIp(e.target.value);
+              setGitStatus(null);
+              clearSelection();
+            }}
             style={{
               background: 'var(--bg)', color: 'var(--fg)',
               border: '1px solid var(--line)', borderRadius: 4,
@@ -196,6 +242,29 @@
                     padding: '4px 10px', fontFamily: 'inherit', fontSize: 11,
                     cursor: busy ? 'wait' : 'pointer',
                   }}>{busy ? '…' : '↻ Refresh'}</button>
+          {gitStatus && (
+            <>
+              <span style={sxChip} title={gitStatus.cwd || ''}>
+                branch <b style={{ color: 'var(--fg)' }}>{gitStatus.branch || '(none)'}</b>
+              </span>
+              <span style={sxChip}>
+                HEAD <b style={{ color: 'var(--fg)' }}>{gitStatus.head || 'none'}</b>
+              </span>
+              <span style={{
+                ...sxChip,
+                color: dirtyCount ? 'var(--warn, #d97706)' : 'var(--fg-mute)',
+              }}>
+                {dirtyCount ? `${dirtyCount} dirty` : 'clean'}
+              </span>
+              {(gitStatus.ahead > 0 || gitStatus.behind > 0) && (
+                <span style={sxChip}>
+                  {gitStatus.ahead > 0 ? `ahead ${gitStatus.ahead}` : ''}
+                  {gitStatus.ahead > 0 && gitStatus.behind > 0 ? ' · ' : ''}
+                  {gitStatus.behind > 0 ? `behind ${gitStatus.behind}` : ''}
+                </span>
+              )}
+            </>
+          )}
           <span style={{ flex: 1 }} />
           {err && (
             <span style={{ color: 'var(--red, #ef4444)', fontSize: 11 }}>
@@ -211,10 +280,18 @@
             {graph || (busy ? 'loading…' : '(no commits)')}
           </div>
           <div style={sxListPane}>
+            <div style={{
+              padding: '6px 12px', borderBottom: '1px solid var(--line)',
+              color: 'var(--fg-mute)', fontSize: 10,
+              textTransform: 'uppercase', letterSpacing: '0.08em',
+              position: 'sticky', top: 0, background: 'var(--bg-2)', zIndex: 1,
+            }}>
+              history · select commit to view diff
+            </div>
             {commits.map(c => (
               <div key={c.hash}
-                   style={sxRow(revertTarget && revertTarget.hash === c.hash)}
-                   onClick={() => setRevertTarget(c)}>
+                   style={sxRow(selectedCommit && selectedCommit.hash === c.hash)}
+                   onClick={() => loadCommitDiff(c)}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
                   <code style={{ color: 'var(--accent)' }}>{c.short}</code>
                   <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
@@ -223,6 +300,17 @@
                   <span style={{ color: 'var(--fg-mute)', fontSize: 10 }}>
                     {c.author}
                   </span>
+                  <span style={{ flex: 1 }} />
+                  {selectedCommit && selectedCommit.hash === c.hash && (
+                    <button
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        setRevertTarget(c);
+                      }}
+                      style={sxMiniButton}
+                      title="hard reset requires confirmation"
+                    >Revert…</button>
+                  )}
                 </div>
                 <div style={{ marginTop: 2 }}>{c.subject}</div>
               </div>
@@ -230,6 +318,68 @@
             {commits.length === 0 && !busy && (
               <div style={{ padding: 16, color: 'var(--fg-mute)' }}>
                 no commits yet
+              </div>
+            )}
+          </div>
+          <div style={sxDiffPane}>
+            <div style={{
+              padding: '6px 12px', borderBottom: '1px solid var(--line)',
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'var(--bg-2)', minHeight: 30,
+            }}>
+              <span style={{ fontWeight: 600 }}>Diff</span>
+              {selectedCommit && (
+                <>
+                  <code style={{ color: 'var(--accent)' }}>{selectedCommit.short}</code>
+                  <span style={{
+                    color: 'var(--fg)', overflow: 'hidden',
+                    textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{selectedCommit.subject}</span>
+                </>
+              )}
+              <span style={{ flex: 1 }} />
+              {diffBusy && <span style={{ color: 'var(--fg-mute)', fontSize: 11 }}>loading…</span>}
+            </div>
+            {!selectedCommit ? (
+              <div style={{
+                padding: 16, color: 'var(--fg-mute)', fontSize: 12,
+              }}>
+                Select a commit from history to inspect its patch.
+              </div>
+            ) : diffErr ? (
+              <div style={{ padding: 16, color: 'var(--red, #ef4444)', fontSize: 12 }}>
+                {diffErr}
+              </div>
+            ) : (
+              <div style={{ flex: 1, overflow: 'auto' }}>
+                {diffHeader && (
+                  <pre style={{
+                    margin: 0, padding: '10px 12px',
+                    fontFamily: 'var(--code-font, var(--mono))',
+                    fontSize: 11, lineHeight: 1.55,
+                    whiteSpace: 'pre-wrap', color: 'var(--fg-mute)',
+                    background: 'var(--bg-2)',
+                    borderBottom: diffPatch ? '1px solid var(--line)' : 'none',
+                  }}>{diffHeader}</pre>
+                )}
+                {diffPatch ? (
+                  <pre className="tool-output-pre tool-output-diff language-none" style={{
+                    margin: 0, padding: '8px 0',
+                    fontFamily: 'var(--code-font, var(--mono))',
+                    fontSize: 11, lineHeight: 1.55,
+                    background: 'transparent',
+                  }}>
+                    {diffPatch.split('\n').map((line, i) => (
+                      <div className="diff-line" key={i} style={diffLineStyle(line)}>
+                        {line || ' '}
+                      </div>
+                    ))}
+                  </pre>
+                ) : (!diffBusy && (
+                  <div style={{ padding: 16, color: 'var(--fg-mute)', fontSize: 12 }}>
+                    No patch content for this commit.
+                  </div>
+                ))}
               </div>
             )}
           </div>
