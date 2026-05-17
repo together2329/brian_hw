@@ -3,9 +3,9 @@
   "type": "fl_model_check",
   "ip": "pl330realverify",
   "source": "model/functional_model.py",
-  "passed": false,
+  "passed": true,
   "self_check": {
-    "passed": false,
+    "passed": true,
     "checks": 8,
     "failed": 0,
     "transactions": 7,
@@ -69,8 +69,8 @@
           "pready": 1,
           "apb_read_error": 0,
           "pslverr": 0,
-          "apb_read_data": 14,
-          "prdata": 14,
+          "apb_read_data": 6,
+          "prdata": 6,
           "state_updates": {
             "status": 0
           }
@@ -99,7 +99,7 @@
             "loop_remaining": 0,
             "status": 6,
             "error_code": 0,
-            "intstatus": 1
+            "intstatus": 6
           }
         }
       },
@@ -135,8 +135,8 @@
           "dmac_irq": 0,
           "state_updates": {
             "status": 8,
-            "error_code": 0,
-            "intstatus": 257
+            "error_code": 8,
+            "intstatus": 15
           }
         }
       },
@@ -153,7 +153,7 @@
           "irq_after_w1c": 0,
           "dmac_irq": 0,
           "state_updates": {
-            "intstatus": 256
+            "intstatus": 6
           }
         }
       }
@@ -163,12 +163,7 @@
     "coverage_bins": 95,
     "invariants_total": 5,
     "invariants_evaluated": 4,
-    "invariants_failed": [
-      {
-        "name": "not (status == 8 and error_code == 0)",
-        "expr": "not (status == 8 and error_code == 0)"
-      }
-    ],
+    "invariants_failed": [],
     "invariants_skipped": [
       {
         "name": "not (write_beat_done == 1 and read_buffe",

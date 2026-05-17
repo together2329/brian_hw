@@ -170,7 +170,7 @@ rtl_contract:
   clock: "dmaclk"
   reset: "dmacresetn"
   reset_active: "low"
-  sample_condition: "dmacresetn == 1 and start_cmd == 1"
+  sample_condition: "dmacresetn == 1 and psel == 1 and penable == 1 and pwrite == 1 and paddr == 276 and (pwdata & 1) != 0"
   reset_contract:
     reset_signal: "dmacresetn"
     reset_active_expr: "dmacresetn == 0"
@@ -199,12 +199,12 @@ rtl_contract:
     apb_ready: "pready"
     apb_error: "pslverr"
   state_updates:
-    - { name: "sar", reset: 0, width: 32, expr: "sar + (DATA_WIDTH // 8) if write_response_ok == 1 else sar" }
-    - { name: "dar", reset: 0, width: 32, expr: "dar + (DATA_WIDTH // 8) if write_response_ok == 1 else dar" }
-    - { name: "loop_remaining", reset: 0, width: 8, expr: "(loop_remaining - 1) if (write_response_ok == 1 and loop_remaining > 0) else loop_remaining" }
-    - { name: "status", reset: 0, width: 4, expr: "8 if fault_condition == 1 else (6 if transfer_done == 1 else status)" }
-    - { name: "error_code", reset: 0, width: 4, expr: "fault_code if fault_condition == 1 else error_code" }
-    - { name: "intstatus", reset: 0, width: 32, expr: "(intstatus | complete_irq_mask | fault_irq_mask) & (~w1c_mask)" }
+    - { name: "sar", reset: 0, width: 32, expr: "sar + (DATA_WIDTH // 8) if (bvalid == 1 and bready == 1 and bresp == 0) else sar" }
+    - { name: "dar", reset: 0, width: 32, expr: "dar + (DATA_WIDTH // 8) if (bvalid == 1 and bready == 1 and bresp == 0) else dar" }
+    - { name: "loop_remaining", reset: 0, width: 8, expr: "(loop_remaining - 1) if (bvalid == 1 and bready == 1 and bresp == 0 and loop_remaining > 0) else loop_remaining" }
+    - { name: "status", reset: 0, width: 4, expr: "8 if ((rvalid == 1 and rready == 1 and rresp != 0) or (bvalid == 1 and bready == 1 and bresp != 0)) else (6 if (bvalid == 1 and bready == 1 and bresp == 0 and loop_remaining <= 1) else status)" }
+    - { name: "error_code", reset: 0, width: 4, expr: "3 if (rvalid == 1 and rready == 1 and rresp != 0) else (4 if (bvalid == 1 and bready == 1 and bresp != 0) else error_code)" }
+    - { name: "intstatus", reset: 0, width: 32, expr: "(intstatus | (1 if (bvalid == 1 and bready == 1 and bresp == 0 and loop_remaining <= 1) else 0) | (256 if ((rvalid == 1 and rready == 1 and rresp != 0) or (bvalid == 1 and bready == 1 and bresp != 0)) else 0)) & (~(pwdata if (psel == 1 and penable == 1 and pwrite == 1 and paddr == 36) else 0))" }
   output_rules:
     - { name: "dmac_irq_rule", port: "dmac_irq", width: 1, expr: "1 if (intstatus & inten) != 0 else 0" }
     - { name: "wdata_rule", port: "wdata", width: 64, expr: "rd_buf" }
@@ -463,15 +463,6 @@ function_model:
     ERR_AXI_RD: 3
     ERR_AXI_WR: 4
     ERR_EVENT_TIMEOUT: 5
-  derived_signals:
-    - { name: "start_cmd", width: 1, expr: "1 if (psel == 1 and penable == 1 and pwrite == 1 and paddr == 276 and (pwdata & 1) != 0) else 0" }
-    - { name: "write_response_ok", width: 1, expr: "1 if (bvalid == 1 and bready == 1 and bresp == 0) else 0" }
-    - { name: "transfer_done", width: 1, expr: "1 if (write_response_ok == 1 and loop_remaining <= 1) else 0" }
-    - { name: "fault_condition", width: 1, expr: "1 if ((rvalid == 1 and rready == 1 and rresp != 0) or (bvalid == 1 and bready == 1 and bresp != 0)) else 0" }
-    - { name: "fault_code", width: 4, expr: "3 if (rvalid == 1 and rready == 1 and rresp != 0) else (4 if (bvalid == 1 and bready == 1 and bresp != 0) else 0)" }
-    - { name: "complete_irq_mask", width: 32, expr: "1" }
-    - { name: "fault_irq_mask", width: 32, expr: "256" }
-    - { name: "w1c_mask", width: 32, expr: "pwdata if (psel == 1 and penable == 1 and pwrite == 1 and paddr == 36) else 0" }
   state_variables:
     - { name: "sar", source: "registers.SAR.src_addr", reset: 0, width: 32, description: "Current source byte address for the selected channel." }
     - { name: "dar", source: "registers.DAR.dst_addr", reset: 0, width: 32, description: "Current destination byte address for the selected channel." }
