@@ -39,7 +39,9 @@ Always advance in this order unless an owner classification says otherwise.
 
 ## Read These Before Every Decision
 
-1. `/api/pipeline/state?ip=<ip>` — every stage's `state` (idle/running/passed/failed/blocked), latest evidence path, locked_reason
+1. `read_pipeline_state(ip="<ip>")` — every stage's state, active worker jobs,
+   latest evidence paths, and job ids. Prefer this tool over HTTP because it
+   reads the in-process DB/job registry without browser cookies.
 2. `<ip>/sim/scoreboard_events.jsonl` — per-goal expected/observed rows when `sim` has run
 3. `<ip>/sim/mismatch_classification.json` — owner per mismatch (`rtl_bug` / `tb_bug` / `frontier`) when `sim_debug` has run
 4. `<ip>/handoff/` — pending durable JSON handoffs waiting for a worker claim
@@ -100,7 +102,8 @@ dispatch_workflow(
 )
 ```
 
-Returns `job_id`. Poll `/api/pipeline/state` until that stage transitions out of `running`.
+Returns `job_id`. Poll `read_pipeline_state(ip="<ip>")` until that stage
+transitions out of `running`.
 
 ## Pipeline Chat Direct-Execution Rule
 

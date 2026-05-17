@@ -5154,6 +5154,7 @@ def read_image(path=None, prompt="Describe this image in detail."):
 _ask_user_callback = None
 _record_ssot_qa_callback = None
 _dispatch_workflow_callback = None
+_read_pipeline_state_callback = None
 
 
 def _ask_user_exec_mode() -> str:
@@ -5306,6 +5307,12 @@ def set_dispatch_workflow_callback(cb):
     """Install the ATLAS Pipeline bridge for orchestrator worker dispatch."""
     global _dispatch_workflow_callback
     _dispatch_workflow_callback = cb
+
+
+def set_read_pipeline_state_callback(cb):
+    """Install the ATLAS Pipeline bridge for in-process state reads."""
+    global _read_pipeline_state_callback
+    _read_pipeline_state_callback = cb
 
 
 def scaffold_ip(name=None, root="."):
@@ -5892,6 +5899,29 @@ def dispatch_workflow(
     return "\n".join(parts)
 
 
+def read_pipeline_state(ip=None, scope=None, include_jobs=True):
+    """Read ATLAS Pipeline state through the in-process UI bridge.
+
+    This avoids guessing localhost ports or using browser cookies from the LLM.
+    In the Atlas UI, the callback returns DB/job/artifact-backed state for the
+    requested IP. Outside the UI it returns a clear unavailable message.
+    """
+    if _read_pipeline_state_callback is None:
+        return "[read_pipeline_state unavailable — running outside Atlas UI mode]"
+    try:
+        result = _read_pipeline_state_callback(
+            ip=ip or "",
+            scope=scope or "",
+            include_jobs=_as_bool(include_jobs, True),
+        )
+        try:
+            return json.dumps(result, indent=2, sort_keys=True)
+        except Exception:
+            return str(result)
+    except Exception as exc:
+        return f"[read_pipeline_state error: {type(exc).__name__}: {exc}]"
+
+
 def read_doc(path):
     """Convert a Word, PDF, PowerPoint, Excel, or HTML doc to markdown.
 
@@ -6471,6 +6501,7 @@ AVAILABLE_TOOLS = {
     "soc_status": soc_status,
     "wrapper_gen": wrapper_gen,
     "dispatch_workflow": dispatch_workflow,
+    "read_pipeline_state": read_pipeline_state,
 }
 
 

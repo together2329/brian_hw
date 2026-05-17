@@ -460,6 +460,20 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         },
         required=[],
     ),
+    "read_pipeline_state": _fn(
+        "read_pipeline_state",
+        (
+            "ATLAS orchestrator tool: read the current DB/job/artifact-backed Pipeline state for an IP "
+            "without calling protected HTTP endpoints or guessing localhost ports. Use this before status "
+            "summaries, pass/fail claims, and follow-up dispatch decisions."
+        ),
+        {
+            "ip": {"type": "string", "description": "Target IP id, e.g. spi_core", "default": ""},
+            "scope": {"type": "string", "description": "Optional scope path; last path component is used as IP fallback", "default": ""},
+            "include_jobs": {"type": "boolean", "description": "Include active/latest worker job details", "default": True},
+        },
+        required=[],
+    ),
     "worker_status": _fn(
         "worker_status",
         "Get current status of a Worker run. Returns dict with run_id, status, log_entries, elapsed_s.",

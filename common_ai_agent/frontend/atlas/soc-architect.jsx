@@ -3694,6 +3694,7 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
         '[DIRECT EXECUTION RULES]',
         '- This right-side Pipeline chat is the real orchestrator control surface.',
         '- Treat /goal as a pipeline goal, not generic todo/plan mode.',
+        '- Use read_pipeline_state(ip) for status/evidence reads; do not curl protected /api endpoints.',
         '- For worker/stage/run-to-green requests, call dispatch_workflow directly.',
         '- Do not call todo_add/todo_update/todo_write unless the user explicitly asks for a plan.',
         '- Do not fake pass status; require fresh artifact evidence before reporting success.',

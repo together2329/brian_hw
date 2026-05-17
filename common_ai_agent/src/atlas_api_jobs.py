@@ -1509,8 +1509,29 @@ def _job_artifact_recovery(
                 return True, f"recovered from artifact: {ip}/{rel}"
         return False, ""
     if stage == "ssot" or workflow == "ssot-gen":
-        ok = (ip_dir / "yaml" / f"{ip}.ssot.yaml").is_file()
-        return ok, f"recovered from artifact: {ip}/yaml/{ip}.ssot.yaml"
+        ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
+        if not ssot_path.is_file():
+            return False, ""
+        checker = project_root / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
+        if not checker.is_file():
+            return False, f"SSOT checker missing: {checker.relative_to(project_root).as_posix()}"
+        try:
+            proc = subprocess.run(
+                ["bash", str(checker), ip, "--mode", _current_run_mode()],
+                cwd=str(project_root),
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                timeout=30,
+                check=False,
+            )
+        except Exception as exc:
+            return False, f"SSOT validator failed to run: {type(exc).__name__}: {exc}"
+        if proc.returncode == 0:
+            return True, f"recovered from validated artifact: {ip}/yaml/{ip}.ssot.yaml"
+        detail = (proc.stdout or "").strip().splitlines()
+        tail = detail[-1] if detail else f"rc={proc.returncode}"
+        return False, f"SSOT artifact failed validator: {tail}"
     if stage == "fl-model":
         return _any_file(
             "model/functional_model.py",
@@ -3006,12 +3027,132 @@ def register_jobs_routes(
             "jobs": jobs,
         }
 
+    def _read_pipeline_state_tool_bridge(
+        *,
+        ip: str = "",
+        scope: str = "",
+        include_jobs: bool = True,
+    ) -> dict[str, Any]:
+        """Return a compact in-process Pipeline state snapshot for LLM tools.
+
+        The orchestrator agent runs inside the Atlas UI process, so it should
+        not guess HTTP ports or depend on browser auth cookies just to inspect
+        the live job registry. This bridge exposes the state it needs for
+        routing decisions while keeping the public /api/pipeline/state endpoint
+        authenticated.
+        """
+        ip_name = (
+            str(ip or "").strip()
+            or (Path(str(scope).rstrip("/")).name if scope else "")
+            or os.environ.get("ATLAS_ACTIVE_IP", "").strip()
+        )
+        if not ip_name or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip_name):
+            return {"ok": False, "error": f"invalid or missing ip {ip_name!r}"}
+
+        pr = project_root()
+        ip_dir = pr / ip_name
+        with _jobs_lock:
+            ip_jobs = [dict(j) for j in _jobs.values() if j.get("ip") == ip_name]
+
+        artifact_map: dict[str, list[str]] = {
+            "ssot": [f"yaml/{ip_name}.ssot.yaml"],
+            "fl-model": ["model/fl_model_check.json", "cov/fcov_plan.json"],
+            "cl-model": ["model/cl_model_check.json"],
+            "equivalence": ["verify/equivalence_goals.json"],
+            "rtl": ["rtl/rtl_compile.json", "lint/dut_lint.json", "rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json"],
+            "lint": ["lint/dut_lint.json"],
+            "tb": ["tb/cocotb/"],
+            "sim": ["sim/results.xml", "sim/fl_rtl_compare.json"],
+            "coverage": ["cov/coverage.json"],
+            "sim-debug": ["sim/mismatch_classification.json"],
+            "goal-audit": ["sim/fl_rtl_goal_audit.json"],
+            "syn": ["syn/out/"],
+            "sta": ["sta/out/"],
+            "pnr": ["pnr/out/"],
+            "sta-post": ["sta-post/out/"],
+        }
+
+        def _stage_jobs(stage_id: str) -> list[dict[str, Any]]:
+            return [j for j in ip_jobs if j.get("stage_id") == stage_id]
+
+        def _public_latest(stage_id: str) -> dict[str, Any] | None:
+            jobs = _stage_jobs(stage_id)
+            if not jobs:
+                return None
+            latest = max(jobs, key=lambda j: j.get("started_at", 0) or 0)
+            return _public_job(latest)
+
+        passed: set[str] = set()
+        failed: dict[str, str] = {}
+        for stage in _PIPELINE_STAGES:
+            sid = stage["id"]
+            fake_job = {"ip": ip_name, "stage_id": sid, "workflow": stage["workflow"]}
+            ok, _ = _job_artifact_recovery(fake_job, pr)
+            bad, why = _job_artifact_failure(fake_job, pr)
+            if ok:
+                passed.add(sid)
+            elif bad:
+                failed[sid] = why
+
+        stages_out: dict[str, Any] = {}
+        for stage in _PIPELINE_STAGES:
+            sid = stage["id"]
+            jobs = _stage_jobs(sid)
+            active = [j for j in jobs if j.get("status") in {"pending", "running"}]
+            latest = _public_latest(sid)
+            evidence_paths = [
+                f"{ip_name}/{rel}"
+                for rel in artifact_map.get(sid, [])
+                if (ip_dir / rel).exists()
+            ]
+            if active:
+                state = "running" if any(j.get("status") == "running" for j in active) else "pending"
+            elif latest and latest.get("status") == "completed":
+                state = "passed" if sid in passed or evidence_paths else "completed_no_gate"
+            elif latest and latest.get("status") in {"error", "failed", "cancelled"}:
+                state = "failed"
+            elif sid in failed:
+                state = "failed"
+            elif sid in passed:
+                state = "passed"
+            else:
+                deps = _PIPELINE_STAGE_DEPS.get(sid, ())
+                state = "idle" if not deps else ("ready" if all(dep in passed for dep in deps) else "locked")
+
+            stages_out[sid] = {
+                "state": state,
+                "workflow": stage["workflow"],
+                "evidence_paths": evidence_paths,
+                "failure": failed.get(sid, ""),
+                "toolchain": _workflow_toolchain_for(stage["workflow"]),
+                "latest_job": latest if include_jobs else None,
+                "active_jobs": [_public_job(j) for j in active] if include_jobs else [],
+            }
+
+        active_jobs = [
+            _public_job(j) for j in ip_jobs
+            if j.get("status") in {"pending", "running"}
+        ]
+        return {
+            "ok": True,
+            "source": "read_pipeline_state_tool",
+            "ip": ip_name,
+            "project_root": str(pr),
+            "run_mode": _current_run_mode(),
+            "exec_mode": _current_exec_mode(),
+            "active_jobs": active_jobs if include_jobs else [],
+            "status_counts": _summarize_worker_progress(ip_jobs).get("status_counts", {}),
+            "stages": stages_out,
+        }
+
     try:
         from core import tools as _atlas_tools
     except Exception:
         _atlas_tools = None
     if _atlas_tools is not None and hasattr(_atlas_tools, "set_dispatch_workflow_callback"):
         _atlas_tools.set_dispatch_workflow_callback(_dispatch_workflow_tool_bridge)
+    if _atlas_tools is not None and hasattr(_atlas_tools, "set_read_pipeline_state_callback"):
+        _atlas_tools.set_read_pipeline_state_callback(_read_pipeline_state_tool_bridge)
 
     # ── /api/pipeline/orchestrator_mode ───────────────────────────
 
