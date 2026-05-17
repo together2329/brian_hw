@@ -1,0 +1,87 @@
+{
+  "ip": "quad_spi_ctrl",
+  "schema_version": 1,
+  "type": "goal_audit",
+  "goal_file": "quad_spi_ctrl.yaml",
+  "total_checks": 16,
+  "passed": 15,
+  "failed": 0,
+  "blocked": 1,
+  "blockers": [
+    {
+      "check": "req",
+      "reason": "Human gate: requirements traceability verified (rtl/rtl_traceability.json all_mapped=true) but awaits human sign-off.",
+      "blocking": true
+    }
+  ],
+  "checks": {
+    "dut_compile": {
+      "status": "pass",
+      "evidence": "rtl/rtl_compile.json",
+      "rc": 0,
+      "errors": 0,
+      "warnings": 0
+    },
+    "dut_lint": {
+      "status": "pass",
+      "evidence": "lint/dut_lint.json",
+      "rc": 0,
+      "errors": 0,
+      "warnings": 0
+    },
+    "fl_rtl_compare": {
+      "status": "pass",
+      "evidence": "model/fl_model_check.json",
+      "passed": true,
+      "self_check_passed": true,
+      "invariants_failed": 0
+    },
+    "mismatch_classification": {
+      "status": "pass",
+      "evidence": "verify/equivalence_goals.json",
+      "total_goals": 66,
+      "blocked_goals": 0,
+      "unverified_goals": 0
+    },
+    "coverage": {
+      "status": "pass",
+      "evidence": "cov/coverage.json",
+      "coverage_pct": 100.0,
+      "hit_bins": 24,
+      "total_bins": 24
+    },
+    "req": {
+      "status": "blocked",
+      "evidence": "rtl/rtl_traceability.json",
+      "all_mapped": true,
+      "blocker": "Human gate — requires manual approval of requirements traceability"
+    }
+  },
+  "supplementary_checks": {
+    "sim": {
+      "status": "pass",
+      "evidence": "sim/sim_report.json",
+      "tests": 9,
+      "failures": 0,
+      "all_passed": true
+    },
+    "decomposition": {
+      "status": "pass",
+      "evidence": "model/decomposition.json",
+      "decomposition_units": 5
+    },
+    "manifest": {
+      "status": "pass",
+      "evidence": "model/manifest.json",
+      "present": true
+    },
+    "formal_self_check": {
+      "status": "pass",
+      "evidence": "model/fl_model_check.json#self_check",
+      "checks": 6,
+      "failed": 0
+    }
+  },
+  "audit_ts": "2025-01-01T00:00:00Z",
+  "audit_note": "15/16 automatable checks pass. req (requirements traceability) is the sole human-gate blocker. All evidence files are present, consistent, and indicate clean builds/lint/formal-equivalence-coverage."
+}

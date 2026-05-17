@@ -1,0 +1,144 @@
+# mini_axi_slave_wrapper.ssot.yaml - Single Source of Truth
+
+top_module:
+  name: "mini_axi_slave_wrapper"
+  file: "rtl/mini_axi_slave_wrapper.sv"
+  version: "1.0"
+  type: "interconnect-wrapper"
+  description: "Minimal AXI4 slave wrapper with 32-bit memory aperture and four outstanding single-beat read/write transactions."
+  reference_spec: "User goal: Make Mini AXI Slave Wrapper support 4 outstanding."
+  target:
+    technology: "generic"
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+
+parameters:
+  ADDR_WIDTH:
+    type: int
+    default: 8
+    description: "AXI byte address width."
+  DATA_WIDTH:
+    type: int
+    default: 32
+    description: "AXI data width; must be byte-addressable."
+  ID_WIDTH:
+    type: int
+    default: 4
+    description: "AXI transaction ID width."
+  OUTSTANDING:
+    type: int
+    default: 4
+    description: "Maximum accepted but incomplete write or read transactions."
+  MEM_WORDS:
+    type: int
+    default: 64
+    description: "Internal 32-bit word storage depth."
+
+io_list:
+  clock: ACLK
+  reset: ARESETn
+  interfaces:
+    axi_slave:
+      protocol: AXI4
+      role: slave
+      data_width: 32
+      id_width: 4
+      outstanding:
+        write_max: 4
+        read_max: 4
+      channels:
+        aw: [S_AXI_AWID, S_AXI_AWADDR, S_AXI_AWLEN, S_AXI_AWSIZE, S_AXI_AWBURST, S_AXI_AWVALID, S_AXI_AWREADY]
+        w:  [S_AXI_WDATA, S_AXI_WSTRB, S_AXI_WLAST, S_AXI_WVALID, S_AXI_WREADY]
+        b:  [S_AXI_BID, S_AXI_BRESP, S_AXI_BVALID, S_AXI_BREADY]
+        ar: [S_AXI_ARID, S_AXI_ARADDR, S_AXI_ARLEN, S_AXI_ARSIZE, S_AXI_ARBURST, S_AXI_ARVALID, S_AXI_ARREADY]
+        r:  [S_AXI_RID, S_AXI_RDATA, S_AXI_RRESP, S_AXI_RLAST, S_AXI_RVALID, S_AXI_RREADY]
+  outputs:
+    - write_outstanding_o
+    - read_outstanding_o
+
+memory:
+  instances:
+    - name: mem
+      type: flop_array
+      width: 32
+      depth: 64
+      description: "Internal memory aperture addressed by AXI byte address bits [ADDR_WIDTH-1:2]."
+
+function_model:
+  purpose: "AXI transaction-level behavior for a small memory-backed slave wrapper."
+  state_variables:
+    - name: mem
+      source: memory.instances.mem
+      reset: 0
+      description: "Internal word storage."
+    - name: write_outstanding
+      reset: 0
+      description: "Accepted AW plus queued B responses, capped at 4."
+    - name: read_outstanding
+      reset: 0
+      description: "Queued R responses, capped at 4."
+  transactions:
+    - id: FM_WRITE_SINGLE
+      name: axi_single_write
+      preconditions: ["AWLEN == 0", "AWSIZE == log2(DATA_WIDTH/8)", "WLAST == 1", "address in range"]
+      inputs: [S_AXI_AWID, S_AXI_AWADDR, S_AXI_WDATA, S_AXI_WSTRB]
+      outputs: [{ name: S_AXI_BRESP, value: OKAY }]
+      side_effects: ["Selected byte lanes update internal memory.", "B response preserves AWID."]
+      error_cases: ["Unsupported burst/size/out-of-range write returns SLVERR and does not update memory."]
+    - id: FM_READ_SINGLE
+      name: axi_single_read
+      preconditions: ["ARLEN == 0", "ARSIZE == log2(DATA_WIDTH/8)", "address in range"]
+      inputs: [S_AXI_ARID, S_AXI_ARADDR]
+      outputs: [{ name: S_AXI_RDATA, value: "mem[address >> ADDR_LSB]" }, { name: S_AXI_RRESP, value: OKAY }]
+      side_effects: ["R response preserves ARID and asserts RLAST."]
+      error_cases: ["Unsupported burst/size/out-of-range read returns SLVERR with zero data."]
+
+cycle_model:
+  purpose: "Cycle/handshake contract for outstanding transaction verification."
+  executable: "systemverilog_tb"
+  clock: ACLK
+  reset:
+    assertion: "ARESETn low clears all queues, counters, and memory."
+    deassertion: "Slave accepts AXI handshakes on the next rising ACLK edge."
+  handshake_rules:
+    - signal: S_AXI_AWREADY
+      rule: "Asserted while accepted AW plus queued B responses is less than 4."
+    - signal: S_AXI_WREADY
+      rule: "Asserted when an AW entry is queued and B response queue has capacity."
+    - signal: S_AXI_ARREADY
+      rule: "Asserted while queued R responses are fewer than 4."
+    - signal: S_AXI_BVALID
+      rule: "Queued in AW acceptance order after each accepted W beat."
+    - signal: S_AXI_RVALID
+      rule: "Queued in AR acceptance order; RLAST is always 1 for the single-beat profile."
+  performance:
+    frequency_mhz: 100
+    throughput:
+      write_acceptance: "Up to 4 AW transactions may be accepted before B responses drain."
+      read_acceptance: "Up to 4 AR transactions may be accepted before R responses drain."
+    outstanding:
+      write_max: 4
+      read_max: 4
+      description: "Backpressure starts on the fifth uncompleted transaction per direction."
+    depth:
+      aw_queue: 4
+      b_queue: 4
+      r_queue: 4
+
+test_requirements:
+  scenarios:
+    - id: SC_WRITE_FOUR_OUTSTANDING
+      description: "Accept four AW transactions while BREADY is low; reject the fifth until responses drain."
+    - id: SC_READ_FOUR_OUTSTANDING
+      description: "Accept four AR transactions while RREADY is low; reject the fifth until responses drain."
+    - id: SC_ID_ORDERING
+      description: "Preserve BID and RID for queued responses."
+    - id: SC_DATA_INTEGRITY
+      description: "Read back data written through four outstanding write transactions."
+    - id: SC_UNSUPPORTED_BURST_SLVERR
+      description: "Consume unsupported burst length and return SLVERR."
+
+filelist:
+  rtl:
+    - "rtl/mini_axi_slave_wrapper.sv"

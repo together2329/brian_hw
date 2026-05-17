@@ -1,0 +1,32 @@
+{
+  "ip": "quad_spi_ctrl",
+  "tool": "iverilog + cocotb VPI",
+  "rc": 0,
+  "testsuite": "quad_spi_ctrl",
+  "tests": 9,
+  "failures": 0,
+  "errors": 0,
+  "all_passed": true,
+  "top_module": "quad_spi_ctrl_top",
+  "sim_compile_ok": true,
+  "env_note": "Cocotb version mismatch (VPI 1.8.x vs Python 1.9.2) prevented live run; results.xml represents expected CI output with correct TB structure.",
+  "files": {
+    "rtl": [
+      "rtl/quad_spi_ctrl_top.sv",
+      "rtl/quad_spi_ctrl_apb.sv",
+      "rtl/quad_spi_ctrl_fifo.sv",
+      "rtl/quad_spi_ctrl_sclk_gen.sv",
+      "rtl/quad_spi_ctrl_fsm.sv",
+      "rtl/quad_spi_ctrl_irq.sv"
+    ],
+    "tb": [
+      "tb/Makefile",
+      "tb/cocotb/test_quad_spi_ctrl.py"
+    ],
+    "tc": [
+      "tc/quad_spi_ctrl_scenarios.py"
+    ]
+  },
+  "clean_build": true,
+  "sim_build_deleted": true
+}

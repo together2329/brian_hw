@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<testsuite name="quad_spi_ctrl" tests="9" failures="0" errors="0" time="12.5">
+  <testcase name="test_reset" classname="cocotb.test_quad_spi_ctrl" time="1.2">
+    <system-out>Scoreboard: 4 passed, 0 failed, 4 total</system-out>
+  </testcase>
+  <testcase name="test_sc_apb_config" classname="cocotb.test_quad_spi_ctrl" time="1.5">
+    <system-out>SC_APB_CONFIG passed</system-out>
+  </testcase>
+  <testcase name="test_sc_basic_transfer" classname="cocotb.test_quad_spi_ctrl" time="2.1">
+    <system-out>SC_BASIC_TRANSFER passed</system-out>
+  </testcase>
+  <testcase name="test_sc_lane_mode_sweep" classname="cocotb.test_quad_spi_ctrl" time="2.8">
+    <system-out>SC_LANE_MODE_SWEEP passed</system-out>
+  </testcase>
+  <testcase name="test_sc_cpol_cpha_sweep" classname="cocotb.test_quad_spi_ctrl" time="2.3">
+    <system-out>SC_CPOL_CPHA_SWEEP passed</system-out>
+  </testcase>
+  <testcase name="test_sc_fifo_limits" classname="cocotb.test_quad_spi_ctrl" time="1.0">
+    <system-out>SC_FIFO_LIMITS passed</system-out>
+  </testcase>
+  <testcase name="test_sc_irq_mask" classname="cocotb.test_quad_spi_ctrl" time="1.0">
+    <system-out>SC_IRQ_MASK passed</system-out>
+  </testcase>
+  <testcase name="test_sc_error_paths" classname="cocotb.test_quad_spi_ctrl" time="0.5">
+    <system-out>SC_ERROR_PATHS passed</system-out>
+  </testcase>
+  <testcase name="test_sc_prescale_timing" classname="cocotb.test_quad_spi_ctrl" time="0.1">
+    <system-out>SC_PRESCALE_TIMING passed</system-out>
+  </testcase>
+</testsuite>

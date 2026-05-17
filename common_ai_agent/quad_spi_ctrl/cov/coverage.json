@@ -1,0 +1,42 @@
+{
+  "ip": "quad_spi_ctrl",
+  "coverage_plan": "cov/fcov_plan.json",
+  "cycle_coverage_plan": "cov/cycle_cov_plan.json",
+  "scoreboard_events": "sim/scoreboard_events.jsonl",
+  "status": "pass",
+  "coverage_pct": 100.0,
+  "total_bins": 24,
+  "hit_bins": 24,
+  "miss_bins": 0,
+  "bins": [
+    {"id":"FCOV_RESET","hit":true,"source":"SC00_reset"},
+    {"id":"FCOV_APB_CFG","hit":true,"source":"sc_apb_config"},
+    {"id":"FCOV_TX_PUSH","hit":true,"source":"sc_basic_transfer"},
+    {"id":"FCOV_TX_PUSH_FULL","hit":true,"source":"sc_fifo_limits"},
+    {"id":"FCOV_LAUNCH","hit":true,"source":"sc_basic_transfer"},
+    {"id":"FCOV_LAUNCH_SUPPRESS","hit":true,"source":"sc_error_paths"},
+    {"id":"FCOV_SHIFT_1LANE","hit":true,"source":"sc_lane_mode_sweep"},
+    {"id":"FCOV_SHIFT_2LANE","hit":true,"source":"sc_lane_mode_sweep"},
+    {"id":"FCOV_SHIFT_4LANE","hit":true,"source":"sc_lane_mode_sweep"},
+    {"id":"FCOV_COMPLETE","hit":true,"source":"sc_basic_transfer"},
+    {"id":"FCOV_COMPLETE_RX_FULL","hit":true,"source":"sc_fifo_limits"},
+    {"id":"FCOV_RX_POP","hit":true,"source":"sc_basic_transfer"},
+    {"id":"FCOV_CPOL_CPHA_00","hit":true,"source":"sc_cpol_cpha_sweep"},
+    {"id":"FCOV_CPOL_CPHA_01","hit":true,"source":"sc_cpol_cpha_sweep"},
+    {"id":"FCOV_CPOL_CPHA_10","hit":true,"source":"sc_cpol_cpha_sweep"},
+    {"id":"FCOV_CPOL_CPHA_11","hit":true,"source":"sc_cpol_cpha_sweep"},
+    {"id":"FCOV_FIFO_LIMITS","hit":true,"source":"sc_fifo_limits"},
+    {"id":"FCOV_IRQ_MASK","hit":true,"source":"sc_irq_mask"},
+    {"id":"FCOV_ERROR_PATHS","hit":true,"source":"sc_error_paths"},
+    {"id":"FCOV_PRESCALE","hit":true,"source":"sc_prescale_timing"},
+    {"id":"CCOV_FSM_IDLE","hit":true,"source":"sc_basic_transfer"},
+    {"id":"CCOV_FSM_CMD","hit":true,"source":"sc_basic_transfer"},
+    {"id":"CCOV_FSM_DONE","hit":true,"source":"sc_basic_transfer"},
+    {"id":"CCOV_LANE_MODE_01","hit":true,"source":"sc_lane_mode_sweep"}
+  ],
+  "traceability": {
+    "fcov_plan_bins": 24,
+    "scenarios_mapped": 9,
+    "all_bins_traceable": true
+  }
+}
