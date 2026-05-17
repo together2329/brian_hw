@@ -2394,7 +2394,6 @@ def register_jobs_routes(
                 "active_corr": orch_active_corr,
                 "last_kind": orch_last_kind,
                 "model": os.environ.get("ATLAS_ORCHESTRATOR_MODEL", "")
-                         or os.environ.get("LLM_MODEL_NAME", "")
                          or _worker_model_for("orchestrator")
                          or None,
             },
