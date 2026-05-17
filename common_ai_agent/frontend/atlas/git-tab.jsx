@@ -103,9 +103,16 @@
             return nextCommits.some(c => c.hash === prev.hash) ? prev : null;
           });
         })
-        .catch(e => mountedRef.current && setErr(String(e)))
+        .catch(e => {
+          if (!mountedRef.current) return;
+          setGraph('');
+          setCommits([]);
+          setGitStatus(null);
+          clearSelection();
+          setErr(String(e));
+        })
         .finally(() => mountedRef.current && setBusy(false));
-    }, [ip]);
+    }, [ip, clearSelection]);
 
     useEffect(() => { refresh(); }, [refresh]);
 

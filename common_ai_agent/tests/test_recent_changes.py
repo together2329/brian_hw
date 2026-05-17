@@ -1421,6 +1421,31 @@ class TestFixMdTreeFencing(unittest.TestCase):
         self.assertIn("| Component | Status |", result)
         self.assertNotIn("    # The Pipeline", result)
 
+    def test_colon_intro_with_indented_markdown_keeps_following_markdown(self):
+        """A colon-introduced LLM summary must not swallow later Markdown."""
+        text = (
+            '테스트가 통과한 건 사실상 "APB 레지스터 파일" 테스트입니다:\n'
+            "    test_reset -> 리셋 핀 체크\n"
+            "    test_iddev_read -> ID 레지스터 읽기\n"
+            "\n"
+            "    **검증되지 않은 것 (I2C의 핵심):**\n"
+            "    - ❌ SCL/SDA 파형 생성\n"
+            "    - ❌ ACK/NACK 핸들링\n"
+            "\n"
+            "    ## 🔧 왜 이렇게 됐나요?\n"
+            "\n"
+            "    1. **Reference RTL을 거의 그대로 옮겨적었습니다**\n"
+        )
+        result = self._fix(text)
+        self.assertIn("테스트입니다:", result)
+        self.assertIn("test_reset -> 리셋 핀 체크", result)
+        self.assertIn("**검증되지 않은 것 (I2C의 핵심):**", result)
+        self.assertIn("- ❌ SCL/SDA 파형 생성", result)
+        self.assertIn("## 🔧 왜 이렇게 됐나요?", result)
+        self.assertIn("1. **Reference RTL을 거의 그대로 옮겨적었습니다**", result)
+        self.assertNotIn("    ## 🔧", result)
+        self.assertNotIn("    - ❌", result)
+
 
 class TestReactLoopPromptOnlyReminder(unittest.TestCase):
     """Prompt-only reminders should not rewrite saved conversation history."""

@@ -353,8 +353,66 @@ const _unwrapAtlasOutputFence = (text) => {
   return raw;
 };
 
+const _INDENTED_MD_RE = /^(#{1,6}\s|\|.*\|\s*$|[-*+]\s+|\d+\.\s+)/;
+const _CODELIKE_MD_RE = /^(def |class |if |elif |else:|for |while |try:|except |with |return\b|import |from |module\b|endmodule\b|assign\b|always\b|wire\b|reg\b|logic\b|localparam\b|parameter\b|#include\b|[{};])/;
+
+const _dedentAccidentalMarkdownBlocks = (text) => {
+  const raw = String(text || '');
+  if (!/(^|\n)(?:    |\t)/.test(raw)) return raw;
+
+  const lines = raw.split('\n');
+  const out = [];
+  let inFence = false;
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.trim().startsWith('```')) {
+      inFence = !inFence;
+      out.push(line);
+      i += 1;
+      continue;
+    }
+    if (inFence || !(line.startsWith('    ') || line.startsWith('\t'))) {
+      out.push(line);
+      i += 1;
+      continue;
+    }
+
+    const block = [];
+    let j = i;
+    while (j < lines.length) {
+      const cur = lines[j];
+      if (cur.trim().startsWith('```')) break;
+      if (cur.trim() && !(cur.startsWith('    ') || cur.startsWith('\t'))) break;
+      block.push(cur);
+      j += 1;
+    }
+
+    const nonblank = block.filter(ln => ln.trim());
+    const stripped = nonblank.map(ln => ln.replace(/^[ \t]+/, ''));
+    const hasMarkdown = stripped.some(ln => _INDENTED_MD_RE.test(ln));
+    const hasCode = stripped.some(ln => _CODELIKE_MD_RE.test(ln));
+    if (hasMarkdown && !hasCode) {
+      const indents = nonblank
+        .filter(ln => ln.startsWith(' '))
+        .map(ln => ln.length - ln.replace(/^ +/, '').length);
+      const remove = indents.length ? Math.min(...indents) : 1;
+      block.forEach(ln => {
+        if (ln.startsWith(' '.repeat(remove))) out.push(ln.slice(remove));
+        else if (ln.startsWith('\t')) out.push(ln.slice(1));
+        else out.push(ln);
+      });
+    } else {
+      out.push(...block);
+    }
+    i = j;
+  }
+  return out.join('\n');
+};
+
 const _markdownHtml = (text) => {
-  const body = _unwrapAtlasOutputFence(text);
+  const body = _dedentAccidentalMarkdownBlocks(_unwrapAtlasOutputFence(text));
   const rawHtml = (typeof window.marked !== 'undefined' && window.marked.parse)
     ? window.marked.parse(body || '', { breaks: true, gfm: true })
     : renderInline(body || '');

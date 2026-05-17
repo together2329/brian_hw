@@ -2973,6 +2973,262 @@ body[data-resize-cursor="col"] {
   font-size: 10px;
 }
 
+/* ── Phase progress strip (above the flow canvas) ──────────────── */
+.pipe-flow-phases {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  margin: 0 0 8px;
+  padding: 6px 8px;
+  border: 1px solid #262a34;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.025);
+  font-family: var(--mono);
+}
+.pipe-flow-phase {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.015);
+  transition: border-color .14s, background .14s, transform .14s;
+}
+.pipe-flow-phase-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  color: var(--fg-mute);
+  font-size: 11px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+.pipe-flow-phase-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.pipe-flow-phase-name {
+  color: var(--fg);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pipe-flow-phase-meta {
+  color: var(--fg-mute);
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pipe-flow-phase-arrow {
+  display: flex;
+  align-items: center;
+  color: rgba(115,126,148,0.55);
+  font-size: 18px;
+  font-weight: 700;
+  padding: 0 2px;
+}
+.pipe-flow-phase.phase-passed {
+  border-color: rgba(118,200,147,0.45);
+  background: rgba(118,200,147,0.07);
+}
+.pipe-flow-phase.phase-passed .pipe-flow-phase-num {
+  background: #76c893;
+  color: #0b0c10;
+}
+.pipe-flow-phase.phase-running {
+  border-color: rgba(95,200,235,0.55);
+  background: rgba(95,200,235,0.08);
+  box-shadow: 0 0 0 1px rgba(95,200,235,0.25) inset;
+}
+.pipe-flow-phase.phase-running .pipe-flow-phase-num {
+  background: var(--cyan);
+  color: #0b0c10;
+  animation: pipe-phase-pulse 1.4s ease-in-out infinite;
+}
+.pipe-flow-phase.phase-failed {
+  border-color: rgba(232,93,93,0.55);
+  background: rgba(232,93,93,0.08);
+}
+.pipe-flow-phase.phase-failed .pipe-flow-phase-num {
+  background: var(--err);
+  color: #fff;
+}
+.pipe-flow-phase.phase-blocked {
+  border-color: rgba(242,182,50,0.45);
+  background: rgba(242,182,50,0.07);
+}
+.pipe-flow-phase.phase-blocked .pipe-flow-phase-num {
+  background: #f2b632;
+  color: #0b0c10;
+}
+.pipe-flow-phase.phase-partial {
+  border-color: rgba(242,182,50,0.3);
+}
+.pipe-flow-phase.phase-partial .pipe-flow-phase-num {
+  background: rgba(242,182,50,0.35);
+  color: #fff;
+}
+@keyframes pipe-phase-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(95,200,235,0.55); }
+  50%      { box-shadow: 0 0 0 5px rgba(95,200,235,0.05); }
+}
+
+/* ── Next-suggested action hint (above the canvas) ────────────── */
+.pipe-flow-next-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 6px 12px;
+  border: 1px dashed rgba(95,200,235,0.5);
+  border-radius: 6px;
+  background: rgba(95,200,235,0.06);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+.pipe-flow-next-hint .pipe-flow-next-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--cyan);
+  color: #0b0c10;
+  font-weight: 800;
+  font-size: 10px;
+}
+.pipe-flow-next-hint b { color: var(--cyan); font-weight: 700; }
+
+/* ── Larger lane title text ──────────────────────────────────── */
+.pipe-flow-lane-title-text {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  fill: rgba(220,226,238,0.78);
+  letter-spacing: 0.04em;
+}
+.pipe-flow-lane-num {
+  fill: #f2b632;
+  font-weight: 800;
+}
+
+/* ── Inline state pill on each node ──────────────────────────── */
+.pipe-flow-node-pill rect {
+  fill: rgba(255,255,255,0.06);
+  stroke: rgba(255,255,255,0.12);
+  stroke-width: 1;
+}
+.pipe-flow-node-pill-dot {
+  fill: rgba(180,190,210,0.7);
+}
+.pipe-flow-node-pill-text {
+  fill: rgba(220,226,238,0.85);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.pipe-flow-node-pill[data-state="running"] rect,
+.pipe-flow-node-pill[data-state="run"] rect {
+  fill: rgba(95,200,235,0.18);
+  stroke: rgba(95,200,235,0.55);
+}
+.pipe-flow-node-pill[data-state="running"] .pipe-flow-node-pill-dot,
+.pipe-flow-node-pill[data-state="run"] .pipe-flow-node-pill-dot {
+  fill: var(--cyan);
+}
+.pipe-flow-node-pill[data-state="passed"] rect,
+.pipe-flow-node-pill[data-state="ok"] rect {
+  fill: rgba(118,200,147,0.18);
+  stroke: rgba(118,200,147,0.55);
+}
+.pipe-flow-node-pill[data-state="passed"] .pipe-flow-node-pill-dot,
+.pipe-flow-node-pill[data-state="ok"] .pipe-flow-node-pill-dot {
+  fill: #76c893;
+}
+.pipe-flow-node-pill[data-state="failed"] rect,
+.pipe-flow-node-pill[data-state="err"] rect {
+  fill: rgba(232,93,93,0.18);
+  stroke: rgba(232,93,93,0.55);
+}
+.pipe-flow-node-pill[data-state="failed"] .pipe-flow-node-pill-dot,
+.pipe-flow-node-pill[data-state="err"] .pipe-flow-node-pill-dot {
+  fill: var(--err);
+}
+.pipe-flow-node-pill[data-state="blocked"] rect,
+.pipe-flow-node-pill[data-state="stale"] rect,
+.pipe-flow-node-pill[data-state="locked"] rect {
+  fill: rgba(242,182,50,0.16);
+  stroke: rgba(242,182,50,0.5);
+}
+.pipe-flow-node-pill[data-state="blocked"] .pipe-flow-node-pill-dot,
+.pipe-flow-node-pill[data-state="stale"] .pipe-flow-node-pill-dot,
+.pipe-flow-node-pill[data-state="locked"] .pipe-flow-node-pill-dot {
+  fill: #f2b632;
+}
+.pipe-flow-node-pill[data-state="ready"] rect {
+  fill: rgba(242,182,50,0.1);
+  stroke: rgba(242,182,50,0.35);
+}
+.pipe-flow-node-pill[data-state="ready"] .pipe-flow-node-pill-dot {
+  fill: rgba(242,182,50,0.85);
+}
+
+/* ── START / NEXT badges ─────────────────────────────────────── */
+.pipe-flow-start-badge rect {
+  fill: var(--cyan);
+  stroke: rgba(95,200,235,0.7);
+  filter: drop-shadow(0 0 6px rgba(95,200,235,0.55));
+  animation: pipe-start-pulse 1.6s ease-in-out infinite;
+}
+.pipe-flow-start-badge text {
+  fill: #0b0c10;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+@keyframes pipe-start-pulse {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(95,200,235,0.55)); }
+  50%      { filter: drop-shadow(0 0 10px rgba(95,200,235,0.85)); }
+}
+.pipe-flow-next-badge rect {
+  fill: rgba(95,200,235,0.18);
+  stroke: rgba(95,200,235,0.6);
+}
+.pipe-flow-next-badge text {
+  fill: var(--cyan);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.pipe-flow-node.next rect {
+  stroke: var(--cyan);
+  stroke-width: 1.8;
+  stroke-dasharray: 6 3;
+  animation: pipe-next-dash 2.2s linear infinite;
+}
+@keyframes pipe-next-dash {
+  to { stroke-dashoffset: -36; }
+}
+
 .pipe-trace-strip {
   margin: 8px 0;
   border: 1px solid #262a34;

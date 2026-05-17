@@ -574,6 +574,7 @@ function OrchestratorTraceStrip({ ip }) {
 }
 
 window.PipelineFlowMap = function PipelineFlowMap({
+  ip,
   state,
   selectedFlowId,
   selectedStage,
@@ -681,6 +682,39 @@ window.PipelineFlowMap = function PipelineFlowMap({
   const orchClaimed = Number(orch.claimed_handoffs || 0);
   const orchWorker = orch.worker_bound || orch.worker || '';
 
+  // Aggregate per-phase status for the progress strip at the top.
+  // Mirrors PIPELINE_PHASES so the strip is always in sync with the lanes.
+  const phases = window.PIPELINE_PHASES || [];
+  const phaseStatus = phases.map((ph) => {
+    const list = ph.stages || [];
+    const c = { total: list.length, passed: 0, running: 0, failed: 0, blocked: 0 };
+    list.forEach((s) => {
+      const st = (stagesState[s] && stagesState[s].state) || 'idle';
+      if (st === 'passed' || st === 'ok') c.passed += 1;
+      else if (st === 'running' || st === 'run') c.running += 1;
+      else if (st === 'failed' || st === 'err') c.failed += 1;
+      else if (st === 'blocked' || st === 'stale') c.blocked += 1;
+    });
+    let phaseState = 'idle';
+    if (c.failed) phaseState = 'failed';
+    else if (c.running) phaseState = 'running';
+    else if (c.total > 0 && c.passed === c.total) phaseState = 'passed';
+    else if (c.blocked) phaseState = 'blocked';
+    else if (c.passed) phaseState = 'partial';
+    return { id: ph.id, state: phaseState, counts: c };
+  });
+  // Suggest the next idle stage in the selected flow so the user sees
+  // exactly which dispatch button is the natural next action.
+  const nextSuggested = (() => {
+    for (const s of flowStages) {
+      if (!pos[s]) continue;
+      const st = nodeState(s);
+      if (st === 'running' || st === 'run') return null;
+      if (st === 'idle' || st === 'ready') return s;
+    }
+    return null;
+  })();
+
   return (
     <div className="pipe-flow-map">
       <div className="pipe-flow-head">
@@ -696,6 +730,36 @@ window.PipelineFlowMap = function PipelineFlowMap({
           <span><i className="pipe-leg-muted" /> context</span>
         </div>
       </div>
+      <div className="pipe-flow-phases" role="navigation" aria-label="pipeline phases">
+        {phaseStatus.map((ph, idx) => (
+          <React.Fragment key={ph.id}>
+            <div className={`pipe-flow-phase phase-${ph.state}`}>
+              <span className="pipe-flow-phase-num">{idx + 1}</span>
+              <span className="pipe-flow-phase-body">
+                <span className="pipe-flow-phase-name">{ph.id}</span>
+                <span className="pipe-flow-phase-meta">
+                  {ph.counts.running ? `▶ ${ph.counts.running} running · ` : ''}
+                  {ph.counts.failed ? `! ${ph.counts.failed} failed · ` : ''}
+                  {ph.counts.passed}/{ph.counts.total} done
+                </span>
+              </span>
+            </div>
+            {idx < phaseStatus.length - 1 && (
+              <span className="pipe-flow-phase-arrow" aria-hidden="true">›</span>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+      {nextSuggested && (
+        <div className="pipe-flow-next-hint" role="status">
+          <span className="pipe-flow-next-icon">▶</span>
+          <span>
+            Next suggested step:{' '}
+            <b>{nodeLabel(nextSuggested)}</b>
+            <span className="mute"> — click the box to focus, then Run.</span>
+          </span>
+        </div>
+      )}
       <div className="pipe-flow-orch-strip" data-on={orchOn ? 'yes' : 'no'}>
         <span className="pipe-flow-orch-label">Orchestrator</span>
         <span className="pipe-flow-orch-dot" data-on={orchOn ? 'yes' : 'no'} />
@@ -730,12 +794,15 @@ window.PipelineFlowMap = function PipelineFlowMap({
             </marker>
           </defs>
 
-          {visibleLanes.map(lane => (
+          {visibleLanes.map((lane, laneIdx) => (
             <g key={lane.id} className="pipe-flow-lane" data-lane={lane.id}>
               <rect x={lane.x} y="76" width={lane.width} height="542" rx="8" />
-              <text x={lane.x + 12} y="102">{lane.title}</text>
+              <text x={lane.x + 12} y="100" className="pipe-flow-lane-title-text">
+                <tspan className="pipe-flow-lane-num">{laneIdx + 1}.</tspan>
+                <tspan dx="6">{lane.title}</tspan>
+              </text>
               {lane.id === 'eda' && (
-                <text x={lane.x + 12} y="118" className="pipe-flow-lane-hint">optional</text>
+                <text x={lane.x + 12} y="116" className="pipe-flow-lane-hint">optional</text>
               )}
             </g>
           ))}
@@ -774,12 +841,26 @@ window.PipelineFlowMap = function PipelineFlowMap({
             const inFlow = flowSet.has(id);
             const selected = selectedStage === id;
             const running = stateName === 'running' || stateName === 'run';
+            const isStart = id === 'ssot' && (stateName === 'idle' || stateName === 'ready');
+            const isNext = nextSuggested === id;
             const klass = [
               'pipe-flow-node',
               inFlow ? 'in-flow' : 'context',
               selected ? 'selected' : '',
               running ? 'running' : '',
+              isNext ? 'next' : '',
             ].filter(Boolean).join(' ');
+            // Pick a short, readable label for the inline state chip.
+            // Keep it ≤ 7 chars so it never overflows the 56 px pill.
+            const pillLabel = (() => {
+              if (running) return 'running';
+              if (stateName === 'passed' || stateName === 'ok') return 'passed';
+              if (stateName === 'failed' || stateName === 'err') return 'failed';
+              if (stateName === 'blocked' || stateName === 'stale') return 'blocked';
+              if (stateName === 'locked') return 'locked';
+              if (stateName === 'ready') return 'ready';
+              return 'idle';
+            })();
             return (
               <g key={id}
                  className={klass}
@@ -791,8 +872,24 @@ window.PipelineFlowMap = function PipelineFlowMap({
                  }}>
                 <rect width={BOX_W} height={BOX_H} rx="7" />
                 <text x="12" y="20" className="pipe-flow-node-title">{nodeLabel(id)}</text>
-                <text x="12" y="36" className="pipe-flow-node-sub">{String(nodeSub(id) || '').slice(0, 32)}</text>
-                {running && <circle cx={BOX_W - 14} cy="14" r="4" className="pipe-flow-node-running-dot" />}
+                <text x="12" y="36" className="pipe-flow-node-sub">{String(nodeSub(id) || '').slice(0, 26)}</text>
+                <g className="pipe-flow-node-pill" data-state={stateName} transform={`translate(${BOX_W - 60}, 6)`}>
+                  <rect width="52" height="15" rx="7.5" />
+                  <circle cx="8" cy="7.5" r="3" className="pipe-flow-node-pill-dot" />
+                  <text x="16" y="11" className="pipe-flow-node-pill-text">{pillLabel}</text>
+                </g>
+                {isStart && (
+                  <g className="pipe-flow-start-badge" transform={`translate(-44, ${(BOX_H - 18) / 2})`}>
+                    <rect width="42" height="18" rx="9" />
+                    <text x="21" y="13" textAnchor="middle">START</text>
+                  </g>
+                )}
+                {isNext && !isStart && (
+                  <g className="pipe-flow-next-badge" transform={`translate(${BOX_W / 2 - 22}, ${BOX_H + 4})`}>
+                    <rect width="44" height="14" rx="7" />
+                    <text x="22" y="10" textAnchor="middle">NEXT ▸</text>
+                  </g>
+                )}
                 <title>{`${nodeLabel(id)} · ${stateName}`}</title>
               </g>
             );
@@ -2291,6 +2388,7 @@ window.AtlasPipeline = function AtlasPipeline() {
             simpleSummary={progressSummary}
             selectedStage={selectedStage}
             onSelectStage={setSelectedStage} />
+          <OrchestratorTraceStrip ip={ip} />
         </div>
         <div className="pipe-resize-handle"
              title="Drag to resize left column"
@@ -2324,12 +2422,12 @@ window.AtlasPipeline = function AtlasPipeline() {
             }} />
           <PendingQABanner ip={ip} />
           <window.PipelineFlowMap
+            ip={ip}
             state={pipelineState}
             selectedFlowId={selectedFlowId}
             selectedStage={selectedStage}
             onSelectFlow={setSelectedFlowId}
             onSelectStage={setSelectedStage} />
-          <OrchestratorTraceStrip ip={ip} />
           <window.DispatchRail ip={ip}
                                 chain={chain}
                                 onClearChain={() => setChain([])}

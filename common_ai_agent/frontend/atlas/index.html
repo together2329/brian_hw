@@ -176,12 +176,12 @@
   <!-- Debug tab pane — registers window.DebugTab consumed by the
        conditional render in workspace.jsx (mainTab === 'debug'). -->
   <script type="text/babel" data-presets="react" src="debug-tab.jsx?v=atlas-20260510-debugtab"></script>
-  <!-- Git tab — per-IP commit history graph + revert UI. Registers
+  <!-- Git tab — per-IP status, commit history graph, diff + explicit revert UI. Registers
        window.GitTab consumed when mainTab === 'git'. -->
-  <script type="text/babel" data-presets="react" src="git-tab.jsx?v=atlas-20260511-gittab"></script>
+  <script type="text/babel" data-presets="react" src="git-tab.jsx?v=atlas-20260517-git-diff"></script>
   <!-- coverage workflow panel — same loading rule as sim_debug -->
   <script type="text/babel" data-presets="react" src="coverage.jsx?v=atlas-20260503-strict-status"></script>
-  <script type="text/babel" data-presets="react" src="workspace.jsx?v=atlas-20260517-ssot-checklist-tab"></script>
+  <script type="text/babel" data-presets="react" src="workspace.jsx?v=atlas-20260517-markdown-dedent"></script>
   <!-- SoC Architect (mock data; loaded before app.jsx so the screen
        toggle in app.jsx can mount <SocArchitect />). -->
   <script type="text/babel" data-presets="react" src="soc-data.jsx?v=atlas-20260503-strict-status"></script>
