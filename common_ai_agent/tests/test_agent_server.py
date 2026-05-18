@@ -164,6 +164,43 @@ class TestAgentServerUnit(unittest.TestCase):
         self.assertTrue(self.server_mod._slash_command_failed("[sim] FAIL missing results.xml"))
         self.assertFalse(self.server_mod._slash_command_failed('<testsuite failures="0"></testsuite>'))
 
+    def test_direct_ssot_rtl_llm_blocker_continues_react_loop(self):
+        from core.slash_commands import get_registry
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "demo_ip").mkdir()
+            registry = get_registry()
+            previous = registry.commands.get("ssot-rtl")
+
+            def blocker_cmd(args: str) -> str:
+                return (
+                    "[RTL BLOCKED]\n"
+                    "LLM_RTL_IMPLEMENTATION_REQUIRED\n"
+                    "LLM-authored RTL evidence is missing or stale."
+                )
+
+            registry.register("ssot-rtl", blocker_cmd, "unit blocker command")
+            entry = self.server_mod._create_run("run /ssot-rtl demo_ip")
+            entry.status = "running"
+            try:
+                closed_run, output = self.server_mod._execute_direct_slash_commands(
+                    entry,
+                    ["/ssot-rtl demo_ip"],
+                    project_root=str(root),
+                    ip="demo_ip",
+                )
+            finally:
+                if previous is not None:
+                    registry.commands["ssot-rtl"] = previous
+                else:
+                    registry.unregister("ssot-rtl")
+
+        self.assertFalse(closed_run)
+        self.assertEqual(entry.status, "running")
+        self.assertIsNone(entry.result)
+        self.assertIn("LLM_RTL_IMPLEMENTATION_REQUIRED", output)
+
     def test_direct_slash_command_path_records_modified_files(self):
         from core.slash_commands import get_registry
 
