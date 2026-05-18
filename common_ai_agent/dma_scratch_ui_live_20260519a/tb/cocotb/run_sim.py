@@ -11,8 +11,9 @@ import sys
 from pathlib import Path
 
 # Ensure project root in sys.path and set PYTHONPATH for cocotb
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-IP_DIR = PROJECT_ROOT / "dma_scratch_ui_live_20260519a"
+SCRIPT_DIR = Path(__file__).resolve().parent  # tb/cocotb/
+IP_DIR = SCRIPT_DIR.parents[1]  # dma_scratch_ui_live_20260519a/
+PROJECT_ROOT = IP_DIR.parent  # common_ai_agent/
 os.chdir(str(IP_DIR))
 
 # Add IP dir parent to Python path so 'tb.cocotb.xxx' imports work
