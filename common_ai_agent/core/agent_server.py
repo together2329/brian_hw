@@ -1192,11 +1192,18 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                 files_examined.append(path)
 
         def _record_wrote_paths_from_observation(text: str) -> None:
-            # Tool scripts commonly report "wrote /abs/path/file.json".
-            for match in _re.finditer(r'\bwrote\s+([^\s]+(?:\.[A-Za-z0-9_]+)?)', text):
-                path = match.group(1).strip().strip('",')
-                if path and not path.startswith("http"):
-                    files_modified.append(path)
+            # Tool scripts commonly report either "wrote path" or
+            # "Successfully wrote to 'path'"; count both so producers are not
+            # misclassified as silent failures after valid disk writes.
+            patterns = (
+                r'\bSuccessfully\s+wrote\s+to\s+[\'"]([^\'"]+)[\'"]',
+                r'\bwrote\s+(?:to\s+)?[\'"]?([^\s\'",]+(?:\.[A-Za-z0-9_]+))[\'"]?',
+            )
+            for pattern in patterns:
+                for match in _re.finditer(pattern, text, flags=_re.IGNORECASE):
+                    path = match.group(1).strip().strip('",')
+                    if path and not path.startswith("http"):
+                        files_modified.append(path)
 
         # Scan messages for tool observations
         import re as _re

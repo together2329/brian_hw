@@ -1,0 +1,16 @@
+{
+  "created_at": "2026-05-18T19:30:28Z",
+  "from_workflow": "orchestrator",
+  "handoff_id": "dma_scratch_ui_live_20260519a__orchestrator__ssot-gen__4821359f",
+  "ip": "dma_scratch_ui_live_20260519a",
+  "orchestrator_run_id": "4821359feacd4c63b26c34f3b9b817e2",
+  "payload": {},
+  "reason": "Live ssot-gen worker dispatch failed (connection refused at http://127.0.0.1:5621) and no SSOT artifact exists. Durable handoff requested for worker restart/replay. User goal: DMA IP from scratch with APB regs irq_enable/irq_clear/src_addr/dst_addr/length/status busy done error irq_status; 32-bit addr/data memory read/write valid/ready addr data strb; run full ssot\u2192FL\u2192CL\u2192equiv\u2192RTL\u2192lint(pyslang/verilator)\u2192TB\u2192sim\u2192sim-debug\u2192coverage\u2192syn\u2192STA\u2192PnR\u2192sta-post\u2192goal-audit evidence-gated repair loop.",
+  "schema": "workflow_handoff.v1",
+  "scope": {
+    "pipeline_run_id": "4821359feacd4c63b26c34f3b9b817e2",
+    "session_id": "brian",
+    "user_id": "2a8beaa95732489bb84da2473719b6bd"
+  },
+  "to_workflow": "ssot-gen"
+}

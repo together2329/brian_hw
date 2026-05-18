@@ -529,6 +529,43 @@ def _ensure_sub_modules(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
     top_module = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
     top_name = str(top_module.get("name") or "").strip() or ip
     top_file = str(top_module.get("file") or "").strip() or f"rtl/{ip}.sv"
+
+    def _top_wrapper_row(description: str) -> dict[str, Any]:
+        return {
+            "name": top_name,
+            "file": top_file,
+            "ownership": "manifest",
+            "ssot_gen": True,
+            "wiring_only": True,
+            "description": description,
+            "implements": ["top_module", "integration"],
+            "source_sections": ["top_module", "io_list", "decomposition", "integration"],
+            "decomposition_refs": ["decomposition"],
+            "dataflow_refs": ["dataflow"],
+        }
+
+    def _apply_top_wrapper_defaults(row: dict[str, Any]) -> dict[str, Any]:
+        defaults = _top_wrapper_row(
+            str(row.get("description") or "Top-level integration module matching SSOT top_module")
+        )
+        merged = dict(row)
+        merged["name"] = top_name
+        merged["file"] = top_file
+        merged["wiring_only"] = True
+        for key, value in defaults.items():
+            if key in {"name", "file", "wiring_only"}:
+                continue
+            if isinstance(value, list):
+                existing = merged.get(key) if isinstance(merged.get(key), list) else []
+                refs = [str(item).strip() for item in existing if str(item).strip()]
+                for item in value:
+                    if item not in refs:
+                        refs.append(item)
+                merged[key] = refs
+            else:
+                merged.setdefault(key, value)
+        return merged
+
     if _should_collapse_to_top_module(doc, ip):
         return [{
             "name": top_name,
@@ -569,6 +606,9 @@ def _ensure_sub_modules(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
                 (row.get("name") and row.get("name") == top_name)
                 or (row.get("file") and row.get("file") == top_file)
             )
+            if row_top_collides and row.get("wiring_only"):
+                fixed.append(_apply_top_wrapper_defaults(row))
+                continue
             if row_top_collides and not row.get("wiring_only"):
                 continue
             # Drop sub_modules that share the IP name but the SSOT top is named
@@ -586,13 +626,7 @@ def _ensure_sub_modules(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
         if top_name == ip and not any(
             isinstance(item, dict) and item.get("name") == ip for item in fixed
         ):
-            fixed.append({
-                "name": ip,
-                "file": f"rtl/{ip}.sv",
-                "ownership": "manifest",
-                "ssot_gen": True,
-                "description": "Top-level integration module matching SSOT top_module",
-            })
+            fixed.append(_top_wrapper_row("Top-level integration module matching SSOT top_module"))
         return fixed
     names = ["control", "datapath", "status", "core", "top"]
     desc = {
@@ -609,6 +643,11 @@ def _ensure_sub_modules(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
             "ownership": "manifest",
             "ssot_gen": True,
             "description": desc[name],
+            **(
+                _top_wrapper_row(desc[name])
+                if name == "top"
+                else {}
+            ),
         }
         for name in names
     ]
@@ -687,7 +726,43 @@ def _choose_behavior_owner(candidates: list[dict[str, Any]], terms: set[str]) ->
 
 
 def _ensure_submodule_behavior_ownership(doc: dict[str, Any], ip: str) -> list[dict[str, Any]]:
-    subs = [dict(item) for item in doc.get("sub_modules") or [] if isinstance(item, dict)]
+    subs: list[dict[str, Any]] = []
+    by_key: dict[tuple[str, str], dict[str, Any]] = {}
+    merge_list_keys = (
+        "implements",
+        "source_sections",
+        "function_model_refs",
+        "cycle_model_refs",
+        "feature_refs",
+        "dataflow_refs",
+        "fsm_refs",
+        "decomposition_refs",
+        "test_refs",
+        "register_refs",
+        "trace_refs",
+        "ssot_refs",
+    )
+    for item in doc.get("sub_modules") or []:
+        if not isinstance(item, dict):
+            continue
+        row = dict(item)
+        key = (
+            str(row.get("name") or "").strip(),
+            str(row.get("file") or "").strip(),
+        )
+        if key in by_key:
+            target = by_key[key]
+            for list_key in merge_list_keys:
+                for ref in row.get(list_key) or []:
+                    _append_unique_ref(target, list_key, str(ref))
+            for scalar_key, value in row.items():
+                if scalar_key in merge_list_keys:
+                    continue
+                if scalar_key not in target and value not in (None, "", []):
+                    target[scalar_key] = value
+            continue
+        by_key[key] = row
+        subs.append(row)
     top_names = {ip, f"{ip}_top", "top", "wrapper"}
     def is_active_owner(row: dict[str, Any]) -> bool:
         ownership = str(row.get("ownership") or "manifest").lower()
@@ -703,15 +778,26 @@ def _ensure_submodule_behavior_ownership(doc: dict[str, Any], ip: str) -> list[d
     active = [row for row in subs if is_active_owner(row)]
     candidates = [row for row in active if not is_top(row)] or [row for row in active if is_top(row)]
     if not candidates:
-        owner = {
-            "name": f"{ip}_behavior_contract",
-            "ownership": "conceptual",
-            "ssot_gen": False,
-            "rtl_emit": False,
-            "description": "Conceptual owner for SSOT function-model behavior implemented by the generated RTL.",
-            "source_sections": ["function_model", "cycle_model", "features", "test_requirements"],
-        }
-        subs.insert(0, owner)
+        owner = next(
+            (
+                row for row in subs
+                if str(row.get("name") or "").strip() == f"{ip}_behavior_contract"
+            ),
+            None,
+        )
+        if owner is None:
+            owner = {
+                "name": f"{ip}_behavior_contract",
+                "ownership": "conceptual",
+                "ssot_gen": False,
+                "rtl_emit": False,
+                "description": "Conceptual owner for SSOT function-model behavior implemented by the generated RTL.",
+                "source_sections": ["function_model", "cycle_model", "features", "test_requirements"],
+            }
+            subs.insert(0, owner)
+        else:
+            for ref in ["function_model", "cycle_model", "features", "test_requirements"]:
+                _append_unique_ref(owner, "source_sections", ref)
         candidates = [owner]
 
     fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}

@@ -1,0 +1,2114 @@
+top_module:
+  name: dma_scratch_ui_live_20260519a
+  file: rtl/dma_scratch_ui_live_20260519a.sv
+  version: 0.1.0
+  type: synthesizable_rtl
+  description: Single-clock scratch DMA controller with a simple CSR valid/ready UI, source-to-destination copy engine, progress tracking, sticky status, and done/error IRQ outputs.
+  target:
+    technology: generic
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+  quality_profile: standard
+  reference_spec: user-defined
+sub_modules:
+- name: csr_registers
+  file: rtl/csr_registers.sv
+  type: rtl_submodule_or_inline_block
+  implements:
+  - csr_programming_model
+  register_refs:
+  - CTRL
+  - STATUS
+  - SRC_ADDR
+  - DST_ADDR
+  - LENGTH
+  - PROGRESS
+  - registers.register_list
+  function_model_refs:
+  - FM_CSR_WRITE_CONFIG
+  - FM_CSR_READ_STATUS
+  - FM_CLEAR_ABORT
+  - FM_ILLEGAL_CSR_OR_START
+  - function_model.transactions.FM_ILLEGAL_CSR_OR_START
+  - function_model.state_variables
+  cycle_model_refs:
+  - csr_access
+  - cycle_model
+  dataflow_refs:
+  - df_config
+  - df_status
+  - dataflow
+  fsm_refs:
+  - control
+  description: CSR decode, register storage, status clear, start pulse, and illegal-access reporting.
+  source_sections:
+  - cycle_model
+  - features
+  - dataflow
+  - decomposition
+  - test_requirements
+  - registers
+  feature_refs:
+  - features
+  decomposition_refs:
+  - decomposition
+  test_refs:
+  - test_requirements
+- name: dma_engine
+  file: rtl/dma_engine.sv
+  type: rtl_submodule_or_inline_block
+  implements:
+  - single_outstanding_copy_engine
+  - reset_abort_policy
+  function_model_refs:
+  - FM_START_TRANSFER
+  - FM_READ_REQUEST
+  - FM_CAPTURE_READ_DATA
+  - FM_WRITE_REQUEST
+  - FM_WRITE_ACCEPT
+  - FM_RESET
+  - function_model.transactions.FM_RESET
+  - function_model.transactions.FM_START_TRANSFER
+  - function_model.transactions.FM_CSR_READ_STATUS
+  - function_model.transactions.FM_READ_REQUEST
+  - function_model.transactions.FM_CAPTURE_READ_DATA
+  - function_model.transactions.FM_WRITE_REQUEST
+  - function_model.transactions.FM_WRITE_ACCEPT
+  - function_model.transactions.FM_CLEAR_ABORT
+  cycle_model_refs:
+  - READ_ADDR
+  - CAPTURE_READ_DATA
+  - WRITE_BEAT
+  - COMPLETE_OR_LOOP
+  dataflow_refs:
+  - df_start
+  - df_read
+  - df_capture
+  - df_write
+  fsm_refs:
+  - control
+  - fsm
+  register_refs:
+  - SRC_ADDR
+  - DST_ADDR
+  - LENGTH
+  - PROGRESS
+  - STATUS
+  description: Transfer FSM, read-data buffer, address generation, progress counter, byte strobe generation, and abort/reset handling.
+  source_sections:
+  - fsm
+- name: irq_status
+  file: rtl/irq_status.sv
+  type: rtl_submodule_or_inline_block
+  implements:
+  - status_interrupts
+  function_model_refs:
+  - FM_WRITE_ACCEPT
+  - FM_ILLEGAL_CSR_OR_START
+  - FM_CLEAR_ABORT
+  - FM_RESET
+  - function_model.transactions.FM_CSR_WRITE_CONFIG
+  cycle_model_refs:
+  - COMPLETE_OR_LOOP
+  dataflow_refs:
+  - df_status
+  register_refs:
+  - CTRL
+  - STATUS
+  description: Sticky done/error status and level interrupt output derivation.
+- name: dma_scratch_ui_live_20260519a
+  file: rtl/dma_scratch_ui_live_20260519a.sv
+  ownership: manifest
+  ssot_gen: true
+  wiring_only: true
+  description: Top-level integration module matching SSOT top_module
+  implements:
+  - top_module
+  - integration
+  source_sections:
+  - top_module
+  - io_list
+  - decomposition
+  - integration
+  decomposition_refs:
+  - decomposition
+  dataflow_refs:
+  - dataflow
+decomposition:
+  strategy: manifest_owned_leaf_decomposition
+  owners:
+  - module: csr_registers
+    file: rtl/csr_registers.sv
+    responsibility: Implement CSR register map, decode, readback, write effects, status clear, start pulse, csr_ready, and csr_error.
+    source_sections:
+    - registers
+    - interfaces.csr_if
+    - function_model.FM_CSR_WRITE_CONFIG
+    - function_model.FM_CSR_READ_STATUS
+  - module: dma_engine
+    file: rtl/dma_engine.sv
+    responsibility: Implement DMA FSM, valid/ready memory protocol, read buffer, address/progress counters, byte strobes, zero-length and abort flows.
+    source_sections:
+    - fsm
+    - dataflow
+    - cycle_model
+    - function_model.FM_START_TRANSFER
+    - function_model.FM_WRITE_ACCEPT
+  - module: irq_status
+    file: rtl/irq_status.sv
+    responsibility: Implement sticky done/error status visibility and interrupt levels.
+    source_sections:
+    - interrupts
+    - registers.STATUS
+    - function_model.FM_WRITE_ACCEPT
+    - function_model.FM_ILLEGAL_CSR_OR_START
+  - module: dma_scratch_ui_live_20260519a
+    file: rtl/dma_scratch_ui_live_20260519a.sv
+    responsibility: Synthesizable top module integrating or inlining the declared module slices without changing top ports.
+    source_sections:
+    - top_module
+    - io_list
+    - integration
+  integration_policy: Engineering RTL may inline slices in rtl/dma_scratch_ui_live_20260519a.sv; if separate child modules are emitted, integration.connections or equivalent port maps must be supplied before signoff.
+  source_refs:
+  - sub_modules
+  - function_model
+  - cycle_model
+  - integration
+parameters:
+- name: ADDR_WIDTH
+  type: int
+  default: 32
+  min: 8
+  description: Address width for CSR byte addresses and external memory addresses.
+- name: DATA_WIDTH
+  type: int
+  default: 32
+  legal_values:
+  - 32
+  description: CSR and memory data width for the engineering draft; byte strobes use DATA_WIDTH/8 lanes.
+- name: LEN_WIDTH
+  type: int
+  default: 16
+  min: 1
+  description: Transfer length/progress counter width in bytes.
+io_list:
+  clock_domains:
+  - name: clk
+    frequency_mhz: 100
+    description: Primary synchronous clock domain.
+    ports:
+    - name: clk
+      width: 1
+      direction: input
+      description: Rising-edge system clock.
+  resets:
+  - name: rst_n
+    polarity: active_low
+    sync_async: async_assert_sync_deassert
+    description: Active-low reset that returns all architectural state and outputs to idle values.
+    ports:
+    - name: rst_n
+      width: 1
+      direction: input
+      description: Active-low reset input.
+  interfaces:
+  - name: csr_if
+    type: simple_csr_valid_ready
+    role: target
+    clock_domain: clk
+    reset_domain: rst_n
+    description: One-cycle valid/ready CSR slave used to program and observe the DMA.
+    protocol:
+      acceptance: csr_valid && csr_ready accepts one CSR request.
+      read_response: For reads, csr_rdata and csr_error are valid in the accepted request cycle.
+      write_response: For writes, side effects occur on the accepting clock edge and csr_error reports illegal addresses or operations.
+      stability: csr_addr, csr_write, and csr_wdata remain stable while csr_valid is high and csr_ready is low.
+    ports:
+    - name: csr_valid
+      direction: input
+      width: 1
+      description: CSR request valid.
+    - name: csr_ready
+      direction: output
+      width: 1
+      description: CSR request ready; intended always high outside reset.
+    - name: csr_write
+      direction: input
+      width: 1
+      description: 1 for write, 0 for read.
+    - name: csr_addr
+      direction: input
+      width: ADDR_WIDTH
+      description: Byte address for CSR decode.
+    - name: csr_wdata
+      direction: input
+      width: DATA_WIDTH
+      description: CSR write payload.
+    - name: csr_rdata
+      direction: output
+      width: DATA_WIDTH
+      description: CSR read payload; zero for unmapped addresses.
+    - name: csr_error
+      direction: output
+      width: 1
+      description: Pulses on illegal CSR address or unsupported operation.
+  - name: mem_read_addr_if
+    type: native_valid_ready
+    role: initiator
+    clock_domain: clk
+    reset_domain: rst_n
+    description: DMA source read address channel; one outstanding read in this draft.
+    protocol:
+      acceptance: mem_rd_valid && mem_rd_ready accepts mem_rd_addr.
+      stability: mem_rd_addr remains stable while mem_rd_valid is high and mem_rd_ready is low.
+      ordering: Read requests are issued in increasing source address order with no reordering.
+    ports:
+    - name: mem_rd_valid
+      direction: output
+      width: 1
+      description: Read address valid.
+    - name: mem_rd_ready
+      direction: input
+      width: 1
+      description: Read address ready.
+    - name: mem_rd_addr
+      direction: output
+      width: ADDR_WIDTH
+      description: Source byte address for the accepted read.
+  - name: mem_read_data_if
+    type: native_valid_ready
+    role: target
+    clock_domain: clk
+    reset_domain: rst_n
+    description: DMA source read data channel from memory fabric.
+    protocol:
+      acceptance: mem_rd_data_valid && mem_rd_data_ready transfers mem_rd_data into the DMA buffer.
+      stability: mem_rd_data remains stable while mem_rd_data_valid is high and mem_rd_data_ready is low.
+      ordering: Data responses correspond in order to accepted read addresses.
+    ports:
+    - name: mem_rd_data_valid
+      direction: input
+      width: 1
+      description: Read data valid.
+    - name: mem_rd_data_ready
+      direction: output
+      width: 1
+      description: Read data ready from DMA.
+    - name: mem_rd_data
+      direction: input
+      width: DATA_WIDTH
+      description: Read data payload.
+  - name: mem_write_if
+    type: native_valid_ready
+    role: initiator
+    clock_domain: clk
+    reset_domain: rst_n
+    description: DMA destination write request channel.
+    protocol:
+      acceptance: mem_wr_valid && mem_wr_ready accepts address, data, and byte strobe.
+      stability: mem_wr_addr, mem_wr_data, and mem_wr_strb remain stable while mem_wr_valid is high and mem_wr_ready is low.
+      ordering: Writes are issued in increasing destination address order after corresponding read data is captured.
+    ports:
+    - name: mem_wr_valid
+      direction: output
+      width: 1
+      description: Write request valid.
+    - name: mem_wr_ready
+      direction: input
+      width: 1
+      description: Write request ready.
+    - name: mem_wr_addr
+      direction: output
+      width: ADDR_WIDTH
+      description: Destination byte address.
+    - name: mem_wr_data
+      direction: output
+      width: DATA_WIDTH
+      description: Write data payload copied from the read buffer.
+    - name: mem_wr_strb
+      direction: output
+      width: DATA_WIDTH/8
+      description: Byte enables for full or partial final beat.
+  - name: interrupt_if
+    type: level_interrupt
+    role: source
+    clock_domain: clk
+    reset_domain: rst_n
+    description: Level-high interrupt outputs derived from sticky status and enables.
+    protocol:
+      assertion: irq_done follows done && irq_done_en; irq_error follows error && irq_error_en.
+      clearing: Interrupt levels deassert when software clears the corresponding sticky status bit or reset is asserted.
+      stability: Interrupts are synchronous level outputs.
+    ports:
+    - name: irq_done
+      direction: output
+      width: 1
+      description: Done interrupt level.
+    - name: irq_error
+      direction: output
+      width: 1
+      description: Error interrupt level.
+features:
+- id: csr_programming_model
+  name: csr_programming_model
+  trigger: A host accepts a CSR read or write on csr_if.
+  datapath: csr_addr selects CTRL, STATUS, SRC_ADDR, DST_ADDR, LENGTH, or PROGRESS.
+  control: Writes update only declared register state; read-only fields ignore writes except W1C status clears.
+  output: csr_rdata returns the selected register image and csr_error reports illegal addresses.
+  description: Host programs source, destination, byte length, interrupt enables, start, clear, and abort through simple CSRs.
+- id: single_outstanding_copy_engine
+  name: single_outstanding_copy_engine
+  trigger: CTRL.start is accepted while the engine is idle.
+  datapath: Read source beat, capture data, write destination beat, and update byte counters.
+  control: FSM sequences IDLE, READ_REQ, WAIT_RDATA, WRITE_REQ, DONE, and ERROR.
+  output: Memory read/write requests use valid/ready, addresses increment by DATA_WIDTH/8 bytes, and final byte strobes mask partial beats.
+  description: One outstanding read is converted to one write before issuing the next beat.
+- id: status_interrupts
+  name: status_interrupts
+  trigger: Transfer completion, illegal access, or software clear event occurs.
+  datapath: busy/done/error/progress state is exposed through CSRs and interrupt outputs.
+  control: done and error are sticky until cleared or reset; busy reflects active transfer.
+  output: irq_done and irq_error are level outputs gated by CTRL enables.
+  description: Sticky status and level-high interrupts for firmware polling or interrupt-driven use.
+- id: reset_abort_policy
+  name: reset_abort_policy
+  trigger: rst_n assertion or CTRL.soft_reset is observed.
+  datapath: Transient DMA buffers, valid outputs, busy state, and counters return to idle.
+  control: Reset dominates all transfers; soft_reset aborts in-flight work without issuing new memory requests.
+  output: All memory valid outputs deassert and status/progress return to reset values after reset or software abort.
+  description: Deterministic reset and software abort behavior.
+dataflow:
+  source: csr_if programs configuration and starts the DMA copy.
+  sequence:
+  - id: df_config
+    from: csr_if
+    to: csr_registers
+    rule: CSR writes update SRC_ADDR, DST_ADDR, LENGTH, interrupt enables, start pulse, and clear/abort controls.
+  - id: df_start
+    from: csr_registers
+    to: dma_engine
+    rule: A legal start when idle snapshots configuration into active DMA state and sets busy unless length is zero.
+  - id: df_read
+    from: dma_engine
+    to: mem_read_addr_if
+    rule: Source read addresses are src_addr + progress_bytes for each pending beat.
+  - id: df_capture
+    from: mem_read_data_if
+    to: dma_engine
+    rule: Accepted read data is captured in read_data_buffer before a matching destination write.
+  - id: df_write
+    from: dma_engine
+    to: mem_write_if
+    rule: Destination writes use dst_addr + progress_bytes and write_data from read_data_buffer.
+  - id: df_status
+    from: dma_engine
+    to: csr_if_and_interrupt_if
+    rule: busy, done, error, progress, irq_done, and irq_error expose transfer state.
+  sinks:
+  - csr_rdata
+  - csr_error
+  - mem_rd_valid
+  - mem_rd_addr
+  - mem_wr_valid
+  - mem_wr_addr
+  - mem_wr_data
+  - mem_wr_strb
+  - irq_done
+  - irq_error
+  ordering: For each beat, read-address acceptance precedes read-data capture, which precedes the dependent write acceptance.
+function_model:
+  purpose: Cycle-independent executable behavior contract for the DMA scratch UI.
+  state_variables:
+  - name: fsm_state
+    width: 3
+    reset: 0
+    description: 0=IDLE, 1=READ_REQ, 2=WRITE_REQ, 3=DONE, 4=ERROR; WAIT_RDATA may share READ_REQ wait subphase in simple RTL.
+  - name: src_addr
+    width: ADDR_WIDTH
+    reset: 0
+    description: Source base address.
+  - name: dst_addr
+    width: ADDR_WIDTH
+    reset: 0
+    description: Destination base address.
+  - name: length_bytes
+    width: LEN_WIDTH
+    reset: 0
+    description: Requested byte count.
+  - name: remaining_bytes
+    width: LEN_WIDTH
+    reset: 0
+    description: Bytes not yet committed to destination.
+  - name: progress_bytes
+    width: LEN_WIDTH
+    reset: 0
+    description: Bytes committed to destination.
+  - name: read_data_buffer
+    width: DATA_WIDTH
+    reset: 0
+    description: Captured source read data for next destination write.
+  - name: write_buffer_full
+    width: 1
+    reset: 0
+    description: Read data buffer contains an unwritten beat.
+  - name: busy
+    width: 1
+    reset: 0
+    description: Transfer active.
+  - name: done
+    width: 1
+    reset: 0
+    description: Sticky completion status.
+  - name: error
+    width: 1
+    reset: 0
+    description: Sticky error status.
+  - name: irq_done_en
+    width: 1
+    reset: 0
+    description: Done interrupt enable.
+  - name: irq_error_en
+    width: 1
+    reset: 0
+    description: Error interrupt enable.
+  derived_signals:
+  - name: beat_bytes
+    expr: DATA_WIDTH / 8
+    width: LEN_WIDTH
+    description: Number of bytes transferred by a full data beat.
+  - name: transfer_bytes
+    expr: min(remaining_bytes, beat_bytes)
+    width: LEN_WIDTH
+    description: Bytes committed by the current write beat.
+  - name: write_strobe
+    expr: (1 << transfer_bytes) - 1
+    width: DATA_WIDTH/8
+    description: Final-beat-aware byte strobe; all ones for full beats.
+  - name: status_word
+    expr: busy | (done << 1) | (error << 2)
+    width: DATA_WIDTH
+    description: STATUS register read image.
+  - name: progress_word
+    expr: progress_bytes
+    width: DATA_WIDTH
+    description: PROGRESS register read image.
+  - name: write_buffer_ready
+    expr: write_buffer_full == 0
+    width: 1
+    description: DMA can accept read data when no buffered write is pending.
+  transactions:
+  - id: FM_RESET
+    name: reset
+    sample_condition: rst_n == 0
+    preconditions:
+    - Reset is asserted low.
+    inputs:
+    - rst_n
+    outputs:
+    - All valid outputs and interrupts are deasserted; CSR ready is low during reset.
+    - name: csr_ready_reset
+      port: csr_ready
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: mem_rd_valid_reset
+      port: mem_rd_valid
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: mem_wr_valid_reset
+      port: mem_wr_valid
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: irq_done_reset
+      port: irq_done
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: irq_error_reset
+      port: irq_error
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: fsm_state
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: busy
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: done
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: error
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: remaining_bytes
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: progress_bytes
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: write_buffer_full
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - All state variables return to reset values.
+    state_updates:
+    - name: fsm_state
+      expr: '0'
+      width: 3
+    - name: busy
+      expr: '0'
+      width: 1
+    - name: done
+      expr: '0'
+      width: 1
+    - name: error
+      expr: '0'
+      width: 1
+    - name: remaining_bytes
+      expr: '0'
+      width: LEN_WIDTH
+    - name: progress_bytes
+      expr: '0'
+      width: LEN_WIDTH
+    - name: write_buffer_full
+      expr: '0'
+      width: 1
+    output_rules:
+    - name: csr_ready_reset
+      port: csr_ready
+      expr: '0'
+      width: 1
+    - name: mem_rd_valid_reset
+      port: mem_rd_valid
+      expr: '0'
+      width: 1
+    - name: mem_wr_valid_reset
+      port: mem_wr_valid
+      expr: '0'
+      width: 1
+    - name: irq_done_reset
+      port: irq_done
+      expr: '0'
+      width: 1
+    - name: irq_error_reset
+      port: irq_error
+      expr: '0'
+      width: 1
+  - id: FM_CSR_WRITE_CONFIG
+    name: csr_write_config
+    sample_condition: csr_valid && csr_ready && csr_write && !busy
+    preconditions:
+    - A legal CSR write to CTRL, SRC_ADDR, DST_ADDR, LENGTH, or STATUS is accepted while idle or clearing status.
+    inputs:
+    - csr_addr
+    - csr_wdata
+    - current CSR state
+    outputs:
+    - csr_error remains low for legal writable addresses.
+    - name: csr_ready_idle_write
+      port: csr_ready
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: csr_error_legal_write
+      port: csr_error
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: src_addr
+      expr: csr_wdata if csr_addr == 8 else src_addr
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: dst_addr
+      expr: csr_wdata if csr_addr == 12 else dst_addr
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: length_bytes
+      expr: csr_wdata if csr_addr == 16 else length_bytes
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: irq_done_en
+      expr: ((csr_wdata >> 1) & 1) if csr_addr == 0 else irq_done_en
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: irq_error_en
+      expr: ((csr_wdata >> 2) & 1) if csr_addr == 0 else irq_error_en
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: done
+      expr: 0 if (csr_addr == 4 and ((csr_wdata >> 1) & 1) != 0) else done
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: error
+      expr: 0 if (csr_addr == 4 and ((csr_wdata >> 2) & 1) != 0) else error
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - Writable register fields update or sticky STATUS bits clear according to field write_effect definitions.
+    output_rules:
+    - name: csr_ready_idle_write
+      port: csr_ready
+      expr: '1'
+      width: 1
+    - name: csr_error_legal_write
+      port: csr_error
+      expr: '0'
+      width: 1
+    state_updates:
+    - name: src_addr
+      expr: csr_wdata if csr_addr == 8 else src_addr
+      width: ADDR_WIDTH
+    - name: dst_addr
+      expr: csr_wdata if csr_addr == 12 else dst_addr
+      width: ADDR_WIDTH
+    - name: length_bytes
+      expr: csr_wdata if csr_addr == 16 else length_bytes
+      width: LEN_WIDTH
+    - name: irq_done_en
+      expr: ((csr_wdata >> 1) & 1) if csr_addr == 0 else irq_done_en
+      width: 1
+    - name: irq_error_en
+      expr: ((csr_wdata >> 2) & 1) if csr_addr == 0 else irq_error_en
+      width: 1
+    - name: done
+      expr: 0 if (csr_addr == 4 and ((csr_wdata >> 1) & 1) != 0) else done
+      width: 1
+    - name: error
+      expr: 0 if (csr_addr == 4 and ((csr_wdata >> 2) & 1) != 0) else error
+      width: 1
+  - id: FM_START_TRANSFER
+    name: start_transfer
+    sample_condition: csr_valid && csr_ready && csr_write && csr_addr == 0 && ((csr_wdata & 1) != 0) && !busy
+    preconditions:
+    - CTRL.start write is accepted while busy is 0.
+    inputs:
+    - src_addr
+    - dst_addr
+    - length_bytes
+    outputs:
+    - No memory request is generated for zero length; nonzero length transitions to read request flow.
+    - name: mem_rd_valid_start
+      port: mem_rd_valid
+      expr: 1 if length_bytes != 0 else 0
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: irq_done_zero_length
+      port: irq_done
+      expr: irq_done_en if length_bytes == 0 else 0
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: busy
+      expr: 1 if length_bytes != 0 else 0
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: done
+      expr: 1 if length_bytes == 0 else 0
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: error
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: remaining_bytes
+      expr: length_bytes
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: progress_bytes
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: fsm_state
+      expr: 1 if length_bytes != 0 else 3
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - busy, done, remaining_bytes, progress_bytes, and fsm_state update for a new transfer.
+    output_rules:
+    - name: mem_rd_valid_start
+      port: mem_rd_valid
+      expr: 1 if length_bytes != 0 else 0
+      width: 1
+    - name: irq_done_zero_length
+      port: irq_done
+      expr: irq_done_en if length_bytes == 0 else 0
+      width: 1
+    state_updates:
+    - name: busy
+      expr: 1 if length_bytes != 0 else 0
+      width: 1
+    - name: done
+      expr: 1 if length_bytes == 0 else 0
+      width: 1
+    - name: error
+      expr: '0'
+      width: 1
+    - name: remaining_bytes
+      expr: length_bytes
+      width: LEN_WIDTH
+    - name: progress_bytes
+      expr: '0'
+      width: LEN_WIDTH
+    - name: fsm_state
+      expr: 1 if length_bytes != 0 else 3
+      width: 3
+  - id: FM_CSR_READ_STATUS
+    name: csr_read_status
+    sample_condition: csr_valid && csr_ready && !csr_write
+    preconditions:
+    - A CSR read is accepted for a defined CSR offset.
+    inputs:
+    - csr_addr
+    - current CSR state
+    outputs:
+    - csr_rdata returns selected register image and csr_error is 0 for legal offsets.
+    - name: csr_ready_read
+      port: csr_ready
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: csr_rdata_status
+      port: csr_rdata
+      expr: status_word if csr_addr == 4 else progress_word
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: csr_error_read
+      port: csr_error
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    side_effects:
+    - CSR reads do not change architectural state.
+    output_rules:
+    - name: csr_ready_read
+      port: csr_ready
+      expr: '1'
+      width: 1
+    - name: csr_rdata_status
+      port: csr_rdata
+      expr: status_word if csr_addr == 4 else progress_word
+      width: DATA_WIDTH
+    - name: csr_error_read
+      port: csr_error
+      expr: '0'
+      width: 1
+  - id: FM_READ_REQUEST
+    name: memory_read_request
+    sample_condition: busy && fsm_state == 1
+    preconditions:
+    - DMA is busy, remaining_bytes is nonzero, and no write buffer is pending.
+    inputs:
+    - mem_rd_ready
+    - src_addr
+    - progress_bytes
+    outputs:
+    - Read request valid and address point to the next source beat.
+    - name: mem_rd_valid_rule
+      port: mem_rd_valid
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: mem_rd_addr_rule
+      port: mem_rd_addr
+      expr: src_addr + progress_bytes
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: mem_rd_data_ready_rule
+      port: mem_rd_data_ready
+      expr: write_buffer_ready
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: fsm_state
+      expr: 2 if mem_rd_data_valid and mem_rd_data_ready else fsm_state
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - If accepted, the engine waits for matching read data before writing.
+    output_rules:
+    - name: mem_rd_valid_rule
+      port: mem_rd_valid
+      expr: '1'
+      width: 1
+    - name: mem_rd_addr_rule
+      port: mem_rd_addr
+      expr: src_addr + progress_bytes
+      width: ADDR_WIDTH
+    - name: mem_rd_data_ready_rule
+      port: mem_rd_data_ready
+      expr: write_buffer_ready
+      width: 1
+    state_updates:
+    - name: fsm_state
+      expr: 2 if mem_rd_data_valid and mem_rd_data_ready else fsm_state
+      width: 3
+  - id: FM_CAPTURE_READ_DATA
+    name: capture_read_data
+    sample_condition: busy && mem_rd_data_valid && mem_rd_data_ready
+    preconditions:
+    - A read data beat is accepted while a transfer is active.
+    inputs:
+    - mem_rd_data
+    outputs:
+    - The write request path can present the captured data on mem_wr_data.
+    - name: mem_rd_data_ready_capture
+      port: mem_rd_data_ready
+      expr: write_buffer_ready
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: read_data_buffer
+      expr: mem_rd_data
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: write_buffer_full
+      expr: '1'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: fsm_state
+      expr: '2'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - read_data_buffer captures mem_rd_data and write_buffer_full becomes 1.
+    output_rules:
+    - name: mem_rd_data_ready_capture
+      port: mem_rd_data_ready
+      expr: write_buffer_ready
+      width: 1
+    state_updates:
+    - name: read_data_buffer
+      expr: mem_rd_data
+      width: DATA_WIDTH
+    - name: write_buffer_full
+      expr: '1'
+      width: 1
+    - name: fsm_state
+      expr: '2'
+      width: 3
+  - id: FM_WRITE_REQUEST
+    name: memory_write_request
+    sample_condition: busy && fsm_state == 2 && write_buffer_full
+    preconditions:
+    - Read data buffer holds an unwritten beat.
+    inputs:
+    - dst_addr
+    - progress_bytes
+    - read_data_buffer
+    - remaining_bytes
+    - mem_wr_ready
+    outputs:
+    - Write request valid, address, data, and byte strobes describe the next destination beat.
+    - name: mem_wr_valid_rule
+      port: mem_wr_valid
+      expr: write_buffer_full
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: mem_wr_addr_rule
+      port: mem_wr_addr
+      expr: dst_addr + progress_bytes
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: mem_wr_data_rule
+      port: mem_wr_data
+      expr: read_data_buffer
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: mem_wr_strb_rule
+      port: mem_wr_strb
+      expr: write_strobe
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    side_effects:
+    - State advances only when mem_wr_ready accepts the write beat.
+    output_rules:
+    - name: mem_wr_valid_rule
+      port: mem_wr_valid
+      expr: write_buffer_full
+      width: 1
+    - name: mem_wr_addr_rule
+      port: mem_wr_addr
+      expr: dst_addr + progress_bytes
+      width: ADDR_WIDTH
+    - name: mem_wr_data_rule
+      port: mem_wr_data
+      expr: read_data_buffer
+      width: DATA_WIDTH
+    - name: mem_wr_strb_rule
+      port: mem_wr_strb
+      expr: write_strobe
+      width: DATA_WIDTH/8
+  - id: FM_WRITE_ACCEPT
+    name: memory_write_accept
+    sample_condition: busy && mem_wr_valid && mem_wr_ready
+    preconditions:
+    - Destination memory accepts the current write beat.
+    inputs:
+    - remaining_bytes
+    - progress_bytes
+    - beat_bytes
+    outputs:
+    - Completion status and irq_done are asserted when the accepted write is the final beat.
+    - name: irq_done_on_final_write
+      port: irq_done
+      expr: irq_done_en and (remaining_bytes <= beat_bytes)
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: mem_wr_valid_after_accept
+      port: mem_wr_valid
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: remaining_bytes
+      expr: remaining_bytes - transfer_bytes
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: progress_bytes
+      expr: progress_bytes + transfer_bytes
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: write_buffer_full
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: busy
+      expr: 0 if remaining_bytes <= beat_bytes else 1
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: done
+      expr: 1 if remaining_bytes <= beat_bytes else done
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: fsm_state
+      expr: 3 if remaining_bytes <= beat_bytes else 1
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - remaining_bytes decrements, progress_bytes increments, buffer clears, and the FSM either completes or returns to READ_REQ.
+    output_rules:
+    - name: irq_done_on_final_write
+      port: irq_done
+      expr: irq_done_en and (remaining_bytes <= beat_bytes)
+      width: 1
+    - name: mem_wr_valid_after_accept
+      port: mem_wr_valid
+      expr: '0'
+      width: 1
+    state_updates:
+    - name: remaining_bytes
+      expr: remaining_bytes - transfer_bytes
+      width: LEN_WIDTH
+    - name: progress_bytes
+      expr: progress_bytes + transfer_bytes
+      width: LEN_WIDTH
+    - name: write_buffer_full
+      expr: '0'
+      width: 1
+    - name: busy
+      expr: 0 if remaining_bytes <= beat_bytes else 1
+      width: 1
+    - name: done
+      expr: 1 if remaining_bytes <= beat_bytes else done
+      width: 1
+    - name: fsm_state
+      expr: 3 if remaining_bytes <= beat_bytes else 1
+      width: 3
+  - id: FM_CLEAR_ABORT
+    name: clear_or_abort
+    sample_condition: csr_valid && csr_ready && csr_write && ((csr_addr == 4) || (csr_addr == 0 && ((csr_wdata >> 3) & 1) != 0))
+    preconditions:
+    - STATUS W1C clear or CTRL.soft_reset write is accepted.
+    inputs:
+    - csr_addr
+    - csr_wdata
+    - current status
+    outputs:
+    - Memory request valids deassert on soft_reset; interrupts follow cleared sticky status.
+    - name: mem_rd_valid_abort
+      port: mem_rd_valid
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: mem_wr_valid_abort
+      port: mem_wr_valid
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: busy
+      expr: 0 if (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0)) else busy
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: done
+      expr: 0 if ((csr_addr == 4 and (((csr_wdata >> 1) & 1) != 0)) or (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0))) else done
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: error
+      expr: 0 if ((csr_addr == 4 and (((csr_wdata >> 2) & 1) != 0)) or (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0))) else error
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: fsm_state
+      expr: 0 if (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0)) else fsm_state
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: write_buffer_full
+      expr: 0 if (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0)) else write_buffer_full
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - W1C clears done/error; soft_reset aborts active transfer and clears transient state.
+    output_rules:
+    - name: mem_rd_valid_abort
+      port: mem_rd_valid
+      expr: '0'
+      width: 1
+      repair_note: Removed self-referential output fallback; transaction precondition/sample_condition owns rule applicability.
+    - name: mem_wr_valid_abort
+      port: mem_wr_valid
+      expr: '0'
+      width: 1
+      repair_note: Removed self-referential output fallback; transaction precondition/sample_condition owns rule applicability.
+    state_updates:
+    - name: busy
+      expr: 0 if (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0)) else busy
+      width: 1
+    - name: done
+      expr: 0 if ((csr_addr == 4 and (((csr_wdata >> 1) & 1) != 0)) or (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0))) else done
+      width: 1
+    - name: error
+      expr: 0 if ((csr_addr == 4 and (((csr_wdata >> 2) & 1) != 0)) or (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0))) else error
+      width: 1
+    - name: fsm_state
+      expr: 0 if (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0)) else fsm_state
+      width: 3
+    - name: write_buffer_full
+      expr: 0 if (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0)) else write_buffer_full
+      width: 1
+  - id: FM_ILLEGAL_CSR_OR_START
+    name: illegal_csr_or_start
+    sample_condition: csr_valid && csr_ready && ((csr_addr > 20) || (csr_write && csr_addr == 0 && ((csr_wdata & 1) != 0) && busy))
+    preconditions:
+    - An unmapped CSR access or start-while-busy command is accepted.
+    inputs:
+    - csr_addr
+    - csr_write
+    - csr_wdata
+    - busy
+    outputs:
+    - csr_error and optionally irq_error report the illegal operation.
+    - name: csr_error_illegal
+      port: csr_error
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: irq_error_illegal
+      port: irq_error
+      expr: irq_error_en
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: error
+      expr: '1'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: fsm_state
+      expr: 4 if (csr_write and csr_addr == 0 and ((csr_wdata & 1) != 0) and busy) else fsm_state
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - Sticky error is set without corrupting source/destination/length configuration.
+    output_rules:
+    - name: csr_error_illegal
+      port: csr_error
+      expr: '1'
+      width: 1
+    - name: irq_error_illegal
+      port: irq_error
+      expr: irq_error_en
+      width: 1
+    state_updates:
+    - name: error
+      expr: '1'
+      width: 1
+    - name: fsm_state
+      expr: 4 if (csr_write and csr_addr == 0 and ((csr_wdata & 1) != 0) and busy) else fsm_state
+      width: 3
+  invariants:
+  - All architectural state updates are synchronous to clk and reset to declared values when rst_n is asserted low.
+  - Memory write data for a beat equals the previously accepted read data for that beat.
+  - A new read request is not issued while write_buffer_full is 1.
+  - busy is 1 only during an active nonzero-length transfer and deasserts on final write acceptance, reset, or soft_reset.
+  - done and error are sticky until reset, soft_reset, or W1C clear.
+  reference_model_hint: tb-gen should build a byte-counting reference DMA scoreboard from function_model transactions and compare CSR, memory, and IRQ observations.
+cycle_model:
+  purpose: Cycle and handshake contract for rtl-gen and waveform-based verification.
+  executable: pymtl3
+  backend_policy: Use a simple clocked PyMTL3 shell or cocotb scoreboard driven by this SSOT; FunctionalModel is the behavioral oracle.
+  clock: clk
+  reset:
+    signal: rst_n
+    polarity: active_low
+    assertion: rst_n low asynchronously drives architectural state to reset values and deasserts memory valids.
+    deassertion: Logic accepts transactions after reset deassertion is sampled by clk.
+  latency:
+    csr_access:
+      min_cycles: 0
+      max_cycles: 1
+      description: CSR read/write completes in the accepted cycle for ready-high operation.
+    zero_length_transfer:
+      min_cycles: 1
+      max_cycles: 1
+      description: A start with LENGTH=0 sets done without memory requests on the start accepting clock edge.
+    per_beat_transfer:
+      min_cycles: 2
+      max_cycles: null
+      description: At least read data capture plus write acceptance per beat; unbounded with external backpressure.
+  handshake_rules:
+  - signal: csr_valid/csr_ready
+    rule: CSR request fields remain stable while csr_valid is high and csr_ready is low.
+  - signal: mem_rd_valid/mem_rd_ready
+    rule: mem_rd_addr remains stable until the read address handshake completes.
+  - signal: mem_rd_data_valid/mem_rd_data_ready
+    rule: mem_rd_data is sampled only on valid/ready and is not consumed when ready is low.
+  - signal: mem_wr_valid/mem_wr_ready
+    rule: mem_wr_addr, mem_wr_data, and mem_wr_strb remain stable until write acceptance.
+  pipeline:
+  - stage: CSR_ACCEPT
+    cycle: 0..N
+    action: Accept configuration, status clear, abort, or start command.
+  - stage: READ_ADDR
+    cycle: N..M
+    action: Issue source read address when active transfer has no pending buffered write.
+  - stage: CAPTURE_READ_DATA
+    cycle: M..K
+    action: Capture source read payload on read-data valid/ready.
+  - stage: WRITE_BEAT
+    cycle: K..L
+    action: Issue destination write and update progress when accepted.
+  - stage: COMPLETE_OR_LOOP
+    cycle: L..L+1
+    action: Set done on final beat or return to READ_ADDR for additional bytes.
+  ordering:
+  - Accepted CSR writes update state on clk edges.
+  - Read-address acceptance precedes dependent read-data capture.
+  - Read-data capture precedes dependent write request acceptance.
+  - Progress increments only after the corresponding write handshake.
+  - Backpressure stalls only the affected handshake stage and preserves payload stability.
+  backpressure:
+  - Any ready-low condition holds the corresponding valid and payload stable.
+  - The engine supports at most one uncommitted read data beat.
+  performance:
+    frequency_mhz: 100
+    throughput:
+      sustained_beats_per_cycle: 0.5
+      condition: No memory backpressure and single outstanding read/write sequencing.
+    outstanding:
+      max: 1
+      description: One read response/write beat in flight.
+    depth:
+      pipeline_stages: 5
+      queue_depth: 1
+      description: CSR accept, read request, read capture, write request, complete/loop.
+  observability:
+  - Each function_model transaction maps to a named pipeline stage and a test scenario.
+clock_reset_domains:
+  domains:
+  - clock: clk
+    reset: rst_n
+    frequency_mhz: 100
+    reset_scheme: async_assert_sync_deassert
+  reset_behavior:
+  - Memory valid outputs deassert on reset.
+  - CSR ready is low during reset and may be high immediately after reset release.
+  - busy, done, error, progress, buffer-valid, and FSM state reset to zero/IDLE.
+cdc_requirements:
+  required: false
+  rationale: All declared ports are synchronous to clk in this engineering draft.
+  checks:
+  - No clock-domain crossings are expected unless future SSOT revisions add clocks.
+rdc_requirements:
+  required: false
+  rationale: Only rst_n is declared and all state is in the clk domain.
+  checks:
+  - No reset-domain crossings are expected unless future SSOT revisions add resets.
+registers:
+  config:
+    base_offset: 0
+    register_width: 32
+    access_policy: CSR offsets are byte addresses; unmapped accesses set csr_error and reads return zero.
+  register_list:
+  - name: CTRL
+    offset: 0
+    width: 32
+    access: rw
+    reset: 0
+    description: Control register for start, interrupt enables, and software abort.
+    fields:
+    - name: start
+      bits:
+      - 0
+      - 0
+      access: w1p
+      reset: 0
+      description: Writing 1 starts one transfer when idle; reads as 0.
+      write_effect: Writing 1 while !busy creates start_pulse; writing 1 while busy sets error.
+    - name: irq_done_en
+      bits:
+      - 1
+      - 1
+      access: rw
+      reset: 0
+      description: Enable irq_done level output.
+      write_effect: CSR write updates irq_done_en from csr_wdata[1].
+    - name: irq_error_en
+      bits:
+      - 2
+      - 2
+      access: rw
+      reset: 0
+      description: Enable irq_error level output.
+      write_effect: CSR write updates irq_error_en from csr_wdata[2].
+    - name: soft_reset
+      bits:
+      - 3
+      - 3
+      access: w1p
+      reset: 0
+      description: Writing 1 aborts the active transfer and clears transient state.
+      write_effect: Writing 1 clears busy, done, error, progress, remaining byte count, and buffered data state.
+    - name: reserved
+      bits:
+      - 31
+      - 4
+      access: reserved
+      reset: 0
+      description: Reserved bits read as zero and ignore writes.
+      read_value: 0
+      write_effect: Writes ignored.
+  - name: STATUS
+    offset: 4
+    width: 32
+    access: rw1c
+    reset: 0
+    description: Sticky and live transfer status.
+    fields:
+    - name: busy
+      bits:
+      - 0
+      - 0
+      access: ro
+      reset: 0
+      description: High while a nonzero-length transfer is active.
+    - name: done
+      bits:
+      - 1
+      - 1
+      access: rw1c
+      reset: 0
+      description: Sticky transfer completion bit.
+      write_effect: Writing 1 clears done; writing 0 leaves done unchanged.
+    - name: error
+      bits:
+      - 2
+      - 2
+      access: rw1c
+      reset: 0
+      description: Sticky error bit for illegal CSR or illegal start while busy.
+      write_effect: Writing 1 clears error; writing 0 leaves error unchanged.
+    - name: reserved
+      bits:
+      - 31
+      - 3
+      access: reserved
+      reset: 0
+      description: Reserved bits read as zero and ignore writes.
+      read_value: 0
+      write_effect: Writes ignored.
+  - name: SRC_ADDR
+    offset: 8
+    width: 32
+    access: rw
+    reset: 0
+    description: Source base byte address.
+    fields:
+    - name: src_addr
+      bits:
+      - 31
+      - 0
+      access: rw
+      reset: 0
+      description: Source base byte address captured for the next transfer.
+      write_effect: CSR write updates src_addr when the engine is idle.
+  - name: DST_ADDR
+    offset: 12
+    width: 32
+    access: rw
+    reset: 0
+    description: Destination base byte address.
+    fields:
+    - name: dst_addr
+      bits:
+      - 31
+      - 0
+      access: rw
+      reset: 0
+      description: Destination base byte address captured for the next transfer.
+      write_effect: CSR write updates dst_addr when the engine is idle.
+  - name: LENGTH
+    offset: 16
+    width: 32
+    access: rw
+    reset: 0
+    description: Requested transfer length in bytes.
+    fields:
+    - name: length_bytes
+      bits:
+      - 31
+      - 0
+      access: rw
+      reset: 0
+      description: Requested byte length for the next transfer; zero length completes immediately with no memory request.
+      write_effect: CSR write updates length_bytes when the engine is idle.
+  - name: PROGRESS
+    offset: 20
+    width: 32
+    access: ro
+    reset: 0
+    description: Number of bytes completed in the current or most recent transfer.
+    fields:
+    - name: progress_bytes
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      description: Completed byte count.
+memory:
+  instances: []
+  addressing:
+    policy: External memory address channels use byte addresses and in-order completion.
+    byte_strobe_policy: mem_wr_strb masks the final beat when LENGTH is not a multiple of DATA_WIDTH/8.
+  storage_policy: Only control/status registers and one read-data buffer may be implemented internally.
+interrupts:
+  present: true
+  sources:
+  - name: irq_done
+    output: irq_done
+    source: done
+    enable: irq_done_en
+    polarity: active_high
+    behavior: level_until_status_clear
+  - name: irq_error
+    output: irq_error
+    source: error
+    enable: irq_error_en
+    polarity: active_high
+    behavior: level_until_status_clear
+  clear_policy: Clear STATUS.done or STATUS.error with W1C writes or assert reset/soft_reset.
+fsm:
+  control:
+    reset_state: IDLE
+    encoding_width: 3
+    states:
+    - IDLE
+    - READ_REQ
+    - WAIT_RDATA
+    - WRITE_REQ
+    - DONE
+    - ERROR
+    transitions:
+    - from: IDLE
+      to: DONE
+      when: start_pulse && length_bytes == 0
+    - from: IDLE
+      to: READ_REQ
+      when: start_pulse && length_bytes != 0
+    - from: IDLE
+      to: ERROR
+      when: start_pulse && busy
+    - from: READ_REQ
+      to: WAIT_RDATA
+      when: mem_rd_valid && mem_rd_ready
+    - from: WAIT_RDATA
+      to: WRITE_REQ
+      when: mem_rd_data_valid && mem_rd_data_ready
+    - from: WRITE_REQ
+      to: DONE
+      when: mem_wr_valid && mem_wr_ready && remaining_bytes <= beat_bytes
+    - from: WRITE_REQ
+      to: READ_REQ
+      when: mem_wr_valid && mem_wr_ready && remaining_bytes > beat_bytes
+    - from:
+      - READ_REQ
+      - WAIT_RDATA
+      - WRITE_REQ
+      to: IDLE
+      when: soft_reset_pulse
+    - from: DONE
+      to: IDLE
+      when: done is cleared and no new start is pending
+    - from: ERROR
+      to: IDLE
+      when: error is cleared and no new start is pending
+timing:
+  target_clocks:
+  - name: clk
+    frequency_mhz: 100
+    period_ns: 10.0
+    uncertainty_ns: 0.2
+  latency_budget:
+    csr_access:
+      min: 0
+      max: 1
+      measured_from: csr_valid && csr_ready
+      measured_to: csr_rdata/csr_error valid
+    first_memory_request:
+      min: 0
+      max: 1
+      measured_from: CTRL.start accepted
+      measured_to: mem_rd_valid asserted for nonzero length
+    completion:
+      min: 1
+      max: null
+      measured_from: CTRL.start accepted
+      measured_to: STATUS.done set
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports:
+    - sta/out/timing.rpt
+    - sta/out/wns.json
+power:
+  domains:
+  - name: PD_MAIN
+    voltage: nominal
+    clock_domains:
+    - clk
+    isolation: not_required_single_domain
+  power_states:
+  - name: 'ON'
+    entry: rst_n deasserted
+    exit: rst_n asserted
+    guarantees:
+    - All declared DMA and CSR functionality active.
+  clock_gating:
+    required: false
+    rationale: No integrated clock gating required for this small scratch controller.
+  upf_required: false
+security:
+  classification: non_secure_leaf_ip
+  assets:
+  - name: configuration_state
+    protection: CSR writes are deterministic and cannot update unrelated registers.
+  - name: data_integrity
+    protection: Each write beat must equal the corresponding accepted read beat.
+  - name: transfer_bounds
+    protection: DMA transfers exactly LENGTH bytes rounded to byte strobes and never progresses without write acceptance.
+  threat_model:
+  - threat: invalid_or_unmapped_csr_access
+    mitigation: ERR_ILLEGAL_CSR sets error and returns zero data for invalid reads.
+  - threat: lost_or_duplicated_memory_beat
+    mitigation: Valid/ready stability assertions and scoreboard enforce one read-data beat per write beat.
+  - threat: stale_irq_status
+    mitigation: W1C and soft_reset paths clear sticky status under test.
+  privilege_model: System-level access control is owned by the integrating SoC; this leaf IP assumes only authorized CSR masters are connected.
+error_handling:
+  error_sources:
+  - id: ERR_ILLEGAL_CSR
+    condition: CSR address is not one of 0, 4, 8, 12, 16, or 20.
+    architectural_effect: Assert csr_error for the accepted access, set sticky error, and assert irq_error if enabled.
+  - id: ERR_START_WHILE_BUSY
+    condition: CTRL.start is written with 1 while busy is already 1.
+    architectural_effect: Assert csr_error, set sticky error, keep the active transfer state intact, and assert irq_error if enabled.
+  propagation:
+  - csr_error reports illegal CSR/start errors on the accepting CSR cycle.
+  - STATUS.error remains set until W1C clear, soft_reset, or reset.
+  - irq_error is level-high while STATUS.error and irq_error_en are 1.
+  recovery:
+  - action: status_w1c
+    clears:
+    - error
+    preserves:
+    - src_addr
+    - dst_addr
+    - length_bytes
+    - progress_bytes
+  - action: soft_reset_or_rst_n
+    clears:
+    - busy
+    - done
+    - error
+    - remaining_bytes
+    - progress_bytes
+    - write_buffer_full
+    - fsm_state
+    preserves:
+    - src_addr
+    - dst_addr
+    - length_bytes
+    - irq_done_en
+    - irq_error_en
+debug_observability:
+  waveform_must_probe:
+  - clk
+  - rst_n
+  - csr_valid
+  - csr_ready
+  - csr_addr
+  - csr_write
+  - csr_error
+  - fsm_state
+  - busy
+  - done
+  - error
+  - progress_bytes
+  - mem_rd_valid
+  - mem_rd_ready
+  - mem_rd_data_valid
+  - mem_rd_data_ready
+  - mem_wr_valid
+  - mem_wr_ready
+  - irq_done
+  - irq_error
+  trace_events:
+  - name: csr_accept
+    trigger: csr_valid && csr_ready
+  - name: dma_start
+    trigger: FM_START_TRANSFER sample_condition
+  - name: read_data_capture
+    trigger: mem_rd_data_valid && mem_rd_data_ready
+  - name: write_beat_accept
+    trigger: mem_wr_valid && mem_wr_ready
+  - name: dma_done
+    trigger: done rises
+  - name: dma_error
+    trigger: error rises
+  status_outputs:
+  - STATUS.busy
+  - STATUS.done
+  - STATUS.error
+  - PROGRESS.progress_bytes
+  - irq_done
+  - irq_error
+integration:
+  bus_attachment:
+    interfaces:
+    - csr_if
+    - mem_read_addr_if
+    - mem_read_data_if
+    - mem_write_if
+    - interrupt_if
+    address_ownership: Integrator assigns the CSR base address; internal CSR offsets are byte offsets from base.
+  dependencies:
+    external_modules: []
+    external_clocks:
+    - clk
+    external_resets:
+    - rst_n
+  connections: []
+  connection_contract_status: Engineering draft permits monolithic top implementation; separate child-module wiring contracts are required before multi-module signoff.
+  integration_notes:
+  - Keep top-level file rtl/dma_scratch_ui_live_20260519a.sv and top module name dma_scratch_ui_live_20260519a.
+  - Do not replace simple_csr with AXI-Lite/APB unless the SSOT is explicitly revised.
+dft:
+  scan_required: false
+  controllability:
+    reset: rst_n
+    clocks:
+    - clk
+    primary_inputs: All io_list inputs controllable in testbench.
+  observability:
+    required_internal_points:
+    - fsm_state
+    - busy
+    - done
+    - error
+    - progress_bytes
+    - write_buffer_full
+    outputs: All io_list outputs observable.
+  mbist_required: false
+synthesis:
+  dialect: systemverilog_2012
+  top_module: dma_scratch_ui_live_20260519a
+  constraints:
+  - No inferred latches.
+  - No unresolved black boxes.
+  - All sequential state reset or intentionally initialized by reset policy.
+  - No fixed-template tie-off implementation may claim RTL completion.
+  required_outputs:
+  - syn/out/area.rpt
+  - syn/out/timing_summary.rpt
+  - sta/out/wns.json
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: met3
+    vertical: met2
+  cts_buf_list:
+  - sky130_fd_sc_hd__clkbuf_4
+  - sky130_fd_sc_hd__clkbuf_8
+  routing:
+    signal_layers:
+      min: met1
+      max: met5
+    drc_waivers: []
+coding_rules:
+  verilog_style: systemverilog_2012
+  file_extension: .sv
+  parameter_header: rtl/dma_scratch_ui_live_20260519a_param.vh
+  conventions:
+  - Use input logic/output logic ANSI ports and internal single-driver logic.
+  - Keep shared parameter declarations in rtl/dma_scratch_ui_live_20260519a_param.vh only if needed.
+  - Avoid packages, interfaces, modports, tasks, and unsupported project constructs unless a later SSOT revision approves them.
+  - Use complete combinational assignments and no inferred latches.
+  - Preserve valid/ready payload stability under backpressure.
+  lint_waivers: []
+reuse_modules: []
+custom:
+  assumptions:
+  - No imported architect handoff file was visible to this worker; the SSOT is an engineering draft from the orchestrator inline DMA scratch UI goal.
+  - CSR UI is a simple valid/ready slave, not AXI-Lite/APB, because no bus-standard requirement was visible in the worker prompt.
+  - Memory fabric is modeled as simple in-order valid/ready read-address/read-data/write channels with one outstanding read.
+  - DATA_WIDTH is constrained to 32 for the first RTL target while ADDR_WIDTH and LEN_WIDTH remain parameters.
+  - Partial final transfers are represented with byte strobes; byte-lane alignment policy remains integration-owned beyond this leaf IP.
+  - Separate child modules are optional in engineering mode; rtl-gen may inline csr_registers, dma_engine, and irq_status in the top file.
+  open_questions:
+  - Confirm whether future revisions must replace simple_csr_valid_ready with AXI-Lite or APB.
+  - Confirm whether unaligned multi-byte transfers require address-lane rotation beyond the final-byte strobe mask.
+  - Confirm whether external memory error response ports should be added.
+  optional_behavior_policy:
+    resolution: non_required_optional_items_disabled_unless_ssot_marks_required_or_parameterized
+    owner: ssot-gen deterministic repair
+    rule: Rows marked required:false or prose-only optional verification aids do not add RTL behavior. Any optional functional behavior must be converted by ssot-gen into required behavior or an explicit parameter/register policy before rtl-gen signoff.
+dir_structure:
+  yaml_dir: yaml/
+  output_dirs:
+    rtl: rtl/
+    list: list/
+    tb: tb/cocotb/
+    sim: sim/
+    lint: lint/
+    cov: cov/
+    doc: doc/
+  generators_dir: generators/
+filelist:
+  rtl:
+  - rtl/csr_registers.sv
+  - rtl/dma_engine.sv
+  - rtl/irq_status.sv
+  - rtl/dma_scratch_ui_live_20260519a.sv
+  headers:
+  - rtl/dma_scratch_ui_live_20260519a_param.vh
+  tb:
+  - tb/cocotb/test_dma_scratch_ui_live_20260519a.py
+  - tb/cocotb/test_runner.py
+  - tb/cocotb/scoreboard.py
+  sim:
+  - sim/results.xml
+  - sim/waves.fst
+  coverage:
+  - cov/coverage.json
+test_requirements:
+  scenarios:
+  - id: SC01
+    name: reset_defaults
+    stimulus: Assert rst_n low, deassert it, keep all valid inputs low, and sample outputs/CSR state.
+    expected: Memory valids and IRQs are low; busy/done/error/progress/write_buffer_full/fsm_state are reset; csr_ready is legal after reset release.
+    checker: Reset checker compares visible outputs and CSR readback against function_model reset state.
+    coverage:
+    - function_model.FM_RESET
+    - cycle_model.reset
+  - id: SC02
+    name: csr_programming_readback
+    stimulus: Write SRC_ADDR, DST_ADDR, LENGTH, CTRL interrupt enables, then read all defined registers.
+    expected: Legal reads return programmed values and status fields; csr_error remains low.
+    checker: CSR register-model checker validates readback and field write effects.
+    coverage:
+    - registers.CTRL
+    - registers.SRC_ADDR
+    - registers.DST_ADDR
+    - registers.LENGTH
+  - id: SC03
+    name: illegal_csr_access
+    stimulus: Read and write unmapped CSR offsets, and attempt CTRL.start while busy.
+    expected: csr_error pulses, STATUS.error sets, irq_error follows enable, and unrelated configuration is preserved.
+    checker: Negative CSR checker validates error handling and recovery.
+    coverage:
+    - error_handling.ERR_ILLEGAL_CSR
+    - error_handling.ERR_START_WHILE_BUSY
+  - id: SC04
+    name: zero_length_transfer
+    stimulus: Program LENGTH=0, enable done IRQ, and write CTRL.start.
+    expected: done sets in the start cycle, irq_done asserts when enabled, busy stays low, progress remains zero, and no memory valid asserts.
+    checker: Zero-length checker monitors no memory request and status/IRQ behavior.
+    coverage:
+    - function_model.FM_START_TRANSFER
+    - fsm.control.DONE
+  - id: SC05
+    name: single_beat_copy
+    stimulus: Program one full DATA_WIDTH beat, provide read data, and keep memory ready high.
+    expected: One read address and one write with matching data occur; progress equals beat_bytes and done sets.
+    checker: Memory scoreboard compares source read data to destination write data and progress.
+    coverage:
+    - dataflow.df_read
+    - dataflow.df_write
+    - function_model.FM_WRITE_ACCEPT
+  - id: SC06
+    name: multi_beat_copy
+    stimulus: Program a length of at least three beats with deterministic read data and ready memory.
+    expected: Read and write addresses increment by beat_bytes, write data matches read sequence, and done occurs after final beat.
+    checker: Address sequence and data integrity scoreboard.
+    coverage:
+    - cycle_model.pipeline.READ_ADDR
+    - cycle_model.pipeline.WRITE_BEAT
+  - id: SC07
+    name: partial_final_beat
+    stimulus: Program a length that is not a multiple of DATA_WIDTH/8.
+    expected: All full beats use all byte strobes and final beat uses write_strobe derived from remaining_bytes.
+    checker: Byte-strobe checker compares mem_wr_strb against transfer_bytes.
+    coverage:
+    - function_model.derived_signals.write_strobe
+  - id: SC08
+    name: read_backpressure
+    stimulus: Randomly deassert mem_rd_ready and mem_rd_data_valid during transfer.
+    expected: Read address and ready protocol remain stable; no duplicated or lost beats.
+    checker: Valid/ready stability assertions and scoreboard.
+    coverage:
+    - cycle_model.handshake_rules.mem_rd_valid
+    - cycle_model.backpressure
+  - id: SC09
+    name: write_backpressure
+    stimulus: Randomly deassert mem_wr_ready while a buffered write is pending.
+    expected: mem_wr_addr, mem_wr_data, and mem_wr_strb remain stable until acceptance; transfer completes after stalls.
+    checker: Write-channel stability monitor and scoreboard.
+    coverage:
+    - cycle_model.handshake_rules.mem_wr_valid
+    - function_model.FM_WRITE_REQUEST
+  - id: SC10
+    name: soft_reset_abort
+    stimulus: Start a multi-beat transfer and write CTRL.soft_reset while read or write backpressure is active.
+    expected: busy, done, error, progress, buffer state, and memory valids clear; no new memory request is issued until a new start.
+    checker: Abort checker monitors immediate valid deassertion and reset of transient state.
+    coverage:
+    - function_model.FM_CLEAR_ABORT
+    - fsm.control.IDLE
+  - id: SC11
+    name: status_w1c_irq_clear
+    stimulus: Complete a transfer and create an error, then clear STATUS.done and STATUS.error using W1C writes.
+    expected: done/error and irq levels deassert only for bits written with 1; configuration registers are preserved.
+    checker: Status/IRQ W1C checker.
+    coverage:
+    - registers.STATUS.done
+    - registers.STATUS.error
+    - interrupts
+  scoreboard_checks: 11
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+      description: Cover every function_model transaction, state update class, output rule class, and error path.
+      bins:
+      - id: FCOV_TX_ALL
+        source_ref: function_model.transactions
+        class: transaction
+        description: Each named transaction sampled at least once.
+      - id: FCOV_ERROR
+        source_ref: function_model.transactions.FM_ILLEGAL_CSR_OR_START
+        class: error_path
+        description: Illegal CSR and start-while-busy errors observed.
+      - id: FCOV_STROBE
+        source_ref: function_model.derived_signals.write_strobe
+        class: datapath
+        description: Full and partial write strobes observed.
+    cycle:
+      target_pct: 100
+      model: cycle_model
+      description: Cover each valid/ready channel, pipeline stage, ordering rule, and backpressure mode.
+      bins:
+      - id: CCOV_HANDSHAKES
+        source_ref: cycle_model.handshake_rules
+        class: handshake
+        description: CSR, read address, read data, and write handshakes observed.
+      - id: CCOV_PIPELINE
+        source_ref: cycle_model.pipeline
+        class: cycle_rule
+        description: All declared pipeline stages observed.
+      - id: CCOV_BACKPRESSURE
+        source_ref: cycle_model.backpressure
+        class: stall
+        description: Read and write stall cases observed.
+    scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence
+quality_gates:
+  ssot:
+    pass: check_ssot_disk.sh exits 0 in engineering mode and SSOT provenance is written.
+    evidence:
+    - workflow/ssot-gen/scripts/check_ssot_disk.sh PASS
+    - yaml/dma_scratch_ui_live_20260519a.ssot.provenance.json
+  rtl:
+    pass: RTL top file exists, compiles, preserves SSOT top port names, and is not a placeholder/tie-off implementation.
+    evidence:
+    - rtl/dma_scratch_ui_live_20260519a.sv
+    - list/dma_scratch_ui_live_20260519a.f
+    - rtl_compile.json
+    - lint/dut_lint.json
+  rtl_gen:
+    profile: standard
+    pass: rtl-gen implements all required SSOT-derived RTL TODOs or emits precise SSOT questions for unresolved behavior.
+    evidence:
+    - rtl/rtl_authoring_plan.json
+    - logs/rtl-gen/rtl_todo_plan.json
+    - rtl/provenance.json
+  dv:
+    pass: Every test_requirements scenario has an executable checker and scoreboard expectation derived from function_model/cycle_model.
+    evidence:
+    - tb/cocotb tests
+    - verify/equivalence_goals.json
+    - sim/scoreboard_events.jsonl
+  coverage:
+    pass: Functional and cycle coverage goals reach target or have approved waivers.
+    evidence:
+    - cov/coverage.json
+    - coverage waiver list if any
+  eda:
+    pass: Synthesis/STA/DFT expectations have reports or approved waivers.
+    evidence:
+    - syn/out/area.rpt
+    - syn/out/timing_summary.rpt
+    - sta/out/wns.json
+  signoff:
+    pass: SSOT, FL/equivalence, RTL, lint, DV, simulation, coverage, and EDA gates pass with fresh artifacts.
+    evidence:
+    - ATLAS progress signoff PASS
+traceability:
+  yaml_to_output:
+  - yaml: top_module
+    output: RTL top module name and rtl/dma_scratch_ui_live_20260519a.sv path
+  - yaml: io_list
+    output: RTL port list and cocotb DUT signal map
+  - yaml: registers
+    output: CSR RTL decode and register-model scoreboard
+  - yaml: function_model
+    output: FunctionalModel oracle, RTL TODOs, and FL-vs-RTL scoreboard contracts
+  - yaml: cycle_model
+    output: Handshake monitors, latency checks, and waveform checks
+  - yaml: dataflow
+    output: Memory copy scoreboard and ordering checks
+  - yaml: interrupts
+    output: IRQ generation RTL and W1C interrupt tests
+  - yaml: error_handling
+    output: Negative CSR/start tests and sticky error behavior
+  - yaml: quality_gates
+    output: ATLAS progress/signoff criteria
+  - yaml: function_model/cycle_model/test_requirements
+    output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
+  - yaml: timing
+    output: STA constraints and latency pass/fail criteria
+  - yaml: security
+    output: Threat mitigations and negative tests
+  - yaml: debug_observability
+    output: VCD probes and sim_debug inspection
+workflow_todos:
+  rtl-gen:
+  - id: RTL_IMPLEMENT_DMA_TOP
+    content: Implement rtl/dma_scratch_ui_live_20260519a.sv with the exact SSOT top module, parameters, and ports.
+    detail: Implement CSR register map, DMA copy FSM, memory valid/ready channels, byte strobes, sticky status, interrupts, reset, abort, and illegal CSR handling from this SSOT.
+    criteria:
+    - Top module name and port directions/widths match io_list exactly.
+    - All function_model transactions have RTL behavior or a precise SSOT blocker question.
+    - No placeholder, heartbeat-only, or tie-off-only implementation is used.
+    source_refs:
+    - top_module
+    - io_list
+    - function_model
+    - cycle_model
+    - registers
+    owner_module: dma_scratch_ui_live_20260519a
+    owner_file: rtl/dma_scratch_ui_live_20260519a.sv
+    priority: high
+    required: true
+  - id: RTL_IMPLEMENT_CSR_REGISTERS
+    content: Implement CSR register decode, readback, write effects, and csr_error.
+    detail: CTRL, STATUS, SRC_ADDR, DST_ADDR, LENGTH, and PROGRESS offsets and fields must match registers.register_list.
+    criteria:
+    - Legal CSR accesses match field reset/access/write_effect rules.
+    - Unmapped access and start-while-busy set error and drive csr_error.
+    - CSR reads are same-cycle with accepted csr_valid/csr_ready.
+    source_refs:
+    - registers
+    - function_model.FM_CSR_WRITE_CONFIG
+    - function_model.FM_CSR_READ_STATUS
+    - error_handling
+    owner_module: csr_registers
+    owner_file: rtl/csr_registers.sv
+    priority: high
+    required: true
+  - id: RTL_IMPLEMENT_DMA_ENGINE
+    content: Implement single-outstanding source-to-destination DMA transfer engine.
+    detail: Issue ordered source reads, capture read data, issue destination writes, update progress after write acceptance, and support partial final strobes.
+    criteria:
+    - Read/write valid and payload stability under backpressure follows cycle_model.handshake_rules.
+    - Write data equals corresponding accepted read data.
+    - Zero-length, final-beat, and soft_reset behaviors match function_model.
+    source_refs:
+    - dataflow
+    - fsm
+    - function_model.FM_START_TRANSFER
+    - function_model.FM_READ_REQUEST
+    - function_model.FM_WRITE_ACCEPT
+    owner_module: dma_engine
+    owner_file: rtl/dma_engine.sv
+    priority: high
+    required: true
+  - id: RTL_IMPLEMENT_IRQ_STATUS
+    content: Implement sticky done/error status and irq_done/irq_error level outputs.
+    detail: Interrupts are gated by CTRL enables and remain asserted until status W1C, soft_reset, or reset clears the corresponding sticky bit.
+    criteria:
+    - irq_done equals done && irq_done_en after completion.
+    - irq_error equals error && irq_error_en after declared error sources.
+    - W1C clear does not corrupt configuration registers.
+    source_refs:
+    - interrupts
+    - registers.STATUS
+    - function_model.FM_WRITE_ACCEPT
+    - function_model.FM_ILLEGAL_CSR_OR_START
+    owner_module: irq_status
+    owner_file: rtl/irq_status.sv
+    priority: high
+    required: true
+  tb-gen:
+  - id: TB_BUILD_DMA_SCOREBOARD
+    content: Create cocotb scoreboard and protocol monitors for the DMA scratch UI.
+    detail: Use test_requirements scenarios and function_model transactions to validate CSR, memory, IRQ, backpressure, and error behavior.
+    criteria:
+    - All SC01-SC11 scenarios have executable tests.
+    - Memory scoreboard checks address order, data integrity, progress, and byte strobes.
+    - Protocol monitors assert valid/ready stability on all channels.
+    source_refs:
+    - test_requirements
+    - function_model
+    - cycle_model
+    owner_module: tb_dma_scratch_ui_live_20260519a
+    owner_file: tb/cocotb/test_dma_scratch_ui_live_20260519a.py
+    priority: high
+    required: true
+  sim_debug: []
+generation_flow:
+  steps:
+  - name: validate_ssot
+    command: bash workflow/ssot-gen/scripts/check_ssot_disk.sh dma_scratch_ui_live_20260519a --mode ${ATLAS_RUN_MODE:-signoff}
+    description: Validate SSOT structure and quality gates at the selected Run Mode
+  - name: handoff_fl_model
+    command: /ssot-fl-model dma_scratch_ui_live_20260519a
+    description: Generate FunctionalModel, decomposition, and FCOV plan from SSOT
+  - name: handoff_equivalence_goals
+    command: /ssot-equiv-goals dma_scratch_ui_live_20260519a
+    description: Derive FL-vs-RTL equivalence goals before TB generation
+  - name: handoff_rtl
+    command: /ssot-rtl dma_scratch_ui_live_20260519a
+    description: Generate RTL from validated SSOT
+  - name: handoff_tb
+    command: /ssot-tb-cocotb dma_scratch_ui_live_20260519a
+    description: Generate cocotb/pyuvm verification from validated SSOT
+  - name: handoff_sim_debug
+    command: /wf sim_debug
+    description: Run simulation, waveform, and coverage inspection
+ip: dma_scratch_ui_live_20260519a
+schema_version: ssot-draft-v1
+run_mode: engineering
+source_requirement: ATLAS orchestrator inline DMA scratch UI goal; no imported external spec visible to ssot-gen.
+metadata:
+  owner: ssot-gen
+  status: engineering_draft
+  generated_by: ssot-gen
+  source_refs:
+  - orchestrator_context.cada7b15caa8
+  notes:
+  - Engineering draft refreshed from visible pipeline goal and prior inline DMA intent.
+interfaces:
+- name: csr_if
+  protocol: simple_csr_valid_ready
+  role: target
+  ports:
+  - csr_valid
+  - csr_ready
+  - csr_write
+  - csr_addr
+  - csr_wdata
+  - csr_rdata
+  - csr_error
+  handshake: csr_valid && csr_ready accepts a CSR request; read data is same-cycle with acceptance.
+  backpressure: csr_ready may be held low only during reset or implementation-defined one-cycle internal stalls.
+- name: mem_read_addr_if
+  protocol: native_valid_ready
+  role: initiator
+  ports:
+  - mem_rd_valid
+  - mem_rd_ready
+  - mem_rd_addr
+  handshake: mem_rd_valid && mem_rd_ready accepts a read address.
+  backpressure: Hold mem_rd_valid and mem_rd_addr stable until ready.
+- name: mem_read_data_if
+  protocol: native_valid_ready
+  role: target
+  ports:
+  - mem_rd_data_valid
+  - mem_rd_data_ready
+  - mem_rd_data
+  handshake: mem_rd_data_valid && mem_rd_data_ready transfers data into read_data_buffer.
+  backpressure: Assert mem_rd_data_ready only when the write buffer can capture data.
+- name: mem_write_if
+  protocol: native_valid_ready
+  role: initiator
+  ports:
+  - mem_wr_valid
+  - mem_wr_ready
+  - mem_wr_addr
+  - mem_wr_data
+  - mem_wr_strb
+  handshake: mem_wr_valid && mem_wr_ready accepts the destination write beat.
+  backpressure: Hold write payload stable until ready.
+rtl_contract:
+  owner: ssot-gen
+  type: ssot_derived_rule_contract
+  transaction: FM_CSR_READ_STATUS
+  clock: clk
+  reset: rst_n
+  reset_active: low
+  sample_condition: csr_valid && csr_ready
+  input_map:
+    csr_valid: csr_valid
+    csr_write: csr_write
+    csr_addr: csr_addr
+    csr_wdata: csr_wdata
+    mem_rd_ready: mem_rd_ready
+    mem_rd_data_valid: mem_rd_data_valid
+    mem_rd_data: mem_rd_data
+    mem_wr_ready: mem_wr_ready
+  output_map:
+    csr_ready: csr_ready
+    csr_rdata: csr_rdata
+    csr_error: csr_error
+    mem_rd_valid: mem_rd_valid
+    mem_rd_addr: mem_rd_addr
+    mem_rd_data_ready: mem_rd_data_ready
+    mem_wr_valid: mem_wr_valid
+    mem_wr_addr: mem_wr_addr
+    mem_wr_data: mem_wr_data
+    mem_wr_strb: mem_wr_strb
+    irq_done: irq_done
+    irq_error: irq_error
+  ready_output: csr_ready
+  output_valid: mem_wr_valid
+  contract_invariants:
+  - RTL-visible behavior implements the referenced function_model transactions.
+  - Input sampling and output observation follow cycle_model handshake and latency rules.
+  output_rules:
+  - name: csr_ready_contract
+    port: csr_ready
+    expr: '1'
+    width: 1
+    description: CSR slave is ready outside reset unless implementation chooses a legal stall.
+  - name: irq_done_contract
+    port: irq_done
+    expr: done and irq_done_en
+    width: 1
+    description: Level done interrupt derived from sticky done and enable.
+  - name: irq_error_contract
+    port: irq_error
+    expr: error and irq_error_en
+    width: 1
+    description: Level error interrupt derived from sticky error and enable.
+  - name: csr_rdata_status
+    port: csr_rdata
+    expr: status_word if csr_addr == 4 else progress_word
+    width: DATA_WIDTH
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: csr_error_read
+    port: csr_error
+    expr: '0'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: mem_rd_valid_reset
+    port: mem_rd_valid
+    expr: '0'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: mem_wr_valid_reset
+    port: mem_wr_valid
+    expr: '0'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: mem_rd_addr_rule
+    port: mem_rd_addr
+    expr: src_addr + progress_bytes
+    width: ADDR_WIDTH
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: mem_rd_data_ready_rule
+    port: mem_rd_data_ready
+    expr: write_buffer_ready
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: mem_wr_addr_rule
+    port: mem_wr_addr
+    expr: dst_addr + progress_bytes
+    width: ADDR_WIDTH
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: mem_wr_data_rule
+    port: mem_wr_data
+    expr: read_data_buffer
+    width: DATA_WIDTH
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: mem_wr_strb_rule
+    port: mem_wr_strb
+    expr: write_strobe
+    width: DATA_WIDTH/8
+    description: FunctionalModel output observable mapped to DUT output port.
+  unresolved_expression_refs:
+  - rst_n

@@ -115,6 +115,40 @@ class TestAgentServerUnit(unittest.TestCase):
         entry.finished_at = time.time()
         self.assertEqual(entry.status, "completed")
 
+    def test_producing_worker_counts_successful_write_observation(self):
+        from core import react_loop
+
+        entry = self.server_mod._create_run("write ssot")
+        old_workflow = self.server_mod._SERVER_WORKFLOW
+        old_persistence = self.server_mod._PERSISTENCE_ENABLED
+        self.server_mod._SERVER_WORKFLOW = "ssot-gen"
+        self.server_mod._PERSISTENCE_ENABLED = False
+
+        def fake_run_react_agent_impl(*, messages, tracker, **_kwargs):
+            tracker.current = 3
+            return (
+                messages
+                + [
+                    {
+                        "role": "tool",
+                        "name": "write_file",
+                        "content": "Successfully wrote to 'demo_ip/yaml/demo_ip.ssot.yaml'.",
+                    },
+                    {"role": "assistant", "content": "Final Answer: [SSOT HANDOFF] done"},
+                ],
+                "normal",
+            )
+
+        try:
+            with patch.object(react_loop, "run_react_agent_impl", side_effect=fake_run_react_agent_impl):
+                self.server_mod._run_react_task(entry, "write ssot", model="test-model")
+        finally:
+            self.server_mod._SERVER_WORKFLOW = old_workflow
+            self.server_mod._PERSISTENCE_ENABLED = old_persistence
+
+        self.assertEqual(entry.status, "completed", entry.result)
+        self.assertIn("demo_ip/yaml/demo_ip.ssot.yaml", entry.result["files_modified"])
+
 
 # ============================================================
 # Unit Tests — agent_client worker_call (mocked HTTP)

@@ -1,2 +1,3 @@
 {"ts": "2026-05-18T19:08:30.678Z", "step": 1, "lens": "interaction", "actor": "ssot-gen-worker", "kind": "http_recv", "corr": "corr_17f5dec5", "peer": "orchestrator", "requested_workflow": "ssot-gen", "task_preview": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: dma_scratch_ui_fixed_20260519\n- workflo", "sync": false, "has_todos": false, "template": "atlas-pipeline-ssot"}
 {"ts": "2026-05-18T19:08:30.684Z", "step": 2, "lens": "interaction", "actor": "ssot-gen-worker", "kind": "http_accepted", "corr": "corr_17f5dec5", "peer": "orchestrator", "status": 200, "run_id": "run_2f0f006c"}
+{"ts": "2026-05-18T19:14:25.032Z", "step": 3, "lens": "result", "actor": "ssot-gen-worker", "kind": "run_completed", "corr": "corr_17f5dec5", "run_id": "run_2f0f006c", "status": "error"}

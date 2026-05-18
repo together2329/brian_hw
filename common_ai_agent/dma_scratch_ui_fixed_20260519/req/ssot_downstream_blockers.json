@@ -2,35 +2,5 @@
   "schema_version": "ssot_downstream_blockers.v1",
   "ip": "dma_scratch_ui_fixed_20260519",
   "ssot": "dma_scratch_ui_fixed_20260519/yaml/dma_scratch_ui_fixed_20260519.ssot.yaml",
-  "issues": [
-    {
-      "id": "SSOT_SUBMODULE_REFS_MISSING_DMA_SCRATCH_UI_FIXED_20260519",
-      "submodule": "dma_scratch_ui_fixed_20260519",
-      "fix": "Add at least one of implements / function_model_refs / cycle_model_refs / fsm_refs / register_refs / dataflow_refs."
-    },
-    {
-      "id": "SSOT_FM_MACHINE_RULES_MISSING_FM_PRIMARY",
-      "field": "function_model.transactions[1]",
-      "transaction": "FM_PRIMARY",
-      "outputs": [
-        "Single-outstanding APB-controlled DMA copy engine with 32-bit source/destination addresses and memory read/write streaming handshakes."
-      ],
-      "side_effects": [
-        "updates only SSOT-declared state, status, counters, events, interrupts, buffers, or output handoff state"
-      ],
-      "fix": "Convert prose outputs/side_effects into executable output_rules or state_updates. Use output_rules with name, expr, width, and port for externally visible outputs; use state_updates with name, expr, and width for architectural state changes."
-    },
-    {
-      "id": "SSOT_FM_MACHINE_RULES_MISSING_FM_CONTROL_STATUS",
-      "field": "function_model.transactions[2]",
-      "transaction": "FM_CONTROL_STATUS",
-      "outputs": [
-        "read/status/response values match registers, debug_observability, and error_handling"
-      ],
-      "side_effects": [
-        "RW/W1C/command side effects occur only as declared in registers or features"
-      ],
-      "fix": "Convert prose outputs/side_effects into executable output_rules or state_updates. Use output_rules with name, expr, width, and port for externally visible outputs; use state_updates with name, expr, and width for architectural state changes."
-    }
-  ]
+  "issues": []
 }

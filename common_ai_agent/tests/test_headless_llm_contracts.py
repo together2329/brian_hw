@@ -998,8 +998,80 @@ def test_repair_ssot_schema_assigns_decomposition_refs_to_monolithic_top(tmp_pat
     assert repaired.returncode == 0, repaired.stdout + repaired.stderr
     loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
     top_row = next(row for row in loaded["sub_modules"] if row["name"] == ip)
-    assert "function_model.transactions.FM_PRIMARY" in top_row["function_model_refs"]
+    owner = next(row for row in loaded["sub_modules"] if row["name"] == f"{ip}_behavior_contract")
+    assert top_row["wiring_only"] is True
+    assert "function_model.transactions.FM_PRIMARY" in owner["function_model_refs"]
     assert "decomposition" in top_row["decomposition_refs"]
+
+
+def test_repair_ssot_schema_marks_legacy_top_wrapper_wiring_only(tmp_path: Path):
+    ip = "repair_top_wrapper_wiring_ip"
+    doc = _base_ssot_doc(ip)
+    doc["top_module"]["file"] = f"rtl/{ip}.sv"
+    doc["sub_modules"] = [
+        {
+            "name": f"{ip}_core",
+            "file": f"rtl/{ip}_core.sv",
+            "ownership": "manifest",
+            "implements": ["function_model.transactions"],
+            "source_sections": ["function_model", "cycle_model"],
+            "function_model_refs": ["function_model.transactions.FM_PRIMARY"],
+        },
+        {
+            "name": ip,
+            "file": f"rtl/{ip}.sv",
+            "ownership": "manifest",
+            "description": "Legacy top wrapper row emitted with the IP name.",
+        },
+    ]
+    doc["filelist"] = {"rtl": [f"rtl/{ip}.sv", f"rtl/{ip}_core.sv"]}
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    repaired = _run_repair_ssot(tmp_path, ip, ["--mode", "engineering"])
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    top_row = next(row for row in loaded["sub_modules"] if row["name"] == ip)
+    assert top_row["wiring_only"] is True
+    assert "integration" in top_row["implements"]
+    assert "decomposition" in top_row["decomposition_refs"]
+    check = _run_check_ssot(tmp_path, ip, ["--mode", "engineering"])
+    assert check.returncode == 0, check.stdout + check.stderr
+
+
+def test_repair_ssot_schema_reuses_conceptual_behavior_owner(tmp_path: Path):
+    ip = "repair_conceptual_dedupe_ip"
+    doc = _base_ssot_doc(ip)
+    doc["top_module"]["file"] = f"rtl/{ip}.sv"
+    conceptual = {
+        "name": f"{ip}_behavior_contract",
+        "ownership": "conceptual",
+        "ssot_gen": False,
+        "rtl_emit": False,
+        "description": "Conceptual owner for SSOT function-model behavior implemented by the generated RTL.",
+        "source_sections": ["function_model"],
+    }
+    doc["sub_modules"] = [
+        dict(conceptual),
+        dict(conceptual),
+        {
+            "name": ip,
+            "file": f"rtl/{ip}.sv",
+            "ownership": "manifest",
+            "wiring_only": True,
+            "implements": ["top_module", "integration"],
+            "source_sections": ["top_module", "integration"],
+        },
+    ]
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    repaired = _run_repair_ssot(tmp_path, ip, ["--mode", "engineering"])
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    owners = [row for row in loaded["sub_modules"] if row["name"] == f"{ip}_behavior_contract"]
+    assert len(owners) == 1
+    assert "function_model.transactions.FM_PRIMARY" in owners[0]["function_model_refs"]
 
 
 def test_derive_rtl_todos_assigns_memory_owner_from_function_state_update(tmp_path: Path):
