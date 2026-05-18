@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "type": "rtl_compile",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "iverilog",
+  "command": "iverilog -g2012 -Irtl -f list/dma_scratch_ui_live_20260519a.f -s dma_scratch_ui_live_20260519a -o /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/dma_scratch_ui_live_20260519a_rtl_check.vvp",
+  "cwd": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/dma_scratch_ui_live_20260519a",
+  "top": "dma_scratch_ui_live_20260519a",
+  "filelist": "list/dma_scratch_ui_live_20260519a.f",
+  "rtl_files": [
+    "rtl/csr_registers.sv",
+    "rtl/dma_engine.sv",
+    "rtl/irq_status.sv",
+    "rtl/dma_scratch_ui_live_20260519a.sv"
+  ],
+  "timestamp": "2026-05-18T20:10:46Z",
+  "returncode": 0,
+  "errors": 0,
+  "diagnostics": 0,
+  "style_violations": 6,
+  "style_violation_details": [
+    {
+      "file": "rtl/csr_registers.sv",
+      "line": 98,
+      "rule": "no_parameterized_part_select_in_procedural_block",
+      "message": "Move parameterized/constant part-selects out of always_* into continuous assign/helper wires.",
+      "text": "src_addr_q <= csr_wdata[ADDR_WIDTH-1:0];"
+    },
+    {
+      "file": "rtl/csr_registers.sv",
+      "line": 101,
+      "rule": "no_parameterized_part_select_in_procedural_block",
+      "message": "Move parameterized/constant part-selects out of always_* into continuous assign/helper wires.",
+      "text": "dst_addr_q <= csr_wdata[ADDR_WIDTH-1:0];"
+    },
+    {
+      "file": "rtl/csr_registers.sv",
+      "line": 104,
+      "rule": "no_parameterized_part_select_in_procedural_block",
+      "message": "Move parameterized/constant part-selects out of always_* into continuous assign/helper wires.",
+      "text": "length_q <= csr_wdata[LEN_WIDTH-1:0];"
+    },
+    {
+      "file": "rtl/csr_registers.sv",
+      "line": 121,
+      "rule": "no_parameterized_part_select_in_procedural_block",
+      "message": "Move parameterized/constant part-selects out of always_* into continuous assign/helper wires.",
+      "text": "csr_rdata[ADDR_WIDTH-1:0] = src_addr_q;"
+    },
+    {
+      "file": "rtl/csr_registers.sv",
+      "line": 123,
+      "rule": "no_parameterized_part_select_in_procedural_block",
+      "message": "Move parameterized/constant part-selects out of always_* into continuous assign/helper wires.",
+      "text": "csr_rdata[ADDR_WIDTH-1:0] = dst_addr_q;"
+    },
+    {
+      "file": "rtl/csr_registers.sv",
+      "line": 125,
+      "rule": "no_parameterized_part_select_in_procedural_block",
+      "message": "Move parameterized/constant part-selects out of always_* into continuous assign/helper wires.",
+      "text": "csr_rdata[LEN_WIDTH-1:0] = length_q;"
+    }
+  ],
+  "passed": false,
+  "policy": "returncode==0, no error/fatal/warning/sorry diagnostics, no procedural parameterized part-select style violations, and no generated-RTL policy violations: .sv filenames with SystemVerilog logic-port syntax, rtl/<ip>_param.vh for shared parameters, no package/import/interface/modport/function/task/for/while, and no typedef/enum/always_ff/always_comb"
+}

@@ -1,0 +1,16 @@
+{
+  "type": "dut_lint",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "verilator",
+  "command": "verilator --lint-only -Wall -Irtl -f list/dma_scratch_ui_live_20260519a.f --top-module dma_scratch_ui_live_20260519a",
+  "rtl_files": [
+    "rtl/csr_registers.sv",
+    "rtl/dma_engine.sv",
+    "rtl/irq_status.sv",
+    "rtl/dma_scratch_ui_live_20260519a.sv"
+  ],
+  "errors": 0,
+  "warnings": 0,
+  "passed": true
+}

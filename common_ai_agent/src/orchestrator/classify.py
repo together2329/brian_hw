@@ -30,6 +30,18 @@ _COMPILE_HINTS = ("syntax error", "error:", "compile", "elaboration", "undefined
 _LINT_HINTS = ("violation", "warning", "lint", "style")
 _TIMING_HOLD_HINTS = ("hold", "min delay", "th violation")
 _TIMING_SETUP_HINTS = ("setup", "wns", "tns", "max delay")
+_SSOT_GAP_HINTS = (
+    "ssot tbd",
+    "ssot gap",
+    "missing required",
+    "missing explicit",
+    "missing synthesis",
+    "synthesis technology",
+    "technology/corner/library",
+    "corner/library",
+    "library policy",
+    "quality_gates.eda",
+)
 
 
 def _text_has_any(text: str, hints) -> bool:
@@ -152,6 +164,13 @@ def classify_failure(
             "confidence": "medium",
         }
     if stage in ("syn",):
+        if _text_has_any(error_text, _SSOT_GAP_HINTS):
+            return {
+                "owner": "ssot_gap",
+                "next_workflow": "ssot-gen",
+                "reason": "synthesis preflight reported missing SSOT synthesis/EDA policy",
+                "confidence": "high",
+            }
         return {
             "owner": "rtl_bug",
             "next_workflow": "rtl-gen",

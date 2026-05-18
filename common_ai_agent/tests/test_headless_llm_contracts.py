@@ -108,6 +108,30 @@ def _run_ssot_to_rtl(root: Path, ip: str) -> subprocess.CompletedProcess[str]:
     )
 
 
+def test_repair_ssot_schema_backfills_synthesis_library_policy(tmp_path: Path):
+    ip = "dma_syn_policy"
+    root = tmp_path / "work"
+    doc = _base_ssot_doc(ip)
+    doc["synthesis"] = {
+        "dialect": "systemverilog_2012",
+        "top_module": ip,
+        "constraints": ["No inferred latches"],
+    }
+    _write_ssot_doc(root, ip, doc)
+
+    repaired = _run_repair_ssot(root, ip, ["--mode", "engineering"])
+
+    assert repaired.returncode == 0, repaired.stderr + repaired.stdout
+    out = yaml.safe_load((root / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    syn = out["synthesis"]
+    assert syn["target_technology"] == "sky130_fd_sc_hd"
+    assert syn["target_library"] == "sky130_fd_sc_hd"
+    assert syn["liberty_env_var"] == "SKY130_LIB"
+    assert syn["corner"]["name"] == "sky130_fd_sc_hd__ss_100C_1v40"
+    assert "SKY130_LIB" in syn["library_policy"]
+    assert "syn/out/synth.v" in syn["required_outputs"]
+
+
 def _run_derive_rtl_todos(root: Path, ip: str, *, audit_rtl: bool = False) -> subprocess.CompletedProcess[str]:
     script = Path(__file__).resolve().parents[1] / "workflow" / "rtl-gen" / "scripts" / "derive_rtl_todos.py"
     args = ["python3", str(script), ip, "--root", str(root)]

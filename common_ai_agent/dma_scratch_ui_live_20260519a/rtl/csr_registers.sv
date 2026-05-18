@@ -31,10 +31,137 @@ module csr_registers #(
     output logic                      illegal_access_pulse_o,
     output logic                      illegal_start_pulse_o
 );
-// TBD: local parameters
-// TBD: internal signals
-// TBD: reset / synchronizers
-// TBD: fsm
-// TBD: datapath
-// TBD: output assignments
+
+localparam [ADDR_WIDTH-1:0] CSR_CTRL_ADDR     = 32'd0;
+localparam [ADDR_WIDTH-1:0] CSR_STATUS_ADDR   = 32'd4;
+localparam [ADDR_WIDTH-1:0] CSR_SRC_ADDR_ADDR = 32'd8;
+localparam [ADDR_WIDTH-1:0] CSR_DST_ADDR_ADDR = 32'd12;
+localparam [ADDR_WIDTH-1:0] CSR_LENGTH_ADDR   = 32'd16;
+localparam [ADDR_WIDTH-1:0] CSR_PROGRESS_ADDR = 32'd20;
+
+logic [ADDR_WIDTH-1:0] src_addr_q;
+logic [ADDR_WIDTH-1:0] dst_addr_q;
+logic [LEN_WIDTH-1:0]  length_q;
+logic                  irq_done_en_q;
+logic                  irq_error_en_q;
+
+logic csr_hit_ctrl;
+logic csr_hit_status;
+logic csr_hit_src;
+logic csr_hit_dst;
+logic csr_hit_length;
+logic csr_hit_progress;
+logic csr_hit_any;
+logic csr_accept;
+logic start_req;
+logic soft_reset_req;
+logic illegal_addr;
+logic illegal_start;
+logic done_w1c_req;
+logic error_w1c_req;
+logic [DATA_WIDTH-1:0] status_word;
+logic [DATA_WIDTH-1:0] progress_word;
+logic [ADDR_WIDTH-1:0] csr_wdata_addr_slice;
+logic [LEN_WIDTH-1:0]  csr_wdata_len_slice;
+logic [DATA_WIDTH-1:0] src_addr_word;
+logic [DATA_WIDTH-1:0] dst_addr_word;
+logic [DATA_WIDTH-1:0] length_word;
+
+assign csr_hit_ctrl     = (csr_addr == CSR_CTRL_ADDR);
+assign csr_hit_status   = (csr_addr == CSR_STATUS_ADDR);
+assign csr_hit_src      = (csr_addr == CSR_SRC_ADDR_ADDR);
+assign csr_hit_dst      = (csr_addr == CSR_DST_ADDR_ADDR);
+assign csr_hit_length   = (csr_addr == CSR_LENGTH_ADDR);
+assign csr_hit_progress = (csr_addr == CSR_PROGRESS_ADDR);
+assign csr_hit_any      = csr_hit_ctrl | csr_hit_status | csr_hit_src | csr_hit_dst | csr_hit_length | csr_hit_progress;
+
+assign csr_ready = rst_n;
+assign csr_accept = csr_valid & csr_ready;
+
+assign start_req       = csr_accept & csr_write & csr_hit_ctrl & csr_wdata[0];
+assign soft_reset_req  = csr_accept & csr_write & csr_hit_ctrl & csr_wdata[3];
+assign done_w1c_req    = csr_accept & csr_write & csr_hit_status & csr_wdata[1];
+assign error_w1c_req   = csr_accept & csr_write & csr_hit_status & csr_wdata[2];
+assign illegal_addr    = csr_accept & (~csr_hit_any);
+assign illegal_start   = start_req & busy_i;
+
+assign status_word = {{(DATA_WIDTH-3){1'b0}}, error_i, done_i, busy_i};
+assign progress_word = {{(DATA_WIDTH-LEN_WIDTH){1'b0}}, progress_i};
+assign csr_wdata_addr_slice = csr_wdata[ADDR_WIDTH-1:0];
+assign csr_wdata_len_slice  = csr_wdata[LEN_WIDTH-1:0];
+assign src_addr_word = {{(DATA_WIDTH-ADDR_WIDTH){1'b0}}, src_addr_q};
+assign dst_addr_word = {{(DATA_WIDTH-ADDR_WIDTH){1'b0}}, dst_addr_q};
+assign length_word   = {{(DATA_WIDTH-LEN_WIDTH){1'b0}}, length_q};
+// No local FSM in CSR block; transfer control FSM lives in dma_engine per SSOT decomposition.
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        src_addr_q     <= {ADDR_WIDTH{1'b0}};
+        dst_addr_q     <= {ADDR_WIDTH{1'b0}};
+        length_q       <= {LEN_WIDTH{1'b0}};
+        irq_done_en_q  <= 1'b0;
+        irq_error_en_q <= 1'b0;
+    end else begin
+        // Config writes are accepted while idle; STATUS W1C is legal regardless of busy.
+        if (csr_accept && csr_write && !busy_i) begin
+            if (csr_hit_src) begin
+                src_addr_q <= csr_wdata_addr_slice;
+            end
+            if (csr_hit_dst) begin
+                dst_addr_q <= csr_wdata_addr_slice;
+            end
+            if (csr_hit_length) begin
+                length_q <= csr_wdata_len_slice;
+            end
+            if (csr_hit_ctrl) begin
+                irq_done_en_q  <= csr_wdata[1];
+                irq_error_en_q <= csr_wdata[2];
+            end
+        end
+    end
+end
+always @(*) begin
+    csr_rdata = {DATA_WIDTH{1'b0}};
+    if (csr_hit_ctrl) begin
+        csr_rdata[1] = irq_done_en_q;
+        csr_rdata[2] = irq_error_en_q;
+    end else if (csr_hit_status) begin
+        csr_rdata = status_word;
+    end else if (csr_hit_src) begin
+        csr_rdata = src_addr_word;
+    end else if (csr_hit_dst) begin
+        csr_rdata = dst_addr_word;
+    end else if (csr_hit_length) begin
+        csr_rdata = length_word;
+    end else if (csr_hit_progress) begin
+        csr_rdata = progress_word;
+    end else begin
+        csr_rdata = {DATA_WIDTH{1'b0}};
+    end
+end
+
+always @(*) begin
+    csr_error = 1'b0;
+    if (csr_accept) begin
+        if (illegal_addr) begin
+            csr_error = 1'b1;
+        end else if (illegal_start) begin
+            csr_error = 1'b1;
+        end else begin
+            csr_error = 1'b0;
+        end
+    end
+end
+
+assign start_pulse_o          = start_req & (~busy_i);
+assign soft_reset_pulse_o     = soft_reset_req;
+assign done_w1c_pulse_o       = done_w1c_req;
+assign error_w1c_pulse_o      = error_w1c_req;
+assign illegal_access_pulse_o = illegal_addr;
+assign illegal_start_pulse_o  = illegal_start;
+
+assign src_addr_o     = src_addr_q;
+assign dst_addr_o     = dst_addr_q;
+assign length_o       = length_q;
+assign irq_done_en_o  = irq_done_en_q;
+assign irq_error_en_o = irq_error_en_q;
 endmodule

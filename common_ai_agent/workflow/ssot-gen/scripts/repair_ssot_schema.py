@@ -2794,8 +2794,28 @@ def _ensure_synthesis(doc: dict[str, Any], ip: str) -> dict[str, Any]:
     syn = doc.get("synthesis") if isinstance(doc.get("synthesis"), dict) else {}
     syn["dialect"] = "systemverilog_2012"
     syn.setdefault("top_module", doc.get("top_module", {}).get("name", ip) if isinstance(doc.get("top_module"), dict) else ip)
+    syn.setdefault("tool_flow", "yosys")
+    syn.setdefault("target_technology", "sky130_fd_sc_hd")
+    syn.setdefault("target_library", "sky130_fd_sc_hd")
+    syn.setdefault("liberty_env_var", "SKY130_LIB")
+    corner = syn.get("corner") if isinstance(syn.get("corner"), dict) else {}
+    corner.setdefault("name", "sky130_fd_sc_hd__ss_100C_1v40")
+    corner.setdefault("process", "ss")
+    corner.setdefault("temperature_c", 100)
+    corner.setdefault("voltage_v", 1.40)
+    syn["corner"] = corner
+    syn.setdefault(
+        "library_policy",
+        (
+            "Use the SKY130_LIB environment variable to locate the SS corner "
+            "Liberty file for the declared sky130_fd_sc_hd target library; "
+            "synthesis and STA must stop if the file is unreadable or does not "
+            "match the declared corner."
+        ),
+    )
     syn.setdefault("constraints", ["No inferred latches", "No unresolved black boxes", "All sequential state reset or intentionally initialized"])
-    syn.setdefault("required_outputs", ["syn/out/area.rpt", "syn/out/timing_summary.rpt", "sta/out/wns.json"])
+    syn.setdefault("ppa_targets", {"area_um2_max": None, "power_mw_max": None, "frequency_mhz_min": _first_clock(doc)[1]})
+    syn.setdefault("required_outputs", ["syn/out/synth.v", "syn/out/area.json", "syn/out/syn.report.md", "sta/out/wns.json"])
     return syn
 
 

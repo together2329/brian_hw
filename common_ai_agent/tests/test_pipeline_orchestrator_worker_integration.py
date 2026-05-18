@@ -114,8 +114,27 @@ def _write_mock_stage_artifact(payload: dict) -> None:
     elif stage == "equivalence":
         write("verify/equivalence_goals.json", '{"status":"pass"}\n')
     elif stage == "rtl" or workflow == "rtl-gen":
-        write(f"rtl/{ip}.sv", f"module {ip}(input logic clk); endmodule\n")
-        write(f"list/{ip}.f", f"../rtl/{ip}.sv\n")
+        write(
+            f"rtl/{ip}.sv",
+            (
+                f"module {ip}(\n"
+                "    input logic clk,\n"
+                "    input logic rst_n,\n"
+                "    output logic done\n"
+                ");\n"
+                "    logic done_q;\n"
+                "    always @(posedge clk or negedge rst_n) begin\n"
+                "        if (!rst_n) begin\n"
+                "            done_q <= 1'b0;\n"
+                "        end else begin\n"
+                "            done_q <= 1'b1;\n"
+                "        end\n"
+                "    end\n"
+                "    assign done = done_q;\n"
+                "endmodule\n"
+            ),
+        )
+        write(f"list/{ip}.f", f"rtl/{ip}.sv\n")
     elif stage == "lint" or workflow == "lint":
         write("lint/dut_lint.json", '{"errors":0,"warnings":0,"pyslang":[],"verilator":[]}\n')
     elif stage == "tb" or workflow == "tb-gen":
@@ -527,7 +546,47 @@ def test_orchestrator_dispatch_workflow_tool_creates_pipeline_job(
         assert payload["pipeline_run_id"] == result["pipeline_id"]
         assert payload["user_id"] == "u"
         assert payload["model"] == "gpt-5.3-codex"
+        assert "run /ssot-rtl" in payload["task"]
         assert "owner=rtl_bug" in payload["task"]
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_orchestrator_custom_rtl_prompt_keeps_ssot_rtl_driver(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core import tools
+
+    ip = "tool_dispatch_rtl_prompt_ip"
+    (tmp_path / ip / "rtl").mkdir(parents=True)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("rtl") as (rtl_url, rtl_worker):
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_ACTIVE_SESSION", f"u/{ip}/orchestrator")
+        monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+        monkeypatch.setenv("WORKER_URL_RTL_GEN", rtl_url)
+
+        _make_client(tmp_path, monkeypatch)
+        raw = tools.dispatch_workflow(
+            workflow="rtl-gen",
+            ip=ip,
+            prompt="equivalence is done; generate dma rtl and continue",
+            reason="advance after equivalence",
+        )
+        result = json.loads(raw)
+
+        assert result["ok"] is True
+        payload = rtl_worker.requests[0]["payload"]
+        assert payload["task"].index("run /ssot-rtl") < payload["task"].index(
+            "equivalence is done"
+        )
+        assert "[Orchestrator worker instruction]" in payload["task"]
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
@@ -952,6 +1011,28 @@ def test_worker_completion_without_stage_evidence_is_not_marked_green(
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
+
+
+def test_rtl_stage_evidence_gate_rejects_placeholder_sources(tmp_path: Path) -> None:
+    import atlas_api_jobs as jobs
+
+    ip = "placeholder_rtl_ip"
+    ip_dir = tmp_path / ip
+    (ip_dir / "rtl").mkdir(parents=True)
+    (ip_dir / "list").mkdir(parents=True)
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(
+        f"module {ip}(input logic clk);\n// TBD: datapath\nendmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "workflow": "rtl-gen", "stage_id": "rtl"},
+        tmp_path,
+    )
+
+    assert failed is True
+    assert "placeholder RTL markers" in reason
 
 
 @_PHASE3_SKIP

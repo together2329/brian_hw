@@ -83,6 +83,19 @@ class TestStageRules:
         result = classify_failure("syn", error_text="cannot infer latch")
         assert result["next_workflow"] == "rtl-gen"
 
+    def test_syn_ssot_policy_gap_routes_to_ssot_gen(self):
+        result = classify_failure(
+            "syn",
+            error_text=(
+                "Synthesis worker status=error. [SSOT TBD REPORT] SSOT is "
+                "missing required explicit synthesis technology/corner/library "
+                "policy although SKY130_LIB and RTL filelist checks passed."
+            ),
+        )
+        assert result["owner"] == "ssot_gap"
+        assert result["next_workflow"] == "ssot-gen"
+        assert result["confidence"] == "high"
+
 
 class TestDefault:
     def test_unknown_stage_escalates(self):

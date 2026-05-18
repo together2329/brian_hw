@@ -1438,6 +1438,40 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
     return prompt_for.get(workflow, f"run {workflow}" + (f" on {ip}" if ip else ""))
 
 
+def _workflow_prompt_with_stage_driver(
+    *,
+    workflow: str,
+    ip: str,
+    stage_id: str,
+    prompt: str,
+) -> str:
+    """Preserve canonical slash-command stage drivers under custom prompts.
+
+    Orchestrator tool calls often include a natural-language prompt such as
+    "equivalence is done; generate RTL now".  Some workers, notably rtl-gen,
+    rely on the stage driver command (/ssot-rtl) to preload dynamic ledgers and
+    run disk gates.  Keep that driver in front of user/orchestrator intent.
+    """
+    default_prompt = _default_workflow_prompt(workflow, ip, stage_id)
+    custom_prompt = str(prompt or "").strip()
+    if not custom_prompt:
+        return default_prompt
+
+    driver_match = re.search(r"run\s+(/[A-Za-z0-9_\-]+)", default_prompt)
+    driver = driver_match.group(1) if driver_match else ""
+    if driver and driver in custom_prompt:
+        return custom_prompt
+
+    if workflow == "ssot-gen" and "[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]" in custom_prompt:
+        return custom_prompt
+
+    return (
+        default_prompt
+        + "\n\n[Orchestrator worker instruction]\n"
+        + custom_prompt
+    )
+
+
 def _default_todo_template_for_job(workflow: str, stage_id: str, ip: str) -> str:
     if not ip:
         return ""
@@ -1977,6 +2011,41 @@ def _job_artifact_failure(
             if failures > 0:
                 return True, f"{ip}/{results_xml.relative_to(ip_dir).as_posix()} failures={failures}"
             return False, ""
+    if stage == "rtl" or workflow == "rtl-gen":
+        rtl_dir = ip_dir / "rtl"
+        if rtl_dir.is_dir():
+            placeholder_hits: list[str] = []
+            for path in sorted(list(rtl_dir.glob("*.sv")) + list(rtl_dir.glob("*.v"))):
+                try:
+                    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                        if re.search(r"\b(TBD|TODO|PLACEHOLDER|stub)\b", line, flags=re.IGNORECASE):
+                            rel = path.relative_to(ip_dir).as_posix()
+                            placeholder_hits.append(f"{rel}:{line_no}")
+                            break
+                except Exception:
+                    rel = path.relative_to(ip_dir).as_posix()
+                    return True, f"unreadable RTL source: {ip}/{rel}"
+            if placeholder_hits:
+                return True, "placeholder RTL markers: " + ", ".join(placeholder_hits[:6])
+        checker = project_root / "workflow" / "rtl-gen" / "scripts" / "check_rtl_disk.sh"
+        if checker.is_file():
+            try:
+                proc = subprocess.run(
+                    ["bash", str(checker), ip],
+                    cwd=str(project_root),
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    timeout=45,
+                    check=False,
+                )
+            except Exception as exc:
+                return True, f"RTL validator failed to run: {type(exc).__name__}: {exc}"
+            if proc.returncode != 0:
+                detail = (proc.stdout or "").strip().splitlines()
+                tail = detail[-1] if detail else f"rc={proc.returncode}"
+                return True, f"RTL validator failed: {tail}"
+        return False, ""
     if stage == "syn" or workflow == "syn":
         reason = _synthesis_artifact_failure(ip_dir)
         if reason:
@@ -3394,13 +3463,12 @@ def register_jobs_routes(
         stage_job_ids: dict[str, str] = {}
         for idx, stage in enumerate(resolved):
             stage_workflow = stage["workflow"]
-            stage_prompt = prompt or _default_workflow_prompt(stage_workflow, ip_name, stage["id"])
-            if stage_workflow == "ssot-gen" and "[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]" not in stage_prompt:
-                stage_prompt = (
-                    _default_workflow_prompt(stage_workflow, ip_name, stage["id"])
-                    + "\n\n[Orchestrator worker instruction]\n"
-                    + stage_prompt
-                )
+            stage_prompt = _workflow_prompt_with_stage_driver(
+                workflow=stage_workflow,
+                ip=ip_name,
+                stage_id=stage["id"],
+                prompt=prompt_text,
+            )
             if chat_context:
                 stage_prompt += f"\n\n[Orchestrator chat context]\n{chat_context}"
             if prompt_text and prompt_text not in stage_prompt:
