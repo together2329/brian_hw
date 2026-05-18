@@ -6,10 +6,16 @@
   "planned_before_rtl": true,
   "level": "cl",
   "summary": {
-    "total_bins": 9,
+    "total_bins": 21,
     "by_class": {
       "protocol_handshake": 2,
-      "latency_bin": 7
+      "latency_bin": 7,
+      "pipeline_stage": 3,
+      "ordering": 4,
+      "backpressure": 1,
+      "frequency": 1,
+      "throughput": 1,
+      "performance": 2
     }
   },
   "bins": [
@@ -17,13 +23,13 @@
       "id": "cycle_handshake_0",
       "class": "protocol_handshake",
       "source": "cycle_model.handshake_rules[0]",
-      "description": "handshake_0"
+      "description": "req_valid payload remains stable until req_ready is sampled asserted on control_data."
     },
     {
       "id": "cycle_handshake_1",
       "class": "protocol_handshake",
       "source": "cycle_model.handshake_rules[1]",
-      "description": "handshake_1"
+      "description": "rsp_valid payload remains stable until rsp_ready is sampled asserted on control_data."
     },
     {
       "id": "latency_control_or_request_accept_at_min",
@@ -77,6 +83,78 @@
       "source": "cycle_model.latency.response_or_observable_result",
       "description": "response_or_observable_result latency unbounded (no max_cycles)",
       "bucket": "unbounded"
+    },
+    {
+      "id": "cycle_pipeline_s0_accept",
+      "class": "pipeline_stage",
+      "source": "cycle_model.pipeline[0]",
+      "description": "Accept legal request/command/packet/control work under declared handshake rules."
+    },
+    {
+      "id": "cycle_pipeline_s1_evaluate",
+      "class": "pipeline_stage",
+      "source": "cycle_model.pipeline[1]",
+      "description": "Evaluate function_model transaction and update only declared state."
+    },
+    {
+      "id": "cycle_pipeline_s2_observe",
+      "class": "pipeline_stage",
+      "source": "cycle_model.pipeline[2]",
+      "description": "Publish response/status/output/debug event and hold it stable until accepted."
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "source": "cycle_model.ordering[0]",
+      "description": "Accepted requests update architectural state only on clock edges."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "source": "cycle_model.ordering[1]",
+      "description": "Completion/status/interrupt updates occur after the operation reaches its terminal FSM state."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "source": "cycle_model.ordering[2]",
+      "description": "Backpressure stalls the active handshake stage without corrupting stored state."
+    },
+    {
+      "id": "cycle_ordering_3",
+      "class": "ordering",
+      "source": "cycle_model.ordering[3]",
+      "description": "Read/dataflow stages must precede dependent write/output stages where declared in dataflow."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "source": "cycle_model.backpressure[0]",
+      "description": "Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable."
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "source": "cycle_model.performance.frequency_mhz",
+      "description": "100"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "source": "cycle_model.performance.throughput",
+      "description": "{'sustained_beats_per_cycle': 1, 'condition': 'No backpressure on the active interface'}"
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "source": "cycle_model.performance.outstanding",
+      "description": "{'max': 1, 'description': 'Default one accepted operation until the SSOT declares deeper buffering'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "source": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 3, 'queue_depth': 1, 'description': 'Default accept/evaluate/observe cycle model depth'}"
     }
   ]
 }

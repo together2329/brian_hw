@@ -6,11 +6,11 @@
   "planned_before_rtl": true,
   "level": "fl",
   "summary": {
-    "total_bins": 24,
+    "total_bins": 23,
     "by_class": {
       "scenario": 9,
       "transaction_type": 4,
-      "state_transition": 10,
+      "state_transition": 9,
       "error": 1
     }
   },
@@ -133,33 +133,27 @@
       "description": "{'from': 'EXEC_FEATURE_3', 'to': 'EXEC_FEATURE_4', 'when': 'The current SSOT-owned behavior slice completes'}"
     },
     {
-      "id": "fsm_control_exec_feature_4_to_exec_feature_5_5",
+      "id": "fsm_control_exec_feature_4_to_complete_5",
       "class": "state_transition",
       "source": "fsm.control.transitions[5]",
-      "description": "{'from': 'EXEC_FEATURE_4', 'to': 'EXEC_FEATURE_5', 'when': 'The current SSOT-owned behavior slice completes'}"
+      "description": "{'from': 'EXEC_FEATURE_4', 'to': 'COMPLETE', 'when': 'The current SSOT-owned behavior slice completes'}"
     },
     {
-      "id": "fsm_control_exec_feature_5_to_complete_6",
+      "id": "fsm_control_complete_to_idle_6",
       "class": "state_transition",
       "source": "fsm.control.transitions[6]",
-      "description": "{'from': 'EXEC_FEATURE_5', 'to': 'COMPLETE', 'when': 'The current SSOT-owned behavior slice completes'}"
-    },
-    {
-      "id": "fsm_control_complete_to_idle_7",
-      "class": "state_transition",
-      "source": "fsm.control.transitions[7]",
       "description": "{'from': 'COMPLETE', 'to': 'IDLE', 'when': 'Observable result/status handoff completes'}"
     },
     {
-      "id": "fsm_control_from_to_error_8",
+      "id": "fsm_control_from_to_error_7",
       "class": "state_transition",
-      "source": "fsm.control.transitions[8]",
+      "source": "fsm.control.transitions[7]",
       "description": "{'from': '*', 'to': 'ERROR', 'when': 'error_handling.error_sources condition is detected'}"
     },
     {
-      "id": "fsm_control_error_to_idle_9",
+      "id": "fsm_control_error_to_idle_8",
       "class": "state_transition",
-      "source": "fsm.control.transitions[9]",
+      "source": "fsm.control.transitions[8]",
       "description": "{'from': 'ERROR', 'to': 'IDLE', 'when': 'Reset or approved recovery action clears the error'}"
     },
     {
