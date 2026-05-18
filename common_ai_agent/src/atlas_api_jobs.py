@@ -3564,6 +3564,13 @@ def register_jobs_routes(
             _public_job(j) for j in ip_jobs
             if j.get("status") in {"pending", "running"}
         ]
+        passed_ids = [sid for sid, data in stages_out.items() if data.get("state") == "passed"]
+        running_ids = [
+            sid for sid, data in stages_out.items()
+            if data.get("state") in {"pending", "running"}
+        ]
+        ready_ids = [sid for sid, data in stages_out.items() if data.get("state") == "ready"]
+        locked_ids = [sid for sid, data in stages_out.items() if data.get("state") == "locked"]
         return {
             "ok": True,
             "source": "read_pipeline_state_tool",
@@ -3572,6 +3579,11 @@ def register_jobs_routes(
             "run_mode": _current_run_mode(),
             "exec_mode": _current_exec_mode(),
             "active_jobs": active_jobs if include_jobs else [],
+            "passed": passed_ids,
+            "failed": failed,
+            "running": running_ids,
+            "ready": ready_ids,
+            "locked": locked_ids,
             "status_counts": _summarize_worker_progress(ip_jobs).get("status_counts", {}),
             "stages": stages_out,
         }

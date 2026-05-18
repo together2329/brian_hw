@@ -268,8 +268,8 @@
     }
   },
   "summary": {
-    "total": 63,
-    "required": 63,
+    "total": 64,
+    "required": 64,
     "optional": 0,
     "blocked": 0,
     "unverified": 0,
@@ -1136,36 +1136,99 @@
         "dma_scratch_ui_live_20260519a_security_model"
       ],
       "coverage_refs": [
-        "SC02_executed"
+        "SC02_executed",
+        "function_csr_write_config",
+        "function_csr_read_status",
+        "cycle_latency_csr_access"
       ],
       "stimulus_contract": {
-        "transaction_type": "memory_read_request",
+        "transaction_type": "csr_write_config",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
+        "transaction_sequence": [
+          {
+            "transaction_type": "csr_write_config",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CSR_WRITE_CONFIG",
+            "ssot_refs": [
+              "function_model.transactions[1]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction csr_write_config matches FunctionalModel"
+          },
+          {
+            "transaction_type": "csr_read_status",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CSR_READ_STATUS",
+            "ssot_refs": [
+              "function_model.transactions[3]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction csr_read_status matches FunctionalModel"
+          }
+        ],
         "constraints": [
           "Write SRC_ADDR, DST_ADDR, LENGTH, CTRL interrupt enables, then read all defined registers.",
-          "DMA is busy, remaining_bytes is nonzero, and no write buffer is pending."
+          "A legal CSR write to CTRL, SRC_ADDR, DST_ADDR, LENGTH, or STATUS is accepted while idle or clearing status.",
+          "A CSR read is accepted for a defined CSR offset."
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
+        "model_api_contract": "Scoreboard must call FunctionalModel.apply once per transaction_sequence entry with the same sampled RTL transaction intent; scenario pass is the ordered composition of those FL results plus the SSOT scenario expected text.",
+        "functional_model_transactions": [
+          {
+            "transaction_type": "csr_write_config",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CSR_WRITE_CONFIG",
+            "ssot_refs": [
+              "function_model.transactions[1]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction csr_write_config matches FunctionalModel"
+          },
+          {
+            "transaction_type": "csr_read_status",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CSR_READ_STATUS",
+            "ssot_refs": [
+              "function_model.transactions[3]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction csr_read_status matches FunctionalModel"
+          }
+        ],
         "observables": [
           "Legal reads return programmed values and status fields; csr_error remains low.",
-          "Read request valid and address point to the next source beat.",
-          "{'name': 'mem_rd_valid_rule', 'port': 'mem_rd_valid', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'mem_rd_addr_rule', 'port': 'mem_rd_addr', 'expr': 'src_addr + progress_bytes', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'mem_rd_data_ready_rule', 'port': 'mem_rd_data_ready', 'expr': 'write_buffer_ready', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'state': 'fsm_state', 'expr': '2 if mem_rd_data_valid and mem_rd_data_ready else fsm_state', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
-          "mem_rd_valid_rule",
-          "mem_rd_addr_rule",
-          "mem_rd_data_ready_rule"
+          "csr_error remains low for legal writable addresses.",
+          "{'name': 'csr_ready_idle_write', 'port': 'csr_ready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'csr_error_legal_write', 'port': 'csr_error', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'src_addr', 'expr': 'csr_wdata if csr_addr == 8 else src_addr', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'dst_addr', 'expr': 'csr_wdata if csr_addr == 12 else dst_addr', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'length_bytes', 'expr': 'csr_wdata if csr_addr == 16 else length_bytes', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_done_en', 'expr': '((csr_wdata >> 1) & 1) if csr_addr == 0 else irq_done_en', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_error_en', 'expr': '((csr_wdata >> 2) & 1) if csr_addr == 0 else irq_error_en', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'done', 'expr': '0 if (csr_addr == 4 and ((csr_wdata >> 1) & 1) != 0) else done', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'error', 'expr': '0 if (csr_addr == 4 and ((csr_wdata >> 2) & 1) != 0) else error', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "csr_ready_idle_write",
+          "csr_error_legal_write",
+          "csr_rdata returns selected register image and csr_error is 0 for legal offsets.",
+          "{'name': 'csr_ready_read', 'port': 'csr_ready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'csr_rdata_status', 'port': 'csr_rdata', 'expr': 'status_word if csr_addr == 4 else progress_word', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'csr_error_read', 'port': 'csr_error', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "csr_ready_read",
+          "csr_rdata_status",
+          "csr_error_read"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [
-          "If accepted, the engine waits for matching read data before writing.",
-          "fsm_state"
+          "Writable register fields update or sticky STATUS bits clear according to field write_effect definitions.",
+          "src_addr",
+          "dst_addr",
+          "length_bytes",
+          "irq_done_en",
+          "irq_error_en",
+          "done",
+          "error",
+          "CSR reads do not change architectural state."
         ],
         "error_policy": ""
       },
@@ -1188,7 +1251,12 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false
+      "unverified": false,
+      "semantic_repair": {
+        "reason": "Repaired from incorrect memory_read_request mapping. SC02 is a CSR programming/readback sequence: FM_CSR_WRITE_CONFIG followed by FM_CSR_READ_STATUS.",
+        "authority": "SSOT function_model.transactions and test_requirements.scenarios",
+        "oracle": "FunctionalModel.apply"
+      }
     },
     {
       "goal_id": "EQ_SCENARIO_SC03",
@@ -1213,35 +1281,63 @@
         "dma_scratch_ui_live_20260519a_security_model"
       ],
       "coverage_refs": [
-        "SC03_executed"
+        "SC03_executed",
+        "fcov_error",
+        "function_illegal_csr_or_start",
+        "error_error_0",
+        "error_error_1",
+        "fsm_control_idle_to_error_2"
       ],
       "stimulus_contract": {
-        "transaction_type": "memory_read_request",
+        "transaction_type": "illegal_csr_or_start",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
+        "transaction_sequence": [
+          {
+            "transaction_type": "illegal_csr_or_start",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_ILLEGAL_CSR_OR_START",
+            "ssot_refs": [
+              "function_model.transactions[9]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction illegal_csr_or_start matches FunctionalModel"
+          }
+        ],
         "constraints": [
           "Read and write unmapped CSR offsets, and attempt CTRL.start while busy.",
-          "DMA is busy, remaining_bytes is nonzero, and no write buffer is pending."
+          "An unmapped CSR access or start-while-busy command is accepted."
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
+        "model_api_contract": "Scoreboard must call FunctionalModel.apply once per transaction_sequence entry with the same sampled RTL transaction intent; scenario pass is the ordered composition of those FL results plus the SSOT scenario expected text.",
+        "functional_model_transactions": [
+          {
+            "transaction_type": "illegal_csr_or_start",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_ILLEGAL_CSR_OR_START",
+            "ssot_refs": [
+              "function_model.transactions[9]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction illegal_csr_or_start matches FunctionalModel"
+          }
+        ],
         "observables": [
           "csr_error pulses, STATUS.error sets, irq_error follows enable, and unrelated configuration is preserved.",
-          "Read request valid and address point to the next source beat.",
-          "{'name': 'mem_rd_valid_rule', 'port': 'mem_rd_valid', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'mem_rd_addr_rule', 'port': 'mem_rd_addr', 'expr': 'src_addr + progress_bytes', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'mem_rd_data_ready_rule', 'port': 'mem_rd_data_ready', 'expr': 'write_buffer_ready', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'state': 'fsm_state', 'expr': '2 if mem_rd_data_valid and mem_rd_data_ready else fsm_state', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
-          "mem_rd_valid_rule",
-          "mem_rd_addr_rule",
-          "mem_rd_data_ready_rule"
+          "csr_error and optionally irq_error report the illegal operation.",
+          "{'name': 'csr_error_illegal', 'port': 'csr_error', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'irq_error_illegal', 'port': 'irq_error', 'expr': 'irq_error_en', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'error', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '4 if (csr_write and csr_addr == 0 and ((csr_wdata & 1) != 0) and busy) else fsm_state', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "csr_error_illegal",
+          "irq_error_illegal"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [
-          "If accepted, the engine waits for matching read data before writing.",
+          "Sticky error is set without corrupting source/destination/length configuration.",
+          "error",
           "fsm_state"
         ],
         "error_policy": ""
@@ -1265,7 +1361,12 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false
+      "unverified": false,
+      "semantic_repair": {
+        "reason": "Repaired from incorrect memory_read_request mapping. SC03 is the negative CSR/start error sequence represented by FM_ILLEGAL_CSR_OR_START.",
+        "authority": "SSOT function_model.transactions and test_requirements.scenarios",
+        "oracle": "FunctionalModel.apply"
+      }
     },
     {
       "goal_id": "EQ_SCENARIO_SC04",
@@ -1461,26 +1562,191 @@
         "dma_scratch_ui_live_20260519a_security_model"
       ],
       "coverage_refs": [
-        "SC06_executed"
+        "SC06_executed",
+        "function_start_transfer",
+        "function_memory_read_request",
+        "function_capture_read_data",
+        "function_memory_write_request",
+        "function_memory_write_accept",
+        "cycle_pipeline_read_addr",
+        "cycle_pipeline_write_beat"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC06",
+        "transaction_type": "memory_write_accept",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
+        "transaction_sequence": [
+          {
+            "transaction_type": "start_transfer",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_START_TRANSFER",
+            "ssot_refs": [
+              "function_model.transactions[2]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction start_transfer matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_read_request",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_READ_REQUEST",
+            "ssot_refs": [
+              "function_model.transactions[4]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_read_request matches FunctionalModel"
+          },
+          {
+            "transaction_type": "capture_read_data",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CAPTURE_READ_DATA",
+            "ssot_refs": [
+              "function_model.transactions[5]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction capture_read_data matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_write_request",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_WRITE_REQUEST",
+            "ssot_refs": [
+              "function_model.transactions[6]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_write_request matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_write_accept",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_WRITE_ACCEPT",
+            "ssot_refs": [
+              "function_model.transactions[7]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_write_accept matches FunctionalModel"
+          }
+        ],
         "constraints": [
-          "Program a length of at least three beats with deterministic read data and ready memory."
+          "Program a length of at least three beats with deterministic read data and ready memory.",
+          "CTRL.start write is accepted while busy is 0.",
+          "DMA is busy, remaining_bytes is nonzero, and no write buffer is pending.",
+          "A read data beat is accepted while a transfer is active.",
+          "Read data buffer holds an unwritten beat.",
+          "Destination memory accepts the current write beat."
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
+        "model_api_contract": "Scoreboard must call FunctionalModel.apply once per transaction_sequence entry with the same sampled RTL transaction intent; scenario pass is the ordered composition of those FL results plus the SSOT scenario expected text.",
+        "functional_model_transactions": [
+          {
+            "transaction_type": "start_transfer",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_START_TRANSFER",
+            "ssot_refs": [
+              "function_model.transactions[2]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction start_transfer matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_read_request",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_READ_REQUEST",
+            "ssot_refs": [
+              "function_model.transactions[4]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_read_request matches FunctionalModel"
+          },
+          {
+            "transaction_type": "capture_read_data",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CAPTURE_READ_DATA",
+            "ssot_refs": [
+              "function_model.transactions[5]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction capture_read_data matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_write_request",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_WRITE_REQUEST",
+            "ssot_refs": [
+              "function_model.transactions[6]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_write_request matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_write_accept",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_WRITE_ACCEPT",
+            "ssot_refs": [
+              "function_model.transactions[7]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_write_accept matches FunctionalModel"
+          }
+        ],
         "observables": [
           "Read and write addresses increment by beat_bytes, write data matches read sequence, and done occurs after final beat.",
-          "Scenario expected result from SSOT"
+          "No memory request is generated for zero length; nonzero length transitions to read request flow.",
+          "{'name': 'mem_rd_valid_start', 'port': 'mem_rd_valid', 'expr': '1 if length_bytes != 0 else 0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'irq_done_zero_length', 'port': 'irq_done', 'expr': 'irq_done_en if length_bytes == 0 else 0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1 if length_bytes != 0 else 0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'done', 'expr': '1 if length_bytes == 0 else 0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'error', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'remaining_bytes', 'expr': 'length_bytes', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'progress_bytes', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '1 if length_bytes != 0 else 3', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "mem_rd_valid_start",
+          "irq_done_zero_length",
+          "Read request valid and address point to the next source beat.",
+          "{'name': 'mem_rd_valid_rule', 'port': 'mem_rd_valid', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_rd_addr_rule', 'port': 'mem_rd_addr', 'expr': 'src_addr + progress_bytes', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_rd_data_ready_rule', 'port': 'mem_rd_data_ready', 'expr': 'write_buffer_ready', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '2 if mem_rd_data_valid and mem_rd_data_ready else fsm_state', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "mem_rd_valid_rule",
+          "mem_rd_addr_rule",
+          "mem_rd_data_ready_rule",
+          "The write request path can present the captured data on mem_wr_data.",
+          "{'name': 'mem_rd_data_ready_capture', 'port': 'mem_rd_data_ready', 'expr': 'write_buffer_ready', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'read_data_buffer', 'expr': 'mem_rd_data', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'write_buffer_full', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '2', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "mem_rd_data_ready_capture",
+          "Write request valid, address, data, and byte strobes describe the next destination beat.",
+          "{'name': 'mem_wr_valid_rule', 'port': 'mem_wr_valid', 'expr': 'write_buffer_full', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_wr_addr_rule', 'port': 'mem_wr_addr', 'expr': 'dst_addr + progress_bytes', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_wr_data_rule', 'port': 'mem_wr_data', 'expr': 'read_data_buffer', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_wr_strb_rule', 'port': 'mem_wr_strb', 'expr': 'write_strobe', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "mem_wr_valid_rule",
+          "mem_wr_addr_rule",
+          "mem_wr_data_rule",
+          "mem_wr_strb_rule",
+          "Completion status and irq_done are asserted when the accepted write is the final beat.",
+          "{'name': 'irq_done_on_final_write', 'port': 'irq_done', 'expr': 'irq_done_en and (remaining_bytes <= beat_bytes)', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_wr_valid_after_accept', 'port': 'mem_wr_valid', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'remaining_bytes', 'expr': 'remaining_bytes - transfer_bytes', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'progress_bytes', 'expr': 'progress_bytes + transfer_bytes', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'write_buffer_full', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '0 if remaining_bytes <= beat_bytes else 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'done', 'expr': '1 if remaining_bytes <= beat_bytes else done', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '3 if remaining_bytes <= beat_bytes else 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "irq_done_on_final_write",
+          "mem_wr_valid_after_accept"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "busy, done, remaining_bytes, progress_bytes, and fsm_state update for a new transfer.",
+          "busy",
+          "done",
+          "error",
+          "remaining_bytes",
+          "progress_bytes",
+          "fsm_state",
+          "If accepted, the engine waits for matching read data before writing.",
+          "read_data_buffer captures mem_rd_data and write_buffer_full becomes 1.",
+          "read_data_buffer",
+          "write_buffer_full",
+          "State advances only when mem_wr_ready accepts the write beat.",
+          "remaining_bytes decrements, progress_bytes increments, buffer clears, and the FSM either completes or returns to READ_REQ."
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -1502,7 +1768,12 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false
+      "unverified": false,
+      "semantic_repair": {
+        "reason": "Repaired generic SC06 transaction label into an ordered multi-beat FunctionalModel.apply sequence.",
+        "authority": "SSOT function_model.transactions and test_requirements.scenarios",
+        "oracle": "FunctionalModel.apply"
+      }
     },
     {
       "goal_id": "EQ_SCENARIO_SC07",
@@ -1527,26 +1798,187 @@
         "dma_scratch_ui_live_20260519a_security_model"
       ],
       "coverage_refs": [
-        "SC07_executed"
+        "SC07_executed",
+        "fcov_strobe",
+        "function_memory_write_request",
+        "function_memory_write_accept"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC07",
+        "transaction_type": "memory_write_request",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
+        "transaction_sequence": [
+          {
+            "transaction_type": "start_transfer",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_START_TRANSFER",
+            "ssot_refs": [
+              "function_model.transactions[2]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction start_transfer matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_read_request",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_READ_REQUEST",
+            "ssot_refs": [
+              "function_model.transactions[4]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_read_request matches FunctionalModel"
+          },
+          {
+            "transaction_type": "capture_read_data",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CAPTURE_READ_DATA",
+            "ssot_refs": [
+              "function_model.transactions[5]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction capture_read_data matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_write_request",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_WRITE_REQUEST",
+            "ssot_refs": [
+              "function_model.transactions[6]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_write_request matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_write_accept",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_WRITE_ACCEPT",
+            "ssot_refs": [
+              "function_model.transactions[7]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_write_accept matches FunctionalModel"
+          }
+        ],
         "constraints": [
-          "Program a length that is not a multiple of DATA_WIDTH/8."
+          "Program a length that is not a multiple of DATA_WIDTH/8.",
+          "CTRL.start write is accepted while busy is 0.",
+          "DMA is busy, remaining_bytes is nonzero, and no write buffer is pending.",
+          "A read data beat is accepted while a transfer is active.",
+          "Read data buffer holds an unwritten beat.",
+          "Destination memory accepts the current write beat."
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
+        "model_api_contract": "Scoreboard must call FunctionalModel.apply once per transaction_sequence entry with the same sampled RTL transaction intent; scenario pass is the ordered composition of those FL results plus the SSOT scenario expected text.",
+        "functional_model_transactions": [
+          {
+            "transaction_type": "start_transfer",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_START_TRANSFER",
+            "ssot_refs": [
+              "function_model.transactions[2]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction start_transfer matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_read_request",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_READ_REQUEST",
+            "ssot_refs": [
+              "function_model.transactions[4]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_read_request matches FunctionalModel"
+          },
+          {
+            "transaction_type": "capture_read_data",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CAPTURE_READ_DATA",
+            "ssot_refs": [
+              "function_model.transactions[5]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction capture_read_data matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_write_request",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_WRITE_REQUEST",
+            "ssot_refs": [
+              "function_model.transactions[6]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_write_request matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_write_accept",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_WRITE_ACCEPT",
+            "ssot_refs": [
+              "function_model.transactions[7]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_write_accept matches FunctionalModel"
+          }
+        ],
         "observables": [
           "All full beats use all byte strobes and final beat uses write_strobe derived from remaining_bytes.",
-          "Scenario expected result from SSOT"
+          "No memory request is generated for zero length; nonzero length transitions to read request flow.",
+          "{'name': 'mem_rd_valid_start', 'port': 'mem_rd_valid', 'expr': '1 if length_bytes != 0 else 0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'irq_done_zero_length', 'port': 'irq_done', 'expr': 'irq_done_en if length_bytes == 0 else 0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1 if length_bytes != 0 else 0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'done', 'expr': '1 if length_bytes == 0 else 0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'error', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'remaining_bytes', 'expr': 'length_bytes', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'progress_bytes', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '1 if length_bytes != 0 else 3', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "mem_rd_valid_start",
+          "irq_done_zero_length",
+          "Read request valid and address point to the next source beat.",
+          "{'name': 'mem_rd_valid_rule', 'port': 'mem_rd_valid', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_rd_addr_rule', 'port': 'mem_rd_addr', 'expr': 'src_addr + progress_bytes', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_rd_data_ready_rule', 'port': 'mem_rd_data_ready', 'expr': 'write_buffer_ready', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '2 if mem_rd_data_valid and mem_rd_data_ready else fsm_state', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "mem_rd_valid_rule",
+          "mem_rd_addr_rule",
+          "mem_rd_data_ready_rule",
+          "The write request path can present the captured data on mem_wr_data.",
+          "{'name': 'mem_rd_data_ready_capture', 'port': 'mem_rd_data_ready', 'expr': 'write_buffer_ready', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'read_data_buffer', 'expr': 'mem_rd_data', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'write_buffer_full', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '2', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "mem_rd_data_ready_capture",
+          "Write request valid, address, data, and byte strobes describe the next destination beat.",
+          "{'name': 'mem_wr_valid_rule', 'port': 'mem_wr_valid', 'expr': 'write_buffer_full', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_wr_addr_rule', 'port': 'mem_wr_addr', 'expr': 'dst_addr + progress_bytes', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_wr_data_rule', 'port': 'mem_wr_data', 'expr': 'read_data_buffer', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_wr_strb_rule', 'port': 'mem_wr_strb', 'expr': 'write_strobe', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "mem_wr_valid_rule",
+          "mem_wr_addr_rule",
+          "mem_wr_data_rule",
+          "mem_wr_strb_rule",
+          "Completion status and irq_done are asserted when the accepted write is the final beat.",
+          "{'name': 'irq_done_on_final_write', 'port': 'irq_done', 'expr': 'irq_done_en and (remaining_bytes <= beat_bytes)', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_wr_valid_after_accept', 'port': 'mem_wr_valid', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'remaining_bytes', 'expr': 'remaining_bytes - transfer_bytes', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'progress_bytes', 'expr': 'progress_bytes + transfer_bytes', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'write_buffer_full', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '0 if remaining_bytes <= beat_bytes else 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'done', 'expr': '1 if remaining_bytes <= beat_bytes else done', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '3 if remaining_bytes <= beat_bytes else 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "irq_done_on_final_write",
+          "mem_wr_valid_after_accept"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "busy, done, remaining_bytes, progress_bytes, and fsm_state update for a new transfer.",
+          "busy",
+          "done",
+          "error",
+          "remaining_bytes",
+          "progress_bytes",
+          "fsm_state",
+          "If accepted, the engine waits for matching read data before writing.",
+          "read_data_buffer captures mem_rd_data and write_buffer_full becomes 1.",
+          "read_data_buffer",
+          "write_buffer_full",
+          "State advances only when mem_wr_ready accepts the write beat.",
+          "remaining_bytes decrements, progress_bytes increments, buffer clears, and the FSM either completes or returns to READ_REQ."
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -1568,7 +2000,12 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false
+      "unverified": false,
+      "semantic_repair": {
+        "reason": "Repaired generic SC07 transaction label into the write-strobe FunctionalModel.apply sequence.",
+        "authority": "SSOT function_model.transactions and test_requirements.scenarios",
+        "oracle": "FunctionalModel.apply"
+      }
     },
     {
       "goal_id": "EQ_SCENARIO_SC08",
@@ -1593,26 +2030,130 @@
         "dma_scratch_ui_live_20260519a_security_model"
       ],
       "coverage_refs": [
-        "SC08_executed"
+        "SC08_executed",
+        "function_memory_read_request",
+        "function_capture_read_data",
+        "ccov_backpressure",
+        "cycle_backpressure_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC08",
+        "transaction_type": "memory_read_request",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
+        "transaction_sequence": [
+          {
+            "transaction_type": "start_transfer",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_START_TRANSFER",
+            "ssot_refs": [
+              "function_model.transactions[2]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction start_transfer matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_read_request",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_READ_REQUEST",
+            "ssot_refs": [
+              "function_model.transactions[4]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_read_request matches FunctionalModel"
+          },
+          {
+            "transaction_type": "capture_read_data",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CAPTURE_READ_DATA",
+            "ssot_refs": [
+              "function_model.transactions[5]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction capture_read_data matches FunctionalModel"
+          }
+        ],
         "constraints": [
-          "Randomly deassert mem_rd_ready and mem_rd_data_valid during transfer."
+          "Randomly deassert mem_rd_ready and mem_rd_data_valid during transfer.",
+          "CTRL.start write is accepted while busy is 0.",
+          "DMA is busy, remaining_bytes is nonzero, and no write buffer is pending.",
+          "A read data beat is accepted while a transfer is active."
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
+        "model_api_contract": "Scoreboard must call FunctionalModel.apply once per transaction_sequence entry with the same sampled RTL transaction intent; scenario pass is the ordered composition of those FL results plus the SSOT scenario expected text.",
+        "functional_model_transactions": [
+          {
+            "transaction_type": "start_transfer",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_START_TRANSFER",
+            "ssot_refs": [
+              "function_model.transactions[2]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction start_transfer matches FunctionalModel"
+          },
+          {
+            "transaction_type": "memory_read_request",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_READ_REQUEST",
+            "ssot_refs": [
+              "function_model.transactions[4]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_read_request matches FunctionalModel"
+          },
+          {
+            "transaction_type": "capture_read_data",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CAPTURE_READ_DATA",
+            "ssot_refs": [
+              "function_model.transactions[5]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction capture_read_data matches FunctionalModel"
+          }
+        ],
         "observables": [
           "Read address and ready protocol remain stable; no duplicated or lost beats.",
-          "Scenario expected result from SSOT"
+          "No memory request is generated for zero length; nonzero length transitions to read request flow.",
+          "{'name': 'mem_rd_valid_start', 'port': 'mem_rd_valid', 'expr': '1 if length_bytes != 0 else 0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'irq_done_zero_length', 'port': 'irq_done', 'expr': 'irq_done_en if length_bytes == 0 else 0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1 if length_bytes != 0 else 0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'done', 'expr': '1 if length_bytes == 0 else 0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'error', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'remaining_bytes', 'expr': 'length_bytes', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'progress_bytes', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '1 if length_bytes != 0 else 3', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "mem_rd_valid_start",
+          "irq_done_zero_length",
+          "Read request valid and address point to the next source beat.",
+          "{'name': 'mem_rd_valid_rule', 'port': 'mem_rd_valid', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_rd_addr_rule', 'port': 'mem_rd_addr', 'expr': 'src_addr + progress_bytes', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_rd_data_ready_rule', 'port': 'mem_rd_data_ready', 'expr': 'write_buffer_ready', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '2 if mem_rd_data_valid and mem_rd_data_ready else fsm_state', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "mem_rd_valid_rule",
+          "mem_rd_addr_rule",
+          "mem_rd_data_ready_rule",
+          "The write request path can present the captured data on mem_wr_data.",
+          "{'name': 'mem_rd_data_ready_capture', 'port': 'mem_rd_data_ready', 'expr': 'write_buffer_ready', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'read_data_buffer', 'expr': 'mem_rd_data', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'write_buffer_full', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '2', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "mem_rd_data_ready_capture"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "busy, done, remaining_bytes, progress_bytes, and fsm_state update for a new transfer.",
+          "busy",
+          "done",
+          "error",
+          "remaining_bytes",
+          "progress_bytes",
+          "fsm_state",
+          "If accepted, the engine waits for matching read data before writing.",
+          "read_data_buffer captures mem_rd_data and write_buffer_full becomes 1.",
+          "read_data_buffer",
+          "write_buffer_full"
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -1634,7 +2175,12 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false
+      "unverified": false,
+      "semantic_repair": {
+        "reason": "Repaired generic SC08 transaction label into read request/capture FunctionalModel.apply sequence under cycle_model backpressure.",
+        "authority": "SSOT function_model.transactions and test_requirements.scenarios",
+        "oracle": "FunctionalModel.apply"
+      }
     },
     {
       "goal_id": "EQ_SCENARIO_SC09",
@@ -1736,51 +2282,100 @@
         "dma_scratch_ui_live_20260519a_security_model"
       ],
       "coverage_refs": [
-        "SC10_executed"
+        "SC10_executed",
+        "function_clear_or_abort",
+        "fsm_control_read_req_wait_rdata_write_req_to_idle_7",
+        "cycle_backpressure_0"
       ],
       "stimulus_contract": {
-        "transaction_type": "reset",
+        "transaction_type": "clear_or_abort",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
+        "transaction_sequence": [
+          {
+            "transaction_type": "start_transfer",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_START_TRANSFER",
+            "ssot_refs": [
+              "function_model.transactions[2]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction start_transfer matches FunctionalModel"
+          },
+          {
+            "transaction_type": "clear_or_abort",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CLEAR_ABORT",
+            "ssot_refs": [
+              "function_model.transactions[8]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction clear_or_abort matches FunctionalModel"
+          }
+        ],
         "constraints": [
           "Start a multi-beat transfer and write CTRL.soft_reset while read or write backpressure is active.",
-          "Reset is asserted low."
+          "CTRL.start write is accepted while busy is 0.",
+          "STATUS W1C clear or CTRL.soft_reset write is accepted."
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
+        "model_api_contract": "Scoreboard must call FunctionalModel.apply once per transaction_sequence entry with the same sampled RTL transaction intent; scenario pass is the ordered composition of those FL results plus the SSOT scenario expected text.",
+        "functional_model_transactions": [
+          {
+            "transaction_type": "start_transfer",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_START_TRANSFER",
+            "ssot_refs": [
+              "function_model.transactions[2]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction start_transfer matches FunctionalModel"
+          },
+          {
+            "transaction_type": "clear_or_abort",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CLEAR_ABORT",
+            "ssot_refs": [
+              "function_model.transactions[8]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction clear_or_abort matches FunctionalModel"
+          }
+        ],
         "observables": [
           "busy, done, error, progress, buffer state, and memory valids clear; no new memory request is issued until a new start.",
-          "All valid outputs and interrupts are deasserted; CSR ready is low during reset.",
-          "{'name': 'csr_ready_reset', 'port': 'csr_ready', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'mem_rd_valid_reset', 'port': 'mem_rd_valid', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'mem_wr_valid_reset', 'port': 'mem_wr_valid', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'irq_done_reset', 'port': 'irq_done', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'name': 'irq_error_reset', 'port': 'irq_error', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
-          "{'state': 'fsm_state', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
-          "{'state': 'busy', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
-          "{'state': 'done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "No memory request is generated for zero length; nonzero length transitions to read request flow.",
+          "{'name': 'mem_rd_valid_start', 'port': 'mem_rd_valid', 'expr': '1 if length_bytes != 0 else 0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'irq_done_zero_length', 'port': 'irq_done', 'expr': 'irq_done_en if length_bytes == 0 else 0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1 if length_bytes != 0 else 0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'done', 'expr': '1 if length_bytes == 0 else 0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
           "{'state': 'error', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
-          "{'state': 'remaining_bytes', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'remaining_bytes', 'expr': 'length_bytes', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
           "{'state': 'progress_bytes', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
-          "{'state': 'write_buffer_full', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
-          "csr_ready_reset",
-          "mem_rd_valid_reset",
-          "mem_wr_valid_reset",
-          "irq_done_reset",
-          "irq_error_reset"
+          "{'state': 'fsm_state', 'expr': '1 if length_bytes != 0 else 3', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "mem_rd_valid_start",
+          "irq_done_zero_length",
+          "Memory request valids deassert on soft_reset; interrupts follow cleared sticky status.",
+          "{'name': 'mem_rd_valid_abort', 'port': 'mem_rd_valid', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_wr_valid_abort', 'port': 'mem_wr_valid', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '0 if (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0)) else busy', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'done', 'expr': '0 if ((csr_addr == 4 and (((csr_wdata >> 1) & 1) != 0)) or (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0))) else done', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'error', 'expr': '0 if ((csr_addr == 4 and (((csr_wdata >> 2) & 1) != 0)) or (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0))) else error', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '0 if (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0)) else fsm_state', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'write_buffer_full', 'expr': '0 if (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0)) else write_buffer_full', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "mem_rd_valid_abort",
+          "mem_wr_valid_abort"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [
-          "All state variables return to reset values.",
-          "fsm_state",
+          "busy, done, remaining_bytes, progress_bytes, and fsm_state update for a new transfer.",
           "busy",
           "done",
           "error",
           "remaining_bytes",
           "progress_bytes",
+          "fsm_state",
+          "W1C clears done/error; soft_reset aborts active transfer and clears transient state.",
           "write_buffer_full"
         ],
         "error_policy": ""
@@ -1804,7 +2399,12 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false
+      "unverified": false,
+      "semantic_repair": {
+        "reason": "Repaired from asynchronous reset mapping. SC10 is a CTRL.soft_reset abort represented by FM_CLEAR_ABORT after a started transfer.",
+        "authority": "SSOT function_model.transactions and test_requirements.scenarios",
+        "oracle": "FunctionalModel.apply"
+      }
     },
     {
       "goal_id": "EQ_SCENARIO_SC11",
@@ -1829,26 +2429,131 @@
         "dma_scratch_ui_live_20260519a_security_model"
       ],
       "coverage_refs": [
-        "SC11_executed"
+        "SC11_executed",
+        "function_memory_write_accept",
+        "function_illegal_csr_or_start",
+        "function_clear_or_abort",
+        "error_error_0",
+        "error_error_1"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC11",
+        "transaction_type": "clear_or_abort",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
+        "transaction_sequence": [
+          {
+            "transaction_type": "memory_write_accept",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_WRITE_ACCEPT",
+            "ssot_refs": [
+              "function_model.transactions[7]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_write_accept matches FunctionalModel"
+          },
+          {
+            "transaction_type": "illegal_csr_or_start",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_ILLEGAL_CSR_OR_START",
+            "ssot_refs": [
+              "function_model.transactions[9]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction illegal_csr_or_start matches FunctionalModel"
+          },
+          {
+            "transaction_type": "clear_or_abort",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CLEAR_ABORT",
+            "ssot_refs": [
+              "function_model.transactions[8]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction clear_or_abort matches FunctionalModel"
+          }
+        ],
         "constraints": [
-          "Complete a transfer and create an error, then clear STATUS.done and STATUS.error using W1C writes."
+          "Complete a transfer and create an error, then clear STATUS.done and STATUS.error using W1C writes.",
+          "Destination memory accepts the current write beat.",
+          "An unmapped CSR access or start-while-busy command is accepted.",
+          "STATUS W1C clear or CTRL.soft_reset write is accepted."
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
+        "model_api_contract": "Scoreboard must call FunctionalModel.apply once per transaction_sequence entry with the same sampled RTL transaction intent; scenario pass is the ordered composition of those FL results plus the SSOT scenario expected text.",
+        "functional_model_transactions": [
+          {
+            "transaction_type": "memory_write_accept",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_WRITE_ACCEPT",
+            "ssot_refs": [
+              "function_model.transactions[7]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction memory_write_accept matches FunctionalModel"
+          },
+          {
+            "transaction_type": "illegal_csr_or_start",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_ILLEGAL_CSR_OR_START",
+            "ssot_refs": [
+              "function_model.transactions[9]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction illegal_csr_or_start matches FunctionalModel"
+          },
+          {
+            "transaction_type": "clear_or_abort",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_CLEAR_ABORT",
+            "ssot_refs": [
+              "function_model.transactions[8]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction clear_or_abort matches FunctionalModel"
+          }
+        ],
         "observables": [
           "done/error and irq levels deassert only for bits written with 1; configuration registers are preserved.",
-          "Scenario expected result from SSOT"
+          "Completion status and irq_done are asserted when the accepted write is the final beat.",
+          "{'name': 'irq_done_on_final_write', 'port': 'irq_done', 'expr': 'irq_done_en and (remaining_bytes <= beat_bytes)', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_wr_valid_after_accept', 'port': 'mem_wr_valid', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'remaining_bytes', 'expr': 'remaining_bytes - transfer_bytes', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'progress_bytes', 'expr': 'progress_bytes + transfer_bytes', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'write_buffer_full', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '0 if remaining_bytes <= beat_bytes else 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'done', 'expr': '1 if remaining_bytes <= beat_bytes else done', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '3 if remaining_bytes <= beat_bytes else 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "irq_done_on_final_write",
+          "mem_wr_valid_after_accept",
+          "csr_error and optionally irq_error report the illegal operation.",
+          "{'name': 'csr_error_illegal', 'port': 'csr_error', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'irq_error_illegal', 'port': 'irq_error', 'expr': 'irq_error_en', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'error', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '4 if (csr_write and csr_addr == 0 and ((csr_wdata & 1) != 0) and busy) else fsm_state', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "csr_error_illegal",
+          "irq_error_illegal",
+          "Memory request valids deassert on soft_reset; interrupts follow cleared sticky status.",
+          "{'name': 'mem_rd_valid_abort', 'port': 'mem_rd_valid', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'mem_wr_valid_abort', 'port': 'mem_wr_valid', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '0 if (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0)) else busy', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'done', 'expr': '0 if ((csr_addr == 4 and (((csr_wdata >> 1) & 1) != 0)) or (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0))) else done', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'error', 'expr': '0 if ((csr_addr == 4 and (((csr_wdata >> 2) & 1) != 0)) or (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0))) else error', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '0 if (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0)) else fsm_state', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'write_buffer_full', 'expr': '0 if (csr_addr == 0 and (((csr_wdata >> 3) & 1) != 0)) else write_buffer_full', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "mem_rd_valid_abort",
+          "mem_wr_valid_abort"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "remaining_bytes decrements, progress_bytes increments, buffer clears, and the FSM either completes or returns to READ_REQ.",
+          "remaining_bytes",
+          "progress_bytes",
+          "write_buffer_full",
+          "busy",
+          "done",
+          "fsm_state",
+          "Sticky error is set without corrupting source/destination/length configuration.",
+          "error",
+          "W1C clears done/error; soft_reset aborts active transfer and clears transient state."
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -1870,7 +2575,12 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false
+      "unverified": false,
+      "semantic_repair": {
+        "reason": "Repaired generic SC11 transaction label into completion, error creation, and W1C clear FunctionalModel.apply sequence.",
+        "authority": "SSOT function_model.transactions and test_requirements.scenarios",
+        "oracle": "FunctionalModel.apply"
+      }
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
@@ -2777,52 +3487,95 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_ERROR_NONE",
-      "title": "Error policy None",
+      "goal_id": "EQ_ERROR_ERR_ILLEGAL_CSR",
+      "title": "Error policy ERR_ILLEGAL_CSR",
       "kind": "error",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "error_handling.error_sources[0]"
+        "error_handling.error_sources[0]",
+        "function_model.transactions[9]"
       ],
       "decomposition_refs": [
         "dma_scratch_ui_live_20260519a_protocol_model",
-        "dma_scratch_ui_live_20260519a_error_model"
+        "dma_scratch_ui_live_20260519a_error_model",
+        "dma_scratch_ui_live_20260519a_register_model"
       ],
       "coverage_refs": [
         "fcov_error",
         "error_error_0",
-        "error_error_1",
-        "cycle_latency_per_beat_transfer",
-        "fsm_control_idle_to_error_2",
+        "function_illegal_csr_or_start",
+        "SC03_executed",
         "fsm_control_error_to_idle_9"
       ],
       "stimulus_contract": {
-        "transaction_type": "None",
+        "transaction_type": "illegal_csr_or_start",
         "required_fields": [
           "fault_condition"
         ],
+        "transaction_sequence": [
+          {
+            "transaction_type": "illegal_csr_or_start",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_ILLEGAL_CSR_OR_START",
+            "ssot_refs": [
+              "function_model.transactions[9]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Trigger ERR_ILLEGAL_CSR and compare against FunctionalModel.apply"
+          }
+        ],
         "constraints": [
-          "{'id': 'ERR_ILLEGAL_CSR', 'condition': 'CSR address is not one of 0, 4, 8, 12, 16, or 20.', 'architectural_effect': 'Assert csr_error for the accepted access, set sticky error, and assert irq_error if enabled.'}"
+          "CSR address is not one of 0, 4, 8, 12, 16, or 20.",
+          "An unmapped CSR access or start-while-busy command is accepted."
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
+        "model_api_contract": "Scoreboard calls FunctionalModel.apply(kind=\"illegal_csr_or_start\") for the sampled illegal CSR/start transaction and checks the SSOT error source architectural_effect plus propagation rules.",
+        "functional_model_transactions": [
+          {
+            "transaction_type": "illegal_csr_or_start",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_ILLEGAL_CSR_OR_START",
+            "ssot_refs": [
+              "function_model.transactions[9]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction illegal_csr_or_start matches FunctionalModel"
+          }
+        ],
         "observables": [
-          "error response",
-          "status/interrupt/debug observable"
+          "Assert csr_error for the accepted access, set sticky error, and assert irq_error if enabled.",
+          "csr_error reports illegal CSR/start errors on the accepting CSR cycle.",
+          "STATUS.error remains set until W1C clear, soft_reset, or reset.",
+          "irq_error is level-high while STATUS.error and irq_error_en are 1.",
+          "csr_error and optionally irq_error report the illegal operation.",
+          "{'name': 'csr_error_illegal', 'port': 'csr_error', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'irq_error_illegal', 'port': 'irq_error', 'expr': 'irq_error_en', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'error', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '4 if (csr_write and csr_addr == 0 and ((csr_wdata & 1) != 0) and busy) else fsm_state', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "csr_error_illegal",
+          "irq_error_illegal"
         ],
-        "latency": "error propagation timing from cycle_model",
+        "latency": "error propagation timing from cycle_model; csr_error is reported on the accepting CSR cycle",
         "state_updates": [
-          "error state/counter/status update"
+          "Sticky error is set without corrupting source/destination/length configuration.",
+          "error",
+          "fsm_state",
+          "STATUS.error sticky bit set",
+          "irq_error level follows error && irq_error_en"
         ],
-        "error_policy": "['csr_error reports illegal CSR/start errors on the accepting CSR cycle.', 'STATUS.error remains set until W1C clear, soft_reset, or reset.', 'irq_error is level-high while STATUS.error and irq_error_en are 1.']"
+        "error_policy": [
+          "csr_error reports illegal CSR/start errors on the accepting CSR cycle.",
+          "STATUS.error remains set until W1C clear, soft_reset, or reset.",
+          "irq_error is level-high while STATUS.error and irq_error_en are 1."
+        ]
       },
       "pass_criteria": [
         "Fault stimulus produces the SSOT-defined error response",
         "No illegal side effect occurs unless SSOT allows it",
-        "Error coverage bin is hit"
+        "Error coverage bin is hit",
+        "Scoreboard expected behavior comes from FunctionalModel.apply and the referenced error_handling.error_sources row"
       ],
       "owner_on_fail": {
         "default": "rtl",
@@ -2837,7 +3590,124 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false
+      "unverified": false,
+      "semantic_repair": {
+        "reason": "Replaced malformed EQ_ERROR_NONE goal with one goal per SSOT error source id so ERR_ILLEGAL_CSR and ERR_START_WHILE_BUSY are both scoreboard-visible.",
+        "authority": "SSOT error_handling.error_sources and function_model.transactions.FM_ILLEGAL_CSR_OR_START",
+        "oracle": "FunctionalModel.apply"
+      }
+    },
+    {
+      "goal_id": "EQ_ERROR_ERR_START_WHILE_BUSY",
+      "title": "Error policy ERR_START_WHILE_BUSY",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[1]",
+        "function_model.transactions[9]"
+      ],
+      "decomposition_refs": [
+        "dma_scratch_ui_live_20260519a_protocol_model",
+        "dma_scratch_ui_live_20260519a_error_model",
+        "dma_scratch_ui_live_20260519a_register_model"
+      ],
+      "coverage_refs": [
+        "fcov_error",
+        "error_error_1",
+        "function_illegal_csr_or_start",
+        "SC03_executed",
+        "fsm_control_idle_to_error_2",
+        "fsm_control_error_to_idle_9"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "illegal_csr_or_start",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "transaction_sequence": [
+          {
+            "transaction_type": "illegal_csr_or_start",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_ILLEGAL_CSR_OR_START",
+            "ssot_refs": [
+              "function_model.transactions[9]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Trigger ERR_START_WHILE_BUSY and compare against FunctionalModel.apply"
+          }
+        ],
+        "constraints": [
+          "CTRL.start is written with 1 while busy is already 1.",
+          "An unmapped CSR access or start-while-busy command is accepted."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "model_api_contract": "Scoreboard calls FunctionalModel.apply(kind=\"illegal_csr_or_start\") for the sampled illegal CSR/start transaction and checks the SSOT error source architectural_effect plus propagation rules.",
+        "functional_model_transactions": [
+          {
+            "transaction_type": "illegal_csr_or_start",
+            "transaction_goal_id": "EQ_TRANSACTION_FM_ILLEGAL_CSR_OR_START",
+            "ssot_refs": [
+              "function_model.transactions[9]"
+            ],
+            "model_api": "FunctionalModel.apply",
+            "purpose": "Transaction illegal_csr_or_start matches FunctionalModel"
+          }
+        ],
+        "observables": [
+          "Assert csr_error, set sticky error, keep the active transfer state intact, and assert irq_error if enabled.",
+          "csr_error reports illegal CSR/start errors on the accepting CSR cycle.",
+          "STATUS.error remains set until W1C clear, soft_reset, or reset.",
+          "irq_error is level-high while STATUS.error and irq_error_en are 1.",
+          "csr_error and optionally irq_error report the illegal operation.",
+          "{'name': 'csr_error_illegal', 'port': 'csr_error', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'irq_error_illegal', 'port': 'irq_error', 'expr': 'irq_error_en', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'error', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'fsm_state', 'expr': '4 if (csr_write and csr_addr == 0 and ((csr_wdata & 1) != 0) and busy) else fsm_state', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "csr_error_illegal",
+          "irq_error_illegal"
+        ],
+        "latency": "error propagation timing from cycle_model; csr_error is reported on the accepting CSR cycle",
+        "state_updates": [
+          "Sticky error is set without corrupting source/destination/length configuration.",
+          "error",
+          "fsm_state",
+          "STATUS.error sticky bit set",
+          "irq_error level follows error && irq_error_en"
+        ],
+        "error_policy": [
+          "csr_error reports illegal CSR/start errors on the accepting CSR cycle.",
+          "STATUS.error remains set until W1C clear, soft_reset, or reset.",
+          "irq_error is level-high while STATUS.error and irq_error_en are 1."
+        ]
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit",
+        "Scoreboard expected behavior comes from FunctionalModel.apply and the referenced error_handling.error_sources row"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false,
+      "semantic_repair": {
+        "reason": "Replaced malformed EQ_ERROR_NONE goal with one goal per SSOT error source id so ERR_ILLEGAL_CSR and ERR_START_WHILE_BUSY are both scoreboard-visible.",
+        "authority": "SSOT error_handling.error_sources and function_model.transactions.FM_ILLEGAL_CSR_OR_START",
+        "oracle": "FunctionalModel.apply"
+      }
     },
     {
       "goal_id": "EQ_STATE_CONTROL_IDLE_TO_DONE_0",
@@ -4976,6 +5846,23 @@
       "blocked": false,
       "blocker": "",
       "unverified": false
+    }
+  ],
+  "semantic_repairs": [
+    {
+      "id": "repair_scenario_error_mapping_2026_05_18",
+      "reason": "Corrected scenario-to-FunctionalModel transaction mappings and expanded error-source goals from SSOT ids.",
+      "ssot_refs": [
+        "test_requirements.scenarios[1]",
+        "test_requirements.scenarios[2]",
+        "test_requirements.scenarios[9]",
+        "test_requirements.scenarios[10]",
+        "error_handling.error_sources[0]",
+        "error_handling.error_sources[1]",
+        "function_model.transactions"
+      ],
+      "oracle": "FunctionalModel.apply",
+      "ssot_tbd_report": "none"
     }
   ]
 }
