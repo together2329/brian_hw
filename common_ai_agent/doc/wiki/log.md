@@ -2,6 +2,25 @@
 
 ## 2026-05-18
 
+- [[atlas-pipeline-screen]] Pipeline Image redesign phase 1 landed (2026-05-18).
+  Source: `ATLAS_UI_ENHANCEMENT/Pipeline Image.html` (45 KB mockup). Design
+  language: cyan = running, amber = selected route / orch state, green = passed,
+  red = failed. Four code changes:
+  1. 16 `--enh-*` design tokens + Google Fonts (Inter, JetBrains Mono) in
+     `frontend/atlas/styles.css` lines 53–74 and `frontend/atlas/index.html`.
+  2. `PhaseStrip` component (6 phases × running/passed/blocked, pulse animation)
+     in `frontend/atlas/pipeline.jsx` lines 481–542, mounted at line 2633 before
+     `PipelineFlowMap`.
+  3. `WorkerOrchestraBar` re-skinned to 6-column `.worker-card` grid with
+     `data-flow="dispatch|return|down|idle"` in `frontend/atlas/pipeline.jsx`
+     lines 544–693; `pipe-orchestra-*` classes preserved for backwards-compat.
+  4. `axi_dma` fetch-interceptor mock (rtl-gen + sim simultaneously running) in
+     `frontend/atlas/data.jsx` lines 21–101.
+  Deferred to phase 2: SVG flow canvas redesign (orchestrator bus bar,
+  lane-by-lane arrows, animated packets) and footer detail cards with progress
+  bars. Test: open `frontend/atlas/index.html`, pick IP `axi_dma`, observe phase
+  strip (RTL running, cyan pulse) and worker cards (both `data-flow="dispatch"`).
+  Cross-link: [[ui-design-references]], [[full-flow-pipeline]].
 - ATLAS pipeline UI swap: replaced `frontend/atlas/pipeline.jsx` (112 KB,
   May 18 — today's revision) with `ATLAS_UI_ENHANCEMENT/pipeline.jsx`
   (106 KB, May 17 13:50) at user request. Pre-swap snapshot preserved as

@@ -7,8 +7,8 @@ injection / streaming UI, while keeping orchestrator-specific concerns
 
 Key design decisions (from `[[orchestrator-loop-on-react-loop-plan]]`):
 
-- ``available_tools`` is REPLACED — not merged — with exactly 8 orchestrator
-  callables. yield_run is a 9th LLM-visible schema but is wired inside the
+- ``available_tools`` is REPLACED — not merged — with exactly 10 orchestrator
+  callables (including import_document). yield_run is a separate LLM-visible
   wrapper, not as a ``dispatch_tool``-resolvable callable.
 - No ``src.main`` import. Production helpers come from ``core/*`` modules.
 - ``orchestrator_inject_fn`` is built with the explicit ``OrchestratorContext``,
@@ -245,6 +245,13 @@ def _bind_orchestrator_tools(
             session_id=ctx.session_id,
         )
 
+    def _import_document(**kw):
+        return orch_tools.import_document(
+            ip=kw.get("ip", ctx.ip_name),
+            path=kw.get("path", ""),
+            project_root=ctx.project_root,
+        )
+
     return {
         "read_pipeline_state":   _wrap("read_pipeline_state",   _read_pipeline_state),
         "dispatch_workflow":     _wrap("dispatch_workflow",     _dispatch_workflow),
@@ -254,6 +261,7 @@ def _bind_orchestrator_tools(
         "ask_user":              _wrap("ask_user",              _ask_user),
         "write_handoff":         _wrap("write_handoff",         _write_handoff),
         "mark_downstream_stale": _wrap("mark_downstream_stale", _mark_downstream_stale),
+        "import_document":       _wrap("import_document",       _import_document),
     }
 
 

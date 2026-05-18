@@ -363,3 +363,28 @@ End-to-end smoke after rollout:
 3. **Live state**: dispatch rtl-gen via the RT card `[▶ run]` button; card transitions `idle → running → passed`; chat shows one `dispatched rtl-gen via PIPELINE` line.
 4. **Locked semantics**: delete `<ip>/yaml/<ip>.ssot.yaml`; downstream cards dim, DAG nodes dim.
 5. **Reduced motion**: enable OS "reduce motion" → animations replaced by `outline` only.
+
+## Pipeline Image redesign (2026-05-18, phase 1)
+
+Source of truth: `ATLAS_UI_ENHANCEMENT/Pipeline Image.html` (self-contained mockup, ~45 KB).
+
+Design language: cyan (`#5fc8eb`) = running, amber (`#f2b632`) = selected route / orchestrator state, green (`#76c893`) = passed, red (`#e85d5d`) = failed. Matches the mockup's `:root` tokens.
+
+Token strategy: existing `--accent`, `--cyan`, `--ok`, `--err` vary by theme; phase-1 adds `--enh-*` aliases (16 new tokens in `frontend/atlas/styles.css` lines 53–74) so the new design language can land without touching theme-dependent existing values. Google Fonts (Inter + JetBrains Mono) added to `frontend/atlas/index.html` for typography consistency; cache-buster bumped to `atlas-20260518-redesign-phase1`.
+
+What landed in phase 1:
+
+- Design tokens (`--enh-*`) + Google Fonts (Inter, JetBrains Mono) in `frontend/atlas/styles.css` (lines 53–74) and `frontend/atlas/index.html`.
+- `PhaseStrip` top-of-pipeline summary component (6 phases × phase-passed/running/blocked states, animated pulse on running) in `frontend/atlas/pipeline.jsx` lines 481–542, mounted at line 2633 before `PipelineFlowMap`.
+- `WorkerOrchestraBar` re-skinned to 6-column `.worker-card` grid with `data-flow="dispatch|return|down|idle"` in `frontend/atlas/pipeline.jsx` lines 544–693; existing `pipe-orchestra-*` classes preserved on the same DOM nodes for backwards-compat.
+- `axi_dma` mock IP (rtl-gen + sim simultaneously running) via fetch interceptor in `frontend/atlas/data.jsx` lines 21–101.
+
+Deferred to phase 2 (own session):
+
+- Full SVG flow canvas redesign — orchestrator bus bar, lane-by-lane dispatch/return arrows, animated packets.
+- Footer detail cards with progress bars (`.pipe-cards` / `.pipe-card-tail` / `.pipe-progress-fill`).
+- Title bar / flow tabs polish.
+
+How to test visually: open `frontend/atlas/index.html`, pick IP `axi_dma`, observe phase strip showing RTL phase as `running` (cyan pulse) and Worker Orchestra Bar showing rtl-gen and sim cards both with `data-flow="dispatch"` (cyan animated arrow). The DAG flow map below is unchanged — that is phase 2.
+
+Cross-links: [[ui-design-references]] · [[full-flow-pipeline]].

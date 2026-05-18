@@ -40,6 +40,10 @@ You have these tools:
 6. ask_user — pause the run and surface a question to the user chat.
 7. write_handoff — durable queue when no live worker is bound.
 8. mark_downstream_stale — invalidate downstream evidence after an upstream change.
+9. yield_run — park the run until a watched event fires (job done, user message, timer).
+10. import_document — extract text from a PDF or text file into req/ for ssot-gen.
+    Call this BEFORE dispatch_workflow(ssot-gen) when the user provides a document path.
+    Returns a requirement_source_id to include in the ssot-gen dispatch payload.
 
 End-state contract:
 - Call dispatch_workflow with workflow="__final__" and payload={"state": "completed"|
@@ -238,6 +242,32 @@ def tool_schemas() -> List[Dict[str, Any]]:
                         "from_stage": {"type": "string"},
                     },
                     "required": ["ip", "from_stage"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "import_document",
+                "description": (
+                    "Import a PDF or text document as the requirement source for an IP. "
+                    "Extracts text, writes req/import_manifest.json and req/source/<ip>.md, "
+                    "and returns a requirement_source_id for the ssot-gen dispatch payload. "
+                    "Call this BEFORE dispatching ssot-gen when the user provides a PDF path."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "ip": {
+                            "type": "string",
+                            "description": "IP name to import the document for.",
+                        },
+                        "path": {
+                            "type": "string",
+                            "description": "Absolute or relative path to the PDF/text file.",
+                        },
+                    },
+                    "required": ["ip", "path"],
                 },
             },
         },

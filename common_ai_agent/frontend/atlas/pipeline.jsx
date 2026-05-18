@@ -94,12 +94,15 @@
 
   // Phase bands used to group stage cards. Mirrors the layout sketch in
   // /Users/brian/.claude/plans/i-need-team-chat-magical-koala.md §Layout.
+  // Phase taxonomy matches ATLAS_UI_ENHANCEMENT/Pipeline Image.html mockup:
+  // 6 phases — SSOT, MODELS, RTL, BRANCH, VERIFY·EDA, SIGNOFF.
   window.PIPELINE_PHASES = [
-    { id: 'AUTHOR',        stages: ['ssot'] },
-    { id: 'DETERMINISTIC', stages: ['fl-model', 'cl-model', 'equivalence'] },
-    { id: 'IMPLEMENT',     stages: ['rtl', 'lint', 'tb'] },
-    { id: 'VERIFY',        stages: ['sim', 'coverage', 'sim-debug', 'goal-audit'] },
-    { id: 'SIGN-OFF',      stages: ['syn', 'sta', 'pnr', 'sta-post'] },
+    { id: 'SSOT',       stages: ['ssot'] },
+    { id: 'MODELS',     stages: ['fl-model', 'cl-model', 'equivalence'] },
+    { id: 'RTL',        stages: ['rtl'] },
+    { id: 'BRANCH',     stages: ['lint', 'tb', 'sim'] },
+    { id: 'VERIFY·EDA', stages: ['sim-debug', 'coverage', 'syn', 'sta'] },
+    { id: 'SIGNOFF',    stages: ['pnr', 'sta-post', 'goal-audit'] },
   ];
 
   // Graph-first Pipeline layout. Coordinates are SVG viewBox units for a
@@ -478,6 +481,465 @@ function OrchestratorAskUserBanner({ ip }) {
   );
 }
 
+// ── PhaseStrip ────────────────────────────────────────────────────────────────
+// Horizontal 6-phase summary strip above the flow map.
+// Derives done/running/failed counts from stagesState (pipelineState.stages).
+const PHASE_BANDS = [
+  { num: 1, name: 'SSOT',       stages: ['ssot'] },
+  { num: 2, name: 'MODELS',     stages: ['fl-model', 'cl-model', 'equivalence'] },
+  { num: 3, name: 'RTL',        stages: ['rtl'] },
+  { num: 4, name: 'BRANCH',     stages: ['lint', 'tb', 'sim', 'coverage', 'sim-debug'] },
+  { num: 5, name: 'VERIFY·EDA', stages: ['syn', 'sta', 'pnr', 'sta-post'] },
+  { num: 6, name: 'SIGNOFF',    stages: ['goal-audit'] },
+];
+
+function PhaseStrip({ stagesState }) {
+  const ss = stagesState || {};
+  const stateOf = (stageId) => {
+    const raw = ss[stageId];
+    if (!raw) return 'idle';
+    if (typeof raw === 'string') return raw;
+    return raw.state || raw.status || 'idle';
+  };
+  const phases = PHASE_BANDS.map((band) => {
+    const known = (window.PIPELINE_STAGES || band.stages).length
+      ? band.stages.filter(s => !(window.PIPELINE_STAGES) || (window.PIPELINE_STAGES || []).indexOf(s) >= 0)
+      : band.stages;
+    const n_total   = known.length;
+    const n_done    = known.filter(s => ['passed', 'ok'].includes(stateOf(s))).length;
+    const n_running = known.filter(s => ['running', 'run'].includes(stateOf(s))).length;
+    const n_failed  = known.filter(s => ['failed','err','blocked','stale','locked'].includes(stateOf(s))).length;
+
+    let phaseClass = '';
+    if (n_running > 0)                          phaseClass = 'phase-running';
+    else if (n_failed > 0)                      phaseClass = 'phase-blocked';
+    else if (n_done === n_total && n_total > 0) phaseClass = 'phase-passed';
+
+    let meta;
+    if (n_running > 0) {
+      meta = `▶ ${n_running} running · ${n_done}/${n_total} done`;
+    } else {
+      meta = `${n_done}/${n_total} done`;
+    }
+
+    return { ...band, phaseClass, meta };
+  });
+
+  const nodes = [];
+  phases.forEach((ph, i) => {
+    nodes.push(
+      React.createElement('div', {
+        key: ph.num,
+        className: `pipe-flow-phase${ph.phaseClass ? ' ' + ph.phaseClass : ''}`,
+      },
+        React.createElement('span', { className: 'pipe-flow-phase-num' }, ph.num),
+        React.createElement('span', { className: 'pipe-flow-phase-body' },
+          React.createElement('span', { className: 'pipe-flow-phase-name' }, ph.name),
+          React.createElement('span', { className: 'pipe-flow-phase-meta' }, ph.meta),
+        ),
+      )
+    );
+    if (i < phases.length - 1) {
+      nodes.push(
+        React.createElement('span', { key: `arrow-${i}`, className: 'pipe-flow-phase-arrow' }, '›')
+      );
+    }
+  });
+
+  return React.createElement('div', { className: 'pipe-flow-phases', role: 'navigation' }, ...nodes);
+}
+// ── /PhaseStrip ───────────────────────────────────────────────────────────────
+
+// ── EnhancedFlowCanvas ────────────────────────────────────────────────────────
+// SVG flow canvas matching ATLAS_UI_ENHANCEMENT/Pipeline Image.html: orchestrator
+// bus bar on top, 6 vertical lanes (SSOT / MODELS / RTL / BRANCH / VERIFY·EDA /
+// SIGNOFF), per-stage node boxes with state pills. Wired to pipelineState.stages
+// so it reflects real run progress instead of static mockup data.
+const ENH_LANE_X = { 1: 30, 2: 230, 3: 430, 4: 630, 5: 830, 6: 1030 };
+const ENH_LANE_NAMES = { 1: 'SSOT', 2: 'MODELS', 3: 'RTL', 4: 'BRANCH', 5: 'VERIFY · EDA', 6: 'SIGNOFF' };
+const ENH_LANE_HINTS = { 6: 'post-route' };
+const ENH_ROW_Y = { 1: 140, 2: 220, 3: 300, 4: 380 };
+const ENH_NODE_W = 168;
+const ENH_NODE_H = 58;
+const ENH_STAGE_LAYOUT = {
+  ssot:         { lane: 1, row: 2 },
+  'fl-model':   { lane: 2, row: 1 },
+  'cl-model':   { lane: 2, row: 2 },
+  equivalence:  { lane: 2, row: 3 },
+  rtl:          { lane: 3, row: 2 },
+  lint:         { lane: 4, row: 1 },
+  tb:           { lane: 4, row: 2 },
+  syn:          { lane: 4, row: 3 },
+  'sim-debug':  { lane: 5, row: 1 },
+  sim:          { lane: 5, row: 2 },
+  sta:          { lane: 5, row: 3 },
+  pnr:          { lane: 5, row: 4 },
+  coverage:     { lane: 6, row: 2 },
+  'sta-post':   { lane: 6, row: 4 },
+};
+const ENH_PILL_LABEL = { passed: 'passed', running: 'running', locked: 'locked', ready: 'ready', failed: 'failed', blocked: 'blocked', stale: 'stale' };
+// Stage-specific default subtext for each state (canonical Pipeline Image
+// rendering). Overridden by real `info.live_tail` / `info.locked_reason` when
+// available so mock and live data both look right.
+const ENH_SUBTEXT_DEFAULT = {
+  ssot:         { passed: '12 sections · v0.4.1',          locked: 'awaiting source', ready: 'awaiting source' },
+  'fl-model':   { passed: '2 174 packets · ✓ goals',       locked: 'awaiting ssot',   ready: 'awaiting ssot' },
+  'cl-model':   { passed: 'cycle-acc · 4 ports',           locked: 'awaiting ssot',   ready: 'awaiting ssot' },
+  equivalence:  { passed: 'FL ≡ CL · 8 192 vec',           locked: 'awaiting fl-model + cl-model', ready: 'awaiting fl-model + cl-model' },
+  rtl:          { passed: 'rtl emitted',                   locked: 'awaiting equivalence',          ready: 'awaiting equivalence' },
+  lint:         { passed: 'clean',                         locked: 'awaiting rtl',                  ready: 'awaiting rtl handoff' },
+  tb:           { passed: 'tb emitted',                    locked: 'awaiting rtl',                  ready: 'awaiting rtl' },
+  syn:          { passed: 'netlist emitted',               locked: 'awaiting rtl-gen',              ready: 'awaiting rtl-gen' },
+  sim:          { passed: 'tests passed',                  locked: 'awaiting tb',                   ready: 'awaiting tb' },
+  'sim-debug':  { passed: 'no escapes',                    locked: 'awaiting sim',                  ready: 'awaiting sim' },
+  sta:          { passed: 'timing clean',                  locked: 'awaiting syn · leaf',           ready: 'awaiting syn · leaf' },
+  pnr:          { passed: 'routed',                        locked: 'awaiting syn',                  ready: 'awaiting syn' },
+  coverage:     { passed: 'goals met',                     locked: 'awaiting sim',                  ready: 'awaiting sim' },
+  'sta-post':   { passed: 'post-route timing clean',       locked: 'awaiting pnr',                  ready: 'awaiting pnr' },
+};
+function enhSubText(stageId, info) {
+  if (!info) {
+    const def = ENH_SUBTEXT_DEFAULT[stageId];
+    return (def && def.locked) || '';
+  }
+  if (info.state === 'running') {
+    const iter = info.iter ? `iter ${info.iter}` : 'running';
+    return info.model ? `${iter} · ${info.model}` : iter;
+  }
+  if (info.live_tail) return String(info.live_tail).slice(0, 32);
+  const def = ENH_SUBTEXT_DEFAULT[stageId];
+  if (def && def[info.state]) return def[info.state];
+  if (info.locked_reason) return info.locked_reason;
+  if (info.state === 'passed') return info.model ? info.model : 'passed';
+  if (info.state === 'ready') return 'awaiting handoff';
+  if (info.state === 'locked' || info.state === 'blocked') return 'awaiting upstream';
+  if (info.state === 'failed') return 'failed — see evidence';
+  return '';
+}
+// Canonical active-route paths from the Pipeline Image mockup, indexed by
+// (fromStage, toStage). Same SVG paths as Pipeline Image.html lines 762-806.
+const ENH_ROUTE_EDGES = [
+  { id: 1,  from: 'ssot',         to: 'fl-model',    d: 'M 204 249 L 212 249 Q 218 249 218 243 L 218 175 Q 218 169 224 169 L 236 169' },
+  { id: 2,  from: 'fl-model',     to: 'cl-model',    d: 'M 320 198 L 320 220' },
+  { id: 3,  from: 'cl-model',     to: 'equivalence', d: 'M 320 278 L 320 300' },
+  { id: 4,  from: 'equivalence',  to: 'rtl',         d: 'M 404 329 L 418 329 Q 425 329 425 323 L 425 255 Q 425 249 430 249 L 436 249' },
+  { id: 5,  from: 'rtl',          to: 'lint',        d: 'M 604 249 L 612 249 Q 618 249 618 243 L 618 175 Q 618 169 624 169 L 636 169' },
+  { id: 6,  from: 'rtl',          to: 'tb',          d: 'M 604 249 L 636 249' },
+  { id: 7,  from: 'rtl',          to: 'syn',         d: 'M 604 249 L 614 249 Q 624 249 624 255 L 624 323 Q 624 329 630 329 L 636 329' },
+  { id: 8,  from: 'tb',           to: 'sim',         d: 'M 804 249 L 836 249' },
+  { id: 9,  from: 'sim',          to: 'sim-debug',   d: 'M 912 198 L 912 218', bidir: true, reverseD: 'M 928 220 L 928 200' },
+  { id: 10, from: 'syn',          to: 'sta',         d: 'M 804 329 L 836 329' },
+  { id: 11, from: 'syn',          to: 'pnr',         d: 'M 804 329 L 812 329 Q 818 329 818 335 L 818 403 Q 818 409 826 409 L 836 409' },
+  { id: 12, from: 'pnr',          to: 'sta-post',    d: 'M 1004 409 L 1036 409' },
+  { id: 13, from: 'sim',          to: 'coverage',    d: 'M 1004 249 L 1036 249' },
+];
+// Midpoint approximation for edge number badges (cx, cy)
+const ENH_EDGE_BADGE_POS = {
+  1:  { cx: 218, cy: 209 },
+  2:  { cx: 332, cy: 211 },
+  3:  { cx: 332, cy: 291 },
+  4:  { cx: 425, cy: 289 },
+  5:  { cx: 618, cy: 209 },
+  6:  { cx: 620, cy: 263 },
+  7:  { cx: 624, cy: 291 },
+  8:  { cx: 820, cy: 263 },
+  9:  { cx: 920, cy: 211 },
+  10: { cx: 820, cy: 343 },
+  11: { cx: 818, cy: 371 },
+  12: { cx: 1020, cy: 423 },
+  13: { cx: 1020, cy: 263 },
+};
+function EnhancedFlowCanvas({ pipelineState, ip, onSelectStage, selectedStage, selectedFlowId }) {
+  const stagesState = (pipelineState && pipelineState.stages) || {};
+  const orch = (pipelineState && pipelineState.orchestrator) || {};
+  const runningEntry = Object.entries(stagesState).find(([, s]) => s && s.state === 'running');
+  const runningStageId = runningEntry ? runningEntry[0] : '';
+  const runningLane = runningStageId ? (ENH_STAGE_LAYOUT[runningStageId] || {}).lane : 0;
+  const targetWorker = runningStageId ? `${runningStageId}-worker` : (orch.active_target || 'orchestrator');
+  const pendingHandoffs = orch.pending_handoffs != null ? orch.pending_handoffs : 0;
+
+  // Compute the flow set: stages that belong to the currently-selected flow.
+  // Used to dim stages not in flow + filter route edges.
+  const flowDefs = (typeof window !== 'undefined' && window.PIPELINE_FLOW_DEFS) || [];
+  const flowDef = flowDefs.find(f => f.id === selectedFlowId) || flowDefs[0];
+  const flowSet = new Set((flowDef && flowDef.stages) || []);
+  const isAllFlow = !flowDef || flowDef.id === 'full';
+
+  // Find a "ready" or "next" stage for the NEXT badge
+  const nextStageId = (() => {
+    for (const [sid, info] of Object.entries(stagesState)) {
+      if (info && info.state === 'ready') return sid;
+    }
+    return '';
+  })();
+
+  // Find the most-recently-passed stage for "last ✓ from X" in the bus bar
+  const lastPassedStageId = (() => {
+    const order = ['ssot', 'fl-model', 'cl-model', 'equivalence', 'rtl', 'lint', 'tb', 'sim', 'syn', 'sim-debug', 'coverage', 'sta', 'pnr', 'sta-post'];
+    let last = '';
+    for (const sid of order) {
+      if (stagesState[sid] && stagesState[sid].state === 'passed') last = sid;
+    }
+    return last;
+  })();
+
+  // Route edges: show the full canonical route by default (mockup behavior).
+  // When a non-Full flow is selected, restrict edges to those whose both
+  // endpoints are in the flow's stage set so the diagram reflects the path
+  // the orchestrator would take for that flow.
+  const activeEdges = ENH_ROUTE_EDGES.filter(e => {
+    if (isAllFlow) return true;
+    return flowSet.has(e.from) && flowSet.has(e.to);
+  });
+  const lastPassedWorker = lastPassedStageId ? `${lastPassedStageId}-worker` : '';
+
+  // Render lanes
+  const lanes = [1, 2, 3, 4, 5, 6].map((laneIdx) => {
+    const x = ENH_LANE_X[laneIdx];
+    return (
+      <g key={`lane-${laneIdx}`} className="enh-lane">
+        <rect x={x} y={76} width={180} height={382} rx={8} />
+        <text x={x + 12} y={100} className="enh-lane-title">
+          <tspan className="enh-lane-num">{laneIdx}.</tspan>
+          <tspan dx={6}>{ENH_LANE_NAMES[laneIdx]}</tspan>
+        </text>
+        {ENH_LANE_HINTS[laneIdx] && (
+          <text x={x + 12} y={116} className="enh-lane-hint">{ENH_LANE_HINTS[laneIdx]}</text>
+        )}
+      </g>
+    );
+  });
+
+  // Bus-bar bidirectional arrows
+  const arrows = [1, 2, 3, 4, 5, 6].map((laneIdx) => {
+    const cx = ENH_LANE_X[laneIdx] + 82;
+    const active = laneIdx === runningLane;
+    const cls = `enh-arrow ${active ? 'active' : ''}`;
+    return (
+      <g key={`arrow-${laneIdx}`}>
+        <path className={cls} d={`M ${cx} 46 L ${cx} 74`} markerEnd={active ? 'url(#enh-arr-active)' : 'url(#enh-arr-dispatch)'} />
+        <path className={cls} d={`M ${cx + 16} 74 L ${cx + 16} 46`} markerEnd={active ? 'url(#enh-arr-active)' : 'url(#enh-arr-dispatch)'} />
+      </g>
+    );
+  });
+
+  // Stage nodes
+  const nodes = Object.entries(ENH_STAGE_LAYOUT).map(([stageId, pos]) => {
+    const info = stagesState[stageId] || {};
+    const state = info.state || 'idle';
+    const x = ENH_LANE_X[pos.lane] + 6;
+    const y = ENH_ROW_Y[pos.row];
+    const pillLabel = ENH_PILL_LABEL[state];
+    const isNext = stageId === nextStageId;
+    const isSelected = stageId === selectedStage;
+    const inFlow = isAllFlow || flowSet.has(stageId);
+    return (
+      <g key={stageId}
+         className={`enh-node ${isNext ? 'next' : ''} ${isSelected ? 'selected' : ''}`}
+         data-state={state}
+         data-in-flow={inFlow ? 'yes' : 'no'}
+         transform={`translate(${x}, ${y})`}
+         style={{ cursor: onSelectStage ? 'pointer' : 'default' }}
+         onClick={() => onSelectStage && onSelectStage(stageId)}>
+        <rect width={ENH_NODE_W} height={ENH_NODE_H} rx={7} />
+        <text x={12} y={20} className="enh-node-title">{stageId}</text>
+        <text x={12} y={36} className="enh-node-sub">{enhSubText(stageId, info)}</text>
+        {pillLabel && (
+          <g className="enh-pill" data-state={state} transform="translate(108, 6)">
+            <rect width={52} height={15} rx={7.5} />
+            <circle cx={8} cy={7.5} r={3} className="enh-pill-dot" />
+            <text x={16} y={11}>{pillLabel}</text>
+          </g>
+        )}
+        {isNext && (
+          <g className="enh-next-badge" transform="translate(62, -18)">
+            <rect width={44} height={14} rx={7} />
+            <text x={22} y={10} textAnchor="middle">NEXT ▸</text>
+          </g>
+        )}
+      </g>
+    );
+  });
+
+  // Route edges (active route) — paths + numbered badges
+  const edgePaths = activeEdges.map(e => (
+    <g key={`edge-${e.id}`}>
+      <path className="enh-edge-active" d={e.d} markerEnd="url(#enh-arr-active-route)" />
+      {e.bidir && e.reverseD && (
+        <path className="enh-edge-active" d={e.reverseD} markerEnd="url(#enh-arr-active-route)" />
+      )}
+    </g>
+  ));
+  const edgeBadges = null;  // edge number badges removed per user request
+
+  // START badge (just left of ssot-gen at lane 1 row 2)
+  const startBadge = (
+    <g className="enh-start-badge" transform={`translate(${ENH_LANE_X[1] - 32}, ${ENH_ROW_Y[2] + 18})`}>
+      <rect width={28} height={22} rx={5} />
+      <text x={14} y={15} textAnchor="middle">START</text>
+    </g>
+  );
+
+  return (
+    <div className="enh-canvas-wrap">
+      <svg className="enh-canvas-svg" viewBox="0 0 1240 540" role="img" aria-label="ATLAS pipeline flow canvas">
+        <defs>
+          <marker id="enh-arr-dispatch" viewBox="0 0 10 10" refX={9} refY={5} markerWidth={6} markerHeight={6} orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--enh-cyan, #5fc8eb)" />
+          </marker>
+          <marker id="enh-arr-active" viewBox="0 0 10 10" refX={9} refY={5} markerWidth={6} markerHeight={6} orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--enh-accent, #f2b632)" />
+          </marker>
+          <marker id="enh-arr-active-route" viewBox="0 0 10 10" refX={9} refY={5} markerWidth={6} markerHeight={6} orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--enh-accent, #f2b632)" />
+          </marker>
+        </defs>
+        <g className="enh-orch-hub">
+          <rect x={30} y={4} width={1180} height={42} rx={10} />
+          <circle cx={55} cy={25} r={5} className="enh-orch-dot" />
+          <text x={75} y={23} className="enh-orch-title">🎯 ORCHESTRATOR · {orch.enabled === false ? 'OFF' : 'ON'}</text>
+          <text x={75} y={40} className="enh-orch-meta">
+            TO <tspan className="enh-orch-meta-worker">{targetWorker}</tspan>
+            {'  ·  pending '}<tspan className="enh-orch-meta-num">{pendingHandoffs}</tspan>
+            {lastPassedWorker ? <tspan>{'  ·  last '}<tspan className="enh-orch-meta-ok">✓ from {lastPassedWorker}</tspan></tspan> : null}
+          </text>
+          <text x={1195} y={30} className="enh-orch-meta-hint" textAnchor="end">
+            {flowDef ? `${flowDef.name} · ${flowDef.stages ? flowDef.stages.length : 0} stages` : '6 lanes · bidirectional control'}
+          </text>
+        </g>
+        {arrows}
+        {lanes}
+        {startBadge}
+        {edgePaths}
+        {nodes}
+        {edgeBadges}
+      </svg>
+    </div>
+  );
+}
+// ── /EnhancedFlowCanvas ───────────────────────────────────────────────────────
+
+// ── EnhancedDetailCards ──────────────────────────────────────────────────────
+// Footer detail cards (Pipeline Image phase 2). Shows only ACTIVE stages
+// (running / passed / ready) — count varies with state, not forced to 3.
+// Cards mirror the mockup at lines 477-548 of Pipeline Image.html: state
+// pill, KPI dots, optional progress bar, title, meta line, optional live tail,
+// action buttons.
+const ENH_CARD_GLYPH = { running: '▶', passed: '✓', ready: '○', failed: '✗', locked: '·', blocked: '·' };
+const ENH_CARD_TITLE_TEXT = {
+  ssot:         { passed: 'yaml/<ip>.ssot.yaml',                 ready: 'authoring SSOT' },
+  'fl-model':   { passed: 'fl/fl_model.json — packets verified', ready: 'awaiting ssot' },
+  'cl-model':   { passed: 'cl/cl_model.json — cycle-acc',        ready: 'awaiting ssot' },
+  equivalence:  { passed: 'FL ≡ CL across 8 192 stimulus vectors', ready: 'awaiting fl-model + cl-model' },
+  rtl:          { passed: 'rtl/axi_dma_top.sv — emitted',        running: 'rtl/axi_dma_top.sv — synthesizing channel arbiter', ready: 'awaiting equivalence' },
+  lint:         { passed: 'lint clean — spyglass + verilator',   ready: 'awaiting rtl handoff' },
+  tb:           { passed: 'tb/cocotb — emitted',                 ready: 'awaiting rtl' },
+  sim:          { passed: 'sim — all tests passed',              running: 'sim driver scoreboarding test vector', ready: 'awaiting tb' },
+  syn:          { passed: 'netlist emitted',                     ready: 'awaiting rtl-gen' },
+  'sim-debug':  { passed: 'no escapes',                          ready: 'awaiting sim' },
+  sta:          { passed: 'timing clean',                        ready: 'awaiting syn · leaf' },
+  pnr:          { passed: 'routed',                              ready: 'awaiting syn' },
+  coverage:     { passed: 'goals met',                           ready: 'awaiting sim' },
+  'sta-post':   { passed: 'post-route timing clean',             ready: 'awaiting pnr' },
+};
+function enhCardTitle(stageId, info) {
+  if (info && info.live_tail) return info.live_tail;
+  const def = ENH_CARD_TITLE_TEXT[stageId];
+  return (def && info && def[info.state]) || (info && info.state) || '';
+}
+function enhCardMeta(stageId, info) {
+  if (!info) return '';
+  const parts = [];
+  if (info.iter) parts.push(`${info.iter} it`);
+  if (info.elapsed_seconds) parts.push(`${info.elapsed_seconds}s`);
+  if (info.model) parts.push(info.model);
+  return parts.join(' · ');
+}
+function EnhancedDetailCards({ pipelineState, ip, onSelectStage }) {
+  const stagesState = (pipelineState && pipelineState.stages) || {};
+  // Surface every active stage in canonical order
+  const ORDER = ['ssot', 'fl-model', 'cl-model', 'equivalence', 'rtl', 'lint', 'tb', 'sim', 'syn', 'sim-debug', 'coverage', 'sta', 'pnr', 'sta-post', 'goal-audit'];
+  // 1 currently-running, 1 most-recently-passed, 1 next-ready, max 4.
+  const running = [];
+  let lastPassed = null;
+  let nextReady = null;
+  for (const sid of ORDER) {
+    const info = stagesState[sid];
+    if (!info) continue;
+    if (info.state === 'running') running.push({ stageId: sid, info });
+    else if (info.state === 'passed') lastPassed = { stageId: sid, info };
+    else if (info.state === 'ready' && !nextReady) nextReady = { stageId: sid, info };
+  }
+  const cards = [];
+  running.forEach(c => cards.push(c));
+  if (lastPassed) cards.push(lastPassed);
+  if (nextReady) cards.push(nextReady);
+  if (!cards.length) return null;
+
+  const renderCard = ({ stageId, info }) => {
+    const state = info.state;
+    const progress = state === 'running' ? Math.min(0.95, Math.max(0.1, info.progress || 0.5)) : null;
+    const glyph = ENH_CARD_GLYPH[state] || '·';
+    const title = enhCardTitle(stageId, info);
+    const meta = enhCardMeta(stageId, info);
+    const tail = state === 'running' && info.live_tail ? info.live_tail : '';
+    const dots = (() => {
+      // 5 dot KPI strip — pass for passed/running progress, dim for ready
+      if (state === 'passed') return ['pass','pass','pass','pass','pass'];
+      if (state === 'running') return ['pass','pass','warn','idle','idle'];
+      return ['idle','idle','idle','idle','idle'];
+    })();
+    return (
+      <div key={stageId} className="enh-card" data-state={state}
+           onClick={() => onSelectStage && onSelectStage(stageId)}
+           style={{ cursor: onSelectStage ? 'pointer' : 'default' }}>
+        <div className="enh-card-hd">
+          <span className="enh-card-glyph">{glyph}</span>
+          <span className="enh-card-label">{stageId}</span>
+          <span className="enh-card-state" data-s={state}>{state}</span>
+        </div>
+        <div className="enh-card-dots">
+          {dots.map((kpi, i) => <span key={i} className="enh-dot" data-kpi={kpi} />)}
+        </div>
+        {progress != null && (
+          <div className="enh-progress"><div className="enh-progress-fill" style={{ width: `${Math.round(progress * 100)}%` }} /></div>
+        )}
+        {title && <div className="enh-card-top">{title}</div>}
+        {meta && <div className="enh-card-sec">{meta}</div>}
+        {tail && <div className="enh-card-tail">~ {tail}</div>}
+        <div className="enh-card-actions">
+          {state === 'running' && (
+            <>
+              <button className="enh-btn" disabled>■ running</button>
+              <button className="enh-btn ghost" type="button">open tail ↗</button>
+            </>
+          )}
+          {state === 'passed' && (
+            <>
+              <button className="enh-btn" type="button">[ open evidence ▼ ]</button>
+              <button className="enh-btn" type="button">▶ rerun</button>
+            </>
+          )}
+          {state === 'ready' && (
+            <>
+              <button className="enh-btn" type="button">▶ run</button>
+              <button className="enh-btn ghost" type="button">policy ↗</button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="enh-cards-grid">
+      {cards.map(renderCard)}
+    </div>
+  );
+}
+// ── /EnhancedDetailCards ─────────────────────────────────────────────────────
+
+
 function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
   const [data, setData] = React.useState({ orchestrator: {}, workers: [] });
   const [traceMap, setTraceMap] = React.useState({}); // worker -> latest event
@@ -524,51 +986,56 @@ function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
     if (k === 'gate_verdict') return { dir: 'up', color: 'purple', label: 'gate' };
     return { dir: 'none', color: 'muted', label: k };
   };
+  const dataFlow = (w, ev) => {
+    if (w.status !== 'ok') return 'down';
+    if (w.running_count > 0) return 'dispatch';
+    if (ev && ev.kind === 'run_completed') return 'return';
+    return 'idle';
+  };
+  const flowArrow = (flow) => {
+    if (flow === 'dispatch') return '↓';
+    if (flow === 'return') return '↑';
+    if (flow === 'down') return '✗';
+    return '·';
+  };
+  const stateLabel = (w) => {
+    if (w.status !== 'ok') return 'unreachable';
+    if (w.running_count > 0) return `run #${w.running && w.running[0] && w.running[0].run_id ? w.running[0].run_id.slice(-6) : '?'}`;
+    return 'idle';
+  };
+  const runningTotal = workers.filter(w => w.running_count > 0).length;
   return (
-    <div className="pipe-orchestra" data-on={orch.enabled ? 'yes' : 'no'}>
-      <div className="pipe-orchestra-conductor"
-           data-active={activeTarget ? 'yes' : 'no'}>
-        <div className="pipe-orchestra-conductor-head">
-          <span className="pipe-orchestra-conductor-icon">🎯</span>
-          <span className="pipe-orchestra-conductor-name">ORCHESTRATOR</span>
-          <span className="pipe-orchestra-conductor-state" data-on={orch.enabled ? 'yes' : 'no'}>
-            {orch.enabled ? '● ON' : '○ OFF'}
+    <div className="pipe-orchestra worker-bar" data-on={orch.enabled ? 'yes' : 'no'}>
+      <div className="pipe-orchestra-conductor">
+        <div className="worker-bar-head">
+          <span className="worker-bar-title pipe-orchestra-conductor-name">WORKERS</span>
+          <span className="worker-bar-sub pipe-orchestra-conductor-activity">
+            {activeTarget
+              ? <><b>{runningTotal}</b> dispatched · target <b>{activeTarget}</b></>
+              : <><b>{runningTotal}</b> running · orchestrator {orch.enabled ? 'ON' : 'OFF'}</>}
           </span>
-          {orch.model && <span className="pipe-orchestra-conductor-model">{orch.model}</span>}
-        </div>
-        <div className="pipe-orchestra-conductor-activity">
-          {activeTarget
-            ? <>↓ <b>{kindArrow(orch.last_kind).label}</b> → <b>{activeTarget}</b>{orch.active_corr ? ` · ${orch.active_corr}` : ''}</>
-            : 'idle · awaiting user instruction'}
+          <span className="worker-bar-legend">
+            <span className="leg-disp"><i>↓</i> dispatch</span>
+            <span className="leg-ret"><i>↑</i> return</span>
+            <span className="leg-idle"><i>·</i> idle</span>
+            <span className="leg-down"><i>✗</i> down</span>
+          </span>
         </div>
       </div>
-      <div className="pipe-orchestra-arrows">
-        {workers.map(w => {
-          const ev = traceMap[w.workflow];
-          const arrow = kindArrow(ev && ev.kind);
-          const isActive = activeTarget === w.workflow;
-          return (
-            <div key={w.workflow} className="pipe-orchestra-arrow"
-                 data-dir={arrow.dir} data-color={arrow.color} data-active={isActive ? 'yes' : 'no'}>
-              {arrow.dir === 'down' && <span className="arrow-glyph">▼</span>}
-              {arrow.dir === 'up' && <span className="arrow-glyph">▲</span>}
-              {arrow.dir === 'none' && <span className="arrow-glyph muted">·</span>}
-            </div>
-          );
-        })}
-      </div>
-      <div className="pipe-orchestra-workers">
+      <div className="pipe-orchestra-workers worker-grid">
         {workers.map(w => {
           const ev = traceMap[w.workflow];
           const arrow = kindArrow(ev && ev.kind);
           const live = w.running_count > 0;
           const reachable = w.status === 'ok';
           const sel = currentTarget === w.workflow;
+          const flow = dataFlow(w, ev);
           const opensWorkspace = window.PIPELINE_WORKSPACE_WORKFLOWS
             && window.PIPELINE_WORKSPACE_WORKFLOWS.has(w.workflow);
           return (
             <button key={w.workflow}
-                    className="pipe-orchestra-worker"
+                    className="pipe-orchestra-worker worker-card"
+                    data-flow={flow}
                     data-state={reachable ? (live ? 'running' : 'idle') : 'down'}
                     data-selected={sel ? 'yes' : 'no'}
                     onClick={() => {
@@ -581,26 +1048,27 @@ function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
                     title={opensWorkspace
                       ? `Open ${w.workflow} workspace and history`
                       : `Click to set chat target to ${w.workflow}`}>
-              <span className="pipe-orchestra-worker-head">
+              <span className="worker-card-arrow pipe-orchestra-arrow">
+                {flowArrow(flow)}
+              </span>
+              <span className="worker-card-name pipe-orchestra-worker-head">
                 <span className="pipe-orchestra-worker-dot" data-live={live ? 'yes' : 'no'} />
                 <span className="pipe-orchestra-worker-name">{w.workflow}</span>
-                {sel && <span className="pipe-orchestra-worker-sel">TO</span>}
+                {sel && <span className="to-badge pipe-orchestra-worker-sel">TO</span>}
               </span>
-              <span className="pipe-orchestra-worker-model">
+              <span className="worker-card-state pipe-orchestra-worker-state">
+                {stateLabel(w)}
+              </span>
+              <span className="worker-card-model pipe-orchestra-worker-model">
                 {w.model || w.profile || '?'}
                 {w.reasoning_effort && (
-                  <span className="pipe-orchestra-worker-effort">{w.reasoning_effort}</span>
+                  <span className="pipe-orchestra-worker-effort"> {w.reasoning_effort}</span>
+                )}
+                {w.toolchain && (
+                  <span className="pipe-orchestra-worker-toolchain"> {w.toolchain}</span>
                 )}
               </span>
-              {w.toolchain && (
-                <span className="pipe-orchestra-worker-toolchain">{w.toolchain}</span>
-              )}
-              <span className="pipe-orchestra-worker-state">
-                {!reachable ? '✗ unreachable'
-                  : live ? `▶ run #${w.running[0] && w.running[0].run_id ? w.running[0].run_id.slice(-6) : '?'}`
-                  : '◯ idle'}
-              </span>
-              <span className="pipe-orchestra-worker-trace" data-color={arrow.color}>
+              <span className="worker-card-trace pipe-orchestra-worker-trace" data-color={arrow.color}>
                 {ev ? `${arrow.label} · step #${ev.step}` : '— no recent trace'}
               </span>
             </button>
@@ -2547,6 +3015,25 @@ window.AtlasPipeline = function AtlasPipeline() {
             onSelectFlow={setSelectedFlowId}
             selectedStage={selectedStage}
             onSelectStage={setSelectedStage} />
+          <PendingQABanner ip={ip} />
+          <OrchestratorAskUserBanner ip={ip} />
+          <window.PipelineFlowMap
+            ip={ip}
+            state={pipelineState}
+            selectedFlowId={selectedFlowId}
+            selectedStage={selectedStage}
+            onSelectFlow={setSelectedFlowId}
+            onSelectStage={setSelectedStage} />
+          <EnhancedFlowCanvas
+            pipelineState={pipelineState}
+            ip={ip}
+            onSelectStage={setSelectedStage}
+            selectedStage={selectedStage}
+            selectedFlowId={selectedFlowId} />
+          <EnhancedDetailCards
+            pipelineState={pipelineState}
+            ip={ip}
+            onSelectStage={setSelectedStage} />
           <WorkerOrchestraBar
             ip={ip}
             currentTarget={chatTarget}
@@ -2565,15 +3052,6 @@ window.AtlasPipeline = function AtlasPipeline() {
                 }),
               }).catch(() => {});
             }} />
-          <PendingQABanner ip={ip} />
-          <OrchestratorAskUserBanner ip={ip} />
-          <window.PipelineFlowMap
-            ip={ip}
-            state={pipelineState}
-            selectedFlowId={selectedFlowId}
-            selectedStage={selectedStage}
-            onSelectFlow={setSelectedFlowId}
-            onSelectStage={setSelectedStage} />
           <window.DispatchRail ip={ip}
                                 chain={chain}
                                 onClearChain={() => setChain([])}

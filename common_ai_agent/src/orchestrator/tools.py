@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
@@ -386,3 +387,132 @@ def mark_downstream_stale(
         {"ok": True, "from_stage": from_stage, "stale": downstream},
         _safe_json({"from": from_stage, "stale": downstream}),
     )
+
+
+# ----------------------------------------------------------------------
+# import_document — PDF / document → req/ extraction
+# ----------------------------------------------------------------------
+
+
+def _extract_pdf_text(path: str) -> str:
+    """Extract text from a PDF file using PyMuPDF (fitz).
+
+    Falls back to pdfplumber if PyMuPDF is unavailable.
+    Returns concatenated page text.
+    """
+    try:
+        import fitz  # PyMuPDF
+    except ImportError:
+        pass
+    else:
+        doc = fitz.open(path)
+        pages = []
+        for page in doc:
+            pages.append(page.get_text())
+        doc.close()
+        return "\n\n".join(pages)
+
+    try:
+        import pdfplumber  # type: ignore
+    except ImportError:
+        pass
+    else:
+        pages = []
+        with pdfplumber.open(path) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    pages.append(text)
+        return "\n\n".join(pages)
+
+    return ""
+
+
+def import_document(
+    ip: str,
+    path: str,
+    *,
+    project_root=None,
+) -> ToolResult:
+    """Import a PDF or text document as the requirement source for an IP.
+
+    Writes:
+      - ``<ip>/req/import_manifest.json``  (hash, provenance, source_path)
+      - ``<ip>/req/source/<ip>.md``        (extracted text)
+
+    Returns a dict with ``ok``, ``requirement_source_id``, ``pages``,
+    ``char_count``, and the manifest path.
+    """
+    import hashlib
+    import uuid
+
+    if project_root is None:
+        from src.config import project_root as _pr
+
+        project_root = _pr()
+
+    source_path = Path(path).expanduser().resolve()
+    if not source_path.is_file():
+        return (
+            {"ok": False, "error": f"file not found: {source_path}"},
+            f"import_document error: file not found: {source_path}",
+        )
+
+    # Read raw bytes for hashing
+    raw = source_path.read_bytes()
+    sha256 = hashlib.sha256(raw).hexdigest()
+    source_id = f"req_{uuid.uuid4().hex[:12]}"
+
+    # Extract text
+    suffix = source_path.suffix.lower()
+    if suffix == ".pdf":
+        text = _extract_pdf_text(str(source_path))
+        if not text:
+            return (
+                {"ok": False, "error": "PDF text extraction returned empty"},
+                "import_document error: PDF extraction empty",
+            )
+        doc_type = "pdf"
+    elif suffix in (".md", ".txt", ".rst"):
+        text = raw.decode("utf-8", errors="replace")
+        doc_type = suffix.lstrip(".")
+    else:
+        text = raw.decode("utf-8", errors="replace")
+        doc_type = "unknown"
+
+    # Write output
+    ip_dir = project_root / ip
+    req_dir = ip_dir / "req"
+    source_dir = req_dir / "source"
+    source_dir.mkdir(parents=True, exist_ok=True)
+
+    manifest = {
+        "requirement_source_id": source_id,
+        "source_path": str(source_path),
+        "source_name": source_path.name,
+        "doc_type": doc_type,
+        "sha256": sha256,
+        "char_count": len(text),
+        "page_count": text.count("\n\n") + 1 if doc_type == "pdf" else None,
+        "imported_at": time.time(),
+        "tool": "import_document",
+    }
+    manifest_path = req_dir / "import_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+
+    md_path = source_dir / f"{ip}.md"
+    md_path.write_text(text, encoding="utf-8")
+
+    result = {
+        "ok": True,
+        "requirement_source_id": source_id,
+        "source_name": source_path.name,
+        "doc_type": doc_type,
+        "char_count": len(text),
+        "manifest_path": str(manifest_path.relative_to(project_root)),
+        "source_md_path": str(md_path.relative_to(project_root)),
+        "sha256": sha256,
+    }
+    return result, _safe_json(result)

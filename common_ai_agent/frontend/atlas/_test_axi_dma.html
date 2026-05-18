@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>ATLAS axi_dma test bootstrap</title>
+<script>
+  // Pre-populate localStorage with a fake logged-in session so the Pipeline
+  // screen renders without going through the login UI. Used only by the
+  // Pipeline Image redesign screenshot pipeline; not linked from anywhere.
+  try {
+    localStorage.setItem('atlasTestBypass', '1');
+    localStorage.setItem('atlasUserSessionId', 'brian');
+    localStorage.setItem('atlasActiveSession', 'brian/axi_dma/rtl-gen');
+    localStorage.setItem('atlasActiveIp', 'axi_dma');
+    localStorage.setItem('atlasScreen', 'pipeline');
+    // Force dark theme to match the Pipeline Image mockup
+    localStorage.setItem('atlasTheme', 'dark');
+    localStorage.setItem('atlasThemeUserSet', '1');
+    document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+  window.location.replace('/index.html?ip=axi_dma');
+</script>
+</head>
+<body>Redirecting to /index.html?ip=axi_dma …</body>
+</html>

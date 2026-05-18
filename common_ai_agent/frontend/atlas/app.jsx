@@ -113,7 +113,7 @@ const PipelineRunningChip = ({ onClick }) => {
 
 const App = () => {
   const dir = 'B';     // Workbench is the only visible Atlas shell mode.
-  const [theme, setTheme] = React.useState('light');
+  const [theme, setTheme] = React.useState('dark');
   const [uiLang, setUiLang] = React.useState(() => {
     try {
       const saved = localStorage.getItem('atlasUiLang');

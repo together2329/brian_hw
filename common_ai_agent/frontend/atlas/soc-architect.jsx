@@ -3678,7 +3678,7 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
         .finally(() => setStreaming(false));
       return;
     }
-    if (isPipelineChat && window.ATLAS_PIPELINE_CHAT_MODE !== 'heuristic') {
+    if (isPipelineChat && window.ATLAS_PIPELINE_CHAT_MODE === 'websocket') {
       setStreaming(true);
       const ipName = ((selModule && (selModule.name || selModule.id)) || activeSessionIp || '').trim();
       const policy = (typeof window.pipelinePolicyPayload === 'function')
@@ -3727,16 +3727,22 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
           message: text,
           ip: ipName,
           session: window.ACTIVE_SESSION || '',
+          session_id: window.ATLAS_USER_SESSION_ID || window.ACTIVE_SESSION || '',
           ...policy,
         }),
       })
         .then(async r => {
           const d = await r.json().catch(() => ({}));
           if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
-          setFeed(l => [...l, { kind: 'agent', text: d.reply || 'orchestrator updated.' }]);
+          const statusLine = d.reply || [
+            `orchestrator ${d.status || 'updated'}`,
+            d.run_id ? `run_id: ${d.run_id}` : '',
+            d.ip ? `ip: ${d.ip}` : '',
+          ].filter(Boolean).join('\n');
+          setFeed(l => [...l, { kind: 'agent', text: statusLine }]);
+          window.dispatchEvent(new CustomEvent('atlas:pipeline-poll', { detail: d }));
           if (d.action === 'dispatch') {
             window.dispatchEvent(new CustomEvent('atlas:pipeline-dispatched', { detail: d }));
-            window.dispatchEvent(new CustomEvent('atlas:pipeline-poll', { detail: d }));
           }
         })
         .catch(err => {
