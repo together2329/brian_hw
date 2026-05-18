@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "dma_scratch_ui_live_20260519a",
+  "source": "model/cycle_model.py",
+  "backend": "pymtl3",
+  "pymtl3_available": true,
+  "timestamp": "2026-05-18T19:50:22Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "pymtl3",
+    "pymtl3_available": true,
+    "transactions": 10,
+    "results_observed": 9,
+    "coverage_bins": 19,
+    "coverage_hit": 19,
+    "performance_targets": {
+      "frequency_mhz": 100,
+      "throughput": {
+        "sustained_beats_per_cycle": 0.5,
+        "condition": "No memory backpressure and single outstanding read/write sequencing."
+      },
+      "outstanding": {
+        "max": 1,
+        "description": "One read response/write beat in flight."
+      },
+      "pipeline_stages": 5,
+      "queue_depth": 1
+    }
+  },
+  "performance_targets": {
+    "frequency_mhz": 100,
+    "throughput": {
+      "sustained_beats_per_cycle": 0.5,
+      "condition": "No memory backpressure and single outstanding read/write sequencing."
+    },
+    "outstanding": {
+      "max": 1,
+      "description": "One read response/write beat in flight."
+    },
+    "pipeline_stages": 5,
+    "queue_depth": 1
+  },
+  "decomposition_units": 4,
+  "fcov_bins": 19
+}

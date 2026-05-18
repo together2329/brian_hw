@@ -1,0 +1,341 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "dma_scratch_ui_live_20260519a",
+  "source": "dma_scratch_ui_live_20260519a/yaml/dma_scratch_ui_live_20260519a.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "union",
+  "summary": {
+    "total_bins": 48,
+    "by_class": {
+      "scenario": 11,
+      "transaction_type": 10,
+      "state_transition": 10,
+      "error": 2,
+      "protocol_handshake": 4,
+      "latency_bin": 11
+    }
+  },
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC01",
+      "description": "reset_defaults"
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC02",
+      "description": "csr_programming_readback"
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC03",
+      "description": "illegal_csr_access"
+    },
+    {
+      "id": "SC04_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC04",
+      "description": "zero_length_transfer"
+    },
+    {
+      "id": "SC05_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC05",
+      "description": "single_beat_copy"
+    },
+    {
+      "id": "SC06_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC06",
+      "description": "multi_beat_copy"
+    },
+    {
+      "id": "SC07_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC07",
+      "description": "partial_final_beat"
+    },
+    {
+      "id": "SC08_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC08",
+      "description": "read_backpressure"
+    },
+    {
+      "id": "SC09_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC09",
+      "description": "write_backpressure"
+    },
+    {
+      "id": "SC10_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[9]",
+      "scenario": "SC10",
+      "description": "soft_reset_abort"
+    },
+    {
+      "id": "SC11_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[10]",
+      "scenario": "SC11",
+      "description": "status_w1c_irq_clear"
+    },
+    {
+      "id": "function_reset",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "reset"
+    },
+    {
+      "id": "function_csr_write_config",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "description": "csr_write_config"
+    },
+    {
+      "id": "function_start_transfer",
+      "class": "transaction_type",
+      "source": "function_model.transactions[2]",
+      "description": "start_transfer"
+    },
+    {
+      "id": "function_csr_read_status",
+      "class": "transaction_type",
+      "source": "function_model.transactions[3]",
+      "description": "csr_read_status"
+    },
+    {
+      "id": "function_memory_read_request",
+      "class": "transaction_type",
+      "source": "function_model.transactions[4]",
+      "description": "memory_read_request"
+    },
+    {
+      "id": "function_capture_read_data",
+      "class": "transaction_type",
+      "source": "function_model.transactions[5]",
+      "description": "capture_read_data"
+    },
+    {
+      "id": "function_memory_write_request",
+      "class": "transaction_type",
+      "source": "function_model.transactions[6]",
+      "description": "memory_write_request"
+    },
+    {
+      "id": "function_memory_write_accept",
+      "class": "transaction_type",
+      "source": "function_model.transactions[7]",
+      "description": "memory_write_accept"
+    },
+    {
+      "id": "function_clear_or_abort",
+      "class": "transaction_type",
+      "source": "function_model.transactions[8]",
+      "description": "clear_or_abort"
+    },
+    {
+      "id": "function_illegal_csr_or_start",
+      "class": "transaction_type",
+      "source": "function_model.transactions[9]",
+      "description": "illegal_csr_or_start"
+    },
+    {
+      "id": "fsm_control_idle_to_done_0",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[0]",
+      "description": "{'from': 'IDLE', 'to': 'DONE', 'when': 'start_pulse && length_bytes == 0'}"
+    },
+    {
+      "id": "fsm_control_idle_to_read_req_1",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[1]",
+      "description": "{'from': 'IDLE', 'to': 'READ_REQ', 'when': 'start_pulse && length_bytes != 0'}"
+    },
+    {
+      "id": "fsm_control_idle_to_error_2",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[2]",
+      "description": "{'from': 'IDLE', 'to': 'ERROR', 'when': 'start_pulse && busy'}"
+    },
+    {
+      "id": "fsm_control_read_req_to_wait_rdata_3",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[3]",
+      "description": "{'from': 'READ_REQ', 'to': 'WAIT_RDATA', 'when': 'mem_rd_valid && mem_rd_ready'}"
+    },
+    {
+      "id": "fsm_control_wait_rdata_to_write_req_4",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[4]",
+      "description": "{'from': 'WAIT_RDATA', 'to': 'WRITE_REQ', 'when': 'mem_rd_data_valid && mem_rd_data_ready'}"
+    },
+    {
+      "id": "fsm_control_write_req_to_done_5",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[5]",
+      "description": "{'from': 'WRITE_REQ', 'to': 'DONE', 'when': 'mem_wr_valid && mem_wr_ready && remaining_bytes <= beat_bytes'}"
+    },
+    {
+      "id": "fsm_control_write_req_to_read_req_6",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[6]",
+      "description": "{'from': 'WRITE_REQ', 'to': 'READ_REQ', 'when': 'mem_wr_valid && mem_wr_ready && remaining_bytes > beat_bytes'}"
+    },
+    {
+      "id": "fsm_control_read_req_wait_rdata_write_req_to_idle_7",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[7]",
+      "description": "{'from': ['READ_REQ', 'WAIT_RDATA', 'WRITE_REQ'], 'to': 'IDLE', 'when': 'soft_reset_pulse'}"
+    },
+    {
+      "id": "fsm_control_done_to_idle_8",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[8]",
+      "description": "{'from': 'DONE', 'to': 'IDLE', 'when': 'done is cleared and no new start is pending'}"
+    },
+    {
+      "id": "fsm_control_error_to_idle_9",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[9]",
+      "description": "{'from': 'ERROR', 'to': 'IDLE', 'when': 'error is cleared and no new start is pending'}"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_ILLEGAL_CSR', 'condition': 'CSR address is not one of 0, 4, 8, 12, 16, or 20.', 'architectural_effect': 'Assert csr_error for the accepted access, set sticky error, and assert irq_error if enabled.'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "source": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_START_WHILE_BUSY', 'condition': 'CTRL.start is written with 1 while busy is already 1.', 'architectural_effect': 'Assert csr_error, set sticky error, keep the active transfer state intact, and assert irq_error if enabled.'}"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "description": "handshake_0"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[1]",
+      "description": "handshake_1"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[2]",
+      "description": "handshake_2"
+    },
+    {
+      "id": "cycle_handshake_3",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[3]",
+      "description": "handshake_3"
+    },
+    {
+      "id": "latency_csr_access_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.csr_access",
+      "description": "csr_access latency == 0 cycles",
+      "bucket": "min",
+      "cycles": 0
+    },
+    {
+      "id": "latency_csr_access_mid",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.csr_access",
+      "description": "csr_access latency ~mid (0 cycles)",
+      "bucket": "mid",
+      "cycles": 0
+    },
+    {
+      "id": "latency_csr_access_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.csr_access",
+      "description": "csr_access latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_csr_access_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.csr_access",
+      "description": "csr_access latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_zero_length_transfer_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.zero_length_transfer",
+      "description": "zero_length_transfer latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_zero_length_transfer_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.zero_length_transfer",
+      "description": "zero_length_transfer latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_zero_length_transfer_at_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.zero_length_transfer",
+      "description": "zero_length_transfer latency == 1 cycles",
+      "bucket": "max",
+      "cycles": 1
+    },
+    {
+      "id": "latency_zero_length_transfer_gt_max",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.zero_length_transfer",
+      "description": "zero_length_transfer latency > 1 cycles",
+      "bucket": ">max",
+      "threshold": 1
+    },
+    {
+      "id": "latency_per_beat_transfer_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.per_beat_transfer",
+      "description": "per_beat_transfer latency < 2 cycles",
+      "bucket": "<min",
+      "threshold": 2
+    },
+    {
+      "id": "latency_per_beat_transfer_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.per_beat_transfer",
+      "description": "per_beat_transfer latency == 2 cycles",
+      "bucket": "min",
+      "cycles": 2
+    },
+    {
+      "id": "latency_per_beat_transfer_unbounded",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.per_beat_transfer",
+      "description": "per_beat_transfer latency unbounded (no max_cycles)",
+      "bucket": "unbounded"
+    }
+  ]
+}
