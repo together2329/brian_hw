@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 # Ensure model/ is importable from within the cocotb test environment
-_MODEL_DIR = Path(__file__).resolve().parents[3] / "model"
+_MODEL_DIR = Path(__file__).resolve().parents[2] / "model"
 if str(_MODEL_DIR) not in sys.path:
     sys.path.insert(0, str(_MODEL_DIR))
 
