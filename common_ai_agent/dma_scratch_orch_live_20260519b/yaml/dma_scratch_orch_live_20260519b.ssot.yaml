@@ -4,13 +4,10 @@ run_mode: engineering
 status: draft
 source:
   type: orchestrator_goal
-  description: >-
-    Engineering draft SSOT for a compact scratch-memory DMA IP. The block exposes a
-    simple control/status slave interface, reads source locations, writes destination
-    locations, and reports completion or error. No imported architect handoff was
-    visible in the worker prompt, so unspecified protocol details are captured as
-    assumptions and conservative defaults.
-
+  description: Engineering draft SSOT for a compact scratch-memory DMA IP. The block exposes a simple control/status slave
+    interface, reads source locations, writes destination locations, and reports completion or error. No imported architect
+    handoff was visible in the worker prompt, so unspecified protocol details are captured as assumptions and conservative
+    defaults.
 top_module:
   name: dma_scratch_orch_live_20260519b
   file: rtl/dma_scratch_orch_live_20260519b.sv
@@ -18,235 +15,458 @@ top_module:
   type: rtl
   description: Scratch DMA controller with CSR programming, memory request master, and interrupt-on-completion.
   target: generic_synthesizable_systemverilog
-
 parameters:
-  - name: ADDR_WIDTH
-    type: int
-    default: 32
-    description: Address width for CSR and memory interfaces.
-  - name: DATA_WIDTH
-    type: int
-    default: 32
-    description: Data width for CSR and DMA memory beats.
-  - name: LEN_WIDTH
-    type: int
-    default: 16
-    description: Transfer length field width in data beats.
-
+- name: ADDR_WIDTH
+  type: int
+  default: 32
+  description: Address width for CSR and memory interfaces.
+- name: DATA_WIDTH
+  type: int
+  default: 32
+  description: Data width for CSR and DMA memory beats.
+- name: LEN_WIDTH
+  type: int
+  default: 16
+  description: Transfer length field width in data beats.
 io_list:
   interfaces:
-    - name: clock_reset
-      protocol: clock_reset
-      role: sink
-      handshake:
-        clock: clk
-        reset: rst_n
-        reset_polarity: active_low
-      ports:
-        - {name: clk, direction: input, width: 1, description: Rising-edge clock}
-        - {name: rst_n, direction: input, width: 1, description: Asynchronous active-low reset}
-    - name: csr_slave
-      protocol: simple_valid_ready_csr
-      role: slave
-      handshake:
-        request: csr_valid
-        backpressure: csr_ready low stalls requests
-        response: csr_rvalid indicates read data/response valid
-        ordering: one request accepted per cycle when csr_valid && csr_ready
-      ports:
-        - {name: csr_valid, direction: input, width: 1, description: CSR request valid}
-        - {name: csr_ready, direction: output, width: 1, description: CSR request ready}
-        - {name: csr_write, direction: input, width: 1, description: CSR write enable; low means read}
-        - {name: csr_addr, direction: input, width: ADDR_WIDTH, description: Byte address for CSR access}
-        - {name: csr_wdata, direction: input, width: DATA_WIDTH, description: CSR write data}
-        - {name: csr_wstrb, direction: input, width: DATA_WIDTH/8, description: Byte write strobes}
-        - {name: csr_rvalid, direction: output, width: 1, description: CSR read/response valid}
-        - {name: csr_rdata, direction: output, width: DATA_WIDTH, description: CSR read data}
-        - {name: csr_error, direction: output, width: 1, description: CSR decode or access error}
-    - name: mem_master
-      protocol: simple_valid_ready_memory
-      role: master
-      handshake:
-        request: mem_req_valid
-        backpressure: mem_req_ready low stalls address/control issue
-        response: mem_rsp_valid returns read data or write acknowledgement
-        ordering: controller issues one outstanding operation in this draft
-      ports:
-        - {name: mem_req_valid, direction: output, width: 1, description: Memory request valid}
-        - {name: mem_req_ready, direction: input, width: 1, description: Memory request ready}
-        - {name: mem_req_write, direction: output, width: 1, description: Memory write request when high, read when low}
-        - {name: mem_req_addr, direction: output, width: ADDR_WIDTH, description: Memory byte address}
-        - {name: mem_req_wdata, direction: output, width: DATA_WIDTH, description: Memory write data}
-        - {name: mem_req_wstrb, direction: output, width: DATA_WIDTH/8, description: Memory write byte enables}
-        - {name: mem_rsp_valid, direction: input, width: 1, description: Memory response valid}
-        - {name: mem_rsp_rdata, direction: input, width: DATA_WIDTH, description: Memory read response data}
-        - {name: mem_rsp_error, direction: input, width: 1, description: Memory response error}
-    - name: interrupt
-      protocol: level_interrupt
-      role: source
-      handshake:
-        assertion: irq high while status.done or status.error is set and irq_en is set
-        clearing: software clears status bits via CSR write-one-to-clear
-      ports:
-        - {name: irq, direction: output, width: 1, description: Level interrupt output}
-
+  - name: clock_reset
+    protocol: clock_reset
+    role: sink
+    handshake:
+      clock: clk
+      reset: rst_n
+      reset_polarity: active_low
+    ports:
+    - name: clk
+      direction: input
+      width: 1
+      description: Rising-edge clock
+    - name: rst_n
+      direction: input
+      width: 1
+      description: Asynchronous active-low reset
+  - name: csr_slave
+    protocol: simple_valid_ready_csr
+    role: slave
+    handshake:
+      request: csr_valid
+      backpressure: csr_ready low stalls requests
+      response: csr_rvalid indicates read data/response valid
+      ordering: one request accepted per cycle when csr_valid && csr_ready
+    ports:
+    - name: csr_valid
+      direction: input
+      width: 1
+      description: CSR request valid
+    - name: csr_ready
+      direction: output
+      width: 1
+      description: CSR request ready
+    - name: csr_write
+      direction: input
+      width: 1
+      description: CSR write enable; low means read
+    - name: csr_addr
+      direction: input
+      width: ADDR_WIDTH
+      description: Byte address for CSR access
+    - name: csr_wdata
+      direction: input
+      width: DATA_WIDTH
+      description: CSR write data
+    - name: csr_wstrb
+      direction: input
+      width: DATA_WIDTH/8
+      description: Byte write strobes
+    - name: csr_rvalid
+      direction: output
+      width: 1
+      description: CSR read/response valid
+    - name: csr_rdata
+      direction: output
+      width: DATA_WIDTH
+      description: CSR read data
+    - name: csr_error
+      direction: output
+      width: 1
+      description: CSR decode or access error
+  - name: mem_master
+    protocol: simple_valid_ready_memory
+    role: master
+    handshake:
+      request: mem_req_valid
+      backpressure: mem_req_ready low stalls address/control issue
+      response: mem_rsp_valid returns read data or write acknowledgement
+      ordering: controller issues one outstanding operation in this draft
+    ports:
+    - name: mem_req_valid
+      direction: output
+      width: 1
+      description: Memory request valid
+    - name: mem_req_ready
+      direction: input
+      width: 1
+      description: Memory request ready
+    - name: mem_req_write
+      direction: output
+      width: 1
+      description: Memory write request when high
+      read when low: null
+    - name: mem_req_addr
+      direction: output
+      width: ADDR_WIDTH
+      description: Memory byte address
+    - name: mem_req_wdata
+      direction: output
+      width: DATA_WIDTH
+      description: Memory write data
+    - name: mem_req_wstrb
+      direction: output
+      width: DATA_WIDTH/8
+      description: Memory write byte enables
+    - name: mem_rsp_valid
+      direction: input
+      width: 1
+      description: Memory response valid
+    - name: mem_rsp_rdata
+      direction: input
+      width: DATA_WIDTH
+      description: Memory read response data
+    - name: mem_rsp_error
+      direction: input
+      width: 1
+      description: Memory response error
+  - name: interrupt
+    protocol: level_interrupt
+    role: source
+    handshake:
+      assertion: irq high while status.done or status.error is set and irq_en is set
+      clearing: software clears status bits via CSR write-one-to-clear
+    ports:
+    - name: irq
+      direction: output
+      width: 1
+      description: Level interrupt output
 features:
-  - id: csr_programming
-    description: Software programs source, destination, length, control, and clears status through CSR slave.
-  - id: dma_copy
-    description: Copies LEN beats from SRC_ADDR to DST_ADDR using one-read-then-one-write sequencing.
-  - id: completion_irq
-    description: Sets done status and optional level interrupt after final write acknowledgement.
-  - id: error_latch
-    description: Latches memory or CSR errors until software clears status.
-
+- id: csr_programming
+  description: Software programs source, destination, length, control, and clears status through CSR slave.
+- id: dma_copy
+  description: Copies LEN beats from SRC_ADDR to DST_ADDR using one-read-then-one-write sequencing.
+- id: completion_irq
+  description: Sets done status and optional level interrupt after final write acknowledgement.
+- id: error_latch
+  description: Latches memory or CSR errors until software clears status.
 dataflow:
-  - id: df_csr_to_state
-    sources: [csr_slave]
-    sinks: [control_registers]
-    description: Accepted CSR writes update programmable DMA state when engine is idle or permitted.
-  - id: df_dma_copy
-    sources: [mem_master.read_response]
-    sinks: [mem_master.write_request]
-    description: Read data is buffered for the matching destination write beat.
-  - id: df_status_irq
-    sources: [dma_engine]
-    sinks: [status_registers, irq]
-    description: Completion and error events update status and drive interrupt qualification.
-
+- id: df_csr_to_state
+  sources:
+  - csr_slave
+  sinks:
+  - control_registers
+  description: Accepted CSR writes update programmable DMA state when engine is idle or permitted.
+- id: df_dma_copy
+  sources:
+  - mem_master.read_response
+  sinks:
+  - mem_master.write_request
+  description: Read data is buffered for the matching destination write beat.
+- id: df_status_irq
+  sources:
+  - dma_engine
+  sinks:
+  - status_registers
+  - irq
+  description: Completion and error events update status and drive interrupt qualification.
 registers:
-  - name: CTRL
-    offset: 0x00
+- name: CTRL
+  offset: 0
+  width: 32
+  fields:
+  - name: start
+    lsb: 0
+    width: 1
+    access: rw1s
+    reset: 0
+    description: Start transfer when written 1
+  - name: irq_en
+    lsb: 1
+    width: 1
+    access: rw
+    reset: 0
+    description: Enable irq on done/error
+- name: STATUS
+  offset: 4
+  width: 32
+  fields:
+  - name: busy
+    lsb: 0
+    width: 1
+    access: ro
+    reset: 0
+    description: DMA active
+  - name: done
+    lsb: 1
+    width: 1
+    access: rw1c
+    reset: 0
+    description: Transfer completed
+  - name: error
+    lsb: 2
+    width: 1
+    access: rw1c
+    reset: 0
+    description: Error latched
+- name: SRC_ADDR
+  offset: 8
+  width: 32
+  fields:
+  - name: value
+    lsb: 0
     width: 32
-    fields:
-      - {name: start, lsb: 0, width: 1, access: rw1s, reset: 0, description: Start transfer when written 1}
-      - {name: irq_en, lsb: 1, width: 1, access: rw, reset: 0, description: Enable irq on done/error}
-  - name: STATUS
-    offset: 0x04
+    access: rw
+    reset: 0
+    description: Source byte address
+- name: DST_ADDR
+  offset: 12
+  width: 32
+  fields:
+  - name: value
+    lsb: 0
     width: 32
-    fields:
-      - {name: busy, lsb: 0, width: 1, access: ro, reset: 0, description: DMA active}
-      - {name: done, lsb: 1, width: 1, access: rw1c, reset: 0, description: Transfer completed}
-      - {name: error, lsb: 2, width: 1, access: rw1c, reset: 0, description: Error latched}
-  - name: SRC_ADDR
-    offset: 0x08
-    width: 32
-    fields:
-      - {name: value, lsb: 0, width: 32, access: rw, reset: 0, description: Source byte address}
-  - name: DST_ADDR
-    offset: 0x0C
-    width: 32
-    fields:
-      - {name: value, lsb: 0, width: 32, access: rw, reset: 0, description: Destination byte address}
-  - name: LEN
-    offset: 0x10
-    width: 32
-    fields:
-      - {name: beats, lsb: 0, width: LEN_WIDTH, access: rw, reset: 0, description: Number of DATA_WIDTH beats to copy}
-
+    access: rw
+    reset: 0
+    description: Destination byte address
+- name: LEN
+  offset: 16
+  width: 32
+  fields:
+  - name: beats
+    lsb: 0
+    width: LEN_WIDTH
+    access: rw
+    reset: 0
+    description: Number of DATA_WIDTH beats to copy
 interrupts:
-  - name: irq
-    source: STATUS.done_or_error
-    type: level
-    enable: CTRL.irq_en
-    clear: write_one_to_clear_STATUS_done_error
-
+- name: irq
+  source: STATUS.done_or_error
+  type: level
+  enable: CTRL.irq_en
+  clear: write_one_to_clear_STATUS_done_error
 fsm:
-  - name: dma_fsm
-    reset_state: IDLE
-    states: [IDLE, ISSUE_READ, WAIT_READ, ISSUE_WRITE, WAIT_WRITE, COMPLETE, ERROR]
-    transitions:
-      - {from: IDLE, to: ISSUE_READ, condition: start_pulse && len_beats != 0}
-      - {from: IDLE, to: COMPLETE, condition: start_pulse && len_beats == 0}
-      - {from: ISSUE_READ, to: WAIT_READ, condition: mem_req_valid && mem_req_ready}
-      - {from: WAIT_READ, to: ERROR, condition: mem_rsp_valid && mem_rsp_error}
-      - {from: WAIT_READ, to: ISSUE_WRITE, condition: mem_rsp_valid && !mem_rsp_error}
-      - {from: ISSUE_WRITE, to: WAIT_WRITE, condition: mem_req_valid && mem_req_ready}
-      - {from: WAIT_WRITE, to: ERROR, condition: mem_rsp_valid && mem_rsp_error}
-      - {from: WAIT_WRITE, to: ISSUE_READ, condition: mem_rsp_valid && !mem_rsp_error && remaining_beats > 1}
-      - {from: WAIT_WRITE, to: COMPLETE, condition: mem_rsp_valid && !mem_rsp_error && remaining_beats == 1}
-      - {from: COMPLETE, to: IDLE, condition: '1'}
-      - {from: ERROR, to: IDLE, condition: status_error_clear && !start_pulse}
-
+- name: dma_fsm
+  reset_state: IDLE
+  states:
+  - IDLE
+  - ISSUE_READ
+  - WAIT_READ
+  - ISSUE_WRITE
+  - WAIT_WRITE
+  - COMPLETE
+  - ERROR
+  transitions:
+  - from: IDLE
+    to: ISSUE_READ
+    condition: start_pulse && len_beats != 0
+  - from: IDLE
+    to: COMPLETE
+    condition: start_pulse && len_beats == 0
+  - from: ISSUE_READ
+    to: WAIT_READ
+    condition: mem_req_valid && mem_req_ready
+  - from: WAIT_READ
+    to: ERROR
+    condition: mem_rsp_valid && mem_rsp_error
+  - from: WAIT_READ
+    to: ISSUE_WRITE
+    condition: mem_rsp_valid && !mem_rsp_error
+  - from: ISSUE_WRITE
+    to: WAIT_WRITE
+    condition: mem_req_valid && mem_req_ready
+  - from: WAIT_WRITE
+    to: ERROR
+    condition: mem_rsp_valid && mem_rsp_error
+  - from: WAIT_WRITE
+    to: ISSUE_READ
+    condition: mem_rsp_valid && !mem_rsp_error && remaining_beats > 1
+  - from: WAIT_WRITE
+    to: COMPLETE
+    condition: mem_rsp_valid && !mem_rsp_error && remaining_beats == 1
+  - from: COMPLETE
+    to: IDLE
+    condition: '1'
+  - from: ERROR
+    to: IDLE
+    condition: status_error_clear && !start_pulse
 function_model:
   state:
-    - {name: src_addr, width: ADDR_WIDTH, reset: 0}
-    - {name: dst_addr, width: ADDR_WIDTH, reset: 0}
-    - {name: len_beats, width: LEN_WIDTH, reset: 0}
-    - {name: remaining_beats, width: LEN_WIDTH, reset: 0}
-    - {name: busy, width: 1, reset: 0}
-    - {name: done, width: 1, reset: 0}
-    - {name: error, width: 1, reset: 0}
-    - {name: irq_en, width: 1, reset: 0}
-    - {name: read_buffer, width: DATA_WIDTH, reset: 0}
+  - name: src_addr
+    width: ADDR_WIDTH
+    reset: 0
+  - name: dst_addr
+    width: ADDR_WIDTH
+    reset: 0
+  - name: len_beats
+    width: LEN_WIDTH
+    reset: 0
+  - name: remaining_beats
+    width: LEN_WIDTH
+    reset: 0
+  - name: busy
+    width: 1
+    reset: 0
+  - name: done
+    width: 1
+    reset: 0
+  - name: error
+    width: 1
+    reset: 0
+  - name: irq_en
+    width: 1
+    reset: 0
+  - name: read_buffer
+    width: DATA_WIDTH
+    reset: 0
   transactions:
-    - id: reset
-      trigger: rst_n == 0
-      state_updates:
-        - {state: src_addr, expr: '0', width: ADDR_WIDTH}
-        - {state: dst_addr, expr: '0', width: ADDR_WIDTH}
-        - {state: len_beats, expr: '0', width: LEN_WIDTH}
-        - {state: remaining_beats, expr: '0', width: LEN_WIDTH}
-        - {state: busy, expr: '0', width: 1}
-        - {state: done, expr: '0', width: 1}
-        - {state: error, expr: '0', width: 1}
-        - {state: irq_en, expr: '0', width: 1}
-      output_rules:
-        - {port: irq, expr: '0', width: 1}
-    - id: csr_write_program
-      trigger: csr_valid && csr_ready && csr_write
-      state_updates:
-        - {state: src_addr, expr: 'csr_addr == 0x08 ? csr_wdata[ADDR_WIDTH-1:0] : src_addr', width: ADDR_WIDTH}
-        - {state: dst_addr, expr: 'csr_addr == 0x0C ? csr_wdata[ADDR_WIDTH-1:0] : dst_addr', width: ADDR_WIDTH}
-        - {state: len_beats, expr: 'csr_addr == 0x10 ? csr_wdata[LEN_WIDTH-1:0] : len_beats', width: LEN_WIDTH}
-        - {state: irq_en, expr: 'csr_addr == 0x00 && csr_wstrb[0] ? csr_wdata[1] : irq_en', width: 1}
-        - {state: done, expr: 'csr_addr == 0x04 && csr_wdata[1] ? 1b0 : done', width: 1}
-        - {state: error, expr: 'csr_addr == 0x04 && csr_wdata[2] ? 1b0 : error', width: 1}
-    - id: start_transfer
-      trigger: csr_valid && csr_ready && csr_write && csr_addr == 0x00 && csr_wdata[0] && !busy
-      state_updates:
-        - {state: busy, expr: '1b1', width: 1}
-        - {state: done, expr: '1b0', width: 1}
-        - {state: error, expr: '1b0', width: 1}
-        - {state: remaining_beats, expr: 'len_beats', width: LEN_WIDTH}
-    - id: read_request
-      trigger: dma_fsm == ISSUE_READ
-      output_rules:
-        - {port: mem_req_valid, expr: '1b1', width: 1}
-        - {port: mem_req_write, expr: '1b0', width: 1}
-        - {port: mem_req_addr, expr: 'src_addr + ((len_beats - remaining_beats) * (DATA_WIDTH/8))', width: ADDR_WIDTH}
-        - {port: mem_req_wdata, expr: '0', width: DATA_WIDTH}
-        - {port: mem_req_wstrb, expr: '0', width: DATA_WIDTH/8}
-    - id: capture_read
-      trigger: mem_rsp_valid && dma_fsm == WAIT_READ && !mem_rsp_error
-      state_updates:
-        - {state: read_buffer, expr: 'mem_rsp_rdata', width: DATA_WIDTH}
-    - id: write_request
-      trigger: dma_fsm == ISSUE_WRITE
-      output_rules:
-        - {port: mem_req_valid, expr: '1b1', width: 1}
-        - {port: mem_req_write, expr: '1b1', width: 1}
-        - {port: mem_req_addr, expr: 'dst_addr + ((len_beats - remaining_beats) * (DATA_WIDTH/8))', width: ADDR_WIDTH}
-        - {port: mem_req_wdata, expr: 'read_buffer', width: DATA_WIDTH}
-        - {port: mem_req_wstrb, expr: '{DATA_WIDTH/8{1b1}}', width: DATA_WIDTH/8}
-    - id: write_ack
-      trigger: mem_rsp_valid && dma_fsm == WAIT_WRITE && !mem_rsp_error
-      state_updates:
-        - {state: remaining_beats, expr: 'remaining_beats - 1b1', width: LEN_WIDTH}
-        - {state: done, expr: 'remaining_beats == 1 ? 1b1 : done', width: 1}
-        - {state: busy, expr: 'remaining_beats == 1 ? 1b0 : busy', width: 1}
-    - id: mem_error
-      trigger: mem_rsp_valid && mem_rsp_error
-      state_updates:
-        - {state: error, expr: '1b1', width: 1}
-        - {state: busy, expr: '1b0', width: 1}
-      output_rules:
-        - {port: irq, expr: 'irq_en', width: 1}
-    - id: irq_drive
-      trigger: combinational
-      output_rules:
-        - {port: irq, expr: 'irq_en && (done || error)', width: 1}
-
+  - id: reset
+    trigger: rst_n == 0
+    state_updates:
+    - state: src_addr
+      expr: '0'
+      width: ADDR_WIDTH
+    - state: dst_addr
+      expr: '0'
+      width: ADDR_WIDTH
+    - state: len_beats
+      expr: '0'
+      width: LEN_WIDTH
+    - state: remaining_beats
+      expr: '0'
+      width: LEN_WIDTH
+    - state: busy
+      expr: '0'
+      width: 1
+    - state: done
+      expr: '0'
+      width: 1
+    - state: error
+      expr: '0'
+      width: 1
+    - state: irq_en
+      expr: '0'
+      width: 1
+    output_rules:
+    - port: irq
+      expr: '0'
+      width: 1
+  - id: csr_write_program
+    trigger: csr_valid && csr_ready && csr_write
+    state_updates:
+    - state: src_addr
+      expr: 'csr_addr == 0x08 ? csr_wdata[ADDR_WIDTH-1:0] : src_addr'
+      width: ADDR_WIDTH
+    - state: dst_addr
+      expr: 'csr_addr == 0x0C ? csr_wdata[ADDR_WIDTH-1:0] : dst_addr'
+      width: ADDR_WIDTH
+    - state: len_beats
+      expr: 'csr_addr == 0x10 ? csr_wdata[LEN_WIDTH-1:0] : len_beats'
+      width: LEN_WIDTH
+    - state: irq_en
+      expr: 'csr_addr == 0x00 && csr_wstrb[0] ? csr_wdata[1] : irq_en'
+      width: 1
+    - state: done
+      expr: 'csr_addr == 0x04 && csr_wdata[1] ? 1b0 : done'
+      width: 1
+    - state: error
+      expr: 'csr_addr == 0x04 && csr_wdata[2] ? 1b0 : error'
+      width: 1
+  - id: start_transfer
+    trigger: csr_valid && csr_ready && csr_write && csr_addr == 0x00 && csr_wdata[0] && !busy
+    state_updates:
+    - state: busy
+      expr: 1b1
+      width: 1
+    - state: done
+      expr: 1b0
+      width: 1
+    - state: error
+      expr: 1b0
+      width: 1
+    - state: remaining_beats
+      expr: len_beats
+      width: LEN_WIDTH
+  - id: read_request
+    trigger: dma_fsm == ISSUE_READ
+    output_rules:
+    - port: mem_req_valid
+      expr: 1b1
+      width: 1
+    - port: mem_req_write
+      expr: 1b0
+      width: 1
+    - port: mem_req_addr
+      expr: src_addr + ((len_beats - remaining_beats) * (DATA_WIDTH/8))
+      width: ADDR_WIDTH
+    - port: mem_req_wdata
+      expr: '0'
+      width: DATA_WIDTH
+    - port: mem_req_wstrb
+      expr: '0'
+      width: DATA_WIDTH/8
+  - id: capture_read
+    trigger: mem_rsp_valid && dma_fsm == WAIT_READ && !mem_rsp_error
+    state_updates:
+    - state: read_buffer
+      expr: mem_rsp_rdata
+      width: DATA_WIDTH
+  - id: write_request
+    trigger: dma_fsm == ISSUE_WRITE
+    output_rules:
+    - port: mem_req_valid
+      expr: 1b1
+      width: 1
+    - port: mem_req_write
+      expr: 1b1
+      width: 1
+    - port: mem_req_addr
+      expr: dst_addr + ((len_beats - remaining_beats) * (DATA_WIDTH/8))
+      width: ADDR_WIDTH
+    - port: mem_req_wdata
+      expr: read_buffer
+      width: DATA_WIDTH
+    - port: mem_req_wstrb
+      expr: '{DATA_WIDTH/8{1b1}}'
+      width: DATA_WIDTH/8
+  - id: write_ack
+    trigger: mem_rsp_valid && dma_fsm == WAIT_WRITE && !mem_rsp_error
+    state_updates:
+    - state: remaining_beats
+      expr: remaining_beats - 1b1
+      width: LEN_WIDTH
+    - state: done
+      expr: 'remaining_beats == 1 ? 1b1 : done'
+      width: 1
+    - state: busy
+      expr: 'remaining_beats == 1 ? 1b0 : busy'
+      width: 1
+  - id: mem_error
+    trigger: mem_rsp_valid && mem_rsp_error
+    state_updates:
+    - state: error
+      expr: 1b1
+      width: 1
+    - state: busy
+      expr: 1b0
+      width: 1
+    output_rules:
+    - port: irq
+      expr: irq_en
+      width: 1
+  - id: irq_drive
+    trigger: combinational
+    output_rules:
+    - port: irq
+      expr: irq_en && (done || error)
+      width: 1
 cycle_model:
   latency:
     csr_accept: 0
@@ -256,77 +476,147 @@ cycle_model:
     outstanding_memory_ops: 1
     read_before_write_same_beat: true
   reset_behavior: outputs deasserted and state cleared on rst_n low
-
 sub_modules:
-  - name: dma_scratch_csr
-    file: rtl/dma_scratch_orch_live_20260519b.sv
-    type: logical_block
-    implements: [csr_programming, completion_irq, error_latch]
-    function_model_refs: [csr_write_program, start_transfer, irq_drive]
-    register_refs: [CTRL, STATUS, SRC_ADDR, DST_ADDR, LEN]
-    dataflow_refs: [df_csr_to_state, df_status_irq]
-  - name: dma_scratch_engine
-    file: rtl/dma_scratch_orch_live_20260519b.sv
-    type: logical_block
-    implements: [dma_copy, error_latch]
-    function_model_refs: [read_request, capture_read, write_request, write_ack, mem_error]
-    cycle_model_refs: [latency, ordering]
-    fsm_refs: [dma_fsm]
-    dataflow_refs: [df_dma_copy, df_status_irq]
-
+- name: dma_scratch_csr
+  file: rtl/dma_scratch_orch_live_20260519b.sv
+  type: logical_block
+  implements:
+  - csr_programming
+  - completion_irq
+  - error_latch
+  function_model_refs:
+  - csr_write_program
+  - start_transfer
+  - irq_drive
+  register_refs:
+  - CTRL
+  - STATUS
+  - SRC_ADDR
+  - DST_ADDR
+  - LEN
+  dataflow_refs:
+  - df_csr_to_state
+  - df_status_irq
+- name: dma_scratch_engine
+  file: rtl/dma_scratch_orch_live_20260519b.sv
+  type: logical_block
+  implements:
+  - dma_copy
+  - error_latch
+  function_model_refs:
+  - read_request
+  - capture_read
+  - write_request
+  - write_ack
+  - mem_error
+  cycle_model_refs:
+  - latency
+  - ordering
+  fsm_refs:
+  - dma_fsm
+  dataflow_refs:
+  - df_dma_copy
+  - df_status_irq
 custom:
   assumptions:
-    - No imported architect handoff was available to this ssot-gen worker; this is an engineering draft from the visible DMA scratch goal.
-    - The downstream RTL top must be rtl/dma_scratch_orch_live_20260519b.sv and module dma_scratch_orch_live_20260519b.
-    - CSR protocol is a simple valid/ready interface, not AXI/APB, unless a later requirement overrides it.
-    - Memory master allows one outstanding request and returns a response for both reads and writes.
-    - Transfer length is counted in DATA_WIDTH beats; unaligned and byte-count transfers are out of scope for this draft.
+  - No imported architect handoff was available to this ssot-gen worker; this is an engineering draft from the visible DMA
+    scratch goal.
+  - The downstream RTL top must be rtl/dma_scratch_orch_live_20260519b.sv and module dma_scratch_orch_live_20260519b.
+  - CSR protocol is a simple valid/ready interface, not AXI/APB, unless a later requirement overrides it.
+  - Memory master allows one outstanding request and returns a response for both reads and writes.
+  - Transfer length is counted in DATA_WIDTH beats; unaligned and byte-count transfers are out of scope for this draft.
   tbd:
-    - Confirm whether the system integration requires AXI-lite/APB CSR and AXI/AHB memory protocols.
-    - Confirm error semantics for illegal CSR writes while busy.
-
+  - Confirm whether the system integration requires AXI-lite/APB CSR and AXI/AHB memory protocols.
+  - Confirm error semantics for illegal CSR writes while busy.
+  rtl_blocker_resolutions:
+  - id: LLM_RTL_IMPLEMENTATION_REQUIRED
+    decision_needed: Generate real RTL from SSOT-derived TODOs before compile/lint/audit.
+    answer: LLM writes the RTL; scripts only derive TODOs, preflight manifests, and validate evidence.
+    evidence: 'missing RTL files: rtl/dma_scratch_orch_live_20260519b.sv'
+    source: rtl_blocked.json -> ATLAS ask_user
+    resolved_at: '2026-05-18T21:36:10Z'
 test_requirements:
-  - id: reset_defaults
-    stimulus: Assert rst_n low then release.
-    expected_results: All state and outputs deassert; CSR reads return reset values.
-    checkers: [reset_register_values, outputs_idle_after_reset]
-    coverage: [reset_seen]
-  - id: csr_program_and_readback
-    stimulus: Write SRC_ADDR, DST_ADDR, LEN, CTRL.irq_en; read all CSRs.
-    expected_results: Readback matches writes for rw fields; status reflects idle.
-    checkers: [csr_readback_scoreboard, csr_error_decode]
-    coverage: [all_register_offsets, byte_strobes]
-  - id: nominal_dma_copy
-    stimulus: Program nonzero length, start transfer, provide ready memory and read data responses.
-    expected_results: One read and one write per beat; destination addresses increment; done asserted; irq follows irq_en.
-    checkers: [memory_sequence_scoreboard, done_irq_checker]
-    coverage: [length_1, length_multi, back_to_back_transfers]
-  - id: backpressure
-    stimulus: Randomly deassert csr_ready-equivalent acceptance via testbench timing and mem_req_ready.
-    expected_results: Requests remain stable while stalled and no beats are skipped or duplicated.
-    checkers: [valid_ready_stability, beat_count_scoreboard]
-    coverage: [mem_request_stall, response_gap]
-  - id: memory_error
-    stimulus: Return mem_rsp_error during read or write response.
-    expected_results: busy clears, error latches, done remains clear, irq asserts when enabled.
-    checkers: [error_status_checker, no_further_mem_after_error]
-    coverage: [read_error, write_error]
-
+- id: reset_defaults
+  stimulus: Assert rst_n low then release.
+  expected_results: All state and outputs deassert; CSR reads return reset values.
+  checkers:
+  - reset_register_values
+  - outputs_idle_after_reset
+  coverage:
+  - reset_seen
+- id: csr_program_and_readback
+  stimulus: Write SRC_ADDR, DST_ADDR, LEN, CTRL.irq_en; read all CSRs.
+  expected_results: Readback matches writes for rw fields; status reflects idle.
+  checkers:
+  - csr_readback_scoreboard
+  - csr_error_decode
+  coverage:
+  - all_register_offsets
+  - byte_strobes
+- id: nominal_dma_copy
+  stimulus: Program nonzero length, start transfer, provide ready memory and read data responses.
+  expected_results: One read and one write per beat; destination addresses increment; done asserted; irq follows irq_en.
+  checkers:
+  - memory_sequence_scoreboard
+  - done_irq_checker
+  coverage:
+  - length_1
+  - length_multi
+  - back_to_back_transfers
+- id: backpressure
+  stimulus: Randomly deassert csr_ready-equivalent acceptance via testbench timing and mem_req_ready.
+  expected_results: Requests remain stable while stalled and no beats are skipped or duplicated.
+  checkers:
+  - valid_ready_stability
+  - beat_count_scoreboard
+  coverage:
+  - mem_request_stall
+  - response_gap
+- id: memory_error
+  stimulus: Return mem_rsp_error during read or write response.
+  expected_results: busy clears, error latches, done remains clear, irq asserts when enabled.
+  checkers:
+  - error_status_checker
+  - no_further_mem_after_error
+  coverage:
+  - read_error
+  - write_error
 quality_gates:
-  - name: ssot_schema_repaired
-    command: python3 workflow/ssot-gen/scripts/repair_ssot_schema.py dma_scratch_orch_live_20260519b --mode engineering
-    required: true
-  - name: ssot_disk_validation
-    command: bash workflow/ssot-gen/scripts/check_ssot_disk.sh dma_scratch_orch_live_20260519b --mode engineering
-    required: true
-  - name: rtl_compile
-    command: sv_compile rtl/dma_scratch_orch_live_20260519b.sv
-    required: true
-
+- name: ssot_schema_repaired
+  command: python3 workflow/ssot-gen/scripts/repair_ssot_schema.py dma_scratch_orch_live_20260519b --mode engineering
+  required: true
+- name: ssot_disk_validation
+  command: bash workflow/ssot-gen/scripts/check_ssot_disk.sh dma_scratch_orch_live_20260519b --mode engineering
+  required: true
+- name: rtl_compile
+  command: sv_compile rtl/dma_scratch_orch_live_20260519b.sv
+  required: true
 workflow_todos:
-  - owner: rtl-gen
-    task: Implement synthesizable top at rtl/dma_scratch_orch_live_20260519b.sv using this SSOT.
-  - owner: tb-gen
-    task: Build CSR and memory-agent tests for reset, CSR, nominal DMA, backpressure, and error scenarios.
-  - owner: lint
-    task: Check no latches, no undriven outputs, reset consistency, and parameter width correctness.
+- owner: rtl-gen
+  task: Implement synthesizable top at rtl/dma_scratch_orch_live_20260519b.sv using this SSOT.
+- owner: tb-gen
+  task: Build CSR and memory-agent tests for reset, CSR, nominal DMA, backpressure, and error scenarios.
+- owner: lint
+  task: Check no latches, no undriven outputs, reset consistency, and parameter width correctness.
+traceability:
+  rtl_blocker_to_ssot:
+  - blocker_id: LLM_RTL_IMPLEMENTATION_REQUIRED
+    answer: LLM writes the RTL; scripts only derive TODOs, preflight manifests, and validate evidence.
+    ssot_fields:
+    - custom.rtl_blocker_resolutions
+    - function_model
+    - cycle_model
+    - registers
+    - error_handling
+    - test_requirements
+    - sub_modules
+    - integration.connections
+    - quality_gates
+generation_flow:
+  blocker_resolution_history:
+  - source: rtl-gen
+    artifact: rtl/rtl_blocked.json
+    answers:
+    - LLM_RTL_IMPLEMENTATION_REQUIRED
+    next: rerun fl-model-gen/fcov and rtl-gen preflight before RTL implementation
+    timestamp: '2026-05-18T21:36:10Z'

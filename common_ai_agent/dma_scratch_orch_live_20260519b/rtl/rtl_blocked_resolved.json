@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "type": "rtl_blocker_resolution",
+  "status": "applied_to_ssot",
+  "answers": [
+    {
+      "id": "LLM_RTL_IMPLEMENTATION_REQUIRED",
+      "decision_needed": "Generate real RTL from SSOT-derived TODOs before compile/lint/audit.",
+      "answer": "LLM writes the RTL; scripts only derive TODOs, preflight manifests, and validate evidence.",
+      "selected": [
+        "LLM writes the RTL; scripts only derive TODOs, preflight manifests, and validate evidence."
+      ],
+      "source_evidence": "missing RTL files: rtl/dma_scratch_orch_live_20260519b.sv",
+      "downstream_effect": "General-purpose IP generation cannot depend on hardcoded RTL templates.",
+      "ssot_projection": {
+        "generation_flow.blocker_resolution_history": "Record that SSOT is repaired/normalized and rtl-gen remains responsible for real RTL implementation.",
+        "workflow_todos": "rtl-gen must read yaml/<ip>.ssot.yaml and rtl/rtl_todo_plan.json, implement rtl/<ip>.sv, list/<ip>.f, then rerun /ssot-rtl."
+      }
+    }
+  ],
+  "ssot": "dma_scratch_orch_live_20260519b/yaml/dma_scratch_orch_live_20260519b.ssot.yaml",
+  "timestamp": "2026-05-18T21:36:10Z"
+}
