@@ -20,8 +20,8 @@
 
   // ── axi_dma mock pipeline state ─────────────────────────────────
   // Intercept /api/pipeline/state and /api/orchestrator/workers for the
-  // axi_dma demo IP so the Pipeline screen renders the multi-runner UX
-  // (rtl-gen + sim running simultaneously) without a live backend.
+  // axi_dma demo IP only when screenshot-test bypass is explicitly enabled.
+  // Live mode must always hit the backend, even for an IP named axi_dma.
   (function installAxiDmaMock() {
     const AXI_DMA_PIPELINE_STATE = {
       ip: 'axi_dma',
@@ -77,7 +77,10 @@
     // the Pipeline screen without going through the real login UI. Real users
     // never set this flag — the gate is intentional, not a security hole.
     const isTestBypass = (() => {
-      try { return localStorage.getItem('atlasTestBypass') === '1'; }
+      try {
+        const liveBackend = new URLSearchParams(location.search || '').get('backend') === 'live';
+        return !liveBackend && localStorage.getItem('atlasTestBypass') === '1';
+      }
       catch (_) { return false; }
     })();
     if (isTestBypass && typeof window !== 'undefined') {
@@ -187,23 +190,23 @@
         const parsed = new URL(url, location.href);
         path = parsed.pathname + parsed.search;
       } catch (_) {}
-      if (/^\/api\/pipeline\/state/.test(path)) {
-        const ipParam = (() => {
-          try { return new URL(path, location.href).searchParams.get('ip') || ''; } catch (_) { return ''; }
-        })();
-        if (ipParam === 'axi_dma') {
-          return Promise.resolve(jsonResp(AXI_DMA_PIPELINE_STATE));
-        }
-      }
-      if (/^\/api\/orchestrator\/workers/.test(path)) {
-        const ipParam = (() => {
-          try { return new URL(path, location.href).searchParams.get('ip') || ''; } catch (_) { return ''; }
-        })();
-        if (ipParam === 'axi_dma') {
-          return Promise.resolve(jsonResp(AXI_DMA_WORKERS_STATE));
-        }
-      }
       if (isTestBypass) {
+        if (/^\/api\/pipeline\/state/.test(path)) {
+          const ipParam = (() => {
+            try { return new URL(path, location.href).searchParams.get('ip') || ''; } catch (_) { return ''; }
+          })();
+          if (ipParam === 'axi_dma') {
+            return Promise.resolve(jsonResp(AXI_DMA_PIPELINE_STATE));
+          }
+        }
+        if (/^\/api\/orchestrator\/workers/.test(path)) {
+          const ipParam = (() => {
+            try { return new URL(path, location.href).searchParams.get('ip') || ''; } catch (_) { return ''; }
+          })();
+          if (ipParam === 'axi_dma') {
+            return Promise.resolve(jsonResp(AXI_DMA_WORKERS_STATE));
+          }
+        }
         if (/^\/api\/auth\/status/.test(path)) {
           return Promise.resolve(jsonResp(TEST_AUTH_STATUS));
         }

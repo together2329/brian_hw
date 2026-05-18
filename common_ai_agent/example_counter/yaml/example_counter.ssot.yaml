@@ -1,0 +1,352 @@
+ip: example_counter
+version: '1.0'
+purpose: Simple 4-bit up-counter with synchronous reset, count enable, parallel load, and overflow flag. Demonstrates the full SSOT-to-PnR pipeline on a minimal IP.
+type: peripheral
+top_module:
+  name: example_counter
+  file: rtl/example_counter.sv
+  version: '1.0'
+  type: peripheral
+  description: 4-bit up-counter with sync reset, enable, load, and overflow
+  reference_spec: Internal
+  target:
+    technology: sky130
+    clock_freq_mhz: 50
+    area_um2: null
+    power_mw: null
+io_list:
+  clock_domains:
+  - name: clk
+    frequency_mhz: 50
+    description: Single system clock
+    ports:
+    - name: clk
+      width: 1
+      direction: input
+      description: System clock rising-edge active
+  resets:
+  - name: rst_n
+    polarity: active_low
+    sync_async: sync
+    description: Synchronous active-low reset
+    ports:
+    - name: rst_n
+      width: 1
+      direction: input
+      description: Synchronous active-low reset
+  interfaces:
+  - name: control
+    type: custom
+    role: input
+    clock_domain: clk
+    description: Counter control signals
+    protocol: Synchronous sampled on clk rising edge
+    ports:
+    - name: en
+      width: 1
+      direction: input
+      description: Count enable; high = increment
+    - name: load
+      width: 1
+      direction: input
+      description: Parallel load enable; high = load data_in
+    - name: data_in
+      width: 4
+      direction: input
+      description: Parallel load data
+  - name: outputs
+    type: custom
+    role: output
+    clock_domain: clk
+    description: Counter output signals
+    protocol: Registered outputs updated on clk rising edge
+    ports:
+    - name: count
+      width: 4
+      direction: output
+      description: Current counter value
+    - name: overflow
+      width: 1
+      direction: output
+      description: High for 1 cycle when counter wraps from 15 to 0 with en=1
+registers:
+  config: null
+  register_list: []
+  note: No CSR/APB interface. Control is through direct input ports.
+parameters:
+- name: WIDTH
+  default: 4
+  type: int
+  description: Counter width in bits
+  drives:
+  - example_counter.sv
+dataflow:
+  input_path:
+    source: data_in[WIDTH-1:0]
+    priority: load > en > hold
+    sequence: if (load) count <= data_in; else if (en) count <= count + 1; else count <= count
+    note: Load has priority over enable. When neither load nor en, count holds.
+  output_path:
+    count: registered copy of internal counter
+    overflow: combinational detection of count==MAX && en && !load, registered 1 cycle
+function_model:
+  purpose: Executable behavioral contract for rtl-gen and tb-gen
+  state_variables:
+  - name: count
+    reset: 0
+    width: WIDTH
+    description: Current counter value
+  state_updates:
+  - name: count
+    reset: 0
+    expr: "load ? data_in : (en ? (count + 1) : count)"
+    description: Load takes priority; then increment; then hold
+  transactions:
+  - id: FM_COUNT_UP
+    name: count_up
+    preconditions:
+    - rst_n == 1
+    - load == 0
+    - en == 1
+    inputs:
+    - count[WIDTH-1:0]
+    outputs:
+    - name: count
+      expr: "(count + 1) & ((1<<WIDTH)-1)"
+      width: WIDTH
+      port: count
+    - name: overflow
+      expr: "count == (1<<WIDTH)-1 ? 1 : 0"
+      width: 1
+      port: overflow
+    output_rules:
+    - name: count
+      expr: "(count + 1) mod 2^WIDTH"
+      width: WIDTH
+      port: count
+    - name: overflow
+      expr: "1 if count==2^WIDTH-1 else 0"
+      width: 1
+      port: overflow
+  - id: FM_LOAD
+    name: parallel_load
+    preconditions:
+    - rst_n == 1
+    - load == 1
+    inputs:
+    - data_in[WIDTH-1:0]
+    outputs:
+    - name: count
+      expr: data_in
+      width: WIDTH
+      port: count
+    - name: overflow
+      expr: "0"
+      width: 1
+      port: overflow
+  - id: FM_HOLD
+    name: hold
+    preconditions:
+    - rst_n == 1
+    - load == 0
+    - en == 0
+    inputs: []
+    outputs:
+    - name: count
+      expr: count
+      width: WIDTH
+      port: count
+    - name: overflow
+      expr: "0"
+      width: 1
+      port: overflow
+  - id: FM_RESET
+    name: reset
+    preconditions:
+    - rst_n == 0
+    inputs: []
+    outputs:
+    - name: count
+      expr: "0"
+      width: WIDTH
+      port: count
+    - name: overflow
+      expr: "0"
+      width: 1
+      port: overflow
+  invariants:
+  - count is always in range [0, 2^WIDTH-1]
+  - overflow is 1 only when count transitions from MAX to 0
+  - load has priority over en
+cycle_model:
+  purpose: Cycle contract for rtl-gen
+  clock: clk
+  reset:
+    assertion: rst_n low synchronously clears count and overflow on next clk rising edge
+    deassertion: Normal operation resumes on the clk rising edge after rst_n goes high
+  latency:
+    input_to_output:
+      min_cycles: 1
+      max_cycles: 1
+      description: All outputs are registered; 1-cycle latency from input change to output update
+  pipeline:
+  - stage: S0_COMPUTE
+    cycle: 0
+    action: "Combinational: next_count = load ? data_in : (en ? count+1 : count); overflow_det = (count==MAX) && en && !load"
+  - stage: S1_REGISTER
+    cycle: 1
+    action: "Register: count <= rst_n ? next_count : 0; overflow <= rst_n ? overflow_det : 0"
+  performance:
+    throughput: 1 result per clk cycle
+    max_latency_cycles: 1
+    min_latency_cycles: 1
+clock_reset_domains:
+  domains:
+  - name: clk
+    frequency_mhz: 50
+    description: Single system clock
+  reset_scheme:
+    signal: rst_n
+    polarity: active_low
+    type: synchronous
+cdc_requirements:
+  crossings: []
+  note: Single clock domain
+timing:
+  target_clocks:
+  - name: clk
+    period_ns: 20.0
+    freq_mhz: 50
+    jitter_ns: 0.1
+    duty_cycle: 50/50
+  target_clock_period_ns: 20.0
+  target_clock_freq_mhz: 50
+  input_setup_ns: 2.0
+  input_hold_ns: 1.0
+  output_delay_ns: 5.0
+  latency_cycles: 1
+synthesis:
+  dialect: SystemVerilog-2012
+  target_library: sky130_fd_sc_hd
+  constraints:
+  - clk period 20ns
+  - input delay 2ns
+  - output delay 5ns
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: met3
+    vertical: met2
+  cts:
+    buf_list:
+    - sky130_fd_sc_hd__clkbuf_4
+  routing:
+    signal_layers:
+      min: met1
+      max: met5
+sub_modules:
+- name: example_counter
+  file: rtl/example_counter.sv
+  ownership: manifest
+  ssot_gen: true
+  implements:
+  - top_module
+  - io_list
+  - parameters
+  - function_model
+  - cycle_model
+  - dataflow
+  - timing
+  - synthesis
+  - test_requirements
+  - quality_gates
+  source_sections:
+  - top_module
+  - io_list
+  - parameters
+  - function_model
+  - cycle_model
+  description: Single-module counter implementing all functionality
+filelist:
+  rtl:
+  - rtl/example_counter.sv
+test_requirements:
+  scenarios:
+  - id: SC1
+    name: Reset clears counter
+    stimulus: Assert rst_n low for 2 cycles, then release
+    expected: count=0, overflow=0 after reset
+    checker: Scoreboard checks reset state
+  - id: SC2
+    name: Count up
+    stimulus: After reset, set en=1 for 5 cycles
+    expected: count increments from 0 to 5, overflow stays 0
+    checker: Scoreboard tracks expected count
+  - id: SC3
+    name: Count overflow
+    stimulus: Set en=1 for 16+ cycles starting from 0
+    expected: count wraps 0->1->...->15->0, overflow=1 for 1 cycle at wrap
+    checker: Scoreboard checks overflow pulse at MAX->0 transition
+  - id: SC4
+    name: Hold count
+    stimulus: After some counting, set en=0 and load=0
+    expected: count holds its value, overflow=0
+    checker: Scoreboard checks count unchanged
+  - id: SC5
+    name: Parallel load
+    stimulus: Set load=1 with data_in=10, then set load=0
+    expected: count=10 on next cycle, overflow=0
+    checker: Scoreboard checks loaded value
+  - id: SC6
+    name: Load priority over enable
+    stimulus: Set both load=1 and en=1 with data_in=7
+    expected: count=7 (load wins), overflow=0
+    checker: Scoreboard checks load priority
+  scoreboard_checks: 6
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+      bins:
+      - id: FCOV_COUNT_UP
+        source_ref: test_requirements.scenarios.SC2
+        class: count_up
+        description: Counter increments
+      - id: FCOV_OVERFLOW
+        source_ref: test_requirements.scenarios.SC3
+        class: overflow
+        description: Overflow detected at MAX->0
+      - id: FCOV_HOLD
+        source_ref: test_requirements.scenarios.SC4
+        class: hold
+        description: Counter holds value
+      - id: FCOV_LOAD
+        source_ref: test_requirements.scenarios.SC5
+        class: load
+        description: Parallel load works
+      - id: FCOV_RESET
+        source_ref: test_requirements.scenarios.SC1
+        class: reset
+        description: Reset clears state
+      - id: FCOV_LOAD_OVER_ENABLE
+        source_ref: test_requirements.scenarios.SC6
+        class: priority
+        description: Load priority over enable
+quality_gates:
+  rtl:
+    pass: RTL compiles and lints clean
+    evidence:
+    - rtl/rtl_compile.json
+    - lint/dut_lint.json
+  coverage:
+    pass: All functional coverage bins hit
+    evidence:
+    - cov/fcov_report.json
+  eda:
+    pass: Synthesis maps cleanly; STA meets timing
+    evidence:
+    - syn/out/syn.report.md
+    - sta/out/sta_report.json

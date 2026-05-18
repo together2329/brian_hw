@@ -1,0 +1,16 @@
+{
+    "ip": "example_counter",
+    "coverage_report": {
+        "total_bins": 6,
+        "bins_hit": 6,
+        "hit_pct": 100.0,
+        "bin_status": [
+            {"id": "FCOV_COUNT_UP", "hit": true, "tests": ["test_02", "test_03", "test_07"]},
+            {"id": "FCOV_OVERFLOW", "hit": true, "tests": ["test_03", "test_07"]},
+            {"id": "FCOV_HOLD", "hit": true, "tests": ["test_04", "test_07"]},
+            {"id": "FCOV_LOAD", "hit": true, "tests": ["test_05", "test_07"]},
+            {"id": "FCOV_RESET", "hit": true, "tests": ["test_01", "test_07"]},
+            {"id": "FCOV_LOAD_OVER_ENABLE", "hit": true, "tests": ["test_06", "test_07"]}
+        ]
+    }
+}

@@ -247,7 +247,7 @@ def _bind_orchestrator_tools(
 
     def _import_document(**kw):
         return orch_tools.import_document(
-            ip=kw.get("ip", ctx.ip_name),
+            ip=ctx.ip_name,
             path=kw.get("path", ""),
             project_root=ctx.project_root,
         )

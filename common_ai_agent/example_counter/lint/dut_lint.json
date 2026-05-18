@@ -1,0 +1,8 @@
+{
+  "ip": "example_counter",
+  "top_module": "example_counter",
+  "linter": "verilator 5.046",
+  "errors": 0,
+  "warnings": 0,
+  "status": "pass"
+}

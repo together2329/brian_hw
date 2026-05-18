@@ -1,0 +1,83 @@
+#! /opt/homebrew/Cellar/icarus-verilog/12.0/bin/vvp
+:ivl_version "12.0 (stable)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision - 12;
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/system.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/vhdl_sys.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/vhdl_textio.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/v2005_math.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/va_math.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/v2009.vpi";
+S_0x15d104290 .scope package, "$unit" "$unit" 2 1;
+ .timescale -9 -12;
+S_0x15d104400 .scope module, "example_counter" "example_counter" 3 5;
+ .timescale -9 -12;
+    .port_info 0 /INPUT 1 "clk";
+    .port_info 1 /INPUT 1 "rst_n";
+    .port_info 2 /INPUT 1 "en";
+    .port_info 3 /INPUT 1 "load";
+    .port_info 4 /INPUT 4 "data_in";
+    .port_info 5 /OUTPUT 4 "count";
+    .port_info 6 /OUTPUT 1 "overflow";
+P_0x60000310c280 .param/l "WIDTH" 0 3 6, +C4<00000000000000000000000000000100>;
+o0x160028220 .functor BUFZ 1, C4<z>; HiZ drive
+L_0x600000f04070 .functor AND 1, L_0x6000015041e0, o0x160028220, C4<1>, C4<1>;
+L_0x600000f040e0 .functor AND 1, L_0x600000f04070, L_0x600001504280, C4<1>, C4<1>;
+L_0x600000f04150 .functor BUFZ 4, v0x60000160c480_0, C4<0000>, C4<0000>, C4<0000>;
+L_0x600000f041c0 .functor BUFZ 1, v0x60000160c870_0, C4<0>, C4<0>, C4<0>;
+L_0x140008010 .functor BUFT 1, C4<0001>, C4<0>, C4<0>, C4<0>;
+v0x600001608000_0 .net/2u *"_ivl_0", 3 0, L_0x140008010;  1 drivers
+v0x60000160c000_0 .net *"_ivl_10", 0 0, L_0x6000015041e0;  1 drivers
+v0x60000160c090_0 .net *"_ivl_13", 0 0, L_0x600000f04070;  1 drivers
+v0x60000160c120_0 .net *"_ivl_15", 0 0, L_0x600001504280;  1 drivers
+v0x60000160c1b0_0 .net *"_ivl_2", 3 0, L_0x600001504000;  1 drivers
+v0x60000160c240_0 .net *"_ivl_4", 3 0, L_0x6000015040a0;  1 drivers
+L_0x140008058 .functor BUFT 1, C4<1111>, C4<0>, C4<0>, C4<0>;
+v0x60000160c2d0_0 .net/2u *"_ivl_8", 3 0, L_0x140008058;  1 drivers
+o0x160028160 .functor BUFZ 1, C4<z>; HiZ drive
+v0x60000160c360_0 .net "clk", 0 0, o0x160028160;  0 drivers
+v0x60000160c3f0_0 .net "count", 3 0, L_0x600000f04150;  1 drivers
+v0x60000160c480_0 .var "count_r", 3 0;
+o0x1600281f0 .functor BUFZ 4, C4<zzzz>; HiZ drive
+v0x60000160c510_0 .net "data_in", 3 0, o0x1600281f0;  0 drivers
+v0x60000160c5a0_0 .net "en", 0 0, o0x160028220;  0 drivers
+o0x160028250 .functor BUFZ 1, C4<z>; HiZ drive
+v0x60000160c630_0 .net "load", 0 0, o0x160028250;  0 drivers
+v0x60000160c6c0_0 .net "next_count", 3 0, L_0x600001504140;  1 drivers
+v0x60000160c750_0 .net "overflow", 0 0, L_0x600000f041c0;  1 drivers
+v0x60000160c7e0_0 .net "overflow_det", 0 0, L_0x600000f040e0;  1 drivers
+v0x60000160c870_0 .var "overflow_r", 0 0;
+o0x160028340 .functor BUFZ 1, C4<z>; HiZ drive
+v0x60000160c900_0 .net "rst_n", 0 0, o0x160028340;  0 drivers
+E_0x60000310c340 .event posedge, v0x60000160c360_0;
+L_0x600001504000 .arith/sum 4, v0x60000160c480_0, L_0x140008010;
+L_0x6000015040a0 .functor MUXZ 4, v0x60000160c480_0, L_0x600001504000, o0x160028220, C4<>;
+L_0x600001504140 .functor MUXZ 4, L_0x6000015040a0, o0x1600281f0, o0x160028250, C4<>;
+L_0x6000015041e0 .cmp/eq 4, v0x60000160c480_0, L_0x140008058;
+L_0x600001504280 .reduce/nor o0x160028250;
+    .scope S_0x15d104400;
+T_0 ;
+    %wait E_0x60000310c340;
+    %load/vec4 v0x60000160c900_0;
+    %nor/r;
+    %flag_set/vec4 8;
+    %jmp/0xz  T_0.0, 8;
+    %pushi/vec4 0, 0, 4;
+    %assign/vec4 v0x60000160c480_0, 0;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x60000160c870_0, 0;
+    %jmp T_0.1;
+T_0.0 ;
+    %load/vec4 v0x60000160c6c0_0;
+    %assign/vec4 v0x60000160c480_0, 0;
+    %load/vec4 v0x60000160c7e0_0;
+    %assign/vec4 v0x60000160c870_0, 0;
+T_0.1 ;
+    %jmp T_0;
+    .thread T_0;
+# The file index is used to find the file name in the following table.
+:file_names 4;
+    "N/A";
+    "<interactive>";
+    "-";
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/example_counter/rtl/example_counter.sv";

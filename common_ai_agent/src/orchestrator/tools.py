@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
@@ -21,6 +22,7 @@ ToolResult = Tuple[Dict[str, Any], str]
 
 
 _EVIDENCE_CAP = 2_000
+_IP_NAME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 
 
 def _truncate(text: str, cap: int = _EVIDENCE_CAP) -> str:
@@ -37,6 +39,18 @@ def _safe_json(value: Any, cap: int = _EVIDENCE_CAP) -> str:
         return _truncate(json.dumps(value, ensure_ascii=False, sort_keys=True), cap)
     except Exception:
         return _truncate(repr(value), cap)
+
+
+def _is_valid_ip_name(ip: str) -> bool:
+    return bool(_IP_NAME_RE.fullmatch(str(ip or "")))
+
+
+def _is_relative_to(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return False
+    return True
 
 
 # ----------------------------------------------------------------------
@@ -394,6 +408,61 @@ def mark_downstream_stale(
 # ----------------------------------------------------------------------
 
 
+def _decode_pdf_literal(text: str) -> str:
+    """Decode a simple PDF literal string used as a last-resort fallback."""
+    out = []
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if ch != "\\":
+            out.append(ch)
+            i += 1
+            continue
+        i += 1
+        if i >= len(text):
+            break
+        esc = text[i]
+        i += 1
+        mapping = {
+            "n": "\n",
+            "r": "\r",
+            "t": "\t",
+            "b": "\b",
+            "f": "\f",
+            "(": "(",
+            ")": ")",
+            "\\": "\\",
+        }
+        if esc in mapping:
+            out.append(mapping[esc])
+        elif esc in "01234567":
+            octal = esc
+            for _ in range(2):
+                if i < len(text) and text[i] in "01234567":
+                    octal += text[i]
+                    i += 1
+                else:
+                    break
+            try:
+                out.append(chr(int(octal, 8)))
+            except ValueError:
+                pass
+        else:
+            out.append(esc)
+    return "".join(out)
+
+
+def _extract_pdf_literal_text(raw: bytes) -> str:
+    """Fallback extraction for tiny/simple PDFs with literal ``(...) Tj`` text."""
+    data = raw.decode("latin-1", errors="ignore")
+    chunks = []
+    for match in re.finditer(r"\(((?:\\.|[^\\()])*)\)\s*Tj\b", data, flags=re.S):
+        decoded = _decode_pdf_literal(match.group(1)).strip()
+        if decoded:
+            chunks.append(decoded)
+    return "\n".join(chunks)
+
+
 def _extract_pdf_text(path: str) -> str:
     """Extract text from a PDF file using PyMuPDF (fitz).
 
@@ -405,12 +474,23 @@ def _extract_pdf_text(path: str) -> str:
     except ImportError:
         pass
     else:
-        doc = fitz.open(path)
-        pages = []
-        for page in doc:
-            pages.append(page.get_text())
-        doc.close()
-        return "\n\n".join(pages)
+        doc = None
+        try:
+            doc = fitz.open(path)
+            pages = []
+            for page in doc:
+                pages.append(page.get_text())
+            text = "\n\n".join(pages)
+            if text.strip():
+                return text
+        except Exception:
+            pass
+        finally:
+            if doc is not None:
+                try:
+                    doc.close()
+                except Exception:
+                    pass
 
     try:
         import pdfplumber  # type: ignore
@@ -418,14 +498,22 @@ def _extract_pdf_text(path: str) -> str:
         pass
     else:
         pages = []
-        with pdfplumber.open(path) as pdf:
-            for page in pdf.pages:
-                text = page.extract_text()
-                if text:
-                    pages.append(text)
-        return "\n\n".join(pages)
+        try:
+            with pdfplumber.open(path) as pdf:
+                for page in pdf.pages:
+                    text = page.extract_text()
+                    if text:
+                        pages.append(text)
+            text = "\n\n".join(pages)
+            if text.strip():
+                return text
+        except Exception:
+            pass
 
-    return ""
+    try:
+        return _extract_pdf_literal_text(Path(path).read_bytes())
+    except Exception:
+        return ""
 
 
 def import_document(
@@ -450,6 +538,14 @@ def import_document(
         from src.config import project_root as _pr
 
         project_root = _pr()
+    project_root = Path(project_root).expanduser().resolve()
+
+    ip = str(ip or "").strip()
+    if not _is_valid_ip_name(ip):
+        return (
+            {"ok": False, "error": "valid ip required: use letters, digits, and underscores, starting with a letter"},
+            "import_document error: invalid ip",
+        )
 
     source_path = Path(path).expanduser().resolve()
     if not source_path.is_file():
@@ -481,7 +577,12 @@ def import_document(
         doc_type = "unknown"
 
     # Write output
-    ip_dir = project_root / ip
+    ip_dir = (project_root / ip).resolve()
+    if not _is_relative_to(ip_dir, project_root):
+        return (
+            {"ok": False, "error": "valid ip required: resolved path escapes project root"},
+            "import_document error: ip path escaped project root",
+        )
     req_dir = ip_dir / "req"
     source_dir = req_dir / "source"
     source_dir.mkdir(parents=True, exist_ok=True)

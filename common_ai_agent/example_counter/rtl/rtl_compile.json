@@ -1,0 +1,9 @@
+{
+  "ip": "example_counter",
+  "top_module": "example_counter",
+  "files": ["rtl/example_counter.sv"],
+  "errors": 0,
+  "warnings": 0,
+  "compiler": "iverilog -g2012",
+  "status": "pass"
+}

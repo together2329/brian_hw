@@ -207,3 +207,37 @@ class TestSubmitOrAttach:
             runner.wait_for("u1", "ip1", timeout=2)
         finally:
             runner.shutdown(wait=True)
+
+    def test_resumed_paused_run_uses_user_reply_as_initial_message(self, db):
+        loops = []
+
+        def factory(db_, ctx, initial):
+            loop = _ControlledLoop(db_, ctx, initial)
+            loops.append(loop)
+            return loop
+
+        run = db.create_orchestrator_run(
+            user_id="u1", ip_id="ip1", session_id="s1", status="paused"
+        )
+        runner = OrchestratorRunner(db, max_workers=1, loop_factory=factory)
+        try:
+            res = runner.submit_or_attach(
+                user_id="u1",
+                ip_id="ip1",
+                ip_name="ipA",
+                session_id="s1",
+                message_text="retry with explicit dma spec",
+            )
+            assert res.status == "resumed"
+            assert res.run_id == run["id"]
+            time.sleep(0.05)
+            assert loops and loops[0].initial == "retry with explicit dma spec"
+            resumed = db.get_orchestrator_run(run["id"])
+            assert resumed["status"] == "running"
+            steps = db.list_orchestrator_steps(run["id"])
+            assert steps[-1]["tool_name"] == "user_reply"
+            assert steps[-1]["user_reply"] == "retry with explicit dma spec"
+            loops[0].release()
+            runner.wait_for("u1", "ip1", timeout=2)
+        finally:
+            runner.shutdown(wait=True)

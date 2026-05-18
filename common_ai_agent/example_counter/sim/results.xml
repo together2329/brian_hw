@@ -1,0 +1,12 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1779130968" />
+    <testcase name="test_01_reset" classname="test_example_counter" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/example_counter/tb/test_example_counter.py" lineno="63" time="0.0023500919342041016" sim_time_ns="30.001" ratio_time="12765.883565385006" />
+    <testcase name="test_02_count_up" classname="test_example_counter" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/example_counter/tb/test_example_counter.py" lineno="74" time="0.005012989044189453" sim_time_ns="91.00099999999999" ratio_time="18153.041867402262" />
+    <testcase name="test_03_overflow" classname="test_example_counter" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/example_counter/tb/test_example_counter.py" lineno="86" time="0.006163835525512695" sim_time_ns="211.00099999999998" ratio_time="34232.09446888175" />
+    <testcase name="test_04_hold" classname="test_example_counter" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/example_counter/tb/test_example_counter.py" lineno="106" time="0.0051081180572509766" sim_time_ns="121.00100000000003" ratio_time="23687.980317572936" />
+    <testcase name="test_05_parallel_load" classname="test_example_counter" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/example_counter/tb/test_example_counter.py" lineno="123" time="0.001444101333618164" sim_time_ns="51.000999999999976" ratio_time="35316.77370051179" />
+    <testcase name="test_06_load_priority" classname="test_example_counter" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/example_counter/tb/test_example_counter.py" lineno="136" time="0.002529144287109375" sim_time_ns="81.00099999999998" ratio_time="32027.03792458521" />
+    <testcase name="test_07_fcov_all_bins" classname="test_example_counter" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/example_counter/tb/test_example_counter.py" lineno="152" time="0.010949850082397461" sim_time_ns="241.00099999999998" ratio_time="22009.525079016697" />
+  </testsuite>
+</testsuites>

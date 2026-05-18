@@ -126,6 +126,7 @@ class OrchestratorRunner:
                     user_reply=message_text,
                     verdict="user_input",
                 )
+                self._db.update_orchestrator_run(run_id, status="running")
                 future = self._executor.submit(
                     self._run_loop,
                     run_id=run_id,
@@ -133,7 +134,7 @@ class OrchestratorRunner:
                     ip_id=ip_id,
                     ip_name=ip_name,
                     session_id=session_id,
-                    initial_user_message="",
+                    initial_user_message=message_text,
                 )
                 self._active[key] = (run_id, future)
                 return SubmitOutcome(run_id=run_id, status="resumed")

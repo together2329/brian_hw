@@ -1,0 +1,1765 @@
+top_module:
+  name: dma_scratch_ui_20260519b
+  file: rtl/dma_scratch_ui_20260519b.sv
+  version: 0.1.0
+  type: dma_controller
+  description: Engineering SSOT for a simple APB-like programmed DMA engine with one outstanding byte-copy transfer.
+  target:
+    technology: generic
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+  reference_spec: user-defined
+sub_modules:
+- name: dma_scratch_ui_20260519b_behavior_contract
+  ownership: conceptual
+  ssot_gen: false
+  rtl_emit: false
+  description: Conceptual owner for SSOT function-model behavior implemented by the generated RTL.
+  source_sections:
+  - function_model
+  - cycle_model
+  - features
+  - test_requirements
+  - dataflow
+  - fsm
+  - decomposition
+  - registers
+  function_model_refs:
+  - function_model.transactions.FM_RESET
+  - function_model.transactions.FM_APB_WRITE
+  - function_model.transactions.FM_APB_READ
+  - function_model.transactions.FM_START
+  - function_model.transactions.FM_READ_ACCEPT
+  - function_model.transactions.FM_READ_DATA
+  - function_model.transactions.FM_WRITE_ACCEPT
+  - function_model.state_variables
+  cycle_model_refs:
+  - cycle_model
+  feature_refs:
+  - features
+  dataflow_refs:
+  - dataflow
+  fsm_refs:
+  - fsm
+  decomposition_refs:
+  - decomposition
+  test_refs:
+  - test_requirements
+  register_refs:
+  - registers.register_list
+- name: dma_scratch_ui_20260519b_behavior_contract
+  ownership: conceptual
+  ssot_gen: false
+  rtl_emit: false
+  description: Conceptual owner for SSOT function-model behavior implemented by the generated RTL.
+  source_sections:
+  - function_model
+  - cycle_model
+  - features
+  - test_requirements
+  - dataflow
+  - fsm
+  - decomposition
+  - registers
+  function_model_refs:
+  - function_model.transactions.FM_RESET
+  - function_model.transactions.FM_APB_WRITE
+  - function_model.transactions.FM_APB_READ
+  - function_model.transactions.FM_START
+  - function_model.transactions.FM_READ_ACCEPT
+  - function_model.transactions.FM_READ_DATA
+  - function_model.transactions.FM_WRITE_ACCEPT
+  - function_model.state_variables
+  cycle_model_refs:
+  - cycle_model
+  feature_refs:
+  - features
+  dataflow_refs:
+  - dataflow
+  fsm_refs:
+  - fsm
+  decomposition_refs:
+  - decomposition
+  test_refs:
+  - test_requirements
+  register_refs:
+  - registers.register_list
+- name: dma_scratch_ui_20260519b_behavior_contract
+  ownership: conceptual
+  ssot_gen: false
+  rtl_emit: false
+  description: Conceptual owner for SSOT function-model behavior implemented by the generated RTL.
+  source_sections:
+  - function_model
+  - cycle_model
+  - features
+  - test_requirements
+  - dataflow
+  - fsm
+  - decomposition
+  - registers
+  function_model_refs:
+  - function_model.transactions.FM_RESET
+  - function_model.transactions.FM_APB_WRITE
+  - function_model.transactions.FM_APB_READ
+  - function_model.transactions.FM_START
+  - function_model.transactions.FM_READ_ACCEPT
+  - function_model.transactions.FM_READ_DATA
+  - function_model.transactions.FM_WRITE_ACCEPT
+  - function_model.state_variables
+  cycle_model_refs:
+  - cycle_model
+  feature_refs:
+  - features
+  dataflow_refs:
+  - dataflow
+  fsm_refs:
+  - fsm
+  decomposition_refs:
+  - decomposition
+  test_refs:
+  - test_requirements
+  register_refs:
+  - registers.register_list
+- name: dma_scratch_ui_20260519b
+  file: rtl/dma_scratch_ui_20260519b.sv
+  ownership: manifest
+  ssot_gen: true
+  wiring_only: true
+  description: Top-level integration module matching SSOT top_module
+  function_model_refs:
+  - function_model.transactions.FM_RESET
+  - function_model.transactions.FM_APB_WRITE
+  - function_model.transactions.FM_APB_READ
+  - function_model.transactions.FM_START
+  - function_model.transactions.FM_READ_ACCEPT
+  - function_model.transactions.FM_READ_DATA
+  - function_model.transactions.FM_WRITE_ACCEPT
+  - function_model.state_variables
+  cycle_model_refs:
+  - cycle_model
+  source_sections:
+  - cycle_model
+  - features
+  - dataflow
+  - fsm
+  - decomposition
+  - test_requirements
+  - registers
+  feature_refs:
+  - features
+  dataflow_refs:
+  - dataflow
+  fsm_refs:
+  - fsm
+  decomposition_refs:
+  - decomposition
+  test_refs:
+  - test_requirements
+  register_refs:
+  - registers.register_list
+decomposition:
+  strategy: single_top_with_logical_slices
+  owners:
+  - module: apb_reg_block
+    file: rtl/dma_scratch_ui_20260519b.sv
+    responsibility: Register decode, CSR state, APB readback, and IRQ/status control.
+    source_sections:
+    - registers
+    - interrupts
+    - FM_APB_WRITE
+    - FM_APB_READ
+    - FM_START
+  - module: dma_copy_engine
+    file: rtl/dma_scratch_ui_20260519b.sv
+    responsibility: DMA memory read/write sequencing, byte count, byte strobes, and completion.
+    source_sections:
+    - dataflow
+    - cycle_model
+    - fsm
+    - FM_READ_ACCEPT
+    - FM_READ_DATA
+    - FM_WRITE_ACCEPT
+  - module: dma_scratch_ui_20260519b
+    file: rtl/dma_scratch_ui_20260519b.sv
+    responsibility: Top-level port contract and integration of logical slices.
+    source_sections:
+    - top_module
+    - io_list
+    - integration
+  integration_policy: RTL may implement logical submodules inside the top file or as internal logic, but top port/file must remain rtl/dma_scratch_ui_20260519b.sv.
+  source_refs:
+  - sub_modules
+  - function_model
+  - cycle_model
+  - integration
+parameters:
+- name: ADDR_WIDTH
+  type: int
+  default: 32
+  description: Address width for APB-like register and memory address buses.
+- name: DATA_WIDTH
+  type: int
+  default: 32
+  description: APB-like register and memory data width.
+- name: STRB_WIDTH
+  type: int
+  default: 4
+  description: DATA_WIDTH/8 write byte strobe width.
+- name: LENGTH_WIDTH
+  type: int
+  default: 32
+  description: Transfer length width in bytes.
+io_list:
+  clock_domains:
+  - name: clk
+    frequency_mhz: 100
+    description: Primary synchronous clock.
+    ports:
+    - name: clk
+      direction: input
+      width: 1
+      description: Rising-edge clock.
+  resets:
+  - name: rstn
+    polarity: active_low
+    sync_async: async_assert_sync_deassert
+    description: Active-low reset for all architectural state.
+    ports:
+    - name: rstn
+      direction: input
+      width: 1
+      description: Active-low reset.
+  interfaces:
+  - name: apb_ctrl
+    type: apb_like
+    role: target
+    clock_domain: clk
+    reset_domain: rstn
+    description: Zero-wait APB-like CSR programming interface.
+    protocol:
+      acceptance: psel && penable accepts one register access; pready is always 1.
+      response: prdata is valid during read access; pslverr indicates unsupported address.
+      stability: paddr, pwrite, pwdata remain stable during psel && penable access phase.
+      backpressure: No backpressure from the CSR block; pready is tied high.
+    ports:
+    - name: psel
+      direction: input
+      width: 1
+      description: APB-like select.
+    - name: penable
+      direction: input
+      width: 1
+      description: APB-like enable/access phase.
+    - name: pwrite
+      direction: input
+      width: 1
+      description: Write when high
+      read when low.: null
+    - name: paddr
+      direction: input
+      width: ADDR_WIDTH
+      description: Register byte address.
+    - name: pwdata
+      direction: input
+      width: DATA_WIDTH
+      description: Register write data.
+    - name: prdata
+      direction: output
+      width: DATA_WIDTH
+      description: Register read data.
+    - name: pready
+      direction: output
+      width: 1
+      description: Access completion; constant 1.
+    - name: pslverr
+      direction: output
+      width: 1
+      description: Unsupported address indicator.
+  - name: mem_read_req
+    type: valid_ready
+    role: initiator
+    clock_domain: clk
+    reset_domain: rstn
+    description: Memory read request channel; one request in flight.
+    protocol:
+      acceptance: mem_rd_valid && mem_rd_ready accepts mem_rd_addr.
+      response: Read data returns later on mem_read_data.mem_rdata_valid.
+      stability: mem_rd_addr remains stable while mem_rd_valid && !mem_rd_ready.
+      backpressure: mem_rd_ready low stalls read request issue.
+    ports:
+    - name: mem_rd_valid
+      direction: output
+      width: 1
+      description: Read request valid.
+    - name: mem_rd_ready
+      direction: input
+      width: 1
+      description: Read request ready.
+    - name: mem_rd_addr
+      direction: output
+      width: ADDR_WIDTH
+      description: Read byte address.
+  - name: mem_read_data
+    type: valid_payload
+    role: target
+    clock_domain: clk
+    reset_domain: rstn
+    description: Memory read data return channel for accepted read requests.
+    protocol:
+      acceptance: mem_rdata_valid samples one DATA_WIDTH read beat.
+      response: DMA captures mem_rdata and subsequently issues a write request.
+      stability: External memory holds mem_rdata stable when mem_rdata_valid is asserted for a cycle.
+      backpressure: No ready signal; memory must present valid only when data is available.
+    ports:
+    - name: mem_rdata_valid
+      direction: input
+      width: 1
+      description: Read data valid.
+    - name: mem_rdata
+      direction: input
+      width: DATA_WIDTH
+      description: Read data payload.
+  - name: mem_write_req
+    type: valid_ready
+    role: initiator
+    clock_domain: clk
+    reset_domain: rstn
+    description: Memory write request channel; one write beat follows each captured read beat.
+    protocol:
+      acceptance: mem_wr_valid && mem_wr_ready accepts address, data, and byte strobes.
+      response: Accepted write completes the beat; last beat completes the transfer.
+      stability: mem_wr_addr, mem_wr_data, and mem_wr_strb remain stable while mem_wr_valid && !mem_wr_ready.
+      backpressure: mem_wr_ready low stalls write completion and subsequent reads.
+    ports:
+    - name: mem_wr_valid
+      direction: output
+      width: 1
+      description: Write request valid.
+    - name: mem_wr_ready
+      direction: input
+      width: 1
+      description: Write request ready.
+    - name: mem_wr_addr
+      direction: output
+      width: ADDR_WIDTH
+      description: Write byte address.
+    - name: mem_wr_data
+      direction: output
+      width: DATA_WIDTH
+      description: Write data payload.
+    - name: mem_wr_strb
+      direction: output
+      width: STRB_WIDTH
+      description: Write byte enables.
+  - name: irq_out
+    type: interrupt
+    role: source
+    clock_domain: clk
+    reset_domain: rstn
+    description: Level interrupt for done status when enabled.
+    protocol:
+      assertion: irq is high when CTRL.irq_enable && IRQ_STATUS.done_irq.
+      clear: Software writes CTRL.clear_done=1.
+      backpressure: Interrupt has no backpressure.
+    ports:
+    - name: irq
+      direction: output
+      width: 1
+      description: Level interrupt output.
+features:
+- id: single_outstanding_dma
+  description: Executes at most one transfer at a time; a start while busy is rejected and sets error.
+- id: apb_programmed_registers
+  description: APB-like software programming of source
+  destination: null
+  length: null
+  start: null
+  irq enable: null
+  and done clear.: null
+- id: byte_count_copy
+  description: Copies length_bytes from src_addr to dst_addr through 32-bit read/write beats with final partial byte strobe.
+- id: completion_interrupt
+  description: Sticky done status and optional level interrupt until software clears done.
+dataflow:
+  source: APB-programmed src_addr, dst_addr, length_bytes and memory read data.
+  sequence:
+  - Software programs SRC_ADDR, DST_ADDR, LENGTH_BYTES, and CTRL.irq_enable while idle.
+  - Software writes CTRL.start=1 to latch programmed fields and enter READ_REQ.
+  - DMA issues mem_rd_addr=current_src and waits for mem_rd_ready.
+  - DMA captures mem_rdata when mem_rdata_valid is high.
+  - DMA issues mem_wr_addr=current_dst, mem_wr_data=captured_rdata, and mem_wr_strb based on remaining byte count.
+  - On accepted write, DMA increments byte_index/current_src/current_dst by bytes_this_beat and repeats until last_beat.
+  - DMA clears busy, sets done and IRQ_STATUS.done_irq, and drives irq if enabled.
+  sinks:
+  - Memory write channel
+  - STATUS register
+  - IRQ_STATUS register
+  - irq output
+  ordering: Strict read-request, read-data, write-request ordering per beat; max outstanding transfer and max outstanding memory beat are both one.
+function_model:
+  purpose: Machine-readable behavioral contract for DMA register programming, transfer execution, status, and IRQ.
+  state_variables:
+  - name: src_addr
+    width: 32
+    reset: 0
+    description: Programmed source address.
+  - name: dst_addr
+    width: 32
+    reset: 0
+    description: Programmed destination address.
+  - name: length_bytes
+    width: 32
+    reset: 0
+    description: Programmed transfer length in bytes.
+  - name: irq_enable
+    width: 1
+    reset: 0
+    description: Completion interrupt enable.
+  - name: busy
+    width: 1
+    reset: 0
+    description: Transfer active.
+  - name: done
+    width: 1
+    reset: 0
+    description: Sticky completion status.
+  - name: error
+    width: 1
+    reset: 0
+    description: Sticky error status.
+  - name: irq_status
+    width: 1
+    reset: 0
+    description: Sticky done IRQ source.
+  - name: current_src
+    width: 32
+    reset: 0
+    description: Active transfer source pointer.
+  - name: current_dst
+    width: 32
+    reset: 0
+    description: Active transfer destination pointer.
+  - name: byte_index
+    width: 32
+    reset: 0
+    description: Number of bytes copied in active transfer.
+  - name: captured_rdata
+    width: 32
+    reset: 0
+    description: Read data awaiting write.
+  transactions:
+  - id: FM_RESET
+    name: reset
+    preconditions:
+    - rstn == 0
+    inputs:
+    - rstn
+    outputs:
+    - All outputs and architectural state return to reset values.
+    - name: pready_reset
+      port: pready
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: irq_reset
+      port: irq
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: src_addr
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: dst_addr
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: length_bytes
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: irq_enable
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: busy
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: done
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: error
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: irq_status
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: byte_index
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - Clear all architectural state.
+    state_updates:
+    - name: src_addr
+      expr: '0'
+      width: 32
+    - name: dst_addr
+      expr: '0'
+      width: 32
+    - name: length_bytes
+      expr: '0'
+      width: 32
+    - name: irq_enable
+      expr: '0'
+      width: 1
+    - name: busy
+      expr: '0'
+      width: 1
+    - name: done
+      expr: '0'
+      width: 1
+    - name: error
+      expr: '0'
+      width: 1
+    - name: irq_status
+      expr: '0'
+      width: 1
+    - name: byte_index
+      expr: '0'
+      width: 32
+    output_rules:
+    - name: pready_reset
+      port: pready
+      expr: '1'
+      width: 1
+    - name: irq_reset
+      port: irq
+      expr: '0'
+      width: 1
+  - id: FM_APB_WRITE
+    name: apb_programming_and_clear
+    preconditions:
+    - psel && penable && pwrite
+    inputs:
+    - paddr
+    - pwdata
+    - busy
+    outputs:
+    - pready
+    - pslverr
+    - state: src_addr
+      expr: (pwdata[31:0] if !busy && paddr==4 else src_addr)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: dst_addr
+      expr: (pwdata[31:0] if !busy && paddr==8 else dst_addr)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: length_bytes
+      expr: (pwdata[31:0] if !busy && paddr==12 else length_bytes)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: irq_enable
+      expr: (pwdata[1] if !busy && paddr==0 else irq_enable)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: done
+      expr: (0 if paddr==0 && pwdata[2] else done)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: irq_status
+      expr: (0 if paddr==0 && pwdata[2] else irq_status)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: error
+      expr: (1 if busy && paddr==0 && pwdata[0] else error)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - Update selected CSR when idle; clear done/irq on CTRL.clear_done.
+    state_updates:
+    - name: src_addr
+      expr: (pwdata[31:0] if !busy && paddr==4 else src_addr)
+      width: 32
+    - name: dst_addr
+      expr: (pwdata[31:0] if !busy && paddr==8 else dst_addr)
+      width: 32
+    - name: length_bytes
+      expr: (pwdata[31:0] if !busy && paddr==12 else length_bytes)
+      width: 32
+    - name: irq_enable
+      expr: (pwdata[1] if !busy && paddr==0 else irq_enable)
+      width: 1
+    - name: done
+      expr: (0 if paddr==0 && pwdata[2] else done)
+      width: 1
+    - name: irq_status
+      expr: (0 if paddr==0 && pwdata[2] else irq_status)
+      width: 1
+    - name: error
+      expr: (1 if busy && paddr==0 && pwdata[0] else error)
+      width: 1
+    output_rules:
+    - name: apb_pready
+      port: pready
+      expr: '1'
+      width: 1
+    - name: apb_pslverr
+      port: pslverr
+      expr: '!(paddr==0 || paddr==4 || paddr==8 || paddr==12 || paddr==16 || paddr==20)'
+      width: 1
+  - id: FM_APB_READ
+    name: apb_status_readback
+    preconditions:
+    - psel && penable && !pwrite
+    inputs:
+    - paddr
+    outputs:
+    - prdata
+    - pready
+    - pslverr
+    side_effects:
+    - No state update on reads.
+    output_rules:
+    - name: apb_read_data
+      port: prdata
+      expr: ({0,irq_enable,0} if paddr==0 else (src_addr if paddr==4 else (dst_addr if paddr==8 else (length_bytes if paddr==12 else ({0,error,done,busy} if paddr==16 else ({0,irq_status} if paddr==20 else 0))))))
+      width: 32
+    - name: apb_read_ready
+      port: pready
+      expr: '1'
+      width: 1
+    - name: apb_read_error
+      port: pslverr
+      expr: '!(paddr==0 || paddr==4 || paddr==8 || paddr==12 || paddr==16 || paddr==20)'
+      width: 1
+  - id: FM_START
+    name: start_transfer
+    preconditions:
+    - psel && penable && pwrite && paddr==32'h00 && pwdata[0] && !busy
+    inputs:
+    - src_addr
+    - dst_addr
+    - length_bytes
+    outputs:
+    - mem_rd_valid
+    - mem_rd_addr
+    - state: busy
+      expr: (length_bytes != 0)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: error
+      expr: (1 if length_bytes == 0 else error)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: done
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: current_src
+      expr: src_addr
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: current_dst
+      expr: dst_addr
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: byte_index
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - Latch transfer pointers and enter busy state if length is nonzero; zero length sets error.
+    state_updates:
+    - name: busy
+      expr: (length_bytes != 0)
+      width: 1
+    - name: error
+      expr: (1 if length_bytes == 0 else error)
+      width: 1
+    - name: done
+      expr: '0'
+      width: 1
+    - name: current_src
+      expr: src_addr
+      width: 32
+    - name: current_dst
+      expr: dst_addr
+      width: 32
+    - name: byte_index
+      expr: '0'
+      width: 32
+    output_rules:
+    - name: first_read_valid
+      port: mem_rd_valid
+      expr: (length_bytes != 0)
+      width: 1
+    - name: first_read_addr
+      port: mem_rd_addr
+      expr: src_addr
+      width: 32
+  - id: FM_READ_ACCEPT
+    name: memory_read_request_accept
+    preconditions:
+    - mem_rd_valid && mem_rd_ready
+    inputs:
+    - current_src
+    outputs:
+    - mem_rd_addr
+    - name: read_valid
+      port: mem_rd_valid
+      expr: busy
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    side_effects:
+    - Read request is considered outstanding until mem_rdata_valid.
+    output_rules:
+    - name: read_addr
+      port: mem_rd_addr
+      expr: current_src
+      width: 32
+    - name: read_valid
+      port: mem_rd_valid
+      expr: busy
+      width: 1
+  - id: FM_READ_DATA
+    name: memory_read_data_capture
+    preconditions:
+    - busy && mem_rdata_valid
+    inputs:
+    - mem_rdata
+    outputs:
+    - mem_wr_valid
+    - mem_wr_data
+    - mem_wr_addr
+    - mem_wr_strb
+    - state: captured_rdata
+      expr: mem_rdata
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - Capture read data and prepare write beat.
+    state_updates:
+    - name: captured_rdata
+      expr: mem_rdata
+      width: 32
+    output_rules:
+    - name: write_valid_after_read
+      port: mem_wr_valid
+      expr: '1'
+      width: 1
+    - name: write_data_after_read
+      port: mem_wr_data
+      expr: mem_rdata
+      width: 32
+    - name: write_addr_after_read
+      port: mem_wr_addr
+      expr: current_dst
+      width: 32
+    - name: write_strb_after_read
+      port: mem_wr_strb
+      expr: (15 if (length_bytes - byte_index) >= 4 else ((1 << (length_bytes - byte_index)) - 1))
+      width: 4
+  - id: FM_WRITE_ACCEPT
+    name: memory_write_accept_and_advance
+    preconditions:
+    - busy && mem_wr_valid && mem_wr_ready
+    inputs:
+    - byte_index
+    - length_bytes
+    - current_src
+    - current_dst
+    outputs:
+    - mem_rd_valid
+    - mem_rd_addr
+    - irq
+    - state: byte_index
+      expr: 'byte_index + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: current_src
+      expr: 'current_src + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: current_dst
+      expr: 'current_dst + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: busy
+      expr: '(0 if (byte_index + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))) >= length_bytes else busy)'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: done
+      expr: '(1 if (byte_index + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))) >= length_bytes else done)'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: irq_status
+      expr: '(1 if (byte_index + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))) >= length_bytes else irq_status)'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - Advance byte pointers or complete transfer.
+    state_updates:
+    - name: byte_index
+      expr: 'byte_index + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))'
+      width: 32
+    - name: current_src
+      expr: 'current_src + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))'
+      width: 32
+    - name: current_dst
+      expr: 'current_dst + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))'
+      width: 32
+    - name: busy
+      expr: '(0 if (byte_index + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))) >= length_bytes else busy)'
+      width: 1
+    - name: done
+      expr: '(1 if (byte_index + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))) >= length_bytes else done)'
+      width: 1
+    - name: irq_status
+      expr: '(1 if (byte_index + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))) >= length_bytes else irq_status)'
+      width: 1
+    output_rules:
+    - name: next_read_valid
+      port: mem_rd_valid
+      expr: '((byte_index + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))) < length_bytes)'
+      width: 1
+    - name: next_read_addr
+      port: mem_rd_addr
+      expr: 'current_src + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))'
+      width: 32
+    - name: irq_level
+      port: irq
+      expr: irq_enable && irq_status
+      width: 1
+  invariants:
+  - At most one DMA transfer is busy at a time.
+  - At most one memory read/write beat is outstanding at a time.
+  - Configuration writes to SRC_ADDR, DST_ADDR, and LENGTH_BYTES take effect only while idle.
+  - irq equals irq_enable && irq_status.
+  reference_model_hint: TB scoreboard models byte copy from source to destination for exact length_bytes and compares writes, status, and IRQ.
+  derived_signals:
+  - name: apb_access
+    expr: psel and penable
+    width: 1
+    description: APB access phase helper derived from psel and penable.
+    source: repair_ssot_schema.apb_helper
+  - name: apb_valid_write
+    expr: psel and penable and pwrite
+    width: 1
+    description: APB write access helper derived from psel, penable, and pwrite.
+    source: repair_ssot_schema.apb_helper
+  - name: apb_valid_read
+    expr: psel and penable and not pwrite
+    width: 1
+    description: APB read access helper derived from psel, penable, and pwrite.
+    source: repair_ssot_schema.apb_helper
+  - name: addr
+    expr: paddr
+    width: ADDR_WIDTH
+    description: Register address helper derived from the APB paddr input.
+    source: repair_ssot_schema.apb_helper
+  - name: legal_addr
+    expr: (addr == 0) or (addr == 4) or (addr == 8) or (addr == 12) or (addr == 16) or (addr == 20)
+    width: 1
+    description: APB legal address decode derived from registers.register_list offsets.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_ctrl
+    expr: apb_valid_write and (addr == 0)
+    width: 1
+    description: APB write decode helper for register CTRL.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_ctrl
+    expr: apb_valid_read and (addr == 0)
+    width: 1
+    description: APB read decode helper for register CTRL.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_src_addr
+    expr: apb_valid_write and (addr == 4)
+    width: 1
+    description: APB write decode helper for register SRC_ADDR.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_src_addr
+    expr: apb_valid_read and (addr == 4)
+    width: 1
+    description: APB read decode helper for register SRC_ADDR.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_dst_addr
+    expr: apb_valid_write and (addr == 8)
+    width: 1
+    description: APB write decode helper for register DST_ADDR.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_dst_addr
+    expr: apb_valid_read and (addr == 8)
+    width: 1
+    description: APB read decode helper for register DST_ADDR.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_length_bytes
+    expr: apb_valid_write and (addr == 12)
+    width: 1
+    description: APB write decode helper for register LENGTH_BYTES.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_length_bytes
+    expr: apb_valid_read and (addr == 12)
+    width: 1
+    description: APB read decode helper for register LENGTH_BYTES.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_status
+    expr: apb_valid_write and (addr == 16)
+    width: 1
+    description: APB write decode helper for register STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_status
+    expr: apb_valid_read and (addr == 16)
+    width: 1
+    description: APB read decode helper for register STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_irq_status
+    expr: apb_valid_write and (addr == 20)
+    width: 1
+    description: APB write decode helper for register IRQ_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_irq_status
+    expr: apb_valid_read and (addr == 20)
+    width: 1
+    description: APB read decode helper for register IRQ_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: irq_status_w1c
+    expr: ((pwdata & gpio_mask) if wr_irq_status else 0)
+    width: 32
+    description: W1C write mask helper for register IRQ_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: read_mux
+    expr: (0 if addr == 0 else (src_addr if addr == 4 else (dst_addr if addr == 8 else (length_bytes if addr == 12 else (0 if addr == 16 else (irq_status if addr == 20 else 0))))))
+    width: DATA_WIDTH
+    description: APB read data mux derived from registers.register_list offsets and function_model state variables.
+    source: repair_ssot_schema.apb_helper
+cycle_model:
+  purpose: Cycle and handshake contract for RTL and verification.
+  executable: pymtl3
+  backend_policy: Use PyMTL3 for cycle-model shell; function_model remains behavioral oracle.
+  clock: clk
+  reset:
+    signal: rstn
+    polarity: active_low
+    assertion: rstn assertion clears all architectural state to declared reset values.
+    deassertion: Accept APB accesses after reset deassertion completes.
+  latency:
+    register_access:
+      min_cycles: 0
+      max_cycles: 0
+      description: Zero-wait APB-like accesses.
+    transfer:
+      min_cycles: 3
+      max_cycles: null
+      description: Depends on length_bytes and memory backpressure/response latency.
+  handshake_rules:
+  - signal: psel/penable/pready
+    rule: Register access completes in any cycle psel && penable; pready is high.
+  - signal: mem_rd_valid/mem_rd_ready
+    rule: mem_rd_addr remains stable until ready accepts the read request.
+  - signal: mem_rdata_valid
+    rule: One read data beat is captured when valid is high after an accepted read request.
+  - signal: mem_wr_valid/mem_wr_ready
+    rule: mem_wr_addr/mem_wr_data/mem_wr_strb remain stable until ready accepts the write request.
+  pipeline:
+  - stage: S0_CSR
+    cycle: 0
+    action: Accept APB register read/write and start command.
+  - stage: S1_READ_REQ
+    cycle: 1..N
+    action: Issue and hold read request until mem_rd_ready.
+  - stage: S2_READ_DATA
+    cycle: N..M
+    action: Wait for mem_rdata_valid and capture mem_rdata.
+  - stage: S3_WRITE_REQ
+    cycle: M..K
+    action: Issue and hold write request until mem_wr_ready.
+  - stage: S4_STATUS
+    cycle: K
+    action: Advance counters or set done/irq on final beat.
+  ordering:
+  - APB start latches programmed fields before the first memory request.
+  - Each write beat uses data from the immediately preceding read data beat.
+  - The next read is not issued until the current write is accepted.
+  - Done and irq_status update only after the final write is accepted.
+  backpressure:
+  - mem_rd_ready low stalls READ_REQ with stable mem_rd_addr.
+  - absence of mem_rdata_valid stalls READ_DATA with no write request.
+  - mem_wr_ready low stalls WRITE_REQ with stable write payload.
+  performance:
+    frequency_mhz: 100
+    throughput:
+      sustained_beats_per_cycle: 1
+      condition: Memory has no backpressure and returns read data in one cycle.
+    outstanding:
+      max: 1
+      description: One transfer and one memory beat at a time.
+    depth:
+      pipeline_stages: 5
+      queue_depth: 1
+      description: CSR/read/read-data/write/status sequencing.
+clock_reset_domains:
+  domains:
+  - clock: clk
+    reset: rstn
+    frequency_mhz: 100
+    reset_scheme: async_assert_sync_deassert
+  reset_behavior:
+  - All architectural registers reset to zero except pready, which remains 1 during normal operation.
+  - FSM resets to IDLE.
+cdc_requirements:
+  required: false
+  rationale: Single clock domain.
+  checks:
+  - No CDC paths expected unless future SSOT adds clocks.
+rdc_requirements:
+  required: false
+  rationale: Single reset domain.
+  checks:
+  - No RDC paths expected beyond primary reset.
+registers:
+  no_registers: false
+  policy: Firmware-visible APB-like registers are implemented at fixed offsets; writes to configuration fields while busy are ignored except start while busy sets error.
+  register_list:
+  - name: CTRL
+    offset: 0
+    width: 32
+    fields:
+    - name: start
+      bits:
+      - 0
+      - 0
+      access: rw1s
+      reset: 0
+      description: Write 1 when idle to start a transfer.
+      write_effect: Writing 1 sets the corresponding status bit; writing 0 leaves it unchanged.
+      msb: 0
+      lsb: 0
+      width: 1
+    - name: irq_enable
+      bits:
+      - 1
+      - 1
+      access: rw
+      reset: 0
+      description: Enable completion interrupt.
+      write_effect: APB write data updates this field value according to its bit mask.
+      msb: 1
+      lsb: 1
+      width: 1
+    - name: clear_done
+      bits:
+      - 2
+      - 2
+      access: wo
+      reset: 0
+      description: Write 1 to clear done and irq status.
+      write_effect: APB write data updates this field value according to its bit mask.
+      msb: 2
+      lsb: 2
+      width: 1
+    access: mixed
+    reset: 0
+    description: CTRL register
+  - name: SRC_ADDR
+    offset: 4
+    width: 32
+    fields:
+    - name: value
+      bits:
+      - 31
+      - 0
+      access: rw
+      reset: 0
+      description: Source byte address.
+      write_effect: APB write data updates this field value according to its bit mask.
+      msb: 31
+      lsb: 0
+      width: 32
+    access: rw
+    reset: 0
+    description: SRC_ADDR register
+  - name: DST_ADDR
+    offset: 8
+    width: 32
+    fields:
+    - name: value
+      bits:
+      - 31
+      - 0
+      access: rw
+      reset: 0
+      description: Destination byte address.
+      write_effect: APB write data updates this field value according to its bit mask.
+      msb: 31
+      lsb: 0
+      width: 32
+    access: rw
+    reset: 0
+    description: DST_ADDR register
+  - name: LENGTH_BYTES
+    offset: 12
+    width: 32
+    fields:
+    - name: value
+      bits:
+      - 31
+      - 0
+      access: rw
+      reset: 0
+      description: Transfer length in bytes.
+      write_effect: APB write data updates this field value according to its bit mask.
+      msb: 31
+      lsb: 0
+      width: 32
+    access: rw
+    reset: 0
+    description: LENGTH_BYTES register
+  - name: STATUS
+    offset: 16
+    width: 32
+    fields:
+    - name: busy
+      bits:
+      - 0
+      - 0
+      access: ro
+      reset: 0
+      description: Transfer is active.
+      msb: 0
+      lsb: 0
+      width: 1
+    - name: done
+      bits:
+      - 1
+      - 1
+      access: ro
+      reset: 0
+      description: Sticky transfer complete bit.
+      msb: 1
+      lsb: 1
+      width: 1
+    - name: error
+      bits:
+      - 2
+      - 2
+      access: ro
+      reset: 0
+      description: Sticky error bit.
+      msb: 2
+      lsb: 2
+      width: 1
+    access: ro
+    reset: 0
+    description: STATUS register
+  - name: IRQ_STATUS
+    offset: 20
+    width: 32
+    fields:
+    - name: done_irq
+      bits:
+      - 0
+      - 0
+      access: ro
+      reset: 0
+      description: Sticky interrupt source cleared by CTRL.clear_done.
+      msb: 0
+      lsb: 0
+      width: 1
+    access: ro
+    reset: 0
+    description: IRQ_STATUS register
+memory:
+  instances: []
+  addressing:
+    policy: No internal memory; external memory is accessed via declared read/write handshake ports using byte addresses.
+  storage_policy: DMA does not store payload data except one captured DATA_WIDTH read beat.
+interrupts:
+  present: true
+  sources:
+  - name: irq
+    type: level
+    source: IRQ_STATUS.done_irq
+    enable: CTRL.irq_enable
+    clear: CTRL.clear_done
+    output_port: irq
+    description: Completion interrupt remains asserted until clear_done when enabled.
+fsm:
+  control:
+    states:
+    - IDLE
+    - READ_REQ
+    - READ_DATA
+    - WRITE_REQ
+    - COMPLETE
+    - ERROR
+    reset_state: IDLE
+    transitions:
+    - from: IDLE
+      to: READ_REQ
+      when: start accepted with length_bytes != 0
+    - from: IDLE
+      to: ERROR
+      when: start accepted with length_bytes == 0 or start while busy
+    - from: READ_REQ
+      to: READ_DATA
+      when: mem_rd_valid && mem_rd_ready
+    - from: READ_DATA
+      to: WRITE_REQ
+      when: mem_rdata_valid
+    - from: WRITE_REQ
+      to: READ_REQ
+      when: mem_wr_valid && mem_wr_ready && !last_beat
+    - from: WRITE_REQ
+      to: COMPLETE
+      when: mem_wr_valid && mem_wr_ready && last_beat
+    - from: COMPLETE
+      to: IDLE
+      when: completion status committed
+    - from: ERROR
+      to: IDLE
+      when: CTRL.clear_done or reset
+    source: DMA transfer control from orchestrator goal.
+timing:
+  target_clocks:
+  - name: clk
+    frequency_mhz: 100
+    period_ns: 10.0
+    uncertainty_ns: 0.2
+  latency_budget:
+    register_access:
+      min: 0
+      max: 0
+      measured_from: psel && penable
+      measured_to: pready
+    primary_operation:
+      min: 3
+      max: null
+      measured_from: CTRL.start accepted
+      measured_to: STATUS.done
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports:
+    - sta/out/timing.rpt
+    - sta/out/wns.json
+power:
+  domains:
+  - name: PD_MAIN
+    voltage: nominal
+    clock_domains:
+    - clk
+    isolation: not_required_single_domain
+  power_states:
+  - name: true
+    entry: reset deasserted
+    exit: reset asserted
+    guarantees:
+    - All declared functionality active.
+  clock_gating:
+    required: false
+    rationale: No explicit clock gating requirement.
+  upf_required: false
+security:
+  classification: non_secure_leaf_ip
+  assets:
+  - name: dma_programming_state
+    protection: CSR writes are deterministic
+    reset-safe: null
+    and ignored while busy where specified.: null
+  - name: copied_data_integrity
+    protection: Writes reflect preceding reads in strict order.
+  threat_model:
+  - threat: invalid CSR address
+    mitigation: pslverr and no state mutation.
+  - threat: overlapping starts
+    mitigation: one-outstanding policy and sticky error.
+  privilege_model: System-level access control is owned by the integrating bus/firewall.
+error_handling:
+  error_sources:
+  - id: ERR_START_BUSY
+    condition: Software writes CTRL.start while busy
+    architectural_effect: Set STATUS.error and continue current transfer.
+  - id: ERR_ZERO_LENGTH
+    condition: Software starts with LENGTH_BYTES == 0
+    architectural_effect: Set STATUS.error and do not start memory traffic.
+  - id: ERR_BAD_CSR_ADDR
+    condition: APB access uses unsupported offset
+    architectural_effect: Assert pslverr for that access; architectural state unchanged.
+  propagation:
+  - Error status is visible in STATUS.error.
+  recovery:
+  - action: reset
+    clears:
+    - error
+    - busy
+    - done
+    - irq_status
+    preserves: []
+  - action: CTRL.clear_done
+    clears:
+    - done
+    - irq_status
+    preserves:
+    - error
+debug_observability:
+  waveform_must_probe:
+  - clk
+  - rstn
+  - psel
+  - penable
+  - pwrite
+  - paddr
+  - pwdata
+  - prdata
+  - busy
+  - done
+  - error
+  - irq_status
+  - irq
+  - mem_rd_valid
+  - mem_rd_ready
+  - mem_rd_addr
+  - mem_rdata_valid
+  - mem_rdata
+  - mem_wr_valid
+  - mem_wr_ready
+  - mem_wr_addr
+  - mem_wr_data
+  - mem_wr_strb
+  trace_events:
+  - name: transfer_start
+    trigger: CTRL.start accepted while idle and length_bytes nonzero
+  - name: beat_read_accepted
+    trigger: mem_rd_valid && mem_rd_ready
+  - name: beat_write_accepted
+    trigger: mem_wr_valid && mem_wr_ready
+  - name: transfer_complete
+    trigger: final write accepted
+  - name: error_detected
+    trigger: any error_handling.error_sources condition
+  status_outputs:
+  - STATUS.busy
+  - STATUS.done
+  - STATUS.error
+  - IRQ_STATUS.done_irq
+  - irq
+integration:
+  bus_attachment:
+    interfaces:
+    - apb_ctrl
+    - mem_read_req
+    - mem_read_data
+    - mem_write_req
+    - irq_out
+    address_ownership: SoC assigns APB base address; local offsets are defined in registers.register_list.
+  dependencies:
+    external_modules: []
+    external_clocks:
+    - clk
+    external_resets:
+    - rstn
+  connections: []
+  integration_notes:
+  - Integrator supplies an external memory model or fabric honoring declared read/write handshakes.
+  connection_contract_status: missing machine-readable module wiring; child RTL drafts may proceed from owner packets, but top integration/signoff must stay blocked until SSOT authors integration.connections or sub_modules[].connections with module/port/signal records
+dft:
+  scan_required: false
+  controllability:
+    reset: rstn
+    clocks:
+    - clk
+    primary_inputs: all io_list inputs controllable in testbench
+  observability:
+    required_internal_points:
+    - fsm_state
+    - busy
+    - done
+    - error
+    - byte_index
+    outputs: all io_list outputs observable
+  mbist_required: false
+synthesis:
+  dialect: systemverilog_2012
+  top_module: dma_scratch_ui_20260519b
+  constraints:
+  - No inferred latches
+  - No unresolved black boxes
+  - All sequential architectural state reset
+  required_outputs:
+  - syn/out/area.rpt
+  - syn/out/timing_summary.rpt
+  - sta/out/wns.json
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: met3
+    vertical: met2
+  cts_buf_list:
+  - sky130_fd_sc_hd__clkbuf_4
+  - sky130_fd_sc_hd__clkbuf_8
+  routing:
+    signal_layers:
+      min: met1
+      max: met5
+    drc_waivers: []
+coding_rules:
+  verilog_style: systemverilog_2012
+  file_extension: .sv
+  parameter_header: rtl/dma_scratch_ui_20260519b_param.vh
+  conventions:
+  - Use input logic/output logic ANSI ports and internal single-driver logic.
+  - Keep synthesizable top file as rtl/dma_scratch_ui_20260519b.sv.
+  - Do not create VCD wrapper tops.
+  - No inferred latches; every combinational branch assigns all outputs.
+  lint_waivers: []
+reuse_modules: []
+custom:
+  assumptions:
+  - No imported architect handoff beyond inline orchestrator goal was available to this worker.
+  - APB-like interface is zero-wait with pready high.
+  - Memory interface has no explicit error response input; DMA error sources are limited to software misuse and CSR decode errors.
+  - Source/destination are treated as byte addresses; full unaligned lane steering for non-word-aligned addresses is TBD, while final partial beat byte strobe is specified.
+  - Configuration writes while busy are ignored except start while busy sets STATUS.error.
+  tbd:
+  - Clarify whether unaligned source and destination addresses require byte-lane rotation in RTL.
+  - Clarify whether memory fabric should expose read/write error response ports in a future SSOT revision.
+  optional_behavior_policy:
+    resolution: non_required_optional_items_disabled_unless_ssot_marks_required_or_parameterized
+    owner: ssot-gen engineering draft
+    rule: Optional functional behavior must be promoted to explicit required behavior before RTL signoff.
+dir_structure:
+  yaml_dir: yaml/
+  output_dirs:
+    rtl: rtl/
+    list: list/
+    tb: tb/cocotb/
+    sim: sim/
+    lint: lint/
+    cov: cov/
+    doc: doc/
+  generators_dir: generators/
+filelist:
+  rtl:
+  - rtl/dma_scratch_ui_20260519b.sv
+  headers:
+  - rtl/dma_scratch_ui_20260519b_param.vh
+  tb:
+  - tb/cocotb/test_dma_scratch_ui_20260519b.py
+  - tb/cocotb/test_runner.py
+  - tb/cocotb/scoreboard.py
+  sim:
+  - sim/results.xml
+  - sim/waves.fst
+  coverage:
+  - cov/coverage.json
+test_requirements:
+  scenarios:
+  - id: SC01
+    name: reset contract
+    stimulus: Assert and release the declared reset while all external interfaces remain idle.
+    expected: Architectural state, status, outputs, and debug observability match function_model reset outputs.
+    checker: Reset checker compares all declared reset-visible state against function_model and cycle_model reset rules.
+    coverage:
+    - function_model.reset
+    - cycle_model.reset
+  - id: SC02
+    name: primary approved behavior
+    stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.
+    expected: Externally observable result/status/side effects match the function_model primary transaction.
+    checker: FL-vs-RTL scoreboard compares observable outputs and state updates from the locked function_model.
+    coverage:
+    - function_model.primary
+    - features
+    - dataflow
+  - id: SC03
+    name: cycle handshake and backpressure
+    stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.
+    expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.
+    checker: Protocol monitor and scoreboard check cycle_model.handshake_rules, ordering, and latency budget.
+    coverage:
+    - cycle_model.handshake_rules
+    - cycle_model.ordering
+    - backpressure
+  - id: SC04
+    name: error and recovery policy
+    stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.
+    expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.
+    checker: Negative checker compares error result and recovery state against function_model error_cases.
+    coverage:
+    - error_handling.error_sources
+    - function_model.error_cases
+  - id: SC05
+    name: debug and trace observability
+    stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.
+    expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.
+    checker: Waveform/trace checker validates debug_observability entries and traceability.yaml_to_output rows.
+    coverage:
+    - debug_observability
+    - traceability
+  - id: SC06
+    name: function_model transaction FM_RESET
+    stimulus: Drive preconditions for function_model transaction `FM_RESET`.
+    expected: Outputs and side effects match `FM_RESET` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_RESET
+  - id: SC07
+    name: function_model transaction FM_APB_WRITE
+    stimulus: Drive preconditions for function_model transaction `FM_APB_WRITE`.
+    expected: Outputs and side effects match `FM_APB_WRITE` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_APB_WRITE
+  - id: SC08
+    name: function_model transaction FM_APB_READ
+    stimulus: Drive preconditions for function_model transaction `FM_APB_READ`.
+    expected: Outputs and side effects match `FM_APB_READ` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_APB_READ
+  - id: SC09
+    name: function_model transaction FM_START
+    stimulus: Drive preconditions for function_model transaction `FM_START`.
+    expected: Outputs and side effects match `FM_START` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_START
+  - id: SC10
+    name: function_model transaction FM_READ_ACCEPT
+    stimulus: Drive preconditions for function_model transaction `FM_READ_ACCEPT`.
+    expected: Outputs and side effects match `FM_READ_ACCEPT` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_READ_ACCEPT
+  - id: SC11
+    name: function_model transaction FM_READ_DATA
+    stimulus: Drive preconditions for function_model transaction `FM_READ_DATA`.
+    expected: Outputs and side effects match `FM_READ_DATA` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_READ_DATA
+  - id: SC12
+    name: function_model transaction FM_WRITE_ACCEPT
+    stimulus: Drive preconditions for function_model transaction `FM_WRITE_ACCEPT`.
+    expected: Outputs and side effects match `FM_WRITE_ACCEPT` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_WRITE_ACCEPT
+  scoreboard_checks: 12
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+      description: Cover reset, CSR programming, reads, starts, copy beats, completion, IRQ, and error transactions.
+      bins:
+      - id: FCOV_RESET
+        source_ref: function_model.transactions
+        class: transaction
+        description: Reset observed.
+      - id: FCOV_APB_WRITE_READ
+        source_ref: function_model.transactions
+        class: transaction
+        description: CSR write/readback observed.
+      - id: FCOV_DMA_COPY
+        source_ref: function_model.transactions
+        class: transaction
+        description: DMA copy beat and completion observed.
+    cycle:
+      target_pct: 100
+      model: cycle_model
+      description: Cover APB access, read request, read data, write request, status update, and backpressure.
+      bins:
+      - id: CCOV_APB
+        source_ref: cycle_model.pipeline.S0_CSR
+        class: cycle_rule
+        description: APB access cycle covered.
+      - id: CCOV_MEM_BP
+        source_ref: cycle_model.backpressure
+        class: cycle_rule
+        description: Memory backpressure covered.
+    scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence
+quality_gates:
+  ssot:
+    pass: check_ssot_disk.sh exits 0 in engineering mode.
+    evidence:
+    - check_ssot_disk.sh PASS
+    - repaired SSOT YAML present
+    - provenance JSON present
+  rtl:
+    pass: Synthesizable rtl/dma_scratch_ui_20260519b.sv compiles and implements all required SSOT-visible behavior.
+    evidence:
+    - list/dma_scratch_ui_20260519b.f
+    - compile log
+    - lint log
+  rtl_gen:
+    profile: standard
+    pass: rtl-gen closes all required SSOT-derived TODOs with fresh compile/lint evidence.
+    evidence:
+    - rtl/rtl_authoring_plan.json
+    - logs/rtl-gen/rtl_todo_plan.json
+    - rtl/provenance.json
+    - rtl_compile.json
+    - lint/dut_lint.json
+  dv:
+    pass: Every scenario has an executable checker and scoreboard expectation.
+    evidence:
+    - verify/equivalence_goals.json
+    - sim/scoreboard_events.jsonl
+    - tb/cocotb tests
+  coverage:
+    pass: Functional and cycle coverage goals meet target or have approved waiver.
+    evidence:
+    - coverage report
+    - coverage waiver list if any
+  eda:
+    pass: Synthesis/STA/DFT expectations have reports or approved waivers
+    evidence:
+    - syn/sta/dft reports
+  signoff:
+    pass: SSOT, RTL, lint, DV, simulation, coverage, and EDA gates pass with fresh artifacts.
+    evidence:
+    - ATLAS progress signoff PASS
+traceability:
+  yaml_to_output:
+  - yaml: function_model
+    output: RTL behavior and TB reference model
+  - yaml: cycle_model
+    output: RTL handshake timing and waveform checks
+  - yaml: registers
+    output: CSR RTL and register tests
+  - yaml: interrupts
+    output: IRQ RTL and IRQ checker
+  - yaml: test_requirements
+    output: cocotb scenarios and scoreboard
+  - yaml: function_model/cycle_model/test_requirements
+    output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
+  - yaml: timing
+    output: STA constraints and latency pass/fail criteria
+  - yaml: security
+    output: Threat mitigations and negative tests
+  - yaml: error_handling
+    output: Fault RTL paths and DV error scenarios
+  - yaml: debug_observability
+    output: VCD probes and sim_debug inspection
+  - yaml: quality_gates
+    output: ATLAS progress/signoff criteria
+workflow_todos:
+  rtl-gen:
+  - id: RTL_IMPLEMENT_DMA_TOP
+    content: Implement synthesizable top at rtl/dma_scratch_ui_20260519b.sv from SSOT ports, registers, FSM, and memory handshakes.
+    detail: Implement zero-wait APB-like CSR interface, one-outstanding DMA copy engine, status/IRQ behavior, and byte strobe handling.
+    criteria:
+    - Top module ports exactly match io_list.
+    - CSR offsets and fields match registers.register_list.
+    - Memory valid/ready signals hold stable under backpressure.
+    - Done/error/irq behavior matches function_model.
+    source_refs:
+    - top_module
+    - io_list
+    - registers
+    - function_model
+    - cycle_model
+    - fsm
+    owner_module: dma_scratch_ui_20260519b
+    owner_file: rtl/dma_scratch_ui_20260519b.sv
+    priority: high
+    required: true
+  tb-gen:
+  - id: TB_IMPLEMENT_DMA_SCENARIOS
+    content: Build APB-like and memory-handshake testbench implementing all SSOT scenarios.
+    detail: Include register mirror, memory copy scoreboard, ready/valid stability monitors, IRQ/status checks, partial length tests, and error tests.
+    criteria:
+    - All SC01-SC06 scenarios are executable.
+    - Scoreboard checks data copy, status, IRQ, and error behavior.
+    - Coverage bins in test_requirements are sampled.
+    source_refs:
+    - test_requirements
+    - function_model
+    - cycle_model
+    priority: high
+    required: true
+  sim_debug: []
+generation_flow:
+  steps:
+  - name: validate_ssot
+    command: bash workflow/ssot-gen/scripts/check_ssot_disk.sh dma_scratch_ui_20260519b --mode ${ATLAS_RUN_MODE:-signoff}
+    description: Validate SSOT structure and quality gates at the selected Run Mode
+  - name: handoff_fl_model
+    command: /ssot-fl-model dma_scratch_ui_20260519b
+    description: Generate FunctionalModel, decomposition, and FCOV plan from SSOT
+  - name: handoff_equivalence_goals
+    command: /ssot-equiv-goals dma_scratch_ui_20260519b
+    description: Derive FL-vs-RTL equivalence goals before TB generation
+  - name: handoff_rtl
+    command: /ssot-rtl dma_scratch_ui_20260519b
+    description: Generate RTL from validated SSOT
+  - name: handoff_tb
+    command: /ssot-tb-cocotb dma_scratch_ui_20260519b
+    description: Generate cocotb/pyuvm verification from validated SSOT
+  - name: handoff_sim_debug
+    command: /wf sim_debug
+    description: Run simulation, waveform, and coverage inspection
+rtl_contract:
+  owner: ssot-gen
+  type: ssot_derived_rule_contract
+  transaction: FM_WRITE_ACCEPT
+  clock: clk
+  reset: rstn
+  reset_active: low
+  sample_condition: (mem_wr_valid && mem_wr_ready) and pready
+  input_map:
+    paddr: paddr
+    pwdata: pwdata
+    mem_rdata: mem_rdata
+    mem_rd_ready: mem_rd_ready
+    mem_rdata_valid: mem_rdata_valid
+    mem_wr_ready: mem_wr_ready
+    psel: psel
+    penable: penable
+    pwrite: pwrite
+  output_map:
+    prdata: prdata
+    pready: pready
+    pslverr: pslverr
+    mem_rd_valid: mem_rd_valid
+    mem_rd_addr: mem_rd_addr
+    mem_wr_valid: mem_wr_valid
+    mem_wr_addr: mem_wr_addr
+    mem_wr_data: mem_wr_data
+    mem_wr_strb: mem_wr_strb
+    irq: irq
+  ready_output: pready
+  output_valid: mem_wr_valid
+  contract_invariants:
+  - RTL-visible behavior implements all referenced function_model transactions.
+  - Input sampling and output observation follow cycle_model handshake and latency rules.
+  output_rules:
+  - name: irq_level
+    port: irq
+    expr: irq_enable && irq_status
+    width: 1
+    description: IRQ is level asserted only when enabled and pending.
+  - name: next_read_valid
+    port: mem_rd_valid
+    expr: '((byte_index + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))) < length_bytes)'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: next_read_addr
+    port: mem_rd_addr
+    expr: 'current_src + (((length_bytes - byte_index) >= 4) ? 4 : (length_bytes - byte_index))'
+    width: 32
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: pready_reset
+    port: pready
+    expr: '1'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: apb_pslverr
+    port: pslverr
+    expr: '!(paddr==0 || paddr==4 || paddr==8 || paddr==12 || paddr==16 || paddr==20)'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: apb_read_data
+    port: prdata
+    expr: ({0,irq_enable,0} if paddr==0 else (src_addr if paddr==4 else (dst_addr if paddr==8 else (length_bytes if paddr==12 else ({0,error,done,busy} if paddr==16 else ({0,irq_status} if paddr==20 else 0))))))
+    width: 32
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: write_valid_after_read
+    port: mem_wr_valid
+    expr: '1'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: write_data_after_read
+    port: mem_wr_data
+    expr: mem_rdata
+    width: 32
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: write_addr_after_read
+    port: mem_wr_addr
+    expr: current_dst
+    width: 32
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: write_strb_after_read
+    port: mem_wr_strb
+    expr: (15 if (length_bytes - byte_index) >= 4 else ((1 << (length_bytes - byte_index)) - 1))
+    width: 4
+    description: FunctionalModel output observable mapped to DUT output port.

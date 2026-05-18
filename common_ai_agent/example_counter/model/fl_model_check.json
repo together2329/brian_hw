@@ -1,0 +1,6 @@
+{
+    "passed": true,
+    "model": "functional_model.py",
+    "transactions": ["FM_COUNT_UP", "FM_LOAD", "FM_HOLD", "FM_RESET"],
+    "state_variables": ["count", "overflow"]
+}
