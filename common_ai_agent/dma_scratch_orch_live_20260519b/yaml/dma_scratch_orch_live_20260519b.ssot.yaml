@@ -40,6 +40,8 @@ sub_modules:
   - fsm
   decomposition_refs:
   - decomposition
+  test_refs:
+  - test_requirements
 - name: dma_scratch_orch_live_20260519b
   file: rtl/dma_scratch_orch_live_20260519b.sv
   ownership: manifest
@@ -49,7 +51,7 @@ sub_modules:
   implements:
   - top_module
   - integration
-  source_sections: &id001
+  source_sections:
   - top_module
   - io_list
   - decomposition
@@ -64,7 +66,11 @@ decomposition:
   - module: dma_scratch_orch_live_20260519b
     file: rtl/dma_scratch_orch_live_20260519b.sv
     responsibility: Top-level integration module matching SSOT top_module
-    source_sections: *id001
+    source_sections:
+    - top_module
+    - io_list
+    - decomposition
+    - integration
   integration_policy: Top-level wiring must be backed by integration.connections or sub_modules[].connections before signoff.
   source_refs:
   - sub_modules
@@ -173,8 +179,7 @@ io_list:
     - name: mem_req_write
       direction: output
       width: 1
-      description: Memory write request when high
-      read when low: null
+      description: Memory write request when high, read when low
     - name: mem_req_addr
       direction: output
       width: ADDR_WIDTH
@@ -1417,3 +1422,9 @@ rtl_contract:
   contract_invariants:
   - RTL-visible behavior implements the referenced function_model transaction.
   - Input sampling and output observation follow cycle_model handshake and latency rules.
+  output_rules:
+  - name: irq
+    port: irq
+    expr: '0'
+    width: 1
+    description: Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.
