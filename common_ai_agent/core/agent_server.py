@@ -625,10 +625,18 @@ def _execute_direct_slash_commands(
 
     after = _snapshot_scope_files(project_root, ip)
     files_modified = _changed_scope_files(before, after)
+    final_output = "\n\n".join(outputs)
+    if needs_llm_followup and not failed:
+        entry.add_log(
+            "system",
+            f"Direct slash command requested LLM follow-up; continuing ReAct loop with {len(files_modified)} preflight file(s) modified.",
+            role="system",
+        )
+        return False, final_output
+
     entry.status = "error" if failed else "completed"
     entry.error = "direct slash command failed" if failed else None
     entry.finished_at = time.time()
-    final_output = "\n\n".join(outputs)
     entry.result = {
         "run_id": entry.run_id,
         "status": entry.status,
@@ -647,6 +655,7 @@ def _execute_direct_slash_commands(
     )
     _fire_callback(entry)
     _write_run_log(entry)
+    return True, final_output
 
 
 def _get_run(run_id: str) -> Optional[RunEntry]:
@@ -1312,13 +1321,24 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
 
         direct_commands = _extract_direct_slash_commands(full_task)
         if direct_commands:
-            _execute_direct_slash_commands(
+            closed_run, direct_output = _execute_direct_slash_commands(
                 entry,
                 direct_commands,
                 project_root=project_root or _project_root,
                 ip=ip,
             )
-            return
+            if closed_run:
+                return
+            if direct_output:
+                followup_context = (
+                    "[Direct slash command observations]\n"
+                    f"{direct_output[:8000]}\n\n"
+                    "Continue this worker task using these observations. If the "
+                    "stage driver requested LLM-authored RTL, author the missing "
+                    "RTL artifacts now before finalizing."
+                )
+                messages[-1]["content"] += f"\n\n{followup_context}"
+                entry.add_log("context", followup_context[:1200], role="system")
 
         # ── Run the full ReAct loop ──
         updated_messages, final_agent_mode = run_react_agent_impl(
