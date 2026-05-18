@@ -430,6 +430,54 @@ function PendingQABanner({ ip }) {
   );
 }
 
+// Phase 3: surface the orchestrator's `ask_user` pause as a visible banner.
+// The orchestrator loop persists run.status="paused" and the latest step's
+// verdict="awaiting_user" with decision_json.args.question. Until the user
+// replies via the right-side chat the run stays paused, so we poll the
+// active_run endpoint and render the question prominently.
+function OrchestratorAskUserBanner({ ip }) {
+  const [question, setQuestion] = React.useState('');
+  const [runId, setRunId] = React.useState('');
+  React.useEffect(() => {
+    if (!ip) { setQuestion(''); setRunId(''); return; }
+    let dead = false;
+    const fetchActive = async () => {
+      try {
+        const r = await fetch(`/api/orchestrator/active_run?ip=${encodeURIComponent(ip)}`);
+        if (!r.ok) return;
+        const j = await r.json();
+        if (dead) return;
+        const run = j.run || null;
+        const step = j.latest_step || null;
+        const paused = run && run.status === 'paused';
+        const awaiting = step && step.verdict === 'awaiting_user';
+        if (paused && awaiting) {
+          const args = (step.decision_json && step.decision_json.args) || {};
+          setQuestion(String(args.question || '').trim());
+          setRunId(run.id || '');
+        } else {
+          setQuestion('');
+          setRunId('');
+        }
+      } catch (_) {}
+    };
+    fetchActive();
+    const t = setInterval(fetchActive, 3000);
+    return () => { dead = true; clearInterval(t); };
+  }, [ip]);
+  if (!question) return null;
+  return (
+    <div className="pipe-qa-banner" role="alert" data-source="orchestrator-ask-user">
+      <span className="pipe-qa-icon">⏸</span>
+      <span className="pipe-qa-text">
+        <b>Human decision waiting</b> — orchestrator paused: {question}{' '}
+        Answer in the right-side chat to resume.
+      </span>
+      <span className="pipe-qa-more" title={`run=${runId}`}>run {runId.slice(0, 8)}</span>
+    </div>
+  );
+}
+
 function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
   const [data, setData] = React.useState({ orchestrator: {}, workers: [] });
   const [traceMap, setTraceMap] = React.useState({}); // worker -> latest event
@@ -1159,6 +1207,12 @@ window.StageCard = function StageCard({ stageId, info, ip, onChain }) {
         <span className="pipe-stage-glyph" style={{ color: meta.color }}>{glyph}</span>
         <span className="pipe-stage-label">{label}</span>
         <span className="pipe-stage-state" data-state={stageState}>{meta.label}</span>
+        {data.trigger_source === 'orchestrator_chat' && (
+          <span className="pipe-stage-orch-pill"
+                title="Driven by the right-side Orchestrator chat (LLM loop)">
+            orch
+          </span>
+        )}
         {isLocked && data.locked_reason && (
           <span className="pipe-stage-locked-why mute" title={data.locked_reason}>
             ({data.locked_reason})
@@ -2512,6 +2566,7 @@ window.AtlasPipeline = function AtlasPipeline() {
               }).catch(() => {});
             }} />
           <PendingQABanner ip={ip} />
+          <OrchestratorAskUserBanner ip={ip} />
           <window.PipelineFlowMap
             ip={ip}
             state={pipelineState}

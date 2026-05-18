@@ -4065,6 +4065,17 @@ body[data-resize-cursor="col"] {
 .pipe-stage-state[data-state="stale"] {
   border-color: var(--warn); color: var(--warn);
 }
+.pipe-stage-orch-pill {
+  font-size: 9px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  background: rgba(0, 200, 220, 0.06);
+}
 .pipe-stage-spacer { flex: 1; }
 .pipe-stage-meta {
   font-size: 10px;

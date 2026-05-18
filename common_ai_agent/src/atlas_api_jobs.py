@@ -3040,41 +3040,6 @@ def register_jobs_routes(
                 candidate = f"ip_{candidate}"
         return candidate
 
-    def _orchestrator_stage_selection(message: str) -> tuple[str, list[str]]:
-        text = str(message or "").lower()
-        full_markers = (
-            "run to green", "full pipeline", "full ip", "끝까지", "green",
-            "만들", "생성", "create", "make", "pipeline", "파이프라인",
-        )
-        status_markers = ("status", "상태", "어디", "progress", "현황", "what")
-        stage_aliases = [
-            ("ssot", ("ssot", "req", "intent")),
-            ("fl-model", ("fl", "functional")),
-            ("cl-model", ("cl", "cycle")),
-            ("equivalence", ("equiv", "equivalence")),
-            ("rtl", ("rtl", "rtl-gen", "rtl gen")),
-            ("lint", ("lint", "pyslang", "verilator")),
-            ("tb", ("tb", "testbench", "tb-gen")),
-            ("sim", ("sim ", " simulation", "시뮬")),
-            ("coverage", ("coverage", "cover", "커버리지")),
-            ("sim-debug", ("sim_debug", "sim-debug", "debug", "wave", "waveform")),
-            ("goal-audit", ("audit", "goal-audit", "signoff")),
-        ]
-        selected = [
-            stage_id
-            for stage_id, aliases in stage_aliases
-            if any(alias in text for alias in aliases)
-        ]
-        if any(marker in text for marker in full_markers) and not (
-            selected and not {"ssot", "rtl", "tb", "sim", "coverage"}.issubset(set(selected))
-        ):
-            return "dispatch", [stage["id"] for stage in _PIPELINE_STAGES]
-        if selected:
-            return "dispatch", selected
-        if any(marker in text for marker in status_markers):
-            return "status", []
-        return "status", []
-
     def _record_orchestrator_chat(
         request: Request,
         *,
@@ -3120,32 +3085,6 @@ def register_jobs_routes(
         except Exception:
             return
 
-    def _pipeline_status_reply(ip: str) -> tuple[str, dict[str, Any]]:
-        with _jobs_lock:
-            jobs = [dict(job) for job in _jobs.values() if not ip or job.get("ip") == ip]
-        counts: dict[str, int] = {}
-        for job in jobs:
-            status = str(job.get("status") or "unknown")
-            counts[status] = counts.get(status, 0) + 1
-        latest = sorted(jobs, key=lambda job: job.get("started_at", 0), reverse=True)[:5]
-        if not jobs:
-            return (
-                f"{ip or 'current IP'} has no worker jobs in this UI process yet. "
-                "Say 'run to green' to dispatch the full IP pipeline.",
-                {"counts": counts, "latest": []},
-            )
-        bits = [f"{status}={count}" for status, count in sorted(counts.items())]
-        latest_text = ", ".join(
-            f"{job.get('stage_id')}:{job.get('status')}"
-            for job in latest
-            if job.get("stage_id")
-        )
-        return (
-            f"{ip or 'current IP'} pipeline jobs: " + " ".join(bits)
-            + (f". Latest: {latest_text}." if latest_text else "."),
-            {"counts": counts, "latest": [_public_job(job) for job in latest]},
-        )
-
     @app.post("/api/pipeline/orchestrator/chat")
     async def api_pipeline_orchestrator_chat(request: Request):
         try:
@@ -3162,133 +3101,86 @@ def register_jobs_routes(
         if not ip or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
             return JSONResponse({"error": "valid ip required"}, status_code=400)
 
-        action, selected_stage_ids = _orchestrator_stage_selection(message)
-        run_mode = _normalize_run_mode(body.get("run_mode")) or _current_run_mode()
-        exec_mode = _normalize_exec_mode(body.get("exec_mode")) or _current_exec_mode()
-        if body.get("run_mode") is not None and not _normalize_run_mode(body.get("run_mode")):
-            return JSONResponse({"error": "run_mode must be starter, engineering, or signoff"}, status_code=400)
-        if body.get("exec_mode") is not None and not _normalize_exec_mode(body.get("exec_mode")):
-            return JSONResponse({"error": "exec_mode must be single-worker or orchestrator"}, status_code=400)
+        # Persist user chat first so the trace ledger has the message regardless
+        # of what the loop does.
+        _record_orchestrator_chat(request, ip=ip, message=message)
 
-        if action != "dispatch":
-            reply, status_payload = _pipeline_status_reply(ip)
-            _record_orchestrator_chat(request, ip=ip, message=message, reply=reply)
-            return JSONResponse({
-                "ok": True,
-                "action": "status",
-                "ip": ip,
-                "reply": reply,
-                "status": status_payload,
-            })
+        from core.atlas_db import AtlasDB
+        from src.orchestrator.runner import get_runner
 
-        resolved = _ordered_pipeline_stages([
-            _PIPELINE_BY_ID[stage_id]
-            for stage_id in selected_stage_ids
-            if stage_id in _PIPELINE_BY_ID
-        ])
-        if not resolved:
-            return JSONResponse({"error": "no valid stages selected"}, status_code=400)
-        requested_schedule = str(body.get("schedule") or "auto").strip().lower()
-        if requested_schedule not in {"auto", "dag", "serial"}:
-            return JSONResponse({"error": "schedule must be 'auto', 'dag', or 'serial'"}, status_code=400)
-        schedule = (
-            "serial"
-            if requested_schedule == "auto" and exec_mode == "single-worker"
-            else _resolve_pipeline_schedule(requested_schedule, resolved)
-        )
-        owner_user_id = _request_username(request)
-        db_user_id = _request_db_user_id(request)
-        selected_stage_ids = [stage["id"] for stage in resolved]
-        _, _ = _refresh_tracked_jobs(project_root())
-        conflicts = _active_job_conflicts(
-            ip=ip,
-            stage_ids=selected_stage_ids,
-            workflows=[stage["workflow"] for stage in resolved],
-            user_id=owner_user_id,
-            db_user_id=db_user_id,
-        )
-        if conflicts:
-            payload = _dedupe_payload(conflicts, ip=ip)
-            payload.update({
-                "action": "deduped",
-                "run_mode": run_mode,
-                "exec_mode": exec_mode,
-                "schedule": schedule,
-                "stages": resolved,
-                "user_id": owner_user_id,
-            })
-            _record_orchestrator_chat(request, ip=ip, message=message, reply=payload["reply"])
-            return JSONResponse(payload)
-
-        pipeline_id = uuid.uuid4().hex[:12]
-        db_session_id = _create_pipeline_db_session_for_request(
-            request,
-            ip=ip,
-            pipeline_id=pipeline_id,
-            run_mode=run_mode,
-            exec_mode=exec_mode,
-            selected_stage_ids=selected_stage_ids,
-            prompt=message,
-        )
-        jobs: list[dict[str, Any]] = []
-        stage_job_ids: dict[str, str] = {}
-        for idx, stage in enumerate(resolved):
-            workflow = stage["workflow"]
-            stage_prompt = _default_workflow_prompt(workflow, ip, stage["id"])
-            stage_prompt += (
-                "\n\n[ATLAS ORCHESTRATOR CHAT GOAL]\n"
-                f"{message}\n\n"
-                "[ATLAS RUN POLICY]\n"
-                f"- run_mode: {run_mode}\n"
-                f"- exec_mode: {exec_mode}\n"
+        pr = project_root()
+        user = request.scope.get("user") or {}
+        db_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
+        with AtlasDB(_atlas_job_db_path(pr)) as db:
+            workspace = db.upsert_workspace(
+                pr.name or "default",
+                owner_user_id=db_user_id,
+                local_path=str(pr),
             )
-            session = f"{_pipeline_session_prefix(request, ip, pipeline_id)}/{idx + 1:02d}-{workflow}"
-            dep_stage_ids = _pipeline_stage_dependencies(
-                stage["id"], selected_stage_ids, schedule=schedule,
+            ip_row = db.upsert_ip_block(
+                workspace["id"], ip, ssot_path=f"{ip}/yaml/{ip}.ssot.yaml"
             )
-            dep_job_ids = [stage_job_ids[dep] for dep in dep_stage_ids if dep in stage_job_ids]
-            depends_on: str | list[str]
-            depends_on = dep_job_ids[0] if schedule == "serial" and dep_job_ids else dep_job_ids
-            job = _make_job_record(
-                workflow=workflow,
-                ip=ip,
-                prompt=stage_prompt,
-                model="",
-                session_name=session,
-                stage_id=stage["id"],
-                pipeline_id=pipeline_id,
-                pipeline_index=idx,
-                depends_on=depends_on,
-                auto_start=(not dep_job_ids),
-                pipeline_schedule=schedule,
-                run_mode=run_mode,
-                exec_mode=exec_mode,
-                user_id=owner_user_id,
-                db_user_id=db_user_id,
-                db_session_id=db_session_id,
-            )
-            stage_job_ids[stage["id"]] = job["job_id"]
-            jobs.append(_public_job(job))
 
-        reply = (
-            f"Dispatched {len(jobs)} stage(s) for {ip}: "
-            + ", ".join(stage["id"] for stage in resolved)
-            + f". pipeline_run_id={pipeline_id}."
+        runner = get_runner(_atlas_job_db_path(pr))
+        outcome = runner.submit_or_attach(
+            user_id=db_user_id,
+            ip_id=ip_row["id"],
+            ip_name=ip,
+            session_id=str(body.get("session_id") or ""),
+            chat_message_id=str(body.get("chat_message_id") or ""),
+            message_text=message,
+            model=str(body.get("model") or ""),
+            reasoning_effort=str(body.get("reasoning_effort") or ""),
         )
-        _record_orchestrator_chat(request, ip=ip, message=message, reply=reply, pipeline_id=pipeline_id)
         return JSONResponse({
             "ok": True,
-            "action": "dispatch",
             "ip": ip,
-            "reply": reply,
-            "pipeline_id": pipeline_id,
-            "pipeline_run_id": pipeline_id,
-            "user_id": owner_user_id,
-            "run_mode": run_mode,
-            "exec_mode": exec_mode,
-            "schedule": schedule,
-            "stages": resolved,
-            "jobs": jobs,
+            "run_id": outcome.run_id,
+            "status": outcome.status,
+        })
+
+    @app.get("/api/orchestrator/runs/{run_id}")
+    async def api_orchestrator_run_detail(run_id: str):
+        from core.atlas_db import AtlasDB
+
+        pr = project_root()
+        with AtlasDB(_atlas_job_db_path(pr)) as db:
+            run = db.get_orchestrator_run(run_id)
+            if run is None:
+                return JSONResponse({"error": f"unknown run {run_id!r}"}, status_code=404)
+            steps = db.list_orchestrator_steps(run_id)
+        return JSONResponse({"ok": True, "run": run, "steps": steps})
+
+    @app.get("/api/orchestrator/active_run")
+    async def api_orchestrator_active_run(request: Request):
+        """Active orchestrator_run + latest step for the (calling user, ip).
+
+        Powers the "Human decision waiting" banner: when ``latest_step.verdict``
+        is ``awaiting_user``, the UI renders the question.
+        """
+        params = dict(request.query_params)
+        ip = (params.get("ip") or "").strip()
+        if not ip:
+            return JSONResponse({"error": "ip query param required"}, status_code=400)
+        from core.atlas_db import AtlasDB
+
+        pr = project_root()
+        user = request.scope.get("user") or {}
+        db_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
+        with AtlasDB(_atlas_job_db_path(pr)) as db:
+            workspace = db.upsert_workspace(
+                pr.name or "default",
+                owner_user_id=db_user_id,
+                local_path=str(pr),
+            )
+            ip_row = db.upsert_ip_block(workspace["id"], ip)
+            run = db.find_active_run_for(user_id=db_user_id, ip_id=ip_row["id"])
+            latest_step = db.latest_orchestrator_step(run["id"]) if run else None
+        return JSONResponse({
+            "ok": True,
+            "ip": ip,
+            "run": run,
+            "latest_step": latest_step,
         })
 
     def _dispatch_workflow_tool_bridge(

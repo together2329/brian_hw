@@ -441,10 +441,53 @@ CREATE TABLE IF NOT EXISTS artifacts (
     sha256 TEXT,
     size_bytes INT,
     git_commit TEXT,
+    orchestrator_run_id TEXT,
+    trigger_source TEXT,
     created_at REAL
 );
 CREATE INDEX IF NOT EXISTS idx_artifacts_run ON artifacts(run_id, kind, created_at);
 CREATE INDEX IF NOT EXISTS idx_artifacts_rtl_version ON artifacts(rtl_version_id, kind, created_at);
+
+-- orchestrator_runs (one LLM-driven control loop instance per user/ip)
+CREATE TABLE IF NOT EXISTS orchestrator_runs (
+    id TEXT PRIMARY KEY,
+    session_id TEXT,
+    workspace_id TEXT,
+    ip_id TEXT,
+    user_id TEXT,
+    chat_message_id TEXT,
+    pipeline_run_id TEXT,
+    model TEXT,
+    reasoning_effort TEXT,
+    status TEXT,
+    final_state TEXT,
+    started_at REAL,
+    ended_at REAL,
+    updated_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_orchestrator_runs_scope
+    ON orchestrator_runs(user_id, ip_id, status, started_at);
+CREATE INDEX IF NOT EXISTS idx_orchestrator_runs_session
+    ON orchestrator_runs(session_id, started_at);
+
+-- orchestrator_steps (append-only decision/action log for one run)
+CREATE TABLE IF NOT EXISTS orchestrator_steps (
+    id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    step_index INT,
+    tool_name TEXT,
+    observed_state_json TEXT,
+    decision_json TEXT,
+    dispatched_workflow TEXT,
+    dispatched_job_id TEXT,
+    evidence_read_json TEXT,
+    verdict TEXT,
+    retry_budget_state_json TEXT,
+    user_reply TEXT,
+    created_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_orchestrator_steps_run
+    ON orchestrator_steps(run_id, step_index);
 """
 
 # Columns that should be serialized as JSON on write / deserialized on read
@@ -463,6 +506,12 @@ _JSON_COLUMNS = {
     "workflow_todos": {"source_refs", "evidence", "notes"},
     "todo_events": {"evidence"},
     "trace_events": {"payload"},
+    "orchestrator_steps": {
+        "observed_state_json",
+        "decision_json",
+        "evidence_read_json",
+        "retry_budget_state_json",
+    },
 }
 
 
@@ -666,6 +715,17 @@ class AtlasDB:
                 "kind": "TEXT",
                 "created_at": "REAL",
             },
+            "orchestrator_runs": {
+                "user_id": "TEXT",
+                "ip_id": "TEXT",
+                "status": "TEXT",
+                "session_id": "TEXT",
+                "started_at": "REAL",
+            },
+            "orchestrator_steps": {
+                "run_id": "TEXT",
+                "step_index": "INT",
+            },
         }
 
         for table, columns in ddl_index_columns.items():
@@ -697,6 +757,10 @@ class AtlasDB:
         self._ensure_column(conn, "workflow_stages", "rtl_version_id", "TEXT")
         self._ensure_column(conn, "artifacts", "rtl_version_id", "TEXT")
         self._ensure_column(conn, "rtl_versions", "git_tag", "TEXT")
+        self._ensure_column(conn, "workflow_runs", "orchestrator_run_id", "TEXT")
+        self._ensure_column(conn, "workflow_runs", "trigger_source", "TEXT")
+        self._ensure_column(conn, "artifacts", "orchestrator_run_id", "TEXT")
+        self._ensure_column(conn, "artifacts", "trigger_source", "TEXT")
         conn.execute(
             """CREATE INDEX IF NOT EXISTS idx_artifact_versions_ip_type
                   ON artifact_versions(ip_id, artifact_type, created_at)"""
@@ -3328,6 +3392,183 @@ class AtlasDB:
             "ips": ip_summaries,
             "recent_cross_ip_events": recent,
         }
+
+    # ---------- Orchestrator runs / steps ----------
+
+    def create_orchestrator_run(
+        self,
+        user_id: str,
+        ip_id: str,
+        session_id: str = "",
+        workspace_id: str = "",
+        chat_message_id: str = "",
+        pipeline_run_id: str = "",
+        model: str = "",
+        reasoning_effort: str = "",
+        status: str = "running",
+    ) -> Dict[str, Any]:
+        run_id = self._new_id()
+        now = self._now()
+        self._execute(
+            """
+            INSERT INTO orchestrator_runs
+            (id, session_id, workspace_id, ip_id, user_id, chat_message_id,
+             pipeline_run_id, model, reasoning_effort, status, final_state,
+             started_at, ended_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                run_id,
+                session_id,
+                workspace_id,
+                ip_id,
+                user_id,
+                chat_message_id,
+                pipeline_run_id,
+                model,
+                reasoning_effort,
+                status,
+                None,
+                now,
+                None,
+                now,
+            ),
+        )
+        return self.get_orchestrator_run(run_id)
+
+    def get_orchestrator_run(self, run_id: str) -> Optional[Dict[str, Any]]:
+        row = self._fetchone(
+            "SELECT * FROM orchestrator_runs WHERE id = ?", (run_id,)
+        )
+        return self._row_to_dict(row, "orchestrator_runs") if row else None
+
+    def update_orchestrator_run(
+        self,
+        run_id: str,
+        status: Optional[str] = None,
+        final_state: Optional[str] = None,
+        ended: bool = False,
+    ) -> Optional[Dict[str, Any]]:
+        sets: List[str] = []
+        values: List[Any] = []
+        if status is not None:
+            sets.append("status = ?")
+            values.append(status)
+        if final_state is not None:
+            sets.append("final_state = ?")
+            values.append(final_state)
+        now = self._now()
+        sets.append("updated_at = ?")
+        values.append(now)
+        if ended:
+            sets.append("ended_at = ?")
+            values.append(now)
+        if not sets:
+            return self.get_orchestrator_run(run_id)
+        values.append(run_id)
+        self._execute(
+            f"UPDATE orchestrator_runs SET {', '.join(sets)} WHERE id = ?",
+            tuple(values),
+        )
+        return self.get_orchestrator_run(run_id)
+
+    def find_active_run_for(
+        self, user_id: str, ip_id: str
+    ) -> Optional[Dict[str, Any]]:
+        row = self._fetchone(
+            """
+            SELECT * FROM orchestrator_runs
+             WHERE user_id = ? AND ip_id = ?
+               AND status IN ('running', 'paused')
+             ORDER BY started_at DESC
+             LIMIT 1
+            """,
+            (user_id, ip_id),
+        )
+        return self._row_to_dict(row, "orchestrator_runs") if row else None
+
+    def append_orchestrator_step(
+        self,
+        run_id: str,
+        tool_name: str = "",
+        observed_state: Any = None,
+        decision: Any = None,
+        dispatched_workflow: str = "",
+        dispatched_job_id: str = "",
+        evidence_read: Any = None,
+        verdict: str = "",
+        retry_budget_state: Any = None,
+        user_reply: str = "",
+    ) -> Dict[str, Any]:
+        step_id = self._new_id()
+        now = self._now()
+        with self._lock:
+            conn = self._connect()
+            cur = conn.execute(
+                "SELECT COALESCE(MAX(step_index), -1) + 1 AS next_idx "
+                "FROM orchestrator_steps WHERE run_id = ?",
+                (run_id,),
+            )
+            next_idx = cur.fetchone()["next_idx"]
+            conn.execute(
+                """
+                INSERT INTO orchestrator_steps
+                (id, run_id, step_index, tool_name, observed_state_json,
+                 decision_json, dispatched_workflow, dispatched_job_id,
+                 evidence_read_json, verdict, retry_budget_state_json,
+                 user_reply, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    step_id,
+                    run_id,
+                    next_idx,
+                    tool_name,
+                    self._dump_json(observed_state),
+                    self._dump_json(decision),
+                    dispatched_workflow,
+                    dispatched_job_id,
+                    self._dump_json(evidence_read),
+                    verdict,
+                    self._dump_json(retry_budget_state),
+                    user_reply,
+                    now,
+                ),
+            )
+            conn.commit()
+        return self.get_orchestrator_step(step_id)
+
+    def get_orchestrator_step(self, step_id: str) -> Optional[Dict[str, Any]]:
+        row = self._fetchone(
+            "SELECT * FROM orchestrator_steps WHERE id = ?", (step_id,)
+        )
+        return self._row_to_dict(row, "orchestrator_steps") if row else None
+
+    def list_orchestrator_steps(
+        self, run_id: str, limit: int = 200
+    ) -> List[Dict[str, Any]]:
+        rows = self._fetchall(
+            """
+            SELECT * FROM orchestrator_steps
+             WHERE run_id = ?
+             ORDER BY step_index ASC
+             LIMIT ?
+            """,
+            (run_id, limit),
+        )
+        return [self._row_to_dict(r, "orchestrator_steps") for r in rows]
+
+    def latest_orchestrator_step(self, run_id: str) -> Optional[Dict[str, Any]]:
+        row = self._fetchone(
+            """
+            SELECT * FROM orchestrator_steps
+             WHERE run_id = ?
+             ORDER BY step_index DESC
+             LIMIT 1
+            """,
+            (run_id,),
+        )
+        return self._row_to_dict(row, "orchestrator_steps") if row else None
 
     # ---------- Admin ----------
 
