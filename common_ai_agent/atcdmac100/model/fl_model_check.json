@@ -1,0 +1,301 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "atcdmac100",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 10,
+    "failed": 0,
+    "transactions": 9,
+    "transaction_results": [
+      {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "kind": "FM_RESET",
+        "passed": true,
+        "result": {
+          "kind": "reset",
+          "resp": 0,
+          "state": {
+            "dmac_reset_pulse": 0,
+            "active_ch": 0,
+            "busy": 0,
+            "ch_enable": 0,
+            "int_tc": 0,
+            "int_abort": 0,
+            "int_error": 0,
+            "bytes_done": 0,
+            "src_addr_cur": 0,
+            "dst_addr_cur": 0,
+            "read_data_hold": 0,
+            "chain_pending": 0,
+            "error": 0
+          }
+        }
+      },
+      {
+        "id": "FM_AHB_WRITE",
+        "name": "AHB slave register write",
+        "kind": "FM_AHB_WRITE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_AHB_WRITE",
+          "transaction_name": "AHB slave register write",
+          "sample_accepted": 1,
+          "hready_write": 1,
+          "hready": 1,
+          "hresp_write": 0,
+          "hresp": 0,
+          "dma_int_after_write": 0,
+          "dma_int": 0,
+          "state_updates": {
+            "dmac_reset_pulse": 0,
+            "int_tc": 0,
+            "int_abort": 0,
+            "int_error": 0,
+            "ch_enable": 0
+          }
+        }
+      },
+      {
+        "id": "FM_AHB_READ",
+        "name": "AHB slave register read",
+        "kind": "FM_AHB_READ",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_AHB_READ",
+          "transaction_name": "AHB slave register read",
+          "sample_accepted": 1,
+          "hready_read": 1,
+          "hready": 1,
+          "hresp_read": 0,
+          "hresp": 0,
+          "hrdata_id_cfg_status": 0,
+          "hrdata": 0
+        }
+      },
+      {
+        "id": "FM_ARBITRATE",
+        "name": "channel arbitration",
+        "kind": "FM_ARBITRATE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_ARBITRATE",
+          "transaction_name": "channel arbitration",
+          "sample_accepted": 1,
+          "hbusreq_on_start": 1,
+          "hbusreq_mst": 1,
+          "htrans_idle_on_start": 0,
+          "htrans_mst": 0,
+          "state_updates": {
+            "busy": 1,
+            "active_ch": 0,
+            "bytes_done": 0
+          }
+        }
+      },
+      {
+        "id": "FM_MASTER_READ",
+        "name": "AHB master read beat",
+        "kind": "FM_MASTER_READ",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_MASTER_READ",
+          "transaction_name": "AHB master read beat",
+          "sample_accepted": 1,
+          "hbusreq_read": 1,
+          "hbusreq_mst": 1,
+          "htrans_read": 2,
+          "htrans_mst": 2,
+          "hwrite_read": 0,
+          "hwrite_mst": 0,
+          "haddr_read": 0,
+          "haddr_mst": 0,
+          "hsize_word": 2,
+          "hsize_mst": 2,
+          "hburst_incr": 1,
+          "hburst_mst": 1,
+          "state_updates": {
+            "read_data_hold": 7
+          }
+        }
+      },
+      {
+        "id": "FM_MASTER_WRITE",
+        "name": "AHB master write beat",
+        "kind": "FM_MASTER_WRITE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_MASTER_WRITE",
+          "transaction_name": "AHB master write beat",
+          "sample_accepted": 1,
+          "hbusreq_write": 1,
+          "hbusreq_mst": 1,
+          "htrans_write": 3,
+          "htrans_mst": 3,
+          "hwrite_write": 1,
+          "hwrite_mst": 1,
+          "haddr_write": 0,
+          "haddr_mst": 0,
+          "hwdata_write": 7,
+          "hwdata_mst": 7,
+          "state_updates": {
+            "bytes_done": 4,
+            "src_addr_cur": 4,
+            "dst_addr_cur": 4
+          }
+        }
+      },
+      {
+        "id": "FM_COMPLETE",
+        "name": "terminal count completion",
+        "kind": "FM_COMPLETE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_COMPLETE",
+          "transaction_name": "terminal count completion",
+          "sample_accepted": 1,
+          "hbusreq_complete": 0,
+          "hbusreq_mst": 0,
+          "htrans_complete": 0,
+          "htrans_mst": 0,
+          "dma_int_tc": 1,
+          "dma_int": 1,
+          "state_updates": {
+            "busy": 0,
+            "ch_enable": 0,
+            "int_tc": 1,
+            "chain_pending": 1
+          }
+        }
+      },
+      {
+        "id": "FM_ERROR_ABORT",
+        "name": "error or software abort",
+        "kind": "FM_ERROR_ABORT",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_ERROR_ABORT",
+          "transaction_name": "error or software abort",
+          "sample_accepted": 1,
+          "hbusreq_error": 0,
+          "hbusreq_mst": 0,
+          "htrans_error": 0,
+          "htrans_mst": 0,
+          "dma_int_error": 1,
+          "dma_int": 1,
+          "dma_ack_error": 0,
+          "dma_ack": 0,
+          "state_updates": {
+            "busy": 0,
+            "ch_enable": 0,
+            "int_error": 1
+          }
+        }
+      },
+      {
+        "id": "FM_HANDSHAKE_ACK",
+        "name": "hardware handshake acknowledge",
+        "kind": "FM_HANDSHAKE_ACK",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_HANDSHAKE_ACK",
+          "transaction_name": "hardware handshake acknowledge",
+          "sample_accepted": 1,
+          "dma_ack_selected": 1,
+          "dma_ack": 1,
+          "dma_int_handshake": 1,
+          "dma_int": 1,
+          "state_updates": {
+            "active_ch": 0
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 10,
+    "coverage_bins": 47,
+    "invariants_total": 2,
+    "invariants_evaluated": 2,
+    "invariants_failed": [],
+    "invariants_skipped": [],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 9,
+    "error_cases_planned": 0
+  },
+  "decomposition_units": 8,
+  "fcov_bins": 47,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "atcdmac100/req/",
+      "atcdmac100/yaml/atcdmac100.ssot.yaml",
+      "atcdmac100/model/functional_model.py",
+      "atcdmac100/cov/fcov_plan.json",
+      "atcdmac100/yaml/atcdmac100.ssot.yaml#io_list",
+      "atcdmac100/yaml/atcdmac100.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "atcdmac100/rtl/",
+      "atcdmac100/tb/",
+      "atcdmac100/sim/",
+      "atcdmac100/vectors/",
+      "atcdmac100/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

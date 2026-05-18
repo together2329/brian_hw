@@ -1,0 +1,26 @@
+{
+  "artifacts": [
+    "atcdmac100/verify/protocol_assertions.sva",
+    "atcdmac100/verify/protocol_assertions.summary.json",
+    "atcdmac100/sim/assertion_failures.jsonl after /sim"
+  ],
+  "blocker": "",
+  "created_at": "2026-05-18T02:49:57Z",
+  "headline": "[ssot-protocol-assertions] PASS",
+  "ip": "atcdmac100",
+  "message": "[ssot-protocol-assertions] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_protocol_assertions.py\nmodule: atcdmac100\nsource: atcdmac100/yaml/atcdmac100.ssot.yaml\nassertions: 4\n\nruns:\n- emit_protocol_assertions: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_protocol_assertions.py atcdmac100 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_protocol_assertions] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcdmac100/verify/protocol_assertions.sva\n[emit_protocol_assertions] atcdmac100 assertions=4\n\nexpected artifacts:\n- atcdmac100/verify/protocol_assertions.sva\n- atcdmac100/verify/protocol_assertions.summary.json\n- atcdmac100/sim/assertion_failures.jsonl after /sim",
+  "metadata": {},
+  "returncode": 0,
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_protocol_assertions.py atcdmac100 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "emit_protocol_assertions",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[emit_protocol_assertions] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcdmac100/verify/protocol_assertions.sva\n[emit_protocol_assertions] atcdmac100 assertions=4"
+    }
+  ],
+  "stage": "ssot-protocol-assertions",
+  "status": "pass",
+  "workflow": "fl-model-gen"
+}

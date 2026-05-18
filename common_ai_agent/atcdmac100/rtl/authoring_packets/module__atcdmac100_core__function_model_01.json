@@ -1,0 +1,3703 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 29,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model_01",
+      "module_task_count": 278,
+      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 3,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atcdmac100_core.sv",
+      "name": "atcdmac100_core",
+      "refs": [
+        "cycle_model",
+        "dataflow",
+        "error_handling",
+        "features",
+        "fsm",
+        "function_model",
+        "interrupts",
+        "io_list",
+        "registers",
+        "test_requirements",
+        "traceability"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcdmac100_core.sv",
+        "name": "atcdmac100_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcdmac100.sv",
+        "name": "atcdmac100",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hclk",
+        "signal": "hclk",
+        "signal_terms": [
+          "hclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresetn",
+        "signal": "hresetn",
+        "signal_terms": [
+          "hresetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_int",
+        "signal": "dma_int",
+        "signal_terms": [
+          "dma_int"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_req",
+        "signal": "dma_req",
+        "signal_terms": [
+          "dma_req"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_ack",
+        "signal": "dma_ack",
+        "signal_terms": [
+          "dma_ack"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "haddr",
+        "signal": "haddr",
+        "signal_terms": [
+          "haddr"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "htrans",
+        "signal": "htrans",
+        "signal_terms": [
+          "htrans"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwrite",
+        "signal": "hwrite",
+        "signal_terms": [
+          "hwrite"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsize",
+        "signal": "hsize",
+        "signal_terms": [
+          "hsize"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hburst",
+        "signal": "hburst",
+        "signal_terms": [
+          "hburst"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwdata",
+        "signal": "hwdata",
+        "signal_terms": [
+          "hwdata"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsel",
+        "signal": "hsel",
+        "signal_terms": [
+          "hsel"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hreadyin",
+        "signal": "hreadyin",
+        "signal_terms": [
+          "hreadyin"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hrdata",
+        "signal": "hrdata",
+        "signal_terms": [
+          "hrdata"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresp",
+        "signal": "hresp",
+        "signal_terms": [
+          "hresp"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hready",
+        "signal": "hready",
+        "signal_terms": [
+          "hready"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "haddr_mst",
+        "signal": "haddr_mst",
+        "signal_terms": [
+          "haddr_mst"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "htrans_mst",
+        "signal": "htrans_mst",
+        "signal_terms": [
+          "htrans_mst"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwrite_mst",
+        "signal": "hwrite_mst",
+        "signal_terms": [
+          "hwrite_mst"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsize_mst",
+        "signal": "hsize_mst",
+        "signal_terms": [
+          "hsize_mst"
+        ],
+        "source_ref": "integration.connections[19]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hprot_mst",
+        "signal": "hprot_mst",
+        "signal_terms": [
+          "hprot_mst"
+        ],
+        "source_ref": "integration.connections[20]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hlock_mst",
+        "signal": "hlock_mst",
+        "signal_terms": [
+          "hlock_mst"
+        ],
+        "source_ref": "integration.connections[21]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hburst_mst",
+        "signal": "hburst_mst",
+        "signal_terms": [
+          "hburst_mst"
+        ],
+        "source_ref": "integration.connections[22]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwdata_mst",
+        "signal": "hwdata_mst",
+        "signal_terms": [
+          "hwdata_mst"
+        ],
+        "source_ref": "integration.connections[23]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hrdata_mst",
+        "signal": "hrdata_mst",
+        "signal_terms": [
+          "hrdata_mst"
+        ],
+        "source_ref": "integration.connections[24]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresp_mst",
+        "signal": "hresp_mst",
+        "signal_terms": [
+          "hresp_mst"
+        ],
+        "source_ref": "integration.connections[25]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hready_mst",
+        "signal": "hready_mst",
+        "signal_terms": [
+          "hready_mst"
+        ],
+        "source_ref": "integration.connections[26]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hbusreq_mst",
+        "signal": "hbusreq_mst",
+        "signal_terms": [
+          "hbusreq_mst"
+        ],
+        "source_ref": "integration.connections[27]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hgrant_mst",
+        "signal": "hgrant_mst",
+        "signal_terms": [
+          "hgrant_mst"
+        ],
+        "source_ref": "integration.connections[28]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 48,
+    "open_required_count": 48,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atcdmac100",
+  "kind": "module",
+  "owner_file": "rtl/atcdmac100_core.sv",
+  "owner_module": "atcdmac100_core",
+  "packet_id": "module__atcdmac100_core__function_model_01",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 1,
+      "function_model.output": 14,
+      "function_model.output_rule": 4,
+      "function_model.precondition": 2,
+      "function_model.side_effect": 1,
+      "function_model.state_update": 12,
+      "function_model.state_variable": 12,
+      "function_model.transaction": 2
+    },
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 2,
+      "key": "function_model_01",
+      "module_task_count": 278,
+      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 3,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 48,
+    "required_count": 48,
+    "source_refs": [
+      "function_model.state_variables.dmac_reset_pulse",
+      "function_model.state_variables.active_ch",
+      "function_model.state_variables.busy",
+      "function_model.state_variables.ch_enable",
+      "function_model.state_variables.int_tc",
+      "function_model.state_variables.int_abort",
+      "function_model.state_variables.int_error",
+      "function_model.state_variables.bytes_done",
+      "function_model.state_variables.src_addr_cur",
+      "function_model.state_variables.dst_addr_cur",
+      "function_model.state_variables.read_data_hold",
+      "function_model.state_variables.chain_pending",
+      "function_model.transactions.FM_RESET",
+      "function_model.transactions.FM_RESET.preconditions.precondition_0",
+      "function_model.transactions.FM_RESET.outputs.output_0",
+      "function_model.transactions.FM_RESET.outputs.output_1",
+      "function_model.transactions.FM_RESET.outputs.output_2",
+      "function_model.transactions.FM_RESET.outputs.output_3",
+      "function_model.transactions.FM_RESET.outputs.output_4",
+      "function_model.transactions.FM_RESET.outputs.output_5",
+      "function_model.transactions.FM_RESET.outputs.output_6",
+      "function_model.transactions.FM_RESET.outputs.output_7",
+      "function_model.transactions.FM_RESET.outputs.output_8",
+      "function_model.transactions.FM_RESET.outputs.output_9"
+    ],
+    "status_counts": {
+      "open": 48
+    },
+    "task_count": 48
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state dmac_reset_pulse",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.dmac_reset_pulse",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "dmac_reset_pulse width matches SSOT value 1",
+        "dmac_reset_pulse reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.dmac_reset_pulse.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=dmac_reset_pulse; width=1; reset=0.",
+      "evidence_terms": [
+        "dmac",
+        "dmac_reset_pulse",
+        "pulse",
+        "reset"
+      ],
+      "id": "RTL-0057",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.dmac_reset_pulse",
+      "ssot_context": {
+        "name": "dmac_reset_pulse",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.dmac_reset_pulse"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "dmac",
+          "dmac_reset_pulse",
+          "pulse",
+          "reset"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state active_ch",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.active_ch",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "active_ch width matches SSOT value 3",
+        "active_ch reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.active_ch.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=active_ch; width=3; reset=0.",
+      "evidence_terms": [
+        "active",
+        "active_ch",
+        "ch"
+      ],
+      "id": "RTL-0058",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.active_ch",
+      "ssot_context": {
+        "name": "active_ch",
+        "reset": "0",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.active_ch"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "active",
+          "active_ch",
+          "ch"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state busy",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.busy",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "busy width matches SSOT value 1",
+        "busy reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.busy.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=busy; width=1; reset=0.",
+      "evidence_terms": [
+        "busy"
+      ],
+      "id": "RTL-0059",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.busy",
+      "ssot_context": {
+        "name": "busy",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.busy"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state ch_enable",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.ch_enable",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ch_enable width matches SSOT value 8",
+        "ch_enable reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.ch_enable.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=ch_enable; width=8; reset=0.",
+      "evidence_terms": [
+        "ch",
+        "ch_enable",
+        "enable"
+      ],
+      "id": "RTL-0060",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.ch_enable",
+      "ssot_context": {
+        "name": "ch_enable",
+        "reset": "0",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.ch_enable"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ch",
+          "ch_enable",
+          "enable"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state int_tc",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.int_tc",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "int_tc width matches SSOT value 8",
+        "int_tc reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.int_tc.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=int_tc; width=8; reset=0.",
+      "evidence_terms": [
+        "int",
+        "int_tc",
+        "tc"
+      ],
+      "id": "RTL-0061",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.int_tc",
+      "ssot_context": {
+        "name": "int_tc",
+        "reset": "0",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.int_tc"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "int",
+          "int_tc",
+          "tc"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state int_abort",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.int_abort",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "int_abort width matches SSOT value 8",
+        "int_abort reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.int_abort.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=int_abort; width=8; reset=0.",
+      "evidence_terms": [
+        "abort",
+        "int",
+        "int_abort"
+      ],
+      "id": "RTL-0062",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.int_abort",
+      "ssot_context": {
+        "name": "int_abort",
+        "reset": "0",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.int_abort"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "int",
+          "int_abort"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state int_error",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.int_error",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "int_error width matches SSOT value 8",
+        "int_error reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.int_error.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=int_error; width=8; reset=0.",
+      "evidence_terms": [
+        "int",
+        "int_error"
+      ],
+      "id": "RTL-0063",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.int_error",
+      "ssot_context": {
+        "name": "int_error",
+        "reset": "0",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.int_error"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "int",
+          "int_error"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state bytes_done",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.bytes_done",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "bytes_done width matches SSOT value 22",
+        "bytes_done reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.bytes_done.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=bytes_done; width=22; reset=0.",
+      "evidence_terms": [
+        "bytes",
+        "bytes_done",
+        "done"
+      ],
+      "id": "RTL-0064",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.bytes_done",
+      "ssot_context": {
+        "name": "bytes_done",
+        "reset": "0",
+        "width": "22"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.bytes_done"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bytes",
+          "bytes_done",
+          "done"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state src_addr_cur",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.src_addr_cur",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "src_addr_cur width matches SSOT value ADDR_WIDTH",
+        "src_addr_cur reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.src_addr_cur.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=src_addr_cur; width=ADDR_WIDTH; reset=0.",
+      "evidence_terms": [
+        "addr",
+        "cur",
+        "src",
+        "src_addr_cur"
+      ],
+      "id": "RTL-0065",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.src_addr_cur",
+      "ssot_context": {
+        "name": "src_addr_cur",
+        "reset": "0",
+        "width": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.src_addr_cur"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "cur",
+          "src",
+          "src_addr_cur"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state dst_addr_cur",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.dst_addr_cur",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "dst_addr_cur width matches SSOT value ADDR_WIDTH",
+        "dst_addr_cur reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.dst_addr_cur.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=dst_addr_cur; width=ADDR_WIDTH; reset=0.",
+      "evidence_terms": [
+        "addr",
+        "cur",
+        "dst",
+        "dst_addr_cur"
+      ],
+      "id": "RTL-0066",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.dst_addr_cur",
+      "ssot_context": {
+        "name": "dst_addr_cur",
+        "reset": "0",
+        "width": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.dst_addr_cur"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "cur",
+          "dst",
+          "dst_addr_cur"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state read_data_hold",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.read_data_hold",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "read_data_hold width matches SSOT value 32",
+        "read_data_hold reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.read_data_hold.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=read_data_hold; width=32; reset=0.",
+      "evidence_terms": [
+        "data",
+        "hold",
+        "read",
+        "read_data_hold"
+      ],
+      "id": "RTL-0067",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.read_data_hold",
+      "ssot_context": {
+        "name": "read_data_hold",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.read_data_hold"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "hold",
+          "read",
+          "read_data_hold"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state chain_pending",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.chain_pending",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "chain_pending width matches SSOT value 1",
+        "chain_pending reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.chain_pending.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=chain_pending; width=1; reset=0.",
+      "evidence_terms": [
+        "chain",
+        "chain_pending"
+      ],
+      "id": "RTL-0068",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.chain_pending",
+      "ssot_context": {
+        "name": "chain_pending",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.chain_pending"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "chain",
+          "chain_pending"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_RESET",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_RESET.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset.",
+      "evidence_terms": [],
+      "id": "RTL-0069",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_RESET: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.preconditions.precondition_0.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: value=hresetn == 0 or DMACtrl.Reset write is observed.",
+      "evidence_terms": [],
+      "id": "RTL-0070",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "hresetn == 0 or DMACtrl.Reset write is observed"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_0",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_0.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"hready\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "abort",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma",
+        "dma_int",
+        "dmac"
+      ],
+      "id": "RTL-0071",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"hready\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma",
+          "dma_int",
+          "dmac"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_1",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_1.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"hresp\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "abort",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma",
+        "dma_int",
+        "dmac"
+      ],
+      "id": "RTL-0072",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_1",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"hresp\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma",
+          "dma_int",
+          "dmac"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_2",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_2.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"hrdata\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "abort",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma",
+        "dma_int",
+        "dmac"
+      ],
+      "id": "RTL-0073",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_2",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"hrdata\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_2"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma",
+          "dma_int",
+          "dmac"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_3",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_3",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_3.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"dma_int\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "abort",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma",
+        "dma_int",
+        "dmac"
+      ],
+      "id": "RTL-0074",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_3",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"dma_int\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_3"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma",
+          "dma_int",
+          "dmac"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_4",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_4",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_4.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"dma_ack\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "abort",
+        "ack",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma",
+        "dma_ack"
+      ],
+      "id": "RTL-0075",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_4",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"dma_ack\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_4"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "ack",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma",
+          "dma_ack"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_5",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_5",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_5.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"hbusreq_mst\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "abort",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma",
+        "dma_int",
+        "dmac"
+      ],
+      "id": "RTL-0076",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_5",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"hbusreq_mst\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_5"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma",
+          "dma_int",
+          "dmac"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_6",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_6",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_6.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"htrans_mst\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "abort",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma",
+        "dma_int",
+        "dmac"
+      ],
+      "id": "RTL-0077",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_6",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"htrans_mst\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_6"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma",
+          "dma_int",
+          "dmac"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_7",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_7",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_7.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"haddr_mst\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "abort",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma",
+        "dma_int",
+        "dmac"
+      ],
+      "id": "RTL-0078",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_7",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"haddr_mst\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_7"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma",
+          "dma_int",
+          "dmac"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_8",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_8",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_8.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"hwrite_mst\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "abort",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma",
+        "dma_int",
+        "dmac"
+      ],
+      "id": "RTL-0079",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_8",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"hwrite_mst\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_8"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma",
+          "dma_int",
+          "dmac"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_9",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_9",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_9.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"hsize_mst\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "abort",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma",
+        "dma_int",
+        "dmac"
+      ],
+      "id": "RTL-0080",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_9",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"hsize_mst\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_9"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma",
+          "dma_int",
+          "dmac"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_10",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_10",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_10.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"hburst_mst\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "abort",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma",
+        "dma_int",
+        "dmac"
+      ],
+      "id": "RTL-0081",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_10",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"hburst_mst\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_10"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma",
+          "dma_int",
+          "dmac"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RESET: output_11",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.outputs.output_11",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.outputs.output_11.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"hwdata_mst\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "abort",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma",
+        "dma_int",
+        "dmac"
+      ],
+      "id": "RTL-0082",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.outputs.output_11",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"hwdata_mst\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.outputs.output_11"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma",
+          "dma_int",
+          "dmac"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_RESET: hready_reset",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.output_rules.hready_reset",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hready_reset width matches SSOT value 1",
+        "hready_reset RTL expression implements SSOT expression 0",
+        "DUT port hready is the implementation/observation point for hready_reset",
+        "hready_reset is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.output_rules.hready_reset.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=hready_reset; port=hready; expr=0; width=1.",
+      "evidence_terms": [
+        "hready",
+        "hready_reset",
+        "reset"
+      ],
+      "id": "RTL-0083",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.output_rules.hready_reset",
+      "ssot_context": {
+        "expr": "0",
+        "name": "hready_reset",
+        "port": "hready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.output_rules.hready_reset"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "hready",
+          "hready_reset",
+          "reset"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_RESET: hresp_reset",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.output_rules.hresp_reset",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hresp_reset width matches SSOT value 2",
+        "hresp_reset RTL expression implements SSOT expression 0",
+        "DUT port hresp is the implementation/observation point for hresp_reset",
+        "hresp_reset is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.output_rules.hresp_reset.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=hresp_reset; port=hresp; expr=0; width=2.",
+      "evidence_terms": [
+        "hresp",
+        "hresp_reset",
+        "reset"
+      ],
+      "id": "RTL-0084",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.output_rules.hresp_reset",
+      "ssot_context": {
+        "expr": "0",
+        "name": "hresp_reset",
+        "port": "hresp",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.output_rules.hresp_reset"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "hresp",
+          "hresp_reset",
+          "reset"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_RESET: dma_int_reset",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.output_rules.dma_int_reset",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "dma_int_reset width matches SSOT value 1",
+        "dma_int_reset RTL expression implements SSOT expression 0",
+        "DUT port dma_int is the implementation/observation point for dma_int_reset",
+        "dma_int_reset is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.output_rules.dma_int_reset.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=dma_int_reset; port=dma_int; expr=0; width=1.",
+      "evidence_terms": [
+        "dma",
+        "dma_int",
+        "dma_int_reset",
+        "int",
+        "reset"
+      ],
+      "id": "RTL-0085",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.output_rules.dma_int_reset",
+      "ssot_context": {
+        "expr": "0",
+        "name": "dma_int_reset",
+        "port": "dma_int",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.output_rules.dma_int_reset"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "dma",
+          "dma_int",
+          "dma_int_reset",
+          "int",
+          "reset"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_RESET: htrans_mst_reset",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.output_rules.htrans_mst_reset",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "htrans_mst_reset width matches SSOT value 2",
+        "htrans_mst_reset RTL expression implements SSOT expression 0",
+        "DUT port htrans_mst is the implementation/observation point for htrans_mst_reset",
+        "htrans_mst_reset is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.output_rules.htrans_mst_reset.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: name=htrans_mst_reset; port=htrans_mst; expr=0; width=2.",
+      "evidence_terms": [
+        "htrans",
+        "htrans_mst",
+        "htrans_mst_reset",
+        "mst",
+        "reset"
+      ],
+      "id": "RTL-0086",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.output_rules.htrans_mst_reset",
+      "ssot_context": {
+        "expr": "0",
+        "name": "htrans_mst_reset",
+        "port": "htrans_mst",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.output_rules.htrans_mst_reset"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "htrans",
+          "htrans_mst",
+          "htrans_mst_reset",
+          "mst",
+          "reset"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: dmac_reset_pulse",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.dmac_reset_pulse",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "function_model.transactions.FM_RESET.state_updates.dmac_reset_pulse width matches SSOT value 1",
+        "function_model.transactions.FM_RESET.state_updates.dmac_reset_pulse RTL expression implements SSOT expression 0",
+        "function_model.transactions.FM_RESET.state_updates.dmac_reset_pulse updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.dmac_reset_pulse.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: state=dmac_reset_pulse; expr=0; width=1.",
+      "evidence_terms": [
+        "dmac",
+        "dmac_reset_pulse",
+        "pulse",
+        "reset"
+      ],
+      "id": "RTL-0087",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.dmac_reset_pulse",
+      "ssot_context": {
+        "expr": "0",
+        "state": "dmac_reset_pulse",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.dmac_reset_pulse"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "dmac",
+          "dmac_reset_pulse",
+          "pulse",
+          "reset"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: active_ch",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.active_ch",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "function_model.transactions.FM_RESET.state_updates.active_ch width matches SSOT value 3",
+        "function_model.transactions.FM_RESET.state_updates.active_ch RTL expression implements SSOT expression 0",
+        "function_model.transactions.FM_RESET.state_updates.active_ch updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.active_ch.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: state=active_ch; expr=0; width=3.",
+      "evidence_terms": [
+        "active",
+        "active_ch",
+        "ch"
+      ],
+      "id": "RTL-0088",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.active_ch",
+      "ssot_context": {
+        "expr": "0",
+        "state": "active_ch",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.active_ch"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "active",
+          "active_ch",
+          "ch"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: busy",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.busy",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "function_model.transactions.FM_RESET.state_updates.busy width matches SSOT value 1",
+        "function_model.transactions.FM_RESET.state_updates.busy RTL expression implements SSOT expression 0",
+        "function_model.transactions.FM_RESET.state_updates.busy updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.busy.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: state=busy; expr=0; width=1.",
+      "evidence_terms": [
+        "busy"
+      ],
+      "id": "RTL-0089",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.busy",
+      "ssot_context": {
+        "expr": "0",
+        "state": "busy",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.busy"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "busy"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: ch_enable",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.ch_enable",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "function_model.transactions.FM_RESET.state_updates.ch_enable width matches SSOT value 8",
+        "function_model.transactions.FM_RESET.state_updates.ch_enable RTL expression implements SSOT expression 0",
+        "function_model.transactions.FM_RESET.state_updates.ch_enable updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.ch_enable.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: state=ch_enable; expr=0; width=8.",
+      "evidence_terms": [
+        "ch",
+        "ch_enable",
+        "enable"
+      ],
+      "id": "RTL-0090",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.ch_enable",
+      "ssot_context": {
+        "expr": "0",
+        "state": "ch_enable",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.ch_enable"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ch",
+          "ch_enable",
+          "enable"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: int_tc",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.int_tc",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "function_model.transactions.FM_RESET.state_updates.int_tc width matches SSOT value 8",
+        "function_model.transactions.FM_RESET.state_updates.int_tc RTL expression implements SSOT expression 0",
+        "function_model.transactions.FM_RESET.state_updates.int_tc updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.int_tc.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: state=int_tc; expr=0; width=8.",
+      "evidence_terms": [
+        "int",
+        "int_tc",
+        "tc"
+      ],
+      "id": "RTL-0091",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.int_tc",
+      "ssot_context": {
+        "expr": "0",
+        "state": "int_tc",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.int_tc"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "int",
+          "int_tc",
+          "tc"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: int_abort",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.int_abort",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "function_model.transactions.FM_RESET.state_updates.int_abort width matches SSOT value 8",
+        "function_model.transactions.FM_RESET.state_updates.int_abort RTL expression implements SSOT expression 0",
+        "function_model.transactions.FM_RESET.state_updates.int_abort updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.int_abort.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: state=int_abort; expr=0; width=8.",
+      "evidence_terms": [
+        "abort",
+        "int",
+        "int_abort"
+      ],
+      "id": "RTL-0092",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.int_abort",
+      "ssot_context": {
+        "expr": "0",
+        "state": "int_abort",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.int_abort"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "int",
+          "int_abort"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: int_error",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.int_error",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "function_model.transactions.FM_RESET.state_updates.int_error width matches SSOT value 8",
+        "function_model.transactions.FM_RESET.state_updates.int_error RTL expression implements SSOT expression 0",
+        "function_model.transactions.FM_RESET.state_updates.int_error updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.int_error.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: state=int_error; expr=0; width=8.",
+      "evidence_terms": [
+        "int",
+        "int_error"
+      ],
+      "id": "RTL-0093",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.int_error",
+      "ssot_context": {
+        "expr": "0",
+        "state": "int_error",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.int_error"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "int",
+          "int_error"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: bytes_done",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.bytes_done",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "function_model.transactions.FM_RESET.state_updates.bytes_done width matches SSOT value 22",
+        "function_model.transactions.FM_RESET.state_updates.bytes_done RTL expression implements SSOT expression 0",
+        "function_model.transactions.FM_RESET.state_updates.bytes_done updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.bytes_done.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: state=bytes_done; expr=0; width=22.",
+      "evidence_terms": [
+        "bytes",
+        "bytes_done",
+        "done"
+      ],
+      "id": "RTL-0094",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.bytes_done",
+      "ssot_context": {
+        "expr": "0",
+        "state": "bytes_done",
+        "width": "22"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.bytes_done"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "bytes",
+          "bytes_done",
+          "done"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: src_addr_cur",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.src_addr_cur",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "function_model.transactions.FM_RESET.state_updates.src_addr_cur width matches SSOT value ADDR_WIDTH",
+        "function_model.transactions.FM_RESET.state_updates.src_addr_cur RTL expression implements SSOT expression 0",
+        "function_model.transactions.FM_RESET.state_updates.src_addr_cur updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.src_addr_cur.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: state=src_addr_cur; expr=0; width=ADDR_WIDTH.",
+      "evidence_terms": [
+        "addr",
+        "cur",
+        "src",
+        "src_addr_cur"
+      ],
+      "id": "RTL-0095",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.src_addr_cur",
+      "ssot_context": {
+        "expr": "0",
+        "state": "src_addr_cur",
+        "width": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.src_addr_cur"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "cur",
+          "src",
+          "src_addr_cur"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: dst_addr_cur",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.dst_addr_cur",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "function_model.transactions.FM_RESET.state_updates.dst_addr_cur width matches SSOT value ADDR_WIDTH",
+        "function_model.transactions.FM_RESET.state_updates.dst_addr_cur RTL expression implements SSOT expression 0",
+        "function_model.transactions.FM_RESET.state_updates.dst_addr_cur updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.dst_addr_cur.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: state=dst_addr_cur; expr=0; width=ADDR_WIDTH.",
+      "evidence_terms": [
+        "addr",
+        "cur",
+        "dst",
+        "dst_addr_cur"
+      ],
+      "id": "RTL-0096",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.dst_addr_cur",
+      "ssot_context": {
+        "expr": "0",
+        "state": "dst_addr_cur",
+        "width": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.dst_addr_cur"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "addr",
+          "cur",
+          "dst",
+          "dst_addr_cur"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: read_data_hold",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.read_data_hold",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "function_model.transactions.FM_RESET.state_updates.read_data_hold width matches SSOT value 32",
+        "function_model.transactions.FM_RESET.state_updates.read_data_hold RTL expression implements SSOT expression 0",
+        "function_model.transactions.FM_RESET.state_updates.read_data_hold updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.read_data_hold.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: state=read_data_hold; expr=0; width=32.",
+      "evidence_terms": [
+        "data",
+        "hold",
+        "read",
+        "read_data_hold"
+      ],
+      "id": "RTL-0097",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.read_data_hold",
+      "ssot_context": {
+        "expr": "0",
+        "state": "read_data_hold",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.read_data_hold"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "hold",
+          "read",
+          "read_data_hold"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RESET: chain_pending",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.state_updates.chain_pending",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "function_model.transactions.FM_RESET.state_updates.chain_pending width matches SSOT value 1",
+        "function_model.transactions.FM_RESET.state_updates.chain_pending RTL expression implements SSOT expression 0",
+        "function_model.transactions.FM_RESET.state_updates.chain_pending updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.state_updates.chain_pending.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: state=chain_pending; expr=0; width=1.",
+      "evidence_terms": [
+        "chain",
+        "chain_pending"
+      ],
+      "id": "RTL-0098",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.state_updates.chain_pending",
+      "ssot_context": {
+        "expr": "0",
+        "state": "chain_pending",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.state_updates.chain_pending"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "chain",
+          "chain_pending"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_RESET: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.side_effects.side_effect_0.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"disable all channels, clear active state, clear interrupt status\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "abort",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma",
+        "dma_int",
+        "dmac"
+      ],
+      "id": "RTL-0099",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"disable all channels, clear active state, clear interrupt status\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma",
+          "dma_int",
+          "dmac"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM_RESET: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RESET.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"] is the implementation/observation point for hardware or software reset"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RESET.error_cases.error_case_0.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_RESET; name=hardware or software reset; port=[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]; signal=[\"illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel\"]; state=[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu....",
+      "evidence_terms": [
+        "AHB",
+        "IntStatus",
+        "abort",
+        "active",
+        "active_ch",
+        "addr",
+        "busy",
+        "bytes",
+        "bytes_done",
+        "ch",
+        "ch_enable",
+        "chain",
+        "chain_pending",
+        "cur",
+        "data",
+        "dma"
+      ],
+      "id": "RTL-0100",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RESET.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM_RESET",
+        "name": "hardware or software reset",
+        "port": "[\"hready\", \"hresp\", \"dma_int\", \"htrans_mst\"]",
+        "signal": "[\"illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel\"]",
+        "state": "[\"dmac_reset_pulse\", \"active_ch\", \"busy\", \"ch_enable\", \"int_tc\", \"int_abort\", \"int_error\", \"bytes_done\", \"src_addr_cu..."
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RESET.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "AHB",
+          "IntStatus",
+          "abort",
+          "active",
+          "active_ch",
+          "addr",
+          "busy",
+          "bytes",
+          "bytes_done",
+          "ch",
+          "ch_enable",
+          "chain",
+          "chain_pending",
+          "cur",
+          "data",
+          "dma"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_AHB_WRITE",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_AHB_WRITE",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_AHB_WRITE.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_AHB_WRITE; name=AHB slave register write.",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AHB_WRITE",
+      "ssot_context": {
+        "id": "FM_AHB_WRITE",
+        "name": "AHB slave register write"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AHB_WRITE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_AHB_WRITE: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AHB_WRITE.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AHB_WRITE.preconditions.precondition_0.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: value=hsel and hreadyin and htrans[1] and hwrite.",
+      "evidence_terms": [],
+      "id": "RTL-0102",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AHB_WRITE.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "hsel and hreadyin and htrans[1] and hwrite"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AHB_WRITE.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AHB_WRITE: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AHB_WRITE.outputs.output_0",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\"] is the implementation/observation point for AHB slave register write"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AHB_WRITE.outputs.output_0.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_AHB_WRITE; name=AHB slave register write; port=[\"hready\", \"hresp\", \"dma_int\"]; signal=[\"hready=1\"]; state=[\"dmac_reset_pulse\", \"int_tc\", \"int_abort\", \"int_error\", \"ch_enable\"].",
+      "evidence_terms": [
+        "abort",
+        "ch",
+        "ch_enable",
+        "dma",
+        "dma_int",
+        "dmac",
+        "dmac_reset_pulse",
+        "enable",
+        "hready",
+        "hresp",
+        "int",
+        "int_abort",
+        "int_error",
+        "int_tc",
+        "pulse",
+        "reset"
+      ],
+      "id": "RTL-0103",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AHB_WRITE.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_AHB_WRITE",
+        "name": "AHB slave register write",
+        "port": "[\"hready\", \"hresp\", \"dma_int\"]",
+        "signal": "[\"hready=1\"]",
+        "state": "[\"dmac_reset_pulse\", \"int_tc\", \"int_abort\", \"int_error\", \"ch_enable\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AHB_WRITE.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "abort",
+          "ch",
+          "ch_enable",
+          "dma",
+          "dma_int",
+          "dmac",
+          "dmac_reset_pulse",
+          "enable",
+          "hready",
+          "hresp",
+          "int",
+          "int_abort",
+          "int_error",
+          "int_tc",
+          "pulse",
+          "reset"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_AHB_WRITE: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_AHB_WRITE.outputs.output_1",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DUT port [\"hready\", \"hresp\", \"dma_int\"] is the implementation/observation point for AHB slave register write"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AHB_WRITE.outputs.output_1.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via function_model.\nSSOT item context: id=FM_AHB_WRITE; name=AHB slave register write; port=[\"hready\", \"hresp\", \"dma_int\"]; signal=[\"hresp=OKAY for valid register writes\"]; state=[\"dmac_reset_pulse\", \"int_tc\", \"int_abort\", \"int_error\", \"ch_enable\"].",
+      "evidence_terms": [
+        "OKAY",
+        "abort",
+        "ch",
+        "ch_enable",
+        "dma",
+        "dma_int",
+        "dmac",
+        "dmac_reset_pulse",
+        "enable",
+        "hready",
+        "hresp",
+        "int",
+        "int_abort",
+        "int_error",
+        "int_tc",
+        "pulse"
+      ],
+      "id": "RTL-0104",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_AHB_WRITE.outputs.output_1",
+      "ssot_context": {
+        "id": "FM_AHB_WRITE",
+        "name": "AHB slave register write",
+        "port": "[\"hready\", \"hresp\", \"dma_int\"]",
+        "signal": "[\"hresp=OKAY for valid register writes\"]",
+        "state": "[\"dmac_reset_pulse\", \"int_tc\", \"int_abort\", \"int_error\", \"ch_enable\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_AHB_WRITE.outputs.output_1"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "OKAY",
+          "abort",
+          "ch",
+          "ch_enable",
+          "dma",
+          "dma_int",
+          "dmac",
+          "dmac_reset_pulse",
+          "enable",
+          "hready",
+          "hresp",
+          "int",
+          "int_abort",
+          "int_error",
+          "int_tc",
+          "pulse"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "72f45ac236a074e74c4c80ad18e49e1163775dd9e0f8018c491d6f6563c1a372",
+  "top": "atcdmac100",
+  "type": "rtl_authoring_packet"
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "type": "cl_functional_coverage_plan",
+  "ip": "atcdmac100",
+  "source": "atcdmac100/yaml/atcdmac100.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "cl",
+  "summary": {
+    "total_bins": 0,
+    "by_class": {}
+  },
+  "bins": []
+}

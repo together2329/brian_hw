@@ -1,0 +1,1093 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 29,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "owner": {
+      "file": "rtl/atcdmac100.sv",
+      "name": "atcdmac100",
+      "refs": [
+        "integration",
+        "io_list"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcdmac100_core.sv",
+        "name": "atcdmac100_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcdmac100.sv",
+        "name": "atcdmac100",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": false,
+        "module": "atcdmac100",
+        "port": "",
+        "signal": "",
+        "signal_terms": [],
+        "source_ref": "sub_modules[1].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hclk",
+        "signal": "hclk",
+        "signal_terms": [
+          "hclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresetn",
+        "signal": "hresetn",
+        "signal_terms": [
+          "hresetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_int",
+        "signal": "dma_int",
+        "signal_terms": [
+          "dma_int"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_req",
+        "signal": "dma_req",
+        "signal_terms": [
+          "dma_req"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_ack",
+        "signal": "dma_ack",
+        "signal_terms": [
+          "dma_ack"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "haddr",
+        "signal": "haddr",
+        "signal_terms": [
+          "haddr"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "htrans",
+        "signal": "htrans",
+        "signal_terms": [
+          "htrans"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwrite",
+        "signal": "hwrite",
+        "signal_terms": [
+          "hwrite"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsize",
+        "signal": "hsize",
+        "signal_terms": [
+          "hsize"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hburst",
+        "signal": "hburst",
+        "signal_terms": [
+          "hburst"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwdata",
+        "signal": "hwdata",
+        "signal_terms": [
+          "hwdata"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsel",
+        "signal": "hsel",
+        "signal_terms": [
+          "hsel"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hreadyin",
+        "signal": "hreadyin",
+        "signal_terms": [
+          "hreadyin"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hrdata",
+        "signal": "hrdata",
+        "signal_terms": [
+          "hrdata"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresp",
+        "signal": "hresp",
+        "signal_terms": [
+          "hresp"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hready",
+        "signal": "hready",
+        "signal_terms": [
+          "hready"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "haddr_mst",
+        "signal": "haddr_mst",
+        "signal_terms": [
+          "haddr_mst"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "htrans_mst",
+        "signal": "htrans_mst",
+        "signal_terms": [
+          "htrans_mst"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwrite_mst",
+        "signal": "hwrite_mst",
+        "signal_terms": [
+          "hwrite_mst"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsize_mst",
+        "signal": "hsize_mst",
+        "signal_terms": [
+          "hsize_mst"
+        ],
+        "source_ref": "integration.connections[19]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hprot_mst",
+        "signal": "hprot_mst",
+        "signal_terms": [
+          "hprot_mst"
+        ],
+        "source_ref": "integration.connections[20]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hlock_mst",
+        "signal": "hlock_mst",
+        "signal_terms": [
+          "hlock_mst"
+        ],
+        "source_ref": "integration.connections[21]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hburst_mst",
+        "signal": "hburst_mst",
+        "signal_terms": [
+          "hburst_mst"
+        ],
+        "source_ref": "integration.connections[22]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwdata_mst",
+        "signal": "hwdata_mst",
+        "signal_terms": [
+          "hwdata_mst"
+        ],
+        "source_ref": "integration.connections[23]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hrdata_mst",
+        "signal": "hrdata_mst",
+        "signal_terms": [
+          "hrdata_mst"
+        ],
+        "source_ref": "integration.connections[24]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresp_mst",
+        "signal": "hresp_mst",
+        "signal_terms": [
+          "hresp_mst"
+        ],
+        "source_ref": "integration.connections[25]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hready_mst",
+        "signal": "hready_mst",
+        "signal_terms": [
+          "hready_mst"
+        ],
+        "source_ref": "integration.connections[26]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hbusreq_mst",
+        "signal": "hbusreq_mst",
+        "signal_terms": [
+          "hbusreq_mst"
+        ],
+        "source_ref": "integration.connections[27]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hgrant_mst",
+        "signal": "hgrant_mst",
+        "signal_terms": [
+          "hgrant_mst"
+        ],
+        "source_ref": "integration.connections[28]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "hclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hclk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "hresetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hresetn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "dma_handshake_dma_int",
+          "dma_int"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "dma_int",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "dma_handshake_dma_req",
+          "dma_req"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "dma_req",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "REQ_ACK_NUM"
+      },
+      {
+        "aliases": [
+          "dma_ack",
+          "dma_handshake_dma_ack"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "dma_ack",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "REQ_ACK_NUM"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_haddr",
+          "haddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "haddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_htrans",
+          "htrans"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "htrans",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hwrite",
+          "hwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hwrite",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hsize",
+          "hsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hsize",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hburst",
+          "hburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hburst",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hwdata",
+          "hwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hwdata",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hsel",
+          "hsel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hsel",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hreadyin",
+          "hreadyin"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hreadyin",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hrdata",
+          "hrdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hrdata",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hresp",
+          "hresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hresp",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hready",
+          "hready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hready",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_haddr_mst",
+          "haddr_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "haddr_mst",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_htrans_mst",
+          "htrans_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "htrans_mst",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hwrite_mst",
+          "hwrite_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hwrite_mst",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hsize_mst",
+          "hsize_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hsize_mst",
+        "source_ref": "io_list.interfaces[2].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hprot_mst",
+          "hprot_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hprot_mst",
+        "source_ref": "io_list.interfaces[2].ports[4]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hlock_mst",
+          "hlock_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hlock_mst",
+        "source_ref": "io_list.interfaces[2].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hburst_mst",
+          "hburst_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hburst_mst",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hwdata_mst",
+          "hwdata_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hwdata_mst",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hrdata_mst",
+          "hrdata_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hrdata_mst",
+        "source_ref": "io_list.interfaces[2].ports[8]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hresp_mst",
+          "hresp_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hresp_mst",
+        "source_ref": "io_list.interfaces[2].ports[9]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hready_mst",
+          "hready_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hready_mst",
+        "source_ref": "io_list.interfaces[2].ports[10]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hbusreq_mst",
+          "hbusreq_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hbusreq_mst",
+        "source_ref": "io_list.interfaces[2].ports[11]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hgrant_mst",
+          "hgrant_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hgrant_mst",
+        "source_ref": "io_list.interfaces[2].ports[12]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [
+      {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "atcdmac100",
+        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "gate_kind": "dut_compile",
+        "owner_module": "atcdmac100",
+        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "status": "open",
+        "task_id": "RTL-0017"
+      },
+      {
+        "gate_kind": "dut_lint",
+        "owner_module": "atcdmac100",
+        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "gate_kind": "dynamic_todo_closure",
+        "owner_module": "atcdmac100",
+        "reason": "338 required non-closure TODO(s) remain open.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": false,
+    "evidence_closure_allowed": true,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 4,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 4,
+    "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "atcdmac100/rtl/rtl_authoring_provenance.json",
+          "atcdmac100/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip atcdmac100 --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py atcdmac100 --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "artifact": "rtl/rtl_compile.json",
+        "artifacts": [
+          "atcdmac100/rtl/rtl_compile.json",
+          "atcdmac100/rtl/rtl_compile.log"
+        ],
+        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py atcdmac100 --top atcdmac100 --project-root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py atcdmac100 --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_compile",
+        "prerequisites": [
+          "atcdmac100/list/atcdmac100.f covers the current DUT RTL sources."
+        ],
+        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "stage_sequence": [
+          "ssot-rtl",
+          "dut_compile"
+        ],
+        "status": "open",
+        "task_id": "RTL-0017"
+      },
+      {
+        "artifact": "lint/dut_lint.json",
+        "artifacts": [
+          "atcdmac100/lint/dut_lint.json"
+        ],
+        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+        "commands": [
+          "python3 workflow/lint/scripts/dut_lint_report.py atcdmac100 --top atcdmac100",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py atcdmac100 --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_lint",
+        "prerequisites": [
+          "atcdmac100/list/atcdmac100.f covers the current DUT RTL/header sources."
+        ],
+        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "stage_sequence": [
+          "lint",
+          "dut_lint"
+        ],
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "artifacts": [
+          "atcdmac100/rtl/rtl_todo_plan.json",
+          "atcdmac100/rtl/rtl_authoring_status.md"
+        ],
+        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py atcdmac100 --root . --audit-rtl"
+        ],
+        "gate_kind": "dynamic_todo_closure",
+        "prerequisites": [
+          "All non-closure required TODOs have pass status."
+        ],
+        "reason": "338 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "stage_sequence": [
+          "audit-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ],
+    "work_allowed": true
+  },
+  "ip": "atcdmac100",
+  "kind": "gate",
+  "owner_file": "rtl/atcdmac100.sv",
+  "owner_module": "atcdmac100",
+  "packet_id": "rtl_gate_tool_evidence",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "rtl_gate.rtl_gen": 4
+    },
+    "module_slice": {},
+    "open_required_count": 4,
+    "required_count": 4,
+    "source_refs": [
+      "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "quality_gates.rtl_gen.dut_compile",
+      "quality_gates.rtl_gen.dut_lint",
+      "quality_gates.rtl_gen.dynamic_todo_closure"
+    ],
+    "status_counts": {
+      "open": 4
+    },
+    "task_count": 4
+  },
+  "tasks": [
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "criteria": [
+        "rtl/rtl_authoring_provenance.json exists",
+        "provenance agent is common_ai_agent",
+        "provenance workflow is rtl-gen",
+        "provenance surface is atlas_ui, textual_ui, or headless_common_engine",
+        "provenance todo_plan_sha256 matches the current rtl_todo_plan.json",
+        "provenance rtl_files lists every SSOT manifest RTL file",
+        "provenance rtl_files covers the current DUT filelist sources",
+        "Traceability keeps source_ref quality_gates.rtl_gen.common_ai_agent_authoring",
+        "Primary implementation evidence is in rtl/atcdmac100.sv"
+      ],
+      "detail": "RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.\nSSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.\nOwner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "kind": "common_ai_agent_authoring",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0006",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.common_ai_agent_authoring"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_authoring_provenance.json"
+        ],
+        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "criteria": [
+        "rtl/rtl_compile.json exists",
+        "rtl_compile.json reports dut_only=true",
+        "rtl_compile.json passed=true with zero errors, diagnostics, and style violations",
+        "rtl_compile.json is newer than or equal to every listed DUT RTL source",
+        "rtl_compile.json rtl_files covers the current DUT filelist Verilog/SystemVerilog sources",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dut_compile",
+        "Primary implementation evidence is in rtl/atcdmac100.sv"
+      ],
+      "detail": "Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.\nSSOT ref: quality_gates.rtl_gen.dut_compile.\nOwner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_compile.json",
+        "kind": "dut_compile",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0017",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dut_compile",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dut_compile"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_compile.json"
+        ],
+        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: DUT-only lint report passes after the final RTL edit",
+      "criteria": [
+        "lint/dut_lint.json exists",
+        "dut_lint.json reports dut_only=true",
+        "dut_lint.json passed=true with zero errors and zero warnings",
+        "dut_lint.json is newer than or equal to every listed DUT RTL source",
+        "dut_lint.json rtl_files covers the current DUT filelist RTL/header sources",
+        "No ad-hoc lint suppression violation remains unless represented by an exact SSOT waiver",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dut_lint",
+        "Primary implementation evidence is in rtl/atcdmac100.sv"
+      ],
+      "detail": "Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.\nSSOT ref: quality_gates.rtl_gen.dut_lint.\nOwner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "lint/dut_lint.json",
+        "kind": "dut_lint",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0018",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dut_lint",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dut_lint"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "lint/dut_lint.json"
+        ],
+        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "content": "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS",
+      "criteria": [
+        "Every required non-closure task has todo_completion.status=pass",
+        "open_required_todos is zero",
+        "all_required_todos_pass is true",
+        "Traceability keeps source_ref quality_gates.rtl_gen.dynamic_todo_closure",
+        "Primary implementation evidence is in rtl/atcdmac100.sv"
+      ],
+      "detail": "rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.\nSSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.\nOwner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.",
+      "evidence_terms": [],
+      "gate_todo": {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "kind": "dynamic_todo_closure",
+        "profile": "standard",
+        "stage": "rtl-gen"
+      },
+      "id": "RTL-0019",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+      "ssot_context": {},
+      "ssot_refs": [
+        "quality_gates",
+        "quality_gates.rtl_gen.dynamic_todo_closure"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json gate_todo.kind",
+          "rtl_todo_plan.json task criteria",
+          "rtl/rtl_todo_plan.json"
+        ],
+        "reason": "338 required non-closure TODO(s) remain open.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "72f45ac236a074e74c4c80ad18e49e1163775dd9e0f8018c491d6f6563c1a372",
+  "top": "atcdmac100",
+  "type": "rtl_authoring_packet"
+}

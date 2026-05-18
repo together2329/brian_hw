@@ -1,0 +1,1005 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 29,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 12,
+      "key": "coverage",
+      "module_task_count": 278,
+      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "coverage",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atcdmac100_core.sv",
+      "name": "atcdmac100_core",
+      "refs": [
+        "cycle_model",
+        "dataflow",
+        "error_handling",
+        "features",
+        "fsm",
+        "function_model",
+        "interrupts",
+        "io_list",
+        "registers",
+        "test_requirements",
+        "traceability"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcdmac100_core.sv",
+        "name": "atcdmac100_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcdmac100.sv",
+        "name": "atcdmac100",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hclk",
+        "signal": "hclk",
+        "signal_terms": [
+          "hclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresetn",
+        "signal": "hresetn",
+        "signal_terms": [
+          "hresetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_int",
+        "signal": "dma_int",
+        "signal_terms": [
+          "dma_int"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_req",
+        "signal": "dma_req",
+        "signal_terms": [
+          "dma_req"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_ack",
+        "signal": "dma_ack",
+        "signal_terms": [
+          "dma_ack"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "haddr",
+        "signal": "haddr",
+        "signal_terms": [
+          "haddr"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "htrans",
+        "signal": "htrans",
+        "signal_terms": [
+          "htrans"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwrite",
+        "signal": "hwrite",
+        "signal_terms": [
+          "hwrite"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsize",
+        "signal": "hsize",
+        "signal_terms": [
+          "hsize"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hburst",
+        "signal": "hburst",
+        "signal_terms": [
+          "hburst"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwdata",
+        "signal": "hwdata",
+        "signal_terms": [
+          "hwdata"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsel",
+        "signal": "hsel",
+        "signal_terms": [
+          "hsel"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hreadyin",
+        "signal": "hreadyin",
+        "signal_terms": [
+          "hreadyin"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hrdata",
+        "signal": "hrdata",
+        "signal_terms": [
+          "hrdata"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresp",
+        "signal": "hresp",
+        "signal_terms": [
+          "hresp"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hready",
+        "signal": "hready",
+        "signal_terms": [
+          "hready"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "haddr_mst",
+        "signal": "haddr_mst",
+        "signal_terms": [
+          "haddr_mst"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "htrans_mst",
+        "signal": "htrans_mst",
+        "signal_terms": [
+          "htrans_mst"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwrite_mst",
+        "signal": "hwrite_mst",
+        "signal_terms": [
+          "hwrite_mst"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsize_mst",
+        "signal": "hsize_mst",
+        "signal_terms": [
+          "hsize_mst"
+        ],
+        "source_ref": "integration.connections[19]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hprot_mst",
+        "signal": "hprot_mst",
+        "signal_terms": [
+          "hprot_mst"
+        ],
+        "source_ref": "integration.connections[20]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hlock_mst",
+        "signal": "hlock_mst",
+        "signal_terms": [
+          "hlock_mst"
+        ],
+        "source_ref": "integration.connections[21]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hburst_mst",
+        "signal": "hburst_mst",
+        "signal_terms": [
+          "hburst_mst"
+        ],
+        "source_ref": "integration.connections[22]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwdata_mst",
+        "signal": "hwdata_mst",
+        "signal_terms": [
+          "hwdata_mst"
+        ],
+        "source_ref": "integration.connections[23]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hrdata_mst",
+        "signal": "hrdata_mst",
+        "signal_terms": [
+          "hrdata_mst"
+        ],
+        "source_ref": "integration.connections[24]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresp_mst",
+        "signal": "hresp_mst",
+        "signal_terms": [
+          "hresp_mst"
+        ],
+        "source_ref": "integration.connections[25]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hready_mst",
+        "signal": "hready_mst",
+        "signal_terms": [
+          "hready_mst"
+        ],
+        "source_ref": "integration.connections[26]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hbusreq_mst",
+        "signal": "hbusreq_mst",
+        "signal_terms": [
+          "hbusreq_mst"
+        ],
+        "source_ref": "integration.connections[27]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hgrant_mst",
+        "signal": "hgrant_mst",
+        "signal_terms": [
+          "hgrant_mst"
+        ],
+        "source_ref": "integration.connections[28]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 13,
+    "open_required_count": 13,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atcdmac100",
+  "kind": "module",
+  "owner_file": "rtl/atcdmac100_core.sv",
+  "owner_module": "atcdmac100_core",
+  "packet_id": "module__atcdmac100_core__coverage",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "coverage.functional_bin": 13
+    },
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 12,
+      "key": "coverage",
+      "module_task_count": 278,
+      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "coverage",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 13,
+    "required_count": 13,
+    "source_refs": [
+      "test_requirements.coverage_goals.planned_bins.FCOV_REG_IDCFG",
+      "test_requirements.coverage_goals.planned_bins.FCOV_INT_W1C",
+      "test_requirements.coverage_goals.planned_bins.FCOV_DMA_READ_WRITE",
+      "test_requirements.coverage_goals.planned_bins.FCOV_DMA_WRITE",
+      "test_requirements.coverage_goals.planned_bins.FCOV_TC_INT",
+      "test_requirements.coverage_goals.planned_bins.FCOV_ERROR_ABORT",
+      "test_requirements.coverage_goals.planned_bins.FCOV_REQ_ACK",
+      "test_requirements.coverage_goals.planned_bins.FCOV_PRIORITY",
+      "test_requirements.coverage_goals.planned_bins.CCOV_AHB_SLAVE_ACCESS",
+      "test_requirements.coverage_goals.planned_bins.CCOV_MASTER_READ_WRITE",
+      "test_requirements.coverage_goals.planned_bins.CCOV_WAIT_STATE",
+      "test_requirements.coverage_goals.planned_bins.CCOV_HANDSHAKE_WAIT",
+      "test_requirements.coverage_goals.planned_bins.CCOV_ERROR_RESPONSE"
+    ],
+    "status_counts": {
+      "open": 13
+    },
+    "task_count": 13
+  },
+  "tasks": [
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin FCOV_REG_IDCFG",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.FCOV_REG_IDCFG",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "FCOV_REG_IDCFG can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_REG_IDCFG.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_REG_IDCFG.",
+      "evidence_terms": [],
+      "id": "RTL-0332",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.FCOV_REG_IDCFG",
+      "ssot_context": {
+        "id": "FCOV_REG_IDCFG"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.FCOV_REG_IDCFG"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin FCOV_INT_W1C",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.FCOV_INT_W1C",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "FCOV_INT_W1C can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_INT_W1C.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_INT_W1C.",
+      "evidence_terms": [],
+      "id": "RTL-0333",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.FCOV_INT_W1C",
+      "ssot_context": {
+        "id": "FCOV_INT_W1C"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.FCOV_INT_W1C"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin FCOV_DMA_READ_WRITE",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.FCOV_DMA_READ_WRITE",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "FCOV_DMA_READ_WRITE can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_DMA_READ_WRITE.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_DMA_READ_WRITE.",
+      "evidence_terms": [],
+      "id": "RTL-0334",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.FCOV_DMA_READ_WRITE",
+      "ssot_context": {
+        "id": "FCOV_DMA_READ_WRITE"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.FCOV_DMA_READ_WRITE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin FCOV_DMA_WRITE",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.FCOV_DMA_WRITE",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "FCOV_DMA_WRITE can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_DMA_WRITE.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_DMA_WRITE.",
+      "evidence_terms": [],
+      "id": "RTL-0335",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.FCOV_DMA_WRITE",
+      "ssot_context": {
+        "id": "FCOV_DMA_WRITE"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.FCOV_DMA_WRITE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin FCOV_TC_INT",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.FCOV_TC_INT",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "FCOV_TC_INT can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_TC_INT.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_TC_INT.",
+      "evidence_terms": [],
+      "id": "RTL-0336",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.FCOV_TC_INT",
+      "ssot_context": {
+        "id": "FCOV_TC_INT"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.FCOV_TC_INT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin FCOV_ERROR_ABORT",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.FCOV_ERROR_ABORT",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "FCOV_ERROR_ABORT can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_ERROR_ABORT.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_ERROR_ABORT.",
+      "evidence_terms": [],
+      "id": "RTL-0337",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.FCOV_ERROR_ABORT",
+      "ssot_context": {
+        "id": "FCOV_ERROR_ABORT"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.FCOV_ERROR_ABORT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin FCOV_REQ_ACK",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.FCOV_REQ_ACK",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "FCOV_REQ_ACK can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_REQ_ACK.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_REQ_ACK.",
+      "evidence_terms": [],
+      "id": "RTL-0338",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.FCOV_REQ_ACK",
+      "ssot_context": {
+        "id": "FCOV_REQ_ACK"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.FCOV_REQ_ACK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin FCOV_PRIORITY",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.FCOV_PRIORITY",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "FCOV_PRIORITY can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_PRIORITY.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_PRIORITY.",
+      "evidence_terms": [],
+      "id": "RTL-0339",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.FCOV_PRIORITY",
+      "ssot_context": {
+        "id": "FCOV_PRIORITY"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.FCOV_PRIORITY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin CCOV_AHB_SLAVE_ACCESS",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.CCOV_AHB_SLAVE_ACCESS",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "CCOV_AHB_SLAVE_ACCESS can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_AHB_SLAVE_ACCESS.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=CCOV_AHB_SLAVE_ACCESS.",
+      "evidence_terms": [],
+      "id": "RTL-0340",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.CCOV_AHB_SLAVE_ACCESS",
+      "ssot_context": {
+        "id": "CCOV_AHB_SLAVE_ACCESS"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.CCOV_AHB_SLAVE_ACCESS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin CCOV_MASTER_READ_WRITE",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.CCOV_MASTER_READ_WRITE",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "CCOV_MASTER_READ_WRITE can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_MASTER_READ_WRITE.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=CCOV_MASTER_READ_WRITE.",
+      "evidence_terms": [],
+      "id": "RTL-0341",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.CCOV_MASTER_READ_WRITE",
+      "ssot_context": {
+        "id": "CCOV_MASTER_READ_WRITE"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.CCOV_MASTER_READ_WRITE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin CCOV_WAIT_STATE",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.CCOV_WAIT_STATE",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "CCOV_WAIT_STATE can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_WAIT_STATE.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=CCOV_WAIT_STATE.",
+      "evidence_terms": [],
+      "id": "RTL-0342",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.CCOV_WAIT_STATE",
+      "ssot_context": {
+        "id": "CCOV_WAIT_STATE"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.CCOV_WAIT_STATE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin CCOV_HANDSHAKE_WAIT",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.CCOV_HANDSHAKE_WAIT",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "CCOV_HANDSHAKE_WAIT can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_HANDSHAKE_WAIT.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=CCOV_HANDSHAKE_WAIT.",
+      "evidence_terms": [],
+      "id": "RTL-0343",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.CCOV_HANDSHAKE_WAIT",
+      "ssot_context": {
+        "id": "CCOV_HANDSHAKE_WAIT"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.CCOV_HANDSHAKE_WAIT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin CCOV_ERROR_RESPONSE",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.CCOV_ERROR_RESPONSE",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "CCOV_ERROR_RESPONSE can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_ERROR_RESPONSE.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=CCOV_ERROR_RESPONSE.",
+      "evidence_terms": [],
+      "id": "RTL-0344",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.CCOV_ERROR_RESPONSE",
+      "ssot_context": {
+        "id": "CCOV_ERROR_RESPONSE"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.CCOV_ERROR_RESPONSE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "72f45ac236a074e74c4c80ad18e49e1163775dd9e0f8018c491d6f6563c1a372",
+  "top": "atcdmac100",
+  "type": "rtl_authoring_packet"
+}

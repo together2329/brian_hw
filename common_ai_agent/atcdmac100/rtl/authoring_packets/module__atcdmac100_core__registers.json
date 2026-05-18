@@ -1,0 +1,3071 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 29,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 7,
+      "key": "registers",
+      "module_task_count": 278,
+      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atcdmac100_core.sv",
+      "name": "atcdmac100_core",
+      "refs": [
+        "cycle_model",
+        "dataflow",
+        "error_handling",
+        "features",
+        "fsm",
+        "function_model",
+        "interrupts",
+        "io_list",
+        "registers",
+        "test_requirements",
+        "traceability"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcdmac100_core.sv",
+        "name": "atcdmac100_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcdmac100.sv",
+        "name": "atcdmac100",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hclk",
+        "signal": "hclk",
+        "signal_terms": [
+          "hclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresetn",
+        "signal": "hresetn",
+        "signal_terms": [
+          "hresetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_int",
+        "signal": "dma_int",
+        "signal_terms": [
+          "dma_int"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_req",
+        "signal": "dma_req",
+        "signal_terms": [
+          "dma_req"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_ack",
+        "signal": "dma_ack",
+        "signal_terms": [
+          "dma_ack"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "haddr",
+        "signal": "haddr",
+        "signal_terms": [
+          "haddr"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "htrans",
+        "signal": "htrans",
+        "signal_terms": [
+          "htrans"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwrite",
+        "signal": "hwrite",
+        "signal_terms": [
+          "hwrite"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsize",
+        "signal": "hsize",
+        "signal_terms": [
+          "hsize"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hburst",
+        "signal": "hburst",
+        "signal_terms": [
+          "hburst"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwdata",
+        "signal": "hwdata",
+        "signal_terms": [
+          "hwdata"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsel",
+        "signal": "hsel",
+        "signal_terms": [
+          "hsel"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hreadyin",
+        "signal": "hreadyin",
+        "signal_terms": [
+          "hreadyin"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hrdata",
+        "signal": "hrdata",
+        "signal_terms": [
+          "hrdata"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresp",
+        "signal": "hresp",
+        "signal_terms": [
+          "hresp"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hready",
+        "signal": "hready",
+        "signal_terms": [
+          "hready"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "haddr_mst",
+        "signal": "haddr_mst",
+        "signal_terms": [
+          "haddr_mst"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "htrans_mst",
+        "signal": "htrans_mst",
+        "signal_terms": [
+          "htrans_mst"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwrite_mst",
+        "signal": "hwrite_mst",
+        "signal_terms": [
+          "hwrite_mst"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsize_mst",
+        "signal": "hsize_mst",
+        "signal_terms": [
+          "hsize_mst"
+        ],
+        "source_ref": "integration.connections[19]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hprot_mst",
+        "signal": "hprot_mst",
+        "signal_terms": [
+          "hprot_mst"
+        ],
+        "source_ref": "integration.connections[20]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hlock_mst",
+        "signal": "hlock_mst",
+        "signal_terms": [
+          "hlock_mst"
+        ],
+        "source_ref": "integration.connections[21]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hburst_mst",
+        "signal": "hburst_mst",
+        "signal_terms": [
+          "hburst_mst"
+        ],
+        "source_ref": "integration.connections[22]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwdata_mst",
+        "signal": "hwdata_mst",
+        "signal_terms": [
+          "hwdata_mst"
+        ],
+        "source_ref": "integration.connections[23]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hrdata_mst",
+        "signal": "hrdata_mst",
+        "signal_terms": [
+          "hrdata_mst"
+        ],
+        "source_ref": "integration.connections[24]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresp_mst",
+        "signal": "hresp_mst",
+        "signal_terms": [
+          "hresp_mst"
+        ],
+        "source_ref": "integration.connections[25]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hready_mst",
+        "signal": "hready_mst",
+        "signal_terms": [
+          "hready_mst"
+        ],
+        "source_ref": "integration.connections[26]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hbusreq_mst",
+        "signal": "hbusreq_mst",
+        "signal_terms": [
+          "hbusreq_mst"
+        ],
+        "source_ref": "integration.connections[27]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hgrant_mst",
+        "signal": "hgrant_mst",
+        "signal_terms": [
+          "hgrant_mst"
+        ],
+        "source_ref": "integration.connections[28]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 44,
+    "open_required_count": 44,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atcdmac100",
+  "kind": "module",
+  "owner_file": "rtl/atcdmac100_core.sv",
+  "owner_module": "atcdmac100_core",
+  "packet_id": "module__atcdmac100_core__registers",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "registers.field": 33,
+      "registers.register": 11
+    },
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 7,
+      "key": "registers",
+      "module_task_count": 278,
+      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 44,
+    "required_count": 44,
+    "source_refs": [
+      "registers.register_list.IdRev",
+      "registers.register_list.IdRev.fields.ID",
+      "registers.register_list.IdRev.fields.RevMajor",
+      "registers.register_list.IdRev.fields.RevMinor",
+      "registers.register_list.DMACfg",
+      "registers.register_list.DMACfg.fields.ChainXfr",
+      "registers.register_list.DMACfg.fields.ReqSync",
+      "registers.register_list.DMACfg.fields.ReqNum",
+      "registers.register_list.DMACfg.fields.FIFODepth",
+      "registers.register_list.DMACfg.fields.ChannelNum",
+      "registers.register_list.DMACtrl",
+      "registers.register_list.DMACtrl.fields.Reset",
+      "registers.register_list.IntStatus",
+      "registers.register_list.IntStatus.fields.TC",
+      "registers.register_list.IntStatus.fields.Abort",
+      "registers.register_list.IntStatus.fields.Error",
+      "registers.register_list.ChEN",
+      "registers.register_list.ChEN.fields.ChEN",
+      "registers.register_list.ChAbort",
+      "registers.register_list.ChAbort.fields.ChAbort",
+      "registers.register_list.ChnCtrl",
+      "registers.register_list.ChnCtrl.fields.Priority",
+      "registers.register_list.ChnCtrl.fields.SrcBurstSize",
+      "registers.register_list.ChnCtrl.fields.SrcWidth"
+    ],
+    "status_counts": {
+      "open": 44
+    },
+    "task_count": 44
+  },
+  "tasks": [
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register IdRev",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.IdRev",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "IdRev width matches SSOT value 32",
+        "IdRev reset behavior matches SSOT value 0x01021012",
+        "IdRev access policy RO is implemented without read/write shortcuts",
+        "IdRev decode uses SSOT address/offset 0x00"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.IdRev.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=IdRev; width=32; reset=0x01021012; access=RO; offset=0x00.",
+      "evidence_terms": [
+        "IdRev"
+      ],
+      "id": "RTL-0212",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.IdRev",
+      "ssot_context": {
+        "access": "RO",
+        "name": "IdRev",
+        "offset": "0x00",
+        "reset": "0x01021012",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.IdRev"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IdRev"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field IdRev.ID",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.IdRev.fields.ID",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ID reset behavior matches SSOT value 0x01021",
+        "ID access policy RO is implemented without read/write shortcuts",
+        "ID readback returns implemented RTL state when readable",
+        "ID write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IdRev.fields.ID.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ID; reset=0x01021; access=RO.",
+      "evidence_terms": [
+        "ID",
+        "IdRev"
+      ],
+      "id": "RTL-0213",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.IdRev.fields.ID",
+      "ssot_context": {
+        "access": "RO",
+        "name": "ID",
+        "reset": "0x01021"
+      },
+      "ssot_refs": [
+        "registers.register_list.IdRev.fields.ID"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ID",
+          "IdRev"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field IdRev.RevMajor",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.IdRev.fields.RevMajor",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "RevMajor reset behavior matches SSOT value 0x1",
+        "RevMajor access policy RO is implemented without read/write shortcuts",
+        "RevMajor readback returns implemented RTL state when readable",
+        "RevMajor write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IdRev.fields.RevMajor.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=RevMajor; reset=0x1; access=RO.",
+      "evidence_terms": [
+        "RevMajor"
+      ],
+      "id": "RTL-0214",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.IdRev.fields.RevMajor",
+      "ssot_context": {
+        "access": "RO",
+        "name": "RevMajor",
+        "reset": "0x1"
+      },
+      "ssot_refs": [
+        "registers.register_list.IdRev.fields.RevMajor"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RevMajor"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field IdRev.RevMinor",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.IdRev.fields.RevMinor",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "RevMinor reset behavior matches SSOT value 0x2",
+        "RevMinor access policy RO is implemented without read/write shortcuts",
+        "RevMinor readback returns implemented RTL state when readable",
+        "RevMinor write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IdRev.fields.RevMinor.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=RevMinor; reset=0x2; access=RO.",
+      "evidence_terms": [
+        "RevMinor"
+      ],
+      "id": "RTL-0215",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.IdRev.fields.RevMinor",
+      "ssot_context": {
+        "access": "RO",
+        "name": "RevMinor",
+        "reset": "0x2"
+      },
+      "ssot_refs": [
+        "registers.register_list.IdRev.fields.RevMinor"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RevMinor"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register DMACfg",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.DMACfg",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DMACfg width matches SSOT value 32",
+        "DMACfg reset behavior matches SSOT value CONFIG",
+        "DMACfg access policy RO is implemented without read/write shortcuts",
+        "DMACfg decode uses SSOT address/offset 0x10"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DMACfg.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DMACfg; width=32; reset=CONFIG; access=RO; offset=0x10.",
+      "evidence_terms": [
+        "DMACfg"
+      ],
+      "id": "RTL-0216",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DMACfg",
+      "ssot_context": {
+        "access": "RO",
+        "name": "DMACfg",
+        "offset": "0x10",
+        "reset": "CONFIG",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.DMACfg"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DMACfg"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DMACfg.ChainXfr",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DMACfg.fields.ChainXfr",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ChainXfr reset behavior matches SSOT value CHAIN_TRANSFER_SUPPORT",
+        "ChainXfr access policy RO is implemented without read/write shortcuts",
+        "ChainXfr readback returns implemented RTL state when readable",
+        "ChainXfr write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.ChainXfr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChainXfr; reset=CHAIN_TRANSFER_SUPPORT; access=RO.",
+      "evidence_terms": [
+        "ChainXfr"
+      ],
+      "id": "RTL-0217",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DMACfg.fields.ChainXfr",
+      "ssot_context": {
+        "access": "RO",
+        "name": "ChainXfr",
+        "reset": "CHAIN_TRANSFER_SUPPORT"
+      },
+      "ssot_refs": [
+        "registers.register_list.DMACfg.fields.ChainXfr"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChainXfr"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DMACfg.ReqSync",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DMACfg.fields.ReqSync",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ReqSync reset behavior matches SSOT value 0x0",
+        "ReqSync access policy RO is implemented without read/write shortcuts",
+        "ReqSync readback returns implemented RTL state when readable",
+        "ReqSync write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.ReqSync.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ReqSync; reset=0x0; access=RO.",
+      "evidence_terms": [
+        "ReqSync"
+      ],
+      "id": "RTL-0218",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DMACfg.fields.ReqSync",
+      "ssot_context": {
+        "access": "RO",
+        "name": "ReqSync",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DMACfg.fields.ReqSync"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ReqSync"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DMACfg.ReqNum",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DMACfg.fields.ReqNum",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ReqNum reset behavior matches SSOT value REQ_ACK_NUM",
+        "ReqNum access policy RO is implemented without read/write shortcuts",
+        "ReqNum readback returns implemented RTL state when readable",
+        "ReqNum write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.ReqNum.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ReqNum; reset=REQ_ACK_NUM; access=RO.",
+      "evidence_terms": [
+        "ReqNum"
+      ],
+      "id": "RTL-0219",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DMACfg.fields.ReqNum",
+      "ssot_context": {
+        "access": "RO",
+        "name": "ReqNum",
+        "reset": "REQ_ACK_NUM"
+      },
+      "ssot_refs": [
+        "registers.register_list.DMACfg.fields.ReqNum"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ReqNum"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DMACfg.FIFODepth",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DMACfg.fields.FIFODepth",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "FIFODepth reset behavior matches SSOT value FIFO_DEPTH",
+        "FIFODepth access policy RO is implemented without read/write shortcuts",
+        "FIFODepth readback returns implemented RTL state when readable",
+        "FIFODepth write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.FIFODepth.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=FIFODepth; reset=FIFO_DEPTH; access=RO.",
+      "evidence_terms": [
+        "FIFODepth"
+      ],
+      "id": "RTL-0220",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DMACfg.fields.FIFODepth",
+      "ssot_context": {
+        "access": "RO",
+        "name": "FIFODepth",
+        "reset": "FIFO_DEPTH"
+      },
+      "ssot_refs": [
+        "registers.register_list.DMACfg.fields.FIFODepth"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "FIFODepth"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DMACfg.ChannelNum",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DMACfg.fields.ChannelNum",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ChannelNum reset behavior matches SSOT value DMA_CH_NUM",
+        "ChannelNum access policy RO is implemented without read/write shortcuts",
+        "ChannelNum readback returns implemented RTL state when readable",
+        "ChannelNum write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.ChannelNum.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChannelNum; reset=DMA_CH_NUM; access=RO.",
+      "evidence_terms": [
+        "ChannelNum"
+      ],
+      "id": "RTL-0221",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DMACfg.fields.ChannelNum",
+      "ssot_context": {
+        "access": "RO",
+        "name": "ChannelNum",
+        "reset": "DMA_CH_NUM"
+      },
+      "ssot_refs": [
+        "registers.register_list.DMACfg.fields.ChannelNum"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChannelNum"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register DMACtrl",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.DMACtrl",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DMACtrl width matches SSOT value 32",
+        "DMACtrl reset behavior matches SSOT value 0x0",
+        "DMACtrl access policy WO is implemented without read/write shortcuts",
+        "DMACtrl decode uses SSOT address/offset 0x20"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DMACtrl.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DMACtrl; width=32; reset=0x0; access=WO; offset=0x20.",
+      "evidence_terms": [
+        "DMACtrl"
+      ],
+      "id": "RTL-0222",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DMACtrl",
+      "ssot_context": {
+        "access": "WO",
+        "name": "DMACtrl",
+        "offset": "0x20",
+        "reset": "0x0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.DMACtrl"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DMACtrl"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DMACtrl.Reset",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DMACtrl.fields.Reset",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "Reset reset behavior matches SSOT value 0x0",
+        "Reset access policy WO is implemented without read/write shortcuts",
+        "Reset readback returns implemented RTL state when readable",
+        "Reset write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACtrl.fields.Reset.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=Reset; reset=0x0; access=WO.",
+      "evidence_terms": [
+        "Reset"
+      ],
+      "id": "RTL-0223",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DMACtrl.fields.Reset",
+      "ssot_context": {
+        "access": "WO",
+        "name": "Reset",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DMACtrl.fields.Reset"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "Reset"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register IntStatus",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.IntStatus",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "IntStatus width matches SSOT value 32",
+        "IntStatus reset behavior matches SSOT value 0x0",
+        "IntStatus access policy R/W1C is implemented without read/write shortcuts",
+        "IntStatus decode uses SSOT address/offset 0x30"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.IntStatus.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=IntStatus; width=32; reset=0x0; access=R/W1C; offset=0x30.",
+      "evidence_terms": [
+        "IntStatus"
+      ],
+      "id": "RTL-0224",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.IntStatus",
+      "ssot_context": {
+        "access": "R/W1C",
+        "name": "IntStatus",
+        "offset": "0x30",
+        "reset": "0x0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.IntStatus"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IntStatus"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field IntStatus.TC",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.IntStatus.fields.TC",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "TC reset behavior matches SSOT value 0x0",
+        "TC access policy R/W1C is implemented without read/write shortcuts",
+        "TC readback returns implemented RTL state when readable",
+        "TC write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IntStatus.fields.TC.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=TC; reset=0x0; access=R/W1C.",
+      "evidence_terms": [
+        "TC"
+      ],
+      "id": "RTL-0225",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.IntStatus.fields.TC",
+      "ssot_context": {
+        "access": "R/W1C",
+        "name": "TC",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.IntStatus.fields.TC"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "TC"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field IntStatus.Abort",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.IntStatus.fields.Abort",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "Abort reset behavior matches SSOT value 0x0",
+        "Abort access policy R/W1C is implemented without read/write shortcuts",
+        "Abort readback returns implemented RTL state when readable",
+        "Abort write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IntStatus.fields.Abort.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=Abort; reset=0x0; access=R/W1C.",
+      "evidence_terms": [
+        "Abort"
+      ],
+      "id": "RTL-0226",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.IntStatus.fields.Abort",
+      "ssot_context": {
+        "access": "R/W1C",
+        "name": "Abort",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.IntStatus.fields.Abort"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "Abort"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field IntStatus.Error",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.IntStatus.fields.Error",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "Error reset behavior matches SSOT value 0x0",
+        "Error access policy R/W1C is implemented without read/write shortcuts",
+        "Error readback returns implemented RTL state when readable",
+        "Error write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IntStatus.fields.Error.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=Error; reset=0x0; access=R/W1C.",
+      "evidence_terms": [],
+      "id": "RTL-0227",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.IntStatus.fields.Error",
+      "ssot_context": {
+        "access": "R/W1C",
+        "name": "Error",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.IntStatus.fields.Error"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register ChEN",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.ChEN",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ChEN width matches SSOT value 32",
+        "ChEN reset behavior matches SSOT value 0x0",
+        "ChEN access policy RO is implemented without read/write shortcuts",
+        "ChEN decode uses SSOT address/offset 0x34"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChEN.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChEN; width=32; reset=0x0; access=RO; offset=0x34.",
+      "evidence_terms": [
+        "ChEN"
+      ],
+      "id": "RTL-0228",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChEN",
+      "ssot_context": {
+        "access": "RO",
+        "name": "ChEN",
+        "offset": "0x34",
+        "reset": "0x0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChEN"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChEN"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChEN.ChEN",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChEN.fields.ChEN",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ChEN reset behavior matches SSOT value 0x0",
+        "ChEN access policy RO is implemented without read/write shortcuts",
+        "ChEN readback returns implemented RTL state when readable",
+        "ChEN write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChEN.fields.ChEN.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChEN; reset=0x0; access=RO.",
+      "evidence_terms": [
+        "ChEN"
+      ],
+      "id": "RTL-0229",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChEN.fields.ChEN",
+      "ssot_context": {
+        "access": "RO",
+        "name": "ChEN",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChEN.fields.ChEN"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChEN"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register ChAbort",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.ChAbort",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ChAbort width matches SSOT value 32",
+        "ChAbort reset behavior matches SSOT value 0x0",
+        "ChAbort access policy WO is implemented without read/write shortcuts",
+        "ChAbort decode uses SSOT address/offset 0x40"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChAbort.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChAbort; width=32; reset=0x0; access=WO; offset=0x40.",
+      "evidence_terms": [
+        "ChAbort"
+      ],
+      "id": "RTL-0230",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChAbort",
+      "ssot_context": {
+        "access": "WO",
+        "name": "ChAbort",
+        "offset": "0x40",
+        "reset": "0x0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChAbort"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChAbort"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChAbort.ChAbort",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChAbort.fields.ChAbort",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ChAbort reset behavior matches SSOT value 0x0",
+        "ChAbort access policy WO is implemented without read/write shortcuts",
+        "ChAbort readback returns implemented RTL state when readable",
+        "ChAbort write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChAbort.fields.ChAbort.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChAbort; reset=0x0; access=WO.",
+      "evidence_terms": [
+        "ChAbort"
+      ],
+      "id": "RTL-0231",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChAbort.fields.ChAbort",
+      "ssot_context": {
+        "access": "WO",
+        "name": "ChAbort",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChAbort.fields.ChAbort"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChAbort"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register ChnCtrl",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ChnCtrl width matches SSOT value 32",
+        "ChnCtrl reset behavior matches SSOT value 0x000A0000",
+        "ChnCtrl access policy R/W is implemented without read/write shortcuts",
+        "ChnCtrl decode uses SSOT address/offset 0x44+n*0x14"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnCtrl.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChnCtrl; width=32; reset=0x000A0000; access=R/W; offset=0x44+n*0x14.",
+      "evidence_terms": [
+        "ChnCtrl"
+      ],
+      "id": "RTL-0232",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "ChnCtrl",
+        "offset": "0x44+n*0x14",
+        "reset": "0x000A0000",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChnCtrl"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.Priority",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.Priority",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "Priority reset behavior matches SSOT value 0x0",
+        "Priority access policy R/W is implemented without read/write shortcuts",
+        "Priority readback returns implemented RTL state when readable",
+        "Priority write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.Priority.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=Priority; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "Priority"
+      ],
+      "id": "RTL-0233",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.Priority",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "Priority",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.Priority"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "Priority"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.SrcBurstSize",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.SrcBurstSize",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "SrcBurstSize reset behavior matches SSOT value 0x0",
+        "SrcBurstSize access policy R/W is implemented without read/write shortcuts",
+        "SrcBurstSize readback returns implemented RTL state when readable",
+        "SrcBurstSize write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcBurstSize.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=SrcBurstSize; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "SrcBurstSize"
+      ],
+      "id": "RTL-0234",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.SrcBurstSize",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "SrcBurstSize",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.SrcBurstSize"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "SrcBurstSize"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.SrcWidth",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.SrcWidth",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "SrcWidth reset behavior matches SSOT value 0x2",
+        "SrcWidth access policy R/W is implemented without read/write shortcuts",
+        "SrcWidth readback returns implemented RTL state when readable",
+        "SrcWidth write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcWidth.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=SrcWidth; reset=0x2; access=R/W.",
+      "evidence_terms": [
+        "SrcWidth"
+      ],
+      "id": "RTL-0235",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.SrcWidth",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "SrcWidth",
+        "reset": "0x2"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.SrcWidth"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "SrcWidth"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.DstWidth",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.DstWidth",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DstWidth reset behavior matches SSOT value 0x2",
+        "DstWidth access policy R/W is implemented without read/write shortcuts",
+        "DstWidth readback returns implemented RTL state when readable",
+        "DstWidth write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.DstWidth.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DstWidth; reset=0x2; access=R/W.",
+      "evidence_terms": [
+        "DstWidth"
+      ],
+      "id": "RTL-0236",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.DstWidth",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "DstWidth",
+        "reset": "0x2"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.DstWidth"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DstWidth"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.SrcMode",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.SrcMode",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "SrcMode reset behavior matches SSOT value 0x0",
+        "SrcMode access policy R/W is implemented without read/write shortcuts",
+        "SrcMode readback returns implemented RTL state when readable",
+        "SrcMode write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcMode.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=SrcMode; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "SrcMode"
+      ],
+      "id": "RTL-0237",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.SrcMode",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "SrcMode",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.SrcMode"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "SrcMode"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.DstMode",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.DstMode",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DstMode reset behavior matches SSOT value 0x0",
+        "DstMode access policy R/W is implemented without read/write shortcuts",
+        "DstMode readback returns implemented RTL state when readable",
+        "DstMode write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.DstMode.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DstMode; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "DstMode"
+      ],
+      "id": "RTL-0238",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.DstMode",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "DstMode",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.DstMode"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DstMode"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.SrcAddrCtrl",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.SrcAddrCtrl",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "SrcAddrCtrl reset behavior matches SSOT value 0x0",
+        "SrcAddrCtrl access policy R/W is implemented without read/write shortcuts",
+        "SrcAddrCtrl readback returns implemented RTL state when readable",
+        "SrcAddrCtrl write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcAddrCtrl.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=SrcAddrCtrl; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "SrcAddrCtrl"
+      ],
+      "id": "RTL-0239",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.SrcAddrCtrl",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "SrcAddrCtrl",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.SrcAddrCtrl"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "SrcAddrCtrl"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.DstAddrCtrl",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.DstAddrCtrl",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DstAddrCtrl reset behavior matches SSOT value 0x0",
+        "DstAddrCtrl access policy R/W is implemented without read/write shortcuts",
+        "DstAddrCtrl readback returns implemented RTL state when readable",
+        "DstAddrCtrl write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.DstAddrCtrl.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DstAddrCtrl; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "DstAddrCtrl"
+      ],
+      "id": "RTL-0240",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.DstAddrCtrl",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "DstAddrCtrl",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.DstAddrCtrl"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DstAddrCtrl"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.SrcReqSel",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.SrcReqSel",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "SrcReqSel reset behavior matches SSOT value 0x0",
+        "SrcReqSel access policy R/W is implemented without read/write shortcuts",
+        "SrcReqSel readback returns implemented RTL state when readable",
+        "SrcReqSel write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcReqSel.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=SrcReqSel; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "SrcReqSel"
+      ],
+      "id": "RTL-0241",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.SrcReqSel",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "SrcReqSel",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.SrcReqSel"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "SrcReqSel"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.DstReqSel",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.DstReqSel",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DstReqSel reset behavior matches SSOT value 0x0",
+        "DstReqSel access policy R/W is implemented without read/write shortcuts",
+        "DstReqSel readback returns implemented RTL state when readable",
+        "DstReqSel write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.DstReqSel.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DstReqSel; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "DstReqSel"
+      ],
+      "id": "RTL-0242",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.DstReqSel",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "DstReqSel",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.DstReqSel"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "DstReqSel"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.IntAbtMask",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.IntAbtMask",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "IntAbtMask reset behavior matches SSOT value 0x0",
+        "IntAbtMask access policy R/W is implemented without read/write shortcuts",
+        "IntAbtMask readback returns implemented RTL state when readable",
+        "IntAbtMask write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.IntAbtMask.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=IntAbtMask; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "IntAbtMask"
+      ],
+      "id": "RTL-0243",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.IntAbtMask",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "IntAbtMask",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.IntAbtMask"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IntAbtMask"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.IntErrMask",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.IntErrMask",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "IntErrMask reset behavior matches SSOT value 0x0",
+        "IntErrMask access policy R/W is implemented without read/write shortcuts",
+        "IntErrMask readback returns implemented RTL state when readable",
+        "IntErrMask write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.IntErrMask.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=IntErrMask; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "IntErrMask"
+      ],
+      "id": "RTL-0244",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.IntErrMask",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "IntErrMask",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.IntErrMask"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IntErrMask"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.IntTCMask",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.IntTCMask",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "IntTCMask reset behavior matches SSOT value 0x0",
+        "IntTCMask access policy R/W is implemented without read/write shortcuts",
+        "IntTCMask readback returns implemented RTL state when readable",
+        "IntTCMask write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.IntTCMask.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=IntTCMask; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "IntTCMask"
+      ],
+      "id": "RTL-0245",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.IntTCMask",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "IntTCMask",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.IntTCMask"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IntTCMask"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnCtrl.Enable",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnCtrl.fields.Enable",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "Enable reset behavior matches SSOT value 0x0",
+        "Enable access policy R/W is implemented without read/write shortcuts",
+        "Enable readback returns implemented RTL state when readable",
+        "Enable write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.Enable.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=Enable; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "Enable"
+      ],
+      "id": "RTL-0246",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnCtrl.fields.Enable",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "Enable",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnCtrl.fields.Enable"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "Enable"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register ChnSrcAddr",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.ChnSrcAddr",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ChnSrcAddr width matches SSOT value 32",
+        "ChnSrcAddr reset behavior matches SSOT value 0x0",
+        "ChnSrcAddr access policy R/W is implemented without read/write shortcuts",
+        "ChnSrcAddr decode uses SSOT address/offset 0x48+n*0x14"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnSrcAddr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChnSrcAddr; width=32; reset=0x0; access=R/W; offset=0x48+n*0x14.",
+      "evidence_terms": [
+        "ChnSrcAddr"
+      ],
+      "id": "RTL-0247",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnSrcAddr",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "ChnSrcAddr",
+        "offset": "0x48+n*0x14",
+        "reset": "0x0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnSrcAddr"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChnSrcAddr"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnSrcAddr.SrcAddr",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnSrcAddr.fields.SrcAddr",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "SrcAddr reset behavior matches SSOT value 0x0",
+        "SrcAddr access policy R/W is implemented without read/write shortcuts",
+        "SrcAddr readback returns implemented RTL state when readable",
+        "SrcAddr write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnSrcAddr.fields.SrcAddr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=SrcAddr; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "ChnSrcAddr",
+        "SrcAddr"
+      ],
+      "id": "RTL-0248",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnSrcAddr.fields.SrcAddr",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "SrcAddr",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnSrcAddr.fields.SrcAddr"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChnSrcAddr",
+          "SrcAddr"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register ChnDstAddr",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.ChnDstAddr",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ChnDstAddr width matches SSOT value 32",
+        "ChnDstAddr reset behavior matches SSOT value 0x0",
+        "ChnDstAddr access policy R/W is implemented without read/write shortcuts",
+        "ChnDstAddr decode uses SSOT address/offset 0x4C+n*0x14"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnDstAddr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChnDstAddr; width=32; reset=0x0; access=R/W; offset=0x4C+n*0x14.",
+      "evidence_terms": [
+        "ChnDstAddr"
+      ],
+      "id": "RTL-0249",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnDstAddr",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "ChnDstAddr",
+        "offset": "0x4C+n*0x14",
+        "reset": "0x0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnDstAddr"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChnDstAddr"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnDstAddr.DstAddr",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnDstAddr.fields.DstAddr",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "DstAddr reset behavior matches SSOT value 0x0",
+        "DstAddr access policy R/W is implemented without read/write shortcuts",
+        "DstAddr readback returns implemented RTL state when readable",
+        "DstAddr write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnDstAddr.fields.DstAddr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DstAddr; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "ChnDstAddr",
+        "DstAddr"
+      ],
+      "id": "RTL-0250",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnDstAddr.fields.DstAddr",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "DstAddr",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnDstAddr.fields.DstAddr"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChnDstAddr",
+          "DstAddr"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register ChnTranSize",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.ChnTranSize",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ChnTranSize width matches SSOT value 32",
+        "ChnTranSize reset behavior matches SSOT value 0x0",
+        "ChnTranSize access policy R/W is implemented without read/write shortcuts",
+        "ChnTranSize decode uses SSOT address/offset 0x50+n*0x14"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnTranSize.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChnTranSize; width=32; reset=0x0; access=R/W; offset=0x50+n*0x14.",
+      "evidence_terms": [
+        "ChnTranSize"
+      ],
+      "id": "RTL-0251",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnTranSize",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "ChnTranSize",
+        "offset": "0x50+n*0x14",
+        "reset": "0x0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnTranSize"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChnTranSize"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnTranSize.TranSize",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnTranSize.fields.TranSize",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "TranSize reset behavior matches SSOT value 0x0",
+        "TranSize access policy R/W is implemented without read/write shortcuts",
+        "TranSize readback returns implemented RTL state when readable",
+        "TranSize write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnTranSize.fields.TranSize.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=TranSize; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "ChnTranSize",
+        "TranSize"
+      ],
+      "id": "RTL-0252",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnTranSize.fields.TranSize",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "TranSize",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnTranSize.fields.TranSize"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChnTranSize",
+          "TranSize"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register ChnLLPointer",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.ChnLLPointer",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "ChnLLPointer width matches SSOT value 32",
+        "ChnLLPointer reset behavior matches SSOT value 0x0",
+        "ChnLLPointer access policy R/W is implemented without read/write shortcuts",
+        "ChnLLPointer decode uses SSOT address/offset 0x54+n*0x14"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnLLPointer.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChnLLPointer; width=32; reset=0x0; access=R/W; offset=0x54+n*0x14.",
+      "evidence_terms": [
+        "ChnLLPointer"
+      ],
+      "id": "RTL-0253",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnLLPointer",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "ChnLLPointer",
+        "offset": "0x54+n*0x14",
+        "reset": "0x0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnLLPointer"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChnLLPointer"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnLLPointer.LLPointer",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnLLPointer.fields.LLPointer",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "LLPointer reset behavior matches SSOT value 0x0",
+        "LLPointer access policy R/W is implemented without read/write shortcuts",
+        "LLPointer readback returns implemented RTL state when readable",
+        "LLPointer write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnLLPointer.fields.LLPointer.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=LLPointer; reset=0x0; access=R/W.",
+      "evidence_terms": [
+        "ChnLLPointer",
+        "LLPointer"
+      ],
+      "id": "RTL-0254",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnLLPointer.fields.LLPointer",
+      "ssot_context": {
+        "access": "R/W",
+        "name": "LLPointer",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnLLPointer.fields.LLPointer"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ChnLLPointer",
+          "LLPointer"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field ChnLLPointer.Reserved",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.ChnLLPointer.fields.Reserved",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "Reserved reset behavior matches SSOT value 0x0",
+        "Reserved access policy reserved is implemented without read/write shortcuts",
+        "Reserved readback returns implemented RTL state when readable",
+        "Reserved write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnLLPointer.fields.Reserved.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=Reserved; reset=0x0; access=reserved.",
+      "evidence_terms": [
+        "GPIO_MASK",
+        "Reserved",
+        "mask"
+      ],
+      "id": "RTL-0255",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.ChnLLPointer.fields.Reserved",
+      "ssot_context": {
+        "access": "reserved",
+        "name": "Reserved",
+        "reset": "0x0"
+      },
+      "ssot_refs": [
+        "registers.register_list.ChnLLPointer.fields.Reserved"
+      ],
+      "static_evidence": {
+        "matched_count": 0,
+        "matched_terms": [],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "GPIO_MASK",
+          "Reserved",
+          "mask"
+        ],
+        "source_scope": "rtl/atcdmac100_core.sv",
+        "status": "missing"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "72f45ac236a074e74c4c80ad18e49e1163775dd9e0f8018c491d6f6563c1a372",
+  "top": "atcdmac100",
+  "type": "rtl_authoring_packet"
+}

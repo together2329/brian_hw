@@ -1,0 +1,45 @@
+// Auto-generated from SSOT cycle_model. Do not hand-edit.
+// Source: atcdmac100/yaml/atcdmac100.ssot.yaml
+// Schema: protocol_assertions/v1
+// Bind to DUT under simulation. Clock: hclk; reset: hresetn
+
+module atcdmac100_protocol_assertions (
+    input logic hclk,
+    input logic hresetn
+    /* Bind additional DUT signals via downstream `bind` directive. */
+);
+
+// ORDERING: Only one channel is actively serviced at a time.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_0_placeholder;
+  @(posedge hclk) disable iff (!hresetn) 1'b1;
+endproperty
+o_ordering_0_chk: assert property (p_o_ordering_0_placeholder);
+
+// ORDERING: Same-priority channels are visited in round-robin order.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_1_placeholder;
+  @(posedge hclk) disable iff (!hresetn) 1'b1;
+endproperty
+o_ordering_1_chk: assert property (p_o_ordering_1_placeholder);
+
+// ORDERING: A write beat uses data captured from the preceding read beat.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_2_placeholder;
+  @(posedge hclk) disable iff (!hresetn) 1'b1;
+endproperty
+o_ordering_2_chk: assert property (p_o_ordering_2_placeholder);
+
+// ORDERING: Chain descriptor preload happens after head transfer completion when ChnLLPointer is nonzero.
+// Ordering rules tend to require stateful trackers; this is a placeholder
+// hook so users can paste a real check next to the auto-generated stub.
+property p_o_ordering_3_placeholder;
+  @(posedge hclk) disable iff (!hresetn) 1'b1;
+endproperty
+o_ordering_3_chk: assert property (p_o_ordering_3_placeholder);
+
+
+endmodule

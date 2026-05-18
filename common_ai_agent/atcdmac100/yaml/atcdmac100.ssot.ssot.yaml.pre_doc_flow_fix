@@ -1,0 +1,1949 @@
+top_module:
+  name: atcdmac100
+  file: rtl/atcdmac100.sv
+  version: DS079_V1.2_engineering_draft
+  type: rtl
+  description: ATCDMAC100-compatible programmable DMA controller with APB control registers, AHB-Lite master memory copy datapath, DMA request acknowledge, and maskable interrupt output.
+  target:
+    technology: generic
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+  reference_spec: AndeShape ATCDMAC100 DS079 V1.2
+sub_modules:
+- name: atcdmac100_apb_regs
+  type: register_block
+  description: APB register decode, writable configuration registers, status reflection, and W1C interrupt clear.
+  implements:
+  - cfg_regs
+  - interrupt
+  register_refs:
+  - CTRL
+  - SRC_ADDR
+  - DST_ADDR
+  - LEN
+  - STATUS
+  - INT_EN
+  - INT_STATUS
+  - registers.register_list
+  function_model_refs:
+  - apb_write_reg
+  - apb_read_reg
+  - clear_interrupt
+  - function_model.transactions.apb_write_reg
+  - function_model.transactions.apb_read_reg
+  - function_model.transactions.clear_interrupt
+  - function_model.state_variables
+  dataflow_refs:
+  - apb_control_path
+  - dataflow
+  source_sections:
+  - dataflow
+  - test_requirements
+  - registers
+  test_refs:
+  - test_requirements
+- name: atcdmac100_channel
+  type: control_fsm
+  description: Single-channel DMA control FSM, counters, request qualification, completion, and error state.
+  implements:
+  - mem_to_mem_dma
+  - error_handling
+  fsm_refs:
+  - channel_fsm
+  - fsm
+  dataflow_refs:
+  - dma_copy_path
+  function_model_refs:
+  - start_transfer
+  - complete_transfer
+  - ahb_error
+  - function_model.transactions.reset
+  - function_model.transactions.start_transfer
+  - function_model.transactions.complete_transfer
+  - function_model.transactions.ahb_error
+  cycle_model_refs:
+  - cm_dma_copy
+  - cycle_model
+  source_sections:
+  - cycle_model
+  - features
+  - fsm
+  - decomposition
+  feature_refs:
+  - features
+  decomposition_refs:
+  - decomposition
+- name: atcdmac100_ahb_master
+  type: bus_master
+  description: AHB-Lite address/control generation, read capture FIFO, and write data phase generation.
+  implements:
+  - mem_to_mem_dma
+  dataflow_refs:
+  - ahb_read_path
+  - ahb_write_path
+  function_model_refs:
+  - issue_read_beat
+  - issue_write_beat
+  - function_model.transactions.issue_read_beat
+  - function_model.transactions.issue_write_beat
+  cycle_model_refs:
+  - cm_ahb_handshake
+- name: atcdmac100_irq
+  type: interrupt_controller
+  description: Done/error interrupt status, mask, global enable, and irq aggregation.
+  implements:
+  - interrupt
+  register_refs:
+  - STATUS
+  - INT_EN
+  - INT_STATUS
+  function_model_refs:
+  - complete_transfer
+  - ahb_error
+  - clear_interrupt
+- name: atcdmac100
+  file: rtl/atcdmac100.sv
+  ownership: manifest
+  ssot_gen: true
+  description: Top-level integration module matching SSOT top_module
+decomposition:
+  strategy: ssot_owned_leaf_decomposition
+  owners:
+  - module: atcdmac100_apb_regs
+    file: rtl/atcdmac100_apb_regs.sv
+    responsibility: Register decode and APB-visible CSR behavior.
+    source_sections:
+    - registers
+    - function_model.transactions.apb_write_reg
+    - function_model.transactions.apb_read_reg
+  - module: atcdmac100_channel
+    file: rtl/atcdmac100_channel.sv
+    responsibility: DMA channel FSM, counters, and terminal status.
+    source_sections:
+    - fsm.channel_fsm
+    - function_model.transactions.start_transfer
+    - function_model.transactions.complete_transfer
+    - function_model.transactions.ahb_error
+  - module: atcdmac100_ahb_master
+    file: rtl/atcdmac100_ahb_master.sv
+    responsibility: AHB-Lite read/write beat issue and buffering.
+    source_sections:
+    - dataflow.ahb_read_path
+    - dataflow.ahb_write_path
+    - cycle_model.handshake_rules
+  - module: atcdmac100_irq
+    file: rtl/atcdmac100_irq.sv
+    responsibility: Interrupt status, masking, W1C clear, and irq output.
+    source_sections:
+    - interrupts
+    - function_model.transactions.clear_interrupt
+  integration_policy: Top-level rtl/atcdmac100.sv wires the owned slices; any changed port or split requires SSOT update before RTL.
+  source_refs:
+  - sub_modules
+  - function_model
+  - cycle_model
+  - integration
+parameters:
+- name: ADDR_WIDTH
+  type: int
+  default: 32
+  description: System byte address width.
+- name: DATA_WIDTH
+  type: int
+  default: 32
+  description: AHB/APB data width for the draft baseline.
+- name: LEN_WIDTH
+  type: int
+  default: 16
+  description: DMA byte length counter width.
+- name: NUM_CHANNELS
+  type: int
+  default: 1
+  description: Engineering draft implements one DMA channel.
+- name: FIFO_DEPTH
+  type: int
+  default: 4
+  description: Internal read-data FIFO depth in DATA_WIDTH words.
+io_list:
+  clock_domains:
+  - name: hclk
+    frequency_mhz: 100
+    description: Primary DMA, APB, and AHB clock domain.
+    ports:
+    - name: hclk
+      width: 1
+      direction: input
+      description: Controller clock.
+  resets:
+  - name: hresetn
+    polarity: active_low
+    sync_async: synchronous
+    description: Active-low reset sampled on hclk in this engineering draft.
+    ports:
+    - name: hresetn
+      width: 1
+      direction: input
+      description: Active-low controller reset.
+  interfaces:
+  - name: apb_slave
+    type: apb
+    role: slave
+    clock_domain: hclk
+    reset_domain: hresetn
+    description: APB-style CSR programming interface.
+    protocol:
+      acceptance: A transfer completes when psel && penable && pready.
+      setup: paddr, pwrite, pwdata are sampled from the setup/access phase.
+      backpressure: pready may deassert; the draft register file returns pready high outside reset.
+    ports:
+    - name: psel
+      direction: input
+      width: 1
+      description: APB select.
+    - name: penable
+      direction: input
+      width: 1
+      description: APB access phase.
+    - name: pwrite
+      direction: input
+      width: 1
+      description: APB write direction.
+    - name: paddr
+      direction: input
+      width: ADDR_WIDTH
+      description: APB byte address.
+    - name: pwdata
+      direction: input
+      width: DATA_WIDTH
+      description: APB write data.
+    - name: prdata
+      direction: output
+      width: DATA_WIDTH
+      description: APB read data.
+    - name: pready
+      direction: output
+      width: 1
+      description: APB ready.
+    - name: pslverr
+      direction: output
+      width: 1
+      description: APB decode/protection error.
+  - name: ahb_lite_master
+    type: ahb_lite
+    role: master
+    clock_domain: hclk
+    reset_domain: hresetn
+    description: AHB-Lite master used for source reads and destination writes.
+    protocol:
+      acceptance: Address/control is valid when htrans[1] && hgrant; a beat completes when hready is high.
+      response: hresp high on a completed beat terminates the channel with error status.
+      stability: haddr, hwrite, htrans, hsize, hburst, and hwdata remain stable while hready is low.
+    ports:
+    - name: hgrant
+      direction: input
+      width: 1
+      description: External grant/accept qualifier.
+    - name: hready
+      direction: input
+      width: 1
+      description: AHB ready/backpressure.
+    - name: hresp
+      direction: input
+      width: 1
+      description: AHB error response.
+    - name: hrdata
+      direction: input
+      width: DATA_WIDTH
+      description: AHB read data.
+    - name: haddr
+      direction: output
+      width: ADDR_WIDTH
+      description: AHB byte address.
+    - name: hwrite
+      direction: output
+      width: 1
+      description: AHB write direction.
+    - name: htrans
+      direction: output
+      width: 2
+      description: AHB transfer type.
+    - name: hsize
+      direction: output
+      width: 3
+      description: AHB transfer size.
+    - name: hburst
+      direction: output
+      width: 3
+      description: AHB burst type.
+    - name: hwdata
+      direction: output
+      width: DATA_WIDTH
+      description: AHB write data.
+  - name: dma_request_irq
+    type: native_dma_request_interrupt
+    role: mixed
+    clock_domain: hclk
+    reset_domain: hresetn
+    description: Optional hardware request input, acknowledge, and combined interrupt output.
+    protocol:
+      request: dma_req qualifies channel start when CTRL.hw_req_en is set; software start ignores dma_req.
+      acknowledge: dma_ack asserts for the accepted request/channel while service is active.
+      interrupt: irq is level high while an enabled INT_STATUS bit is set and clears after W1C.
+    ports:
+    - name: dma_req
+      direction: input
+      width: NUM_CHANNELS
+      description: Hardware DMA request.
+    - name: dma_ack
+      direction: output
+      width: NUM_CHANNELS
+      description: Hardware DMA request acknowledge.
+    - name: irq
+      direction: output
+      width: 1
+      description: Combined DMA interrupt.
+features:
+- id: cfg_regs
+  description: APB programmable source, destination, length, control, status, interrupt enable, and W1C interrupt status registers.
+- id: mem_to_mem_dma
+  description: Copy len_bytes from SRC_ADDR to DST_ADDR using ordered AHB-Lite read and write beats.
+- id: interrupt
+  description: Maskable terminal-count and error interrupt status with W1C clear.
+- id: error_handling
+  description: AHB response error stops the channel, records ERR, and blocks further transfer until software recovery/reset.
+dataflow:
+  paths:
+  - id: apb_control_path
+    sources:
+    - psel
+    - penable
+    - pwrite
+    - paddr
+    - pwdata
+    sinks:
+    - CTRL
+    - SRC_ADDR
+    - DST_ADDR
+    - LEN
+    - INT_EN
+    - INT_STATUS
+    - prdata
+    - pready
+    - pslverr
+    ordering: CSR writes update state on accepted APB write cycles; reads reflect the latest committed state.
+  - id: dma_copy_path
+    sources:
+    - SRC_ADDR
+    - hrdata
+    sinks:
+    - DST_ADDR
+    - hwdata
+    ordering: Each destination write uses the previously captured source read data for the same byte offset.
+  - id: ahb_read_path
+    sources:
+    - src_addr
+    - read_bytes_issued
+    - hready
+    - hresp
+    - hrdata
+    sinks:
+    - haddr
+    - hwrite
+    - htrans
+    - hsize
+    - hburst
+    - fifo_wdata
+    ordering: Read address beats issue in monotonically increasing byte-offset order when FIFO space is available.
+  - id: ahb_write_path
+    sources:
+    - dst_addr
+    - bytes_done
+    - fifo_rdata
+    - hready
+    - hresp
+    sinks:
+    - haddr
+    - hwrite
+    - htrans
+    - hsize
+    - hburst
+    - hwdata
+    ordering: Write beats drain FIFO data in read order and advance bytes_done only on completed non-error writes.
+  invariants:
+  - No write beat may be issued before its corresponding read data is captured.
+  - Address increments are DATA_WIDTH/8 bytes in the draft baseline unless DS079 reconciliation changes alignment policy.
+function_model:
+  purpose: Cycle-independent behavioral contract for atcdmac100.
+  state_variables:
+  - name: ctrl
+    width: DATA_WIDTH
+    reset: 0
+    description: Control register architectural state.
+  - name: src_addr
+    width: ADDR_WIDTH
+    reset: 0
+    description: Current source base address.
+  - name: dst_addr
+    width: ADDR_WIDTH
+    reset: 0
+    description: Current destination base address.
+  - name: len_bytes
+    width: LEN_WIDTH
+    reset: 0
+    description: Programmed transfer length in bytes.
+  - name: bytes_done
+    width: LEN_WIDTH
+    reset: 0
+    description: Bytes completed by destination writes.
+  - name: read_bytes_issued
+    width: LEN_WIDTH
+    reset: 0
+    description: Bytes issued as source reads.
+  - name: busy
+    width: 1
+    reset: 0
+    description: Channel active flag.
+  - name: done
+    width: 1
+    reset: 0
+    description: Terminal-count status.
+  - name: err
+    width: 1
+    reset: 0
+    description: Error status.
+  - name: int_en
+    width: 2
+    reset: 0
+    description: Done/error interrupt enable bits.
+  - name: int_status
+    width: 2
+    reset: 0
+    description: Done/error interrupt pending bits.
+  transactions:
+  - id: reset
+    name: reset_contract
+    preconditions:
+    - hresetn == 0
+    inputs:
+    - hresetn
+    outputs:
+    - bus outputs idle, irq low, APB not ready during reset
+    - name: pready_reset
+      port: pready
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: htrans_reset
+      port: htrans
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: irq_reset
+      port: irq
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: ctrl
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: src_addr
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: dst_addr
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: len_bytes
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: bytes_done
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: read_bytes_issued
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: busy
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: done
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: err
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_en
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_status
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - All architectural state variables return to reset values.
+    state_updates:
+    - name: ctrl
+      expr: '0'
+      width: DATA_WIDTH
+    - name: src_addr
+      expr: '0'
+      width: ADDR_WIDTH
+    - name: dst_addr
+      expr: '0'
+      width: ADDR_WIDTH
+    - name: len_bytes
+      expr: '0'
+      width: LEN_WIDTH
+    - name: bytes_done
+      expr: '0'
+      width: LEN_WIDTH
+    - name: read_bytes_issued
+      expr: '0'
+      width: LEN_WIDTH
+    - name: busy
+      expr: '0'
+      width: 1
+    - name: done
+      expr: '0'
+      width: 1
+    - name: err
+      expr: '0'
+      width: 1
+    - name: int_en
+      expr: '0'
+      width: 2
+    - name: int_status
+      expr: '0'
+      width: 2
+    output_rules:
+    - name: pready_reset
+      port: pready
+      expr: '0'
+      width: 1
+    - name: htrans_reset
+      port: htrans
+      expr: '0'
+      width: 2
+    - name: irq_reset
+      port: irq
+      expr: '0'
+      width: 1
+  - id: apb_write_reg
+    name: apb_write_register
+    preconditions:
+    - psel && penable && pwrite && pready
+    inputs:
+    - paddr
+    - pwdata
+    outputs:
+    - pready completes the access and pslverr reports decode error
+    - name: apb_write_ready
+      port: pready
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: apb_write_error
+      port: pslverr
+      expr: addr_decode_error
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: src_addr
+      expr: (pwdata[ADDR_WIDTH-1:0] if addr_is_SRC_ADDR else src_addr)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: dst_addr
+      expr: (pwdata[ADDR_WIDTH-1:0] if addr_is_DST_ADDR else dst_addr)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: len_bytes
+      expr: (pwdata[LEN_WIDTH-1:0] if addr_is_LEN else len_bytes)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: ctrl
+      expr: (pwdata if addr_is_CTRL else ctrl)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_en
+      expr: (pwdata[1:0] if addr_is_INT_EN else int_en)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_status
+      expr: ((int_status & ~pwdata[1:0]) if addr_is_INT_STATUS else int_status)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - Selected RW register field updates; INT_STATUS performs W1C clear.
+    state_updates:
+    - name: src_addr
+      expr: (pwdata[ADDR_WIDTH-1:0] if addr_is_SRC_ADDR else src_addr)
+      width: ADDR_WIDTH
+    - name: dst_addr
+      expr: (pwdata[ADDR_WIDTH-1:0] if addr_is_DST_ADDR else dst_addr)
+      width: ADDR_WIDTH
+    - name: len_bytes
+      expr: (pwdata[LEN_WIDTH-1:0] if addr_is_LEN else len_bytes)
+      width: LEN_WIDTH
+    - name: ctrl
+      expr: (pwdata if addr_is_CTRL else ctrl)
+      width: DATA_WIDTH
+    - name: int_en
+      expr: (pwdata[1:0] if addr_is_INT_EN else int_en)
+      width: 2
+    - name: int_status
+      expr: ((int_status & ~pwdata[1:0]) if addr_is_INT_STATUS else int_status)
+      width: 2
+    output_rules:
+    - name: apb_write_ready
+      port: pready
+      expr: '1'
+      width: 1
+    - name: apb_write_error
+      port: pslverr
+      expr: addr_decode_error
+      width: 1
+  - id: apb_read_reg
+    name: apb_read_register
+    preconditions:
+    - psel && penable && !pwrite && pready
+    inputs:
+    - paddr
+    outputs:
+    - prdata returns selected register value; pslverr reports decode error
+    - name: apb_read_data
+      port: prdata
+      expr: reg_read_mux(paddr)
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: apb_read_ready
+      port: pready
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: apb_read_error
+      port: pslverr
+      expr: addr_decode_error
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    side_effects:
+    - No architectural state changes on legal reads.
+    output_rules:
+    - name: apb_read_data
+      port: prdata
+      expr: reg_read_mux(paddr)
+      width: DATA_WIDTH
+    - name: apb_read_ready
+      port: pready
+      expr: '1'
+      width: 1
+    - name: apb_read_error
+      port: pslverr
+      expr: addr_decode_error
+      width: 1
+  - id: start_transfer
+    name: start_dma_transfer
+    preconditions:
+    - 'ctrl.start && !busy && len_bytes != 0 && (ctrl.hw_req_en ? |dma_req : 1''b1)'
+    inputs:
+    - ctrl
+    - len_bytes
+    - dma_req
+    outputs:
+    - dma_ack acknowledges accepted hardware request when enabled
+    - name: request_ack
+      port: dma_ack
+      expr: dma_req & {NUM_CHANNELS{ctrl.hw_req_en}}
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: busy
+      expr: '1'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: done
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: err
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: bytes_done
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: read_bytes_issued
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - Channel enters busy state, clears stale done/error status, and resets counters.
+    state_updates:
+    - name: busy
+      expr: '1'
+      width: 1
+    - name: done
+      expr: '0'
+      width: 1
+    - name: err
+      expr: '0'
+      width: 1
+    - name: bytes_done
+      expr: '0'
+      width: LEN_WIDTH
+    - name: read_bytes_issued
+      expr: '0'
+      width: LEN_WIDTH
+    output_rules:
+    - name: request_ack
+      port: dma_ack
+      expr: dma_req & {NUM_CHANNELS{ctrl.hw_req_en}}
+      width: NUM_CHANNELS
+  - id: issue_read_beat
+    name: issue_ahb_read_beat
+    preconditions:
+    - busy && fifo_not_full && read_bytes_issued < len_bytes && hgrant && hready
+    inputs:
+    - src_addr
+    - read_bytes_issued
+    - hgrant
+    - hready
+    outputs:
+    - AHB address/control emits a read beat
+    - name: read_addr
+      port: haddr
+      expr: src_addr + read_bytes_issued
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: read_dir
+      port: hwrite
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: read_trans
+      port: htrans
+      expr: (2 if read_first_beat else 3)
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: read_size
+      port: hsize
+      expr: $clog2(DATA_WIDTH/8)
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: read_burst
+      port: hburst
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: read_bytes_issued
+      expr: read_bytes_issued + (DATA_WIDTH/8)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - Read issue counter advances by DATA_WIDTH/8 bytes after an accepted non-error read address phase.
+    state_updates:
+    - name: read_bytes_issued
+      expr: read_bytes_issued + (DATA_WIDTH/8)
+      width: LEN_WIDTH
+    output_rules:
+    - name: read_addr
+      port: haddr
+      expr: src_addr + read_bytes_issued
+      width: ADDR_WIDTH
+    - name: read_dir
+      port: hwrite
+      expr: '0'
+      width: 1
+    - name: read_trans
+      port: htrans
+      expr: (2 if read_first_beat else 3)
+      width: 2
+    - name: read_size
+      port: hsize
+      expr: $clog2(DATA_WIDTH/8)
+      width: 3
+    - name: read_burst
+      port: hburst
+      expr: '1'
+      width: 3
+  - id: issue_write_beat
+    name: issue_ahb_write_beat
+    preconditions:
+    - busy && fifo_not_empty && hgrant && hready
+    inputs:
+    - dst_addr
+    - bytes_done
+    - fifo_rdata
+    - hgrant
+    - hready
+    outputs:
+    - AHB address/control/data emits a write beat
+    - name: write_addr
+      port: haddr
+      expr: dst_addr + bytes_done
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: write_dir
+      port: hwrite
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: write_trans
+      port: htrans
+      expr: (2 if write_first_beat else 3)
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: write_size
+      port: hsize
+      expr: $clog2(DATA_WIDTH/8)
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: write_burst
+      port: hburst
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: write_data
+      port: hwdata
+      expr: fifo_rdata
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: bytes_done
+      expr: bytes_done + (DATA_WIDTH/8)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - Completed non-error write advances bytes_done by DATA_WIDTH/8 bytes.
+    state_updates:
+    - name: bytes_done
+      expr: bytes_done + (DATA_WIDTH/8)
+      width: LEN_WIDTH
+    output_rules:
+    - name: write_addr
+      port: haddr
+      expr: dst_addr + bytes_done
+      width: ADDR_WIDTH
+    - name: write_dir
+      port: hwrite
+      expr: '1'
+      width: 1
+    - name: write_trans
+      port: htrans
+      expr: (2 if write_first_beat else 3)
+      width: 2
+    - name: write_size
+      port: hsize
+      expr: $clog2(DATA_WIDTH/8)
+      width: 3
+    - name: write_burst
+      port: hburst
+      expr: '1'
+      width: 3
+    - name: write_data
+      port: hwdata
+      expr: fifo_rdata
+      width: DATA_WIDTH
+  - id: complete_transfer
+    name: complete_dma_transfer
+    preconditions:
+    - busy && (bytes_done + (DATA_WIDTH/8)) >= len_bytes && write_beat_complete && !hresp
+    inputs:
+    - bytes_done
+    - len_bytes
+    - hresp
+    outputs:
+    - irq reflects enabled done interrupt and bus goes idle
+    - name: done_irq
+      port: irq
+      expr: '|((int_status | 1) & int_en)'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: done_idle
+      port: htrans
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: busy
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: done
+      expr: '1'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_status
+      expr: int_status | 1
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - Channel clears busy, sets done, and latches done interrupt status.
+    state_updates:
+    - name: busy
+      expr: '0'
+      width: 1
+    - name: done
+      expr: '1'
+      width: 1
+    - name: int_status
+      expr: int_status | 1
+      width: 2
+    output_rules:
+    - name: done_irq
+      port: irq
+      expr: '|((int_status | 1) & int_en)'
+      width: 1
+    - name: done_idle
+      port: htrans
+      expr: '0'
+      width: 2
+  - id: ahb_error
+    name: handle_ahb_error
+    preconditions:
+    - busy && hready && hresp
+    inputs:
+    - hready
+    - hresp
+    outputs:
+    - irq reflects enabled error interrupt and bus goes idle
+    - name: error_irq
+      port: irq
+      expr: '|((int_status | 2) & int_en)'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: error_idle
+      port: htrans
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: busy
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: err
+      expr: '1'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_status
+      expr: int_status | 2
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - Channel clears busy, sets error, and latches error interrupt status.
+    error_cases:
+    - condition: AHB read or write beat completes with hresp high.
+      result: Stop transfer, set err, set INT_STATUS[1], and require software clear/restart.
+    state_updates:
+    - name: busy
+      expr: '0'
+      width: 1
+    - name: err
+      expr: '1'
+      width: 1
+    - name: int_status
+      expr: int_status | 2
+      width: 2
+    output_rules:
+    - name: error_irq
+      port: irq
+      expr: '|((int_status | 2) & int_en)'
+      width: 1
+    - name: error_idle
+      port: htrans
+      expr: '0'
+      width: 2
+  - id: clear_interrupt
+    name: clear_interrupt_status
+    preconditions:
+    - psel && penable && pwrite && addr_is_INT_STATUS
+    inputs:
+    - pwdata
+    - int_status
+    - int_en
+    outputs:
+    - irq reflects remaining enabled interrupt status after W1C
+    - name: irq_after_clear
+      port: irq
+      expr: '|((int_status & ~pwdata[1:0]) & int_en)'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: int_status
+      expr: int_status & ~pwdata[1:0]
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - INT_STATUS bits written as 1 are cleared; other bits remain unchanged.
+    state_updates:
+    - name: int_status
+      expr: int_status & ~pwdata[1:0]
+      width: 2
+    output_rules:
+    - name: irq_after_clear
+      port: irq
+      expr: '|((int_status & ~pwdata[1:0]) & int_en)'
+      width: 1
+  invariants:
+  - No externally visible output changes except through declared APB, AHB, DMA request, or interrupt interfaces.
+  - AHB address/control/data remain stable across hready stalls.
+  - done and err are mutually exclusive for a single terminal event unless DS079 audit proves otherwise.
+  reference_model_hint: TB scoreboard tracks CSR state and memory contents using these transactions.
+  derived_signals:
+  - name: apb_access
+    expr: psel and penable
+    width: 1
+    description: APB access phase helper derived from psel and penable.
+    source: repair_ssot_schema.apb_helper
+  - name: apb_valid_write
+    expr: psel and penable and pwrite
+    width: 1
+    description: APB write access helper derived from psel, penable, and pwrite.
+    source: repair_ssot_schema.apb_helper
+  - name: apb_valid_read
+    expr: psel and penable and not pwrite
+    width: 1
+    description: APB read access helper derived from psel, penable, and pwrite.
+    source: repair_ssot_schema.apb_helper
+  - name: addr
+    expr: paddr
+    width: ADDR_WIDTH
+    description: Register address helper derived from the APB paddr input.
+    source: repair_ssot_schema.apb_helper
+  - name: legal_addr
+    expr: (addr == 0) or (addr == 4) or (addr == 8) or (addr == 12) or (addr == 16) or (addr == 20) or (addr == 24)
+    width: 1
+    description: APB legal address decode derived from registers.register_list offsets.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_ctrl
+    expr: apb_valid_write and (addr == 0)
+    width: 1
+    description: APB write decode helper for register CTRL.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_ctrl
+    expr: apb_valid_read and (addr == 0)
+    width: 1
+    description: APB read decode helper for register CTRL.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_src_addr
+    expr: apb_valid_write and (addr == 4)
+    width: 1
+    description: APB write decode helper for register SRC_ADDR.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_src_addr
+    expr: apb_valid_read and (addr == 4)
+    width: 1
+    description: APB read decode helper for register SRC_ADDR.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_dst_addr
+    expr: apb_valid_write and (addr == 8)
+    width: 1
+    description: APB write decode helper for register DST_ADDR.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_dst_addr
+    expr: apb_valid_read and (addr == 8)
+    width: 1
+    description: APB read decode helper for register DST_ADDR.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_len
+    expr: apb_valid_write and (addr == 12)
+    width: 1
+    description: APB write decode helper for register LEN.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_len
+    expr: apb_valid_read and (addr == 12)
+    width: 1
+    description: APB read decode helper for register LEN.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_status
+    expr: apb_valid_write and (addr == 16)
+    width: 1
+    description: APB write decode helper for register STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_status
+    expr: apb_valid_read and (addr == 16)
+    width: 1
+    description: APB read decode helper for register STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_int_en
+    expr: apb_valid_write and (addr == 20)
+    width: 1
+    description: APB write decode helper for register INT_EN.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_int_en
+    expr: apb_valid_read and (addr == 20)
+    width: 1
+    description: APB read decode helper for register INT_EN.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_int_status
+    expr: apb_valid_write and (addr == 24)
+    width: 1
+    description: APB write decode helper for register INT_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_int_status
+    expr: apb_valid_read and (addr == 24)
+    width: 1
+    description: APB read decode helper for register INT_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: int_status_w1c
+    expr: ((pwdata & gpio_mask) if wr_int_status else 0)
+    width: 32
+    description: W1C write mask helper for register INT_STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: read_mux
+    expr: (ctrl if addr == 0 else (src_addr if addr == 4 else (dst_addr if addr == 8 else (0 if addr == 12 else (0 if addr == 16 else (int_en if addr == 20 else (int_status if addr == 24 else 0)))))))
+    width: DATA_WIDTH
+    description: APB read data mux derived from registers.register_list offsets and function_model state variables.
+    source: repair_ssot_schema.apb_helper
+cycle_model:
+  purpose: Cycle and handshake contract for rtl-gen and waveform verification.
+  executable: pymtl3
+  clock: hclk
+  reset:
+    signal: hresetn
+    polarity: active_low
+    assertion: Reset returns state variables to function_model reset values.
+    deassertion: Transactions may be accepted on the first hclk edge after reset release.
+  latency:
+    apb_access:
+      min_cycles: 1
+      max_cycles: 2
+      description: APB setup plus access; draft register file is zero-wait outside reset.
+    ahb_beat:
+      min_cycles: 1
+      max_cycles: null
+      description: One accepted beat per hready cycle; stalls extend latency.
+    dma_copy:
+      min_cycles: 2
+      max_cycles: null
+      description: At least one read and one write beat per DATA_WIDTH bytes plus stalls.
+  handshake_rules:
+  - signal: apb_slave
+    rule: paddr, pwrite, and pwdata remain stable from setup through accepted access psel && penable && pready.
+  - signal: ahb_lite_master
+    rule: haddr/hwrite/htrans/hsize/hburst/hwdata remain stable while hready is low.
+  - signal: dma_request_irq
+    rule: irq remains asserted while any enabled INT_STATUS bit is set; dma_ack follows accepted request service.
+  pipeline:
+  - stage: S0_APB_PROGRAM
+    cycle: 0..N
+    action: Software programs source, destination, length, interrupt enable, and control.
+  - stage: S1_ARBITRATE
+    cycle: N..M
+    action: Channel qualifies start and waits for hgrant/hready.
+  - stage: S2_READ
+    cycle: M..K
+    action: Issue ordered AHB read beats when FIFO has space.
+  - stage: S3_WRITE
+    cycle: K..L
+    action: Issue ordered AHB write beats using captured FIFO data.
+  - stage: S4_COMPLETE
+    cycle: L
+    action: Set done or err status and update irq.
+  ordering:
+  - CSR writes commit before a subsequent start condition observes them.
+  - Read data for offset X is captured before destination write for offset X.
+  - bytes_done advances only after a completed non-error write beat.
+  - Backpressure stalls only the active APB or AHB phase and must not corrupt counters or FIFO order.
+  backpressure:
+  - APB may wait by deasserting pready.
+  - AHB may wait by deasserting hready; all master outputs remain stable during wait.
+  performance:
+    frequency_mhz: 100
+    throughput:
+      sustained_beats_per_cycle: 1
+      condition: No hready stalls, FIFO not empty/full as applicable.
+    outstanding:
+      max: 1
+      description: Single in-order channel with bounded FIFO; no out-of-order completions.
+    depth:
+      pipeline_stages: 5
+      queue_depth: FIFO_DEPTH
+      description: Program/arbitrate/read/write/complete stages with read FIFO buffering.
+  observability:
+  - Every function_model transaction maps to a pipeline stage and test scenario.
+  backend_policy: Use PyMTL3 for the clocked cycle model shell; FunctionalModel remains the behavioral oracle.
+clock_reset_domains:
+  domains:
+  - clock: hclk
+    reset: hresetn
+    frequency_mhz: 100
+    reset_scheme: synchronous_active_low
+  reset_behavior:
+  - CSR, channel FSM, counters, FIFO state, APB outputs, AHB outputs, dma_ack, and irq reset to idle values.
+cdc_requirements:
+  required: false
+  rationale: Engineering draft uses one hclk/hresetn domain.
+  checks:
+  - No CDC paths expected unless DS079 reconciliation adds another clock.
+rdc_requirements:
+  required: false
+  rationale: Single reset domain in this draft.
+  checks:
+  - No reset-domain crossings expected unless DS079 reconciliation adds another reset.
+registers:
+  register_list:
+  - name: CTRL
+    offset: 0
+    width: 32
+    access: rw
+    reset: 0
+    description: Control register.
+    fields:
+    - name: start
+      bits: 0:0
+      access: rw1s
+      reset: 0
+      description: Write 1 to request channel start.
+      write_effect: Sets start request when channel is idle.
+    - name: int_en_global
+      bits: '1:1'
+      access: rw
+      reset: 0
+      description: Global IRQ enable.
+      write_effect: Stores written value.
+    - name: hw_req_en
+      bits: '2:2'
+      access: rw
+      reset: 0
+      description: Enable dma_req qualification.
+      write_effect: Stores written value.
+    - name: src_inc
+      bits: '3:3'
+      access: rw
+      reset: 1
+      description: Increment source address per beat.
+      write_effect: Stores written value.
+    - name: dst_inc
+      bits: '4:4'
+      access: rw
+      reset: 1
+      description: Increment destination address per beat.
+      write_effect: Stores written value.
+  - name: SRC_ADDR
+    offset: 4
+    width: 32
+    access: rw
+    reset: 0
+    description: Source byte address.
+    fields:
+    - name: src_addr
+      bits: '31:0'
+      access: rw
+      reset: 0
+      description: Source base address.
+      write_effect: Stores written address when channel is idle.
+  - name: DST_ADDR
+    offset: 8
+    width: 32
+    access: rw
+    reset: 0
+    description: Destination byte address.
+    fields:
+    - name: dst_addr
+      bits: '31:0'
+      access: rw
+      reset: 0
+      description: Destination base address.
+      write_effect: Stores written address when channel is idle.
+  - name: LEN
+    offset: 12
+    width: 32
+    access: rw
+    reset: 0
+    description: Transfer length in bytes.
+    fields:
+    - name: len_bytes
+      bits: '15:0'
+      access: rw
+      reset: 0
+      description: Number of bytes to copy.
+      write_effect: Stores requested length when channel is idle.
+  - name: STATUS
+    offset: 16
+    width: 32
+    access: ro
+    reset: 0
+    description: Channel status.
+    fields:
+    - name: busy
+      bits: 0:0
+      access: ro
+      reset: 0
+      description: Transfer is active.
+    - name: done
+      bits: '1:1'
+      access: ro
+      reset: 0
+      description: Transfer completed normally.
+    - name: err
+      bits: '2:2'
+      access: ro
+      reset: 0
+      description: Transfer stopped on error.
+  - name: INT_EN
+    offset: 20
+    width: 32
+    access: rw
+    reset: 0
+    description: Interrupt enable bits.
+    fields:
+    - name: done_en
+      bits: 0:0
+      access: rw
+      reset: 0
+      description: Enable done interrupt.
+      write_effect: Stores written enable.
+    - name: err_en
+      bits: '1:1'
+      access: rw
+      reset: 0
+      description: Enable error interrupt.
+      write_effect: Stores written enable.
+  - name: INT_STATUS
+    offset: 24
+    width: 32
+    access: w1c_ro
+    reset: 0
+    description: Interrupt pending status; write one to clear.
+    fields:
+    - name: done_irq
+      bits: 0:0
+      access: w1c
+      reset: 0
+      description: Done interrupt pending.
+      write_effect: Writing 1 clears the pending bit.
+    - name: err_irq
+      bits: '1:1'
+      access: w1c
+      reset: 0
+      description: Error interrupt pending.
+      write_effect: Writing 1 clears the pending bit.
+memory:
+  instances: []
+  addressing:
+    policy: No internal memory array is architecturally required; external AHB memory supplies source/destination storage.
+  storage_policy: Only FIFO buffering is implementation detail bounded by FIFO_DEPTH; no firmware-visible memory.
+interrupts:
+  present: true
+  sources:
+  - name: irq_done
+    source: INT_STATUS.done_irq
+    enable: INT_EN.done_en & CTRL.int_en_global
+    output: irq
+    clear: write 1 to INT_STATUS[0]
+  - name: irq_error
+    source: INT_STATUS.err_irq
+    enable: INT_EN.err_en & CTRL.int_en_global
+    output: irq
+    clear: write 1 to INT_STATUS[1]
+  aggregation: irq = |(INT_STATUS[1:0] & INT_EN[1:0]) & CTRL.int_en_global
+fsm:
+  control:
+    id: channel_fsm
+    states:
+    - IDLE
+    - ARBITRATE
+    - READ
+    - WRITE
+    - DONE
+    - ERROR
+    reset_state: IDLE
+    transitions:
+    - from: IDLE
+      to: ARBITRATE
+      when: start_transfer
+    - from: ARBITRATE
+      to: READ
+      when: hgrant && hready && fifo_not_full
+    - from: READ
+      to: WRITE
+      when: read_data_valid || fifo_not_empty
+    - from: WRITE
+      to: READ
+      when: more_bytes && fifo_has_space && !hresp
+    - from: WRITE
+      to: DONE
+      when: last_write_complete && !hresp
+    - from: ARBITRATE
+      to: ERROR
+      when: hready && hresp
+    - from: READ
+      to: ERROR
+      when: hready && hresp
+    - from: WRITE
+      to: ERROR
+      when: hready && hresp
+    - from: DONE
+      to: IDLE
+      when: software clears start or programs next transfer
+    - from: ERROR
+      to: IDLE
+      when: software clear/restart or reset
+timing:
+  target_clocks:
+  - name: hclk
+    frequency_mhz: 100
+    period_ns: 10.0
+    uncertainty_ns: 0.2
+  latency_budget:
+    register_access:
+      min: 1
+      max: 2
+      measured_from: APB setup
+      measured_to: pready
+    dma_copy:
+      min: 2
+      max: null
+      measured_from: start accepted
+      measured_to: done/error status
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports:
+    - sta/out/timing.rpt
+    - sta/out/wns.json
+power:
+  domains:
+  - name: PD_MAIN
+    voltage: nominal
+    clock_domains:
+    - hclk
+    isolation: not_required_single_domain
+  power_states:
+  - name: true
+    entry: hresetn deasserted
+    exit: hresetn asserted
+    guarantees:
+    - All declared functionality active.
+  clock_gating:
+    required: false
+    rationale: No explicit clock-gating requirement in visible goal.
+  upf_required: false
+security:
+  classification: non_secure_leaf_ip
+  assets:
+  - name: configuration_state
+    protection: CSR updates must be deterministic, reset-safe, and blocked from illegal side effects.
+  - name: copied_data_integrity
+    protection: Destination write data must match source read data in order.
+  threat_model:
+  - threat: invalid_register_address
+    mitigation: pslverr and no CSR corruption.
+  - threat: ahb_error_or_data_corruption
+    mitigation: error status, irq_error, and scoreboard checking.
+  privilege_model: SoC integration owns access control outside this leaf IP.
+error_handling:
+  error_sources:
+  - id: ERR_APB_DECODE
+    condition: APB access to an undefined offset
+    architectural_effect: pslverr=1 and no state corruption.
+  - id: ERR_AHB_RESP
+    condition: hready && hresp during active DMA
+    architectural_effect: busy=0, err=1, INT_STATUS[1]=1, htrans=IDLE.
+  propagation:
+  - APB decode errors are returned on pslverr.
+  - AHB errors update STATUS/INT_STATUS and may assert irq when enabled.
+  recovery:
+  - action: reset
+    clears:
+    - ctrl
+    - status
+    - int_status
+    - counters
+    preserves: []
+  - action: software_clear_and_restart
+    clears:
+    - err
+    - int_status
+    preserves:
+    - SRC_ADDR
+    - DST_ADDR
+    - LEN
+    - INT_EN
+debug_observability:
+  waveform_must_probe:
+  - hclk
+  - hresetn
+  - psel
+  - penable
+  - pwrite
+  - paddr
+  - pwdata
+  - prdata
+  - haddr
+  - hwrite
+  - htrans
+  - hready
+  - hresp
+  - hrdata
+  - hwdata
+  - dma_req
+  - dma_ack
+  - irq
+  - channel_state
+  - bytes_done
+  - int_status
+  trace_events:
+  - name: operation_start
+    trigger: start_transfer
+  - name: read_beat
+    trigger: issue_read_beat
+  - name: write_beat
+    trigger: issue_write_beat
+  - name: operation_complete
+    trigger: complete_transfer
+  - name: error_detected
+    trigger: ahb_error
+  status_outputs:
+  - STATUS
+  - INT_STATUS
+  - irq
+integration:
+  bus_attachment:
+    interfaces:
+    - apb_slave
+    - ahb_lite_master
+    - dma_request_irq
+    address_ownership: SoC assigns APB base address and connects AHB memory fabric.
+  dependencies:
+    external_modules: []
+    external_clocks:
+    - hclk
+    external_resets:
+    - hresetn
+  connections: []
+  integration_notes:
+  - rtl-gen may implement submodule slices or fold them into rtl/atcdmac100.sv, but behavior and ports must remain SSOT-compatible.
+  connection_contract_status: missing machine-readable module wiring; child RTL drafts may proceed from owner packets, but top integration/signoff must stay blocked until SSOT authors integration.connections or sub_modules[].connections with module/port/signal records
+dft:
+  scan_required: false
+  controllability:
+    reset: hresetn
+    clocks:
+    - hclk
+    primary_inputs: all io_list inputs controllable in testbench
+  observability:
+    required_internal_points:
+    - channel_state
+    - bytes_done
+    - int_status
+    outputs: all io_list outputs observable
+  mbist_required: false
+synthesis:
+  dialect: systemverilog_2012
+  top_module: atcdmac100
+  constraints:
+  - No inferred latches
+  - No unresolved black boxes
+  - All sequential architectural state reset or intentionally initialized
+  required_outputs:
+  - syn/out/area.rpt
+  - syn/out/timing_summary.rpt
+  - sta/out/wns.json
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: met3
+    vertical: met2
+  cts_buf_list:
+  - sky130_fd_sc_hd__clkbuf_4
+  - sky130_fd_sc_hd__clkbuf_8
+  routing:
+    signal_layers:
+      min: met1
+      max: met5
+    drc_waivers: []
+coding_rules:
+  verilog_style: systemverilog_2012
+  file_extension: .sv
+  parameter_header: rtl/atcdmac100_param.vh
+  conventions:
+  - Use input logic/output logic ANSI ports and single-driver internal logic.
+  - Keep synthesizable top file as rtl/atcdmac100.sv.
+  - No placeholder/tie-off implementation may satisfy an SSOT functional transaction.
+  lint_waivers: []
+reuse_modules: []
+custom:
+  assumptions:
+  - The imported DS079 V1.2 document content was not visible to this headless worker; this is an engineering draft for downstream reconciliation.
+  - Draft architecture uses APB control and AHB-Lite memory master interfaces; exact DS079 bus variant, signal names, channel count, and optional peripheral handshakes must be audited.
+  - NUM_CHANNELS defaults to 1 and memory-to-memory copy is the baseline behavior until DS079 evidence is attached.
+  - Reset is modeled active-low synchronous on hclk; revise SSOT if DS079 requires asynchronous behavior.
+  open_items:
+  - Confirm exact DS079 register map, reset values, access policies, interrupt semantics, burst behavior, channel count, and alignment rules.
+  - Confirm whether scatter-gather descriptors, peripheral DMA, endian conversion, low-power, or security features are mandatory.
+  optional_behavior_policy:
+    resolution: Optional features are disabled unless this SSOT marks them required or parameterized.
+dir_structure:
+  yaml_dir: yaml/
+  output_dirs:
+    rtl: rtl/
+    list: list/
+    tb: tb/cocotb/
+    sim: sim/
+    lint: lint/
+    cov: cov/
+    doc: doc/
+  generators_dir: generators/
+filelist:
+  rtl:
+  - rtl/atcdmac100.sv
+  headers:
+  - rtl/atcdmac100_param.vh
+  tb:
+  - tb/cocotb/test_atcdmac100.py
+  - tb/cocotb/test_runner.py
+  - tb/cocotb/scoreboard.py
+  sim:
+  - sim/results.xml
+  - sim/waves.fst
+  coverage:
+  - cov/coverage.json
+test_requirements:
+  scenarios:
+  - id: SC01
+    name: reset contract
+    stimulus: Assert and release the declared reset while all external interfaces remain idle.
+    expected: Architectural state, status, outputs, and debug observability match function_model reset outputs.
+    checker: Reset checker compares all declared reset-visible state against function_model and cycle_model reset rules.
+    coverage:
+    - function_model.reset
+    - cycle_model.reset
+  - id: SC02
+    name: primary approved behavior
+    stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.
+    expected: Externally observable result/status/side effects match the function_model primary transaction.
+    checker: FL-vs-RTL scoreboard compares observable outputs and state updates from the locked function_model.
+    coverage:
+    - function_model.primary
+    - features
+    - dataflow
+  - id: SC03
+    name: cycle handshake and backpressure
+    stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.
+    expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.
+    checker: Protocol monitor and scoreboard check cycle_model.handshake_rules, ordering, and latency budget.
+    coverage:
+    - cycle_model.handshake_rules
+    - cycle_model.ordering
+    - backpressure
+  - id: SC04
+    name: error and recovery policy
+    stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.
+    expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.
+    checker: Negative checker compares error result and recovery state against function_model error_cases.
+    coverage:
+    - error_handling.error_sources
+    - function_model.error_cases
+  - id: SC05
+    name: debug and trace observability
+    stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.
+    expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.
+    checker: Waveform/trace checker validates debug_observability entries and traceability.yaml_to_output rows.
+    coverage:
+    - debug_observability
+    - traceability
+  - id: SC06
+    name: function_model transaction reset
+    stimulus: Drive preconditions for function_model transaction `reset`.
+    expected: Outputs and side effects match `reset` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.reset
+  - id: SC07
+    name: function_model transaction apb_write_reg
+    stimulus: Drive preconditions for function_model transaction `apb_write_reg`.
+    expected: Outputs and side effects match `apb_write_reg` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.apb_write_reg
+  - id: SC08
+    name: function_model transaction apb_read_reg
+    stimulus: Drive preconditions for function_model transaction `apb_read_reg`.
+    expected: Outputs and side effects match `apb_read_reg` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.apb_read_reg
+  - id: SC09
+    name: function_model transaction start_transfer
+    stimulus: Drive preconditions for function_model transaction `start_transfer`.
+    expected: Outputs and side effects match `start_transfer` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.start_transfer
+  - id: SC10
+    name: function_model transaction issue_read_beat
+    stimulus: Drive preconditions for function_model transaction `issue_read_beat`.
+    expected: Outputs and side effects match `issue_read_beat` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.issue_read_beat
+  - id: SC11
+    name: function_model transaction issue_write_beat
+    stimulus: Drive preconditions for function_model transaction `issue_write_beat`.
+    expected: Outputs and side effects match `issue_write_beat` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.issue_write_beat
+  - id: SC12
+    name: function_model transaction complete_transfer
+    stimulus: Drive preconditions for function_model transaction `complete_transfer`.
+    expected: Outputs and side effects match `complete_transfer` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.complete_transfer
+  scoreboard_checks: 12
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+      description: Exercise all function_model transactions, state updates, outputs, and error cases.
+      bins:
+      - id: FCOV_RESET
+        source_ref: function_model.transactions.reset
+        class: transaction
+        description: Reset transaction observed.
+      - id: FCOV_DMA_COPY
+        source_ref: function_model.transactions.issue_write_beat
+        class: transaction
+        description: DMA write beat and byte counter observed.
+      - id: FCOV_ERROR
+        source_ref: function_model.transactions.ahb_error
+        class: error
+        description: AHB error transaction observed.
+    cycle:
+      target_pct: 100
+      model: cycle_model
+      description: Exercise APB/AHB handshakes, stalls, ordering, and FSM terminal paths.
+      bins:
+      - id: CCOV_AHB_STALL
+        source_ref: cycle_model.handshake_rules
+        class: handshake
+        description: AHB stability during hready stalls observed.
+      - id: CCOV_FSM_DONE_ERROR
+        source_ref: fsm.control.transitions
+        class: fsm
+        description: DONE and ERROR terminal transitions observed.
+    scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence
+quality_gates:
+  ssot:
+    pass: check_ssot_disk.sh exits 0 in engineering/signoff mode.
+    evidence:
+    - check_ssot_disk.sh PASS
+    - repair_ssot_schema.py provenance
+  rtl:
+    pass: RTL files exist, implement SSOT ports/transactions, compile, and lint cleanly.
+    evidence:
+    - list/atcdmac100.f
+    - rtl_compile.json
+    - lint/dut_lint.json
+  rtl_gen:
+    profile: standard
+    pass: rtl-gen closes every required SSOT-derived RTL TODO without placeholder fallback behavior.
+    evidence:
+    - rtl/rtl_authoring_plan.json
+    - rtl/provenance.json
+    - logs/rtl-gen/rtl_todo_plan.json
+  dv:
+    pass: Every SSOT scenario has executable checker and FL-vs-RTL scoreboard mapping.
+    evidence:
+    - verify/equivalence_goals.json
+    - sim/scoreboard_events.jsonl
+    - tb/cocotb tests
+  coverage:
+    pass: Functional and cycle coverage goals close or have approved SSOT waivers.
+    evidence:
+    - cov/coverage.json
+    - coverage report
+  eda:
+    pass: Synthesis, STA, DFT expectations have reports or approved waivers.
+    evidence:
+    - syn/out/area.rpt
+    - syn/out/timing_summary.rpt
+    - sta/out/wns.json
+  signoff:
+    pass: SSOT, FL/equivalence, RTL, lint, DV, sim, coverage, EDA, and goal audit pass with fresh artifacts.
+    evidence:
+    - ATLAS progress signoff PASS
+traceability:
+  yaml_to_output:
+  - yaml: top_module
+    output: rtl/atcdmac100.sv module name and port list
+  - yaml: io_list
+    output: RTL ports and APB/AHB/request protocol monitors
+  - yaml: registers
+    output: CSR RTL and register mirror scoreboard
+  - yaml: function_model
+    output: FL model
+    RTL behavior: null
+    and scoreboard expected results: null
+  - yaml: cycle_model
+    output: waveform assertions and cycle-level model
+  - yaml: test_requirements
+    output: cocotb/pyuvm scenarios and coverage plan
+  - yaml: function_model/cycle_model/test_requirements
+    output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
+  - yaml: timing
+    output: STA constraints and latency pass/fail criteria
+  - yaml: security
+    output: Threat mitigations and negative tests
+  - yaml: error_handling
+    output: Fault RTL paths and DV error scenarios
+  - yaml: debug_observability
+    output: VCD probes and sim_debug inspection
+  - yaml: quality_gates
+    output: ATLAS progress/signoff criteria
+workflow_todos:
+  rtl-gen:
+  - id: RTL_IMPLEMENT_SSOT_CONTRACT
+    content: Implement synthesizable rtl/atcdmac100.sv from this SSOT.
+    detail: Generate the top and any owned helper modules with APB CSR behavior, AHB-Lite DMA copy datapath, channel FSM, interrupts, reset, and error handling exactly as declared.
+    criteria:
+    - RTL top module is rtl/atcdmac100.sv and exposes every io_list port with matching direction/width.
+    - All function_model transactions have observable RTL implementation or a precise SSOT change request.
+    - No placeholder heartbeat, tie-off, or comment-only implementation is used.
+    source_refs:
+    - top_module
+    - io_list
+    - function_model
+    - cycle_model
+    - registers
+    - interrupts
+    owner_module: atcdmac100
+    owner_file: rtl/atcdmac100.sv
+    priority: high
+    required: true
+  - id: RTL_IMPLEMENT_SUBMODULE_OWNERSHIP
+    content: Implement or intentionally fold each SSOT submodule slice.
+    detail: Use sub_modules ownership refs and decomposition owners for apb_regs, channel, ahb_master, and irq behavior; record traceability if folded into the top.
+    criteria:
+    - No submodule ownership ref remains orphaned.
+    - Traceability maps registers, FSM, dataflow, and interrupts to RTL code.
+    - Top-level wiring matches io_list and cycle_model rules.
+    source_refs:
+    - sub_modules
+    - decomposition
+    - dataflow
+    - fsm
+    owner_module: atcdmac100
+    owner_file: rtl/atcdmac100.sv
+    priority: high
+    required: true
+  - id: RTL_CLOSE_GATE_TODOS
+    content: Close RTL compile, lint, and traceability gates with fresh evidence.
+    detail: After final RTL edit, run compile/lint/audit tools required by downstream gates and leave evidence under atcdmac100/.
+    criteria:
+    - RTL compile passes with no unresolved modules.
+    - DUT lint passes within warning budget.
+    - SSOT-derived TODO audit reports zero open required RTL TODOs.
+    source_refs:
+    - quality_gates.rtl
+    - quality_gates.rtl_gen
+    - workflow_todos.rtl-gen
+    owner_module: atcdmac100
+    owner_file: rtl/atcdmac100.sv
+    priority: high
+    required: true
+  fl-gen:
+  - id: FL_BUILD_REFERENCE
+    content: Build function-level model from function_model transactions.
+    detail: Use the machine-readable state_updates/output_rules as the oracle and flag DS079 mismatches.
+    criteria:
+    - Every transaction has a reference-model action.
+    - Memory copy scoreboard behavior is deterministic.
+    source_refs:
+    - function_model
+    - dataflow
+  cl-gen:
+  - id: CL_BUILD_CYCLE_MODEL
+    content: Build cycle model for APB/AHB handshakes and FSM timing.
+    detail: Model hready stalls, APB access completion, FIFO ordering, done/error terminal paths, and irq timing.
+    criteria:
+    - Cycle model covers each handshake rule.
+    - FSM transitions align with function_model terminal state updates.
+    source_refs:
+    - cycle_model
+    - fsm
+  tb-gen: []
+  sim_debug: []
+generation_flow:
+  steps:
+  - name: validate_ssot
+    command: bash workflow/ssot-gen/scripts/check_ssot_disk.sh atcdmac100 --mode ${ATLAS_RUN_MODE:-signoff}
+    description: Validate SSOT structure and quality gates at the selected Run Mode
+  - name: handoff_fl_model
+    command: /ssot-fl-model atcdmac100
+    description: Generate FunctionalModel, decomposition, and FCOV plan from SSOT
+  - name: handoff_equivalence_goals
+    command: /ssot-equiv-goals atcdmac100
+    description: Derive FL-vs-RTL equivalence goals before TB generation
+  - name: handoff_rtl
+    command: /ssot-rtl atcdmac100
+    description: Generate RTL from validated SSOT
+  - name: handoff_tb
+    command: /ssot-tb-cocotb atcdmac100
+    description: Generate cocotb/pyuvm verification from validated SSOT
+  - name: handoff_sim_debug
+    command: /wf sim_debug
+    description: Run simulation, waveform, and coverage inspection
+ip: atcdmac100
+schema_version: 0.1.0
+source_requirement: 'ATLAS goal: implement ATCDMAC100 from imported AndeShape ATCDMAC100 DS079 V1.2 requirement; engineering draft bootstrapped because no architect handoff text is visible to this worker.'
+rtl_contract:
+  owner: ssot-gen
+  type: ssot_derived_rule_contract
+  transaction: start_transfer
+  clock: hclk
+  reset: hresetn
+  reset_active: low
+  sample_condition: ctrl.start && !busy && len_bytes != 0
+  input_map:
+    paddr: paddr
+    pwdata: pwdata
+    hrdata: hrdata
+    hready: hready
+    hresp: hresp
+    dma_req: dma_req
+    psel: psel
+    penable: penable
+    pwrite: pwrite
+    hgrant: hgrant
+  output_map:
+    pready: pready
+    prdata: prdata
+    pslverr: pslverr
+    haddr: haddr
+    hwrite: hwrite
+    htrans: htrans
+    hsize: hsize
+    hburst: hburst
+    hwdata: hwdata
+    dma_ack: dma_ack
+    irq: irq
+  ready_output: pready
+  output_valid: irq
+  contract_invariants:
+  - RTL-visible behavior implements referenced function_model transactions.
+  - APB/AHB observation follows cycle_model handshake and latency rules.
+  output_rules:
+  - name: irq_contract
+    port: irq
+    expr: '|(int_status & int_en) & ctrl.int_en_global'
+    width: 1
+    description: Combined interrupt expression.
+  - name: request_ack
+    port: dma_ack
+    expr: dma_req & {NUM_CHANNELS{ctrl.hw_req_en}}
+    width: NUM_CHANNELS
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: pready_reset
+    port: pready
+    expr: '0'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: htrans_reset
+    port: htrans
+    expr: '0'
+    width: 2
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: apb_write_error
+    port: pslverr
+    expr: addr_decode_error
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: apb_read_data
+    port: prdata
+    expr: reg_read_mux(paddr)
+    width: DATA_WIDTH
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: read_addr
+    port: haddr
+    expr: src_addr + read_bytes_issued
+    width: ADDR_WIDTH
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: read_dir
+    port: hwrite
+    expr: '0'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: read_size
+    port: hsize
+    expr: $clog2(DATA_WIDTH/8)
+    width: 3
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: read_burst
+    port: hburst
+    expr: '1'
+    width: 3
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: write_data
+    port: hwdata
+    expr: fifo_rdata
+    width: DATA_WIDTH
+    description: FunctionalModel output observable mapped to DUT output port.
+  unresolved_expression_refs:
+  - ADDR_WIDTH
+  - DATA_WIDTH
+  - LEN_WIDTH
+  - addr_decode_error
+  - addr_is_CTRL
+  - addr_is_DST_ADDR
+  - addr_is_INT_EN
+  - addr_is_INT_STATUS
+  - addr_is_LEN
+  - addr_is_SRC_ADDR
+  - fifo_rdata
+  - read_first_beat
+  - write_first_beat

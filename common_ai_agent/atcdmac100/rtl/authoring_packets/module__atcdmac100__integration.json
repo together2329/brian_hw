@@ -1,0 +1,2290 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 29,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 3,
+      "key": "integration",
+      "module_task_count": 49,
+      "rule": "Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "integration",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atcdmac100.sv",
+      "name": "atcdmac100",
+      "refs": [
+        "integration",
+        "io_list"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcdmac100_core.sv",
+        "name": "atcdmac100_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcdmac100.sv",
+        "name": "atcdmac100",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": false,
+        "module": "atcdmac100",
+        "port": "",
+        "signal": "",
+        "signal_terms": [],
+        "source_ref": "sub_modules[1].connections"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hclk",
+        "signal": "hclk",
+        "signal_terms": [
+          "hclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresetn",
+        "signal": "hresetn",
+        "signal_terms": [
+          "hresetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_int",
+        "signal": "dma_int",
+        "signal_terms": [
+          "dma_int"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_req",
+        "signal": "dma_req",
+        "signal_terms": [
+          "dma_req"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_ack",
+        "signal": "dma_ack",
+        "signal_terms": [
+          "dma_ack"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "haddr",
+        "signal": "haddr",
+        "signal_terms": [
+          "haddr"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "htrans",
+        "signal": "htrans",
+        "signal_terms": [
+          "htrans"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwrite",
+        "signal": "hwrite",
+        "signal_terms": [
+          "hwrite"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsize",
+        "signal": "hsize",
+        "signal_terms": [
+          "hsize"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hburst",
+        "signal": "hburst",
+        "signal_terms": [
+          "hburst"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwdata",
+        "signal": "hwdata",
+        "signal_terms": [
+          "hwdata"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsel",
+        "signal": "hsel",
+        "signal_terms": [
+          "hsel"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hreadyin",
+        "signal": "hreadyin",
+        "signal_terms": [
+          "hreadyin"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hrdata",
+        "signal": "hrdata",
+        "signal_terms": [
+          "hrdata"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresp",
+        "signal": "hresp",
+        "signal_terms": [
+          "hresp"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hready",
+        "signal": "hready",
+        "signal_terms": [
+          "hready"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "haddr_mst",
+        "signal": "haddr_mst",
+        "signal_terms": [
+          "haddr_mst"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "htrans_mst",
+        "signal": "htrans_mst",
+        "signal_terms": [
+          "htrans_mst"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwrite_mst",
+        "signal": "hwrite_mst",
+        "signal_terms": [
+          "hwrite_mst"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsize_mst",
+        "signal": "hsize_mst",
+        "signal_terms": [
+          "hsize_mst"
+        ],
+        "source_ref": "integration.connections[19]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hprot_mst",
+        "signal": "hprot_mst",
+        "signal_terms": [
+          "hprot_mst"
+        ],
+        "source_ref": "integration.connections[20]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hlock_mst",
+        "signal": "hlock_mst",
+        "signal_terms": [
+          "hlock_mst"
+        ],
+        "source_ref": "integration.connections[21]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hburst_mst",
+        "signal": "hburst_mst",
+        "signal_terms": [
+          "hburst_mst"
+        ],
+        "source_ref": "integration.connections[22]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwdata_mst",
+        "signal": "hwdata_mst",
+        "signal_terms": [
+          "hwdata_mst"
+        ],
+        "source_ref": "integration.connections[23]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hrdata_mst",
+        "signal": "hrdata_mst",
+        "signal_terms": [
+          "hrdata_mst"
+        ],
+        "source_ref": "integration.connections[24]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresp_mst",
+        "signal": "hresp_mst",
+        "signal_terms": [
+          "hresp_mst"
+        ],
+        "source_ref": "integration.connections[25]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hready_mst",
+        "signal": "hready_mst",
+        "signal_terms": [
+          "hready_mst"
+        ],
+        "source_ref": "integration.connections[26]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hbusreq_mst",
+        "signal": "hbusreq_mst",
+        "signal_terms": [
+          "hbusreq_mst"
+        ],
+        "source_ref": "integration.connections[27]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hgrant_mst",
+        "signal": "hgrant_mst",
+        "signal_terms": [
+          "hgrant_mst"
+        ],
+        "source_ref": "integration.connections[28]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "hclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hclk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "hresetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hresetn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "dma_handshake_dma_int",
+          "dma_int"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "dma_int",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "dma_handshake_dma_req",
+          "dma_req"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "dma_req",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "REQ_ACK_NUM"
+      },
+      {
+        "aliases": [
+          "dma_ack",
+          "dma_handshake_dma_ack"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "dma_ack",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "REQ_ACK_NUM"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_haddr",
+          "haddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "haddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_htrans",
+          "htrans"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "htrans",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hwrite",
+          "hwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hwrite",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hsize",
+          "hsize"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hsize",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hburst",
+          "hburst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hburst",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hwdata",
+          "hwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hwdata",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hsel",
+          "hsel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hsel",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hreadyin",
+          "hreadyin"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hreadyin",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hrdata",
+          "hrdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hrdata",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hresp",
+          "hresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hresp",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_slave_regs_hready",
+          "hready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hready",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_haddr_mst",
+          "haddr_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "haddr_mst",
+        "source_ref": "io_list.interfaces[2].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_htrans_mst",
+          "htrans_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "htrans_mst",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hwrite_mst",
+          "hwrite_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hwrite_mst",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hsize_mst",
+          "hsize_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hsize_mst",
+        "source_ref": "io_list.interfaces[2].ports[3]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hprot_mst",
+          "hprot_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hprot_mst",
+        "source_ref": "io_list.interfaces[2].ports[4]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hlock_mst",
+          "hlock_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hlock_mst",
+        "source_ref": "io_list.interfaces[2].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hburst_mst",
+          "hburst_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hburst_mst",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "3"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hwdata_mst",
+          "hwdata_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hwdata_mst",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hrdata_mst",
+          "hrdata_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hrdata_mst",
+        "source_ref": "io_list.interfaces[2].ports[8]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hresp_mst",
+          "hresp_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hresp_mst",
+        "source_ref": "io_list.interfaces[2].ports[9]",
+        "width": "2"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hready_mst",
+          "hready_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hready_mst",
+        "source_ref": "io_list.interfaces[2].ports[10]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hbusreq_mst",
+          "hbusreq_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "hbusreq_mst",
+        "source_ref": "io_list.interfaces[2].ports[11]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ahb_master_dma_hgrant_mst",
+          "hgrant_mst"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "hgrant_mst",
+        "source_ref": "io_list.interfaces[2].ports[12]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 32,
+    "open_required_count": 32,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atcdmac100",
+  "kind": "module",
+  "owner_file": "rtl/atcdmac100.sv",
+  "owner_module": "atcdmac100",
+  "packet_id": "module__atcdmac100__integration",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "integration.connections": 29,
+      "integration.dependencies": 3
+    },
+    "module_slice": {
+      "count": 6,
+      "enabled": true,
+      "index": 3,
+      "key": "integration",
+      "module_task_count": 49,
+      "rule": "Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "integration",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 32,
+    "required_count": 32,
+    "source_refs": [
+      "integration.dependencies.dependencie_0",
+      "integration.dependencies.dependencie_1",
+      "integration.dependencies.dependencie_2",
+      "integration.connections.hclk",
+      "integration.connections.hresetn",
+      "integration.connections.dma_int",
+      "integration.connections.dma_req",
+      "integration.connections.dma_ack",
+      "integration.connections.haddr",
+      "integration.connections.htrans",
+      "integration.connections.hwrite",
+      "integration.connections.hsize",
+      "integration.connections.hburst",
+      "integration.connections.hwdata",
+      "integration.connections.hsel",
+      "integration.connections.hreadyin",
+      "integration.connections.hrdata",
+      "integration.connections.hresp",
+      "integration.connections.hready",
+      "integration.connections.haddr_mst",
+      "integration.connections.htrans_mst",
+      "integration.connections.hwrite_mst",
+      "integration.connections.hsize_mst",
+      "integration.connections.hprot_mst"
+    ],
+    "status_counts": {
+      "open": 32
+    },
+    "task_count": 32
+  },
+  "tasks": [
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item dependencie_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.dependencie_0",
+        "Primary implementation evidence is in rtl/atcdmac100.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.dependencie_0.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: value=System AHB fabric grants hbusreq_mst through hgrant_mst..",
+      "evidence_terms": [
+        "hbusreq",
+        "hbusreq_mst",
+        "hgrant",
+        "hgrant_mst",
+        "mst"
+      ],
+      "id": "RTL-0289",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.dependencie_0",
+      "ssot_context": {
+        "value": "System AHB fabric grants hbusreq_mst through hgrant_mst."
+      },
+      "ssot_refs": [
+        "integration.dependencies.dependencie_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item dependencie_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.dependencie_1",
+        "Primary implementation evidence is in rtl/atcdmac100.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.dependencie_1.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: value=External low-speed devices drive dma_req and observe dma_ack..",
+      "evidence_terms": [
+        "ack",
+        "dma",
+        "dma_ack",
+        "dma_req",
+        "req"
+      ],
+      "id": "RTL-0290",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.dependencie_1",
+      "ssot_context": {
+        "value": "External low-speed devices drive dma_req and observe dma_ack."
+      },
+      "ssot_refs": [
+        "integration.dependencies.dependencie_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item dependencie_2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.dependencie_2",
+        "Primary implementation evidence is in rtl/atcdmac100.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.dependencie_2.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: value=Software programs channel register windows before setting ChnCtrl.Enable..",
+      "evidence_terms": [],
+      "id": "RTL-0291",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.dependencie_2",
+      "ssot_context": {
+        "value": "Software programs channel register windows before setting ChnCtrl.Enable."
+      },
+      "ssot_refs": [
+        "integration.dependencies.dependencie_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hclk",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hclk",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hclk is the implementation/observation point for hclk"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hclk.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hclk; signal=hclk.",
+      "evidence_terms": [
+        "hclk"
+      ],
+      "id": "RTL-0292",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hclk",
+      "ssot_context": {
+        "port": "hclk",
+        "signal": "hclk"
+      },
+      "ssot_refs": [
+        "integration.connections.hclk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hresetn",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hresetn",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hresetn is the implementation/observation point for hresetn"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hresetn.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hresetn; signal=hresetn.",
+      "evidence_terms": [
+        "hresetn"
+      ],
+      "id": "RTL-0293",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hresetn",
+      "ssot_context": {
+        "port": "hresetn",
+        "signal": "hresetn"
+      },
+      "ssot_refs": [
+        "integration.connections.hresetn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item dma_int",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.dma_int",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port dma_int is the implementation/observation point for dma_int"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.dma_int.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=dma_int; signal=dma_int.",
+      "evidence_terms": [
+        "dma",
+        "dma_int",
+        "int"
+      ],
+      "id": "RTL-0294",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.dma_int",
+      "ssot_context": {
+        "port": "dma_int",
+        "signal": "dma_int"
+      },
+      "ssot_refs": [
+        "integration.connections.dma_int"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item dma_req",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.dma_req",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port dma_req is the implementation/observation point for dma_req"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.dma_req.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=dma_req; signal=dma_req.",
+      "evidence_terms": [
+        "dma",
+        "dma_req",
+        "req"
+      ],
+      "id": "RTL-0295",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.dma_req",
+      "ssot_context": {
+        "port": "dma_req",
+        "signal": "dma_req"
+      },
+      "ssot_refs": [
+        "integration.connections.dma_req"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item dma_ack",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.dma_ack",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port dma_ack is the implementation/observation point for dma_ack"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.dma_ack.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=dma_ack; signal=dma_ack.",
+      "evidence_terms": [
+        "ack",
+        "dma",
+        "dma_ack"
+      ],
+      "id": "RTL-0296",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.dma_ack",
+      "ssot_context": {
+        "port": "dma_ack",
+        "signal": "dma_ack"
+      },
+      "ssot_refs": [
+        "integration.connections.dma_ack"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item haddr",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.haddr",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port haddr is the implementation/observation point for haddr"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.haddr.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=haddr; signal=haddr.",
+      "evidence_terms": [
+        "haddr"
+      ],
+      "id": "RTL-0297",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.haddr",
+      "ssot_context": {
+        "port": "haddr",
+        "signal": "haddr"
+      },
+      "ssot_refs": [
+        "integration.connections.haddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item htrans",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.htrans",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port htrans is the implementation/observation point for htrans"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.htrans.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=htrans; signal=htrans.",
+      "evidence_terms": [
+        "htrans"
+      ],
+      "id": "RTL-0298",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.htrans",
+      "ssot_context": {
+        "port": "htrans",
+        "signal": "htrans"
+      },
+      "ssot_refs": [
+        "integration.connections.htrans"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hwrite",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hwrite",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hwrite is the implementation/observation point for hwrite"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hwrite.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hwrite; signal=hwrite.",
+      "evidence_terms": [
+        "hwrite"
+      ],
+      "id": "RTL-0299",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hwrite",
+      "ssot_context": {
+        "port": "hwrite",
+        "signal": "hwrite"
+      },
+      "ssot_refs": [
+        "integration.connections.hwrite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hsize",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hsize",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hsize is the implementation/observation point for hsize"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hsize.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hsize; signal=hsize.",
+      "evidence_terms": [
+        "hsize"
+      ],
+      "id": "RTL-0300",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hsize",
+      "ssot_context": {
+        "port": "hsize",
+        "signal": "hsize"
+      },
+      "ssot_refs": [
+        "integration.connections.hsize"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hburst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hburst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hburst is the implementation/observation point for hburst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hburst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hburst; signal=hburst.",
+      "evidence_terms": [
+        "hburst"
+      ],
+      "id": "RTL-0301",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hburst",
+      "ssot_context": {
+        "port": "hburst",
+        "signal": "hburst"
+      },
+      "ssot_refs": [
+        "integration.connections.hburst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hwdata",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hwdata",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hwdata is the implementation/observation point for hwdata"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hwdata.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hwdata; signal=hwdata.",
+      "evidence_terms": [
+        "hwdata"
+      ],
+      "id": "RTL-0302",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hwdata",
+      "ssot_context": {
+        "port": "hwdata",
+        "signal": "hwdata"
+      },
+      "ssot_refs": [
+        "integration.connections.hwdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hsel",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hsel",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hsel is the implementation/observation point for hsel"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hsel.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hsel; signal=hsel.",
+      "evidence_terms": [
+        "hsel"
+      ],
+      "id": "RTL-0303",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hsel",
+      "ssot_context": {
+        "port": "hsel",
+        "signal": "hsel"
+      },
+      "ssot_refs": [
+        "integration.connections.hsel"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hreadyin",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hreadyin",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hreadyin is the implementation/observation point for hreadyin"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hreadyin.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hreadyin; signal=hreadyin.",
+      "evidence_terms": [
+        "hreadyin"
+      ],
+      "id": "RTL-0304",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hreadyin",
+      "ssot_context": {
+        "port": "hreadyin",
+        "signal": "hreadyin"
+      },
+      "ssot_refs": [
+        "integration.connections.hreadyin"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hrdata",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hrdata",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hrdata is the implementation/observation point for hrdata"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hrdata.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hrdata; signal=hrdata.",
+      "evidence_terms": [
+        "hrdata"
+      ],
+      "id": "RTL-0305",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hrdata",
+      "ssot_context": {
+        "port": "hrdata",
+        "signal": "hrdata"
+      },
+      "ssot_refs": [
+        "integration.connections.hrdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hresp",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hresp",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hresp is the implementation/observation point for hresp"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hresp.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hresp; signal=hresp.",
+      "evidence_terms": [
+        "hresp"
+      ],
+      "id": "RTL-0306",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hresp",
+      "ssot_context": {
+        "port": "hresp",
+        "signal": "hresp"
+      },
+      "ssot_refs": [
+        "integration.connections.hresp"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hready",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hready",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hready is the implementation/observation point for hready"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hready.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hready; signal=hready.",
+      "evidence_terms": [
+        "hready"
+      ],
+      "id": "RTL-0307",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hready",
+      "ssot_context": {
+        "port": "hready",
+        "signal": "hready"
+      },
+      "ssot_refs": [
+        "integration.connections.hready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item haddr_mst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.haddr_mst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port haddr_mst is the implementation/observation point for haddr_mst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.haddr_mst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=haddr_mst; signal=haddr_mst.",
+      "evidence_terms": [
+        "haddr",
+        "haddr_mst",
+        "mst"
+      ],
+      "id": "RTL-0308",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.haddr_mst",
+      "ssot_context": {
+        "port": "haddr_mst",
+        "signal": "haddr_mst"
+      },
+      "ssot_refs": [
+        "integration.connections.haddr_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item htrans_mst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.htrans_mst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port htrans_mst is the implementation/observation point for htrans_mst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.htrans_mst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=htrans_mst; signal=htrans_mst.",
+      "evidence_terms": [
+        "htrans",
+        "htrans_mst",
+        "mst"
+      ],
+      "id": "RTL-0309",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.htrans_mst",
+      "ssot_context": {
+        "port": "htrans_mst",
+        "signal": "htrans_mst"
+      },
+      "ssot_refs": [
+        "integration.connections.htrans_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hwrite_mst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hwrite_mst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hwrite_mst is the implementation/observation point for hwrite_mst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hwrite_mst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hwrite_mst; signal=hwrite_mst.",
+      "evidence_terms": [
+        "hwrite",
+        "hwrite_mst",
+        "mst"
+      ],
+      "id": "RTL-0310",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hwrite_mst",
+      "ssot_context": {
+        "port": "hwrite_mst",
+        "signal": "hwrite_mst"
+      },
+      "ssot_refs": [
+        "integration.connections.hwrite_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hsize_mst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hsize_mst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hsize_mst is the implementation/observation point for hsize_mst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hsize_mst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hsize_mst; signal=hsize_mst.",
+      "evidence_terms": [
+        "hsize",
+        "hsize_mst",
+        "mst"
+      ],
+      "id": "RTL-0311",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hsize_mst",
+      "ssot_context": {
+        "port": "hsize_mst",
+        "signal": "hsize_mst"
+      },
+      "ssot_refs": [
+        "integration.connections.hsize_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hprot_mst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hprot_mst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hprot_mst is the implementation/observation point for hprot_mst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hprot_mst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hprot_mst; signal=hprot_mst.",
+      "evidence_terms": [
+        "hprot",
+        "hprot_mst",
+        "mst"
+      ],
+      "id": "RTL-0312",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hprot_mst",
+      "ssot_context": {
+        "port": "hprot_mst",
+        "signal": "hprot_mst"
+      },
+      "ssot_refs": [
+        "integration.connections.hprot_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hlock_mst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hlock_mst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hlock_mst is the implementation/observation point for hlock_mst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hlock_mst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hlock_mst; signal=hlock_mst.",
+      "evidence_terms": [
+        "hlock",
+        "hlock_mst",
+        "mst"
+      ],
+      "id": "RTL-0313",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hlock_mst",
+      "ssot_context": {
+        "port": "hlock_mst",
+        "signal": "hlock_mst"
+      },
+      "ssot_refs": [
+        "integration.connections.hlock_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hburst_mst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hburst_mst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hburst_mst is the implementation/observation point for hburst_mst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hburst_mst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hburst_mst; signal=hburst_mst.",
+      "evidence_terms": [
+        "hburst",
+        "hburst_mst",
+        "mst"
+      ],
+      "id": "RTL-0314",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hburst_mst",
+      "ssot_context": {
+        "port": "hburst_mst",
+        "signal": "hburst_mst"
+      },
+      "ssot_refs": [
+        "integration.connections.hburst_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hwdata_mst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hwdata_mst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hwdata_mst is the implementation/observation point for hwdata_mst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hwdata_mst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hwdata_mst; signal=hwdata_mst.",
+      "evidence_terms": [
+        "hwdata",
+        "hwdata_mst",
+        "mst"
+      ],
+      "id": "RTL-0315",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hwdata_mst",
+      "ssot_context": {
+        "port": "hwdata_mst",
+        "signal": "hwdata_mst"
+      },
+      "ssot_refs": [
+        "integration.connections.hwdata_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hrdata_mst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hrdata_mst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hrdata_mst is the implementation/observation point for hrdata_mst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hrdata_mst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hrdata_mst; signal=hrdata_mst.",
+      "evidence_terms": [
+        "hrdata",
+        "hrdata_mst",
+        "mst"
+      ],
+      "id": "RTL-0316",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hrdata_mst",
+      "ssot_context": {
+        "port": "hrdata_mst",
+        "signal": "hrdata_mst"
+      },
+      "ssot_refs": [
+        "integration.connections.hrdata_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hresp_mst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hresp_mst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hresp_mst is the implementation/observation point for hresp_mst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hresp_mst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hresp_mst; signal=hresp_mst.",
+      "evidence_terms": [
+        "hresp",
+        "hresp_mst",
+        "mst"
+      ],
+      "id": "RTL-0317",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hresp_mst",
+      "ssot_context": {
+        "port": "hresp_mst",
+        "signal": "hresp_mst"
+      },
+      "ssot_refs": [
+        "integration.connections.hresp_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hready_mst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hready_mst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hready_mst is the implementation/observation point for hready_mst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hready_mst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hready_mst; signal=hready_mst.",
+      "evidence_terms": [
+        "hready",
+        "hready_mst",
+        "mst"
+      ],
+      "id": "RTL-0318",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hready_mst",
+      "ssot_context": {
+        "port": "hready_mst",
+        "signal": "hready_mst"
+      },
+      "ssot_refs": [
+        "integration.connections.hready_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hbusreq_mst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hbusreq_mst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hbusreq_mst is the implementation/observation point for hbusreq_mst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hbusreq_mst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hbusreq_mst; signal=hbusreq_mst.",
+      "evidence_terms": [
+        "hbusreq",
+        "hbusreq_mst",
+        "mst"
+      ],
+      "id": "RTL-0319",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hbusreq_mst",
+      "ssot_context": {
+        "port": "hbusreq_mst",
+        "signal": "hbusreq_mst"
+      },
+      "ssot_refs": [
+        "integration.connections.hbusreq_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item hgrant_mst",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.hgrant_mst",
+        "Primary implementation evidence is in rtl/atcdmac100.sv",
+        "DUT port hgrant_mst is the implementation/observation point for hgrant_mst"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.hgrant_mst.\nOwner: atcdmac100 in rtl/atcdmac100.sv via integration.\nSSOT item context: port=hgrant_mst; signal=hgrant_mst.",
+      "evidence_terms": [
+        "hgrant",
+        "hgrant_mst",
+        "mst"
+      ],
+      "id": "RTL-0320",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.hgrant_mst",
+      "ssot_context": {
+        "port": "hgrant_mst",
+        "signal": "hgrant_mst"
+      },
+      "ssot_refs": [
+        "integration.connections.hgrant_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "72f45ac236a074e74c4c80ad18e49e1163775dd9e0f8018c491d6f6563c1a372",
+  "top": "atcdmac100",
+  "type": "rtl_authoring_packet"
+}

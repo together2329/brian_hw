@@ -1,0 +1,1980 @@
+{
+  "execution_policy": {
+    "allowed_draft_work": [
+      "Author module RTL from SSOT-derived TODO packets.",
+      "Add tests, vectors, assertions, reports, and repair RTL under LLM-editable surfaces.",
+      "Leave unresolved locked-truth decisions as human_gate/change-request records instead of changing SSOT authority."
+    ],
+    "blocked_by_llm_work": [
+      {
+        "gate_kind": "static_rtl_evidence",
+        "owner_module": "atcdmac100",
+        "reason": "194 static-evidence-required task(s) still lack DUT RTL evidence.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
+        "status": "open",
+        "task_id": "RTL-0007"
+      },
+      {
+        "gate_kind": "owner_logic_structure_evidence",
+        "owner_module": "atcdmac100",
+        "reason": "1 owner logic structure issue(s) remain. atcdmac100_core: Behavior-owner module is not declared in its owner file",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
+        "status": "open",
+        "task_id": "RTL-0008"
+      },
+      {
+        "gate_kind": "rtl_placeholder_free_evidence",
+        "owner_module": "atcdmac100",
+        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+        "status": "open",
+        "task_id": "RTL-0009"
+      },
+      {
+        "gate_kind": "top_io_contract_evidence",
+        "owner_module": "atcdmac100",
+        "reason": "1 top IO contract issue(s) remain. atcdmac100: SSOT top module is not declared in listed RTL sources",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
+        "status": "open",
+        "task_id": "RTL-0010"
+      },
+      {
+        "gate_kind": "top_output_drive_evidence",
+        "owner_module": "atcdmac100",
+        "reason": "1 top output drive issue(s) remain. atcdmac100: SSOT top module is not declared, so output drive evidence cannot be checked",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
+        "status": "open",
+        "task_id": "RTL-0011"
+      },
+      {
+        "gate_kind": "top_input_consumption_evidence",
+        "owner_module": "atcdmac100",
+        "reason": "1 top input consumption issue(s) remain. atcdmac100: SSOT top module is not declared, so input consumption evidence cannot be checked",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
+        "status": "open",
+        "task_id": "RTL-0012"
+      },
+      {
+        "gate_kind": "manifest_hierarchy_integration",
+        "owner_module": "atcdmac100",
+        "reason": "2 manifest hierarchy integration issue(s) remain. atcdmac100: SSOT top module is not declared in listed RTL sources; atcdmac100_core: SSOT manifest child module is not declared in listed RTL sources",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
+        "status": "open",
+        "task_id": "RTL-0013"
+      },
+      {
+        "gate_kind": "manifest_signal_flow_evidence",
+        "owner_module": "atcdmac100",
+        "reason": "1 manifest signal-flow issue(s) remain. atcdmac100: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+        "status": "open",
+        "task_id": "RTL-0015"
+      }
+    ],
+    "blocked_by_locked_truth": [
+      {
+        "gate_kind": "manifest_connection_contract_evidence",
+        "owner_module": "atcdmac100",
+        "reason": "30 SSOT connection contract issue(s) remain. atcdmac100: SSOT connection contract is not machine-readable; use module/port/signal fields or a port_map mapping; atcdmac100_core: SSOT connection contract targets a module not declared in RTL; atcdmac100_core: SSOT connection contract targets a module not declared in RTL",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+        "status": "open",
+        "task_id": "RTL-0016"
+      }
+    ],
+    "blocked_by_tool_evidence": [
+      {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "atcdmac100",
+        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "gate_kind": "dut_compile",
+        "owner_module": "atcdmac100",
+        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "status": "open",
+        "task_id": "RTL-0017"
+      },
+      {
+        "gate_kind": "dut_lint",
+        "owner_module": "atcdmac100",
+        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "gate_kind": "dynamic_todo_closure",
+        "owner_module": "atcdmac100",
+        "reason": "338 required non-closure TODO(s) remain open.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ],
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 29,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {
+      "path": "rtl/connection_contract_suggestions.json",
+      "rule": "Suggestions are emitted only when production connection contracts are missing.",
+      "sample_rows": [],
+      "summary": {
+        "applied_to_ssot": false,
+        "pending_review": 0,
+        "status": "not_required",
+        "suggested_rows": 0
+      }
+    },
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "gate_status": "fail",
+    "hard_blockers": [],
+    "open_required_todos": 339,
+    "pass_allowed": false,
+    "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
+    "stop_conditions": [
+      "Do not edit SSOT/FL/coverage/interface/performance authority artifacts without human approval.",
+      "Do not claim rtl-gen PASS while pass_allowed is false.",
+      "Do not sign off top integration while required connection contracts are missing."
+    ],
+    "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "atcdmac100/rtl/rtl_authoring_provenance.json",
+          "atcdmac100/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip atcdmac100 --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py atcdmac100 --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "artifact": "rtl/rtl_compile.json",
+        "artifacts": [
+          "atcdmac100/rtl/rtl_compile.json",
+          "atcdmac100/rtl/rtl_compile.log"
+        ],
+        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py atcdmac100 --top atcdmac100 --project-root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py atcdmac100 --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_compile",
+        "prerequisites": [
+          "atcdmac100/list/atcdmac100.f covers the current DUT RTL sources."
+        ],
+        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "stage_sequence": [
+          "ssot-rtl",
+          "dut_compile"
+        ],
+        "status": "open",
+        "task_id": "RTL-0017"
+      },
+      {
+        "artifact": "lint/dut_lint.json",
+        "artifacts": [
+          "atcdmac100/lint/dut_lint.json"
+        ],
+        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+        "commands": [
+          "python3 workflow/lint/scripts/dut_lint_report.py atcdmac100 --top atcdmac100",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py atcdmac100 --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_lint",
+        "prerequisites": [
+          "atcdmac100/list/atcdmac100.f covers the current DUT RTL/header sources."
+        ],
+        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "stage_sequence": [
+          "lint",
+          "dut_lint"
+        ],
+        "status": "open",
+        "task_id": "RTL-0018"
+      },
+      {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "artifacts": [
+          "atcdmac100/rtl/rtl_todo_plan.json",
+          "atcdmac100/rtl/rtl_authoring_status.md"
+        ],
+        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py atcdmac100 --root . --audit-rtl"
+        ],
+        "gate_kind": "dynamic_todo_closure",
+        "prerequisites": [
+          "All non-closure required TODOs have pass status."
+        ],
+        "reason": "338 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "stage_sequence": [
+          "audit-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ]
+  },
+  "ip": "atcdmac100",
+  "packet_dir": "rtl/authoring_packets",
+  "packets": [
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 48,
+        "open_required_count": 48,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__function_model_01.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__function_model_01.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__function_model_01",
+      "summary": {
+        "categories": {
+          "function_model.error_case": 1,
+          "function_model.output": 14,
+          "function_model.output_rule": 4,
+          "function_model.precondition": 2,
+          "function_model.side_effect": 1,
+          "function_model.state_update": 12,
+          "function_model.state_variable": 12,
+          "function_model.transaction": 2
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 2,
+          "key": "function_model_01",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 3,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 48,
+        "required_count": 48,
+        "source_refs": [
+          "function_model.state_variables.dmac_reset_pulse",
+          "function_model.state_variables.active_ch",
+          "function_model.state_variables.busy",
+          "function_model.state_variables.ch_enable",
+          "function_model.state_variables.int_tc",
+          "function_model.state_variables.int_abort",
+          "function_model.state_variables.int_error",
+          "function_model.state_variables.bytes_done",
+          "function_model.state_variables.src_addr_cur",
+          "function_model.state_variables.dst_addr_cur",
+          "function_model.state_variables.read_data_hold",
+          "function_model.state_variables.chain_pending",
+          "function_model.transactions.FM_RESET",
+          "function_model.transactions.FM_RESET.preconditions.precondition_0",
+          "function_model.transactions.FM_RESET.outputs.output_0",
+          "function_model.transactions.FM_RESET.outputs.output_1",
+          "function_model.transactions.FM_RESET.outputs.output_2",
+          "function_model.transactions.FM_RESET.outputs.output_3",
+          "function_model.transactions.FM_RESET.outputs.output_4",
+          "function_model.transactions.FM_RESET.outputs.output_5",
+          "function_model.transactions.FM_RESET.outputs.output_6",
+          "function_model.transactions.FM_RESET.outputs.output_7",
+          "function_model.transactions.FM_RESET.outputs.output_8",
+          "function_model.transactions.FM_RESET.outputs.output_9"
+        ],
+        "status_counts": {
+          "open": 48
+        },
+        "task_count": 48
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 48,
+        "open_required_count": 48,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__function_model_02.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__function_model_02.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__function_model_02",
+      "summary": {
+        "categories": {
+          "function_model.error_case": 4,
+          "function_model.output": 4,
+          "function_model.output_rule": 19,
+          "function_model.precondition": 4,
+          "function_model.side_effect": 4,
+          "function_model.state_update": 9,
+          "function_model.transaction": 4
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 3,
+          "key": "function_model_02",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 3,
+          "section_chunk_index": 2,
+          "task_limit": 48
+        },
+        "open_required_count": 48,
+        "required_count": 48,
+        "source_refs": [
+          "function_model.transactions.FM_AHB_WRITE.output_rules.hready_write",
+          "function_model.transactions.FM_AHB_WRITE.output_rules.hresp_write",
+          "function_model.transactions.FM_AHB_WRITE.output_rules.dma_int_after_write",
+          "function_model.transactions.FM_AHB_WRITE.state_updates.dmac_reset_pulse",
+          "function_model.transactions.FM_AHB_WRITE.state_updates.int_tc",
+          "function_model.transactions.FM_AHB_WRITE.state_updates.int_abort",
+          "function_model.transactions.FM_AHB_WRITE.state_updates.int_error",
+          "function_model.transactions.FM_AHB_WRITE.state_updates.ch_enable",
+          "function_model.transactions.FM_AHB_WRITE.side_effects.side_effect_0",
+          "function_model.transactions.FM_AHB_WRITE.error_cases.error_case_0",
+          "function_model.transactions.FM_AHB_READ",
+          "function_model.transactions.FM_AHB_READ.preconditions.precondition_0",
+          "function_model.transactions.FM_AHB_READ.outputs.output_0",
+          "function_model.transactions.FM_AHB_READ.output_rules.hready_read",
+          "function_model.transactions.FM_AHB_READ.output_rules.hresp_read",
+          "function_model.transactions.FM_AHB_READ.output_rules.hrdata_id_cfg_status",
+          "function_model.transactions.FM_AHB_READ.side_effects.side_effect_0",
+          "function_model.transactions.FM_AHB_READ.error_cases.error_case_0",
+          "function_model.transactions.FM_ARBITRATE",
+          "function_model.transactions.FM_ARBITRATE.preconditions.precondition_0",
+          "function_model.transactions.FM_ARBITRATE.outputs.output_0",
+          "function_model.transactions.FM_ARBITRATE.output_rules.hbusreq_on_start",
+          "function_model.transactions.FM_ARBITRATE.output_rules.htrans_idle_on_start",
+          "function_model.transactions.FM_ARBITRATE.state_updates.busy"
+        ],
+        "status_counts": {
+          "open": 48
+        },
+        "task_count": 48
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 44,
+        "open_required_count": 44,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__registers.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__registers.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__registers",
+      "summary": {
+        "categories": {
+          "registers.field": 33,
+          "registers.register": 11
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 7,
+          "key": "registers",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "registers",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 44,
+        "required_count": 44,
+        "source_refs": [
+          "registers.register_list.IdRev",
+          "registers.register_list.IdRev.fields.ID",
+          "registers.register_list.IdRev.fields.RevMajor",
+          "registers.register_list.IdRev.fields.RevMinor",
+          "registers.register_list.DMACfg",
+          "registers.register_list.DMACfg.fields.ChainXfr",
+          "registers.register_list.DMACfg.fields.ReqSync",
+          "registers.register_list.DMACfg.fields.ReqNum",
+          "registers.register_list.DMACfg.fields.FIFODepth",
+          "registers.register_list.DMACfg.fields.ChannelNum",
+          "registers.register_list.DMACtrl",
+          "registers.register_list.DMACtrl.fields.Reset",
+          "registers.register_list.IntStatus",
+          "registers.register_list.IntStatus.fields.TC",
+          "registers.register_list.IntStatus.fields.Abort",
+          "registers.register_list.IntStatus.fields.Error",
+          "registers.register_list.ChEN",
+          "registers.register_list.ChEN.fields.ChEN",
+          "registers.register_list.ChAbort",
+          "registers.register_list.ChAbort.fields.ChAbort",
+          "registers.register_list.ChnCtrl",
+          "registers.register_list.ChnCtrl.fields.Priority",
+          "registers.register_list.ChnCtrl.fields.SrcBurstSize",
+          "registers.register_list.ChnCtrl.fields.SrcWidth"
+        ],
+        "status_counts": {
+          "open": 44
+        },
+        "task_count": 44
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 39,
+        "open_required_count": 39,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__function_model_03.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__function_model_03.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__function_model_03",
+      "summary": {
+        "categories": {
+          "function_model.error_case": 4,
+          "function_model.invariant": 2,
+          "function_model.output": 3,
+          "function_model.output_rule": 9,
+          "function_model.precondition": 3,
+          "function_model.side_effect": 4,
+          "function_model.state_update": 11,
+          "function_model.transaction": 3
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 4,
+          "key": "function_model_03",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 3,
+          "section_chunk_index": 3,
+          "task_limit": 48
+        },
+        "open_required_count": 39,
+        "required_count": 39,
+        "source_refs": [
+          "function_model.transactions.FM_MASTER_WRITE.state_updates.bytes_done",
+          "function_model.transactions.FM_MASTER_WRITE.state_updates.src_addr_cur",
+          "function_model.transactions.FM_MASTER_WRITE.state_updates.dst_addr_cur",
+          "function_model.transactions.FM_MASTER_WRITE.side_effects.side_effect_0",
+          "function_model.transactions.FM_MASTER_WRITE.error_cases.error_case_0",
+          "function_model.transactions.FM_COMPLETE",
+          "function_model.transactions.FM_COMPLETE.preconditions.precondition_0",
+          "function_model.transactions.FM_COMPLETE.outputs.output_0",
+          "function_model.transactions.FM_COMPLETE.output_rules.hbusreq_complete",
+          "function_model.transactions.FM_COMPLETE.output_rules.htrans_complete",
+          "function_model.transactions.FM_COMPLETE.output_rules.dma_int_tc",
+          "function_model.transactions.FM_COMPLETE.state_updates.busy",
+          "function_model.transactions.FM_COMPLETE.state_updates.ch_enable",
+          "function_model.transactions.FM_COMPLETE.state_updates.int_tc",
+          "function_model.transactions.FM_COMPLETE.state_updates.chain_pending",
+          "function_model.transactions.FM_COMPLETE.side_effects.side_effect_0",
+          "function_model.transactions.FM_COMPLETE.error_cases.error_case_0",
+          "function_model.transactions.FM_ERROR_ABORT",
+          "function_model.transactions.FM_ERROR_ABORT.preconditions.precondition_0",
+          "function_model.transactions.FM_ERROR_ABORT.outputs.output_0",
+          "function_model.transactions.FM_ERROR_ABORT.output_rules.hbusreq_error",
+          "function_model.transactions.FM_ERROR_ABORT.output_rules.htrans_error",
+          "function_model.transactions.FM_ERROR_ABORT.output_rules.dma_int_error",
+          "function_model.transactions.FM_ERROR_ABORT.output_rules.dma_ack_error"
+        ],
+        "status_counts": {
+          "open": 39
+        },
+        "task_count": 39
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 29,
+        "open_required_count": 29,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__io_list.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__io_list.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__io_list",
+      "summary": {
+        "categories": {
+          "io_list.port": 29
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 1,
+          "key": "io_list",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "io_list",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 29,
+        "required_count": 29,
+        "source_refs": [
+          "io_list.clock_domains.hclk_domain.ports.hclk",
+          "io_list.resets.hresetn.ports.hresetn",
+          "io_list.interfaces.dma_handshake.ports.dma_int",
+          "io_list.interfaces.dma_handshake.ports.dma_req",
+          "io_list.interfaces.dma_handshake.ports.dma_ack",
+          "io_list.interfaces.ahb_slave_regs.ports.haddr",
+          "io_list.interfaces.ahb_slave_regs.ports.htrans",
+          "io_list.interfaces.ahb_slave_regs.ports.hwrite",
+          "io_list.interfaces.ahb_slave_regs.ports.hsize",
+          "io_list.interfaces.ahb_slave_regs.ports.hburst",
+          "io_list.interfaces.ahb_slave_regs.ports.hwdata",
+          "io_list.interfaces.ahb_slave_regs.ports.hsel",
+          "io_list.interfaces.ahb_slave_regs.ports.hreadyin",
+          "io_list.interfaces.ahb_slave_regs.ports.hrdata",
+          "io_list.interfaces.ahb_slave_regs.ports.hresp",
+          "io_list.interfaces.ahb_slave_regs.ports.hready",
+          "io_list.interfaces.ahb_master_dma.ports.haddr_mst",
+          "io_list.interfaces.ahb_master_dma.ports.htrans_mst",
+          "io_list.interfaces.ahb_master_dma.ports.hwrite_mst",
+          "io_list.interfaces.ahb_master_dma.ports.hsize_mst",
+          "io_list.interfaces.ahb_master_dma.ports.hprot_mst",
+          "io_list.interfaces.ahb_master_dma.ports.hlock_mst",
+          "io_list.interfaces.ahb_master_dma.ports.hburst_mst",
+          "io_list.interfaces.ahb_master_dma.ports.hwdata_mst"
+        ],
+        "status_counts": {
+          "open": 29
+        },
+        "task_count": 29
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 20,
+        "open_required_count": 20,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__cycle_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__cycle_model.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__cycle_model",
+      "summary": {
+        "categories": {
+          "cycle_model.clock": 1,
+          "cycle_model.handshake_rules": 3,
+          "cycle_model.latency": 1,
+          "cycle_model.observability": 6,
+          "cycle_model.ordering": 4,
+          "cycle_model.pipeline": 4,
+          "cycle_model.reset": 1
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 5,
+          "key": "cycle_model",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "cycle_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 20,
+        "required_count": 20,
+        "source_refs": [
+          "cycle_model.clock",
+          "cycle_model.reset",
+          "cycle_model.latency",
+          "cycle_model.handshake_rules.handshake_rule_0",
+          "cycle_model.handshake_rules.handshake_rule_1",
+          "cycle_model.handshake_rules.handshake_rule_2",
+          "cycle_model.pipeline.pipeline_stage_0",
+          "cycle_model.pipeline.pipeline_stage_1",
+          "cycle_model.pipeline.pipeline_stage_2",
+          "cycle_model.pipeline.pipeline_stage_3",
+          "cycle_model.ordering.ordering_rule_0",
+          "cycle_model.ordering.ordering_rule_1",
+          "cycle_model.ordering.ordering_rule_2",
+          "cycle_model.ordering.ordering_rule_3",
+          "cycle_model.observability.observability_signal_0",
+          "cycle_model.observability.observability_signal_1",
+          "cycle_model.observability.observability_signal_2",
+          "cycle_model.observability.observability_signal_3",
+          "cycle_model.observability.observability_signal_4",
+          "cycle_model.observability.observability_signal_5"
+        ],
+        "status_counts": {
+          "open": 20
+        },
+        "task_count": 20
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 19,
+        "open_required_count": 19,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__fsm.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__fsm.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__fsm",
+      "summary": {
+        "categories": {
+          "fsm.state": 9,
+          "fsm.transition": 10
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 6,
+          "key": "fsm",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "fsm",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 19,
+        "required_count": 19,
+        "source_refs": [
+          "fsm.fsm.states.state_0",
+          "fsm.fsm.states.state_1",
+          "fsm.fsm.states.state_2",
+          "fsm.fsm.states.state_3",
+          "fsm.fsm.states.state_4",
+          "fsm.fsm.states.state_5",
+          "fsm.fsm.states.state_6",
+          "fsm.fsm.states.state_7",
+          "fsm.fsm.states.state_8",
+          "fsm.fsm.transitions.transition_0",
+          "fsm.fsm.transitions.transition_1",
+          "fsm.fsm.transitions.transition_2",
+          "fsm.fsm.transitions.transition_3",
+          "fsm.fsm.transitions.transition_4",
+          "fsm.fsm.transitions.transition_5",
+          "fsm.fsm.transitions.transition_6",
+          "fsm.fsm.transitions.transition_7",
+          "fsm.fsm.transitions.transition_8",
+          "fsm.fsm.transitions.transition_9"
+        ],
+        "status_counts": {
+          "open": 19
+        },
+        "task_count": 19
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 13,
+        "open_required_count": 13,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__coverage.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__coverage.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__coverage",
+      "summary": {
+        "categories": {
+          "coverage.functional_bin": 13
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 12,
+          "key": "coverage",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "coverage",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 13,
+        "required_count": 13,
+        "source_refs": [
+          "test_requirements.coverage_goals.planned_bins.FCOV_REG_IDCFG",
+          "test_requirements.coverage_goals.planned_bins.FCOV_INT_W1C",
+          "test_requirements.coverage_goals.planned_bins.FCOV_DMA_READ_WRITE",
+          "test_requirements.coverage_goals.planned_bins.FCOV_DMA_WRITE",
+          "test_requirements.coverage_goals.planned_bins.FCOV_TC_INT",
+          "test_requirements.coverage_goals.planned_bins.FCOV_ERROR_ABORT",
+          "test_requirements.coverage_goals.planned_bins.FCOV_REQ_ACK",
+          "test_requirements.coverage_goals.planned_bins.FCOV_PRIORITY",
+          "test_requirements.coverage_goals.planned_bins.CCOV_AHB_SLAVE_ACCESS",
+          "test_requirements.coverage_goals.planned_bins.CCOV_MASTER_READ_WRITE",
+          "test_requirements.coverage_goals.planned_bins.CCOV_WAIT_STATE",
+          "test_requirements.coverage_goals.planned_bins.CCOV_HANDSHAKE_WAIT",
+          "test_requirements.coverage_goals.planned_bins.CCOV_ERROR_RESPONSE"
+        ],
+        "status_counts": {
+          "open": 13
+        },
+        "task_count": 13
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 6,
+        "open_required_count": 6,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__features.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__features.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__features",
+      "summary": {
+        "categories": {
+          "features.item": 6
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 8,
+          "key": "features",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "features",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 6,
+        "required_count": 6,
+        "source_refs": [
+          "features.ahb_slave_registers",
+          "features.multi_channel_dma",
+          "features.priority_round_robin",
+          "features.hardware_handshake",
+          "features.chain_transfer",
+          "features.interrupt_status"
+        ],
+        "status_counts": {
+          "open": 6
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 6,
+        "open_required_count": 6,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__test_requirements.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__test_requirements.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__test_requirements",
+      "summary": {
+        "categories": {
+          "test_requirements.scenario": 6
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 11,
+          "key": "test_requirements",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "test_requirements",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 6,
+        "required_count": 6,
+        "source_refs": [
+          "test_requirements.scenarios.SC_AHB_REG",
+          "test_requirements.scenarios.SC_MEM_COPY",
+          "test_requirements.scenarios.SC_ARB",
+          "test_requirements.scenarios.SC_HANDSHAKE",
+          "test_requirements.scenarios.SC_ERROR_ABORT",
+          "test_requirements.scenarios.SC_CHAIN"
+        ],
+        "status_counts": {
+          "open": 6
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 3,
+        "open_required_count": 3,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__interrupts.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__interrupts.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__interrupts",
+      "summary": {
+        "categories": {
+          "interrupts.sources": 3
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 10,
+          "key": "interrupts",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "interrupts",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 3,
+        "required_count": 3,
+        "source_refs": [
+          "interrupts.sources.source_0",
+          "interrupts.sources.source_1",
+          "interrupts.sources.source_2"
+        ],
+        "status_counts": {
+          "open": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__equivalence.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__equivalence.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__equivalence",
+      "summary": {
+        "categories": {
+          "equivalence.module": 1
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 13,
+          "key": "equivalence",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "equivalence",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "sub_modules.atcdmac100_core.module_equivalence"
+        ],
+        "status_counts": {
+          "open": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__error_handling.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__error_handling.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__error_handling",
+      "summary": {
+        "categories": {
+          "error_handling.recovery": 1
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 9,
+          "key": "error_handling",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "error_handling",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "error_handling.recovery.recovery_0"
+        ],
+        "status_counts": {
+          "open": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100_core__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100_core__workflow_todo.md",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "packet_id": "module__atcdmac100_core__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 14,
+          "enabled": true,
+          "index": 14,
+          "key": "workflow_todo",
+          "module_task_count": 278,
+          "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[0]"
+        ],
+        "status_counts": {
+          "open": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 32,
+        "open_required_count": 32,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100__integration.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100__integration.md",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "packet_id": "module__atcdmac100__integration",
+      "summary": {
+        "categories": {
+          "integration.connections": 29,
+          "integration.dependencies": 3
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 3,
+          "key": "integration",
+          "module_task_count": 49,
+          "rule": "Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "integration",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 32,
+        "required_count": 32,
+        "source_refs": [
+          "integration.dependencies.dependencie_0",
+          "integration.dependencies.dependencie_1",
+          "integration.dependencies.dependencie_2",
+          "integration.connections.hclk",
+          "integration.connections.hresetn",
+          "integration.connections.dma_int",
+          "integration.connections.dma_req",
+          "integration.connections.dma_ack",
+          "integration.connections.haddr",
+          "integration.connections.htrans",
+          "integration.connections.hwrite",
+          "integration.connections.hsize",
+          "integration.connections.hburst",
+          "integration.connections.hwdata",
+          "integration.connections.hsel",
+          "integration.connections.hreadyin",
+          "integration.connections.hrdata",
+          "integration.connections.hresp",
+          "integration.connections.hready",
+          "integration.connections.haddr_mst",
+          "integration.connections.htrans_mst",
+          "integration.connections.hwrite_mst",
+          "integration.connections.hsize_mst",
+          "integration.connections.hprot_mst"
+        ],
+        "status_counts": {
+          "open": 32
+        },
+        "task_count": 32
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 6,
+        "open_required_count": 6,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100__parameters.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100__parameters.md",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "packet_id": "module__atcdmac100__parameters",
+      "summary": {
+        "categories": {
+          "parameters.item": 6
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 2,
+          "key": "parameters",
+          "module_task_count": 49,
+          "rule": "Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "parameters",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 6,
+        "required_count": 6,
+        "source_refs": [
+          "parameters.ADDR_WIDTH",
+          "parameters.DATA_WIDTH",
+          "parameters.DMA_CH_NUM",
+          "parameters.REQ_ACK_NUM",
+          "parameters.FIFO_DEPTH",
+          "parameters.CHAIN_TRANSFER_SUPPORT"
+        ],
+        "status_counts": {
+          "open": 6
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 4,
+        "open_required_count": 4,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100__security.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100__security.md",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "packet_id": "module__atcdmac100__security",
+      "summary": {
+        "categories": {
+          "security.assets": 4
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 4,
+          "key": "security",
+          "module_task_count": 49,
+          "rule": "Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "security",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 4,
+        "required_count": 4,
+        "source_refs": [
+          "security.assets.asset_0",
+          "security.assets.asset_1",
+          "security.assets.asset_2",
+          "security.assets.asset_3"
+        ],
+        "status_counts": {
+          "open": 4
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 4,
+        "open_required_count": 4,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100__synthesis.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100__synthesis.md",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "packet_id": "module__atcdmac100__synthesis",
+      "summary": {
+        "categories": {
+          "synthesis.constraints": 4
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 5,
+          "key": "synthesis",
+          "module_task_count": 49,
+          "rule": "Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "synthesis",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 4,
+        "required_count": 4,
+        "source_refs": [
+          "synthesis.constraints.constraint_0",
+          "synthesis.constraints.constraint_1",
+          "synthesis.constraints.constraint_2",
+          "synthesis.constraints.constraint_3"
+        ],
+        "status_counts": {
+          "open": 4
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100__rtl_flow.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100__rtl_flow.md",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "packet_id": "module__atcdmac100__rtl_flow",
+      "summary": {
+        "categories": {
+          "rtl_flow.seed": 1,
+          "rtl_flow.top": 1
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 1,
+          "key": "rtl_flow",
+          "module_task_count": 49,
+          "rule": "Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "rtl_flow",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 2,
+        "source_refs": [
+          "top_module",
+          "io_list"
+        ],
+        "status_counts": {
+          "open": 1,
+          "pass": 1
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 1,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__atcdmac100__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__atcdmac100__workflow_todo.md",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "packet_id": "module__atcdmac100__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 1
+        },
+        "module_slice": {
+          "count": 6,
+          "enabled": true,
+          "index": 6,
+          "key": "workflow_todo",
+          "module_task_count": 49,
+          "rule": "Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 1,
+        "required_count": 1,
+        "source_refs": [
+          "workflow_todos.rtl-gen[1]"
+        ],
+        "status_counts": {
+          "open": 1
+        },
+        "task_count": 1
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": true,
+        "llm_actionable_open_count": 8,
+        "open_required_count": 8,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "packet_id": "rtl_gate_evidence_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 9
+        },
+        "module_slice": {},
+        "open_required_count": 8,
+        "required_count": 9,
+        "source_refs": [
+          "quality_gates.rtl_gen.static_rtl_evidence",
+          "quality_gates.rtl_gen.owner_logic_structure_evidence",
+          "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+          "quality_gates.rtl_gen.top_io_contract_evidence",
+          "quality_gates.rtl_gen.top_output_drive_evidence",
+          "quality_gates.rtl_gen.top_input_consumption_evidence",
+          "quality_gates.rtl_gen.manifest_hierarchy_integration",
+          "quality_gates.rtl_gen.manifest_port_connection_evidence",
+          "quality_gates.rtl_gen.manifest_signal_flow_evidence"
+        ],
+        "status_counts": {
+          "open": 8,
+          "pass": 1
+        },
+        "task_count": 9
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [
+          {
+            "gate_kind": "manifest_connection_contract_evidence",
+            "owner_module": "atcdmac100",
+            "reason": "30 SSOT connection contract issue(s) remain. atcdmac100: SSOT connection contract is not machine-readable; use module/port/signal fields or a port_map mapping; atcdmac100_core: SSOT connection contract targets a module not declared in RTL; atcdmac100_core: SSOT connection contract targets a module not declared in RTL",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+            "status": "open",
+            "task_id": "RTL-0016"
+          }
+        ],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 1,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 1,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_human_closure.md",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "packet_id": "rtl_gate_human_closure",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 4
+        },
+        "module_slice": {},
+        "open_required_count": 1,
+        "required_count": 4,
+        "source_refs": [
+          "quality_gates.rtl_gen.ssot_required_sections",
+          "quality_gates.rtl_gen.workflow_todo_contract",
+          "quality_gates.rtl_gen.owner_traceability",
+          "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+        ],
+        "status_counts": {
+          "open": 1,
+          "pass": 3
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [
+          {
+            "gate_kind": "common_ai_agent_authoring",
+            "owner_module": "atcdmac100",
+            "reason": "Missing common_ai_agent RTL authoring provenance.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
+          {
+            "gate_kind": "dut_compile",
+            "owner_module": "atcdmac100",
+            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dut_compile",
+            "status": "open",
+            "task_id": "RTL-0017"
+          },
+          {
+            "gate_kind": "dut_lint",
+            "owner_module": "atcdmac100",
+            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dut_lint",
+            "status": "open",
+            "task_id": "RTL-0018"
+          },
+          {
+            "gate_kind": "dynamic_todo_closure",
+            "owner_module": "atcdmac100",
+            "reason": "338 required non-closure TODO(s) remain open.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "status": "open",
+            "task_id": "RTL-0019"
+          }
+        ],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 4,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 4,
+        "tool_evidence_plan": [
+          {
+            "artifact": "rtl/rtl_authoring_provenance.json",
+            "artifacts": [
+              "atcdmac100/rtl/rtl_authoring_provenance.json",
+              "atcdmac100/rtl/rtl_todo_plan.json"
+            ],
+            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+            "commands": [
+              "python3 src/headless_workflow.py --root . --ip atcdmac100 --stages rtl-gen",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py atcdmac100 --root . --audit-rtl"
+            ],
+            "gate_kind": "common_ai_agent_authoring",
+            "prerequisites": [
+              "An LLM authoring pass emitted or repaired DUT RTL files."
+            ],
+            "reason": "Missing common_ai_agent RTL authoring provenance.",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "stage_sequence": [
+              "ssot-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
+          {
+            "artifact": "rtl/rtl_compile.json",
+            "artifacts": [
+              "atcdmac100/rtl/rtl_compile.json",
+              "atcdmac100/rtl/rtl_compile.log"
+            ],
+            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+            "commands": [
+              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py atcdmac100 --top atcdmac100 --project-root .",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py atcdmac100 --root . --audit-rtl"
+            ],
+            "gate_kind": "dut_compile",
+            "prerequisites": [
+              "atcdmac100/list/atcdmac100.f covers the current DUT RTL sources."
+            ],
+            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
+            "source_ref": "quality_gates.rtl_gen.dut_compile",
+            "stage_sequence": [
+              "ssot-rtl",
+              "dut_compile"
+            ],
+            "status": "open",
+            "task_id": "RTL-0017"
+          },
+          {
+            "artifact": "lint/dut_lint.json",
+            "artifacts": [
+              "atcdmac100/lint/dut_lint.json"
+            ],
+            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
+            "commands": [
+              "python3 workflow/lint/scripts/dut_lint_report.py atcdmac100 --top atcdmac100",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py atcdmac100 --root . --audit-rtl"
+            ],
+            "gate_kind": "dut_lint",
+            "prerequisites": [
+              "atcdmac100/list/atcdmac100.f covers the current DUT RTL/header sources."
+            ],
+            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+            "source_ref": "quality_gates.rtl_gen.dut_lint",
+            "stage_sequence": [
+              "lint",
+              "dut_lint"
+            ],
+            "status": "open",
+            "task_id": "RTL-0018"
+          },
+          {
+            "artifact": "rtl/rtl_todo_plan.json",
+            "artifacts": [
+              "atcdmac100/rtl/rtl_todo_plan.json",
+              "atcdmac100/rtl/rtl_authoring_status.md"
+            ],
+            "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+            "commands": [
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py atcdmac100 --root . --audit-rtl"
+            ],
+            "gate_kind": "dynamic_todo_closure",
+            "prerequisites": [
+              "All non-closure required TODOs have pass status."
+            ],
+            "reason": "338 required non-closure TODO(s) remain open.",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "stage_sequence": [
+              "audit-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0019"
+          }
+        ],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
+      "owner_file": "rtl/atcdmac100.sv",
+      "owner_module": "atcdmac100",
+      "packet_id": "rtl_gate_tool_evidence",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 4
+        },
+        "module_slice": {},
+        "open_required_count": 4,
+        "required_count": 4,
+        "source_refs": [
+          "quality_gates.rtl_gen.common_ai_agent_authoring",
+          "quality_gates.rtl_gen.dut_compile",
+          "quality_gates.rtl_gen.dut_lint",
+          "quality_gates.rtl_gen.dynamic_todo_closure"
+        ],
+        "status_counts": {
+          "open": 4
+        },
+        "task_count": 4
+      }
+    }
+  ],
+  "policy": {
+    "dynamic_task_rule": "Use every required task in this file as the authoritative RTL implementation/evidence ledger. Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the existing flat TodoTracker executes one SSOT-derived RTL task at a time.",
+    "fixed_template_role": "seed_only",
+    "no_orphan_function_level": true,
+    "reference_profile_rule": "Optional rtl_reference_profile artifacts are calibration-only scale reports; they must not be copied, transformed, or used as fixed RTL templates.",
+    "rtl_gate_todo_rule": "RTL-gen quality gates are first-class rtl_gate.rtl_gen TODOs; compile/lint/static/ownership/owner-logic/placeholder-free/implementation-depth/top-io/top-output-drive/top-input-consumption/hierarchy/port-connection/signal-flow/connection-contract gates must close as TODOs before PASS.",
+    "rtl_quality_profile": "standard",
+    "rtl_target_scale": {},
+    "rtl_target_scale_waiver": {},
+    "single_source_of_truth": "SSOT YAML is the only authority for function_model, cycle_model, RTL ownership, DV plan, and coverage.",
+    "ssot_workflow_todo_rule": "workflow_todos.rtl-gen[] entries are first-class downstream tasks; content/detail/criteria must be preserved and satisfied by RTL evidence.",
+    "target_scale_rule": "Optional quality_gates.rtl_gen.target_scale is SSOT-locked human policy. It can be calibrated from a reference profile, but it is enforced as generic structural depth evidence, not as copied reference RTL."
+  },
+  "reference_profile": null,
+  "reference_scale_gap": {},
+  "rules": [
+    "Use rtl_todo_plan.json as the complete ledger and rtl_authoring_plan.json as the LLM work queue.",
+    "Process one authoring packet at a time: module packets first, then unowned tasks if any, then rtl_gate_evidence_closure; leave rtl_gate_tool_evidence to tools and rtl_gate_contract_blocked/rtl_gate_human_closure to human-locked authority gaps.",
+    "Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.",
+    "Do not close static RTL evidence with comments: derive_rtl_todos.py strips comments before matching, so evidence_terms must be preserved in live lint-clean RTL identifiers/logic.",
+    "Do not close static RTL evidence with evidence-only alias wires or marker-only helper wires; the matched identifiers must participate in real RTL behavior.",
+    "If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.",
+    "After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.",
+    "Keep locked authority artifacts unchanged unless a human approves a change request.",
+    "Rerun rtl_todo_plan audit, compile, lint, sim, and coverage evidence until required TODOs pass."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "status_markdown": "rtl/rtl_authoring_status.md",
+  "summary": {
+    "connection_contract_suggestions_present": false,
+    "deferred_human_qa_allowed": true,
+    "gate_packets": 3,
+    "human_locked_packets": 1,
+    "human_locked_tasks": 1,
+    "llm_actionable_packets": 21,
+    "llm_actionable_tasks": 334,
+    "max_packet_required_tasks": 48,
+    "module_packets": 20,
+    "next_llm_packets": [
+      "module__atcdmac100_core__function_model_01",
+      "module__atcdmac100_core__function_model_02",
+      "module__atcdmac100_core__registers",
+      "module__atcdmac100_core__function_model_03",
+      "module__atcdmac100_core__io_list",
+      "module__atcdmac100_core__cycle_model",
+      "module__atcdmac100_core__fsm",
+      "module__atcdmac100_core__coverage"
+    ],
+    "packet_task_limit": 48,
+    "packets": 23,
+    "pass_allowed": false,
+    "pending_connection_contract_suggestions": 0,
+    "recommended_packet_batch_limit": 4,
+    "reference_profile_present": false,
+    "reference_scale_gap_present": false,
+    "required_tasks": 344,
+    "sliced_module_packets": 20,
+    "target_scale_present": false,
+    "tool_evidence_packets": 1,
+    "tool_evidence_tasks": 4,
+    "total_tasks": 344,
+    "unowned_packets": 0
+  },
+  "target_scale": {},
+  "todo_plan_sha256": "72f45ac236a074e74c4c80ad18e49e1163775dd9e0f8018c491d6f6563c1a372",
+  "top": "atcdmac100",
+  "type": "rtl_authoring_plan"
+}

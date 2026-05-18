@@ -1,0 +1,4316 @@
+{
+  "ip": "atcdmac100",
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "source_of_truth": {
+    "ssot": "atcdmac100/yaml/atcdmac100.ssot.yaml",
+    "functional_model": "atcdmac100/model/functional_model.py",
+    "functional_model_exists": true,
+    "cycle_model_section": "cycle_model",
+    "decomposition": "atcdmac100/model/decomposition.json",
+    "coverage_plan": "atcdmac100/cov/fcov_plan.json",
+    "authority_contract": {
+      "rule": "LLM repair loops are allowed when a general criterion has objective machine evidence: PASS/FAIL/DIFF, coverage gap, lint diagnostic, assertion failure, stale evidence, traceability gap, or measured performance gap. Human gates own intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff.",
+      "general_evaluation_criteria": [
+        {
+          "id": "traceability",
+          "criterion": "Every generated artifact traces to SSOT requirement, function_model, cycle_model, interface, coverage, or quality_gates refs.",
+          "machine_evidence": [
+            "source refs in decomposition/equivalence goals",
+            "artifact manifests"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "functional_equivalence",
+          "criterion": "RTL observable behavior matches FunctionalModel results for every required transaction/scenario.",
+          "machine_evidence": [
+            "scoreboard_events.jsonl",
+            "fl_rtl_compare.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "module_equivalence",
+          "criterion": "Each behavior-owning RTL module has module-boundary evidence before top-level signoff.",
+          "machine_evidence": [
+            "scope.level=module scoreboard rows",
+            "module goal status"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "coverage_closure",
+          "criterion": "SSOT coverage goals are hit by passing RTL-observed scoreboard evidence.",
+          "machine_evidence": [
+            "fcov_plan.json",
+            "coverage.json",
+            "scoreboard coverage_refs"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "interface_protocol",
+          "criterion": "Ports, handshakes, ordering, reset, and error protocol obey SSOT io_list/cycle_model/interface contract.",
+          "machine_evidence": [
+            "protocol goals",
+            "assertion failures",
+            "waveform evidence"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "lint_compile",
+          "criterion": "DUT-only RTL compile/lint has zero unwaived errors, warnings, and style diagnostics.",
+          "machine_evidence": [
+            "rtl_compile.json",
+            "dut_lint.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "simulation_evidence",
+          "criterion": "Simulation results are fresh, bounded, non-stale, and tied to structured scoreboard goals.",
+          "machine_evidence": [
+            "results.xml",
+            "scoreboard_events.jsonl",
+            "stale_evidence checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "performance_cycle",
+          "criterion": "Cycle/performance targets from cycle_model/timing are measured or explicitly escalated.",
+          "machine_evidence": [
+            "latency/throughput measurements",
+            "CL/performance sweep reports"
+          ],
+          "llm_loop_allowed": "candidate_search_only"
+        },
+        {
+          "id": "debug_observability",
+          "criterion": "Waveforms and debug probes are sufficient to inspect reset, interface activity, state, outputs, and failures.",
+          "machine_evidence": [
+            "VCD/FST presence",
+            "debug_observability goals",
+            "waveform parser summary"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "maintainability",
+          "criterion": "Generated RTL/TB is structured by SSOT-owned modules, avoids fixed IP templates, and remains reviewable.",
+          "machine_evidence": [
+            "module contracts",
+            "dynamic todo plan",
+            "filelist/manifest checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "human_decision",
+          "criterion": "Intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff are human-owned.",
+          "machine_evidence": [
+            "human_gate questions/answers",
+            "approval state"
+          ],
+          "llm_loop_allowed": false
+        }
+      ],
+      "locked_artifacts": [
+        {
+          "name": "requirement",
+          "path": "atcdmac100/req/",
+          "owner": "human",
+          "change_rule": "Human owns intent, scope, priority, tradeoffs, and final acceptance."
+        },
+        {
+          "name": "ssot_spec",
+          "path": "atcdmac100/yaml/atcdmac100.ssot.yaml",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Behavior, interface, coverage goal, and waiver changes require human gate."
+        },
+        {
+          "name": "functional_model",
+          "path": "atcdmac100/model/functional_model.py",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "FunctionalModel is the golden oracle; sim-debug cannot change it to match RTL."
+        },
+        {
+          "name": "coverage_plan",
+          "path": "atcdmac100/cov/fcov_plan.json",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "LLM may add tests to hit bins, but cannot weaken or delete bins without approval."
+        },
+        {
+          "name": "interface_contract",
+          "path": "atcdmac100/yaml/atcdmac100.ssot.yaml#io_list",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Protocol and port contract changes require human approval."
+        },
+        {
+          "name": "performance_target",
+          "path": "atcdmac100/yaml/atcdmac100.ssot.yaml#cycle_model",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "LLM may sweep candidates, but target/tradeoff changes require human approval."
+        }
+      ],
+      "llm_editable_artifacts": [
+        "atcdmac100/rtl/",
+        "atcdmac100/tb/",
+        "atcdmac100/sim/",
+        "atcdmac100/reports/",
+        "atcdmac100/vectors/"
+      ],
+      "loopable_evidence_points": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "loopable_oracles": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "non_loopable_decisions": [
+        "change requirement intent or scope",
+        "change SSOT behavioral rule",
+        "change FunctionalModel golden semantics",
+        "change coverage goal or waiver",
+        "change interface contract",
+        "change performance target or architecture tradeoff",
+        "final signoff"
+      ]
+    }
+  },
+  "summary": {
+    "total": 59,
+    "required": 59,
+    "optional": 0,
+    "blocked": 0,
+    "unverified": 0,
+    "module_total": 1,
+    "module_required": 1,
+    "module_blocked": 0,
+    "module_unverified": 0
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM_RESET",
+      "title": "Transaction hardware or software reset matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "hardware or software reset",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hresetn == 0 or DMACtrl.Reset write is observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hready",
+          "hresp",
+          "hrdata",
+          "dma_int",
+          "dma_ack",
+          "hbusreq_mst",
+          "htrans_mst",
+          "haddr_mst",
+          "hwrite_mst",
+          "hsize_mst",
+          "hburst_mst",
+          "hwdata_mst",
+          "hready_reset",
+          "hresp_reset",
+          "dma_int_reset",
+          "htrans_mst_reset"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "disable all channels, clear active state, clear interrupt status",
+          "state_0",
+          "state_1",
+          "state_2",
+          "state_3",
+          "state_4",
+          "state_5",
+          "state_6",
+          "state_7",
+          "state_8",
+          "state_9",
+          "state_10",
+          "state_11"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_AHB_WRITE",
+      "title": "Transaction AHB slave register write matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[1]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and hwrite"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hready=1",
+          "hresp=OKAY for valid register writes",
+          "hready_write",
+          "hresp_write",
+          "dma_int_after_write"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "updates writable DMAC/channel registers; W1C clears IntStatus bits; ChAbort write-one aborts enabled channels",
+          "state_0",
+          "state_1",
+          "state_2",
+          "state_3",
+          "state_4"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_AHB_READ",
+      "title": "Transaction AHB slave register read matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[2]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_ARBITRATE",
+      "title": "Transaction channel arbitration matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[3]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "channel arbitration",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "select high priority channel first; round-robin among same priority channels",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_MASTER_READ",
+      "title": "Transaction AHB master read beat matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[4]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "AHB master read beat",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "busy and hgrant_mst and hready_mst and not fifo full"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "issues AHB master read from current source address",
+          "hbusreq_read",
+          "htrans_read",
+          "hwrite_read",
+          "haddr_read",
+          "hsize_word",
+          "hburst_incr"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "captures hrdata_mst for corresponding write beat",
+          "state_0"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_MASTER_WRITE",
+      "title": "Transaction AHB master write beat matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[5]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "AHB master write beat",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "busy and hgrant_mst and hready_mst and read data available"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "issues AHB master write to current destination address",
+          "hbusreq_write",
+          "htrans_write",
+          "hwrite_write",
+          "haddr_write",
+          "hwdata_write"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "increments/decrements/fixes addresses according to control fields and updates bytes_done",
+          "state_0",
+          "state_1",
+          "state_2"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_COMPLETE",
+      "title": "Transaction terminal count completion matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[6]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "terminal count completion",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "bytes_done reaches ChnTranSize without error or abort"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "updates IntStatus.TC and asserts dma_int if interrupt is unmasked",
+          "hbusreq_complete",
+          "htrans_complete",
+          "dma_int_tc"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "disables completed channel; chain pointer may preload next descriptor when enabled",
+          "state_0",
+          "state_1",
+          "state_2",
+          "state_3"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_ERROR_ABORT",
+      "title": "Transaction error or software abort matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[7]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "error or software abort",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hresp_mst indicates error, unaligned address, reserved mode, zero transfer size, or ChAbort bit is written"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "updates IntStatus.Error or Abort and asserts dma_int if unmasked",
+          "hbusreq_error",
+          "htrans_error",
+          "dma_int_error",
+          "dma_ack_error"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "disables affected channel; no dma_ack on error",
+          "state_0",
+          "state_1",
+          "state_2"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_HANDSHAKE_ACK",
+      "title": "Transaction hardware handshake acknowledge matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[8]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "hardware handshake acknowledge",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "selected source or destination handshake mode is enabled and SrcBurstSize transfers complete"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "asserts dma_ack for selected request pair until dma_req deasserts",
+          "dma_ack_selected",
+          "dma_int_handshake"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "does not assert ack when an error terminates the channel",
+          "state_0"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_AHB_REG",
+      "title": "Scenario SC_AHB_REG: AHB register programming",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "SC_AHB_REG_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_AHB_REG",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Write/read IdRev, DMACfg, IntStatus W1C, ChAbort, and channel register windows through AHB slave."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hready=1, hresp=OKAY, read data matches programmed or RO values, W1C clears only written status bits.",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_MEM_COPY",
+      "title": "Scenario SC_MEM_COPY: single-channel memory copy",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "SC_MEM_COPY_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_MEM_COPY",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Program channel source, destination, size, word width, increment modes, and Enable=1."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "AHB master issues read/write pairs, bytes_done advances, IntStatus.TC bit sets, channel disables.",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_ARB",
+      "title": "Scenario SC_ARB: priority round-robin arbitration",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "SC_ARB_executed",
+        "fcov_priority"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_ARB",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Enable multiple high and low priority channels."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "High priority service precedes low priority; same priority rotates without starvation.",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_HANDSHAKE",
+      "title": "Scenario SC_HANDSHAKE: hardware request acknowledge",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "SC_HANDSHAKE_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_HANDSHAKE",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Enable handshake modes with dma_req selected for source/destination."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Master traffic waits for request and dma_ack asserts after SrcBurstSize service, then deasserts after request drops.",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_ERROR_ABORT",
+      "title": "Scenario SC_ERROR_ABORT: error and abort handling",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[4]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "SC_ERROR_ABORT_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_ERROR_ABORT",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Inject hresp_mst error, unaligned address, reserved mode, zero TranSize, and ChAbort write."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Channel disables, IntStatus.Error or Abort sets, dma_int asserts according to mask, no ack on error.",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC_CHAIN",
+      "title": "Scenario SC_CHAIN: chain transfer continuation",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[5]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "SC_CHAIN_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC_CHAIN",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Program ChnLLPointer nonzero with chain support enabled."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Completion records chain pending/preload behavior and allows software to resume continuation.",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "title": "Ordering rule ordering_0",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_0",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Only one channel is actively serviced at a time."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "AHB slave register access is zero-wait; DMA data movement issues read/write beats while hgrant_mst and hready_mst are asserted.",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "title": "Ordering rule ordering_1",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[1]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_1",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Same-priority channels are visited in round-robin order."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "AHB slave register access is zero-wait; DMA data movement issues read/write beats while hgrant_mst and hready_mst are asserted.",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "title": "Ordering rule ordering_2",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[2]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_2",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "A write beat uses data captured from the preceding read beat."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "AHB slave register access is zero-wait; DMA data movement issues read/write beats while hgrant_mst and hready_mst are asserted.",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_3",
+      "title": "Ordering rule ordering_3",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[3]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_3",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "Chain descriptor preload happens after head transfer completion when ChnLLPointer is nonzero."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "AHB slave register access is zero-wait; DMA data movement issues read/write beats while hgrant_mst and hready_mst are asserted.",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_IDREV",
+      "title": "Register access IdRev",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[0]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_register_model"
+      ],
+      "coverage_refs": [
+        "SC_AHB_REG_executed",
+        "fcov_reg_idcfg",
+        "fcov_int_w1c",
+        "function_ahb_slave_register_write",
+        "function_ahb_slave_register_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'IdRev', 'offset': '0x00', 'width': 32, 'access': 'RO', 'reset': '0x01021012', 'description': 'ID and revision register', 'fields': [{'name': 'ID', 'bits': [31, 12], 'access': 'RO', 'reset': '0x01021', 'description': 'ID number for DMAC', 'write_effect': 'none'}, {'name': 'RevMajor', 'bits': [11, 4], 'access': 'RO', 'reset': '0x1', 'description': 'Major revision', 'write_effect': 'none'}, {'name': 'RevMinor', 'bits': [3, 0], 'access': 'RO', 'reset': '0x2', 'description': 'Minor revision', 'write_effect': 'none'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_DMACFG",
+      "title": "Register access DMACfg",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[1]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_register_model"
+      ],
+      "coverage_refs": [
+        "SC_AHB_REG_executed",
+        "fcov_reg_idcfg",
+        "fcov_int_w1c",
+        "function_ahb_slave_register_write",
+        "function_ahb_slave_register_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'DMACfg', 'offset': '0x10', 'width': 32, 'access': 'RO', 'reset': 'CONFIG', 'description': 'Configuration register', 'fields': [{'name': 'ChainXfr', 'bits': [31, 31], 'access': 'RO', 'reset': 'CHAIN_TRANSFER_SUPPORT', 'description': 'Chain transfer configured', 'write_effect': 'none'}, {'name': 'ReqSync', 'bits': [30, 30], 'access': 'RO', 'reset': '0x0', 'description': 'DMA request synchronization configured', 'write_effect': 'none'}, {'name': 'ReqNum', 'bits': [14, 10], 'access': 'RO', 'reset': 'REQ_ACK_NUM', 'description': 'Request/acknowledge number', 'write_effect': 'none'}, {'name': 'FIFODepth', 'bits': [9, 4], 'access': 'RO', 'reset': 'FIFO_DEPTH', 'description': 'FIFO depth', 'write_effect': 'none'}, {'name': 'ChannelNum', 'bits': [3, 0], 'access': 'RO', 'reset': 'DMA_CH_NUM', 'description': 'Channel number', 'write_effect': 'none'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_DMACTRL",
+      "title": "Register access DMACtrl",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[2]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_register_model"
+      ],
+      "coverage_refs": [
+        "SC_AHB_REG_executed",
+        "fcov_reg_idcfg",
+        "fcov_int_w1c",
+        "function_ahb_slave_register_write",
+        "function_ahb_slave_register_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'DMACtrl', 'offset': '0x20', 'width': 32, 'access': 'WO', 'reset': '0x0', 'description': 'Software reset control', 'fields': [{'name': 'Reset', 'bits': [0, 0], 'access': 'WO', 'reset': '0x0', 'description': 'Set to 1 to reset DMA core and disable all channels', 'write_effect': 'software reset pulse'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_INTSTATUS",
+      "title": "Register access IntStatus",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[3]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_register_model"
+      ],
+      "coverage_refs": [
+        "SC_AHB_REG_executed",
+        "fcov_reg_idcfg",
+        "fcov_int_w1c",
+        "function_ahb_slave_register_write",
+        "function_ahb_slave_register_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'IntStatus', 'offset': '0x30', 'width': 32, 'access': 'R/W1C', 'reset': '0x0', 'description': 'Terminal count, abort, and error status', 'fields': [{'name': 'TC', 'bits': [23, 16], 'access': 'R/W1C', 'reset': '0x0', 'description': 'Terminal count status per channel', 'write_effect': 'write one clear'}, {'name': 'Abort', 'bits': [15, 8], 'access': 'R/W1C', 'reset': '0x0', 'description': 'Abort status per channel', 'write_effect': 'write one clear'}, {'name': 'Error', 'bits': [7, 0], 'access': 'R/W1C', 'reset': '0x0', 'description': 'Error status per channel', 'write_effect': 'write one clear'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CHEN",
+      "title": "Register access ChEN",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[4]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_register_model"
+      ],
+      "coverage_refs": [
+        "SC_AHB_REG_executed",
+        "fcov_reg_idcfg",
+        "fcov_int_w1c",
+        "function_ahb_slave_register_write",
+        "function_ahb_slave_register_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'ChEN', 'offset': '0x34', 'width': 32, 'access': 'RO', 'reset': '0x0', 'description': 'Alias of channel enable fields', 'fields': [{'name': 'ChEN', 'bits': [7, 0], 'access': 'RO', 'reset': '0x0', 'description': 'Channel enable status', 'write_effect': 'none'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CHABORT",
+      "title": "Register access ChAbort",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[5]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_register_model"
+      ],
+      "coverage_refs": [
+        "SC_AHB_REG_executed",
+        "fcov_reg_idcfg",
+        "fcov_int_w1c",
+        "function_ahb_slave_register_write",
+        "function_ahb_slave_register_read",
+        "error_software_chabort_for_enabled_channel"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'ChAbort', 'offset': '0x40', 'width': 32, 'access': 'WO', 'reset': '0x0', 'description': 'Write-one channel abort control', 'fields': [{'name': 'ChAbort', 'bits': [7, 0], 'access': 'WO', 'reset': '0x0', 'description': 'Write 1 to stop current channel transfer; hardware clears when interrupt status cleared', 'write_effect': 'set abort request for enabled channel'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CHNCTRL",
+      "title": "Register access ChnCtrl",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[6]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_register_model"
+      ],
+      "coverage_refs": [
+        "SC_AHB_REG_executed",
+        "fcov_reg_idcfg",
+        "fcov_int_w1c",
+        "function_ahb_slave_register_write",
+        "function_ahb_slave_register_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'ChnCtrl', 'offset': '0x44+n*0x14', 'width': 32, 'access': 'R/W', 'reset': '0x000A0000', 'description': 'Per-channel control register', 'fields': [{'name': 'Priority', 'bits': [29, 29], 'access': 'R/W', 'reset': '0x0', 'description': 'Priority level', 'write_effect': 'stores written field value when the register write is accepted'}, {'name': 'SrcBurstSize', 'bits': [24, 22], 'access': 'R/W', 'reset': '0x0', 'description': 'Transfers before re-arbitration', 'write_effect': 'stores written field value when the register write is accepted'}, {'name': 'SrcWidth', 'bits': [21, 20], 'access': 'R/W', 'reset': '0x2', 'description': 'Source transfer width', 'write_effect': 'stores written field value when the register write is accepted'}, {'name': 'DstWidth', 'bits': [19, 18], 'access': 'R/W', 'reset': '0x2', 'description': 'Destination transfer width', 'write_effect': 'stores written field value when the register write is accepted'}, {'name': 'SrcMode', 'bits': [17, 17], 'access': 'R/W', 'reset': '0x0', 'description': 'Source handshake mode', 'write_effect': 'stores written field value when the register write is accepted'}, {'name': 'DstMode', 'bits': [16, 16], 'access': 'R/W', 'reset': '0x0', 'description': 'Destination handshake mode', 'write_effect': 'stores written field value when the register write is accepted'}, {'name': 'SrcAddrCtrl', 'bits': [15, 14], 'access': 'R/W', 'reset': '0x0', 'description': 'Source address control', 'write_effect': 'stores written field value when the register write is accepted'}, {'name': 'DstAddrCtrl', 'bits': [13, 12], 'access': 'R/W', 'reset': '0x0', 'description': 'Destination address control', 'write_effect': 'stores written field value when the register write is accepted'}, {'name': 'SrcReqSel', 'bits': [11, 8], 'access': 'R/W', 'reset': '0x0', 'description': 'Source request select', 'write_effect': 'stores written field value when the register write is accepted'}, {'name': 'DstReqSel', 'bits': [7, 4], 'access': 'R/W', 'reset': '0x0', 'description': 'Destination request select', 'write_effect': 'stores written field value when the register write is accepted'}, {'name': 'IntAbtMask', 'bits': [3, 3], 'access': 'R/W', 'reset': '0x0', 'description': 'Abort interrupt mask', 'write_effect': 'stores written field value when the register write is accepted'}, {'name': 'IntErrMask', 'bits': [2, 2], 'access': 'R/W', 'reset': '0x0', 'description': 'Error interrupt mask', 'write_effect': 'stores written field value when the register write is accepted'}, {'name': 'IntTCMask', 'bits': [1, 1], 'access': 'R/W', 'reset': '0x0', 'description': 'Terminal count interrupt mask', 'write_effect': 'stores written field value when the register write is accepted'}, {'name': 'Enable', 'bits': [0, 0], 'access': 'R/W', 'reset': '0x0', 'description': 'Channel enable bit', 'write_effect': 'stores written field value when the register write is accepted'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CHNSRCADDR",
+      "title": "Register access ChnSrcAddr",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[7]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_register_model"
+      ],
+      "coverage_refs": [
+        "SC_AHB_REG_executed",
+        "fcov_reg_idcfg",
+        "fcov_int_w1c",
+        "function_ahb_slave_register_write",
+        "function_ahb_slave_register_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'ChnSrcAddr', 'offset': '0x48+n*0x14', 'width': 32, 'access': 'R/W', 'reset': '0x0', 'description': 'Per-channel source address', 'fields': [{'name': 'SrcAddr', 'bits': [31, 0], 'access': 'R/W', 'reset': '0x0', 'description': 'Source starting address; updated as transfer progresses', 'write_effect': 'write source address'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CHNDSTADDR",
+      "title": "Register access ChnDstAddr",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[8]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_register_model"
+      ],
+      "coverage_refs": [
+        "SC_AHB_REG_executed",
+        "fcov_reg_idcfg",
+        "fcov_int_w1c",
+        "function_ahb_slave_register_write",
+        "function_ahb_slave_register_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'ChnDstAddr', 'offset': '0x4C+n*0x14', 'width': 32, 'access': 'R/W', 'reset': '0x0', 'description': 'Per-channel destination address', 'fields': [{'name': 'DstAddr', 'bits': [31, 0], 'access': 'R/W', 'reset': '0x0', 'description': 'Destination starting address; updated as transfer progresses', 'write_effect': 'write destination address'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CHNTRANSIZE",
+      "title": "Register access ChnTranSize",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[9]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_register_model"
+      ],
+      "coverage_refs": [
+        "SC_AHB_REG_executed",
+        "fcov_reg_idcfg",
+        "fcov_int_w1c",
+        "function_ahb_slave_register_write",
+        "function_ahb_slave_register_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'ChnTranSize', 'offset': '0x50+n*0x14', 'width': 32, 'access': 'R/W', 'reset': '0x0', 'description': 'Per-channel transfer size in source-width units', 'fields': [{'name': 'TranSize', 'bits': [21, 0], 'access': 'R/W', 'reset': '0x0', 'description': 'Total transfer size; zero at enable triggers error', 'write_effect': 'write transfer size'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CHNLLPOINTER",
+      "title": "Register access ChnLLPointer",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[10]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_register_model"
+      ],
+      "coverage_refs": [
+        "SC_AHB_REG_executed",
+        "fcov_reg_idcfg",
+        "fcov_int_w1c",
+        "function_ahb_slave_register_write",
+        "function_ahb_slave_register_read",
+        "cycle_ordering_3",
+        "fsm_name_complete_to_chain_load_8"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'ChnLLPointer', 'offset': '0x54+n*0x14', 'width': 32, 'access': 'R/W', 'reset': '0x0', 'description': 'Per-channel linked list pointer', 'fields': [{'name': 'LLPointer', 'bits': [31, 2], 'access': 'R/W', 'reset': '0x0', 'description': 'Word-aligned pointer to next descriptor', 'write_effect': 'write linked list pointer'}, {'name': 'Reserved', 'bits': [1, 0], 'access': 'reserved', 'reset': '0x0', 'description': 'Reserved low alignment bits', 'write_effect': 'ignore writes', 'read_value': '0'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_ERROR_AHB_HRESP_MST_ERROR",
+      "title": "Error policy AHB hresp_mst error",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[0]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [
+        "SC_ERROR_ABORT_executed",
+        "fcov_error_abort",
+        "ccov_error_response",
+        "function_error_or_software_abort",
+        "fsm_name_read_addr_to_error_abort_7",
+        "error_ahb_hresp_mst_error",
+        "error_unaligned_source_or_destination_address",
+        "error_reserved_width_or_address_control_mode",
+        "error_zero_transfer_size_when_enabling_a_channel",
+        "error_software_chabort_for_enabled_channel"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB hresp_mst error",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "AHB hresp_mst error"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "Set IntStatus.Error or IntStatus.Abort, clear channel enable, assert dma_int if not masked, stop further master transfers."
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_ERROR_UNALIGNED_SOURCE_OR_DESTINATION_ADDRESS",
+      "title": "Error policy unaligned source or destination address",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[1]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [
+        "SC_ERROR_ABORT_executed",
+        "fcov_error_abort",
+        "ccov_error_response",
+        "function_error_or_software_abort",
+        "fsm_name_read_addr_to_error_abort_7",
+        "error_ahb_hresp_mst_error",
+        "error_unaligned_source_or_destination_address",
+        "error_reserved_width_or_address_control_mode",
+        "error_zero_transfer_size_when_enabling_a_channel",
+        "error_software_chabort_for_enabled_channel"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "unaligned source or destination address",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "unaligned source or destination address"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "Set IntStatus.Error or IntStatus.Abort, clear channel enable, assert dma_int if not masked, stop further master transfers."
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_ERROR_RESERVED_WIDTH_OR_ADDRESS_CONTROL_MODE",
+      "title": "Error policy reserved width or address-control mode",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[2]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [
+        "SC_ERROR_ABORT_executed",
+        "fcov_error_abort",
+        "ccov_error_response",
+        "function_error_or_software_abort",
+        "fsm_name_read_addr_to_error_abort_7",
+        "error_ahb_hresp_mst_error",
+        "error_unaligned_source_or_destination_address",
+        "error_reserved_width_or_address_control_mode",
+        "error_zero_transfer_size_when_enabling_a_channel",
+        "error_software_chabort_for_enabled_channel"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reserved width or address-control mode",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "reserved width or address-control mode"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "Set IntStatus.Error or IntStatus.Abort, clear channel enable, assert dma_int if not masked, stop further master transfers."
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_ERROR_ZERO_TRANSFER_SIZE_WHEN_ENABLING_A_CHANNEL",
+      "title": "Error policy zero transfer size when enabling a channel",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[3]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [
+        "SC_ERROR_ABORT_executed",
+        "fcov_error_abort",
+        "ccov_error_response",
+        "function_error_or_software_abort",
+        "fsm_name_read_addr_to_error_abort_7",
+        "error_ahb_hresp_mst_error",
+        "error_unaligned_source_or_destination_address",
+        "error_reserved_width_or_address_control_mode",
+        "error_zero_transfer_size_when_enabling_a_channel",
+        "error_software_chabort_for_enabled_channel"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "zero transfer size when enabling a channel",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "zero transfer size when enabling a channel"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "Set IntStatus.Error or IntStatus.Abort, clear channel enable, assert dma_int if not masked, stop further master transfers."
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_ERROR_SOFTWARE_CHABORT_FOR_ENABLED_CHANNEL",
+      "title": "Error policy software ChAbort for enabled channel",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[4]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [
+        "SC_ERROR_ABORT_executed",
+        "fcov_error_abort",
+        "ccov_error_response",
+        "function_error_or_software_abort",
+        "fsm_name_read_addr_to_error_abort_7",
+        "error_ahb_hresp_mst_error",
+        "error_unaligned_source_or_destination_address",
+        "error_reserved_width_or_address_control_mode",
+        "error_zero_transfer_size_when_enabling_a_channel",
+        "error_software_chabort_for_enabled_channel"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "software ChAbort for enabled channel",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "software ChAbort for enabled channel"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "Set IntStatus.Error or IntStatus.Abort, clear channel enable, assert dma_int if not masked, stop further master transfers."
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "title": "Required debug/waveform observability exists",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "debug_observability.waveform_must_probe"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "debug_probe_capture",
+        "required_fields": [
+          "waveform_path"
+        ],
+        "constraints": [
+          "hclk",
+          "hresetn",
+          "hsel",
+          "haddr",
+          "hwdata",
+          "hrdata",
+          "hready",
+          "hresp",
+          "hbusreq_mst",
+          "hgrant_mst",
+          "htrans_mst",
+          "haddr_mst",
+          "hwrite_mst",
+          "hwdata_mst",
+          "hrdata_mst",
+          "hready_mst",
+          "hresp_mst",
+          "dma_req",
+          "dma_ack",
+          "dma_int",
+          "busy",
+          "active_ch",
+          "int_tc",
+          "int_abort",
+          "int_error"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "waveform contains required probes"
+        ],
+        "latency": "throughout simulation window",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Waveform includes SSOT-required debug probes",
+        "sim_debug can inspect those probes around checked scenarios"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "tb",
+          "coverage",
+          "rtl",
+          "ssot",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_MODULE_ATCDMAC100_CORE",
+      "title": "Module atcdmac100_core functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "atcdmac100_core",
+        "rtl_file": "rtl/atcdmac100_core.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.handshake_rule_0",
+        "cycle_model.handshake_rules.handshake_rule_1",
+        "cycle_model.handshake_rules.handshake_rule_2",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.observability.observability_1",
+        "cycle_model.observability.observability_2",
+        "cycle_model.observability.observability_3",
+        "cycle_model.observability.observability_4",
+        "cycle_model.observability.observability_5",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.pipeline.pipeline_0",
+        "cycle_model.pipeline.pipeline_1",
+        "cycle_model.pipeline.pipeline_2",
+        "cycle_model.pipeline.pipeline_3",
+        "cycle_model.reset",
+        "dataflow",
+        "error_handling",
+        "features",
+        "features.ahb_slave_registers",
+        "features.chain_transfer",
+        "features.hardware_handshake",
+        "features.interrupt_status",
+        "features.multi_channel_dma",
+        "features.priority_round_robin",
+        "fsm",
+        "function_model",
+        "function_model.invariants.one_channel_serviced",
+        "function_model.invariants.status_width",
+        "function_model.state_variables.active_ch",
+        "function_model.state_variables.busy",
+        "function_model.state_variables.bytes_done",
+        "function_model.state_variables.ch_enable",
+        "function_model.state_variables.chain_pending",
+        "function_model.state_variables.dmac_reset_pulse",
+        "function_model.state_variables.dst_addr_cur",
+        "function_model.state_variables.int_abort",
+        "function_model.state_variables.int_error",
+        "function_model.state_variables.int_tc",
+        "function_model.state_variables.read_data_hold",
+        "function_model.state_variables.src_addr_cur",
+        "function_model.transactions.fm_ahb_read",
+        "function_model.transactions.fm_ahb_read.error_cases.error_case_0",
+        "function_model.transactions.fm_ahb_read.output_rules.hrdata_id_cfg_status",
+        "function_model.transactions.fm_ahb_read.output_rules.hready_read",
+        "function_model.transactions.fm_ahb_read.output_rules.hresp_read",
+        "function_model.transactions.fm_ahb_read.outputs.output_0",
+        "function_model.transactions.fm_ahb_read.preconditions.precondition_0",
+        "function_model.transactions.fm_ahb_read.side_effects.side_effect_0",
+        "function_model.transactions.fm_ahb_write",
+        "function_model.transactions.fm_ahb_write.error_cases.error_case_0",
+        "function_model.transactions.fm_ahb_write.output_rules.dma_int_after_write",
+        "function_model.transactions.fm_ahb_write.output_rules.hready_write",
+        "function_model.transactions.fm_ahb_write.output_rules.hresp_write",
+        "function_model.transactions.fm_ahb_write.outputs.output_0",
+        "function_model.transactions.fm_ahb_write.outputs.output_1",
+        "function_model.transactions.fm_ahb_write.preconditions.precondition_0",
+        "function_model.transactions.fm_ahb_write.side_effects.side_effect_0",
+        "function_model.transactions.fm_ahb_write.state_updates.ch_enable",
+        "function_model.transactions.fm_ahb_write.state_updates.dmac_reset_pulse",
+        "function_model.transactions.fm_ahb_write.state_updates.int_abort",
+        "function_model.transactions.fm_ahb_write.state_updates.int_error",
+        "function_model.transactions.fm_ahb_write.state_updates.int_tc",
+        "function_model.transactions.fm_arbitrate",
+        "function_model.transactions.fm_arbitrate.error_cases.error_case_0",
+        "function_model.transactions.fm_arbitrate.output_rules.hbusreq_on_start",
+        "function_model.transactions.fm_arbitrate.output_rules.htrans_idle_on_start",
+        "function_model.transactions.fm_arbitrate.outputs.output_0",
+        "function_model.transactions.fm_arbitrate.preconditions.precondition_0",
+        "function_model.transactions.fm_arbitrate.side_effects.side_effect_0",
+        "function_model.transactions.fm_arbitrate.state_updates.active_ch",
+        "function_model.transactions.fm_arbitrate.state_updates.busy",
+        "function_model.transactions.fm_arbitrate.state_updates.bytes_done",
+        "function_model.transactions.fm_complete",
+        "function_model.transactions.fm_complete.error_cases.error_case_0",
+        "function_model.transactions.fm_complete.output_rules.dma_int_tc",
+        "function_model.transactions.fm_complete.output_rules.hbusreq_complete",
+        "function_model.transactions.fm_complete.output_rules.htrans_complete",
+        "function_model.transactions.fm_complete.outputs.output_0",
+        "function_model.transactions.fm_complete.preconditions.precondition_0",
+        "function_model.transactions.fm_complete.side_effects.side_effect_0",
+        "function_model.transactions.fm_complete.state_updates.busy",
+        "function_model.transactions.fm_complete.state_updates.ch_enable",
+        "function_model.transactions.fm_complete.state_updates.chain_pending",
+        "function_model.transactions.fm_complete.state_updates.int_tc",
+        "function_model.transactions.fm_error_abort",
+        "function_model.transactions.fm_error_abort.error_cases.error_case_0",
+        "function_model.transactions.fm_error_abort.output_rules.dma_ack_error",
+        "function_model.transactions.fm_error_abort.output_rules.dma_int_error",
+        "function_model.transactions.fm_error_abort.output_rules.hbusreq_error",
+        "function_model.transactions.fm_error_abort.output_rules.htrans_error",
+        "function_model.transactions.fm_error_abort.outputs.output_0",
+        "function_model.transactions.fm_error_abort.preconditions.precondition_0",
+        "function_model.transactions.fm_error_abort.side_effects.side_effect_0",
+        "function_model.transactions.fm_error_abort.state_updates.busy",
+        "function_model.transactions.fm_error_abort.state_updates.ch_enable",
+        "function_model.transactions.fm_error_abort.state_updates.int_error",
+        "function_model.transactions.fm_handshake_ack",
+        "function_model.transactions.fm_handshake_ack.error_cases.error_case_0",
+        "function_model.transactions.fm_handshake_ack.output_rules.dma_ack_selected",
+        "function_model.transactions.fm_handshake_ack.output_rules.dma_int_handshake",
+        "function_model.transactions.fm_handshake_ack.outputs.output_0",
+        "function_model.transactions.fm_handshake_ack.preconditions.precondition_0",
+        "function_model.transactions.fm_handshake_ack.side_effects.side_effect_0",
+        "function_model.transactions.fm_handshake_ack.state_updates.active_ch",
+        "function_model.transactions.fm_master_read",
+        "function_model.transactions.fm_master_read.error_cases.error_case_0",
+        "function_model.transactions.fm_master_read.output_rules.haddr_read",
+        "function_model.transactions.fm_master_read.output_rules.hburst_incr",
+        "function_model.transactions.fm_master_read.output_rules.hbusreq_read",
+        "function_model.transactions.fm_master_read.output_rules.hsize_word",
+        "function_model.transactions.fm_master_read.output_rules.htrans_read",
+        "function_model.transactions.fm_master_read.output_rules.hwrite_read",
+        "function_model.transactions.fm_master_read.outputs.output_0",
+        "function_model.transactions.fm_master_read.preconditions.precondition_0",
+        "function_model.transactions.fm_master_read.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_read.state_updates.read_data_hold",
+        "function_model.transactions.fm_master_write",
+        "function_model.transactions.fm_master_write.error_cases.error_case_0",
+        "function_model.transactions.fm_master_write.output_rules.haddr_write",
+        "function_model.transactions.fm_master_write.output_rules.hbusreq_write",
+        "function_model.transactions.fm_master_write.output_rules.htrans_write",
+        "function_model.transactions.fm_master_write.output_rules.hwdata_write",
+        "function_model.transactions.fm_master_write.output_rules.hwrite_write",
+        "function_model.transactions.fm_master_write.outputs.output_0",
+        "function_model.transactions.fm_master_write.preconditions.precondition_0",
+        "function_model.transactions.fm_master_write.side_effects.side_effect_0",
+        "function_model.transactions.fm_master_write.state_updates.bytes_done",
+        "function_model.transactions.fm_master_write.state_updates.dst_addr_cur",
+        "function_model.transactions.fm_master_write.state_updates.src_addr_cur",
+        "function_model.transactions.fm_reset",
+        "function_model.transactions.fm_reset.error_cases.error_case_0",
+        "function_model.transactions.fm_reset.output_rules.dma_int_reset",
+        "function_model.transactions.fm_reset.output_rules.hready_reset",
+        "function_model.transactions.fm_reset.output_rules.hresp_reset",
+        "function_model.transactions.fm_reset.output_rules.htrans_mst_reset",
+        "function_model.transactions.fm_reset.outputs.output_0",
+        "function_model.transactions.fm_reset.outputs.output_1",
+        "function_model.transactions.fm_reset.outputs.output_10",
+        "function_model.transactions.fm_reset.outputs.output_11",
+        "function_model.transactions.fm_reset.outputs.output_2",
+        "function_model.transactions.fm_reset.outputs.output_3",
+        "function_model.transactions.fm_reset.outputs.output_4",
+        "function_model.transactions.fm_reset.outputs.output_5",
+        "function_model.transactions.fm_reset.outputs.output_6",
+        "function_model.transactions.fm_reset.outputs.output_7",
+        "function_model.transactions.fm_reset.outputs.output_8",
+        "function_model.transactions.fm_reset.outputs.output_9",
+        "function_model.transactions.fm_reset.preconditions.precondition_0",
+        "function_model.transactions.fm_reset.side_effects.side_effect_0",
+        "function_model.transactions.fm_reset.state_updates.active_ch",
+        "function_model.transactions.fm_reset.state_updates.busy",
+        "function_model.transactions.fm_reset.state_updates.bytes_done",
+        "function_model.transactions.fm_reset.state_updates.ch_enable",
+        "function_model.transactions.fm_reset.state_updates.chain_pending",
+        "function_model.transactions.fm_reset.state_updates.dmac_reset_pulse",
+        "function_model.transactions.fm_reset.state_updates.dst_addr_cur",
+        "function_model.transactions.fm_reset.state_updates.int_abort",
+        "function_model.transactions.fm_reset.state_updates.int_error",
+        "function_model.transactions.fm_reset.state_updates.int_tc",
+        "function_model.transactions.fm_reset.state_updates.read_data_hold",
+        "function_model.transactions.fm_reset.state_updates.src_addr_cur",
+        "interrupts",
+        "io_list",
+        "registers",
+        "registers.register_list.chabort",
+        "registers.register_list.chen",
+        "registers.register_list.chnctrl",
+        "registers.register_list.chndstaddr",
+        "registers.register_list.chnllpointer",
+        "registers.register_list.chnsrcaddr",
+        "registers.register_list.chntransize",
+        "registers.register_list.dmacfg",
+        "registers.register_list.dmactrl",
+        "registers.register_list.idrev",
+        "registers.register_list.intstatus",
+        "test_requirements",
+        "traceability"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FCOV_DMA_READ_WRITE",
+      "title": "Functional coverage bin fcov_dma_read_write: DMA master read beat is observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins[2]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "fcov_dma_read_write"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "DMA master read beat is observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FCOV_DMA_WRITE",
+      "title": "Functional coverage bin fcov_dma_write: DMA master write beat is observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins[3]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "fcov_dma_write"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "DMA master write beat is observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FCOV_TC_INT",
+      "title": "Functional coverage bin fcov_tc_int: Terminal count status and interrupt are observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins[4]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "fcov_tc_int"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "Terminal count status and interrupt are observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FCOV_REQ_ACK",
+      "title": "Functional coverage bin fcov_req_ack: dma_req/dma_ack service is observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins[6]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "fcov_req_ack"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "dma_req/dma_ack service is observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_AHB_SLAVE_ACCESS",
+      "title": "Functional coverage bin ccov_ahb_slave_access: AHB slave access handshake observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins[8]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_ahb_slave_access"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "AHB slave access handshake observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_MASTER_READ_WRITE",
+      "title": "Functional coverage bin ccov_master_read_write: read/write pipeline states observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins[9]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_master_read_write"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "read/write pipeline states observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_WAIT_STATE",
+      "title": "Functional coverage bin ccov_wait_state: AHB master ready/grant backpressure observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins[10]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_wait_state"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "AHB master ready/grant backpressure observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_HANDSHAKE_WAIT",
+      "title": "Functional coverage bin ccov_handshake_wait: dma_req wait and dma_ack sequence observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins[11]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_handshake_wait"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "dma_req wait and dma_ack sequence observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FUNCTION_HARDWARE_OR_SOFTWARE_RESET",
+      "title": "Functional coverage bin function_hardware_or_software_reset: hardware_or_software_reset",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "function_hardware_or_software_reset"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "hardware_or_software_reset"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FUNCTION_CHANNEL_ARBITRATION",
+      "title": "Functional coverage bin function_channel_arbitration: channel_arbitration",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[3]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "function_channel_arbitration"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "channel_arbitration"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FUNCTION_AHB_MASTER_READ_BEAT",
+      "title": "Functional coverage bin function_ahb_master_read_beat: ahb_master_read_beat",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[4]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "function_ahb_master_read_beat"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "ahb_master_read_beat"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FUNCTION_AHB_MASTER_WRITE_BEAT",
+      "title": "Functional coverage bin function_ahb_master_write_beat: ahb_master_write_beat",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[5]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "function_ahb_master_write_beat"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "ahb_master_write_beat"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FUNCTION_TERMINAL_COUNT_COMPLETION",
+      "title": "Functional coverage bin function_terminal_count_completion: terminal_count_completion",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[6]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "function_terminal_count_completion"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "terminal_count_completion"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FUNCTION_HARDWARE_HANDSHAKE_ACKNOWLEDGE",
+      "title": "Functional coverage bin function_hardware_handshake_acknowledge: hardware_handshake_acknowledge",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[8]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "function_hardware_handshake_acknowledge"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "hardware_handshake_acknowledge"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FSM_NAME_IDLE_TO_ARBITRATE_0",
+      "title": "Functional coverage bin fsm_name_idle_to_arbitrate_0: ch_enable != 0",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.name.transitions[0]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "fsm_name_idle_to_arbitrate_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "ch_enable != 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FSM_NAME_ARBITRATE_TO_READ_ADDR_1",
+      "title": "Functional coverage bin fsm_name_arbitrate_to_read_addr_1: selected channel ready and handshake satisfied",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.name.transitions[1]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "fsm_name_arbitrate_to_read_addr_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "selected channel ready and handshake satisfied"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FSM_NAME_READ_ADDR_TO_READ_DATA_2",
+      "title": "Functional coverage bin fsm_name_read_addr_to_read_data_2: hgrant_mst && hready_mst",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.name.transitions[2]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "fsm_name_read_addr_to_read_data_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "hgrant_mst && hready_mst"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FSM_NAME_READ_DATA_TO_WRITE_ADDR_3",
+      "title": "Functional coverage bin fsm_name_read_data_to_write_addr_3: read_data captured",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.name.transitions[3]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "fsm_name_read_data_to_write_addr_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "read_data captured"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FSM_NAME_WRITE_ADDR_TO_WRITE_DATA_4",
+      "title": "Functional coverage bin fsm_name_write_addr_to_write_data_4: hgrant_mst && hready_mst",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.name.transitions[4]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "fsm_name_write_addr_to_write_data_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "hgrant_mst && hready_mst"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FSM_NAME_WRITE_DATA_TO_COMPLETE_5",
+      "title": "Functional coverage bin fsm_name_write_data_to_complete_5: last beat done",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.name.transitions[5]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "fsm_name_write_data_to_complete_5"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "last beat done"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FSM_NAME_WRITE_DATA_TO_READ_ADDR_6",
+      "title": "Functional coverage bin fsm_name_write_data_to_read_addr_6: more beats remain",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.name.transitions[6]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "fsm_name_write_data_to_read_addr_6"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "more beats remain"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FSM_NAME_COMPLETE_TO_IDLE_9",
+      "title": "Functional coverage bin fsm_name_complete_to_idle_9: no chain continuation",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.name.transitions[9]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "fsm_name_complete_to_idle_9"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "hsel and hreadyin and htrans[1] and not hwrite",
+          "no chain continuation"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    }
+  ]
+}

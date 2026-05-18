@@ -1,0 +1,1775 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 29,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 1,
+      "key": "io_list",
+      "module_task_count": 278,
+      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/atcdmac100_core.sv",
+      "name": "atcdmac100_core",
+      "refs": [
+        "cycle_model",
+        "dataflow",
+        "error_handling",
+        "features",
+        "fsm",
+        "function_model",
+        "interrupts",
+        "io_list",
+        "registers",
+        "test_requirements",
+        "traceability"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/atcdmac100_core.sv",
+        "name": "atcdmac100_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/atcdmac100.sv",
+        "name": "atcdmac100",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hclk",
+        "signal": "hclk",
+        "signal_terms": [
+          "hclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresetn",
+        "signal": "hresetn",
+        "signal_terms": [
+          "hresetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_int",
+        "signal": "dma_int",
+        "signal_terms": [
+          "dma_int"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_req",
+        "signal": "dma_req",
+        "signal_terms": [
+          "dma_req"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "dma_ack",
+        "signal": "dma_ack",
+        "signal_terms": [
+          "dma_ack"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "haddr",
+        "signal": "haddr",
+        "signal_terms": [
+          "haddr"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "htrans",
+        "signal": "htrans",
+        "signal_terms": [
+          "htrans"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwrite",
+        "signal": "hwrite",
+        "signal_terms": [
+          "hwrite"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsize",
+        "signal": "hsize",
+        "signal_terms": [
+          "hsize"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hburst",
+        "signal": "hburst",
+        "signal_terms": [
+          "hburst"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwdata",
+        "signal": "hwdata",
+        "signal_terms": [
+          "hwdata"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsel",
+        "signal": "hsel",
+        "signal_terms": [
+          "hsel"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hreadyin",
+        "signal": "hreadyin",
+        "signal_terms": [
+          "hreadyin"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hrdata",
+        "signal": "hrdata",
+        "signal_terms": [
+          "hrdata"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresp",
+        "signal": "hresp",
+        "signal_terms": [
+          "hresp"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hready",
+        "signal": "hready",
+        "signal_terms": [
+          "hready"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "haddr_mst",
+        "signal": "haddr_mst",
+        "signal_terms": [
+          "haddr_mst"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "htrans_mst",
+        "signal": "htrans_mst",
+        "signal_terms": [
+          "htrans_mst"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwrite_mst",
+        "signal": "hwrite_mst",
+        "signal_terms": [
+          "hwrite_mst"
+        ],
+        "source_ref": "integration.connections[18]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hsize_mst",
+        "signal": "hsize_mst",
+        "signal_terms": [
+          "hsize_mst"
+        ],
+        "source_ref": "integration.connections[19]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hprot_mst",
+        "signal": "hprot_mst",
+        "signal_terms": [
+          "hprot_mst"
+        ],
+        "source_ref": "integration.connections[20]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hlock_mst",
+        "signal": "hlock_mst",
+        "signal_terms": [
+          "hlock_mst"
+        ],
+        "source_ref": "integration.connections[21]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hburst_mst",
+        "signal": "hburst_mst",
+        "signal_terms": [
+          "hburst_mst"
+        ],
+        "source_ref": "integration.connections[22]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hwdata_mst",
+        "signal": "hwdata_mst",
+        "signal_terms": [
+          "hwdata_mst"
+        ],
+        "source_ref": "integration.connections[23]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hrdata_mst",
+        "signal": "hrdata_mst",
+        "signal_terms": [
+          "hrdata_mst"
+        ],
+        "source_ref": "integration.connections[24]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hresp_mst",
+        "signal": "hresp_mst",
+        "signal_terms": [
+          "hresp_mst"
+        ],
+        "source_ref": "integration.connections[25]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hready_mst",
+        "signal": "hready_mst",
+        "signal_terms": [
+          "hready_mst"
+        ],
+        "source_ref": "integration.connections[26]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hbusreq_mst",
+        "signal": "hbusreq_mst",
+        "signal_terms": [
+          "hbusreq_mst"
+        ],
+        "source_ref": "integration.connections[27]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "atcdmac100_core",
+        "port": "hgrant_mst",
+        "signal": "hgrant_mst",
+        "signal_terms": [
+          "hgrant_mst"
+        ],
+        "source_ref": "integration.connections[28]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 29,
+    "open_required_count": 29,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "atcdmac100",
+  "kind": "module",
+  "owner_file": "rtl/atcdmac100_core.sv",
+  "owner_module": "atcdmac100_core",
+  "packet_id": "module__atcdmac100_core__io_list",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "io_list.port": 29
+    },
+    "module_slice": {
+      "count": 14,
+      "enabled": true,
+      "index": 1,
+      "key": "io_list",
+      "module_task_count": 278,
+      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 29,
+    "required_count": 29,
+    "source_refs": [
+      "io_list.clock_domains.hclk_domain.ports.hclk",
+      "io_list.resets.hresetn.ports.hresetn",
+      "io_list.interfaces.dma_handshake.ports.dma_int",
+      "io_list.interfaces.dma_handshake.ports.dma_req",
+      "io_list.interfaces.dma_handshake.ports.dma_ack",
+      "io_list.interfaces.ahb_slave_regs.ports.haddr",
+      "io_list.interfaces.ahb_slave_regs.ports.htrans",
+      "io_list.interfaces.ahb_slave_regs.ports.hwrite",
+      "io_list.interfaces.ahb_slave_regs.ports.hsize",
+      "io_list.interfaces.ahb_slave_regs.ports.hburst",
+      "io_list.interfaces.ahb_slave_regs.ports.hwdata",
+      "io_list.interfaces.ahb_slave_regs.ports.hsel",
+      "io_list.interfaces.ahb_slave_regs.ports.hreadyin",
+      "io_list.interfaces.ahb_slave_regs.ports.hrdata",
+      "io_list.interfaces.ahb_slave_regs.ports.hresp",
+      "io_list.interfaces.ahb_slave_regs.ports.hready",
+      "io_list.interfaces.ahb_master_dma.ports.haddr_mst",
+      "io_list.interfaces.ahb_master_dma.ports.htrans_mst",
+      "io_list.interfaces.ahb_master_dma.ports.hwrite_mst",
+      "io_list.interfaces.ahb_master_dma.ports.hsize_mst",
+      "io_list.interfaces.ahb_master_dma.ports.hprot_mst",
+      "io_list.interfaces.ahb_master_dma.ports.hlock_mst",
+      "io_list.interfaces.ahb_master_dma.ports.hburst_mst",
+      "io_list.interfaces.ahb_master_dma.ports.hwdata_mst"
+    ],
+    "status_counts": {
+      "open": 29
+    },
+    "task_count": 29
+  },
+  "tasks": [
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hclk",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.hclk_domain.ports.hclk",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hclk width matches SSOT value 1",
+        "hclk port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.hclk_domain.ports.hclk.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hclk; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0028",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.hclk_domain.ports.hclk",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hclk",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.hclk_domain.ports.hclk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hresetn",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.hresetn.ports.hresetn",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hresetn width matches SSOT value 1",
+        "hresetn port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.hresetn.ports.hresetn.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hresetn; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0029",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.hresetn.ports.hresetn",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hresetn",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.hresetn.ports.hresetn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port dma_int",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.dma_handshake.ports.dma_int",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "dma_int width matches SSOT value 1",
+        "dma_int port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_handshake.ports.dma_int.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=dma_int; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0030",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.dma_handshake.ports.dma_int",
+      "ssot_context": {
+        "direction": "output",
+        "name": "dma_int",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.dma_handshake.ports.dma_int"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port dma_req",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.dma_handshake.ports.dma_req",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "dma_req width matches SSOT value REQ_ACK_NUM",
+        "dma_req port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_handshake.ports.dma_req.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=dma_req; width=REQ_ACK_NUM; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0031",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.dma_handshake.ports.dma_req",
+      "ssot_context": {
+        "direction": "input",
+        "name": "dma_req",
+        "width": "REQ_ACK_NUM"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.dma_handshake.ports.dma_req"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port dma_ack",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.dma_handshake.ports.dma_ack",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "dma_ack width matches SSOT value REQ_ACK_NUM",
+        "dma_ack port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_handshake.ports.dma_ack.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=dma_ack; width=REQ_ACK_NUM; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0032",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.dma_handshake.ports.dma_ack",
+      "ssot_context": {
+        "direction": "output",
+        "name": "dma_ack",
+        "width": "REQ_ACK_NUM"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.dma_handshake.ports.dma_ack"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port haddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_slave_regs.ports.haddr",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "haddr width matches SSOT value ADDR_WIDTH",
+        "haddr port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_slave_regs.ports.haddr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=haddr; width=ADDR_WIDTH; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_slave_regs.ports.haddr",
+      "ssot_context": {
+        "direction": "input",
+        "name": "haddr",
+        "width": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_slave_regs.ports.haddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port htrans",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_slave_regs.ports.htrans",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "htrans width matches SSOT value 2",
+        "htrans port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_slave_regs.ports.htrans.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=htrans; width=2; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_slave_regs.ports.htrans",
+      "ssot_context": {
+        "direction": "input",
+        "name": "htrans",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_slave_regs.ports.htrans"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hwrite",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_slave_regs.ports.hwrite",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hwrite width matches SSOT value 1",
+        "hwrite port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_slave_regs.ports.hwrite.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hwrite; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_slave_regs.ports.hwrite",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hwrite",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_slave_regs.ports.hwrite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hsize",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_slave_regs.ports.hsize",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hsize width matches SSOT value 3",
+        "hsize port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_slave_regs.ports.hsize.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hsize; width=3; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_slave_regs.ports.hsize",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hsize",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_slave_regs.ports.hsize"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hburst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_slave_regs.ports.hburst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hburst width matches SSOT value 3",
+        "hburst port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_slave_regs.ports.hburst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hburst; width=3; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_slave_regs.ports.hburst",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hburst",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_slave_regs.ports.hburst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hwdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_slave_regs.ports.hwdata",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hwdata width matches SSOT value 32",
+        "hwdata port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_slave_regs.ports.hwdata.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hwdata; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_slave_regs.ports.hwdata",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hwdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_slave_regs.ports.hwdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hsel",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_slave_regs.ports.hsel",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hsel width matches SSOT value 1",
+        "hsel port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_slave_regs.ports.hsel.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hsel; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_slave_regs.ports.hsel",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hsel",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_slave_regs.ports.hsel"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hreadyin",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_slave_regs.ports.hreadyin",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hreadyin width matches SSOT value 1",
+        "hreadyin port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_slave_regs.ports.hreadyin.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hreadyin; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0040",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_slave_regs.ports.hreadyin",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hreadyin",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_slave_regs.ports.hreadyin"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hrdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_slave_regs.ports.hrdata",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hrdata width matches SSOT value 32",
+        "hrdata port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_slave_regs.ports.hrdata.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hrdata; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_slave_regs.ports.hrdata",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hrdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_slave_regs.ports.hrdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hresp",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_slave_regs.ports.hresp",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hresp width matches SSOT value 2",
+        "hresp port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_slave_regs.ports.hresp.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hresp; width=2; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0042",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_slave_regs.ports.hresp",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hresp",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_slave_regs.ports.hresp"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_slave_regs.ports.hready",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hready width matches SSOT value 1",
+        "hready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_slave_regs.ports.hready.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_slave_regs.ports.hready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_slave_regs.ports.hready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port haddr_mst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master_dma.ports.haddr_mst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "haddr_mst width matches SSOT value ADDR_WIDTH",
+        "haddr_mst port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master_dma.ports.haddr_mst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=haddr_mst; width=ADDR_WIDTH; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master_dma.ports.haddr_mst",
+      "ssot_context": {
+        "direction": "output",
+        "name": "haddr_mst",
+        "width": "ADDR_WIDTH"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master_dma.ports.haddr_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port htrans_mst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master_dma.ports.htrans_mst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "htrans_mst width matches SSOT value 2",
+        "htrans_mst port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master_dma.ports.htrans_mst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=htrans_mst; width=2; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0045",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master_dma.ports.htrans_mst",
+      "ssot_context": {
+        "direction": "output",
+        "name": "htrans_mst",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master_dma.ports.htrans_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hwrite_mst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master_dma.ports.hwrite_mst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hwrite_mst width matches SSOT value 1",
+        "hwrite_mst port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master_dma.ports.hwrite_mst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hwrite_mst; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0046",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master_dma.ports.hwrite_mst",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hwrite_mst",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master_dma.ports.hwrite_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hsize_mst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master_dma.ports.hsize_mst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hsize_mst width matches SSOT value 3",
+        "hsize_mst port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master_dma.ports.hsize_mst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hsize_mst; width=3; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0047",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master_dma.ports.hsize_mst",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hsize_mst",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master_dma.ports.hsize_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hprot_mst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master_dma.ports.hprot_mst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hprot_mst width matches SSOT value 4",
+        "hprot_mst port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master_dma.ports.hprot_mst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hprot_mst; width=4; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0048",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master_dma.ports.hprot_mst",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hprot_mst",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master_dma.ports.hprot_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hlock_mst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master_dma.ports.hlock_mst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hlock_mst width matches SSOT value 1",
+        "hlock_mst port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master_dma.ports.hlock_mst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hlock_mst; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master_dma.ports.hlock_mst",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hlock_mst",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master_dma.ports.hlock_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hburst_mst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master_dma.ports.hburst_mst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hburst_mst width matches SSOT value 3",
+        "hburst_mst port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master_dma.ports.hburst_mst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hburst_mst; width=3; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0050",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master_dma.ports.hburst_mst",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hburst_mst",
+        "width": "3"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master_dma.ports.hburst_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hwdata_mst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master_dma.ports.hwdata_mst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hwdata_mst width matches SSOT value 32",
+        "hwdata_mst port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master_dma.ports.hwdata_mst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hwdata_mst; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0051",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master_dma.ports.hwdata_mst",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hwdata_mst",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master_dma.ports.hwdata_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hrdata_mst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master_dma.ports.hrdata_mst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hrdata_mst width matches SSOT value 32",
+        "hrdata_mst port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master_dma.ports.hrdata_mst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hrdata_mst; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0052",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master_dma.ports.hrdata_mst",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hrdata_mst",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master_dma.ports.hrdata_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hresp_mst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master_dma.ports.hresp_mst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hresp_mst width matches SSOT value 2",
+        "hresp_mst port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master_dma.ports.hresp_mst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hresp_mst; width=2; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0053",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master_dma.ports.hresp_mst",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hresp_mst",
+        "width": "2"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master_dma.ports.hresp_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hready_mst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master_dma.ports.hready_mst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hready_mst width matches SSOT value 1",
+        "hready_mst port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master_dma.ports.hready_mst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hready_mst; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0054",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master_dma.ports.hready_mst",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hready_mst",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master_dma.ports.hready_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hbusreq_mst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master_dma.ports.hbusreq_mst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hbusreq_mst width matches SSOT value 1",
+        "hbusreq_mst port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master_dma.ports.hbusreq_mst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hbusreq_mst; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0055",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master_dma.ports.hbusreq_mst",
+      "ssot_context": {
+        "direction": "output",
+        "name": "hbusreq_mst",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master_dma.ports.hbusreq_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port hgrant_mst",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.ahb_master_dma.ports.hgrant_mst",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "hgrant_mst width matches SSOT value 1",
+        "hgrant_mst port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.ahb_master_dma.ports.hgrant_mst.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.\nSSOT item context: name=hgrant_mst; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0056",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.ahb_master_dma.ports.hgrant_mst",
+      "ssot_context": {
+        "direction": "input",
+        "name": "hgrant_mst",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.ahb_master_dma.ports.hgrant_mst"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "required": true,
+        "status": "open"
+      }
+    }
+  ],
+  "todo_plan_sha256": "72f45ac236a074e74c4c80ad18e49e1163775dd9e0f8018c491d6f6563c1a372",
+  "top": "atcdmac100",
+  "type": "rtl_authoring_packet"
+}

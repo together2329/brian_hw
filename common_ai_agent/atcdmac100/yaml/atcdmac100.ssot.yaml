@@ -1,299 +1,2534 @@
-ip: atcdmac100
-schema_version: 0.1.0
-source_requirement: "ATLAS goal: implement ATCDMAC100 from imported AndeShape ATCDMAC100 DS079 V1.2 requirement; engineering draft bootstrapped because no handoff text is visible to this worker."
 top_module:
   name: atcdmac100
   file: rtl/atcdmac100.sv
-  version: "DS079_V1.2_engineering_draft"
+  version: DS079_V1.2_doc_flow
   type: rtl
-  description: "ATCDMAC100 compatible programmable DMA controller with APB register interface, AHB-Lite master data mover, interrupt generation, and one memory-to-memory channel in the draft baseline."
-  target: "synthesizable SystemVerilog, single clock/reset, FPGA/ASIC signoff pipeline"
-parameters:
-  - name: ADDR_WIDTH
-    type: int
-    default: 32
-    description: "System byte address width."
-  - name: DATA_WIDTH
-    type: int
-    default: 32
-    description: "AHB data bus width; supported draft value is 32."
-  - name: LEN_WIDTH
-    type: int
-    default: 16
-    description: "DMA transfer length field width in bytes."
-  - name: NUM_CHANNELS
-    type: int
-    default: 1
-    description: "Draft baseline implements one channel; schema leaves room for DS079 expansion."
-  - name: FIFO_DEPTH
-    type: int
-    default: 4
-    description: "Internal read-data buffering depth in DATA_WIDTH words."
-io_list:
-  - {name: hclk, direction: input, width: 1, protocol: clock, role: clock, description: "Controller and bus clock."}
-  - {name: hresetn, direction: input, width: 1, protocol: reset_n, role: reset, description: "Active-low synchronous reset."}
-  - {name: psel, direction: input, width: 1, protocol: apb, role: slave_select, description: "APB peripheral select."}
-  - {name: penable, direction: input, width: 1, protocol: apb, role: slave_enable, description: "APB access phase indicator."}
-  - {name: pwrite, direction: input, width: 1, protocol: apb, role: slave_write, description: "APB write direction."}
-  - {name: paddr, direction: input, width: ADDR_WIDTH, protocol: apb, role: slave_addr, description: "APB byte address."}
-  - {name: pwdata, direction: input, width: DATA_WIDTH, protocol: apb, role: slave_wdata, description: "APB write data."}
-  - {name: prdata, direction: output, width: DATA_WIDTH, protocol: apb, role: slave_rdata, description: "APB read data."}
-  - {name: pready, direction: output, width: 1, protocol: apb, role: slave_ready, description: "APB ready; draft register block is zero-wait except reset."}
-  - {name: pslverr, direction: output, width: 1, protocol: apb, role: slave_error, description: "APB decode/protection error."}
-  - {name: hgrant, direction: input, width: 1, protocol: ahb_lite, role: master_grant, description: "External bus grant/accept qualifier for draft arbitration model."}
-  - {name: hready, direction: input, width: 1, protocol: ahb_lite, role: master_ready, description: "AHB transfer completion/backpressure."}
-  - {name: hresp, direction: input, width: 1, protocol: ahb_lite, role: master_response, description: "AHB response; 1 indicates error in draft model."}
-  - {name: hrdata, direction: input, width: DATA_WIDTH, protocol: ahb_lite, role: master_rdata, description: "AHB read data."}
-  - {name: haddr, direction: output, width: ADDR_WIDTH, protocol: ahb_lite, role: master_addr, description: "AHB byte address."}
-  - {name: hwrite, direction: output, width: 1, protocol: ahb_lite, role: master_write, description: "AHB write direction."}
-  - {name: htrans, direction: output, width: 2, protocol: ahb_lite, role: master_trans, description: "AHB transfer type: 00 IDLE, 10 NONSEQ, 11 SEQ."}
-  - {name: hsize, direction: output, width: 3, protocol: ahb_lite, role: master_size, description: "AHB beat size; draft fixed to DATA_WIDTH bytes."}
-  - {name: hburst, direction: output, width: 3, protocol: ahb_lite, role: master_burst, description: "AHB burst type; draft uses INCR."}
-  - {name: hwdata, direction: output, width: DATA_WIDTH, protocol: ahb_lite, role: master_wdata, description: "AHB write data."}
-  - {name: dma_req, direction: input, width: NUM_CHANNELS, protocol: dma_request, role: request, description: "Optional hardware request input per channel; level-sensitive when enabled."}
-  - {name: dma_ack, direction: output, width: NUM_CHANNELS, protocol: dma_request, role: acknowledge, description: "Pulse/level acknowledgement while a request is accepted."}
-  - {name: irq, direction: output, width: 1, protocol: interrupt, role: irq, description: "OR of enabled terminal-count and error interrupts."}
-interfaces:
-  - name: apb_slave
-    protocol: apb
-    role: slave
-    ports: [psel, penable, pwrite, paddr, pwdata, prdata, pready, pslverr]
-    handshake: "Write/read transfer completes when psel && penable && pready. Address/control sampled in setup phase psel && !penable."
-    backpressure: "pready may deassert; draft register accesses keep pready=1 outside reset."
-  - name: ahb_lite_master
-    protocol: ahb_lite
-    role: master
-    ports: [hgrant, hready, hresp, hrdata, haddr, hwrite, htrans, hsize, hburst, hwdata]
-    handshake: "Address/control valid when htrans[1]=1 and hgrant=1; beat completes on hready=1; hresp=1 records error and terminates channel."
-    backpressure: "Hold address/control stable while hready=0; issue IDLE when no active beat or FIFO cannot accept/provide data."
-  - name: request_irq
-    protocol: dma_request_interrupt
-    role: mixed
-    ports: [dma_req, dma_ack, irq]
-    handshake: "dma_req qualifies software-enabled channel start when hardware request enable is set; dma_ack asserted during accepted active service; irq remains high until status bits are cleared."
-features:
-  - id: cfg_regs
-    description: "APB programmable control/status register file with source address, destination address, length, control, status, interrupt enable, and interrupt status."
-  - id: mem_to_mem_dma
-    description: "Copies LEN bytes from SRC_ADDR to DST_ADDR using AHB-Lite read/write beats; addresses increment when configured."
-  - id: interrupt
-    description: "Terminal-count and error interrupt status with write-one-to-clear behavior and maskable irq output."
-  - id: error_handling
-    description: "AHB response errors stop the active channel, set ERR status, and prevent further writes until software clears/restarts."
+  description: 'AndeShape ATCDMAC100 DMA controller: AMBA 2 AHB slave register interface, AHB master data mover, up to 8 channels, up to 16 request/acknowledge pairs, round-robin arbitration with two priority levels, chain transfer hooks, interrupts, and configurable FIFO/address width.'
+  target:
+    technology: generic
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+  reference_spec: user-defined
 sub_modules:
-  - name: atcdmac100_apb_regs
-    type: register_block
-    description: "APB decode, writable configuration registers, status/IRQ clear logic."
-    implements: [cfg_regs, interrupt]
-    register_refs: [CTRL, SRC_ADDR, DST_ADDR, LEN, STATUS, INT_EN, INT_STATUS]
-    function_model_refs: [apb_write_reg, apb_read_reg, clear_interrupt]
-  - name: atcdmac100_channel
-    type: control_fsm
-    description: "Single DMA channel sequencing, counters, address updates, and request qualification."
-    implements: [mem_to_mem_dma, error_handling]
-    fsm_refs: [channel_fsm]
-    dataflow_refs: [dma_copy_path]
-    function_model_refs: [start_transfer, complete_transfer, ahb_error]
-    cycle_model_refs: [cm_dma_copy]
-  - name: atcdmac100_ahb_master
-    type: bus_master
-    description: "AHB-Lite address/control generation, read buffering, write data phase generation."
-    implements: [mem_to_mem_dma]
-    dataflow_refs: [ahb_read_path, ahb_write_path]
-    function_model_refs: [issue_read_beat, issue_write_beat]
-    cycle_model_refs: [cm_ahb_handshake]
-  - name: atcdmac100_irq
-    type: interrupt_controller
-    description: "Interrupt status/mask aggregation and irq output."
-    implements: [interrupt]
-    register_refs: [STATUS, INT_EN, INT_STATUS]
-    function_model_refs: [complete_transfer, ahb_error, clear_interrupt]
+- name: atcdmac100_core
+  file: rtl/atcdmac100_core.sv
+  implements:
+  - features
+  - function_model
+  - cycle_model
+  - registers
+  - dataflow
+  - fsm
+  - interrupts
+  - error_handling
+  source_sections:
+  - io_list
+  - registers
+  - function_model
+  - cycle_model
+  - features
+  - dataflow
+  - fsm
+  - interrupts
+  - error_handling
+  - decomposition
+  - test_requirements
+  function_model_refs:
+  - function_model
+  - function_model.transactions.FM_RESET
+  - function_model.transactions.FM_AHB_WRITE
+  - function_model.transactions.FM_AHB_READ
+  - function_model.transactions.FM_ARBITRATE
+  - function_model.transactions.FM_MASTER_READ
+  - function_model.transactions.FM_MASTER_WRITE
+  - function_model.transactions.FM_COMPLETE
+  - function_model.transactions.FM_ERROR_ABORT
+  - function_model.transactions.FM_HANDSHAKE_ACK
+  - function_model.state_variables
+  cycle_model_refs:
+  - cycle_model
+  register_refs:
+  - registers
+  - registers.register_list
+  dataflow_refs:
+  - dataflow
+  fsm_refs:
+  - fsm
+  feature_refs:
+  - features
+  test_refs:
+  - test_requirements
+  trace_refs:
+  - traceability
+  decomposition_refs:
+  - decomposition
+  - decomposition.owners
+  - decomposition.source_refs
+- name: atcdmac100
+  file: rtl/atcdmac100.sv
+  wiring_only: true
+  implements:
+  - integration
+  - top_integration
+  source_sections:
+  - io_list
+  - integration
+  ports:
+  - hclk
+  - hresetn
+  - dma_int
+  - dma_req
+  - dma_ack
+  - haddr
+  - htrans
+  - hwrite
+  - hsize
+  - hburst
+  - hwdata
+  - hsel
+  - hreadyin
+  - hrdata
+  - hresp
+  - hready
+  - haddr_mst
+  - htrans_mst
+  - hwrite_mst
+  - hsize_mst
+  - hprot_mst
+  - hlock_mst
+  - hburst_mst
+  - hwdata_mst
+  - hrdata_mst
+  - hresp_mst
+  - hready_mst
+  - hbusreq_mst
+  - hgrant_mst
+  connections: top-level wrapper forwards every port to atcdmac100_core
+  function_model_refs:
+  - function_model
+  cycle_model_refs:
+  - cycle_model
+  dataflow_refs:
+  - dataflow
+  fsm_refs:
+  - fsm
+decomposition:
+  strategy: ssot_owned_leaf_decomposition
+  owners:
+  - module: atcdmac100_apb_regs
+    file: rtl/atcdmac100_apb_regs.sv
+    responsibility: Register decode and APB-visible CSR behavior.
+    source_sections:
+    - registers
+    - function_model.transactions.apb_write_reg
+    - function_model.transactions.apb_read_reg
+  - module: atcdmac100_channel
+    file: rtl/atcdmac100_channel.sv
+    responsibility: DMA channel FSM, counters, and terminal status.
+    source_sections:
+    - fsm.channel_fsm
+    - function_model.transactions.start_transfer
+    - function_model.transactions.complete_transfer
+    - function_model.transactions.ahb_error
+  - module: atcdmac100_ahb_master
+    file: rtl/atcdmac100_ahb_master.sv
+    responsibility: AHB-Lite read/write beat issue and buffering.
+    source_sections:
+    - dataflow.ahb_read_path
+    - dataflow.ahb_write_path
+    - cycle_model.handshake_rules
+  - module: atcdmac100_irq
+    file: rtl/atcdmac100_irq.sv
+    responsibility: Interrupt status, masking, W1C clear, and irq output.
+    source_sections:
+    - interrupts
+    - function_model.transactions.clear_interrupt
+  integration_policy: Top-level rtl/atcdmac100.sv wires the owned slices; any changed port or split requires SSOT update before RTL.
+  source_refs:
+  - sub_modules
+  - function_model
+  - cycle_model
+  - integration
+parameters:
+- name: ADDR_WIDTH
+  type: int
+  default: 32
+  allowed:
+  - 24
+  - 32
+  description: AHB address width, default 32-bit; DS079 also allows 24-bit.
+- name: DATA_WIDTH
+  type: int
+  default: 32
+  allowed:
+  - 32
+  description: AHB data width used by ATCDMAC100 signal definition.
+- name: DMA_CH_NUM
+  type: int
+  default: 8
+  allowed:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  description: Number of DMA channels.
+- name: REQ_ACK_NUM
+  type: int
+  default: 16
+  allowed:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  description: Number of dma_req/dma_ack pairs.
+- name: FIFO_DEPTH
+  type: int
+  default: 8
+  allowed:
+  - 4
+  - 8
+  - 16
+  - 32
+  description: FIFO depth in 32-bit entries.
+- name: CHAIN_TRANSFER_SUPPORT
+  type: bit
+  default: 1
+  description: Enable linked-list chain transfer support.
+io_list:
+  clock_domains:
+  - name: hclk_domain
+    clock: hclk
+    ports:
+    - name: hclk
+      direction: input
+      width: 1
+      protocol: clock
+      role: clock
+      description: System bus clock from DS079 Table 2.
+    description: All ATCDMAC100 control and bus logic uses hclk.
+  resets:
+  - name: hresetn
+    clock_domain: hclk_domain
+    active: low
+    sync: synchronous
+    ports:
+    - name: hresetn
+      direction: input
+      width: 1
+      protocol: reset_n
+      role: reset
+      description: System bus reset, active low.
+    description: Active-low system reset clears DMA core and disables all channels.
+  interfaces:
+  - name: dma_handshake
+    type: dma_req_ack
+    protocol: level request, acknowledge after SrcBurstSize serviced, deassert ack after request deasserts
+    clock_domain: hclk_domain
+    ports:
+    - name: dma_int
+      direction: output
+      width: 1
+      protocol: dma
+      role: interrupt
+      description: Interrupt request.
+    - name: dma_req
+      direction: input
+      width: REQ_ACK_NUM
+      protocol: dma
+      role: request
+      description: Burst transfer request vector, up to 16 pairs.
+    - name: dma_ack
+      direction: output
+      width: REQ_ACK_NUM
+      protocol: dma
+      role: acknowledge
+      description: Burst transfer acknowledge vector.
+    role: target
+    reset_domain: hresetn
+  - name: ahb_slave_regs
+    type: amba2_ahb_slave
+    protocol: Register access when hsel and hreadyin and htrans[1] are asserted; writes update on data phase; hready is zero-wait in this implementation; hresp reports decode/size errors.
+    clock_domain: hclk_domain
+    ports:
+    - name: haddr
+      direction: input
+      width: ADDR_WIDTH
+      protocol: ahb_slave
+      role: slave_addr
+      description: AHB slave address bus.
+    - name: htrans
+      direction: input
+      width: 2
+      protocol: ahb_slave
+      role: slave_trans
+      description: AHB slave transfer type.
+    - name: hwrite
+      direction: input
+      width: 1
+      protocol: ahb_slave
+      role: slave_write
+      description: AHB slave write signal.
+    - name: hsize
+      direction: input
+      width: 3
+      protocol: ahb_slave
+      role: slave_size
+      description: AHB slave transfer size.
+    - name: hburst
+      direction: input
+      width: 3
+      protocol: ahb_slave
+      role: slave_burst
+      description: AHB slave burst type.
+    - name: hwdata
+      direction: input
+      width: 32
+      protocol: ahb_slave
+      role: slave_wdata
+      description: AHB slave write data bus.
+    - name: hsel
+      direction: input
+      width: 1
+      protocol: ahb_slave
+      role: slave_select
+      description: AHB slave select.
+    - name: hreadyin
+      direction: input
+      width: 1
+      protocol: ahb_slave
+      role: slave_ready_in
+      description: AHB slave ready input.
+    - name: hrdata
+      direction: output
+      width: 32
+      protocol: ahb_slave
+      role: slave_rdata
+      description: AHB slave read data bus.
+    - name: hresp
+      direction: output
+      width: 2
+      protocol: ahb_slave
+      role: slave_response
+      description: AHB slave response.
+    - name: hready
+      direction: output
+      width: 1
+      protocol: ahb_slave
+      role: slave_ready_out
+      description: AHB slave ready output.
+    role: target
+    reset_domain: hresetn
+  - name: ahb_master_dma
+    type: amba2_ahb_master
+    protocol: hbusreq_mst requests bus, hgrant_mst grants, htrans_mst issues NONSEQ/SEQ transfers, hready_mst completes data phase, hresp_mst[1] records error.
+    clock_domain: hclk_domain
+    ports:
+    - name: haddr_mst
+      direction: output
+      width: ADDR_WIDTH
+      protocol: ahb_master
+      role: master_addr
+      description: AHB master address bus.
+    - name: htrans_mst
+      direction: output
+      width: 2
+      protocol: ahb_master
+      role: master_trans
+      description: AHB master transfer type.
+    - name: hwrite_mst
+      direction: output
+      width: 1
+      protocol: ahb_master
+      role: master_write
+      description: AHB master write signal.
+    - name: hsize_mst
+      direction: output
+      width: 3
+      protocol: ahb_master
+      role: master_size
+      description: AHB master transfer size.
+    - name: hprot_mst
+      direction: output
+      width: 4
+      protocol: ahb_master
+      role: master_protection
+      description: AHB master protection control.
+    - name: hlock_mst
+      direction: output
+      width: 1
+      protocol: ahb_master
+      role: master_lock
+      description: AHB master lock request.
+    - name: hburst_mst
+      direction: output
+      width: 3
+      protocol: ahb_master
+      role: master_burst
+      description: AHB master burst type.
+    - name: hwdata_mst
+      direction: output
+      width: 32
+      protocol: ahb_master
+      role: master_wdata
+      description: AHB master write data bus.
+    - name: hrdata_mst
+      direction: input
+      width: 32
+      protocol: ahb_master
+      role: master_rdata
+      description: AHB master read data bus.
+    - name: hresp_mst
+      direction: input
+      width: 2
+      protocol: ahb_master
+      role: master_response
+      description: AHB master transfer response.
+    - name: hready_mst
+      direction: input
+      width: 1
+      protocol: ahb_master
+      role: master_ready
+      description: AHB master data ready input.
+    - name: hbusreq_mst
+      direction: output
+      width: 1
+      protocol: ahb_master
+      role: master_bus_request
+      description: AHB master bus request signal.
+    - name: hgrant_mst
+      direction: input
+      width: 1
+      protocol: ahb_master
+      role: master_grant
+      description: AHB master bus grant signal.
+    role: target
+    reset_domain: hresetn
+features:
+- id: ahb_slave_registers
+  description: AHB slave programming model at offsets 0x00,0x10,0x20,0x30,0x34,0x40,0x44+n*0x14 through 0x54+n*0x14.
+- id: multi_channel_dma
+  description: Up to 8 enabled DMA channels, one serviced at a time.
+- id: priority_round_robin
+  description: High priority channels selected before low priority; same priority selected round-robin.
+- id: hardware_handshake
+  description: Up to 16 dma_req/dma_ack pairs gate low-speed device transfers.
+- id: chain_transfer
+  description: Optional linked-list descriptor continuation via ChnLLPointer.
+- id: interrupt_status
+  description: Terminal count, abort, and error status with write-one-clear interrupt status register.
 dataflow:
-  - id: dma_copy_path
-    description: "For each accepted beat, read DATA_WIDTH bits from SRC_ADDR + bytes_done and write the same data to DST_ADDR + bytes_done."
-    sources: [SRC_ADDR, hrdata]
-    sinks: [DST_ADDR, hwdata]
-    ordering: "Read beat data must be captured before the corresponding write beat is issued; writes preserve read order."
-  - id: ahb_read_path
-    description: "AHB master emits read address/control with hwrite=0; returned hrdata is pushed to internal FIFO on hready && !hresp."
-    backpressure: "No read is issued when FIFO is full or channel is not RUN."
-  - id: ahb_write_path
-    description: "AHB master emits write address/control with hwrite=1 and drains FIFO data to hwdata on completed write beat."
-    backpressure: "No write is issued when FIFO is empty or hready is low."
+  source: declared io_list request/control interfaces
+  sequence:
+  - accept legal work under cycle_model handshake or command rules
+  - evaluate function_model transaction and declared feature behavior
+  - update only declared architectural state/status/events
+  - publish response, output, interrupt, or debug observability event
+  sinks:
+  - declared outputs
+  - status/debug observability
+  - register reads if registers exist
+  ordering: Externally visible ordering follows cycle_model.ordering unless the SSOT explicitly approves reordering.
 function_model:
+  state_variables:
+  - name: dmac_reset_pulse
+    width: 1
+    reset: 0
+  - name: active_ch
+    width: 3
+    reset: 0
+  - name: busy
+    width: 1
+    reset: 0
+  - name: ch_enable
+    width: 8
+    reset: 0
+  - name: int_tc
+    width: 8
+    reset: 0
+  - name: int_abort
+    width: 8
+    reset: 0
+  - name: int_error
+    width: 8
+    reset: 0
+  - name: bytes_done
+    width: 22
+    reset: 0
+  - name: src_addr_cur
+    width: ADDR_WIDTH
+    reset: 0
+  - name: dst_addr_cur
+    width: ADDR_WIDTH
+    reset: 0
+  - name: read_data_hold
+    width: 32
+    reset: 0
+  - name: chain_pending
+    width: 1
+    reset: 0
   state:
-    ctrl: {width: DATA_WIDTH, reset: 0}
-    src_addr: {width: ADDR_WIDTH, reset: 0}
-    dst_addr: {width: ADDR_WIDTH, reset: 0}
-    len_bytes: {width: LEN_WIDTH, reset: 0}
-    bytes_done: {width: LEN_WIDTH, reset: 0}
-    busy: {width: 1, reset: 0}
-    done: {width: 1, reset: 0}
-    err: {width: 1, reset: 0}
-    int_en: {width: 2, reset: 0}
-    int_status: {width: 2, reset: 0}
+    dmac_reset_pulse:
+      width: 1
+      reset: 0
+    active_ch:
+      width: 3
+      reset: 0
+    busy:
+      width: 1
+      reset: 0
+    ch_enable:
+      width: 8
+      reset: 0
+    int_tc:
+      width: 8
+      reset: 0
+    int_abort:
+      width: 8
+      reset: 0
+    int_error:
+      width: 8
+      reset: 0
+    bytes_done:
+      width: 22
+      reset: 0
+    src_addr_cur:
+      width: ADDR_WIDTH
+      reset: 0
+    dst_addr_cur:
+      width: ADDR_WIDTH
+      reset: 0
+    read_data_hold:
+      width: 32
+      reset: 0
+    chain_pending:
+      width: 1
+      reset: 0
   transactions:
-    - id: reset
-      trigger: "!hresetn"
-      state_updates:
-        - {state: ctrl, expr: "0", width: DATA_WIDTH}
-        - {state: src_addr, expr: "0", width: ADDR_WIDTH}
-        - {state: dst_addr, expr: "0", width: ADDR_WIDTH}
-        - {state: len_bytes, expr: "0", width: LEN_WIDTH}
-        - {state: bytes_done, expr: "0", width: LEN_WIDTH}
-        - {state: busy, expr: "0", width: 1}
-        - {state: done, expr: "0", width: 1}
-        - {state: err, expr: "0", width: 1}
-        - {state: int_en, expr: "0", width: 2}
-        - {state: int_status, expr: "0", width: 2}
-      output_rules:
-        - {port: pready, expr: "1'b0", width: 1}
-        - {port: irq, expr: "1'b0", width: 1}
-        - {port: htrans, expr: "2'b00", width: 2}
-    - id: apb_write_reg
-      trigger: "psel && penable && pwrite && pready"
-      state_updates:
-        - {state: src_addr, expr: "addr_is_SRC_ADDR ? pwdata[ADDR_WIDTH-1:0] : src_addr", width: ADDR_WIDTH}
-        - {state: dst_addr, expr: "addr_is_DST_ADDR ? pwdata[ADDR_WIDTH-1:0] : dst_addr", width: ADDR_WIDTH}
-        - {state: len_bytes, expr: "addr_is_LEN ? pwdata[LEN_WIDTH-1:0] : len_bytes", width: LEN_WIDTH}
-        - {state: ctrl, expr: "addr_is_CTRL ? pwdata : ctrl", width: DATA_WIDTH}
-        - {state: int_en, expr: "addr_is_INT_EN ? pwdata[1:0] : int_en", width: 2}
-      output_rules:
-        - {port: pslverr, expr: "addr_decode_error", width: 1}
-        - {port: pready, expr: "1'b1", width: 1}
-    - id: apb_read_reg
-      trigger: "psel && penable && !pwrite && pready"
-      output_rules:
-        - {port: prdata, expr: "reg_read_mux(paddr)", width: DATA_WIDTH}
-        - {port: pslverr, expr: "addr_decode_error", width: 1}
-        - {port: pready, expr: "1'b1", width: 1}
-    - id: start_transfer
-      trigger: "ctrl.start && !busy && len_bytes != 0 && (ctrl.hw_req_en ? |dma_req : 1'b1)"
-      state_updates:
-        - {state: busy, expr: "1'b1", width: 1}
-        - {state: done, expr: "1'b0", width: 1}
-        - {state: err, expr: "1'b0", width: 1}
-        - {state: bytes_done, expr: "0", width: LEN_WIDTH}
-      output_rules:
-        - {port: dma_ack, expr: "dma_req & {NUM_CHANNELS{ctrl.hw_req_en}}", width: NUM_CHANNELS}
-    - id: issue_read_beat
-      trigger: "busy && fifo_not_full && read_bytes_issued < len_bytes && hgrant && hready"
-      output_rules:
-        - {port: haddr, expr: "src_addr + read_bytes_issued", width: ADDR_WIDTH}
-        - {port: hwrite, expr: "1'b0", width: 1}
-        - {port: htrans, expr: "read_first_beat ? 2'b10 : 2'b11", width: 2}
-        - {port: hsize, expr: "log2(DATA_WIDTH/8)", width: 3}
-        - {port: hburst, expr: "3'b001", width: 3}
-    - id: issue_write_beat
-      trigger: "busy && fifo_not_empty && hgrant && hready"
-      state_updates:
-        - {state: bytes_done, expr: "bytes_done + (DATA_WIDTH/8)", width: LEN_WIDTH}
-      output_rules:
-        - {port: haddr, expr: "dst_addr + bytes_done", width: ADDR_WIDTH}
-        - {port: hwrite, expr: "1'b1", width: 1}
-        - {port: htrans, expr: "write_first_beat ? 2'b10 : 2'b11", width: 2}
-        - {port: hwdata, expr: "fifo_rdata", width: DATA_WIDTH}
-    - id: complete_transfer
-      trigger: "busy && (bytes_done + (DATA_WIDTH/8)) >= len_bytes && write_beat_complete && !hresp"
-      state_updates:
-        - {state: busy, expr: "1'b0", width: 1}
-        - {state: done, expr: "1'b1", width: 1}
-        - {state: int_status, expr: "int_status | 2'b01", width: 2}
-      output_rules:
-        - {port: irq, expr: "|(int_status & int_en)", width: 1}
-        - {port: htrans, expr: "2'b00", width: 2}
-    - id: ahb_error
-      trigger: "busy && hready && hresp"
-      state_updates:
-        - {state: busy, expr: "1'b0", width: 1}
-        - {state: err, expr: "1'b1", width: 1}
-        - {state: int_status, expr: "int_status | 2'b10", width: 2}
-      output_rules:
-        - {port: irq, expr: "|(int_status & int_en)", width: 1}
-        - {port: htrans, expr: "2'b00", width: 2}
-    - id: clear_interrupt
-      trigger: "psel && penable && pwrite && addr_is_INT_STATUS"
-      state_updates:
-        - {state: int_status, expr: "int_status & ~pwdata[1:0]", width: 2}
-      output_rules:
-        - {port: irq, expr: "|((int_status & ~pwdata[1:0]) & int_en)", width: 1}
+  - id: FM_RESET
+    name: hardware or software reset
+    preconditions:
+    - hresetn == 0 or DMACtrl.Reset write is observed
+    outputs:
+    - hready
+    - hresp
+    - hrdata
+    - dma_int
+    - dma_ack
+    - hbusreq_mst
+    - htrans_mst
+    - haddr_mst
+    - hwrite_mst
+    - hsize_mst
+    - hburst_mst
+    - hwdata_mst
+    - state: dmac_reset_pulse
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: active_ch
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: busy
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: ch_enable
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_tc
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_abort
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_error
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: bytes_done
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: src_addr_cur
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: dst_addr_cur
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: read_data_hold
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: chain_pending
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - disable all channels, clear active state, clear interrupt status
+    error_cases:
+    - illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel
+    output_rules:
+    - name: hready_reset
+      port: hready
+      expr: '0'
+      width: 1
+    - name: hresp_reset
+      port: hresp
+      expr: '0'
+      width: 2
+    - name: dma_int_reset
+      port: dma_int
+      expr: '0'
+      width: 1
+    - name: htrans_mst_reset
+      port: htrans_mst
+      expr: '0'
+      width: 2
+    state_updates:
+    - state: dmac_reset_pulse
+      expr: '0'
+      width: 1
+    - state: active_ch
+      expr: '0'
+      width: 3
+    - state: busy
+      expr: '0'
+      width: 1
+    - state: ch_enable
+      expr: '0'
+      width: 8
+    - state: int_tc
+      expr: '0'
+      width: 8
+    - state: int_abort
+      expr: '0'
+      width: 8
+    - state: int_error
+      expr: '0'
+      width: 8
+    - state: bytes_done
+      expr: '0'
+      width: 22
+    - state: src_addr_cur
+      expr: '0'
+      width: ADDR_WIDTH
+    - state: dst_addr_cur
+      expr: '0'
+      width: ADDR_WIDTH
+    - state: read_data_hold
+      expr: '0'
+      width: 32
+    - state: chain_pending
+      expr: '0'
+      width: 1
+  - id: FM_AHB_WRITE
+    name: AHB slave register write
+    preconditions:
+    - hsel and hreadyin and htrans[1] and hwrite
+    outputs:
+    - hready=1
+    - hresp=OKAY for valid register writes
+    - name: hready_write
+      port: hready
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: hresp_write
+      port: hresp
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: dma_int_after_write
+      port: dma_int
+      expr: reduction_or((int_tc | int_abort | int_error) & ch_enable)
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: dmac_reset_pulse
+      expr: 1 if haddr == 32 and (hwdata & 1) else 0
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_tc
+      expr: int_tc & ~((hwdata >> 16) & 255) if haddr == 48 else int_tc
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_abort
+      expr: int_abort & ~((hwdata >> 8) & 255) if haddr == 48 else int_abort
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_error
+      expr: int_error & ~(hwdata & 255) if haddr == 48 else int_error
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: ch_enable
+      expr: ch_enable & ~(hwdata & ch_enable) if haddr == 64 else ch_enable
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - updates writable DMAC/channel registers; W1C clears IntStatus bits; ChAbort write-one aborts enabled channels
+    error_cases:
+    - illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel
+    output_rules:
+    - name: hready_write
+      port: hready
+      expr: '1'
+      width: 1
+    - name: hresp_write
+      port: hresp
+      expr: '0'
+      width: 2
+    - name: dma_int_after_write
+      port: dma_int
+      expr: reduction_or((int_tc | int_abort | int_error) & ch_enable)
+      width: 1
+    state_updates:
+    - state: dmac_reset_pulse
+      expr: 1 if haddr == 32 and (hwdata & 1) else 0
+      width: 1
+    - state: int_tc
+      expr: int_tc & ~((hwdata >> 16) & 255) if haddr == 48 else int_tc
+      width: 8
+    - state: int_abort
+      expr: int_abort & ~((hwdata >> 8) & 255) if haddr == 48 else int_abort
+      width: 8
+    - state: int_error
+      expr: int_error & ~(hwdata & 255) if haddr == 48 else int_error
+      width: 8
+    - state: ch_enable
+      expr: ch_enable & ~(hwdata & ch_enable) if haddr == 64 else ch_enable
+      width: 8
+  - id: FM_AHB_READ
+    name: AHB slave register read
+    preconditions:
+    - hsel and hreadyin and htrans[1] and not hwrite
+    outputs:
+    - hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows
+    - name: hready_read
+      port: hready
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: hresp_read
+      port: hresp
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: hrdata_id_cfg_status
+      port: hrdata
+      expr: 0x01021012 if haddr == 0 else ((CHAIN_TRANSFER_SUPPORT << 31) | (REQ_ACK_NUM << 10) | (FIFO_DEPTH << 4) | DMA_CH_NUM) if haddr == 16 else ((int_tc << 16) | (int_abort << 8) | int_error) if haddr == 48 else ch_enable if haddr == 52 else 0
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    side_effects:
+    - no architectural state changes
+    error_cases:
+    - illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel
+    output_rules:
+    - name: hready_read
+      port: hready
+      expr: '1'
+      width: 1
+    - name: hresp_read
+      port: hresp
+      expr: '0'
+      width: 2
+    - name: hrdata_id_cfg_status
+      port: hrdata
+      expr: 0x01021012 if haddr == 0 else ((CHAIN_TRANSFER_SUPPORT << 31) | (REQ_ACK_NUM << 10) | (FIFO_DEPTH << 4) | DMA_CH_NUM) if haddr == 16 else ((int_tc << 16) | (int_abort << 8) | int_error) if haddr == 48 else ch_enable if haddr == 52 else 0
+      width: 32
+    state_updates: []
+  - id: FM_ARBITRATE
+    name: channel arbitration
+    preconditions:
+    - one or more ChnCtrl.Enable bits are set and DMA is not busy
+    outputs:
+    - select high priority channel first; round-robin among same priority channels
+    - name: hbusreq_on_start
+      port: hbusreq_mst
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: htrans_idle_on_start
+      port: htrans_mst
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: busy
+      expr: '1'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: active_ch
+      expr: active_ch
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: bytes_done
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - sets busy and active_ch
+    error_cases:
+    - illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel
+    output_rules:
+    - name: hbusreq_on_start
+      port: hbusreq_mst
+      expr: '1'
+      width: 1
+    - name: htrans_idle_on_start
+      port: htrans_mst
+      expr: '0'
+      width: 2
+    state_updates:
+    - state: busy
+      expr: '1'
+      width: 1
+    - state: active_ch
+      expr: active_ch
+      width: 3
+    - state: bytes_done
+      expr: '0'
+      width: 22
+  - id: FM_MASTER_READ
+    name: AHB master read beat
+    preconditions:
+    - busy and hgrant_mst and hready_mst and not fifo full
+    outputs:
+    - issues AHB master read from current source address
+    - name: hbusreq_read
+      port: hbusreq_mst
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: htrans_read
+      port: htrans_mst
+      expr: '2'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: hwrite_read
+      port: hwrite_mst
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: haddr_read
+      port: haddr_mst
+      expr: src_addr_cur
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: hsize_word
+      port: hsize_mst
+      expr: '2'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: hburst_incr
+      port: hburst_mst
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: read_data_hold
+      expr: hrdata_mst
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - captures hrdata_mst for corresponding write beat
+    error_cases:
+    - illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel
+    output_rules:
+    - name: hbusreq_read
+      port: hbusreq_mst
+      expr: '1'
+      width: 1
+    - name: htrans_read
+      port: htrans_mst
+      expr: '2'
+      width: 2
+    - name: hwrite_read
+      port: hwrite_mst
+      expr: '0'
+      width: 1
+    - name: haddr_read
+      port: haddr_mst
+      expr: src_addr_cur
+      width: ADDR_WIDTH
+    - name: hsize_word
+      port: hsize_mst
+      expr: '2'
+      width: 3
+    - name: hburst_incr
+      port: hburst_mst
+      expr: '1'
+      width: 3
+    state_updates:
+    - state: read_data_hold
+      expr: hrdata_mst
+      width: 32
+  - id: FM_MASTER_WRITE
+    name: AHB master write beat
+    preconditions:
+    - busy and hgrant_mst and hready_mst and read data available
+    outputs:
+    - issues AHB master write to current destination address
+    - name: hbusreq_write
+      port: hbusreq_mst
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: htrans_write
+      port: htrans_mst
+      expr: '3'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: hwrite_write
+      port: hwrite_mst
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: haddr_write
+      port: haddr_mst
+      expr: dst_addr_cur
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: hwdata_write
+      port: hwdata_mst
+      expr: read_data_hold
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: bytes_done
+      expr: bytes_done + 4
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: src_addr_cur
+      expr: src_addr_cur + 4
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: dst_addr_cur
+      expr: dst_addr_cur + 4
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - increments/decrements/fixes addresses according to control fields and updates bytes_done
+    error_cases:
+    - illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel
+    output_rules:
+    - name: hbusreq_write
+      port: hbusreq_mst
+      expr: '1'
+      width: 1
+    - name: htrans_write
+      port: htrans_mst
+      expr: '3'
+      width: 2
+    - name: hwrite_write
+      port: hwrite_mst
+      expr: '1'
+      width: 1
+    - name: haddr_write
+      port: haddr_mst
+      expr: dst_addr_cur
+      width: ADDR_WIDTH
+    - name: hwdata_write
+      port: hwdata_mst
+      expr: read_data_hold
+      width: 32
+    state_updates:
+    - state: bytes_done
+      expr: bytes_done + 4
+      width: 22
+    - state: src_addr_cur
+      expr: src_addr_cur + 4
+      width: ADDR_WIDTH
+    - state: dst_addr_cur
+      expr: dst_addr_cur + 4
+      width: ADDR_WIDTH
+  - id: FM_COMPLETE
+    name: terminal count completion
+    preconditions:
+    - bytes_done reaches ChnTranSize without error or abort
+    outputs:
+    - updates IntStatus.TC and asserts dma_int if interrupt is unmasked
+    - name: hbusreq_complete
+      port: hbusreq_mst
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: htrans_complete
+      port: htrans_mst
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: dma_int_tc
+      port: dma_int
+      expr: reduction_or((int_tc | (1 << active_ch)) | int_abort | int_error)
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: busy
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: ch_enable
+      expr: ch_enable & ~(1 << active_ch)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_tc
+      expr: int_tc | (1 << active_ch)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: chain_pending
+      expr: 1 if CHAIN_TRANSFER_SUPPORT else 0
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - disables completed channel; chain pointer may preload next descriptor when enabled
+    error_cases:
+    - illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel
+    output_rules:
+    - name: hbusreq_complete
+      port: hbusreq_mst
+      expr: '0'
+      width: 1
+    - name: htrans_complete
+      port: htrans_mst
+      expr: '0'
+      width: 2
+    - name: dma_int_tc
+      port: dma_int
+      expr: reduction_or((int_tc | (1 << active_ch)) | int_abort | int_error)
+      width: 1
+    state_updates:
+    - state: busy
+      expr: '0'
+      width: 1
+    - state: ch_enable
+      expr: ch_enable & ~(1 << active_ch)
+      width: 8
+    - state: int_tc
+      expr: int_tc | (1 << active_ch)
+      width: 8
+    - state: chain_pending
+      expr: 1 if CHAIN_TRANSFER_SUPPORT else 0
+      width: 1
+  - id: FM_ERROR_ABORT
+    name: error or software abort
+    preconditions:
+    - hresp_mst indicates error, unaligned address, reserved mode, zero transfer size, or ChAbort bit is written
+    outputs:
+    - updates IntStatus.Error or Abort and asserts dma_int if unmasked
+    - name: hbusreq_error
+      port: hbusreq_mst
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: htrans_error
+      port: htrans_mst
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: dma_int_error
+      port: dma_int
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: dma_ack_error
+      port: dma_ack
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: busy
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: ch_enable
+      expr: ch_enable & ~(1 << active_ch)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: int_error
+      expr: int_error | (1 << active_ch)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - disables affected channel; no dma_ack on error
+    error_cases:
+    - illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel
+    output_rules:
+    - name: hbusreq_error
+      port: hbusreq_mst
+      expr: '0'
+      width: 1
+    - name: htrans_error
+      port: htrans_mst
+      expr: '0'
+      width: 2
+    - name: dma_int_error
+      port: dma_int
+      expr: '1'
+      width: 1
+    - name: dma_ack_error
+      port: dma_ack
+      expr: '0'
+      width: REQ_ACK_NUM
+    state_updates:
+    - state: busy
+      expr: '0'
+      width: 1
+    - state: ch_enable
+      expr: ch_enable & ~(1 << active_ch)
+      width: 8
+    - state: int_error
+      expr: int_error | (1 << active_ch)
+      width: 8
+  - id: FM_HANDSHAKE_ACK
+    name: hardware handshake acknowledge
+    preconditions:
+    - selected source or destination handshake mode is enabled and SrcBurstSize transfers complete
+    outputs:
+    - asserts dma_ack for selected request pair until dma_req deasserts
+    - name: dma_ack_selected
+      port: dma_ack
+      expr: 1 << active_ch
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: dma_int_handshake
+      port: dma_int
+      expr: reduction_or(int_tc | int_abort | int_error)
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: active_ch
+      expr: active_ch
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    side_effects:
+    - does not assert ack when an error terminates the channel
+    error_cases:
+    - illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel
+    output_rules:
+    - name: dma_ack_selected
+      port: dma_ack
+      expr: 1 << active_ch
+      width: REQ_ACK_NUM
+    - name: dma_int_handshake
+      port: dma_int
+      expr: reduction_or(int_tc | int_abort | int_error)
+      width: 1
+    state_updates:
+    - state: active_ch
+      expr: active_ch
+      width: 3
+  invariants:
+  - name: one_channel_serviced
+    expr: busy == 0 or active_ch < DMA_CH_NUM
+    description: Controller services one channel at a time.
+  - name: status_width
+    expr: (int_tc | int_abort | int_error) < 256
+    description: Only configured channel status bits are used.
 cycle_model:
-  - id: cm_ahb_handshake
-    clock: hclk
+  clock: hclk
+  reset: hresetn
+  latency: AHB slave register access is zero-wait; DMA data movement issues read/write beats while hgrant_mst and hready_mst are asserted.
+  handshake_rules:
+  - AHB slave access samples when hsel && hreadyin && htrans[1].
+  - AHB master transfer completes when hgrant_mst && hready_mst && htrans_mst[1].
+  - dma_ack is asserted after SrcBurstSize transfers for an enabled hardware request pair and is deasserted after dma_req deasserts.
+  pipeline:
+  - IDLE selects a ready channel by priority/round-robin.
+  - READ issues AHB read and captures hrdata_mst.
+  - WRITE issues AHB write and advances counters.
+  - DONE/ERROR updates status and interrupt.
+  ordering:
+  - Only one channel is actively serviced at a time.
+  - Same-priority channels are visited in round-robin order.
+  - A write beat uses data captured from the preceding read beat.
+  - Chain descriptor preload happens after head transfer completion when ChnLLPointer is nonzero.
+  observability:
+  - active_ch
+  - busy
+  - htrans_mst
+  - hbusreq_mst
+  - dma_ack
+  - dma_int
+  performance:
+    max_slave_wait_states: 0
+    bytes_per_master_read_write_pair: 4
+    arbitration_policy: two priority levels with round-robin within same priority
+  executable: pymtl3
+  backend_policy: Use PyMTL3 for the clocked cycle model shell; FunctionalModel remains the behavioral oracle.
+clock_reset_domains:
+  domains:
+  - clock: hclk
     reset: hresetn
-    rule: "During hready=0, haddr/hwrite/htrans/hsize/hburst/hwdata remain stable; next beat may issue only after hready=1."
-    latency: "Variable; one beat per hready-accepted cycle in zero-wait memory."
-  - id: cm_dma_copy
-    clock: hclk
-    reset: hresetn
-    rule: "After start, read and write beats alternate or pipeline through FIFO until bytes_done reaches len_bytes or an error occurs."
-    latency: "At least 2 cycles per DATA_WIDTH beat plus APB programming cycles; increases with hready stalls."
+    frequency_mhz: 100
+    reset_scheme: synchronous_active_low
+  reset_behavior:
+  - CSR, channel FSM, counters, FIFO state, APB outputs, AHB outputs, dma_ack, and irq reset to idle values.
+cdc_requirements:
+  required: false
+  rationale: Engineering draft uses one hclk/hresetn domain.
+  checks:
+  - No CDC paths expected unless DS079 reconciliation adds another clock.
+rdc_requirements:
+  required: false
+  rationale: Single reset domain in this draft.
+  checks:
+  - No reset-domain crossings expected unless DS079 reconciliation adds another reset.
 registers:
-  - {name: CTRL, offset: 0x00, width: 32, access: rw, reset: 0x00000000, fields: [{name: start, bits: "0", access: rw1s}, {name: int_en_global, bits: "1", access: rw}, {name: hw_req_en, bits: "2", access: rw}, {name: src_inc, bits: "3", access: rw}, {name: dst_inc, bits: "4", access: rw}]}
-  - {name: SRC_ADDR, offset: 0x04, width: 32, access: rw, reset: 0x00000000, fields: [{name: src_addr, bits: "31:0", access: rw}]}
-  - {name: DST_ADDR, offset: 0x08, width: 32, access: rw, reset: 0x00000000, fields: [{name: dst_addr, bits: "31:0", access: rw}]}
-  - {name: LEN, offset: 0x0C, width: 32, access: rw, reset: 0x00000000, fields: [{name: len_bytes, bits: "15:0", access: rw}]}
-  - {name: STATUS, offset: 0x10, width: 32, access: ro, reset: 0x00000000, fields: [{name: busy, bits: "0", access: ro}, {name: done, bits: "1", access: ro}, {name: err, bits: "2", access: ro}]}
-  - {name: INT_EN, offset: 0x14, width: 32, access: rw, reset: 0x00000000, fields: [{name: done_en, bits: "0", access: rw}, {name: err_en, bits: "1", access: rw}]}
-  - {name: INT_STATUS, offset: 0x18, width: 32, access: w1c_ro, reset: 0x00000000, fields: [{name: done_irq, bits: "0", access: w1c}, {name: err_irq, bits: "1", access: w1c}]}
+  address_unit: byte
+  register_list:
+  - name: IdRev
+    offset: '0x00'
+    width: 32
+    access: RO
+    reset: '0x01021012'
+    description: ID and revision register
+    fields:
+    - name: ID
+      bits:
+      - 31
+      - 12
+      access: RO
+      reset: '0x01021'
+      description: ID number for DMAC
+      write_effect: none
+    - name: RevMajor
+      bits:
+      - 11
+      - 4
+      access: RO
+      reset: '0x1'
+      description: Major revision
+      write_effect: none
+    - name: RevMinor
+      bits:
+      - 3
+      - 0
+      access: RO
+      reset: '0x2'
+      description: Minor revision
+      write_effect: none
+  - name: DMACfg
+    offset: '0x10'
+    width: 32
+    access: RO
+    reset: CONFIG
+    description: Configuration register
+    fields:
+    - name: ChainXfr
+      bits:
+      - 31
+      - 31
+      access: RO
+      reset: CHAIN_TRANSFER_SUPPORT
+      description: Chain transfer configured
+      write_effect: none
+    - name: ReqSync
+      bits:
+      - 30
+      - 30
+      access: RO
+      reset: '0x0'
+      description: DMA request synchronization configured
+      write_effect: none
+    - name: ReqNum
+      bits:
+      - 14
+      - 10
+      access: RO
+      reset: REQ_ACK_NUM
+      description: Request/acknowledge number
+      write_effect: none
+    - name: FIFODepth
+      bits:
+      - 9
+      - 4
+      access: RO
+      reset: FIFO_DEPTH
+      description: FIFO depth
+      write_effect: none
+    - name: ChannelNum
+      bits:
+      - 3
+      - 0
+      access: RO
+      reset: DMA_CH_NUM
+      description: Channel number
+      write_effect: none
+  - name: DMACtrl
+    offset: '0x20'
+    width: 32
+    access: WO
+    reset: '0x0'
+    description: Software reset control
+    fields:
+    - name: Reset
+      bits:
+      - 0
+      - 0
+      access: WO
+      reset: '0x0'
+      description: Set to 1 to reset DMA core and disable all channels
+      write_effect: software reset pulse
+  - name: IntStatus
+    offset: '0x30'
+    width: 32
+    access: R/W1C
+    reset: '0x0'
+    description: Terminal count, abort, and error status
+    fields:
+    - name: TC
+      bits:
+      - 23
+      - 16
+      access: R/W1C
+      reset: '0x0'
+      description: Terminal count status per channel
+      write_effect: write one clear
+    - name: Abort
+      bits:
+      - 15
+      - 8
+      access: R/W1C
+      reset: '0x0'
+      description: Abort status per channel
+      write_effect: write one clear
+    - name: Error
+      bits:
+      - 7
+      - 0
+      access: R/W1C
+      reset: '0x0'
+      description: Error status per channel
+      write_effect: write one clear
+  - name: ChEN
+    offset: '0x34'
+    width: 32
+    access: RO
+    reset: '0x0'
+    description: Alias of channel enable fields
+    fields:
+    - name: ChEN
+      bits:
+      - 7
+      - 0
+      access: RO
+      reset: '0x0'
+      description: Channel enable status
+      write_effect: none
+  - name: ChAbort
+    offset: '0x40'
+    width: 32
+    access: WO
+    reset: '0x0'
+    description: Write-one channel abort control
+    fields:
+    - name: ChAbort
+      bits:
+      - 7
+      - 0
+      access: WO
+      reset: '0x0'
+      description: Write 1 to stop current channel transfer; hardware clears when interrupt status cleared
+      write_effect: set abort request for enabled channel
+  - name: ChnCtrl
+    offset: 0x44+n*0x14
+    width: 32
+    access: R/W
+    reset: '0x000A0000'
+    description: Per-channel control register
+    fields:
+    - name: Priority
+      bits:
+      - 29
+      - 29
+      access: R/W
+      reset: '0x0'
+      description: Priority level
+      write_effect: stores written field value when the register write is accepted
+    - name: SrcBurstSize
+      bits:
+      - 24
+      - 22
+      access: R/W
+      reset: '0x0'
+      description: Transfers before re-arbitration
+      write_effect: stores written field value when the register write is accepted
+    - name: SrcWidth
+      bits:
+      - 21
+      - 20
+      access: R/W
+      reset: '0x2'
+      description: Source transfer width
+      write_effect: stores written field value when the register write is accepted
+    - name: DstWidth
+      bits:
+      - 19
+      - 18
+      access: R/W
+      reset: '0x2'
+      description: Destination transfer width
+      write_effect: stores written field value when the register write is accepted
+    - name: SrcMode
+      bits:
+      - 17
+      - 17
+      access: R/W
+      reset: '0x0'
+      description: Source handshake mode
+      write_effect: stores written field value when the register write is accepted
+    - name: DstMode
+      bits:
+      - 16
+      - 16
+      access: R/W
+      reset: '0x0'
+      description: Destination handshake mode
+      write_effect: stores written field value when the register write is accepted
+    - name: SrcAddrCtrl
+      bits:
+      - 15
+      - 14
+      access: R/W
+      reset: '0x0'
+      description: Source address control
+      write_effect: stores written field value when the register write is accepted
+    - name: DstAddrCtrl
+      bits:
+      - 13
+      - 12
+      access: R/W
+      reset: '0x0'
+      description: Destination address control
+      write_effect: stores written field value when the register write is accepted
+    - name: SrcReqSel
+      bits:
+      - 11
+      - 8
+      access: R/W
+      reset: '0x0'
+      description: Source request select
+      write_effect: stores written field value when the register write is accepted
+    - name: DstReqSel
+      bits:
+      - 7
+      - 4
+      access: R/W
+      reset: '0x0'
+      description: Destination request select
+      write_effect: stores written field value when the register write is accepted
+    - name: IntAbtMask
+      bits:
+      - 3
+      - 3
+      access: R/W
+      reset: '0x0'
+      description: Abort interrupt mask
+      write_effect: stores written field value when the register write is accepted
+    - name: IntErrMask
+      bits:
+      - 2
+      - 2
+      access: R/W
+      reset: '0x0'
+      description: Error interrupt mask
+      write_effect: stores written field value when the register write is accepted
+    - name: IntTCMask
+      bits:
+      - 1
+      - 1
+      access: R/W
+      reset: '0x0'
+      description: Terminal count interrupt mask
+      write_effect: stores written field value when the register write is accepted
+    - name: Enable
+      bits:
+      - 0
+      - 0
+      access: R/W
+      reset: '0x0'
+      description: Channel enable bit
+      write_effect: stores written field value when the register write is accepted
+  - name: ChnSrcAddr
+    offset: 0x48+n*0x14
+    width: 32
+    access: R/W
+    reset: '0x0'
+    description: Per-channel source address
+    fields:
+    - name: SrcAddr
+      bits:
+      - 31
+      - 0
+      access: R/W
+      reset: '0x0'
+      description: Source starting address; updated as transfer progresses
+      write_effect: write source address
+  - name: ChnDstAddr
+    offset: 0x4C+n*0x14
+    width: 32
+    access: R/W
+    reset: '0x0'
+    description: Per-channel destination address
+    fields:
+    - name: DstAddr
+      bits:
+      - 31
+      - 0
+      access: R/W
+      reset: '0x0'
+      description: Destination starting address; updated as transfer progresses
+      write_effect: write destination address
+  - name: ChnTranSize
+    offset: 0x50+n*0x14
+    width: 32
+    access: R/W
+    reset: '0x0'
+    description: Per-channel transfer size in source-width units
+    fields:
+    - name: TranSize
+      bits:
+      - 21
+      - 0
+      access: R/W
+      reset: '0x0'
+      description: Total transfer size; zero at enable triggers error
+      write_effect: write transfer size
+  - name: ChnLLPointer
+    offset: 0x54+n*0x14
+    width: 32
+    access: R/W
+    reset: '0x0'
+    description: Per-channel linked list pointer
+    fields:
+    - name: LLPointer
+      bits:
+      - 31
+      - 2
+      access: R/W
+      reset: '0x0'
+      description: Word-aligned pointer to next descriptor
+      write_effect: write linked list pointer
+    - name: Reserved
+      bits:
+      - 1
+      - 0
+      access: reserved
+      reset: '0x0'
+      description: Reserved low alignment bits
+      write_effect: ignore writes
+      read_value: '0'
+  decode_policy: AHB slave word-aligned register decode; unimplemented offsets read zero and return OKAY unless size/alignment is illegal.
+memory:
+  instances: []
+  addressing:
+    policy: No internal memory array is architecturally required; external AHB memory supplies source/destination storage.
+  storage_policy: Only FIFO buffering is implementation detail bounded by FIFO_DEPTH; no firmware-visible memory.
 interrupts:
-  - {name: irq_done, source: "INT_STATUS.done_irq", enable: "INT_EN.done_en & CTRL.int_en_global", output: irq, clear: "write 1 to INT_STATUS[0]"}
-  - {name: irq_error, source: "INT_STATUS.err_irq", enable: "INT_EN.err_en & CTRL.int_en_global", output: irq, clear: "write 1 to INT_STATUS[1]"}
+  line: dma_int
+  status_register: IntStatus
+  sources:
+  - TC
+  - Abort
+  - Error
+  clear: write-one-clear IntStatus bits
+  masking: per-channel IntTCMask, IntErrMask, and IntAbtMask in ChnCtrl
 fsm:
-  - id: channel_fsm
+  name: dma_core_fsm
+  states:
+  - IDLE
+  - ARBITRATE
+  - READ_ADDR
+  - READ_DATA
+  - WRITE_ADDR
+  - WRITE_DATA
+  - COMPLETE
+  - ERROR_ABORT
+  - CHAIN_LOAD
+  reset_state: IDLE
+  transitions:
+  - from: IDLE
+    to: ARBITRATE
+    condition: ch_enable != 0
+  - from: ARBITRATE
+    to: READ_ADDR
+    condition: selected channel ready and handshake satisfied
+  - from: READ_ADDR
+    to: READ_DATA
+    condition: hgrant_mst && hready_mst
+  - from: READ_DATA
+    to: WRITE_ADDR
+    condition: read_data captured
+  - from: WRITE_ADDR
+    to: WRITE_DATA
+    condition: hgrant_mst && hready_mst
+  - from: WRITE_DATA
+    to: COMPLETE
+    condition: last beat done
+  - from: WRITE_DATA
+    to: READ_ADDR
+    condition: more beats remain
+  - from: READ_ADDR
+    to: ERROR_ABORT
+    condition: hresp_mst error or alignment error
+  - from: COMPLETE
+    to: CHAIN_LOAD
+    condition: CHAIN_TRANSFER_SUPPORT && ChnLLPointer != 0
+  - from: COMPLETE
+    to: IDLE
+    condition: no chain continuation
+timing:
+  target_clocks:
+  - name: hclk
+    period_ns: 10.0
+    uncertainty_ns: 0.2
+  latency_budget: AHB slave zero wait; DMA throughput one 32-bit word per read/write pair when no stalls.
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports:
+    - sta/out/timing.rpt
+    - sta/out/wns.json
+power:
+  domains:
+  - name: core
     clock: hclk
     reset: hresetn
-    states: [IDLE, ARBITRATE, READ, WRITE, DONE, ERROR]
-    reset_state: IDLE
-    transitions:
-      - {from: IDLE, to: ARBITRATE, condition: "start_transfer"}
-      - {from: ARBITRATE, to: READ, condition: "hgrant && fifo_not_full"}
-      - {from: READ, to: WRITE, condition: "read_data_valid || fifo_not_empty"}
-      - {from: WRITE, to: READ, condition: "more_bytes && fifo_has_space && !hresp"}
-      - {from: WRITE, to: DONE, condition: "last_write_complete && !hresp"}
-      - {from: ARBITRATE, to: ERROR, condition: "hready && hresp"}
-      - {from: READ, to: ERROR, condition: "hready && hresp"}
-      - {from: WRITE, to: ERROR, condition: "hready && hresp"}
-      - {from: DONE, to: IDLE, condition: "!ctrl.start"}
-      - {from: ERROR, to: IDLE, condition: "software_clear_and_restart"}
+  power_states:
+  - active
+  - idle clocked
+  clock_gating: not required for this baseline
+  upf_required: false
+security:
+  classification: internal IP from confidential vendor datasheet; generated artifacts retain evidence hashes but not long verbatim excerpts.
+  assets:
+  - register programming state
+  - DMA source/destination addresses
+  - interrupt status
+  - AHB master access authority
+  threat_model:
+  - software must not program unaligned/reserved channel modes
+  - AHB fabric must constrain master access at system level
+  privilege_model: System-level access control is owned by the integrating bus/firewall unless explicitly declared here.
+error_handling:
+  error_sources:
+  - id: ERR_PROTOCOL
+    condition: Downstream protocol response is non-OKAY or invalid
+    architectural_effect: Set error status and block signoff until handled
+  propagation: Set IntStatus.Error or IntStatus.Abort, clear channel enable, assert dma_int if not masked, stop further master transfers.
+  recovery: Software reads IntStatus, services the cause, writes one to clear status, reprograms or re-enables the channel.
+debug_observability:
+  waveform_must_probe:
+  - hclk
+  - hresetn
+  - hsel
+  - haddr
+  - hwdata
+  - hrdata
+  - hready
+  - hresp
+  - hbusreq_mst
+  - hgrant_mst
+  - htrans_mst
+  - haddr_mst
+  - hwrite_mst
+  - hwdata_mst
+  - hrdata_mst
+  - hready_mst
+  - hresp_mst
+  - dma_req
+  - dma_ack
+  - dma_int
+  - busy
+  - active_ch
+  - int_tc
+  - int_abort
+  - int_error
+  trace_events:
+  - slave_write
+  - slave_read
+  - channel_selected
+  - master_read
+  - master_write
+  - terminal_count
+  - abort
+  - error
+  - chain_load
+  status_outputs:
+  - status/debug signals declared in io_list or registers
+integration:
+  bus_attachment: ATCDMAC100 attaches as one AMBA 2 AHB slave for register programming and one AMBA 2 AHB master for data movement.
+  dependencies:
+  - System AHB fabric grants hbusreq_mst through hgrant_mst.
+  - External low-speed devices drive dma_req and observe dma_ack.
+  - Software programs channel register windows before setting ChnCtrl.Enable.
+  connections:
+  - module: atcdmac100_core
+    port: hclk
+    signal: hclk
+  - module: atcdmac100_core
+    port: hresetn
+    signal: hresetn
+  - module: atcdmac100_core
+    port: dma_int
+    signal: dma_int
+  - module: atcdmac100_core
+    port: dma_req
+    signal: dma_req
+  - module: atcdmac100_core
+    port: dma_ack
+    signal: dma_ack
+  - module: atcdmac100_core
+    port: haddr
+    signal: haddr
+  - module: atcdmac100_core
+    port: htrans
+    signal: htrans
+  - module: atcdmac100_core
+    port: hwrite
+    signal: hwrite
+  - module: atcdmac100_core
+    port: hsize
+    signal: hsize
+  - module: atcdmac100_core
+    port: hburst
+    signal: hburst
+  - module: atcdmac100_core
+    port: hwdata
+    signal: hwdata
+  - module: atcdmac100_core
+    port: hsel
+    signal: hsel
+  - module: atcdmac100_core
+    port: hreadyin
+    signal: hreadyin
+  - module: atcdmac100_core
+    port: hrdata
+    signal: hrdata
+  - module: atcdmac100_core
+    port: hresp
+    signal: hresp
+  - module: atcdmac100_core
+    port: hready
+    signal: hready
+  - module: atcdmac100_core
+    port: haddr_mst
+    signal: haddr_mst
+  - module: atcdmac100_core
+    port: htrans_mst
+    signal: htrans_mst
+  - module: atcdmac100_core
+    port: hwrite_mst
+    signal: hwrite_mst
+  - module: atcdmac100_core
+    port: hsize_mst
+    signal: hsize_mst
+  - module: atcdmac100_core
+    port: hprot_mst
+    signal: hprot_mst
+  - module: atcdmac100_core
+    port: hlock_mst
+    signal: hlock_mst
+  - module: atcdmac100_core
+    port: hburst_mst
+    signal: hburst_mst
+  - module: atcdmac100_core
+    port: hwdata_mst
+    signal: hwdata_mst
+  - module: atcdmac100_core
+    port: hrdata_mst
+    signal: hrdata_mst
+  - module: atcdmac100_core
+    port: hresp_mst
+    signal: hresp_mst
+  - module: atcdmac100_core
+    port: hready_mst
+    signal: hready_mst
+  - module: atcdmac100_core
+    port: hbusreq_mst
+    signal: hbusreq_mst
+  - module: atcdmac100_core
+    port: hgrant_mst
+    signal: hgrant_mst
+  connection_contract_status: missing machine-readable module wiring; child RTL drafts may proceed from owner packets, but top integration/signoff must stay blocked until SSOT authors integration.connections or sub_modules[].connections with module/port/signal records
+  integration_notes:
+  - Integrator must connect every declared io_list port and honor timing/reset assumptions.
+dft:
+  scan_required: false
+  controllability:
+    reset: hresetn
+    clocks:
+    - hclk
+    primary_inputs: all io_list inputs controllable in testbench
+  observability:
+    required_internal_points:
+    - channel_state
+    - bytes_done
+    - int_status
+    outputs: all io_list outputs observable
+  mbist_required: false
+synthesis:
+  dialect: systemverilog_2012
+  constraints:
+  - single hclk clock
+  - active-low hresetn reset
+  - no inferred latches
+  - AHB outputs registered or stable during wait states
+  required_outputs:
+  - syn/out/synth.v
+  - syn/out/area.json
+  - syn/sdc/atcdmac100.sdc
+  top_module: atcdmac100
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: met3
+    vertical: met2
+  cts_buf_list:
+  - sky130_fd_sc_hd__clkbuf_4
+  - sky130_fd_sc_hd__clkbuf_8
+  routing:
+    signal_layers:
+      min: met1
+      max: met5
+    drc_waivers: []
+coding_rules:
+  verilog_style: systemverilog_2012
+  file_extension: .sv
+  parameter_header: rtl/atcdmac100_param.vh
+  conventions:
+  - Use input logic/output logic ANSI ports and single-driver internal logic.
+  - Keep synthesizable top file as rtl/atcdmac100.sv.
+  - No placeholder/tie-off implementation may satisfy an SSOT functional transaction.
+  lint_waivers: []
+reuse_modules: []
 custom:
   assumptions:
-    - "The imported DS079 V1.2 text was not visible to this headless worker; this SSOT is an engineering draft for downstream repair/audit against the imported document."
-    - "Baseline bus architecture is APB slave for registers plus AHB-Lite master for memory data movement; exact DS079 signal naming and optional features must be reconciled by later goal-audit/architect stages."
-    - "NUM_CHANNELS defaults to 1 with draft ownership refs; multi-channel, scatter-gather, endian, burst, and peripheral-handshake details are TBD until DS079 evidence is attached."
-    - "Reset is modeled active-low synchronous on hclk; if DS079 specifies asynchronous reset, RTL must update SSOT first."
-  tbd:
-    - "Confirm exact DS079 register map, reset values, access policies, bus protocols, number of channels, and interrupt semantics."
-    - "Confirm whether ATCDMAC100 requires AHB, AHB5, APB3/APB4, AXI, peripheral DMA handshakes, linked-list descriptors, or low-power signals."
+  - The imported DS079 V1.2 document content was not visible to this headless worker; this is an engineering draft for downstream reconciliation.
+  - Draft architecture uses APB control and AHB-Lite memory master interfaces; exact DS079 bus variant, signal names, channel count, and optional peripheral handshakes must be audited.
+  - NUM_CHANNELS defaults to 1 and memory-to-memory copy is the baseline behavior until DS079 evidence is attached.
+  - Reset is modeled active-low synchronous on hclk; revise SSOT if DS079 requires asynchronous behavior.
+  open_items:
+  - Confirm exact DS079 register map, reset values, access policies, interrupt semantics, burst behavior, channel count, and alignment rules.
+  - Confirm whether scatter-gather descriptors, peripheral DMA, endian conversion, low-power, or security features are mandatory.
+  optional_behavior_policy:
+    resolution: Optional features are disabled unless this SSOT marks them required or parameterized.
+dir_structure:
+  rtl: rtl/
+  list: list/
+  tb: tb/cocotb/
+  sim: sim/
+  cov: cov/
+  syn: syn/out/
+  sta: sta/out/
+  pnr: pnr/out/
+  sta_post: sta-post/out/
+filelist:
+  rtl:
+  - rtl/atcdmac100_core.sv
+  - rtl/atcdmac100.sv
+  tb:
+  - tb/cocotb/test_atcdmac100.py
+  headers:
+  - rtl/atcdmac100_param.vh
+  sim:
+  - sim/results.xml
+  - sim/waves.fst
+  coverage:
+  - cov/coverage.json
 test_requirements:
-  - id: apb_reg_access
-    stimulus: "Reset, write each RW register via APB, read back, attempt reserved/invalid address access."
-    expected_results: "RW fields retain legal values; RO status reflects internal state; invalid address sets pslverr without corrupting state."
-    checkers: [apb_protocol_checker, register_mirror_scoreboard]
-    coverage: "All defined offsets, field access types, reset values, invalid address path."
-  - id: dma_nominal_copy
-    stimulus: "Program SRC_ADDR, DST_ADDR, LEN, enable interrupts, start channel with zero-wait AHB memory model."
-    expected_results: "Destination memory equals source for LEN bytes; STATUS.done=1, busy=0, err=0, irq asserts when enabled."
-    checkers: [memory_scoreboard, irq_checker, ahb_protocol_checker]
-    coverage: "Lengths 1 beat, multiple beats, unaligned/partial final beat TBD, hready stalls."
-  - id: ahb_error
-    stimulus: "Inject hresp error during read and write phases."
-    expected_results: "Channel stops, STATUS.err=1, INT_STATUS.err_irq=1, irq follows mask, no further data beats until restart."
-    checkers: [error_state_checker, no_extra_beat_assertion]
-    coverage: "Error in ARBITRATE/READ/WRITE states."
+  scenarios:
+  - id: SC01
+    name: reset contract
+    stimulus: Assert and release the declared reset while all external interfaces remain idle.
+    expected: Architectural state, status, outputs, and debug observability match function_model reset outputs.
+    checker: Reset checker compares all declared reset-visible state against function_model and cycle_model reset rules.
+    coverage:
+    - function_model.reset
+    - cycle_model.reset
+  - id: SC02
+    name: primary approved behavior
+    stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.
+    expected: Externally observable result/status/side effects match the function_model primary transaction.
+    checker: FL-vs-RTL scoreboard compares observable outputs and state updates from the locked function_model.
+    coverage:
+    - function_model.primary
+    - features
+    - dataflow
+  - id: SC03
+    name: cycle handshake and backpressure
+    stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.
+    expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.
+    checker: Protocol monitor and scoreboard check cycle_model.handshake_rules, ordering, and latency budget.
+    coverage:
+    - cycle_model.handshake_rules
+    - cycle_model.ordering
+    - backpressure
+  - id: SC04
+    name: error and recovery policy
+    stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.
+    expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.
+    checker: Negative checker compares error result and recovery state against function_model error_cases.
+    coverage:
+    - error_handling.error_sources
+    - function_model.error_cases
+  - id: SC05
+    name: debug and trace observability
+    stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.
+    expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.
+    checker: Waveform/trace checker validates debug_observability entries and traceability.yaml_to_output rows.
+    coverage:
+    - debug_observability
+    - traceability
+  - id: SC06
+    name: function_model transaction FM_RESET
+    stimulus: Drive preconditions for function_model transaction `FM_RESET`.
+    expected: Outputs and side effects match `FM_RESET` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_RESET
+  - id: SC07
+    name: function_model transaction FM_AHB_WRITE
+    stimulus: Drive preconditions for function_model transaction `FM_AHB_WRITE`.
+    expected: Outputs and side effects match `FM_AHB_WRITE` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_AHB_WRITE
+  - id: SC08
+    name: function_model transaction FM_AHB_READ
+    stimulus: Drive preconditions for function_model transaction `FM_AHB_READ`.
+    expected: Outputs and side effects match `FM_AHB_READ` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_AHB_READ
+  - id: SC09
+    name: function_model transaction FM_ARBITRATE
+    stimulus: Drive preconditions for function_model transaction `FM_ARBITRATE`.
+    expected: Outputs and side effects match `FM_ARBITRATE` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_ARBITRATE
+  - id: SC10
+    name: function_model transaction FM_MASTER_READ
+    stimulus: Drive preconditions for function_model transaction `FM_MASTER_READ`.
+    expected: Outputs and side effects match `FM_MASTER_READ` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_MASTER_READ
+  - id: SC11
+    name: function_model transaction FM_MASTER_WRITE
+    stimulus: Drive preconditions for function_model transaction `FM_MASTER_WRITE`.
+    expected: Outputs and side effects match `FM_MASTER_WRITE` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_MASTER_WRITE
+  - id: SC12
+    name: function_model transaction FM_COMPLETE
+    stimulus: Drive preconditions for function_model transaction `FM_COMPLETE`.
+    expected: Outputs and side effects match `FM_COMPLETE` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_COMPLETE
+  scoreboard_checks: 12
+  coverage_goals:
+    function:
+      model: function_model
+      target_pct: 90
+      bins:
+      - id: FCOV_REG_IDCFG
+        source_ref: function_model.transactions.FM_AHB_READ
+        class: register_access
+        description: IdRev/DMACfg/ChEN/IntStatus read paths are observed
+      - id: FCOV_INT_W1C
+        source_ref: function_model.transactions.FM_AHB_WRITE
+        class: register_access
+        description: IntStatus write-one-clear behavior is observed
+      - id: FCOV_DMA_READ_WRITE
+        source_ref: function_model.transactions.FM_MASTER_READ
+        class: dma_datapath
+        description: DMA master read beat is observed
+      - id: FCOV_DMA_WRITE
+        source_ref: function_model.transactions.FM_MASTER_WRITE
+        class: dma_datapath
+        description: DMA master write beat is observed
+      - id: FCOV_TC_INT
+        source_ref: function_model.transactions.FM_COMPLETE
+        class: interrupt
+        description: Terminal count status and interrupt are observed
+      - id: FCOV_ERROR_ABORT
+        source_ref: function_model.transactions.FM_ERROR_ABORT
+        class: error
+        description: Error or abort handling is observed
+      - id: FCOV_REQ_ACK
+        source_ref: function_model.transactions.FM_HANDSHAKE_ACK
+        class: handshake
+        description: dma_req/dma_ack service is observed
+      - id: FCOV_PRIORITY
+        source_ref: function_model.transactions.FM_ARBITRATE
+        class: arbitration
+        description: priority round-robin arbitration is observed
+      description: function coverage for ATCDMAC100 SSOT contract.
+    cycle:
+      model: cycle_model
+      target_pct: 80
+      bins:
+      - id: CCOV_AHB_SLAVE_ACCESS
+        source_ref: cycle_model.handshake_rules[0]
+        class: bus_handshake
+        description: AHB slave access handshake observed
+      - id: CCOV_MASTER_READ_WRITE
+        source_ref: cycle_model.pipeline[1]
+        class: pipeline
+        description: read/write pipeline states observed
+      - id: CCOV_WAIT_STATE
+        source_ref: cycle_model.handshake_rules[1]
+        class: backpressure
+        description: AHB master ready/grant backpressure observed
+      - id: CCOV_HANDSHAKE_WAIT
+        source_ref: cycle_model.handshake_rules[2]
+        class: dma_handshake
+        description: dma_req wait and dma_ack sequence observed
+      - id: CCOV_ERROR_RESPONSE
+        source_ref: fsm.transitions
+        class: fsm
+        description: error/abort FSM transition observed
+      description: cycle coverage for ATCDMAC100 SSOT contract.
+    planned_bins:
+    - id: FCOV_REG_IDCFG
+      source_ref: function_model.transactions.FM_AHB_READ
+      class: register_access
+      description: IdRev/DMACfg/ChEN/IntStatus read paths are observed
+    - id: FCOV_INT_W1C
+      source_ref: function_model.transactions.FM_AHB_WRITE
+      class: register_access
+      description: IntStatus write-one-clear behavior is observed
+    - id: FCOV_DMA_READ_WRITE
+      source_ref: function_model.transactions.FM_MASTER_READ
+      class: dma_datapath
+      description: DMA master read beat is observed
+    - id: FCOV_DMA_WRITE
+      source_ref: function_model.transactions.FM_MASTER_WRITE
+      class: dma_datapath
+      description: DMA master write beat is observed
+    - id: FCOV_TC_INT
+      source_ref: function_model.transactions.FM_COMPLETE
+      class: interrupt
+      description: Terminal count status and interrupt are observed
+    - id: FCOV_ERROR_ABORT
+      source_ref: function_model.transactions.FM_ERROR_ABORT
+      class: error
+      description: Error or abort handling is observed
+    - id: FCOV_REQ_ACK
+      source_ref: function_model.transactions.FM_HANDSHAKE_ACK
+      class: handshake
+      description: dma_req/dma_ack service is observed
+    - id: FCOV_PRIORITY
+      source_ref: function_model.transactions.FM_ARBITRATE
+      class: arbitration
+      description: priority round-robin arbitration is observed
+    - id: CCOV_AHB_SLAVE_ACCESS
+      source_ref: cycle_model.handshake_rules[0]
+      class: bus_handshake
+      description: AHB slave access handshake observed
+    - id: CCOV_MASTER_READ_WRITE
+      source_ref: cycle_model.pipeline[1]
+      class: pipeline
+      description: read/write pipeline states observed
+    - id: CCOV_WAIT_STATE
+      source_ref: cycle_model.handshake_rules[1]
+      class: backpressure
+      description: AHB master ready/grant backpressure observed
+    - id: CCOV_HANDSHAKE_WAIT
+      source_ref: cycle_model.handshake_rules[2]
+      class: dma_handshake
+      description: dma_req wait and dma_ack sequence observed
+    - id: CCOV_ERROR_RESPONSE
+      source_ref: fsm.transitions
+      class: fsm
+      description: error/abort FSM transition observed
+    scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence
 quality_gates:
-  - "SSOT schema repair/check passes in engineering mode."
-  - "RTL top module must be rtl/atcdmac100.sv and match every io_list port name/direction/width."
-  - "Function-level and cycle-level models must implement every transaction id and fsm transition before equivalence."
-  - "Lint, simulation, coverage, synthesis, STA, PnR, post-route STA, and goal audit must not waive DS079 mismatches without explicit QA."
+  ssot:
+    pass: check_ssot_disk passes in signoff mode
+    evidence:
+    - yaml/atcdmac100.ssot.yaml
+  rtl:
+    pass: DUT compile/lint and RTL TODO audit pass
+    evidence:
+    - rtl/rtl_compile.json
+    - lint/dut_lint.json
+    - rtl/rtl_todo_plan.json
+  rtl_gen:
+    profile: standard
+    pass: rtl_todo_plan all required tasks pass after audit
+    evidence:
+    - rtl/rtl_todo_plan.json
+    - rtl/rtl_authoring_provenance.json
+  dv:
+    pass: TB generation and simulation evidence pass
+    evidence:
+    - tb/cocotb/tb_manifest.json
+    - sim/results.xml
+    - sim/scoreboard_events.jsonl
+  coverage:
+    pass: functional and cycle bins mapped to RTL-observed evidence
+    evidence:
+    - cov/coverage.json
+    - cov/coverage_functional.json
+  eda:
+    pass: synthesis, STA, PnR, and post-route STA artifacts are present or blockers captured
+    evidence:
+    - syn/out/area.json
+    - sta/out/wns.json
+    - pnr/out/drc.json
+    - sta-post/out/wns.json
+  signoff:
+    pass: goal audit links SSOT, model, RTL, TB, sim, coverage, and EDA evidence
+    evidence:
+    - sim/fl_rtl_goal_audit.json
+traceability:
+  yaml_to_output:
+  - yaml: io_list
+    output: RTL top ports and cocotb driver
+  - yaml: registers
+    output: AHB slave register decode and register scoreboard
+  - yaml: function_model
+    output: functional_model.py, equivalence_goals.json, RTL behavior, scoreboard rows
+  - yaml: cycle_model
+    output: protocol assertions, waveform probes, simulation checks
+  - yaml: test_requirements
+    output: cocotb scenarios and coverage bins
+  - yaml: function_model/cycle_model/test_requirements
+    output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
+  - yaml: timing
+    output: STA constraints and latency pass/fail criteria
+  - yaml: security
+    output: Threat mitigations and negative tests
+  - yaml: error_handling
+    output: Fault RTL paths and DV error scenarios
+  - yaml: debug_observability
+    output: VCD probes and sim_debug inspection
+  - yaml: quality_gates
+    output: ATLAS progress/signoff criteria
+  source_evidence:
+  - source: ATCDMAC100 DS079 V1.2 pages 9-18
+    facts:
+    - features
+    - AHB slave/master interfaces
+    - dma_req/dma_ack
+  - source: ATCDMAC100 DS079 V1.2 pages 19-28
+    facts:
+    - register map
+    - interrupt status
+    - channel controls
+  - source: ATCDMAC100 DS079 V1.2 pages 29-34
+    facts:
+    - configuration options
+    - programming sequences
 workflow_todos:
-  - owner: rtl-gen
-    task: "Generate synthesizable rtl/atcdmac100.sv and owned submodules from this SSOT only; do not change interfaces without SSOT update."
-  - owner: fl-gen
-    task: "Create function model using function_model.transactions and reconcile assumptions against DS079 evidence when available."
-  - owner: cl-gen
-    task: "Create cycle model for AHB/APB handshakes, stalls, interrupts, and FSM transitions."
-  - owner: tb-gen
-    task: "Build APB/AHB memory testbench with register, nominal copy, stall, and error scenarios plus coverage."
-  - owner: goal-audit
-    task: "Compare final artifacts against imported AndeShape ATCDMAC100 DS079 V1.2 and raise QA for every divergence."
+  ssot-gen:
+  - content: Promote ATCDMAC100 DS079 V1.2 PDF facts into SSOT
+    detail: Use extracted pages for features, interfaces, register map, function model, coverage, and signoff requirements.
+    criteria:
+    - check_ssot_disk signoff passes and traceability lists source page ranges.
+    source_refs:
+    - source_requirement
+    - traceability.source_evidence
+  fl-model-gen:
+  - content: Generate function and cycle models from ATCDMAC100 SSOT
+    detail: Models must cover AHB slave register access, arbitration, DMA read/write, handshake, terminal count, abort/error, and chain hooks.
+    criteria:
+    - fl_model_check and cl_model_check pass.
+    source_refs:
+    - function_model
+    - cycle_model
+  rtl-gen:
+  - content: Implement DS079 AHB slave/master DMA RTL
+    detail: Implement ATCDMAC100 top and core using SSOT ports, register map, function_model, cycle_model, and dynamic TODO ledger.
+    criteria:
+    - rtl_compile.json, dut_lint.json, rtl_todo_plan audit, and rtl_authoring_provenance all pass.
+    source_refs:
+    - io_list
+    - registers
+    - function_model
+    - cycle_model
+    - dataflow
+    - fsm
+    id: RTL_TODO_1
+  - content: Preserve document traceability in RTL evidence
+    detail: RTL traceability must map source refs to atcdmac100_core.sv and atcdmac100.sv.
+    criteria:
+    - rtl_traceability.json covers io_list, registers, function_model, cycle_model, dataflow, fsm, interrupts, and errors.
+    source_refs:
+    - traceability
+    - quality_gates.rtl_gen
+    id: RTL_TODO_2
+  tb-gen:
+  - content: Generate goal-driven ATCDMAC100 cocotb checks
+    detail: Exercise AHB register programming, memory copy, arbitration, handshake, abort/error, and chain-observable behavior.
+    criteria:
+    - tb manifest and scoreboard self-check pass, sim evidence rows map to coverage refs.
+    source_refs:
+    - test_requirements
+    - verify/equivalence_goals.json
+  sim-debug:
+  - content: Compare FL/RTL evidence and classify failures
+    detail: Use waveform/source/scoreboard evidence for owner routing.
+    criteria:
+    - fl_rtl_compare and mismatch_classification are generated.
+    source_refs:
+    - sim/scoreboard_events.jsonl
+    - verify/equivalence_goals.json
+  coverage:
+  - content: Close functional and cycle coverage from RTL-observed simulation
+    detail: Coverage must separate function and cycle bins and record unsupported limits.
+    criteria:
+    - coverage.json status pass or explicit limitation with human review.
+    source_refs:
+    - test_requirements.coverage_goals
+    - sim/scoreboard_events.jsonl
+  syn:
+  - content: Run Yosys synthesis for ATCDMAC100
+    detail: Use generated SDC and SKY130 liberty if present.
+    criteria:
+    - syn/out/synth.v and syn/out/area.json exist.
+    source_refs:
+    - synthesis
+    - timing
+  sta:
+  - content: Run pre-route STA
+    detail: Use synthesized netlist and generated SDC.
+    criteria:
+    - sta/out/wns.json reports setup/hold summary.
+    source_refs:
+    - timing
+  pnr:
+  - content: Run OpenROAD PnR handoff
+    detail: Produce routed netlist/DEF/SPEF/DRC evidence if PDK/OpenROAD flow is available.
+    criteria:
+    - pnr/out/drc.json and routed handoff files exist or blocker is captured.
+    source_refs:
+    - pnr
+    - synthesis
+  sta-post:
+  - content: Run post-route STA
+    detail: Use routed netlist plus parasitic SPEF.
+    criteria:
+    - sta-post/out/wns.json exists or blocker is captured.
+    source_refs:
+    - timing
+    - pnr
+  goal-audit:
+  - content: Audit full ATCDMAC100 flow evidence
+    detail: Check SSOT, model, RTL, TB, sim, coverage, and EDA handoff artifacts against the document-derived goal.
+    criteria:
+    - sim/fl_rtl_goal_audit.json summarizes pass/blockers.
+    source_refs:
+    - quality_gates
+    - traceability
+  sim_debug: []
+generation_flow:
+  steps:
+  - name: validate_ssot
+    command: bash workflow/ssot-gen/scripts/check_ssot_disk.sh atcdmac100 --mode ${ATLAS_RUN_MODE:-signoff}
+    description: Validate SSOT structure and quality gates at the selected Run Mode
+  - name: handoff_fl_model
+    command: /ssot-fl-model atcdmac100
+    description: Generate FunctionalModel, decomposition, and FCOV plan from SSOT
+  - name: handoff_equivalence_goals
+    command: /ssot-equiv-goals atcdmac100
+    description: Derive FL-vs-RTL equivalence goals before TB generation
+  - name: handoff_rtl
+    command: /ssot-rtl atcdmac100
+    description: Generate RTL from validated SSOT
+  - name: handoff_tb
+    command: /ssot-tb-cocotb atcdmac100
+    description: Generate cocotb/pyuvm verification from validated SSOT
+  - name: handoff_sim_debug
+    command: /wf sim_debug
+    description: Run simulation, waveform, and coverage inspection
+ip: atcdmac100
+schema_version: 0.1.0
+source_requirement: /Users/brian/Desktop/andes/platform/AE210P_20161118/DOCS/AndeShape_ATCDMAC100_DS079_V1.2.pdf (sha256 009859054f1992b6c64ec7e4e09402aad1b2ee21558c6c3cce48d91a4b231ac9)
+rtl_contract:
+  clock: hclk
+  reset: hresetn
+  reset_active: low
+  transaction: FM_RESET
+  input_map:
+    address: haddr
+    write_data: hwdata
+    slave_valid: htrans
+    master_ready: hready_mst
+    master_error: hresp_mst
+    request_vector: dma_req
+    dma_req: dma_req
+    haddr: haddr
+    htrans: htrans
+    hwrite: hwrite
+    hsize: hsize
+    hburst: hburst
+    hwdata: hwdata
+    hsel: hsel
+    hreadyin: hreadyin
+    hrdata_mst: hrdata_mst
+    hresp_mst: hresp_mst
+    hready_mst: hready_mst
+    hgrant_mst: hgrant_mst
+  output_map:
+    hready_reset: hready
+    hresp_reset: hresp
+    dma_int_reset: dma_int
+    htrans_mst_reset: htrans_mst
+    hready_write: hready
+    hresp_write: hresp
+    dma_int_after_write: dma_int
+    hready_read: hready
+    hresp_read: hresp
+    hrdata_id_cfg_status: hrdata
+    hbusreq_on_start: hbusreq_mst
+    htrans_idle_on_start: htrans_mst
+    hbusreq_read: hbusreq_mst
+    htrans_read: htrans_mst
+    hwrite_read: hwrite_mst
+    haddr_read: haddr_mst
+    hsize_word: hsize_mst
+    hburst_incr: hburst_mst
+    hbusreq_write: hbusreq_mst
+    htrans_write: htrans_mst
+    hwrite_write: hwrite_mst
+    haddr_write: haddr_mst
+    hwdata_write: hwdata_mst
+    hbusreq_complete: hbusreq_mst
+    htrans_complete: htrans_mst
+    dma_int_tc: dma_int
+    hbusreq_error: hbusreq_mst
+    htrans_error: htrans_mst
+    dma_int_error: dma_int
+    dma_ack_error: dma_ack
+    dma_ack_selected: dma_ack
+    dma_int_handshake: dma_int
+    dma_int: dma_int
+    dma_ack: dma_ack
+    hrdata: hrdata
+    hresp: hresp
+    hready: hready
+    haddr_mst: haddr_mst
+    htrans_mst: htrans_mst
+    hwrite_mst: hwrite_mst
+    hsize_mst: hsize_mst
+    hprot_mst: hprot_mst
+    hlock_mst: hlock_mst
+    hburst_mst: hburst_mst
+    hwdata_mst: hwdata_mst
+    hbusreq_mst: hbusreq_mst
+  state_update_policy: state_variables update synchronously on hclk; hresetn clears all state; software reset mirrors hardware reset for DMA core state.
+  implementation_notes:
+  - RTL must use DS079 AHB slave and AHB master signal names, not APB aliases.
+  - RTL must keep source_ref traceability in rtl_traceability.json and authoring provenance.
+  owner: ssot-gen
+  type: ssot_derived_rule_contract
+  sample_condition: '1'
+  contract_invariants:
+  - RTL-visible behavior implements the referenced function_model transaction.
+  - Input sampling and output observation follow cycle_model handshake and latency rules.
+  output_rules:
+  - name: hready_reset
+    port: hready
+    expr: '0'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: hresp_reset
+    port: hresp
+    expr: '0'
+    width: 2
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: dma_int_reset
+    port: dma_int
+    expr: '0'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: htrans_mst_reset
+    port: htrans_mst
+    expr: '0'
+    width: 2
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: hrdata_id_cfg_status
+    port: hrdata
+    expr: 0x01021012 if haddr == 0 else ((CHAIN_TRANSFER_SUPPORT << 31) | (REQ_ACK_NUM << 10) | (FIFO_DEPTH << 4) | DMA_CH_NUM) if haddr == 16 else ((int_tc << 16) | (int_abort << 8) | int_error) if haddr == 48 else ch_enable if haddr == 52 else 0
+    width: 32
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: hbusreq_on_start
+    port: hbusreq_mst
+    expr: '1'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: hwrite_read
+    port: hwrite_mst
+    expr: '0'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: haddr_read
+    port: haddr_mst
+    expr: src_addr_cur
+    width: ADDR_WIDTH
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: hsize_word
+    port: hsize_mst
+    expr: '2'
+    width: 3
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: hburst_incr
+    port: hburst_mst
+    expr: '1'
+    width: 3
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: hwdata_write
+    port: hwdata_mst
+    expr: read_data_hold
+    width: 32
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: dma_ack_error
+    port: dma_ack
+    expr: '0'
+    width: REQ_ACK_NUM
+    description: FunctionalModel output observable mapped to DUT output port.
+  unresolved_expression_refs:
+  - CHAIN_TRANSFER_SUPPORT
+  - DMA_CH_NUM
+  - FIFO_DEPTH
+  - REQ_ACK_NUM
+ports:
+- name: hclk
+  direction: input
+  width: 1
+  protocol: clock
+  role: clock
+  description: System bus clock from DS079 Table 2.
+- name: hresetn
+  direction: input
+  width: 1
+  protocol: reset_n
+  role: reset
+  description: System bus reset, active low.
+- name: dma_int
+  direction: output
+  width: 1
+  protocol: dma
+  role: interrupt
+  description: Interrupt request.
+- name: dma_req
+  direction: input
+  width: REQ_ACK_NUM
+  protocol: dma
+  role: request
+  description: Burst transfer request vector, up to 16 pairs.
+- name: dma_ack
+  direction: output
+  width: REQ_ACK_NUM
+  protocol: dma
+  role: acknowledge
+  description: Burst transfer acknowledge vector.
+- name: haddr
+  direction: input
+  width: ADDR_WIDTH
+  protocol: ahb_slave
+  role: slave_addr
+  description: AHB slave address bus.
+- name: htrans
+  direction: input
+  width: 2
+  protocol: ahb_slave
+  role: slave_trans
+  description: AHB slave transfer type.
+- name: hwrite
+  direction: input
+  width: 1
+  protocol: ahb_slave
+  role: slave_write
+  description: AHB slave write signal.
+- name: hsize
+  direction: input
+  width: 3
+  protocol: ahb_slave
+  role: slave_size
+  description: AHB slave transfer size.
+- name: hburst
+  direction: input
+  width: 3
+  protocol: ahb_slave
+  role: slave_burst
+  description: AHB slave burst type.
+- name: hwdata
+  direction: input
+  width: 32
+  protocol: ahb_slave
+  role: slave_wdata
+  description: AHB slave write data bus.
+- name: hsel
+  direction: input
+  width: 1
+  protocol: ahb_slave
+  role: slave_select
+  description: AHB slave select.
+- name: hreadyin
+  direction: input
+  width: 1
+  protocol: ahb_slave
+  role: slave_ready_in
+  description: AHB slave ready input.
+- name: hrdata
+  direction: output
+  width: 32
+  protocol: ahb_slave
+  role: slave_rdata
+  description: AHB slave read data bus.
+- name: hresp
+  direction: output
+  width: 2
+  protocol: ahb_slave
+  role: slave_response
+  description: AHB slave response.
+- name: hready
+  direction: output
+  width: 1
+  protocol: ahb_slave
+  role: slave_ready_out
+  description: AHB slave ready output.
+- name: haddr_mst
+  direction: output
+  width: ADDR_WIDTH
+  protocol: ahb_master
+  role: master_addr
+  description: AHB master address bus.
+- name: htrans_mst
+  direction: output
+  width: 2
+  protocol: ahb_master
+  role: master_trans
+  description: AHB master transfer type.
+- name: hwrite_mst
+  direction: output
+  width: 1
+  protocol: ahb_master
+  role: master_write
+  description: AHB master write signal.
+- name: hsize_mst
+  direction: output
+  width: 3
+  protocol: ahb_master
+  role: master_size
+  description: AHB master transfer size.
+- name: hprot_mst
+  direction: output
+  width: 4
+  protocol: ahb_master
+  role: master_protection
+  description: AHB master protection control.
+- name: hlock_mst
+  direction: output
+  width: 1
+  protocol: ahb_master
+  role: master_lock
+  description: AHB master lock request.
+- name: hburst_mst
+  direction: output
+  width: 3
+  protocol: ahb_master
+  role: master_burst
+  description: AHB master burst type.
+- name: hwdata_mst
+  direction: output
+  width: 32
+  protocol: ahb_master
+  role: master_wdata
+  description: AHB master write data bus.
+- name: hrdata_mst
+  direction: input
+  width: 32
+  protocol: ahb_master
+  role: master_rdata
+  description: AHB master read data bus.
+- name: hresp_mst
+  direction: input
+  width: 2
+  protocol: ahb_master
+  role: master_response
+  description: AHB master transfer response.
+- name: hready_mst
+  direction: input
+  width: 1
+  protocol: ahb_master
+  role: master_ready
+  description: AHB master data ready input.
+- name: hbusreq_mst
+  direction: output
+  width: 1
+  protocol: ahb_master
+  role: master_bus_request
+  description: AHB master bus request signal.
+- name: hgrant_mst
+  direction: input
+  width: 1
+  protocol: ahb_master
+  role: master_grant
+  description: AHB master bus grant signal.

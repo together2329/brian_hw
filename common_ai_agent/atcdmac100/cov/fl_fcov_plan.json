@@ -1,0 +1,218 @@
+{
+  "schema_version": 1,
+  "type": "fl_functional_coverage_plan",
+  "ip": "atcdmac100",
+  "source": "atcdmac100/yaml/atcdmac100.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "fl",
+  "summary": {
+    "total_bins": 32,
+    "by_class": {
+      "scenario": 6,
+      "transaction_type": 9,
+      "state_transition": 10,
+      "error": 5,
+      "invariant_violation": 2
+    }
+  },
+  "bins": [
+    {
+      "id": "SC_AHB_REG_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC_AHB_REG",
+      "description": "AHB register programming"
+    },
+    {
+      "id": "SC_MEM_COPY_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC_MEM_COPY",
+      "description": "single-channel memory copy"
+    },
+    {
+      "id": "SC_ARB_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC_ARB",
+      "description": "priority round-robin arbitration"
+    },
+    {
+      "id": "SC_HANDSHAKE_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC_HANDSHAKE",
+      "description": "hardware request acknowledge"
+    },
+    {
+      "id": "SC_ERROR_ABORT_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC_ERROR_ABORT",
+      "description": "error and abort handling"
+    },
+    {
+      "id": "SC_CHAIN_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC_CHAIN",
+      "description": "chain transfer continuation"
+    },
+    {
+      "id": "function_hardware_or_software_reset",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "hardware_or_software_reset"
+    },
+    {
+      "id": "function_ahb_slave_register_write",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "description": "ahb_slave_register_write"
+    },
+    {
+      "id": "function_ahb_slave_register_read",
+      "class": "transaction_type",
+      "source": "function_model.transactions[2]",
+      "description": "ahb_slave_register_read"
+    },
+    {
+      "id": "function_channel_arbitration",
+      "class": "transaction_type",
+      "source": "function_model.transactions[3]",
+      "description": "channel_arbitration"
+    },
+    {
+      "id": "function_ahb_master_read_beat",
+      "class": "transaction_type",
+      "source": "function_model.transactions[4]",
+      "description": "ahb_master_read_beat"
+    },
+    {
+      "id": "function_ahb_master_write_beat",
+      "class": "transaction_type",
+      "source": "function_model.transactions[5]",
+      "description": "ahb_master_write_beat"
+    },
+    {
+      "id": "function_terminal_count_completion",
+      "class": "transaction_type",
+      "source": "function_model.transactions[6]",
+      "description": "terminal_count_completion"
+    },
+    {
+      "id": "function_error_or_software_abort",
+      "class": "transaction_type",
+      "source": "function_model.transactions[7]",
+      "description": "error_or_software_abort"
+    },
+    {
+      "id": "function_hardware_handshake_acknowledge",
+      "class": "transaction_type",
+      "source": "function_model.transactions[8]",
+      "description": "hardware_handshake_acknowledge"
+    },
+    {
+      "id": "fsm_fsm_idle_to_arbitrate_0",
+      "class": "state_transition",
+      "source": "fsm.fsm.transitions[0]",
+      "description": "ch_enable != 0"
+    },
+    {
+      "id": "fsm_fsm_arbitrate_to_read_addr_1",
+      "class": "state_transition",
+      "source": "fsm.fsm.transitions[1]",
+      "description": "selected channel ready and handshake satisfied"
+    },
+    {
+      "id": "fsm_fsm_read_addr_to_read_data_2",
+      "class": "state_transition",
+      "source": "fsm.fsm.transitions[2]",
+      "description": "hgrant_mst && hready_mst"
+    },
+    {
+      "id": "fsm_fsm_read_data_to_write_addr_3",
+      "class": "state_transition",
+      "source": "fsm.fsm.transitions[3]",
+      "description": "read_data captured"
+    },
+    {
+      "id": "fsm_fsm_write_addr_to_write_data_4",
+      "class": "state_transition",
+      "source": "fsm.fsm.transitions[4]",
+      "description": "hgrant_mst && hready_mst"
+    },
+    {
+      "id": "fsm_fsm_write_data_to_complete_5",
+      "class": "state_transition",
+      "source": "fsm.fsm.transitions[5]",
+      "description": "last beat done"
+    },
+    {
+      "id": "fsm_fsm_write_data_to_read_addr_6",
+      "class": "state_transition",
+      "source": "fsm.fsm.transitions[6]",
+      "description": "more beats remain"
+    },
+    {
+      "id": "fsm_fsm_read_addr_to_error_abort_7",
+      "class": "state_transition",
+      "source": "fsm.fsm.transitions[7]",
+      "description": "hresp_mst error or alignment error"
+    },
+    {
+      "id": "fsm_fsm_complete_to_chain_load_8",
+      "class": "state_transition",
+      "source": "fsm.fsm.transitions[8]",
+      "description": "CHAIN_TRANSFER_SUPPORT && ChnLLPointer != 0"
+    },
+    {
+      "id": "fsm_fsm_complete_to_idle_9",
+      "class": "state_transition",
+      "source": "fsm.fsm.transitions[9]",
+      "description": "no chain continuation"
+    },
+    {
+      "id": "error_ahb_hresp_mst_error",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "AHB hresp_mst error"
+    },
+    {
+      "id": "error_unaligned_source_or_destination_address",
+      "class": "error",
+      "source": "error_handling.error_sources[1]",
+      "description": "unaligned source or destination address"
+    },
+    {
+      "id": "error_reserved_width_or_address_control_mode",
+      "class": "error",
+      "source": "error_handling.error_sources[2]",
+      "description": "reserved width or address-control mode"
+    },
+    {
+      "id": "error_zero_transfer_size_when_enabling_a_channel",
+      "class": "error",
+      "source": "error_handling.error_sources[3]",
+      "description": "zero transfer size when enabling a channel"
+    },
+    {
+      "id": "error_software_chabort_for_enabled_channel",
+      "class": "error",
+      "source": "error_handling.error_sources[4]",
+      "description": "software ChAbort for enabled channel"
+    },
+    {
+      "id": "invariant_one_channel_serviced_violated",
+      "class": "invariant_violation",
+      "source": "function_model.invariants[0]",
+      "description": "Controller services one channel at a time."
+    },
+    {
+      "id": "invariant_status_width_violated",
+      "class": "invariant_violation",
+      "source": "function_model.invariants[1]",
+      "description": "Only configured channel status bits are used."
+    }
+  ]
+}
