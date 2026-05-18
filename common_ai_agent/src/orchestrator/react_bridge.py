@@ -189,6 +189,7 @@ def _bind_orchestrator_tools(
             ip=kw.get("ip", ctx.ip_name),
             stages=stages or None,
             payload=kw.get("payload") or {},
+            prompt=kw.get("prompt", ""),
             schedule=kw.get("schedule", "auto"),
             reason=kw.get("reason", ""),
             orchestrator_run_id=ctx.run_id,

@@ -106,6 +106,10 @@ def tool_schemas() -> List[Dict[str, Any]]:
                         },
                         "ip": {"type": "string"},
                         "payload": {"type": "object"},
+                        "prompt": {
+                            "type": "string",
+                            "description": "Optional worker-visible requirement/task text. Include the user's concrete goal when dispatching SSOT or repair workers.",
+                        },
                         "schedule": {
                             "type": "string",
                             "enum": ["auto", "dag", "serial"],

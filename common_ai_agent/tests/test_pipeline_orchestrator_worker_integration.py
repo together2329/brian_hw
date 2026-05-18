@@ -533,6 +533,55 @@ def test_orchestrator_dispatch_workflow_tool_creates_pipeline_job(
         jobs._jobs.clear()
 
 
+def test_orchestrator_dispatch_worker_prompt_includes_chat_context(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core import tools
+    from core.atlas_db import AtlasDB
+
+    ip = "dma_prompt_ip"
+    (tmp_path / ip / "rtl").mkdir(parents=True)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("ssot") as (ssot_url, ssot_worker):
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_ACTIVE_SESSION", f"u/{ip}/orchestrator")
+        monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+        monkeypatch.setenv("WORKER_URL_SSOT_GEN", ssot_url)
+
+        _make_client(tmp_path, monkeypatch)
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            workspace = db.upsert_workspace("default", owner_user_id="u", local_path=str(tmp_path))
+            ip_row = db.upsert_ip_block(workspace["id"], ip, ssot_path=f"{ip}/yaml/{ip}.ssot.yaml")
+            db.record_chat_message(
+                ip_row["id"],
+                "u",
+                "make dma from scratch with apb psel penable pwrite paddr pwdata prdata pready pslverr and ctrl status src dst length irq registers",
+                workspace_id=workspace["id"],
+            )
+
+        raw = tools.dispatch_workflow(
+            workflow="ssot-gen",
+            ip=ip,
+            reason="retry ssot from orchestrator chat",
+        )
+        result = json.loads(raw)
+
+        assert result["ok"] is True
+        payload = ssot_worker.requests[0]["payload"]
+        assert "[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]" in payload["task"]
+        assert "[Orchestrator chat context]" in payload["task"]
+        assert "apb psel penable" in payload["task"]
+        assert "ctrl status src dst length irq registers" in payload["task"]
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
 def test_orchestrator_worker_status_exposes_default_model_bindings(
     tmp_path: Path,
     monkeypatch,

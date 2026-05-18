@@ -3305,6 +3305,14 @@ def register_jobs_routes(
         run_mode_resolved = _normalize_run_mode(run_mode or body.get("run_mode")) or _current_run_mode()
         exec_mode_resolved = _normalize_exec_mode(exec_mode or body.get("exec_mode")) or _current_exec_mode()
         model_resolved = str(model or body.get("model") or "").strip()
+        prompt_text = str(
+            prompt
+            or body.get("prompt")
+            or body.get("user_goal")
+            or body.get("goal")
+            or body.get("requirement")
+            or ""
+        ).strip()
         reason_text = str(reason or body.get("reason") or "").strip()
         # Phase 1: dispatch_workflow tool injects trigger_source + orchestrator_run_id
         # into payload; lift them out so _make_job_record can persist them on
@@ -3331,6 +3339,35 @@ def register_jobs_routes(
         )
 
         owner_user_id = _active_tool_owner()
+        chat_context = ""
+        try:
+            from core.atlas_db import AtlasDB
+
+            pr_for_chat = project_root()
+            with AtlasDB(_atlas_job_db_path(pr_for_chat)) as db:
+                workspace = db.upsert_workspace(
+                    pr_for_chat.name or "default",
+                    owner_user_id=owner_user_id,
+                    local_path=str(pr_for_chat),
+                )
+                ip_row = db.upsert_ip_block(
+                    workspace["id"],
+                    ip_name,
+                    ssot_path=f"{ip_name}/yaml/{ip_name}.ssot.yaml",
+                )
+                rows = list(reversed(db.list_chat_messages(ip_row["id"], limit=8)))
+            rendered: list[str] = []
+            for row in rows:
+                payload_row = row.get("payload") if isinstance(row, dict) else {}
+                content = str((payload_row or {}).get("content") or "").strip()
+                if not content:
+                    continue
+                actor = str(row.get("actor_user_id") or owner_user_id or "user").strip()
+                rendered.append(f"- {actor}: {content}")
+            if rendered:
+                chat_context = "\n".join(rendered)[-6000:]
+        except Exception:
+            chat_context = ""
         selected_stage_ids = [stage["id"] for stage in resolved]
         _, _ = _refresh_tracked_jobs(project_root())
         conflicts = _active_job_conflicts(
@@ -3358,6 +3395,16 @@ def register_jobs_routes(
         for idx, stage in enumerate(resolved):
             stage_workflow = stage["workflow"]
             stage_prompt = prompt or _default_workflow_prompt(stage_workflow, ip_name, stage["id"])
+            if stage_workflow == "ssot-gen" and "[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]" not in stage_prompt:
+                stage_prompt = (
+                    _default_workflow_prompt(stage_workflow, ip_name, stage["id"])
+                    + "\n\n[Orchestrator worker instruction]\n"
+                    + stage_prompt
+                )
+            if chat_context:
+                stage_prompt += f"\n\n[Orchestrator chat context]\n{chat_context}"
+            if prompt_text and prompt_text not in stage_prompt:
+                stage_prompt += f"\n\n[Orchestrator payload goal]\n{prompt_text}"
             stage_prompt += (
                 "\n\n[ATLAS RUN POLICY]\n"
                 f"- run_mode: {run_mode_resolved}\n"

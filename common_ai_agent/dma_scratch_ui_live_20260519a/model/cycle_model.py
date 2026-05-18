@@ -106,7 +106,14 @@ class CycleModel:
     def tick(self, t: int) -> None:
         """Advance model to cycle t.  Drain in_q respecting outstanding cap and handshake rules."""
         self.now = int(t)
-        # Pop one pending transaction if not stalled by outstanding cap
+        # Outstanding capacity is consumed only by results that are not yet
+        # ready. Recompute before accepting new work so a transaction becoming
+        # ready in this cycle does not incorrectly stall the next SSOT
+        # transaction. Ready results remain observable in out_q until observe().
+        self._outstanding = sum(1 for (d, _r) in self.out_q if d > self.now)
+        # Pop pending transactions until either arrival time or outstanding cap
+        # blocks progress. This ensures self-check observes every SSOT
+        # function_model transaction rather than losing one behind a stale cap.
         while self.in_q:
             if self._outstanding >= _OUTSTANDING_CAP:
                 break  # stalled: wait for out_q drain
@@ -122,15 +129,15 @@ class CycleModel:
             latency = self._latency_for(txn)
             ready_t = self.now + latency
             self.out_q.append((ready_t, result))
-            self._outstanding += 1
+            if ready_t > self.now:
+                self._outstanding += 1
             # Sample coverage bins
             self._sample_handshake_coverage(txn)
             self._sample_ordering_coverage()
             self._sample_latency_coverage(txn)
 
-        # Release completed transactions from outstanding count
-        completed = [r for (d, r) in self.out_q if d <= self.now]
-        self._outstanding = max(0, self._outstanding - len(completed))
+        # Keep outstanding aligned with not-yet-ready results after processing.
+        self._outstanding = sum(1 for (d, _r) in self.out_q if d > self.now)
 
     def observe(self, t: int) -> list[tuple[int, dict]]:
         """Return all results ready at or before t, removing them from out_q."""
@@ -143,26 +150,47 @@ class CycleModel:
         return dict(self.cov)
 
     def run_self_check(self) -> dict:
-        """Smoke run: drive every known transaction kind once, tick, observe."""
+        """Strict smoke run: drive every known transaction kind once and
+        require one observed CL result per SSOT transaction.
+
+        The model has an outstanding cap of one, so this self-check advances
+        cycle-by-cycle and observes ready results between transactions instead
+        of using one large drain tick that can leave the final transaction
+        queued behind the cap.
+        """
         self.reset()
         kinds = list(_SELF_CHECK_KINDS) or ["reset"]
+        observed: list[tuple[int, dict]] = []
+        max_latency = max([int(v) for v in _LATENCY.values()] or [1])
         t = 0
         for kind in kinds:
+            before = len(observed)
             self.drive({"kind": kind}, t=t)
+            for _cycle_guard in range(max_latency + _OUTSTANDING_CAP + 8):
+                self.tick(t)
+                observed.extend(self.observe(t))
+                if len(observed) > before:
+                    break
+                t += 1
             t += 1
+        # Final bounded drain to catch any zero/late latency result without
+        # allowing a false pass if a transaction remains unobserved.
+        for _cycle_guard in range(max_latency + _OUTSTANDING_CAP + 8):
+            if len(observed) >= len(kinds):
+                break
             self.tick(t)
-        # Drain with a long tick to let all latencies expire
-        drain_t = t + 200
-        self.tick(drain_t)
-        obs = self.observe(drain_t)
+            observed.extend(self.observe(t))
+            t += 1
         total_bins = len(CL_BINS)
         hit_bins = sum(1 for v in self.cov.values() if v > 0)
+        missing_results = max(0, len(kinds) - len(observed))
         return {
-            "passed": bool(obs),
+            "passed": (missing_results == 0 and hit_bins == total_bins),
             "backend": MODEL_BACKEND,
             "pymtl3_available": HAS_PYMTL3,
             "transactions": len(kinds),
-            "results_observed": len(obs),
+            "results_observed": len(observed),
+            "missing_results": missing_results,
             "coverage_bins": total_bins,
             "coverage_hit": hit_bins,
             "performance_targets": PERFORMANCE_TARGETS,

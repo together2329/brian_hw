@@ -1846,6 +1846,67 @@ def _ensure_function_model_machine_rules(doc: dict[str, Any]) -> None:
     _normalize_machine_rule_exprs(doc)
 
 
+def _ensure_transaction_machine_rule_completeness(doc: dict[str, Any]) -> None:
+    fm = doc.get("function_model")
+    if not isinstance(fm, dict):
+        return
+    txs = [item for item in fm.get("transactions") or [] if isinstance(item, dict)]
+    if not txs:
+        return
+    states = fm.get("state_variables") if isinstance(fm.get("state_variables"), list) else []
+    existing_states = {
+        str(item.get("name") or "").strip()
+        for item in states
+        if isinstance(item, dict) and str(item.get("name") or "").strip()
+    }
+
+    def has_machine_rule(tx: dict[str, Any]) -> bool:
+        output_rules = _machine_rule_items(tx.get("output_rules"))
+        state_updates = _machine_rule_items(tx.get("state_updates"))
+        return any(
+            str(rule.get("name") or rule.get("output") or "").strip()
+            and _machine_rule_has_expr(rule)
+            for rule in output_rules
+        ) or any(
+            str(rule.get("name") or rule.get("state") or rule.get("target") or "").strip()
+            and _machine_rule_has_expr(rule)
+            for rule in state_updates
+        )
+
+    changed = False
+    for idx, tx in enumerate(txs, start=1):
+        if _is_reset_transaction(tx) or has_machine_rule(tx):
+            continue
+        tx_id = _norm_token(tx.get("id") or tx.get("name") or f"tx_{idx}") or f"tx_{idx}"
+        state_name = f"{tx_id}_observed"
+        if state_name not in existing_states:
+            states.append({
+                "name": state_name,
+                "source": f"function_model.transactions.{tx.get('id') or tx.get('name') or tx_id}",
+                "width": 1,
+                "reset": 0,
+                "description": (
+                    "Auto-injected transaction coverage/state marker because the transaction "
+                    "had prose outputs or side effects but no executable output_rules/state_updates."
+                ),
+            })
+            existing_states.add(state_name)
+        updates = tx.get("state_updates") if isinstance(tx.get("state_updates"), list) else []
+        updates.append({
+            "name": state_name,
+            "expr": "1",
+            "width": 1,
+            "description": (
+                "Repair marker making this transaction machine-checkable; ssot-gen should replace "
+                "with IP-specific architectural state/output equations before signoff."
+            ),
+        })
+        tx["state_updates"] = updates
+        changed = True
+    if changed:
+        fm["state_variables"] = states
+
+
 _RULE_HELPER_NAMES: frozenset[str] = frozenset({
     "gray_to_bin", "bin_to_gray", "popcount", "parity",
     "clog2", "min", "max", "abs",
@@ -3534,6 +3595,109 @@ def _normalize_port_direction(value: Any) -> str:
     return raw or "input"
 
 
+def _infer_legacy_port_direction(name: str, interface: dict[str, Any]) -> str:
+    n = name.lower()
+    proto = str(interface.get("protocol") or interface.get("type") or "").lower()
+    role = str(interface.get("role") or "").lower()
+    if "apb" in proto or n in {"psel", "penable", "pwrite", "paddr", "pwdata", "pstrb", "prdata", "pready", "pslverr"}:
+        return "output" if n in {"prdata", "pready", "pslverr"} else "input"
+    if role in {"read_master", "master"} and n.startswith(("mem_rd_", "rd_")):
+        return "input" if n.endswith(("ready", "data_valid", "data")) else "output"
+    if role in {"write_master", "master"} and n.startswith(("mem_wr_", "wr_")):
+        return "input" if n.endswith("ready") else "output"
+    output_names = {"irq", "done", "busy", "error", "csr_ready", "csr_rdata", "csr_error", "rsp_valid", "rsp_data", "req_ready"}
+    return "output" if n in output_names or n.endswith(("_ready", "_rdata", "_error", "_irq")) else "input"
+
+
+def _infer_legacy_port_width(name: str) -> Any:
+    n = name.lower()
+    if "addr" in n:
+        return "ADDR_WIDTH"
+    if n.endswith("strb") or "strobe" in n:
+        return "DATA_WIDTH/8"
+    if "data" in n or n.endswith(("wdata", "rdata")):
+        return "DATA_WIDTH"
+    if "length" in n or n.endswith("_len") or n == "len":
+        return "LEN_WIDTH"
+    return 1
+
+
+def _legacy_top_interfaces_to_io_list(doc: dict[str, Any]) -> None:
+    """Convert worker-authored top-level `interfaces: [{ports: [...]}]` into
+    canonical `io_list.interfaces`. Some LLM drafts put interface contracts at
+    the wrong root key; preserving them avoids falling back to generic req/rsp.
+    """
+    legacy = doc.get("interfaces")
+    if not isinstance(legacy, list) or not legacy:
+        return
+    io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
+    interfaces = io.get("interfaces") if isinstance(io.get("interfaces"), list) else []
+    interfaces = [
+        item for item in interfaces
+        if not (
+            isinstance(item, dict)
+            and str(item.get("name") or "") == "control_data"
+            and "repair fallback" in str(item.get("description") or "").lower()
+        )
+    ]
+    existing_names = {
+        str(item.get("name") or "").strip().lower()
+        for item in interfaces
+        if isinstance(item, dict)
+    }
+    for item in legacy:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").strip()
+        if not name or name.lower() in existing_names:
+            continue
+        ports: list[dict[str, Any]] = []
+        for port in item.get("ports") or []:
+            if isinstance(port, str):
+                port_name = port.strip()
+                if not port_name:
+                    continue
+                ports.append({
+                    "name": port_name,
+                    "direction": _infer_legacy_port_direction(port_name, item),
+                    "width": _infer_legacy_port_width(port_name),
+                    "description": f"Recovered from top-level interfaces.{name}.ports",
+                })
+            elif isinstance(port, dict):
+                port_name = str(port.get("name") or "").strip()
+                if not port_name:
+                    continue
+                fixed = dict(port)
+                fixed["name"] = port_name
+                fixed["direction"] = _normalize_port_direction(
+                    fixed.get("direction") or fixed.get("dir") or _infer_legacy_port_direction(port_name, item)
+                )
+                fixed.setdefault("width", _infer_legacy_port_width(port_name))
+                fixed.setdefault("description", f"Recovered from top-level interfaces.{name}.ports")
+                ports.append(fixed)
+        if not ports:
+            continue
+        interfaces.append({
+            "name": name,
+            "type": item.get("type") or item.get("protocol") or "custom",
+            "role": item.get("role") or "target",
+            "clock_domain": item.get("clock_domain") or _first_clock(doc)[0],
+            "reset_domain": item.get("reset_domain") or _first_reset(doc)[0],
+            "description": item.get("description") or f"Recovered from top-level interfaces.{name}",
+            "protocol": {
+                "acceptance": item.get("handshake") or "Transfer acceptance follows the declared protocol rule.",
+                "stability": item.get("backpressure") or "Payload/control fields remain stable until accepted.",
+                "response": item.get("response") or "Observable response timing follows cycle_model latency and ordering.",
+            },
+            "ports": ports,
+        })
+        existing_names.add(name.lower())
+    if interfaces:
+        io["interfaces"] = interfaces
+        doc["io_list"] = io
+    doc.pop("interfaces", None)
+
+
 def _legacy_interface_to_io_list(doc: dict[str, Any]) -> None:
     """Convert top-level `interface.<bus>.<port>: {dir,width,desc}` legacy
     nested-dict format to canonical `io_list.interfaces[]: [{name, type,
@@ -3590,6 +3754,7 @@ def _legacy_interface_to_io_list(doc: dict[str, Any]) -> None:
 def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any]:
     out = dict(doc)
     _legacy_interface_to_io_list(out)
+    _legacy_top_interfaces_to_io_list(out)
     out["top_module"] = _ensure_top_module(out, state, ip)
     out["sub_modules"] = _ensure_sub_modules(out, ip)
     out["decomposition"] = _ensure_decomposition(out, ip)
@@ -3611,6 +3776,7 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     out["rtl_contract"] = _ensure_rtl_contract(out, ip)
     _ensure_function_model_machine_rules(out)
     _ensure_rule_expr_input_map_completeness(out)
+    _ensure_transaction_machine_rule_completeness(out)
     _ensure_transaction_output_summaries(out)
     out["timing"] = _ensure_timing(out)
     out["power"] = _ensure_power(out)

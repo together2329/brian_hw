@@ -1074,6 +1074,60 @@ def test_repair_ssot_schema_reuses_conceptual_behavior_owner(tmp_path: Path):
     assert "function_model.transactions.FM_PRIMARY" in owners[0]["function_model_refs"]
 
 
+def test_repair_ssot_schema_migrates_top_level_interfaces(tmp_path: Path):
+    ip = "repair_legacy_interfaces_ip"
+    doc = _base_ssot_doc(ip)
+    doc["io_list"] = {}
+    doc["interfaces"] = [
+        {
+            "name": "apb",
+            "protocol": "APB4",
+            "role": "slave",
+            "ports": ["psel", "penable", "pwrite", "paddr", "pwdata", "pstrb", "prdata", "pready", "pslverr"],
+        },
+        {
+            "name": "mem_read_if",
+            "protocol": "simple_mem",
+            "role": "read_master",
+            "ports": ["mem_rd_valid", "mem_rd_ready", "mem_rd_addr", "mem_rd_data_valid", "mem_rd_data_ready", "mem_rd_data"],
+        },
+    ]
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    repaired = _run_repair_ssot(tmp_path, ip, ["--mode", "engineering"])
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    interfaces = {row["name"]: row for row in loaded["io_list"]["interfaces"]}
+    assert "apb" in interfaces
+    apb_ports = {port["name"]: port for port in interfaces["apb"]["ports"]}
+    assert apb_ports["psel"]["direction"] == "input"
+    assert apb_ports["prdata"]["direction"] == "output"
+    assert apb_ports["paddr"]["width"] == "ADDR_WIDTH"
+    assert "mem_read_if" in interfaces
+
+
+def test_repair_ssot_schema_adds_machine_rule_for_each_non_reset_tx(tmp_path: Path):
+    ip = "repair_machine_rules_ip"
+    doc = _base_ssot_doc(ip)
+    doc["function_model"]["transactions"] = [
+        {"id": "FM_RESET", "name": "reset", "outputs": ["state reset"]},
+        {"id": "FM_A", "name": "operation_a", "outputs": ["prose only"], "side_effects": ["updates status"]},
+        {"id": "FM_B", "name": "operation_b", "outputs": ["prose only"], "side_effects": ["updates status"]},
+    ]
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    repaired = _run_repair_ssot(tmp_path, ip, ["--mode", "engineering"])
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    tx_by_id = {tx["id"]: tx for tx in loaded["function_model"]["transactions"]}
+    assert tx_by_id["FM_A"]["state_updates"][0]["name"] == "fm_a_observed"
+    assert tx_by_id["FM_B"]["state_updates"][0]["name"] == "fm_b_observed"
+    check = _run_check_ssot(tmp_path, ip, ["--mode", "engineering"])
+    assert check.returncode == 0, check.stdout + check.stderr
+
+
 def test_derive_rtl_todos_assigns_memory_owner_from_function_state_update(tmp_path: Path):
     ip = "memory_owner_ip"
     doc = _base_ssot_doc(ip)
