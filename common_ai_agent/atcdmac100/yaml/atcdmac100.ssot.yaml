@@ -649,23 +649,28 @@ function_model:
       description: Mirrored from executable output_rules for SSOT validator completeness.
     - name: dma_int_after_write
       port: dma_int
-      expr: reduction_or((int_tc | int_abort | int_error) & ch_enable)
+      expr: 1 if ((int_tc | int_abort | int_error) & ch_enable) != 0 else 0
       description: Mirrored from executable output_rules for SSOT validator completeness.
     - state: dmac_reset_pulse
       expr: 1 if haddr == 32 and (hwdata & 1) else 0
       description: Mirrored from executable state_updates for SSOT validator completeness.
+      name: dmac_reset_pulse
     - state: int_tc
       expr: int_tc & ~((hwdata >> 16) & 255) if haddr == 48 else int_tc
       description: Mirrored from executable state_updates for SSOT validator completeness.
+      name: int_tc
     - state: int_abort
       expr: int_abort & ~((hwdata >> 8) & 255) if haddr == 48 else int_abort
       description: Mirrored from executable state_updates for SSOT validator completeness.
+      name: int_abort
     - state: int_error
       expr: int_error & ~(hwdata & 255) if haddr == 48 else int_error
       description: Mirrored from executable state_updates for SSOT validator completeness.
+      name: int_error
     - state: ch_enable
       expr: ch_enable & ~(hwdata & ch_enable) if haddr == 64 else ch_enable
       description: Mirrored from executable state_updates for SSOT validator completeness.
+      name: ch_enable
     side_effects:
     - updates writable DMAC/channel registers; W1C clears IntStatus bits; ChAbort write-one aborts enabled channels
     error_cases:
@@ -681,24 +686,29 @@ function_model:
       width: 2
     - name: dma_int_after_write
       port: dma_int
-      expr: reduction_or((int_tc | int_abort | int_error) & ch_enable)
+      expr: 1 if ((int_tc | int_abort | int_error) & ch_enable) != 0 else 0
       width: 1
     state_updates:
     - state: dmac_reset_pulse
       expr: 1 if haddr == 32 and (hwdata & 1) else 0
       width: 1
+      name: dmac_reset_pulse
     - state: int_tc
       expr: int_tc & ~((hwdata >> 16) & 255) if haddr == 48 else int_tc
       width: 8
+      name: int_tc
     - state: int_abort
       expr: int_abort & ~((hwdata >> 8) & 255) if haddr == 48 else int_abort
       width: 8
+      name: int_abort
     - state: int_error
       expr: int_error & ~(hwdata & 255) if haddr == 48 else int_error
       width: 8
+      name: int_error
     - state: ch_enable
       expr: ch_enable & ~(hwdata & ch_enable) if haddr == 64 else ch_enable
       width: 8
+      name: ch_enable
   - id: FM_AHB_READ
     name: AHB slave register read
     preconditions:
@@ -933,7 +943,7 @@ function_model:
       description: Mirrored from executable output_rules for SSOT validator completeness.
     - name: dma_int_tc
       port: dma_int
-      expr: reduction_or((int_tc | (1 << active_ch)) | int_abort | int_error)
+      expr: 1 if (((int_tc | (1 << active_ch)) | int_abort | int_error) != 0) else 0
       description: Mirrored from executable output_rules for SSOT validator completeness.
     - state: busy
       expr: '0'
@@ -962,7 +972,7 @@ function_model:
       width: 2
     - name: dma_int_tc
       port: dma_int
-      expr: reduction_or((int_tc | (1 << active_ch)) | int_abort | int_error)
+      expr: 1 if (((int_tc | (1 << active_ch)) | int_abort | int_error) != 0) else 0
       width: 1
     state_updates:
     - state: busy
@@ -1051,7 +1061,7 @@ function_model:
       description: Mirrored from executable output_rules for SSOT validator completeness.
     - name: dma_int_handshake
       port: dma_int
-      expr: reduction_or(int_tc | int_abort | int_error)
+      expr: 1 if ((int_tc | int_abort | int_error) != 0) else 0
       description: Mirrored from executable output_rules for SSOT validator completeness.
     - state: active_ch
       expr: active_ch
@@ -1067,7 +1077,7 @@ function_model:
       width: REQ_ACK_NUM
     - name: dma_int_handshake
       port: dma_int
-      expr: reduction_or(int_tc | int_abort | int_error)
+      expr: 1 if ((int_tc | int_abort | int_error) != 0) else 0
       width: 1
     state_updates:
     - state: active_ch

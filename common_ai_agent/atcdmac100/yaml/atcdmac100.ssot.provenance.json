@@ -321,13 +321,12 @@
     },
     {
       "path": "cycle_model.backend_policy",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
-        "starter"
-      ],
-      "review_needed_for": "signoff",
-      "signoff_critical": true,
-      "source": "repair_ssot_schema"
+        "starter",
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "cycle_model.clock",
@@ -340,13 +339,12 @@
     },
     {
       "path": "cycle_model.executable",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
-        "starter"
-      ],
-      "review_needed_for": "signoff",
-      "signoff_critical": true,
-      "source": "repair_ssot_schema"
+        "starter",
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "cycle_model.handshake_rules",
@@ -602,124 +600,102 @@
     },
     {
       "path": "dataflow.ordering",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "dataflow.sequence",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "dataflow.sequence[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "dataflow.sequence[1]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "dataflow.sequence[2]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "dataflow.sequence[3]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "dataflow.sinks",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "dataflow.sinks[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "dataflow.sinks[1]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "dataflow.sinks[2]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "dataflow.source",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "debug_observability",
@@ -1686,33 +1662,30 @@
     },
     {
       "path": "error_handling.error_sources[0].architectural_effect",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
-        "starter"
-      ],
-      "review_needed_for": "signoff",
-      "signoff_critical": true,
-      "source": "repair_ssot_schema"
+        "starter",
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "error_handling.error_sources[0].condition",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
-        "starter"
-      ],
-      "review_needed_for": "signoff",
-      "signoff_critical": true,
-      "source": "repair_ssot_schema"
+        "starter",
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "error_handling.error_sources[0].id",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
-        "starter"
-      ],
-      "review_needed_for": "signoff",
-      "signoff_critical": true,
-      "source": "repair_ssot_schema"
+        "starter",
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "error_handling.propagation",
@@ -5018,6 +4991,15 @@
       ]
     },
     {
+      "path": "function_model.transactions[1].outputs[5].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
       "path": "function_model.transactions[1].outputs[5].state",
       "authority": "user",
       "mode_allowed": [
@@ -5046,6 +5028,15 @@
     },
     {
       "path": "function_model.transactions[1].outputs[6].expr",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[1].outputs[6].name",
       "authority": "user",
       "mode_allowed": [
         "starter",
@@ -5090,6 +5081,15 @@
       ]
     },
     {
+      "path": "function_model.transactions[1].outputs[7].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
       "path": "function_model.transactions[1].outputs[7].state",
       "authority": "user",
       "mode_allowed": [
@@ -5126,6 +5126,15 @@
       ]
     },
     {
+      "path": "function_model.transactions[1].outputs[8].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
       "path": "function_model.transactions[1].outputs[8].state",
       "authority": "user",
       "mode_allowed": [
@@ -5154,6 +5163,15 @@
     },
     {
       "path": "function_model.transactions[1].outputs[9].expr",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[1].outputs[9].name",
       "authority": "user",
       "mode_allowed": [
         "starter",
@@ -5234,6 +5252,15 @@
       ]
     },
     {
+      "path": "function_model.transactions[1].state_updates[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
       "path": "function_model.transactions[1].state_updates[0].state",
       "authority": "user",
       "mode_allowed": [
@@ -5262,6 +5289,15 @@
     },
     {
       "path": "function_model.transactions[1].state_updates[1].expr",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[1].state_updates[1].name",
       "authority": "user",
       "mode_allowed": [
         "starter",
@@ -5306,6 +5342,15 @@
       ]
     },
     {
+      "path": "function_model.transactions[1].state_updates[2].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
       "path": "function_model.transactions[1].state_updates[2].state",
       "authority": "user",
       "mode_allowed": [
@@ -5342,6 +5387,15 @@
       ]
     },
     {
+      "path": "function_model.transactions[1].state_updates[3].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
       "path": "function_model.transactions[1].state_updates[3].state",
       "authority": "user",
       "mode_allowed": [
@@ -5370,6 +5424,15 @@
     },
     {
       "path": "function_model.transactions[1].state_updates[4].expr",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[1].state_updates[4].name",
       "authority": "user",
       "mode_allowed": [
         "starter",
@@ -9555,278 +9618,228 @@
     },
     {
       "path": "generation_flow.steps",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[0].command",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[0].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[0].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[1]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[1].command",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[1].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[1].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[2]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[2].command",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[2].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[2].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[3]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[3].command",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[3].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[3].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[4]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[4].command",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[4].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[4].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[5]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[5].command",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[5].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[5].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "integration",
@@ -19901,36 +19914,30 @@
     },
     {
       "path": "rtl_contract.contract_invariants",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.contract_invariants[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.contract_invariants[1]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.implementation_notes",
@@ -20564,817 +20571,669 @@
     },
     {
       "path": "rtl_contract.output_rules",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[0].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[0].expr",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[0].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[0].port",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[0].width",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[10]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[10].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[10].expr",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[10].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[10].port",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[10].width",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[11]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[11].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[11].expr",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[11].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[11].port",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[11].width",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[1]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[1].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[1].expr",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[1].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[1].port",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[1].width",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[2]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[2].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[2].expr",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[2].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[2].port",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[2].width",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[3]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[3].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[3].expr",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[3].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[3].port",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[3].width",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[4]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[4].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[4].expr",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[4].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[4].port",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[4].width",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[5]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[5].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[5].expr",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[5].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[5].port",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[5].width",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[6]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[6].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[6].expr",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[6].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[6].port",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[6].width",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[7]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[7].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[7].expr",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[7].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[7].port",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[7].width",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[8]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[8].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[8].expr",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[8].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[8].port",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[8].width",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[9]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[9].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[9].expr",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[9].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[9].port",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.output_rules[9].width",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.owner",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.reset",
@@ -21396,14 +21255,12 @@
     },
     {
       "path": "rtl_contract.sample_condition",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.state_update_policy",
@@ -21425,69 +21282,57 @@
     },
     {
       "path": "rtl_contract.type",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.unresolved_expression_refs",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.unresolved_expression_refs[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.unresolved_expression_refs[1]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.unresolved_expression_refs[2]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.unresolved_expression_refs[3]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "schema_version",
@@ -21761,113 +21606,93 @@
     },
     {
       "path": "sub_modules[0].function_model_refs[10]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].function_model_refs[1]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].function_model_refs[2]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].function_model_refs[3]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].function_model_refs[4]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].function_model_refs[5]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].function_model_refs[6]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].function_model_refs[7]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].function_model_refs[8]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].function_model_refs[9]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].implements",
@@ -21979,14 +21804,12 @@
     },
     {
       "path": "sub_modules[0].register_refs[1]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].source_sections",
@@ -22008,14 +21831,12 @@
     },
     {
       "path": "sub_modules[0].source_sections[10]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].source_sections[1]",
@@ -22091,14 +21912,12 @@
     },
     {
       "path": "sub_modules[0].source_sections[9]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].test_refs",

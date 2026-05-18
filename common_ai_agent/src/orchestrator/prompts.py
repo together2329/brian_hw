@@ -19,10 +19,22 @@ Hard rules:
 
 You have these tools:
 1. read_pipeline_state — every stage's state, jobs, artifacts.
-2. dispatch_workflow — start a worker (ssot-gen, rtl-gen, lint, tb-gen, sim,
-   sim_debug, coverage, goal-audit, syn, sta, pnr, sta-post).
-3. wait_job — non-blocking snapshot. Call this once per loop iteration to
-   check on a running job; do not block waiting.
+2. dispatch_workflow — start one OR many workers (ssot-gen, rtl-gen, lint,
+   tb-gen, sim, sim_debug, coverage, goal-audit, syn, sta, pnr, sta-post).
+   Use stages=[...] with schedule="dag" to fan out independent stages in
+   parallel. The canonical DAG is:
+       ssot → {fl-model, cl-model} → equivalence → rtl
+       rtl → {lint, tb, syn}     ← parallel fan-out after rtl passes
+       tb  → sim → {coverage, sim-debug}
+       syn → {sta, pnr} → sta-post
+       all evidence → goal-audit
+   Prefer one dispatch_workflow(stages=[...], schedule="dag") over multiple
+   separate calls whenever stages are independent.
+3. wait_job — non-blocking snapshot of one job. Use this for ACTIVE polling
+   when you need a status before deciding anything else this turn.
+   For passive waiting after fan-out, prefer yield_run (tool 9) — it sleeps
+   the loop until an interrupt arrives (worker complete, user message, timer)
+   so you do not burn LLM iterations or hit the 50-step / 30-min cap.
 4. read_artifact — read canonical evidence for one stage.
 5. classify_failure — owner classification for a failed stage.
 6. ask_user — pause the run and surface a question to the user chat.
@@ -66,19 +78,38 @@ def tool_schemas() -> List[Dict[str, Any]]:
             "function": {
                 "name": "dispatch_workflow",
                 "description": (
-                    "Dispatch a worker for a workflow. Use workflow='__final__' "
-                    "to terminate the run."
+                    "Dispatch one or many workers in a single call. Pass "
+                    "`workflow` for a single stage, or `stages` (list) to "
+                    "fan out independent stages in parallel — e.g. "
+                    "stages=['lint','tb','syn'] with schedule='dag' after "
+                    "rtl-gen passes. Use workflow='__final__' with "
+                    "payload.state in {completed,blocked,error} to terminate."
                 ),
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "workflow": {"type": "string"},
+                        "workflow": {
+                            "type": "string",
+                            "description": "Single workflow id. Mutually exclusive with `stages`.",
+                        },
+                        "stages": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": (
+                                "List of stage ids to dispatch together. "
+                                "Use with schedule='dag' for parallel fan-out."
+                            ),
+                        },
                         "ip": {"type": "string"},
                         "payload": {"type": "object"},
-                        "schedule": {"type": "string", "enum": ["auto", "dag", "serial"]},
+                        "schedule": {
+                            "type": "string",
+                            "enum": ["auto", "dag", "serial"],
+                            "description": "'dag' = run independents in parallel; 'serial' = strict order.",
+                        },
                         "reason": {"type": "string"},
                     },
-                    "required": ["workflow", "ip"],
+                    "required": ["ip"],
                 },
             },
         },
@@ -154,6 +185,44 @@ def tool_schemas() -> List[Dict[str, Any]]:
                         "reason": {"type": "string"},
                     },
                     "required": ["workflow", "ip", "reason"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "yield_run",
+                "description": (
+                    "Park the run until a watched event fires. Use this AFTER "
+                    "fan-out dispatch to stop burning LLM iterations on idle "
+                    "polling. The loop wakes on (a) any watched job completing "
+                    "via interrupt, (b) the user sending a new chat message, "
+                    "or (c) the optional timer expiring."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "wake_on": {
+                            "type": "object",
+                            "properties": {
+                                "job_ids": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                    "description": "Wake when any of these jobs completes.",
+                                },
+                                "user_message": {
+                                    "type": "boolean",
+                                    "description": "Wake when the user sends a new chat (default true).",
+                                },
+                                "after_seconds": {
+                                    "type": "number",
+                                    "description": "Optional timer wake. Omit for no timer.",
+                                },
+                            },
+                        },
+                        "reason": {"type": "string"},
+                    },
+                    "required": ["wake_on"],
                 },
             },
         },

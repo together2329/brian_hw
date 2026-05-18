@@ -4,7 +4,7 @@ import time
 import pytest
 
 from core.atlas_db import AtlasDB
-from src.orchestrator.loop import OrchestratorLoop, RunOutcome
+from src.orchestrator.loop import RunOutcome
 from src.orchestrator.runner import OrchestratorRunner
 
 
@@ -136,6 +136,49 @@ class TestSubmitOrAttach:
             runner.wait_for("u1", "ipB_id", timeout=2)
         finally:
             runner.shutdown(wait=True)
+
+    def test_advance_pipeline_from_wakes_orchestrator_waker(self, db):
+        # Step 4: confirm the job-completion hook in atlas_api_jobs reaches
+        # the orchestrator runner's Waker registry — so a yielded
+        # orchestrator_run wakes the moment a watched worker finishes.
+        from src.orchestrator import runner as runner_mod
+
+        runner = OrchestratorRunner(db, max_workers=1)
+        runner_mod.set_runner_for_test(runner)
+        try:
+            run = db.create_orchestrator_run(user_id="u1", ip_id="ip1")
+            waker = runner.register_waker(
+                run_id=run["id"],
+                user_id="u1",
+                ip_id="ip1",
+                job_ids={"watched-job-1"},
+                user_message=False,
+                after_seconds=2.0,
+            )
+            # Import here so the lazy hook resolves runner_mod._RUNNER.
+            from src import atlas_api_jobs
+
+            atlas_api_jobs._advance_pipeline_from(
+                {"job_id": "watched-job-1", "status": "completed", "pipeline_id": ""}
+            )
+            woken = waker.event.wait(timeout=1.0)
+            assert woken is True
+            assert waker.reason.startswith("job_complete:watched-job-1")
+        finally:
+            runner_mod.set_runner_for_test(None)
+            runner.shutdown(wait=True)
+
+    def test_advance_pipeline_from_skips_when_no_runner(self, db):
+        # No runner registered → notify_job_complete returns 0, hook is a
+        # silent no-op. The pipeline advancement path must not break.
+        from src.orchestrator import runner as runner_mod
+        from src import atlas_api_jobs
+
+        runner_mod.set_runner_for_test(None)
+        # Should not raise even though pipeline_id is empty (early return).
+        atlas_api_jobs._advance_pipeline_from(
+            {"job_id": "ghost", "status": "completed", "pipeline_id": ""}
+        )
 
     def test_slot_freed_after_run_completes(self, db):
         loops = []

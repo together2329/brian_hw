@@ -3,10 +3,15 @@ title: Orchestrator Chat Only Product Plan
 type: process
 tags: [atlas-ui, orchestrator, product-flow, multi-worker, evidence, plan]
 updated: 2026-05-18
-related: [atcdmac100-document-flow-ui-honesty-20260518, pl330-real-orchestrator-ui-lessons-20260517, orchestrator-worker-handoff, atlas-pipeline-screen, pipeline-progress-debugging, atlas-browser-control-runbook, full-flow-pipeline]
+related: [atcdmac100-document-flow-ui-honesty-20260518, pl330-real-orchestrator-ui-lessons-20260517, orchestrator-worker-handoff, atlas-pipeline-screen, pipeline-progress-debugging, atlas-browser-control-runbook, full-flow-pipeline, orchestrator-llm-loop-phase3]
 ---
 
 # Orchestrator Chat Only Product Plan
+
+> **Implementation status (2026-05-18)**: Phase 3 (Real Orchestrator Loop)
+> shipped. See [[orchestrator-llm-loop-phase3]] for the new DB tables, tools,
+> loop engine, background runner, HTTP route rewrite, and UI banner. Phases 1,
+> 2, 4, 5 still open.
 
 Plan for making ATLAS behave as a real user-facing IP creation and verification
 orchestrator: the user talks only to the right-side Orchestrator chat, and the

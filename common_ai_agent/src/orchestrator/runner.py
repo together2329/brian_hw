@@ -13,11 +13,12 @@ and a condition variable wakes the loop (used when the run is paused on
 from __future__ import annotations
 
 import threading
+import time
 from concurrent.futures import Future, ThreadPoolExecutor
-from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple
+from dataclasses import dataclass, field
+from typing import Any, Dict, Optional, Set, Tuple
 
-from src.orchestrator.loop import OrchestratorContext, OrchestratorLoop, RunOutcome
+from src.orchestrator.loop import OrchestratorContext, RunOutcome
 
 
 _MAX_WORKERS = 4
@@ -27,6 +28,38 @@ _MAX_WORKERS = 4
 class SubmitOutcome:
     run_id: str
     status: str  # "started" | "appended" | "resumed"
+
+
+@dataclass
+class Waker:
+    """Per-run interrupt + timer source.
+
+    The loop calls ``wait()`` after the LLM has issued ``yield_run``; the
+    runner sets the event when a watched job finishes, a user message
+    arrives, or the optional timer fires. ``reason`` records which path
+    woke the run so the LLM sees it on the next iteration.
+    """
+
+    run_id: str
+    user_id: str
+    ip_id: str
+    job_ids: Set[str] = field(default_factory=set)
+    user_message: bool = True
+    after_seconds: Optional[float] = None
+    event: threading.Event = field(default_factory=threading.Event)
+    reason: str = ""
+
+    def wake(self, reason: str) -> None:
+        if not self.event.is_set():
+            self.reason = reason
+            self.event.set()
+
+    def wait(self) -> str:
+        timeout = self.after_seconds if self.after_seconds and self.after_seconds > 0 else None
+        woken = self.event.wait(timeout=timeout)
+        if not woken:
+            self.reason = self.reason or "timer"
+        return self.reason or "unknown"
 
 
 class OrchestratorRunner:
@@ -44,6 +77,7 @@ class OrchestratorRunner:
             max_workers=max_workers, thread_name_prefix="orchestrator"
         )
         self._active: Dict[Tuple[str, str], Tuple[str, Future]] = {}
+        self._wakers: Dict[str, Waker] = {}
         self._loop_factory = loop_factory or _build_loop
 
     def shutdown(self, wait: bool = False) -> None:
@@ -74,6 +108,9 @@ class OrchestratorRunner:
                         user_reply=message_text,
                         verdict="user_input",
                     )
+                    waker = self._wakers.get(run_id)
+                    if waker is not None and waker.user_message:
+                        waker.wake("user_message")
                     return SubmitOutcome(run_id=run_id, status="appended")
                 # Future already done — fall through and start a fresh run.
                 self._active.pop(key, None)
@@ -123,6 +160,46 @@ class OrchestratorRunner:
             self._active[key] = (run_id, future)
             return SubmitOutcome(run_id=run_id, status="started")
 
+    # ------------------------------------------------------------------
+    # Waker registry (interrupt-style wake on job complete / user msg)
+    # ------------------------------------------------------------------
+
+    def register_waker(
+        self,
+        run_id: str,
+        user_id: str,
+        ip_id: str,
+        job_ids: Optional[Set[str]] = None,
+        user_message: bool = True,
+        after_seconds: Optional[float] = None,
+    ) -> Waker:
+        waker = Waker(
+            run_id=run_id,
+            user_id=user_id,
+            ip_id=ip_id,
+            job_ids=set(job_ids or ()),
+            user_message=user_message,
+            after_seconds=after_seconds,
+        )
+        with self._lock:
+            self._wakers[run_id] = waker
+        return waker
+
+    def unregister_waker(self, run_id: str) -> None:
+        with self._lock:
+            self._wakers.pop(run_id, None)
+
+    def notify_job_complete(self, job_id: str, status: str = "") -> int:
+        """Wake any waker watching this job_id. Returns count notified."""
+        notified = 0
+        with self._lock:
+            wakers = list(self._wakers.values())
+        for w in wakers:
+            if job_id in w.job_ids:
+                w.wake(f"job_complete:{job_id}:{status}".rstrip(":"))
+                notified += 1
+        return notified
+
     def _run_loop(
         self,
         *,
@@ -139,6 +216,7 @@ class OrchestratorRunner:
             ip_id=ip_id,
             ip_name=ip_name,
             session_id=session_id,
+            runner=self,
         )
         loop = self._loop_factory(self._db, ctx, initial_user_message)
         try:
@@ -158,8 +236,19 @@ class OrchestratorRunner:
         return entry[1].result(timeout=timeout)
 
 
-def _build_loop(db, ctx, initial_user_message: str) -> OrchestratorLoop:
-    return OrchestratorLoop(db, ctx, initial_user_message=initial_user_message)
+def _build_loop(db, ctx, initial_user_message: str):
+    """Production factory — instantiates the react_loop-backed orchestrator.
+
+    Compression / TodoTracker sync / per-IP context injection / streaming
+    UI / ESC interrupt are all inherited from
+    ``core/react_loop.py::run_react_agent_impl`` via
+    ``OrchestratorReactLoop``. The Phase-3 ``OrchestratorLoop`` scaffold
+    that this factory previously instantiated has been deleted; parity
+    contracts are asserted by ``tests/test_orchestrator_react_loop_parity.py``.
+    """
+    from src.orchestrator.react_bridge import OrchestratorReactLoop
+
+    return OrchestratorReactLoop(db, ctx, initial_user_message=initial_user_message)
 
 
 # Module-level singleton — the FastAPI route shares one runner across requests.
@@ -191,3 +280,20 @@ def set_runner_for_test(runner: Optional[OrchestratorRunner]) -> None:
     with _RUNNER_LOCK:
         _RUNNER = runner
         _RUNNER_DB_PATH = None
+
+
+def notify_job_complete(job_id: str, status: str = "") -> int:
+    """Module-level interrupt hook.
+
+    Called from the job-completion path (``_advance_pipeline_from`` in
+    ``src/atlas_api_jobs.py``) so the orchestrator loop can sleep on a Waker
+    and resume the moment a watched worker finishes — interrupt-style — rather
+    than burning LLM iterations polling.
+    """
+    runner = _RUNNER
+    if runner is None:
+        return 0
+    try:
+        return runner.notify_job_complete(job_id, status)
+    except Exception:
+        return 0

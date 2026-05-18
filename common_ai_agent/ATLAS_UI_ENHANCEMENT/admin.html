@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html data-dir="B" data-theme="dark" data-screen-label="ATLAS Admin">
+<head>
+<meta charset="utf-8" />
+<meta name="atlas-backend" content="live">
+<title>ATLAS Admin</title>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    background: #000; color: #e6edf3;
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+  }
+  #scaler {
+    width: 1920px;
+    height: 1080px;
+    transform-origin: top left;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+</style>
+</head>
+<body>
+  <div id="scaler"><div id="root"></div></div>
+
+  <!-- Global error banner — mirrors index.html so admin failures
+       surface visibly instead of leaving a black screen. -->
+  <script>
+    (function () {
+      var box = null;
+      function ensureBox() {
+        if (box) return box;
+        box = document.createElement('div');
+        box.id = 'atlas-error-banner';
+        box.setAttribute('role', 'alert');
+        box.style.cssText = [
+          'position:fixed','top:0','left:0','right:0','z-index:99999',
+          'max-height:35vh','overflow:auto',
+          'background:#3a1414','color:#fde7e7',
+          'border-bottom:1px solid #f87171',
+          'font:12px/1.45 ui-monospace,Consolas,Menlo,monospace',
+          'padding:8px 14px 32px','white-space:pre-wrap','word-break:break-word',
+          'box-shadow:0 6px 18px rgba(0,0,0,0.6)'
+        ].join(';');
+        var close = document.createElement('button');
+        close.textContent = '× dismiss';
+        close.style.cssText = 'position:absolute;right:10px;top:6px;background:transparent;color:#fde7e7;border:1px solid #f87171;border-radius:3px;padding:2px 8px;cursor:pointer;font:inherit';
+        close.onclick = function () { box.remove(); box = null; };
+        box.appendChild(close);
+        document.body.appendChild(box);
+        return box;
+      }
+      function append(label, detail) {
+        var b = ensureBox();
+        var line = document.createElement('div');
+        line.style.marginRight = '120px';
+        line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + label + ': ' + detail;
+        b.appendChild(line);
+      }
+      window.addEventListener('error', function (ev) {
+        if (ev.target && (ev.target.src || ev.target.href) && ev.target !== window) {
+          append('script load failed', (ev.target.src || ev.target.href));
+          return;
+        }
+        append('uncaught', (ev.error && (ev.error.stack || ev.error.message)) || ev.message || 'unknown');
+      }, true);
+      window.addEventListener('unhandledrejection', function (ev) {
+        var r = ev.reason;
+        append('unhandled promise', (r && (r.stack || r.message)) || String(r));
+      });
+      var origErr = console.error.bind(console);
+      console.error = function () {
+        try {
+          var parts = Array.prototype.map.call(arguments, function (a) {
+            if (a instanceof Error) return a.stack || a.message;
+            if (typeof a === 'object') return JSON.stringify(a);
+            return String(a);
+          });
+          append('console.error', parts.join(' '));
+        } catch (_) {}
+        origErr.apply(null, arguments);
+      };
+      window.__atlasReportError = append;
+    })();
+  </script>
+
+  <!-- SRI integrity= removed for Windows MITM proxy compatibility
+       (see index.html for full context). -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+
+  <!-- Admin is precompiled so browser smoke tests and operators do not see
+       Babel standalone's large-inline-script warnings in the console. -->
+  <script src="admin.bundle.js?v=atlas-admin-precompiled"></script>
+
+  <script>
+    function scale() {
+      const s = document.getElementById('scaler');
+      const sx = window.innerWidth  / 1920;
+      const sy = window.innerHeight / 1080;
+      s.style.transform = 'scale(' + sx + ',' + sy + ')';
+    }
+    window.addEventListener('resize', scale);
+    setTimeout(scale, 30);
+    setTimeout(scale, 200);
+  </script>
+</body>
+</html>

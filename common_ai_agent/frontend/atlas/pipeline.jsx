@@ -143,7 +143,7 @@
     {
       id: 'full',
       name: 'Full IP pipeline',
-      summary: 'SSOT through model, RTL, verification, coverage, synthesis, physical signoff, and audit.',
+      summary: 'SSOT through model, RTL, verification, coverage, and signoff audit.',
       stages: ['ssot', 'fl-model', 'cl-model', 'equivalence', 'rtl', 'lint', 'tb', 'sim', 'coverage', 'sim-debug', 'syn', 'sta', 'pnr', 'sta-post', 'goal-audit'],
     },
     {

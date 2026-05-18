@@ -108,8 +108,9 @@ def read_pipeline_state(ip: str, include_jobs: bool = True) -> ToolResult:
 
 def dispatch_workflow(
     *,
-    workflow: str,
+    workflow: str = "",
     ip: str,
+    stages: Optional[list] = None,
     payload: Optional[Dict[str, Any]] = None,
     schedule: str = "auto",
     reason: str = "",
@@ -118,6 +119,13 @@ def dispatch_workflow(
     run_mode: str = "",
     exec_mode: str = "",
 ) -> ToolResult:
+    """Dispatch one or many workers in a single call.
+
+    Pass either ``workflow`` (single stage) or ``stages`` (list, fan-out). When
+    multiple independent stages are dispatched together with ``schedule="dag"``
+    the underlying dispatcher honours the canonical pipeline DAG and runs
+    independent stages (e.g. lint / tb-gen / syn after rtl-gen) in parallel.
+    """
     bridge = _dispatch_workflow_bridge()
     if bridge is None:
         return (
@@ -133,6 +141,7 @@ def dispatch_workflow(
     result = bridge(
         workflow=workflow,
         ip=ip,
+        stages=stages,
         payload=body,
         schedule=schedule,
         reason=reason,

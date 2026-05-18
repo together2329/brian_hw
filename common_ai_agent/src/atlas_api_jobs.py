@@ -283,6 +283,8 @@ def _record_job_db_start(job: dict[str, Any]) -> None:
                 trigger="pipeline_dispatch" if job.get("pipeline_id") else "job_dispatch",
                 input_summary=json.dumps(summary, ensure_ascii=False),
                 status=status,
+                trigger_source=str(job.get("trigger_source") or ""),
+                orchestrator_run_id=str(job.get("orchestrator_run_id") or ""),
             )
             job["workflow_run_id"] = run.get("id") or ""
             job["db_session_id"] = db_session_id
@@ -1183,6 +1185,46 @@ def _timing_artifact_summary(ip_dir: Path, stage: str) -> tuple[str, str]:
     )
 
 
+def _synthesis_artifact_failure(ip_dir: Path) -> str:
+    """Phase 5 evidence gate for the SYN stage.
+
+    A synthesis run is only considered passed when the mapped netlist exists
+    AND, when an area/error report is present, it reports zero errors. This
+    prevents a "worker returned completed" outcome from silently masking a
+    synthesis failure that left no usable netlist on disk.
+    """
+    syn_out = ip_dir / "syn" / "out"
+    if not syn_out.is_dir():
+        # Recovery layer is responsible for the "directory missing" case;
+        # here we only validate when the dir exists but content is bad.
+        return ""
+
+    # Mapped netlist must exist (any .v under syn/out/).
+    netlists = list(syn_out.glob("*.v")) + list(syn_out.glob("**/*.v"))
+    if not netlists:
+        return "mapped netlist missing under syn/out/*.v"
+
+    # Optional report files — if present, must report zero errors.
+    for rel in ("synth_errors.json", "area.json", "synth_summary.json"):
+        path = syn_out / rel
+        if not path.is_file():
+            continue
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return f"unparseable artifact: syn/out/{rel}"
+        try:
+            errors = int(doc.get("errors") or doc.get("error_count") or 0)
+        except Exception:
+            errors = 0
+        if errors > 0:
+            return f"syn/out/{rel} errors={errors}"
+        status = str(doc.get("status") or "").strip().lower()
+        if status and status not in ("pass", "ok", "completed", "success"):
+            return f"syn/out/{rel} status={status}"
+    return ""
+
+
 def _pnr_artifact_failure(ip_dir: Path) -> str:
     drc_path = ip_dir / "pnr" / "out" / "drc.json"
     if not drc_path.is_file():
@@ -1514,6 +1556,19 @@ def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
 
 
 def _advance_pipeline_from(job: dict[str, Any]) -> None:
+    # Wake any orchestrator yield_run waker watching this job. Lazy/defensive:
+    # the runner singleton may not be initialised (CLI runs, isolated tests),
+    # and a failed notify must never block pipeline progression.
+    job_id = str(job.get("job_id") or "")
+    job_status = str(job.get("status") or "")
+    if job_id and job_status in ("completed", "error", "cancelled", "blocked"):
+        try:
+            from src.orchestrator.runner import notify_job_complete
+
+            notify_job_complete(job_id, job_status)
+        except Exception:
+            pass
+
     pipeline_id = job.get("pipeline_id") or ""
     if not pipeline_id:
         return
@@ -1922,6 +1977,11 @@ def _job_artifact_failure(
             if failures > 0:
                 return True, f"{ip}/{results_xml.relative_to(ip_dir).as_posix()} failures={failures}"
             return False, ""
+    if stage == "syn" or workflow == "syn":
+        reason = _synthesis_artifact_failure(ip_dir)
+        if reason:
+            return True, f"{ip}/{reason}"
+        return False, ""
     if stage == "sta" or workflow == "sta":
         reason = _timing_artifact_failure(ip_dir, "sta")
         if reason:
@@ -1999,7 +2059,18 @@ def _refresh_tracked_jobs(project_root_path: Path | None = None) -> tuple[list[d
     with _jobs_lock:
         snapshot = list(_jobs.values())
     for job in snapshot:
-        if job["status"] in ("running",) and (now - job.get("_last_polled", 0)) > 1.5:
+        # Poll both "running" and "pending" jobs that have an assigned run_id.
+        # An assigned run_id means dispatch_job_to_worker reached the worker and
+        # received a server-side run id back — but the worker thread for the
+        # actual task may not have transitioned the run from "pending" to
+        # "running" yet. Without polling "pending" here, the local view stays
+        # stuck on "pending" forever once the first poll observed it; we then
+        # miss the eventual "completed" transition entirely.
+        if (
+            job.get("run_id")
+            and job["status"] in ("running", "pending")
+            and (now - job.get("_last_polled", 0)) > 1.5
+        ):
             try:
                 import urllib.request as _u
                 req = _u.Request(
@@ -2120,6 +2191,7 @@ def register_jobs_routes(
         pipeline_schedule: str = "", rtl_version_id: str = "",
         run_mode: str = "", exec_mode: str = "", user_id: str = "",
         db_user_id: str = "", db_session_id: str = "",
+        trigger_source: str = "", orchestrator_run_id: str = "",
     ) -> dict[str, Any]:
         pr = project_root()
         stage_id    = stage_id or (_PIPELINE_BY_WORKFLOW.get(workflow, {}).get("id") or workflow)
@@ -2196,6 +2268,8 @@ def register_jobs_routes(
             "exec_mode":       exec_mode,
             "_last_polled":   0.0,
             "pipeline_run_id": pipeline_id,
+            "trigger_source":  trigger_source or ("pipeline_button" if pipeline_id else "job_dispatch"),
+            "orchestrator_run_id": orchestrator_run_id,
             "user_id":         user_id,
             "db_user_id":      db_user_id,
             "db_session_id":   db_session_id,
@@ -3232,6 +3306,14 @@ def register_jobs_routes(
         exec_mode_resolved = _normalize_exec_mode(exec_mode or body.get("exec_mode")) or _current_exec_mode()
         model_resolved = str(model or body.get("model") or "").strip()
         reason_text = str(reason or body.get("reason") or "").strip()
+        # Phase 1: dispatch_workflow tool injects trigger_source + orchestrator_run_id
+        # into payload; lift them out so _make_job_record can persist them on
+        # the workflow_runs row. Default to "orchestrator_chat" when this
+        # bridge runs (it only fires from inside the orchestrator loop).
+        trigger_source_resolved = str(
+            body.get("trigger_source") or "orchestrator_chat"
+        ).strip()
+        orchestrator_run_id_resolved = str(body.get("orchestrator_run_id") or "").strip()
 
         resolved = []
         for item in requested:
@@ -3308,6 +3390,8 @@ def register_jobs_routes(
                 run_mode=run_mode_resolved,
                 exec_mode=exec_mode_resolved,
                 user_id=owner_user_id,
+                trigger_source=trigger_source_resolved,
+                orchestrator_run_id=orchestrator_run_id_resolved,
             )
             stage_job_ids[stage["id"]] = job["job_id"]
             jobs.append(_public_job(job))

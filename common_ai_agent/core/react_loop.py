@@ -410,8 +410,8 @@ def run_react_agent_impl(
     # like _tools_since_in_progress (gate check counter).
     if getattr(cfg, "ENABLE_TODO_TRACKING", False):
         try:
-            import sys
-            _main_mod = sys.modules.get('main')
+            import sys as _sys
+            _main_mod = _sys.modules.get('main')
             if _main_mod and hasattr(_main_mod, 'todo_tracker') and _main_mod.todo_tracker is not None:
                 todo_tracker = _main_mod.todo_tracker
             else:

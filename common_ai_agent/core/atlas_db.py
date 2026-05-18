@@ -2429,6 +2429,8 @@ class AtlasDB:
         trigger: str = "",
         input_summary: str = "",
         status: str = "running",
+        trigger_source: str = "",
+        orchestrator_run_id: str = "",
     ) -> Dict[str, Any]:
         run_id = self._new_id()
         now = self._now()
@@ -2437,8 +2439,9 @@ class AtlasDB:
             INSERT INTO workflow_runs
             (id, session_id, workspace_id, ip_id, rtl_version_id, workflow, mode, model_profile,
              reasoning_effort, status, started_at, ended_at, duration_ms,
-             trigger, input_summary, error_summary, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             trigger, input_summary, error_summary, created_at, updated_at,
+             trigger_source, orchestrator_run_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id,
@@ -2459,6 +2462,8 @@ class AtlasDB:
                 None,
                 now,
                 now,
+                trigger_source,
+                orchestrator_run_id,
             ),
         )
         return self.get_workflow_run(run_id)

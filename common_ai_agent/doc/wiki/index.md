@@ -21,6 +21,8 @@ This section is additive; it does not replace the reading order below.
 | Current CPU handoff / approval / README status | [[arm-m0-min-current-status]] |
 | Multi-user or shared-worker collision risk | [[multi-user-worker-isolation]] + [[multi-user-worker-conflicts]] |
 | Orchestrator/worker handoff concept | [[orchestrator-worker-handoff]] + [[orchestrator-worker-handoff-review]] |
+| Orchestrator-only product plan + Phase 3 LLM loop implementation | [[orchestrator-chat-only-product-plan]] + [[orchestrator-llm-loop-phase3]] |
+| Proposed reuse of `core/react_loop.py` for the orchestrator (review needed) | [[orchestrator-loop-on-react-loop-plan]] |
 | PL330 visible UI Orchestrator/worker lessons | [[pl330-real-orchestrator-ui-lessons-20260517]] |
 | ATCDMAC100 document-flow honesty record | [[atcdmac100-document-flow-ui-honesty-20260518]] |
 | Evidence approval and TodoTracker behavior | [[golden-todo-evidence]] |
