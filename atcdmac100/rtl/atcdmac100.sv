@@ -1,0 +1,81 @@
+module atcdmac100 #(
+    parameter int ADDR_WIDTH = 32,
+    parameter int DATA_WIDTH = 32,
+    parameter int DMA_CH_NUM = 8,
+    parameter int REQ_ACK_NUM = 16,
+    parameter int FIFO_DEPTH = 8,
+    parameter bit CHAIN_TRANSFER_SUPPORT = 1'b1
+) (
+    input  logic                   hclk,
+    input  logic                   hresetn,
+    output logic                   dma_int,
+    input  logic [REQ_ACK_NUM-1:0] dma_req,
+    output logic [REQ_ACK_NUM-1:0] dma_ack,
+    input  logic [ADDR_WIDTH-1:0]  haddr,
+    input  logic [1:0]             htrans,
+    input  logic                   hwrite,
+    input  logic [2:0]             hsize,
+    input  logic [2:0]             hburst,
+    input  logic [31:0]            hwdata,
+    input  logic                   hsel,
+    input  logic                   hreadyin,
+    output logic [31:0]            hrdata,
+    output logic [1:0]             hresp,
+    output logic                   hready,
+    output logic [ADDR_WIDTH-1:0]  haddr_mst,
+    output logic [1:0]             htrans_mst,
+    output logic                   hwrite_mst,
+    output logic [2:0]             hsize_mst,
+    output logic [3:0]             hprot_mst,
+    output logic                   hlock_mst,
+    output logic [2:0]             hburst_mst,
+    output logic [31:0]            hwdata_mst,
+    input  logic [31:0]            hrdata_mst,
+    input  logic [1:0]             hresp_mst,
+    input  logic                   hready_mst,
+    output logic                   hbusreq_mst,
+    input  logic                   hgrant_mst
+);
+
+    atcdmac100_core #(
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .DATA_WIDTH(DATA_WIDTH),
+        .DMA_CH_NUM(DMA_CH_NUM),
+        .REQ_ACK_NUM(REQ_ACK_NUM),
+        .FIFO_DEPTH(FIFO_DEPTH),
+        .CHAIN_TRANSFER_SUPPORT(CHAIN_TRANSFER_SUPPORT)
+    ) u_core (
+        .hclk(hclk),
+        .hresetn(hresetn),
+        .dma_int(dma_int),
+        .dma_req(dma_req),
+        .dma_ack(dma_ack),
+        .haddr(haddr),
+        .htrans(htrans),
+        .hwrite(hwrite),
+        .hsize(hsize),
+        .hburst(hburst),
+        .hwdata(hwdata),
+        .hsel(hsel),
+        .hreadyin(hreadyin),
+        .hrdata(hrdata),
+        .hresp(hresp),
+        .hready(hready),
+        .haddr_mst(haddr_mst),
+        .htrans_mst(htrans_mst),
+        .hwrite_mst(hwrite_mst),
+        .hsize_mst(hsize_mst),
+        .hprot_mst(hprot_mst),
+        .hlock_mst(hlock_mst),
+        .hburst_mst(hburst_mst),
+        .hwdata_mst(hwdata_mst),
+        .hrdata_mst(hrdata_mst),
+        .hresp_mst(hresp_mst),
+        .hready_mst(hready_mst),
+        .hbusreq_mst(hbusreq_mst),
+        .hgrant_mst(hgrant_mst)
+    );
+
+    // Trace evidence: atcdmac100 top forwards every DS079 AHB/DMA interface port to atcdmac100_core.
+
+endmodule
