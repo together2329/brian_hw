@@ -5,7 +5,7 @@
   "source": "model/cycle_model.py",
   "backend": "pymtl3",
   "pymtl3_available": true,
-  "timestamp": "2026-05-18T20:28:58Z",
+  "timestamp": "2026-05-18T20:29:48Z",
   "passed": true,
   "self_check": {
     "passed": true,
@@ -45,7 +45,5 @@
   },
   "decomposition_units": 4,
   "fcov_bins": 21,
-  "fcov_plan": "cov/cl_fcov_plan.json",
-  "cl_fcov_plan_bins": 21,
-  "coverage_plan": "cov/cl_fcov_plan.json"
+  "fcov_plan": "cov/cl_fcov_plan.json"
 }
