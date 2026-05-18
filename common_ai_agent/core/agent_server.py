@@ -572,27 +572,56 @@ def _slash_command_failed(output: str) -> bool:
     )
 
 
+def _slash_command_needs_llm_followup(command: str, output: str) -> bool:
+    """Return true when a deterministic stage driver asks the worker LLM to continue.
+
+    Some ATLAS slash commands are preflight drivers, not terminal producers. In
+    particular, /ssot-rtl can derive RTL TODOs and then intentionally emit an
+    LLM_RTL_IMPLEMENTATION_REQUIRED blocker. That is a handoff to rtl-gen's LLM
+    authoring loop, not a worker-run failure.
+    """
+    cmd = str(command or "").lower()
+    text = str(output or "").lower()
+    return (
+        "/ssot-rtl" in cmd
+        and (
+            "llm_rtl_implementation_required" in text
+            or "llm-authored rtl evidence is missing or stale" in text
+        )
+    )
+
+
 def _execute_direct_slash_commands(
     entry: RunEntry,
     commands: List[str],
     *,
     project_root: str,
     ip: str,
-) -> None:
-    """Execute extracted slash commands and close the worker run."""
+) -> tuple[bool, str]:
+    """Execute extracted slash commands.
+
+    Returns ``(closed_run, output)``. Most direct slash commands are terminal
+    and close the worker run. Preflight commands that explicitly request LLM
+    follow-up return ``closed_run=False`` so the caller can continue into the
+    ReAct loop with the command observations attached.
+    """
     from core.slash_commands import get_registry
 
     before = _snapshot_scope_files(project_root, ip)
     registry = get_registry()
     outputs: List[str] = []
     failed = False
+    needs_llm_followup = False
     for command in commands:
         entry.add_log("action", f"slash:{command}", role="assistant")
         result = registry.execute(command)
         rendered = "" if result is None else str(result)
         outputs.append(f"$ {command}\n{rendered}".rstrip())
         entry.add_log("observation", rendered[:2000], role="tool")
-        failed = failed or _slash_command_failed(rendered)
+        if _slash_command_needs_llm_followup(command, rendered):
+            needs_llm_followup = True
+        else:
+            failed = failed or _slash_command_failed(rendered)
 
     after = _snapshot_scope_files(project_root, ip)
     files_modified = _changed_scope_files(before, after)
