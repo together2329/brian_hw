@@ -1,26 +1,27 @@
-# OpenSTA script for example_counter
+# OpenSTA script for example_counter (simplified)
 source ../workflow/scripts/pdk_env.sh
 set lib $::env(SKY130_LIB)
-set lef $::env(SKY130_TLEF)
 
 read_liberty $lib
-read_lef $lef
 read_verilog syn/out/synth.v
 link_design example_counter
 
-read_sdc sdc/example_counter.sdc
+# Create clock
+create_clock clk -name clk -period 20.0
 
-# Run timing analysis
-report_checks -path_delay min_max -format full
-report_checks -path_delay max -fields {slew cap input_pins}
+# Simple constraints
+set_input_delay 2.0 [all_inputs] -clock clk
+set_output_delay 5.0 [all_outputs] -clock clk
+
+# Reports
+report_checks -path_delay max -fields {slew cap}
+report_checks -path_delay min -fields {slew cap}
 report_worst_slack -max
 report_worst_slack -min
 report_tns
 report_wns
 
-# Write reports
-redirect -tee sta/out/sta_setup.log { report_checks -path_delay max }
-redirect -tee sta/out/sta_hold.log { report_checks -path_delay min }
-redirect -tee sta/out/sta_summary.log { report_worst_slack -max; report_worst_slack -min; report_tns; report_wns }
+# Write report
+write_tcp -format full sta/out/sta_report.log
 
 exit
