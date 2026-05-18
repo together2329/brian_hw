@@ -1,0 +1,38 @@
+{
+  "type": "ssot_handoff",
+  "ip": "dma_scratch_orch_live_20260519b",
+  "next_owner": "rtl-gen",
+  "canonical_ssot": "dma_scratch_orch_live_20260519b/yaml/dma_scratch_orch_live_20260519b.ssot.yaml",
+  "ssot_side_evidence": [
+    "dma_scratch_orch_live_20260519b/yaml/dma_scratch_orch_live_20260519b.ssot.provenance.json",
+    "dma_scratch_orch_live_20260519b/yaml/rtl_blocker_answers.json",
+    "dma_scratch_orch_live_20260519b/yaml/ssot_handoff.json"
+  ],
+  "rtl_blocker_evidence": {
+    "resolved_evidence": "dma_scratch_orch_live_20260519b/rtl/rtl_blocked_resolved.json",
+    "status": "applied_to_ssot",
+    "note": "Original rtl/rtl_blocked.json remains a downstream rtl-gen implementation blocker because ssot-gen must not author RTL."
+  },
+  "assumptions": [
+    "No imported architect handoff was available to this ssot-gen worker; the SSOT is an engineering draft from the visible DMA scratch goal.",
+    "CSR protocol is a simple valid/ready interface, not AXI/APB, unless a later requirement overrides it.",
+    "Memory master is simple valid/ready with one outstanding request and a response for both reads and writes.",
+    "Transfer length is counted in DATA_WIDTH beats; unaligned and byte-count transfer variants are out of scope for this draft.",
+    "Downstream synthesizable top remains rtl/dma_scratch_orch_live_20260519b.sv with module dma_scratch_orch_live_20260519b."
+  ],
+  "remaining_tbds": [
+    "check_ssot_disk reported 0 TBDs in the canonical SSOT.",
+    "Future architectural update may override the assumed simple valid/ready CSR and memory protocols with AXI-lite/APB/AXI/AHB semantics."
+  ],
+  "validation_evidence": [
+    "python3 workflow/ssot-gen/scripts/repair_ssot_schema.py dma_scratch_orch_live_20260519b --mode engineering reported sections 35/35 and downstream_readiness clean.",
+    "bash workflow/ssot-gen/scripts/check_ssot_disk.sh dma_scratch_orch_live_20260519b --mode engineering reported PASS: dma_scratch_orch_live_20260519b/yaml/dma_scratch_orch_live_20260519b.ssot.yaml = 60668B, 34 sections, 0 TBDs, mode=engineering.",
+    "Adversarial re-read verified mem_req_write description is 'Memory write request when high, read when low' and no stray 'read when low:' key remains."
+  ],
+  "downstream_obligations": [
+    "rtl-gen must read the canonical SSOT and rtl/rtl_todo_plan.json if present.",
+    "rtl-gen must implement rtl/dma_scratch_orch_live_20260519b.sv.",
+    "rtl-gen must write list/dma_scratch_orch_live_20260519b.f in compile order.",
+    "rtl-gen must rerun /ssot-rtl so compile, DUT-only lint, and TODO audit can close."
+  ]
+}
