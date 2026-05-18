@@ -1,93 +1,82 @@
 top_module:
   name: dma_scratch_ui_live_20260519a
   file: rtl/dma_scratch_ui_live_20260519a.sv
-  version: 0.2.0
-  type: synthesizable_rtl_ip
-  description: Engineering SSOT for a compact DMA scratch user-interface block. The IP exposes a simple host CSR interface, a DMA-style byte stream sink/source interface, and an internal scratch memory window used for deterministic smoke synthesis and simulation. This refresh preserves the DMA scratch UI functional intent while adding an explicit synthesis technology/corner/library policy required by the downstream synthesis preflight.
+  version: 0.1.0
+  type: rtl
+  description: Register-controlled scratch DMA UI issuing bounded copy/fill requests and reporting completion/error status.
   target:
-    language: systemverilog
-    top_file: rtl/dma_scratch_ui_live_20260519a.sv
-    synthesis: supported
-    primary_flow: yosys
-    technology: sky130
-    corner: tt_025C_1v80
-    liberty: ${SKY130_LIB}
-    liberty_policy: SKY130_LIB shall point to a readable SKY130 standard-cell .lib for the typical 1.8 V corner; synthesis must fail preflight if the variable is unset, unreadable, or does not reference the selected technology/corner.
+    technology: generic
     clock_freq_mhz: 100
     area_um2: null
     power_mw: null
   reference_spec: user-defined
 sub_modules:
-- name: csr_ctrl
-  type: register_control
-  description: Host-visible control/status, address decode, and command capture.
+- name: dma_scratch_ui_live_20260519a_csr
+  type: csr_block
+  description: Decodes CSR requests, stores configuration, and exposes status clear pulses.
   implements:
-  - csr_protocol
-  - register_map
-  - interrupt_status
+  - csr_programming
+  - status_irq
+  register_refs:
+  - CTRL
+  - STATUS
+  - SRC_ADDR
+  - DST_ADDR
+  - LEN_BYTES
+  - FILL_DATA
+  - IRQ_ENABLE
   function_model_refs:
-  - host_program_start
-  - host_clear_done
+  - csr_write
+  - csr_read
+  - function_model.state_variables
+  cycle_model_refs:
+  - csr_accept_response
+  - cycle_model
+  source_sections:
+  - cycle_model
+  - features
+  - dataflow
+  - decomposition
+  feature_refs:
+  - features
+  dataflow_refs:
+  - dataflow
+  decomposition_refs:
+  - decomposition
+- name: dma_scratch_ui_live_20260519a_engine
+  type: dma_engine
+  description: Converts start/configuration state into valid-ready memory commands and transfer status.
+  implements:
+  - dma_scratch_transfer
+  dataflow_refs:
+  - launch_to_mem_request
+  - mem_response_to_status
+  function_model_refs:
+  - start_transfer
+  - issue_memory_command
+  - complete_transfer
+  - memory_error
   - function_model.transactions.FM1
   - function_model.transactions.FM2
   - function_model.transactions.FM3
   - function_model.transactions.FM4
-  - function_model.state_variables
   cycle_model_refs:
-  - csr_single_cycle_access
-  - cycle_model
+  - engine_step
   fsm_refs:
-  - main_dma_fsm
+  - dma_main_fsm
   - fsm
-  register_refs:
-  - CONTROL
-  - STATUS
-  - SRC_ADDR
-  - DST_ADDR
-  - LENGTH
-  - SCRATCH
   source_sections:
-  - cycle_model
-  - features
   - fsm
-  - decomposition
-  feature_refs:
-  - features
-  decomposition_refs:
-  - decomposition
-- name: scratch_mem
-  type: memory_array
-  description: Synthesizable scratch storage used as the DMA staging buffer.
+- name: dma_scratch_ui_live_20260519a_irq
+  type: interrupt_logic
+  description: Generates level interrupt from enabled sticky done/error flags.
   implements:
-  - scratch_storage
+  - status_irq
   function_model_refs: &id001
-  - scratch_write
-  - scratch_read
-  cycle_model_refs:
-  - scratch_one_cycle_read
-  dataflow_refs:
-  - stream_to_scratch
-  - scratch_to_stream
-- name: dma_datapath
-  type: datapath
-  description: Byte counter, stream handshake, scratch address generation, and data muxing.
-  implements:
-  - dma_transfer_engine
-  - backpressure
-  function_model_refs: &id002
-  - dma_beat_accept
-  - dma_beat_emit
-  - dma_complete
-  cycle_model_refs:
-  - one_beat_per_cycle_when_ready
-  fsm_refs:
-  - main_dma_fsm
-  dataflow_refs:
-  - stream_to_scratch
-  - scratch_to_stream
-  - dataflow
-  source_sections:
-  - dataflow
+  - irq_update
+  register_refs:
+  - STATUS
+  - IRQ_ENABLE
 - name: dma_scratch_ui_live_20260519a
   file: rtl/dma_scratch_ui_live_20260519a.sv
   ownership: manifest
@@ -97,7 +86,7 @@ sub_modules:
   implements:
   - top_module
   - integration
-  source_sections: &id003
+  source_sections: &id002
   - top_module
   - io_list
   - decomposition
@@ -109,24 +98,28 @@ sub_modules:
 decomposition:
   strategy: manifest_owned_leaf_decomposition
   owners:
-  - module: csr_ctrl
-    file: rtl/csr_ctrl.sv
-    responsibility: Host-visible control/status, address decode, and command capture.
+  - module: dma_scratch_ui_live_20260519a_csr
+    file: rtl/dma_scratch_ui_live_20260519a_csr.sv
+    responsibility: Decodes CSR requests, stores configuration, and exposes status clear pulses.
     source_sections:
-    - host_program_start
-    - host_clear_done
-  - module: scratch_mem
-    file: rtl/scratch_mem.sv
-    responsibility: Synthesizable scratch storage used as the DMA staging buffer.
+    - csr_write
+    - csr_read
+  - module: dma_scratch_ui_live_20260519a_engine
+    file: rtl/dma_scratch_ui_live_20260519a_engine.sv
+    responsibility: Converts start/configuration state into valid-ready memory commands and transfer status.
+    source_sections:
+    - start_transfer
+    - issue_memory_command
+    - complete_transfer
+    - memory_error
+  - module: dma_scratch_ui_live_20260519a_irq
+    file: rtl/dma_scratch_ui_live_20260519a_irq.sv
+    responsibility: Generates level interrupt from enabled sticky done/error flags.
     source_sections: *id001
-  - module: dma_datapath
-    file: rtl/dma_datapath.sv
-    responsibility: Byte counter, stream handshake, scratch address generation, and data muxing.
-    source_sections: *id002
   - module: dma_scratch_ui_live_20260519a
     file: rtl/dma_scratch_ui_live_20260519a.sv
     responsibility: Top-level integration module matching SSOT top_module
-    source_sections: *id003
+    source_sections: *id002
   integration_policy: Top-level wiring must be backed by integration.connections or sub_modules[].connections before signoff.
   source_refs:
   - sub_modules
@@ -136,24 +129,16 @@ decomposition:
 parameters:
 - name: ADDR_WIDTH
   type: int
-  value: 16
-  legal: 8 <= ADDR_WIDTH <= 32
-  description: Width of host and DMA address counters.
+  default: 32
+  description: Address width for source, destination, and memory request addresses.
 - name: DATA_WIDTH
   type: int
-  value: 32
-  legal: DATA_WIDTH in {8,16,32,64}
-  description: Data path width for CSR and stream ports.
+  default: 32
+  description: Register and memory datapath width.
 - name: LEN_WIDTH
   type: int
-  value: 16
-  legal: LEN_WIDTH <= ADDR_WIDTH
-  description: Transfer length counter width in data beats.
-- name: SCRATCH_DEPTH
-  type: int
-  value: 256
-  legal: SCRATCH_DEPTH >= 2 and power_of_two
-  description: Number of DATA_WIDTH entries in scratch storage.
+  default: 16
+  description: Transfer length field width in bytes.
 io_list:
   clock_domains:
   - name: clk
@@ -215,16 +200,14 @@ io_list:
       direction: output
       description: Generic architectural error indication
 features:
-- id: csr_protocol
-  description: Single-cycle ready/valid CSR access with write strobes implied by csr_write.
-- id: scratch_storage
-  description: Internal synchronous scratch RAM addressed modulo SCRATCH_DEPTH.
-- id: dma_transfer_engine
-  description: Programmed transfer moves LENGTH stream beats into or out of scratch.
-- id: backpressure
-  description: Stream ready/valid honors downstream stalls without data loss.
-- id: synthesis_policy
-  description: Yosys + SKY130 typical-corner synthesis setup is explicitly required.
+- id: csr_programming
+  description: Software programs source address, destination address, length, fill pattern, control, and interrupt enable registers.
+- id: dma_scratch_transfer
+  description: Start bit launches a bounded DMA scratch operation that emits memory commands until length reaches zero.
+- id: status_irq
+  description: Done, busy, and error status are observable through CSR reads and optional irq.
+- id: sky130_synthesis_ready
+  description: SSOT defines required Sky130 liberty policy and synthesis outputs for downstream syn/sta/pnr.
 dataflow:
   source: declared io_list request/control interfaces
   sequence:
@@ -438,9 +421,84 @@ rdc_requirements:
   checks:
   - No crossing paths expected; update SSOT if additional clocks or resets are introduced
 registers:
-  no_registers: true
-  policy: No firmware-visible registers are implied by repair; add explicit register_list entries before rtl-gen implements CSR behavior.
+  map: csr
+  width: DATA_WIDTH
+  reset_values:
+    CTRL: 0
+    STATUS: 0
+    SRC_ADDR: 0
+    DST_ADDR: 0
+    LEN_BYTES: 0
+    FILL_DATA: 0
+    IRQ_ENABLE: 0
+  entries:
+  - name: CTRL
+    offset: 0
+    access: rw
+    fields:
+    - name: start
+      bits: '0'
+      access: w1p
+    - name: mode_fill
+      bits: '1'
+      access: rw
+    - name: soft_reset
+      bits: '2'
+      access: w1p
+  - name: STATUS
+    offset: 4
+    access: rw1c
+    fields:
+    - name: busy
+      bits: '0'
+      access: ro
+    - name: done
+      bits: '1'
+      access: rw1c
+    - name: error
+      bits: '2'
+      access: rw1c
+  - name: SRC_ADDR
+    offset: 8
+    access: rw
+    fields:
+    - name: value
+      bits: ADDR_WIDTH-1:0
+      access: rw
+  - name: DST_ADDR
+    offset: 12
+    access: rw
+    fields:
+    - name: value
+      bits: ADDR_WIDTH-1:0
+      access: rw
+  - name: LEN_BYTES
+    offset: 16
+    access: rw
+    fields:
+    - name: value
+      bits: LEN_WIDTH-1:0
+      access: rw
+  - name: FILL_DATA
+    offset: 20
+    access: rw
+    fields:
+    - name: value
+      bits: DATA_WIDTH-1:0
+      access: rw
+  - name: IRQ_ENABLE
+    offset: 24
+    access: rw
+    fields:
+    - name: done_en
+      bits: '0'
+      access: rw
+    - name: error_en
+      bits: '1'
+      access: rw
   register_list: []
+  no_registers: true
+  policy: No firmware-visible registers are declared; add register_list before CSR behavior is implemented.
 memory:
   instances: []
   addressing:
@@ -459,7 +517,6 @@ fsm:
     - EXEC_FEATURE_2
     - EXEC_FEATURE_3
     - EXEC_FEATURE_4
-    - EXEC_FEATURE_5
     - COMPLETE
     - ERROR
     transitions:
@@ -479,9 +536,6 @@ fsm:
       to: EXEC_FEATURE_4
       when: The current SSOT-owned behavior slice completes
     - from: EXEC_FEATURE_4
-      to: EXEC_FEATURE_5
-      when: The current SSOT-owned behavior slice completes
-    - from: EXEC_FEATURE_5
       to: COMPLETE
       when: The current SSOT-owned behavior slice completes
     - from: COMPLETE
@@ -608,16 +662,37 @@ dft:
     outputs: all io_list outputs observable
   mbist_required: false
 synthesis:
+  target_technology: sky130_fd_sc_hd
+  target_library: sky130_fd_sc_hd
+  liberty_env_var: SKY130_LIB
+  corner:
+    name: sky130_fd_sc_hd__ss_100C_1v40
+    process: ss
+    temperature_c: 100
+    voltage_v: 1.4
+  library_policy:
+    name: sky130_fd_sc_hd
+    liberty_source: env:SKY130_LIB
+    required_corner: sky130_fd_sc_hd__ss_100C_1v40
+    usage: Downstream syn/sta/pnr must use the Sky130 HD liberty referenced by SKY130_LIB for timing and area.
+    fail_if_missing: true
+  required_outputs:
+    syn:
+    - out/synth/dma_scratch_ui_live_20260519a_synth.v
+    - out/synth/dma_scratch_ui_live_20260519a_synth.json
+    - out/synth/dma_scratch_ui_live_20260519a_area.rpt
+    - out/synth/dma_scratch_ui_live_20260519a_timing.rpt
   dialect: systemverilog_2012
   top_module: dma_scratch_ui_live_20260519a
+  tool_flow: yosys
   constraints:
   - No inferred latches
   - No unresolved black boxes
   - All sequential state reset or intentionally initialized
-  required_outputs:
-  - syn/out/area.rpt
-  - syn/out/timing_summary.rpt
-  - sta/out/wns.json
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 100
 pnr:
   utilization_pct: 60
   aspect_ratio: 1.0
@@ -650,34 +725,32 @@ coding_rules:
 reuse_modules: []
 custom:
   assumptions:
-  - No imported architect handoff was available to this direct-write worker; this is an engineering draft from the visible DMA scratch UI goal.
-  - Functional intent is kept to a minimal DMA scratch UI with CSR control, scratch storage, stream sink/source, done IRQ, and backpressure.
-  - Downstream RTL must keep the synthesizable top at rtl/dma_scratch_ui_live_20260519a.sv.
-  synthesis_setup:
-    required: true
-    owner: syn
-    flow: yosys
-    technology: sky130
-    process: sky130_fd_sc_hd
-    corner: tt_025C_1v80
-    liberty_env_var: SKY130_LIB
-    liberty_file_policy: The synthesis stage shall use the readable liberty file named by SKY130_LIB as the timing library for SKY130 tt_025C_1v80. If multiple SKY130 libs are present, choose the typical 1.8 V standard-cell library matching this corner and record the resolved path in synthesis evidence.
-    preflight_requirements:
-    - yosys_executable_available
-    - rtl_filelist_contains_rtl_top
-    - SKY130_LIB_is_set_and_readable
-    - liberty_matches_sky130_tt_025C_1v80_policy
-    clock_policy:
-      primary_clock: clk
-      target_period_ns: 10.0
-      uncertainty_ns: 0.2
-    reset_policy:
-      reset_signal: rst_n
-      reset_type: active_low_async
-    constraints_policy:
-      synthesize_as_standalone_top: true
-      preserve_port_names: true
-      no_blackboxes_allowed: true
+  - No external architect handoff/imported spec was visible in the task; this SSOT is an engineering draft from the orchestrator goal.
+  - Register bus is a simple valid-ready CSR interface rather than APB/AXI-Lite unless later requirements override it.
+  - Memory interface is an abstract valid-ready command channel for downstream RTL/TB refinement.
+  - Sky130 synthesis policy is mandatory for downstream syn/sta/pnr and uses SKY130_LIB.
+  remaining_tbd:
+  - Exact DMA copy read-to-write data buffering semantics and response ordering.
+  - Integration bus protocol adaptation if a SoC-standard bus is required.
+  - Clock frequency, reset synchronizer ownership, and physical constraints.
+  stale_downstream_stages:
+  - fl-model
+  - cl-model
+  - equivalence
+  - rtl
+  - lint
+  - tb
+  - sim
+  - coverage
+  - sim_debug
+  - syn
+  - sta
+  - pnr
+  - sta_post
+  optional_behavior_policy:
+    resolution: non_required_optional_items_disabled_unless_ssot_marks_required_or_parameterized
+    owner: ssot-gen deterministic repair
+    rule: Rows marked required:false or prose-only optional verification aids do not add RTL behavior. Any optional functional behavior must be converted by ssot-gen into required behavior or an explicit parameter/register policy before rtl-gen signoff.
 dir_structure:
   yaml_dir: yaml/
   output_dirs:
@@ -839,11 +912,11 @@ quality_gates:
     pass: SSOT, FL/equivalence, RTL, lint, DV, sim, coverage, and EDA gates pass with fresh artifacts
     evidence:
     - ATLAS progress signoff PASS
+  verification:
+  - CSR, DMA normal, DMA backpressure, and DMA error tests pass.
   synthesis:
-  - yosys_available
-  - sky130_lib_readable_from_SKY130_LIB
-  - technology_corner_policy_present
-  - standalone_synthesis_completes_without_blackboxes
+  - SKY130_LIB is defined and resolves to sky130_fd_sc_hd__ss_100C_1v40 liberty.
+  - Required syn outputs under out/synth and area report are generated.
 traceability:
   yaml_to_output:
   - yaml: function_model
@@ -881,9 +954,9 @@ workflow_todos:
     owner_file: rtl/dma_scratch_ui_live_20260519a.sv
     priority: high
     required: true
-  - id: RTL_MODULE_CSR_CTRL
-    content: Implement or account for SSOT module slice `csr_ctrl`
-    detail: Host-visible control/status, address decode, and command capture.
+  - id: RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A_CSR
+    content: Implement or account for SSOT module slice `dma_scratch_ui_live_20260519a_csr`
+    detail: Decodes CSR requests, stores configuration, and exposes status clear pulses.
     criteria:
     - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
     - Module slice has traceability evidence in rtl_todo_plan.json
@@ -891,66 +964,65 @@ workflow_todos:
     source_refs:
     - cycle_model
     - features
-    - fsm
+    - dataflow
     - decomposition
-    - host_program_start
-    - host_clear_done
+    - csr_write
+    - csr_read
+    - function_model.state_variables
+    - csr_accept_response
+    - cycle_model
+    - features
+    - dataflow
+    - CTRL
+    - STATUS
+    - SRC_ADDR
+    - DST_ADDR
+    - LEN_BYTES
+    - FILL_DATA
+    - IRQ_ENABLE
+    owner_module: dma_scratch_ui_live_20260519a_csr
+    owner_file: rtl/dma_scratch_ui_live_20260519a_csr.sv
+    priority: high
+    required: true
+  - id: RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A_ENGINE
+    content: Implement or account for SSOT module slice `dma_scratch_ui_live_20260519a_engine`
+    detail: Converts start/configuration state into valid-ready memory commands and transfer status.
+    criteria:
+    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
+    - Module slice has traceability evidence in rtl_todo_plan.json
+    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
+    source_refs:
+    - fsm
+    - start_transfer
+    - issue_memory_command
+    - complete_transfer
+    - memory_error
     - function_model.transactions.FM1
     - function_model.transactions.FM2
     - function_model.transactions.FM3
     - function_model.transactions.FM4
-    - function_model.state_variables
-    - csr_single_cycle_access
-    - cycle_model
-    - features
-    - CONTROL
-    - STATUS
-    - SRC_ADDR
-    - DST_ADDR
-    - LENGTH
-    - SCRATCH
-    - main_dma_fsm
+    - engine_step
+    - launch_to_mem_request
+    - mem_response_to_status
+    - dma_main_fsm
     - fsm
-    owner_module: csr_ctrl
-    owner_file: rtl/csr_ctrl.sv
+    owner_module: dma_scratch_ui_live_20260519a_engine
+    owner_file: rtl/dma_scratch_ui_live_20260519a_engine.sv
     priority: high
     required: true
-  - id: RTL_MODULE_SCRATCH_MEM
-    content: Implement or account for SSOT module slice `scratch_mem`
-    detail: Synthesizable scratch storage used as the DMA staging buffer.
+  - id: RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A_IRQ
+    content: Implement or account for SSOT module slice `dma_scratch_ui_live_20260519a_irq`
+    detail: Generates level interrupt from enabled sticky done/error flags.
     criteria:
     - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
     - Module slice has traceability evidence in rtl_todo_plan.json
     - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
     source_refs:
-    - scratch_write
-    - scratch_read
-    - scratch_one_cycle_read
-    - stream_to_scratch
-    - scratch_to_stream
-    owner_module: scratch_mem
-    owner_file: rtl/scratch_mem.sv
-    priority: high
-    required: true
-  - id: RTL_MODULE_DMA_DATAPATH
-    content: Implement or account for SSOT module slice `dma_datapath`
-    detail: Byte counter, stream handshake, scratch address generation, and data muxing.
-    criteria:
-    - Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module
-    - Module slice has traceability evidence in rtl_todo_plan.json
-    - No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned
-    source_refs:
-    - dataflow
-    - dma_beat_accept
-    - dma_beat_emit
-    - dma_complete
-    - one_beat_per_cycle_when_ready
-    - stream_to_scratch
-    - scratch_to_stream
-    - dataflow
-    - main_dma_fsm
-    owner_module: dma_datapath
-    owner_file: rtl/dma_datapath.sv
+    - irq_update
+    - STATUS
+    - IRQ_ENABLE
+    owner_module: dma_scratch_ui_live_20260519a_irq
+    owner_file: rtl/dma_scratch_ui_live_20260519a_irq.sv
     priority: high
     required: true
   - id: RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A
@@ -980,8 +1052,8 @@ workflow_todos:
     source_refs:
     - function_model.transactions[0]
     - function_model.transactions.FM1
-    owner_module: csr_ctrl
-    owner_file: rtl/csr_ctrl.sv
+    owner_module: dma_scratch_ui_live_20260519a_engine
+    owner_file: rtl/dma_scratch_ui_live_20260519a_engine.sv
     priority: high
     required: true
   - id: RTL_OUTPUT_RULE_ERROR
@@ -993,8 +1065,8 @@ workflow_todos:
     - FL-vs-RTL scoreboard can compare this observable without changing SSOT
     source_refs:
     - function_model.transactions[0].output_rules[0]
-    owner_module: dma_scratch_ui_live_20260519a
-    owner_file: rtl/dma_scratch_ui_live_20260519a.sv
+    owner_module: dma_scratch_ui_live_20260519a_engine
+    owner_file: rtl/dma_scratch_ui_live_20260519a_engine.sv
     priority: high
     required: true
   - id: RTL_FM_TX_FM2
@@ -1007,8 +1079,8 @@ workflow_todos:
     source_refs:
     - function_model.transactions[1]
     - function_model.transactions.FM2
-    owner_module: csr_ctrl
-    owner_file: rtl/csr_ctrl.sv
+    owner_module: dma_scratch_ui_live_20260519a
+    owner_file: rtl/dma_scratch_ui_live_20260519a.sv
     priority: high
     required: true
   - id: RTL_STATE_UPDATE_FM2_OBSERVED
@@ -1034,8 +1106,8 @@ workflow_todos:
     source_refs:
     - function_model.transactions[2]
     - function_model.transactions.FM3
-    owner_module: csr_ctrl
-    owner_file: rtl/csr_ctrl.sv
+    owner_module: dma_scratch_ui_live_20260519a
+    owner_file: rtl/dma_scratch_ui_live_20260519a.sv
     priority: high
     required: true
   - id: RTL_STATE_UPDATE_FM3_OBSERVED
@@ -1363,6 +1435,10 @@ generation_flow:
   - name: handoff_sim_debug
     command: /wf sim_debug
     description: Run simulation, waveform, and coverage inspection
+schema_version: 0.1.0
+ip: dma_scratch_ui_live_20260519a
+run_mode: engineering
+source_requirement: 'Engineering draft bootstrapped from ATLAS orchestrator goal for IP dma_scratch_ui_live_20260519a: provide a synthesizable DMA scratch control/UI block with a register-facing command/status interface, simple memory request channel, and Sky130 synthesis policy.'
 rtl_contract:
   owner: ssot-gen
   type: ssot_derived_rule_contract

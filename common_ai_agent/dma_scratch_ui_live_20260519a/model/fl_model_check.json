@@ -6,235 +6,104 @@
   "passed": true,
   "self_check": {
     "passed": true,
-    "checks": 11,
+    "checks": 5,
     "failed": 0,
-    "transactions": 10,
+    "transactions": 4,
     "transaction_results": [
       {
-        "id": "FM_RESET",
-        "name": "reset",
-        "kind": "FM_RESET",
-        "passed": true,
-        "result": {
-          "kind": "reset",
-          "resp": 0,
-          "state": {
-            "fsm_state": 0,
-            "src_addr": 0,
-            "dst_addr": 0,
-            "length_bytes": 0,
-            "remaining_bytes": 0,
-            "progress_bytes": 0,
-            "read_data_buffer": 0,
-            "write_buffer_full": 0,
-            "busy": 0,
-            "done": 0,
-            "error": 0,
-            "irq_done_en": 0,
-            "irq_error_en": 0
-          }
-        }
-      },
-      {
-        "id": "FM_CSR_WRITE_CONFIG",
-        "name": "csr_write_config",
-        "kind": "FM_CSR_WRITE_CONFIG",
+        "id": "FM1",
+        "name": "feature_1",
+        "kind": "FM1",
         "passed": true,
         "result": {
           "resp": 0,
-          "transaction_id": "FM_CSR_WRITE_CONFIG",
-          "transaction_name": "csr_write_config",
+          "transaction_id": "FM1",
+          "transaction_name": "feature_1",
           "sample_accepted": 1,
-          "csr_ready_idle_write": 1,
-          "csr_ready": 1,
-          "csr_error_legal_write": 0,
-          "csr_error": 0,
+          "error": 0
+        }
+      },
+      {
+        "id": "FM2",
+        "name": "feature_2",
+        "kind": "FM2",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM2",
+          "transaction_name": "feature_2",
+          "sample_accepted": 1,
           "state_updates": {
-            "src_addr": 0,
-            "dst_addr": 0,
-            "length_bytes": 0,
-            "irq_done_en": 0,
-            "irq_error_en": 0,
-            "done": 0,
-            "error": 0
+            "fm2_observed": 1
           }
         }
       },
       {
-        "id": "FM_START_TRANSFER",
-        "name": "start_transfer",
-        "kind": "FM_START_TRANSFER",
+        "id": "FM3",
+        "name": "feature_3",
+        "kind": "FM3",
         "passed": true,
         "result": {
           "resp": 0,
-          "transaction_id": "FM_START_TRANSFER",
-          "transaction_name": "start_transfer",
-          "sample_accepted": 0,
-          "mem_rd_valid_start": 0,
-          "mem_rd_valid": 0,
-          "irq_done_zero_length": 0,
-          "irq_done": 0
+          "transaction_id": "FM3",
+          "transaction_name": "feature_3",
+          "sample_accepted": 1,
+          "state_updates": {
+            "fm3_observed": 1
+          }
         }
       },
       {
-        "id": "FM_CSR_READ_STATUS",
-        "name": "csr_read_status",
-        "kind": "FM_CSR_READ_STATUS",
+        "id": "FM4",
+        "name": "feature_4",
+        "kind": "FM4",
         "passed": true,
         "result": {
           "resp": 0,
-          "transaction_id": "FM_CSR_READ_STATUS",
-          "transaction_name": "csr_read_status",
-          "sample_accepted": 0,
-          "csr_ready_read": 1,
-          "csr_ready": 1,
-          "csr_rdata_status": 0,
-          "csr_rdata": 0,
-          "csr_error_read": 0,
-          "csr_error": 0
-        }
-      },
-      {
-        "id": "FM_READ_REQUEST",
-        "name": "memory_read_request",
-        "kind": "FM_READ_REQUEST",
-        "passed": true,
-        "result": {
-          "resp": 0,
-          "transaction_id": "FM_READ_REQUEST",
-          "transaction_name": "memory_read_request",
-          "sample_accepted": 0,
-          "mem_rd_valid_rule": 1,
-          "mem_rd_valid": 1,
-          "mem_rd_addr_rule": 0,
-          "mem_rd_addr": 0,
-          "mem_rd_data_ready_rule": 1,
-          "mem_rd_data_ready": 1
-        }
-      },
-      {
-        "id": "FM_CAPTURE_READ_DATA",
-        "name": "capture_read_data",
-        "kind": "FM_CAPTURE_READ_DATA",
-        "passed": true,
-        "result": {
-          "resp": 0,
-          "transaction_id": "FM_CAPTURE_READ_DATA",
-          "transaction_name": "capture_read_data",
-          "sample_accepted": 0,
-          "mem_rd_data_ready_capture": 1,
-          "mem_rd_data_ready": 1
-        }
-      },
-      {
-        "id": "FM_WRITE_REQUEST",
-        "name": "memory_write_request",
-        "kind": "FM_WRITE_REQUEST",
-        "passed": true,
-        "result": {
-          "resp": 0,
-          "transaction_id": "FM_WRITE_REQUEST",
-          "transaction_name": "memory_write_request",
-          "sample_accepted": 0,
-          "mem_wr_valid_rule": 0,
-          "mem_wr_valid": 0,
-          "mem_wr_addr_rule": 0,
-          "mem_wr_addr": 0,
-          "mem_wr_data_rule": 0,
-          "mem_wr_data": 0,
-          "mem_wr_strb_rule": 0,
-          "mem_wr_strb": 0
-        }
-      },
-      {
-        "id": "FM_WRITE_ACCEPT",
-        "name": "memory_write_accept",
-        "kind": "FM_WRITE_ACCEPT",
-        "passed": true,
-        "result": {
-          "resp": 0,
-          "transaction_id": "FM_WRITE_ACCEPT",
-          "transaction_name": "memory_write_accept",
-          "sample_accepted": 0,
-          "irq_done_on_final_write": 0,
-          "irq_done": 0,
-          "mem_wr_valid_after_accept": 0,
-          "mem_wr_valid": 0
-        }
-      },
-      {
-        "id": "FM_CLEAR_ABORT",
-        "name": "clear_or_abort",
-        "kind": "FM_CLEAR_ABORT",
-        "passed": true,
-        "result": {
-          "resp": 0,
-          "transaction_id": "FM_CLEAR_ABORT",
-          "transaction_name": "clear_or_abort",
-          "sample_accepted": 0,
-          "mem_rd_valid_abort": 0,
-          "mem_rd_valid": 0,
-          "mem_wr_valid_abort": 0,
-          "mem_wr_valid": 0
-        }
-      },
-      {
-        "id": "FM_ILLEGAL_CSR_OR_START",
-        "name": "illegal_csr_or_start",
-        "kind": "FM_ILLEGAL_CSR_OR_START",
-        "passed": true,
-        "result": {
-          "resp": 0,
-          "transaction_id": "FM_ILLEGAL_CSR_OR_START",
-          "transaction_name": "illegal_csr_or_start",
-          "sample_accepted": 0,
-          "csr_error_illegal": 1,
-          "csr_error": 1,
-          "irq_error_illegal": 0,
-          "irq_error": 0
+          "transaction_id": "FM4",
+          "transaction_name": "feature_4",
+          "sample_accepted": 1,
+          "state_updates": {
+            "fm4_observed": 1
+          }
         }
       }
     ],
     "unsupported_transaction_check": true,
-    "trace_entries": 11,
-    "coverage_bins": 62,
-    "invariants_total": 5,
+    "trace_entries": 5,
+    "coverage_bins": 43,
+    "invariants_total": 4,
     "invariants_evaluated": 0,
     "invariants_failed": [],
     "invariants_skipped": [
       {
-        "name": "All architectural state updates are sync",
-        "expr": "All architectural state updates are synchronous to clk and reset to declared values when rst_n is asserted low.",
+        "name": "No externally visible output changes exc",
+        "expr": "No externally visible output changes except through declared interfaces, registers, interrupts, or debug signals.",
         "reason": "invalid syntax (<unknown>, line 1)"
       },
       {
-        "name": "Memory write data for a beat equals the ",
-        "expr": "Memory write data for a beat equals the previously accepted read data for that beat.",
+        "name": "All state updates are synchronous to the",
+        "expr": "All state updates are synchronous to the declared clock and return to reset values under the declared reset policy.",
         "reason": "invalid syntax (<unknown>, line 1)"
       },
       {
-        "name": "A new read request is not issued while w",
-        "expr": "A new read request is not issued while write_buffer_full is 1.",
+        "name": "Every declared error source has a define",
+        "expr": "Every declared error source has a defined architectural effect and recovery path.",
         "reason": "invalid syntax (<unknown>, line 1)"
       },
       {
-        "name": "busy is 1 only during an active nonzero-",
-        "expr": "busy is 1 only during an active nonzero-length transfer and deasserts on final write acceptance, reset, or soft_reset.",
-        "reason": "invalid syntax (<unknown>, line 1)"
-      },
-      {
-        "name": "done and error are sticky until reset, s",
-        "expr": "done and error are sticky until reset, soft_reset, or W1C clear.",
+        "name": "Data movement and ordering follow the da",
+        "expr": "Data movement and ordering follow the dataflow section without bypassing declared buffers or counters.",
         "reason": "invalid syntax (<unknown>, line 1)"
       }
     ],
     "reset_consistency": true,
     "reset_diff": {},
-    "error_cases_total": 0,
-    "error_cases_planned": 0
+    "error_cases_total": 4,
+    "error_cases_planned": 4
   },
-  "decomposition_units": 10,
-  "fcov_bins": 62,
+  "decomposition_units": 9,
+  "fcov_bins": 43,
   "authority_contract": {
     "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
     "general_evaluation_criteria": [

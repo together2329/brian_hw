@@ -5,593 +5,179 @@
   "source": "dma_scratch_ui_live_20260519a/yaml/dma_scratch_ui_live_20260519a.ssot.yaml",
   "units": [
     {
-      "name": "csr_registers",
+      "name": "csr_ctrl",
       "kind": "rtl_module",
       "source_sections": [
-        "CTRL",
+        "CONTROL",
         "DST_ADDR",
-        "FM_CLEAR_ABORT",
-        "FM_CSR_READ_STATUS",
-        "FM_CSR_WRITE_CONFIG",
-        "FM_ILLEGAL_CSR_OR_START",
         "LENGTH",
-        "PROGRESS",
+        "SCRATCH",
         "SRC_ADDR",
         "STATUS",
-        "control",
-        "csr_access",
-        "csr_programming_model",
+        "csr_protocol",
+        "csr_single_cycle_access",
         "cycle_model",
-        "dataflow",
         "decomposition",
-        "df_config",
-        "df_status",
         "features",
+        "fsm",
         "function_model",
+        "host_clear_done",
+        "host_program_start",
+        "interrupt_status",
+        "main_dma_fsm",
         "parameters",
-        "registers",
-        "test_requirements"
+        "register_map"
       ],
       "rtl_candidates": [
-        "csr_registers"
+        "csr_ctrl"
       ],
-      "rtl_file": "rtl/csr_registers.sv",
+      "rtl_file": "rtl/csr_ctrl.sv",
       "ssot_refs": [
-        "CTRL",
+        "CONTROL",
         "DST_ADDR",
-        "FM_CLEAR_ABORT",
-        "FM_CSR_READ_STATUS",
-        "FM_CSR_WRITE_CONFIG",
-        "FM_ILLEGAL_CSR_OR_START",
         "LENGTH",
-        "PROGRESS",
+        "SCRATCH",
         "SRC_ADDR",
         "STATUS",
-        "control",
-        "csr_access",
-        "csr_programming_model",
+        "csr_protocol",
+        "csr_single_cycle_access",
         "cycle_model",
         "cycle_model.backpressure.backpressure_0",
-        "cycle_model.backpressure.backpressure_1",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.csr_valid_csr_ready",
-        "cycle_model.handshake_rules.mem_rd_data_valid_mem_rd_data_ready",
-        "cycle_model.handshake_rules.mem_rd_valid_mem_rd_ready",
-        "cycle_model.handshake_rules.mem_wr_valid_mem_wr_ready",
+        "cycle_model.handshake_rules.req_valid_req_ready",
+        "cycle_model.handshake_rules.rsp_valid_rsp_ready",
         "cycle_model.latency",
         "cycle_model.observability.observability_0",
         "cycle_model.ordering.ordering_0",
         "cycle_model.ordering.ordering_1",
         "cycle_model.ordering.ordering_2",
         "cycle_model.ordering.ordering_3",
-        "cycle_model.ordering.ordering_4",
-        "cycle_model.pipeline.capture_read_data",
-        "cycle_model.pipeline.complete_or_loop",
-        "cycle_model.pipeline.csr_accept",
-        "cycle_model.pipeline.read_addr",
-        "cycle_model.pipeline.write_beat",
+        "cycle_model.pipeline.s0_accept",
+        "cycle_model.pipeline.s1_evaluate",
+        "cycle_model.pipeline.s2_observe",
         "cycle_model.reset",
-        "dataflow",
         "decomposition",
-        "df_config",
-        "df_status",
         "features",
-        "features.csr_programming_model",
-        "features.reset_abort_policy",
-        "features.single_outstanding_copy_engine",
-        "features.status_interrupts",
+        "features.backpressure",
+        "features.csr_protocol",
+        "features.dma_transfer_engine",
+        "features.scratch_storage",
+        "features.synthesis_policy",
+        "fsm",
         "function_model.state_variables",
-        "function_model.state_variables.busy",
-        "function_model.state_variables.done",
-        "function_model.state_variables.dst_addr",
         "function_model.state_variables.error",
-        "function_model.state_variables.fsm_state",
-        "function_model.state_variables.irq_done_en",
-        "function_model.state_variables.irq_error_en",
-        "function_model.state_variables.length_bytes",
-        "function_model.state_variables.progress_bytes",
-        "function_model.state_variables.read_data_buffer",
-        "function_model.state_variables.remaining_bytes",
-        "function_model.state_variables.src_addr",
-        "function_model.state_variables.write_buffer_full",
-        "function_model.transactions.FM_ILLEGAL_CSR_OR_START",
-        "function_model.transactions.fm_illegal_csr_or_start",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_0",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_1",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_2",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_3",
-        "function_model.transactions.fm_illegal_csr_or_start.output_rules.csr_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.output_rules.irq_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.csr_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.error",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.fsm_state",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.irq_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.output_0",
-        "function_model.transactions.fm_illegal_csr_or_start.preconditions.precondition_0",
-        "function_model.transactions.fm_illegal_csr_or_start.side_effects.side_effect_0",
-        "function_model.transactions.fm_illegal_csr_or_start.state_updates.error",
-        "function_model.transactions.fm_illegal_csr_or_start.state_updates.fsm_state",
+        "function_model.state_variables.fm2_observed",
+        "function_model.state_variables.fm3_observed",
+        "function_model.state_variables.fm4_observed",
+        "function_model.state_variables.state",
+        "function_model.transactions.FM1",
+        "function_model.transactions.FM2",
+        "function_model.transactions.FM3",
+        "function_model.transactions.FM4",
+        "function_model.transactions.fm1",
+        "function_model.transactions.fm1.error_cases.error_case_0",
+        "function_model.transactions.fm1.inputs.input_0",
+        "function_model.transactions.fm1.output_rules.error",
+        "function_model.transactions.fm1.outputs.error",
+        "function_model.transactions.fm1.outputs.output_0",
+        "function_model.transactions.fm1.preconditions.precondition_0",
+        "function_model.transactions.fm1.side_effects.side_effect_0",
+        "function_model.transactions.fm2",
+        "function_model.transactions.fm2.error_cases.error_case_0",
+        "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.outputs.fm2_observed",
+        "function_model.transactions.fm2.outputs.output_0",
+        "function_model.transactions.fm2.preconditions.precondition_0",
+        "function_model.transactions.fm2.side_effects.side_effect_0",
+        "function_model.transactions.fm2.state_updates.fm2_observed",
+        "function_model.transactions.fm3",
+        "function_model.transactions.fm3.error_cases.error_case_0",
+        "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.outputs.fm3_observed",
+        "function_model.transactions.fm3.outputs.output_0",
+        "function_model.transactions.fm3.preconditions.precondition_0",
+        "function_model.transactions.fm3.side_effects.side_effect_0",
+        "function_model.transactions.fm3.state_updates.fm3_observed",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.error_cases.error_case_0",
+        "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.outputs.fm4_observed",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm4.state_updates.fm4_observed",
+        "host_clear_done",
+        "host_program_start",
+        "interrupt_status",
+        "main_dma_fsm",
         "parameters.addr_width",
         "parameters.data_width",
-        "registers",
-        "registers.config.access_policy",
-        "registers.config.base_offset",
-        "registers.config.register_width",
-        "registers.register_list",
-        "registers.register_list.ctrl",
-        "registers.register_list.dst_addr",
-        "registers.register_list.length",
-        "registers.register_list.progress",
-        "registers.register_list.src_addr",
-        "registers.register_list.status",
-        "test_requirements"
+        "parameters.len_width",
+        "register_map"
       ],
       "function_model_refs": [
-        "function_model.state_variables.busy",
-        "function_model.state_variables.done",
-        "function_model.state_variables.dst_addr",
         "function_model.state_variables.error",
-        "function_model.state_variables.fsm_state",
-        "function_model.state_variables.irq_done_en",
-        "function_model.state_variables.irq_error_en",
-        "function_model.state_variables.length_bytes",
-        "function_model.state_variables.progress_bytes",
-        "function_model.state_variables.read_data_buffer",
-        "function_model.state_variables.remaining_bytes",
-        "function_model.state_variables.src_addr",
-        "function_model.state_variables.write_buffer_full",
-        "function_model.transactions.fm_illegal_csr_or_start",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_0",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_1",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_2",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_3",
-        "function_model.transactions.fm_illegal_csr_or_start.output_rules.csr_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.output_rules.irq_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.csr_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.error",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.fsm_state",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.irq_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.output_0",
-        "function_model.transactions.fm_illegal_csr_or_start.preconditions.precondition_0",
-        "function_model.transactions.fm_illegal_csr_or_start.side_effects.side_effect_0",
-        "function_model.transactions.fm_illegal_csr_or_start.state_updates.error",
-        "function_model.transactions.fm_illegal_csr_or_start.state_updates.fsm_state"
+        "function_model.state_variables.fm2_observed",
+        "function_model.state_variables.fm3_observed",
+        "function_model.state_variables.fm4_observed",
+        "function_model.state_variables.state",
+        "function_model.transactions.fm1",
+        "function_model.transactions.fm1.error_cases.error_case_0",
+        "function_model.transactions.fm1.inputs.input_0",
+        "function_model.transactions.fm1.output_rules.error",
+        "function_model.transactions.fm1.outputs.error",
+        "function_model.transactions.fm1.outputs.output_0",
+        "function_model.transactions.fm1.preconditions.precondition_0",
+        "function_model.transactions.fm1.side_effects.side_effect_0",
+        "function_model.transactions.fm2",
+        "function_model.transactions.fm2.error_cases.error_case_0",
+        "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.outputs.fm2_observed",
+        "function_model.transactions.fm2.outputs.output_0",
+        "function_model.transactions.fm2.preconditions.precondition_0",
+        "function_model.transactions.fm2.side_effects.side_effect_0",
+        "function_model.transactions.fm2.state_updates.fm2_observed",
+        "function_model.transactions.fm3",
+        "function_model.transactions.fm3.error_cases.error_case_0",
+        "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.outputs.fm3_observed",
+        "function_model.transactions.fm3.outputs.output_0",
+        "function_model.transactions.fm3.preconditions.precondition_0",
+        "function_model.transactions.fm3.side_effects.side_effect_0",
+        "function_model.transactions.fm3.state_updates.fm3_observed",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.error_cases.error_case_0",
+        "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.outputs.fm4_observed",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm4.state_updates.fm4_observed"
       ],
       "cycle_model_refs": [
         "cycle_model.backpressure.backpressure_0",
-        "cycle_model.backpressure.backpressure_1",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.csr_valid_csr_ready",
-        "cycle_model.handshake_rules.mem_rd_data_valid_mem_rd_data_ready",
-        "cycle_model.handshake_rules.mem_rd_valid_mem_rd_ready",
-        "cycle_model.handshake_rules.mem_wr_valid_mem_wr_ready",
+        "cycle_model.handshake_rules.req_valid_req_ready",
+        "cycle_model.handshake_rules.rsp_valid_rsp_ready",
         "cycle_model.latency",
         "cycle_model.observability.observability_0",
         "cycle_model.ordering.ordering_0",
         "cycle_model.ordering.ordering_1",
         "cycle_model.ordering.ordering_2",
         "cycle_model.ordering.ordering_3",
-        "cycle_model.ordering.ordering_4",
-        "cycle_model.pipeline.capture_read_data",
-        "cycle_model.pipeline.complete_or_loop",
-        "cycle_model.pipeline.csr_accept",
-        "cycle_model.pipeline.read_addr",
-        "cycle_model.pipeline.write_beat",
+        "cycle_model.pipeline.s0_accept",
+        "cycle_model.pipeline.s1_evaluate",
+        "cycle_model.pipeline.s2_observe",
         "cycle_model.reset"
       ],
       "structural_refs": [
-        "features.csr_programming_model",
-        "features.reset_abort_policy",
-        "features.single_outstanding_copy_engine",
-        "features.status_interrupts",
+        "features.backpressure",
+        "features.csr_protocol",
+        "features.dma_transfer_engine",
+        "features.scratch_storage",
+        "features.synthesis_policy",
         "parameters.addr_width",
         "parameters.data_width",
-        "registers.config.access_policy",
-        "registers.config.base_offset",
-        "registers.config.register_width",
-        "registers.register_list.ctrl",
-        "registers.register_list.dst_addr",
-        "registers.register_list.length",
-        "registers.register_list.progress",
-        "registers.register_list.src_addr",
-        "registers.register_list.status"
-      ],
-      "verification_impact": [
-        "module-level FL-vs-RTL scoreboard",
-        "module functional coverage"
-      ],
-      "requires_module_equivalence": true,
-      "blocked": false,
-      "blocker": ""
-    },
-    {
-      "name": "dma_engine",
-      "kind": "rtl_module",
-      "source_sections": [
-        "CAPTURE_READ_DATA",
-        "COMPLETE_OR_LOOP",
-        "DST_ADDR",
-        "FM_CAPTURE_READ_DATA",
-        "FM_READ_REQUEST",
-        "FM_RESET",
-        "FM_START_TRANSFER",
-        "FM_WRITE_ACCEPT",
-        "FM_WRITE_REQUEST",
-        "LENGTH",
-        "PROGRESS",
-        "READ_ADDR",
-        "SRC_ADDR",
-        "STATUS",
-        "WRITE_BEAT",
-        "control",
-        "df_capture",
-        "df_read",
-        "df_start",
-        "df_write",
-        "fsm",
-        "function_model",
-        "parameters",
-        "reset_abort_policy",
-        "single_outstanding_copy_engine"
-      ],
-      "rtl_candidates": [
-        "dma_engine"
-      ],
-      "rtl_file": "rtl/dma_engine.sv",
-      "ssot_refs": [
-        "CAPTURE_READ_DATA",
-        "COMPLETE_OR_LOOP",
-        "DST_ADDR",
-        "FM_CAPTURE_READ_DATA",
-        "FM_READ_REQUEST",
-        "FM_RESET",
-        "FM_START_TRANSFER",
-        "FM_WRITE_ACCEPT",
-        "FM_WRITE_REQUEST",
-        "LENGTH",
-        "PROGRESS",
-        "READ_ADDR",
-        "SRC_ADDR",
-        "STATUS",
-        "WRITE_BEAT",
-        "control",
-        "df_capture",
-        "df_read",
-        "df_start",
-        "df_write",
-        "fsm",
-        "function_model.invariants.invariant_0",
-        "function_model.invariants.invariant_1",
-        "function_model.invariants.invariant_2",
-        "function_model.invariants.invariant_3",
-        "function_model.invariants.invariant_4",
-        "function_model.transactions.FM_CAPTURE_READ_DATA",
-        "function_model.transactions.FM_CLEAR_ABORT",
-        "function_model.transactions.FM_CSR_READ_STATUS",
-        "function_model.transactions.FM_READ_REQUEST",
-        "function_model.transactions.FM_RESET",
-        "function_model.transactions.FM_START_TRANSFER",
-        "function_model.transactions.FM_WRITE_ACCEPT",
-        "function_model.transactions.FM_WRITE_REQUEST",
-        "function_model.transactions.fm_capture_read_data",
-        "function_model.transactions.fm_capture_read_data.inputs.input_0",
-        "function_model.transactions.fm_capture_read_data.output_rules.mem_rd_data_ready_capture",
-        "function_model.transactions.fm_capture_read_data.outputs.fsm_state",
-        "function_model.transactions.fm_capture_read_data.outputs.mem_rd_data_ready_capture",
-        "function_model.transactions.fm_capture_read_data.outputs.output_0",
-        "function_model.transactions.fm_capture_read_data.outputs.read_data_buffer",
-        "function_model.transactions.fm_capture_read_data.outputs.write_buffer_full",
-        "function_model.transactions.fm_capture_read_data.preconditions.precondition_0",
-        "function_model.transactions.fm_capture_read_data.side_effects.side_effect_0",
-        "function_model.transactions.fm_capture_read_data.state_updates.fsm_state",
-        "function_model.transactions.fm_capture_read_data.state_updates.read_data_buffer",
-        "function_model.transactions.fm_capture_read_data.state_updates.write_buffer_full",
-        "function_model.transactions.fm_clear_abort",
-        "function_model.transactions.fm_clear_abort.inputs.input_0",
-        "function_model.transactions.fm_clear_abort.inputs.input_1",
-        "function_model.transactions.fm_clear_abort.inputs.input_2",
-        "function_model.transactions.fm_clear_abort.output_rules.mem_rd_valid_abort",
-        "function_model.transactions.fm_clear_abort.output_rules.mem_wr_valid_abort",
-        "function_model.transactions.fm_clear_abort.outputs.busy",
-        "function_model.transactions.fm_clear_abort.outputs.done",
-        "function_model.transactions.fm_clear_abort.outputs.error",
-        "function_model.transactions.fm_clear_abort.outputs.fsm_state",
-        "function_model.transactions.fm_clear_abort.outputs.mem_rd_valid_abort",
-        "function_model.transactions.fm_clear_abort.outputs.mem_wr_valid_abort",
-        "function_model.transactions.fm_clear_abort.outputs.output_0",
-        "function_model.transactions.fm_clear_abort.outputs.write_buffer_full",
-        "function_model.transactions.fm_clear_abort.preconditions.precondition_0",
-        "function_model.transactions.fm_clear_abort.side_effects.side_effect_0",
-        "function_model.transactions.fm_clear_abort.state_updates.busy",
-        "function_model.transactions.fm_clear_abort.state_updates.done",
-        "function_model.transactions.fm_clear_abort.state_updates.error",
-        "function_model.transactions.fm_clear_abort.state_updates.fsm_state",
-        "function_model.transactions.fm_clear_abort.state_updates.write_buffer_full",
-        "function_model.transactions.fm_csr_read_status",
-        "function_model.transactions.fm_csr_read_status.inputs.input_0",
-        "function_model.transactions.fm_csr_read_status.inputs.input_1",
-        "function_model.transactions.fm_csr_read_status.output_rules.csr_error_read",
-        "function_model.transactions.fm_csr_read_status.output_rules.csr_rdata_status",
-        "function_model.transactions.fm_csr_read_status.output_rules.csr_ready_read",
-        "function_model.transactions.fm_csr_read_status.outputs.csr_error_read",
-        "function_model.transactions.fm_csr_read_status.outputs.csr_rdata_status",
-        "function_model.transactions.fm_csr_read_status.outputs.csr_ready_read",
-        "function_model.transactions.fm_csr_read_status.outputs.output_0",
-        "function_model.transactions.fm_csr_read_status.preconditions.precondition_0",
-        "function_model.transactions.fm_csr_read_status.side_effects.side_effect_0",
-        "function_model.transactions.fm_read_request",
-        "function_model.transactions.fm_read_request.inputs.input_0",
-        "function_model.transactions.fm_read_request.inputs.input_1",
-        "function_model.transactions.fm_read_request.inputs.input_2",
-        "function_model.transactions.fm_read_request.output_rules.mem_rd_addr_rule",
-        "function_model.transactions.fm_read_request.output_rules.mem_rd_data_ready_rule",
-        "function_model.transactions.fm_read_request.output_rules.mem_rd_valid_rule",
-        "function_model.transactions.fm_read_request.outputs.fsm_state",
-        "function_model.transactions.fm_read_request.outputs.mem_rd_addr_rule",
-        "function_model.transactions.fm_read_request.outputs.mem_rd_data_ready_rule",
-        "function_model.transactions.fm_read_request.outputs.mem_rd_valid_rule",
-        "function_model.transactions.fm_read_request.outputs.output_0",
-        "function_model.transactions.fm_read_request.preconditions.precondition_0",
-        "function_model.transactions.fm_read_request.side_effects.side_effect_0",
-        "function_model.transactions.fm_read_request.state_updates.fsm_state",
-        "function_model.transactions.fm_reset",
-        "function_model.transactions.fm_reset.inputs.input_0",
-        "function_model.transactions.fm_reset.output_rules.csr_ready_reset",
-        "function_model.transactions.fm_reset.output_rules.irq_done_reset",
-        "function_model.transactions.fm_reset.output_rules.irq_error_reset",
-        "function_model.transactions.fm_reset.output_rules.mem_rd_valid_reset",
-        "function_model.transactions.fm_reset.output_rules.mem_wr_valid_reset",
-        "function_model.transactions.fm_reset.outputs.busy",
-        "function_model.transactions.fm_reset.outputs.csr_ready_reset",
-        "function_model.transactions.fm_reset.outputs.done",
-        "function_model.transactions.fm_reset.outputs.error",
-        "function_model.transactions.fm_reset.outputs.fsm_state",
-        "function_model.transactions.fm_reset.outputs.irq_done_reset",
-        "function_model.transactions.fm_reset.outputs.irq_error_reset",
-        "function_model.transactions.fm_reset.outputs.mem_rd_valid_reset",
-        "function_model.transactions.fm_reset.outputs.mem_wr_valid_reset",
-        "function_model.transactions.fm_reset.outputs.output_0",
-        "function_model.transactions.fm_reset.outputs.progress_bytes",
-        "function_model.transactions.fm_reset.outputs.remaining_bytes",
-        "function_model.transactions.fm_reset.outputs.write_buffer_full",
-        "function_model.transactions.fm_reset.preconditions.precondition_0",
-        "function_model.transactions.fm_reset.side_effects.side_effect_0",
-        "function_model.transactions.fm_reset.state_updates.busy",
-        "function_model.transactions.fm_reset.state_updates.done",
-        "function_model.transactions.fm_reset.state_updates.error",
-        "function_model.transactions.fm_reset.state_updates.fsm_state",
-        "function_model.transactions.fm_reset.state_updates.progress_bytes",
-        "function_model.transactions.fm_reset.state_updates.remaining_bytes",
-        "function_model.transactions.fm_reset.state_updates.write_buffer_full",
-        "function_model.transactions.fm_start_transfer",
-        "function_model.transactions.fm_start_transfer.inputs.input_0",
-        "function_model.transactions.fm_start_transfer.inputs.input_1",
-        "function_model.transactions.fm_start_transfer.inputs.input_2",
-        "function_model.transactions.fm_start_transfer.output_rules.irq_done_zero_length",
-        "function_model.transactions.fm_start_transfer.output_rules.mem_rd_valid_start",
-        "function_model.transactions.fm_start_transfer.outputs.busy",
-        "function_model.transactions.fm_start_transfer.outputs.done",
-        "function_model.transactions.fm_start_transfer.outputs.error",
-        "function_model.transactions.fm_start_transfer.outputs.fsm_state",
-        "function_model.transactions.fm_start_transfer.outputs.irq_done_zero_length",
-        "function_model.transactions.fm_start_transfer.outputs.mem_rd_valid_start",
-        "function_model.transactions.fm_start_transfer.outputs.output_0",
-        "function_model.transactions.fm_start_transfer.outputs.progress_bytes",
-        "function_model.transactions.fm_start_transfer.outputs.remaining_bytes",
-        "function_model.transactions.fm_start_transfer.preconditions.precondition_0",
-        "function_model.transactions.fm_start_transfer.side_effects.side_effect_0",
-        "function_model.transactions.fm_start_transfer.state_updates.busy",
-        "function_model.transactions.fm_start_transfer.state_updates.done",
-        "function_model.transactions.fm_start_transfer.state_updates.error",
-        "function_model.transactions.fm_start_transfer.state_updates.fsm_state",
-        "function_model.transactions.fm_start_transfer.state_updates.progress_bytes",
-        "function_model.transactions.fm_start_transfer.state_updates.remaining_bytes",
-        "function_model.transactions.fm_write_accept",
-        "function_model.transactions.fm_write_accept.inputs.input_0",
-        "function_model.transactions.fm_write_accept.inputs.input_1",
-        "function_model.transactions.fm_write_accept.inputs.input_2",
-        "function_model.transactions.fm_write_accept.output_rules.irq_done_on_final_write",
-        "function_model.transactions.fm_write_accept.output_rules.mem_wr_valid_after_accept",
-        "function_model.transactions.fm_write_accept.outputs.busy",
-        "function_model.transactions.fm_write_accept.outputs.done",
-        "function_model.transactions.fm_write_accept.outputs.fsm_state",
-        "function_model.transactions.fm_write_accept.outputs.irq_done_on_final_write",
-        "function_model.transactions.fm_write_accept.outputs.mem_wr_valid_after_accept",
-        "function_model.transactions.fm_write_accept.outputs.output_0",
-        "function_model.transactions.fm_write_accept.outputs.progress_bytes",
-        "function_model.transactions.fm_write_accept.outputs.remaining_bytes",
-        "function_model.transactions.fm_write_accept.outputs.write_buffer_full",
-        "function_model.transactions.fm_write_accept.preconditions.precondition_0",
-        "function_model.transactions.fm_write_accept.side_effects.side_effect_0",
-        "function_model.transactions.fm_write_accept.state_updates.busy",
-        "function_model.transactions.fm_write_accept.state_updates.done",
-        "function_model.transactions.fm_write_accept.state_updates.fsm_state",
-        "function_model.transactions.fm_write_accept.state_updates.progress_bytes",
-        "function_model.transactions.fm_write_accept.state_updates.remaining_bytes",
-        "function_model.transactions.fm_write_accept.state_updates.write_buffer_full",
-        "function_model.transactions.fm_write_request",
-        "function_model.transactions.fm_write_request.inputs.input_0",
-        "function_model.transactions.fm_write_request.inputs.input_1",
-        "function_model.transactions.fm_write_request.inputs.input_2",
-        "function_model.transactions.fm_write_request.inputs.input_3",
-        "function_model.transactions.fm_write_request.inputs.input_4",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_addr_rule",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_data_rule",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_strb_rule",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_valid_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_addr_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_data_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_strb_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_valid_rule",
-        "function_model.transactions.fm_write_request.outputs.output_0",
-        "function_model.transactions.fm_write_request.preconditions.precondition_0",
-        "function_model.transactions.fm_write_request.side_effects.side_effect_0",
-        "parameters.len_width",
-        "reset_abort_policy",
-        "single_outstanding_copy_engine"
-      ],
-      "function_model_refs": [
-        "function_model.invariants.invariant_0",
-        "function_model.invariants.invariant_1",
-        "function_model.invariants.invariant_2",
-        "function_model.invariants.invariant_3",
-        "function_model.invariants.invariant_4",
-        "function_model.transactions.fm_capture_read_data",
-        "function_model.transactions.fm_capture_read_data.inputs.input_0",
-        "function_model.transactions.fm_capture_read_data.output_rules.mem_rd_data_ready_capture",
-        "function_model.transactions.fm_capture_read_data.outputs.fsm_state",
-        "function_model.transactions.fm_capture_read_data.outputs.mem_rd_data_ready_capture",
-        "function_model.transactions.fm_capture_read_data.outputs.output_0",
-        "function_model.transactions.fm_capture_read_data.outputs.read_data_buffer",
-        "function_model.transactions.fm_capture_read_data.outputs.write_buffer_full",
-        "function_model.transactions.fm_capture_read_data.preconditions.precondition_0",
-        "function_model.transactions.fm_capture_read_data.side_effects.side_effect_0",
-        "function_model.transactions.fm_capture_read_data.state_updates.fsm_state",
-        "function_model.transactions.fm_capture_read_data.state_updates.read_data_buffer",
-        "function_model.transactions.fm_capture_read_data.state_updates.write_buffer_full",
-        "function_model.transactions.fm_clear_abort",
-        "function_model.transactions.fm_clear_abort.inputs.input_0",
-        "function_model.transactions.fm_clear_abort.inputs.input_1",
-        "function_model.transactions.fm_clear_abort.inputs.input_2",
-        "function_model.transactions.fm_clear_abort.output_rules.mem_rd_valid_abort",
-        "function_model.transactions.fm_clear_abort.output_rules.mem_wr_valid_abort",
-        "function_model.transactions.fm_clear_abort.outputs.busy",
-        "function_model.transactions.fm_clear_abort.outputs.done",
-        "function_model.transactions.fm_clear_abort.outputs.error",
-        "function_model.transactions.fm_clear_abort.outputs.fsm_state",
-        "function_model.transactions.fm_clear_abort.outputs.mem_rd_valid_abort",
-        "function_model.transactions.fm_clear_abort.outputs.mem_wr_valid_abort",
-        "function_model.transactions.fm_clear_abort.outputs.output_0",
-        "function_model.transactions.fm_clear_abort.outputs.write_buffer_full",
-        "function_model.transactions.fm_clear_abort.preconditions.precondition_0",
-        "function_model.transactions.fm_clear_abort.side_effects.side_effect_0",
-        "function_model.transactions.fm_clear_abort.state_updates.busy",
-        "function_model.transactions.fm_clear_abort.state_updates.done",
-        "function_model.transactions.fm_clear_abort.state_updates.error",
-        "function_model.transactions.fm_clear_abort.state_updates.fsm_state",
-        "function_model.transactions.fm_clear_abort.state_updates.write_buffer_full",
-        "function_model.transactions.fm_csr_read_status",
-        "function_model.transactions.fm_csr_read_status.inputs.input_0",
-        "function_model.transactions.fm_csr_read_status.inputs.input_1",
-        "function_model.transactions.fm_csr_read_status.output_rules.csr_error_read",
-        "function_model.transactions.fm_csr_read_status.output_rules.csr_rdata_status",
-        "function_model.transactions.fm_csr_read_status.output_rules.csr_ready_read",
-        "function_model.transactions.fm_csr_read_status.outputs.csr_error_read",
-        "function_model.transactions.fm_csr_read_status.outputs.csr_rdata_status",
-        "function_model.transactions.fm_csr_read_status.outputs.csr_ready_read",
-        "function_model.transactions.fm_csr_read_status.outputs.output_0",
-        "function_model.transactions.fm_csr_read_status.preconditions.precondition_0",
-        "function_model.transactions.fm_csr_read_status.side_effects.side_effect_0",
-        "function_model.transactions.fm_read_request",
-        "function_model.transactions.fm_read_request.inputs.input_0",
-        "function_model.transactions.fm_read_request.inputs.input_1",
-        "function_model.transactions.fm_read_request.inputs.input_2",
-        "function_model.transactions.fm_read_request.output_rules.mem_rd_addr_rule",
-        "function_model.transactions.fm_read_request.output_rules.mem_rd_data_ready_rule",
-        "function_model.transactions.fm_read_request.output_rules.mem_rd_valid_rule",
-        "function_model.transactions.fm_read_request.outputs.fsm_state",
-        "function_model.transactions.fm_read_request.outputs.mem_rd_addr_rule",
-        "function_model.transactions.fm_read_request.outputs.mem_rd_data_ready_rule",
-        "function_model.transactions.fm_read_request.outputs.mem_rd_valid_rule",
-        "function_model.transactions.fm_read_request.outputs.output_0",
-        "function_model.transactions.fm_read_request.preconditions.precondition_0",
-        "function_model.transactions.fm_read_request.side_effects.side_effect_0",
-        "function_model.transactions.fm_read_request.state_updates.fsm_state",
-        "function_model.transactions.fm_reset",
-        "function_model.transactions.fm_reset.inputs.input_0",
-        "function_model.transactions.fm_reset.output_rules.csr_ready_reset",
-        "function_model.transactions.fm_reset.output_rules.irq_done_reset",
-        "function_model.transactions.fm_reset.output_rules.irq_error_reset",
-        "function_model.transactions.fm_reset.output_rules.mem_rd_valid_reset",
-        "function_model.transactions.fm_reset.output_rules.mem_wr_valid_reset",
-        "function_model.transactions.fm_reset.outputs.busy",
-        "function_model.transactions.fm_reset.outputs.csr_ready_reset",
-        "function_model.transactions.fm_reset.outputs.done",
-        "function_model.transactions.fm_reset.outputs.error",
-        "function_model.transactions.fm_reset.outputs.fsm_state",
-        "function_model.transactions.fm_reset.outputs.irq_done_reset",
-        "function_model.transactions.fm_reset.outputs.irq_error_reset",
-        "function_model.transactions.fm_reset.outputs.mem_rd_valid_reset",
-        "function_model.transactions.fm_reset.outputs.mem_wr_valid_reset",
-        "function_model.transactions.fm_reset.outputs.output_0",
-        "function_model.transactions.fm_reset.outputs.progress_bytes",
-        "function_model.transactions.fm_reset.outputs.remaining_bytes",
-        "function_model.transactions.fm_reset.outputs.write_buffer_full",
-        "function_model.transactions.fm_reset.preconditions.precondition_0",
-        "function_model.transactions.fm_reset.side_effects.side_effect_0",
-        "function_model.transactions.fm_reset.state_updates.busy",
-        "function_model.transactions.fm_reset.state_updates.done",
-        "function_model.transactions.fm_reset.state_updates.error",
-        "function_model.transactions.fm_reset.state_updates.fsm_state",
-        "function_model.transactions.fm_reset.state_updates.progress_bytes",
-        "function_model.transactions.fm_reset.state_updates.remaining_bytes",
-        "function_model.transactions.fm_reset.state_updates.write_buffer_full",
-        "function_model.transactions.fm_start_transfer",
-        "function_model.transactions.fm_start_transfer.inputs.input_0",
-        "function_model.transactions.fm_start_transfer.inputs.input_1",
-        "function_model.transactions.fm_start_transfer.inputs.input_2",
-        "function_model.transactions.fm_start_transfer.output_rules.irq_done_zero_length",
-        "function_model.transactions.fm_start_transfer.output_rules.mem_rd_valid_start",
-        "function_model.transactions.fm_start_transfer.outputs.busy",
-        "function_model.transactions.fm_start_transfer.outputs.done",
-        "function_model.transactions.fm_start_transfer.outputs.error",
-        "function_model.transactions.fm_start_transfer.outputs.fsm_state",
-        "function_model.transactions.fm_start_transfer.outputs.irq_done_zero_length",
-        "function_model.transactions.fm_start_transfer.outputs.mem_rd_valid_start",
-        "function_model.transactions.fm_start_transfer.outputs.output_0",
-        "function_model.transactions.fm_start_transfer.outputs.progress_bytes",
-        "function_model.transactions.fm_start_transfer.outputs.remaining_bytes",
-        "function_model.transactions.fm_start_transfer.preconditions.precondition_0",
-        "function_model.transactions.fm_start_transfer.side_effects.side_effect_0",
-        "function_model.transactions.fm_start_transfer.state_updates.busy",
-        "function_model.transactions.fm_start_transfer.state_updates.done",
-        "function_model.transactions.fm_start_transfer.state_updates.error",
-        "function_model.transactions.fm_start_transfer.state_updates.fsm_state",
-        "function_model.transactions.fm_start_transfer.state_updates.progress_bytes",
-        "function_model.transactions.fm_start_transfer.state_updates.remaining_bytes",
-        "function_model.transactions.fm_write_accept",
-        "function_model.transactions.fm_write_accept.inputs.input_0",
-        "function_model.transactions.fm_write_accept.inputs.input_1",
-        "function_model.transactions.fm_write_accept.inputs.input_2",
-        "function_model.transactions.fm_write_accept.output_rules.irq_done_on_final_write",
-        "function_model.transactions.fm_write_accept.output_rules.mem_wr_valid_after_accept",
-        "function_model.transactions.fm_write_accept.outputs.busy",
-        "function_model.transactions.fm_write_accept.outputs.done",
-        "function_model.transactions.fm_write_accept.outputs.fsm_state",
-        "function_model.transactions.fm_write_accept.outputs.irq_done_on_final_write",
-        "function_model.transactions.fm_write_accept.outputs.mem_wr_valid_after_accept",
-        "function_model.transactions.fm_write_accept.outputs.output_0",
-        "function_model.transactions.fm_write_accept.outputs.progress_bytes",
-        "function_model.transactions.fm_write_accept.outputs.remaining_bytes",
-        "function_model.transactions.fm_write_accept.outputs.write_buffer_full",
-        "function_model.transactions.fm_write_accept.preconditions.precondition_0",
-        "function_model.transactions.fm_write_accept.side_effects.side_effect_0",
-        "function_model.transactions.fm_write_accept.state_updates.busy",
-        "function_model.transactions.fm_write_accept.state_updates.done",
-        "function_model.transactions.fm_write_accept.state_updates.fsm_state",
-        "function_model.transactions.fm_write_accept.state_updates.progress_bytes",
-        "function_model.transactions.fm_write_accept.state_updates.remaining_bytes",
-        "function_model.transactions.fm_write_accept.state_updates.write_buffer_full",
-        "function_model.transactions.fm_write_request",
-        "function_model.transactions.fm_write_request.inputs.input_0",
-        "function_model.transactions.fm_write_request.inputs.input_1",
-        "function_model.transactions.fm_write_request.inputs.input_2",
-        "function_model.transactions.fm_write_request.inputs.input_3",
-        "function_model.transactions.fm_write_request.inputs.input_4",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_addr_rule",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_data_rule",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_strb_rule",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_valid_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_addr_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_data_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_strb_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_valid_rule",
-        "function_model.transactions.fm_write_request.outputs.output_0",
-        "function_model.transactions.fm_write_request.preconditions.precondition_0",
-        "function_model.transactions.fm_write_request.side_effects.side_effect_0"
-      ],
-      "cycle_model_refs": [],
-      "structural_refs": [
         "parameters.len_width"
       ],
       "verification_impact": [
@@ -603,87 +189,84 @@
       "blocker": ""
     },
     {
-      "name": "irq_status",
+      "name": "scratch_mem",
       "kind": "rtl_module",
       "source_sections": [
-        "COMPLETE_OR_LOOP",
-        "CTRL",
-        "FM_CLEAR_ABORT",
-        "FM_ILLEGAL_CSR_OR_START",
-        "FM_RESET",
-        "FM_WRITE_ACCEPT",
-        "STATUS",
-        "df_status",
-        "function_model",
-        "status_interrupts"
+        "parameters",
+        "scratch_one_cycle_read",
+        "scratch_read",
+        "scratch_storage",
+        "scratch_to_stream",
+        "scratch_write",
+        "stream_to_scratch"
       ],
       "rtl_candidates": [
-        "irq_status"
+        "scratch_mem"
       ],
-      "rtl_file": "rtl/irq_status.sv",
+      "rtl_file": "rtl/scratch_mem.sv",
       "ssot_refs": [
-        "COMPLETE_OR_LOOP",
-        "CTRL",
-        "FM_CLEAR_ABORT",
-        "FM_ILLEGAL_CSR_OR_START",
-        "FM_RESET",
-        "FM_WRITE_ACCEPT",
-        "STATUS",
-        "df_status",
-        "function_model.transactions.FM_CSR_WRITE_CONFIG",
-        "function_model.transactions.fm_csr_write_config",
-        "function_model.transactions.fm_csr_write_config.inputs.input_0",
-        "function_model.transactions.fm_csr_write_config.inputs.input_1",
-        "function_model.transactions.fm_csr_write_config.inputs.input_2",
-        "function_model.transactions.fm_csr_write_config.output_rules.csr_error_legal_write",
-        "function_model.transactions.fm_csr_write_config.output_rules.csr_ready_idle_write",
-        "function_model.transactions.fm_csr_write_config.outputs.csr_error_legal_write",
-        "function_model.transactions.fm_csr_write_config.outputs.csr_ready_idle_write",
-        "function_model.transactions.fm_csr_write_config.outputs.done",
-        "function_model.transactions.fm_csr_write_config.outputs.dst_addr",
-        "function_model.transactions.fm_csr_write_config.outputs.error",
-        "function_model.transactions.fm_csr_write_config.outputs.irq_done_en",
-        "function_model.transactions.fm_csr_write_config.outputs.irq_error_en",
-        "function_model.transactions.fm_csr_write_config.outputs.length_bytes",
-        "function_model.transactions.fm_csr_write_config.outputs.output_0",
-        "function_model.transactions.fm_csr_write_config.outputs.src_addr",
-        "function_model.transactions.fm_csr_write_config.preconditions.precondition_0",
-        "function_model.transactions.fm_csr_write_config.side_effects.side_effect_0",
-        "function_model.transactions.fm_csr_write_config.state_updates.done",
-        "function_model.transactions.fm_csr_write_config.state_updates.dst_addr",
-        "function_model.transactions.fm_csr_write_config.state_updates.error",
-        "function_model.transactions.fm_csr_write_config.state_updates.irq_done_en",
-        "function_model.transactions.fm_csr_write_config.state_updates.irq_error_en",
-        "function_model.transactions.fm_csr_write_config.state_updates.length_bytes",
-        "function_model.transactions.fm_csr_write_config.state_updates.src_addr",
-        "status_interrupts"
+        "parameters.scratch_depth",
+        "scratch_one_cycle_read",
+        "scratch_read",
+        "scratch_storage",
+        "scratch_to_stream",
+        "scratch_write",
+        "stream_to_scratch"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "parameters.scratch_depth"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "dma_datapath",
+      "kind": "rtl_module",
+      "source_sections": [
+        "backpressure",
+        "dataflow",
+        "dma_beat_accept",
+        "dma_beat_emit",
+        "dma_complete",
+        "dma_transfer_engine",
+        "function_model",
+        "main_dma_fsm",
+        "one_beat_per_cycle_when_ready",
+        "scratch_to_stream",
+        "stream_to_scratch"
+      ],
+      "rtl_candidates": [
+        "dma_datapath"
+      ],
+      "rtl_file": "rtl/dma_datapath.sv",
+      "ssot_refs": [
+        "backpressure",
+        "dataflow",
+        "dma_beat_accept",
+        "dma_beat_emit",
+        "dma_complete",
+        "dma_transfer_engine",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "main_dma_fsm",
+        "one_beat_per_cycle_when_ready",
+        "scratch_to_stream",
+        "stream_to_scratch"
       ],
       "function_model_refs": [
-        "function_model.transactions.fm_csr_write_config",
-        "function_model.transactions.fm_csr_write_config.inputs.input_0",
-        "function_model.transactions.fm_csr_write_config.inputs.input_1",
-        "function_model.transactions.fm_csr_write_config.inputs.input_2",
-        "function_model.transactions.fm_csr_write_config.output_rules.csr_error_legal_write",
-        "function_model.transactions.fm_csr_write_config.output_rules.csr_ready_idle_write",
-        "function_model.transactions.fm_csr_write_config.outputs.csr_error_legal_write",
-        "function_model.transactions.fm_csr_write_config.outputs.csr_ready_idle_write",
-        "function_model.transactions.fm_csr_write_config.outputs.done",
-        "function_model.transactions.fm_csr_write_config.outputs.dst_addr",
-        "function_model.transactions.fm_csr_write_config.outputs.error",
-        "function_model.transactions.fm_csr_write_config.outputs.irq_done_en",
-        "function_model.transactions.fm_csr_write_config.outputs.irq_error_en",
-        "function_model.transactions.fm_csr_write_config.outputs.length_bytes",
-        "function_model.transactions.fm_csr_write_config.outputs.output_0",
-        "function_model.transactions.fm_csr_write_config.outputs.src_addr",
-        "function_model.transactions.fm_csr_write_config.preconditions.precondition_0",
-        "function_model.transactions.fm_csr_write_config.side_effects.side_effect_0",
-        "function_model.transactions.fm_csr_write_config.state_updates.done",
-        "function_model.transactions.fm_csr_write_config.state_updates.dst_addr",
-        "function_model.transactions.fm_csr_write_config.state_updates.error",
-        "function_model.transactions.fm_csr_write_config.state_updates.irq_done_en",
-        "function_model.transactions.fm_csr_write_config.state_updates.irq_error_en",
-        "function_model.transactions.fm_csr_write_config.state_updates.length_bytes",
-        "function_model.transactions.fm_csr_write_config.state_updates.src_addr"
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3"
       ],
       "cycle_model_refs": [],
       "structural_refs": [],
@@ -746,22 +329,6 @@
         "driver",
         "monitor",
         "protocol coverage"
-      ]
-    },
-    {
-      "name": "dma_scratch_ui_live_20260519a_register_model",
-      "kind": "register",
-      "source_sections": [
-        "registers",
-        "error_handling"
-      ],
-      "rtl_candidates": [
-        "dma_scratch_ui_live_20260519a_regs",
-        "dma_scratch_ui_live_20260519a_apb_regs"
-      ],
-      "verification_impact": [
-        "register sequences",
-        "readback scoreboard"
       ]
     },
     {
@@ -830,234 +397,182 @@
   ],
   "module_contracts": [
     {
-      "name": "csr_registers",
+      "name": "csr_ctrl",
       "kind": "rtl_module",
-      "rtl_module": "csr_registers",
-      "rtl_file": "rtl/csr_registers.sv",
+      "rtl_module": "csr_ctrl",
+      "rtl_file": "rtl/csr_ctrl.sv",
       "source_sections": [
-        "CTRL",
+        "CONTROL",
         "DST_ADDR",
-        "FM_CLEAR_ABORT",
-        "FM_CSR_READ_STATUS",
-        "FM_CSR_WRITE_CONFIG",
-        "FM_ILLEGAL_CSR_OR_START",
         "LENGTH",
-        "PROGRESS",
+        "SCRATCH",
         "SRC_ADDR",
         "STATUS",
-        "control",
-        "csr_access",
-        "csr_programming_model",
+        "csr_protocol",
+        "csr_single_cycle_access",
         "cycle_model",
-        "dataflow",
         "decomposition",
-        "df_config",
-        "df_status",
         "features",
+        "fsm",
         "function_model",
+        "host_clear_done",
+        "host_program_start",
+        "interrupt_status",
+        "main_dma_fsm",
         "parameters",
-        "registers",
-        "test_requirements"
+        "register_map"
       ],
       "ssot_refs": [
-        "CTRL",
+        "CONTROL",
         "DST_ADDR",
-        "FM_CLEAR_ABORT",
-        "FM_CSR_READ_STATUS",
-        "FM_CSR_WRITE_CONFIG",
-        "FM_ILLEGAL_CSR_OR_START",
         "LENGTH",
-        "PROGRESS",
+        "SCRATCH",
         "SRC_ADDR",
         "STATUS",
-        "control",
-        "csr_access",
-        "csr_programming_model",
+        "csr_protocol",
+        "csr_single_cycle_access",
         "cycle_model",
         "cycle_model.backpressure.backpressure_0",
-        "cycle_model.backpressure.backpressure_1",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.csr_valid_csr_ready",
-        "cycle_model.handshake_rules.mem_rd_data_valid_mem_rd_data_ready",
-        "cycle_model.handshake_rules.mem_rd_valid_mem_rd_ready",
-        "cycle_model.handshake_rules.mem_wr_valid_mem_wr_ready",
+        "cycle_model.handshake_rules.req_valid_req_ready",
+        "cycle_model.handshake_rules.rsp_valid_rsp_ready",
         "cycle_model.latency",
         "cycle_model.observability.observability_0",
         "cycle_model.ordering.ordering_0",
         "cycle_model.ordering.ordering_1",
         "cycle_model.ordering.ordering_2",
         "cycle_model.ordering.ordering_3",
-        "cycle_model.ordering.ordering_4",
-        "cycle_model.pipeline.capture_read_data",
-        "cycle_model.pipeline.complete_or_loop",
-        "cycle_model.pipeline.csr_accept",
-        "cycle_model.pipeline.read_addr",
-        "cycle_model.pipeline.write_beat",
+        "cycle_model.pipeline.s0_accept",
+        "cycle_model.pipeline.s1_evaluate",
+        "cycle_model.pipeline.s2_observe",
         "cycle_model.reset",
-        "dataflow",
         "decomposition",
-        "df_config",
-        "df_status",
         "features",
-        "features.csr_programming_model",
-        "features.reset_abort_policy",
-        "features.single_outstanding_copy_engine",
-        "features.status_interrupts",
+        "features.backpressure",
+        "features.csr_protocol",
+        "features.dma_transfer_engine",
+        "features.scratch_storage",
+        "features.synthesis_policy",
+        "fsm",
         "function_model.state_variables",
-        "function_model.state_variables.busy",
-        "function_model.state_variables.done",
-        "function_model.state_variables.dst_addr",
         "function_model.state_variables.error",
-        "function_model.state_variables.fsm_state",
-        "function_model.state_variables.irq_done_en",
-        "function_model.state_variables.irq_error_en",
-        "function_model.state_variables.length_bytes",
-        "function_model.state_variables.progress_bytes",
-        "function_model.state_variables.read_data_buffer",
-        "function_model.state_variables.remaining_bytes",
-        "function_model.state_variables.src_addr",
-        "function_model.state_variables.write_buffer_full",
-        "function_model.transactions.FM_ILLEGAL_CSR_OR_START",
-        "function_model.transactions.fm_illegal_csr_or_start",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_0",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_1",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_2",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_3",
-        "function_model.transactions.fm_illegal_csr_or_start.output_rules.csr_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.output_rules.irq_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.csr_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.error",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.fsm_state",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.irq_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.output_0",
-        "function_model.transactions.fm_illegal_csr_or_start.preconditions.precondition_0",
-        "function_model.transactions.fm_illegal_csr_or_start.side_effects.side_effect_0",
-        "function_model.transactions.fm_illegal_csr_or_start.state_updates.error",
-        "function_model.transactions.fm_illegal_csr_or_start.state_updates.fsm_state",
+        "function_model.state_variables.fm2_observed",
+        "function_model.state_variables.fm3_observed",
+        "function_model.state_variables.fm4_observed",
+        "function_model.state_variables.state",
+        "function_model.transactions.FM1",
+        "function_model.transactions.FM2",
+        "function_model.transactions.FM3",
+        "function_model.transactions.FM4",
+        "function_model.transactions.fm1",
+        "function_model.transactions.fm1.error_cases.error_case_0",
+        "function_model.transactions.fm1.inputs.input_0",
+        "function_model.transactions.fm1.output_rules.error",
+        "function_model.transactions.fm1.outputs.error",
+        "function_model.transactions.fm1.outputs.output_0",
+        "function_model.transactions.fm1.preconditions.precondition_0",
+        "function_model.transactions.fm1.side_effects.side_effect_0",
+        "function_model.transactions.fm2",
+        "function_model.transactions.fm2.error_cases.error_case_0",
+        "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.outputs.fm2_observed",
+        "function_model.transactions.fm2.outputs.output_0",
+        "function_model.transactions.fm2.preconditions.precondition_0",
+        "function_model.transactions.fm2.side_effects.side_effect_0",
+        "function_model.transactions.fm2.state_updates.fm2_observed",
+        "function_model.transactions.fm3",
+        "function_model.transactions.fm3.error_cases.error_case_0",
+        "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.outputs.fm3_observed",
+        "function_model.transactions.fm3.outputs.output_0",
+        "function_model.transactions.fm3.preconditions.precondition_0",
+        "function_model.transactions.fm3.side_effects.side_effect_0",
+        "function_model.transactions.fm3.state_updates.fm3_observed",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.error_cases.error_case_0",
+        "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.outputs.fm4_observed",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm4.state_updates.fm4_observed",
+        "host_clear_done",
+        "host_program_start",
+        "interrupt_status",
+        "main_dma_fsm",
         "parameters.addr_width",
         "parameters.data_width",
-        "registers",
-        "registers.config.access_policy",
-        "registers.config.base_offset",
-        "registers.config.register_width",
-        "registers.register_list",
-        "registers.register_list.ctrl",
-        "registers.register_list.dst_addr",
-        "registers.register_list.length",
-        "registers.register_list.progress",
-        "registers.register_list.src_addr",
-        "registers.register_list.status",
-        "test_requirements"
+        "parameters.len_width",
+        "register_map"
       ],
       "function_model_refs": [
-        "function_model.state_variables.busy",
-        "function_model.state_variables.done",
-        "function_model.state_variables.dst_addr",
         "function_model.state_variables.error",
-        "function_model.state_variables.fsm_state",
-        "function_model.state_variables.irq_done_en",
-        "function_model.state_variables.irq_error_en",
-        "function_model.state_variables.length_bytes",
-        "function_model.state_variables.progress_bytes",
-        "function_model.state_variables.read_data_buffer",
-        "function_model.state_variables.remaining_bytes",
-        "function_model.state_variables.src_addr",
-        "function_model.state_variables.write_buffer_full",
-        "function_model.transactions.fm_illegal_csr_or_start",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_0",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_1",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_2",
-        "function_model.transactions.fm_illegal_csr_or_start.inputs.input_3",
-        "function_model.transactions.fm_illegal_csr_or_start.output_rules.csr_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.output_rules.irq_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.csr_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.error",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.fsm_state",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.irq_error_illegal",
-        "function_model.transactions.fm_illegal_csr_or_start.outputs.output_0",
-        "function_model.transactions.fm_illegal_csr_or_start.preconditions.precondition_0",
-        "function_model.transactions.fm_illegal_csr_or_start.side_effects.side_effect_0",
-        "function_model.transactions.fm_illegal_csr_or_start.state_updates.error",
-        "function_model.transactions.fm_illegal_csr_or_start.state_updates.fsm_state"
+        "function_model.state_variables.fm2_observed",
+        "function_model.state_variables.fm3_observed",
+        "function_model.state_variables.fm4_observed",
+        "function_model.state_variables.state",
+        "function_model.transactions.fm1",
+        "function_model.transactions.fm1.error_cases.error_case_0",
+        "function_model.transactions.fm1.inputs.input_0",
+        "function_model.transactions.fm1.output_rules.error",
+        "function_model.transactions.fm1.outputs.error",
+        "function_model.transactions.fm1.outputs.output_0",
+        "function_model.transactions.fm1.preconditions.precondition_0",
+        "function_model.transactions.fm1.side_effects.side_effect_0",
+        "function_model.transactions.fm2",
+        "function_model.transactions.fm2.error_cases.error_case_0",
+        "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.outputs.fm2_observed",
+        "function_model.transactions.fm2.outputs.output_0",
+        "function_model.transactions.fm2.preconditions.precondition_0",
+        "function_model.transactions.fm2.side_effects.side_effect_0",
+        "function_model.transactions.fm2.state_updates.fm2_observed",
+        "function_model.transactions.fm3",
+        "function_model.transactions.fm3.error_cases.error_case_0",
+        "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.outputs.fm3_observed",
+        "function_model.transactions.fm3.outputs.output_0",
+        "function_model.transactions.fm3.preconditions.precondition_0",
+        "function_model.transactions.fm3.side_effects.side_effect_0",
+        "function_model.transactions.fm3.state_updates.fm3_observed",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.error_cases.error_case_0",
+        "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.outputs.fm4_observed",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm4.state_updates.fm4_observed"
       ],
       "cycle_model_refs": [
         "cycle_model.backpressure.backpressure_0",
-        "cycle_model.backpressure.backpressure_1",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.csr_valid_csr_ready",
-        "cycle_model.handshake_rules.mem_rd_data_valid_mem_rd_data_ready",
-        "cycle_model.handshake_rules.mem_rd_valid_mem_rd_ready",
-        "cycle_model.handshake_rules.mem_wr_valid_mem_wr_ready",
+        "cycle_model.handshake_rules.req_valid_req_ready",
+        "cycle_model.handshake_rules.rsp_valid_rsp_ready",
         "cycle_model.latency",
         "cycle_model.observability.observability_0",
         "cycle_model.ordering.ordering_0",
         "cycle_model.ordering.ordering_1",
         "cycle_model.ordering.ordering_2",
         "cycle_model.ordering.ordering_3",
-        "cycle_model.ordering.ordering_4",
-        "cycle_model.pipeline.capture_read_data",
-        "cycle_model.pipeline.complete_or_loop",
-        "cycle_model.pipeline.csr_accept",
-        "cycle_model.pipeline.read_addr",
-        "cycle_model.pipeline.write_beat",
+        "cycle_model.pipeline.s0_accept",
+        "cycle_model.pipeline.s1_evaluate",
+        "cycle_model.pipeline.s2_observe",
         "cycle_model.reset"
       ],
       "structural_refs": [
-        "features.csr_programming_model",
-        "features.reset_abort_policy",
-        "features.single_outstanding_copy_engine",
-        "features.status_interrupts",
+        "features.backpressure",
+        "features.csr_protocol",
+        "features.dma_transfer_engine",
+        "features.scratch_storage",
+        "features.synthesis_policy",
         "parameters.addr_width",
         "parameters.data_width",
-        "registers.config.access_policy",
-        "registers.config.base_offset",
-        "registers.config.register_width",
-        "registers.register_list.ctrl",
-        "registers.register_list.dst_addr",
-        "registers.register_list.length",
-        "registers.register_list.progress",
-        "registers.register_list.src_addr",
-        "registers.register_list.status"
+        "parameters.len_width"
       ],
       "owner_matches": [
         {
-          "ref": "function_model.state_variables.fsm_state",
-          "matched_ref": "function_model.state_variables"
-        },
-        {
-          "ref": "function_model.state_variables.src_addr",
-          "matched_ref": "function_model.state_variables"
-        },
-        {
-          "ref": "function_model.state_variables.dst_addr",
-          "matched_ref": "function_model.state_variables"
-        },
-        {
-          "ref": "function_model.state_variables.length_bytes",
-          "matched_ref": "function_model.state_variables"
-        },
-        {
-          "ref": "function_model.state_variables.remaining_bytes",
-          "matched_ref": "function_model.state_variables"
-        },
-        {
-          "ref": "function_model.state_variables.progress_bytes",
-          "matched_ref": "function_model.state_variables"
-        },
-        {
-          "ref": "function_model.state_variables.read_data_buffer",
-          "matched_ref": "function_model.state_variables"
-        },
-        {
-          "ref": "function_model.state_variables.write_buffer_full",
-          "matched_ref": "function_model.state_variables"
-        },
-        {
-          "ref": "function_model.state_variables.busy",
-          "matched_ref": "function_model.state_variables"
-        },
-        {
-          "ref": "function_model.state_variables.done",
+          "ref": "function_model.state_variables.state",
           "matched_ref": "function_model.state_variables"
         },
         {
@@ -1065,76 +580,144 @@
           "matched_ref": "function_model.state_variables"
         },
         {
-          "ref": "function_model.state_variables.irq_done_en",
+          "ref": "function_model.state_variables.fm2_observed",
           "matched_ref": "function_model.state_variables"
         },
         {
-          "ref": "function_model.state_variables.irq_error_en",
+          "ref": "function_model.state_variables.fm3_observed",
           "matched_ref": "function_model.state_variables"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.state_variables.fm4_observed",
+          "matched_ref": "function_model.state_variables"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.preconditions.precondition_0",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm1",
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.inputs.input_0",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm1.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.inputs.input_1",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm1.inputs.input_0",
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.inputs.input_2",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm1.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.inputs.input_3",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm1.outputs.error",
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.outputs.output_0",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm1.output_rules.error",
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.outputs.csr_error_illegal",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm1.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.outputs.irq_error_illegal",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm1.error_cases.error_case_0",
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.outputs.error",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm2",
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.outputs.fsm_state",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm2.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.output_rules.csr_error_illegal",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm2.inputs.input_0",
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.output_rules.irq_error_illegal",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm2.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.state_updates.error",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm2.outputs.fm2_observed",
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.state_updates.fsm_state",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm2.state_updates.fm2_observed",
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
-          "ref": "function_model.transactions.fm_illegal_csr_or_start.side_effects.side_effect_0",
-          "matched_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START"
+          "ref": "function_model.transactions.fm2.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM2"
+        },
+        {
+          "ref": "function_model.transactions.fm2.error_cases.error_case_0",
+          "matched_ref": "function_model.transactions.FM2"
+        },
+        {
+          "ref": "function_model.transactions.fm3",
+          "matched_ref": "function_model.transactions.FM3"
+        },
+        {
+          "ref": "function_model.transactions.fm3.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM3"
+        },
+        {
+          "ref": "function_model.transactions.fm3.inputs.input_0",
+          "matched_ref": "function_model.transactions.FM3"
+        },
+        {
+          "ref": "function_model.transactions.fm3.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM3"
+        },
+        {
+          "ref": "function_model.transactions.fm3.outputs.fm3_observed",
+          "matched_ref": "function_model.transactions.FM3"
+        },
+        {
+          "ref": "function_model.transactions.fm3.state_updates.fm3_observed",
+          "matched_ref": "function_model.transactions.FM3"
+        },
+        {
+          "ref": "function_model.transactions.fm3.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM3"
+        },
+        {
+          "ref": "function_model.transactions.fm3.error_cases.error_case_0",
+          "matched_ref": "function_model.transactions.FM3"
+        },
+        {
+          "ref": "function_model.transactions.fm4",
+          "matched_ref": "function_model.transactions.FM4"
+        },
+        {
+          "ref": "function_model.transactions.fm4.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM4"
+        },
+        {
+          "ref": "function_model.transactions.fm4.inputs.input_0",
+          "matched_ref": "function_model.transactions.FM4"
+        },
+        {
+          "ref": "function_model.transactions.fm4.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM4"
+        },
+        {
+          "ref": "function_model.transactions.fm4.outputs.fm4_observed",
+          "matched_ref": "function_model.transactions.FM4"
+        },
+        {
+          "ref": "function_model.transactions.fm4.state_updates.fm4_observed",
+          "matched_ref": "function_model.transactions.FM4"
+        },
+        {
+          "ref": "function_model.transactions.fm4.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM4"
+        },
+        {
+          "ref": "function_model.transactions.fm4.error_cases.error_case_0",
+          "matched_ref": "function_model.transactions.FM4"
         },
         {
           "ref": "cycle_model.clock",
@@ -1149,39 +732,23 @@
           "matched_ref": "cycle_model"
         },
         {
-          "ref": "cycle_model.handshake_rules.csr_valid_csr_ready",
+          "ref": "cycle_model.handshake_rules.req_valid_req_ready",
           "matched_ref": "cycle_model"
         },
         {
-          "ref": "cycle_model.handshake_rules.mem_rd_valid_mem_rd_ready",
+          "ref": "cycle_model.handshake_rules.rsp_valid_rsp_ready",
           "matched_ref": "cycle_model"
         },
         {
-          "ref": "cycle_model.handshake_rules.mem_rd_data_valid_mem_rd_data_ready",
+          "ref": "cycle_model.pipeline.s0_accept",
           "matched_ref": "cycle_model"
         },
         {
-          "ref": "cycle_model.handshake_rules.mem_wr_valid_mem_wr_ready",
+          "ref": "cycle_model.pipeline.s1_evaluate",
           "matched_ref": "cycle_model"
         },
         {
-          "ref": "cycle_model.pipeline.csr_accept",
-          "matched_ref": "cycle_model"
-        },
-        {
-          "ref": "cycle_model.pipeline.read_addr",
-          "matched_ref": "cycle_model"
-        },
-        {
-          "ref": "cycle_model.pipeline.capture_read_data",
-          "matched_ref": "cycle_model"
-        },
-        {
-          "ref": "cycle_model.pipeline.write_beat",
-          "matched_ref": "cycle_model"
-        },
-        {
-          "ref": "cycle_model.pipeline.complete_or_loop",
+          "ref": "cycle_model.pipeline.s2_observe",
           "matched_ref": "cycle_model"
         },
         {
@@ -1201,15 +768,7 @@
           "matched_ref": "cycle_model"
         },
         {
-          "ref": "cycle_model.ordering.ordering_4",
-          "matched_ref": "cycle_model"
-        },
-        {
           "ref": "cycle_model.backpressure.backpressure_0",
-          "matched_ref": "cycle_model"
-        },
-        {
-          "ref": "cycle_model.backpressure.backpressure_1",
           "matched_ref": "cycle_model"
         },
         {
@@ -1220,62 +779,34 @@
       "structural_owner_matches": [
         {
           "ref": "parameters.addr_width",
-          "matched_ref": "semantic_terms:addr,csr"
+          "matched_ref": "semantic_terms:addr,host"
         },
         {
           "ref": "parameters.data_width",
           "matched_ref": "semantic_terms:csr"
         },
         {
-          "ref": "registers.register_list.ctrl",
-          "matched_ref": "registers.register_list"
+          "ref": "parameters.len_width",
+          "matched_ref": "semantic_terms:addr,length"
         },
         {
-          "ref": "registers.register_list.status",
-          "matched_ref": "registers.register_list"
-        },
-        {
-          "ref": "registers.register_list.src_addr",
-          "matched_ref": "registers.register_list"
-        },
-        {
-          "ref": "registers.register_list.dst_addr",
-          "matched_ref": "registers.register_list"
-        },
-        {
-          "ref": "registers.register_list.length",
-          "matched_ref": "registers.register_list"
-        },
-        {
-          "ref": "registers.register_list.progress",
-          "matched_ref": "registers.register_list"
-        },
-        {
-          "ref": "registers.config.base_offset",
-          "matched_ref": "registers"
-        },
-        {
-          "ref": "registers.config.register_width",
-          "matched_ref": "registers"
-        },
-        {
-          "ref": "registers.config.access_policy",
-          "matched_ref": "registers"
-        },
-        {
-          "ref": "features.csr_programming_model",
+          "ref": "features.csr_protocol",
           "matched_ref": "features"
         },
         {
-          "ref": "features.single_outstanding_copy_engine",
+          "ref": "features.scratch_storage",
           "matched_ref": "features"
         },
         {
-          "ref": "features.status_interrupts",
+          "ref": "features.dma_transfer_engine",
           "matched_ref": "features"
         },
         {
-          "ref": "features.reset_abort_policy",
+          "ref": "features.backpressure",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.synthesis_policy",
           "matched_ref": "features"
         }
       ],
@@ -1285,1221 +816,103 @@
       "blocker": ""
     },
     {
-      "name": "dma_engine",
+      "name": "scratch_mem",
       "kind": "rtl_module",
-      "rtl_module": "dma_engine",
-      "rtl_file": "rtl/dma_engine.sv",
+      "rtl_module": "scratch_mem",
+      "rtl_file": "rtl/scratch_mem.sv",
       "source_sections": [
-        "CAPTURE_READ_DATA",
-        "COMPLETE_OR_LOOP",
-        "DST_ADDR",
-        "FM_CAPTURE_READ_DATA",
-        "FM_READ_REQUEST",
-        "FM_RESET",
-        "FM_START_TRANSFER",
-        "FM_WRITE_ACCEPT",
-        "FM_WRITE_REQUEST",
-        "LENGTH",
-        "PROGRESS",
-        "READ_ADDR",
-        "SRC_ADDR",
-        "STATUS",
-        "WRITE_BEAT",
-        "control",
-        "df_capture",
-        "df_read",
-        "df_start",
-        "df_write",
-        "fsm",
-        "function_model",
         "parameters",
-        "reset_abort_policy",
-        "single_outstanding_copy_engine"
+        "scratch_one_cycle_read",
+        "scratch_read",
+        "scratch_storage",
+        "scratch_to_stream",
+        "scratch_write",
+        "stream_to_scratch"
       ],
       "ssot_refs": [
-        "CAPTURE_READ_DATA",
-        "COMPLETE_OR_LOOP",
-        "DST_ADDR",
-        "FM_CAPTURE_READ_DATA",
-        "FM_READ_REQUEST",
-        "FM_RESET",
-        "FM_START_TRANSFER",
-        "FM_WRITE_ACCEPT",
-        "FM_WRITE_REQUEST",
-        "LENGTH",
-        "PROGRESS",
-        "READ_ADDR",
-        "SRC_ADDR",
-        "STATUS",
-        "WRITE_BEAT",
-        "control",
-        "df_capture",
-        "df_read",
-        "df_start",
-        "df_write",
-        "fsm",
+        "parameters.scratch_depth",
+        "scratch_one_cycle_read",
+        "scratch_read",
+        "scratch_storage",
+        "scratch_to_stream",
+        "scratch_write",
+        "stream_to_scratch"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "parameters.scratch_depth"
+      ],
+      "owner_matches": [],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.scratch_depth",
+          "matched_ref": "semantic_terms:storage"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "dma_datapath",
+      "kind": "rtl_module",
+      "rtl_module": "dma_datapath",
+      "rtl_file": "rtl/dma_datapath.sv",
+      "source_sections": [
+        "backpressure",
+        "dataflow",
+        "dma_beat_accept",
+        "dma_beat_emit",
+        "dma_complete",
+        "dma_transfer_engine",
+        "function_model",
+        "main_dma_fsm",
+        "one_beat_per_cycle_when_ready",
+        "scratch_to_stream",
+        "stream_to_scratch"
+      ],
+      "ssot_refs": [
+        "backpressure",
+        "dataflow",
+        "dma_beat_accept",
+        "dma_beat_emit",
+        "dma_complete",
+        "dma_transfer_engine",
         "function_model.invariants.invariant_0",
         "function_model.invariants.invariant_1",
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
-        "function_model.invariants.invariant_4",
-        "function_model.transactions.FM_CAPTURE_READ_DATA",
-        "function_model.transactions.FM_CLEAR_ABORT",
-        "function_model.transactions.FM_CSR_READ_STATUS",
-        "function_model.transactions.FM_READ_REQUEST",
-        "function_model.transactions.FM_RESET",
-        "function_model.transactions.FM_START_TRANSFER",
-        "function_model.transactions.FM_WRITE_ACCEPT",
-        "function_model.transactions.FM_WRITE_REQUEST",
-        "function_model.transactions.fm_capture_read_data",
-        "function_model.transactions.fm_capture_read_data.inputs.input_0",
-        "function_model.transactions.fm_capture_read_data.output_rules.mem_rd_data_ready_capture",
-        "function_model.transactions.fm_capture_read_data.outputs.fsm_state",
-        "function_model.transactions.fm_capture_read_data.outputs.mem_rd_data_ready_capture",
-        "function_model.transactions.fm_capture_read_data.outputs.output_0",
-        "function_model.transactions.fm_capture_read_data.outputs.read_data_buffer",
-        "function_model.transactions.fm_capture_read_data.outputs.write_buffer_full",
-        "function_model.transactions.fm_capture_read_data.preconditions.precondition_0",
-        "function_model.transactions.fm_capture_read_data.side_effects.side_effect_0",
-        "function_model.transactions.fm_capture_read_data.state_updates.fsm_state",
-        "function_model.transactions.fm_capture_read_data.state_updates.read_data_buffer",
-        "function_model.transactions.fm_capture_read_data.state_updates.write_buffer_full",
-        "function_model.transactions.fm_clear_abort",
-        "function_model.transactions.fm_clear_abort.inputs.input_0",
-        "function_model.transactions.fm_clear_abort.inputs.input_1",
-        "function_model.transactions.fm_clear_abort.inputs.input_2",
-        "function_model.transactions.fm_clear_abort.output_rules.mem_rd_valid_abort",
-        "function_model.transactions.fm_clear_abort.output_rules.mem_wr_valid_abort",
-        "function_model.transactions.fm_clear_abort.outputs.busy",
-        "function_model.transactions.fm_clear_abort.outputs.done",
-        "function_model.transactions.fm_clear_abort.outputs.error",
-        "function_model.transactions.fm_clear_abort.outputs.fsm_state",
-        "function_model.transactions.fm_clear_abort.outputs.mem_rd_valid_abort",
-        "function_model.transactions.fm_clear_abort.outputs.mem_wr_valid_abort",
-        "function_model.transactions.fm_clear_abort.outputs.output_0",
-        "function_model.transactions.fm_clear_abort.outputs.write_buffer_full",
-        "function_model.transactions.fm_clear_abort.preconditions.precondition_0",
-        "function_model.transactions.fm_clear_abort.side_effects.side_effect_0",
-        "function_model.transactions.fm_clear_abort.state_updates.busy",
-        "function_model.transactions.fm_clear_abort.state_updates.done",
-        "function_model.transactions.fm_clear_abort.state_updates.error",
-        "function_model.transactions.fm_clear_abort.state_updates.fsm_state",
-        "function_model.transactions.fm_clear_abort.state_updates.write_buffer_full",
-        "function_model.transactions.fm_csr_read_status",
-        "function_model.transactions.fm_csr_read_status.inputs.input_0",
-        "function_model.transactions.fm_csr_read_status.inputs.input_1",
-        "function_model.transactions.fm_csr_read_status.output_rules.csr_error_read",
-        "function_model.transactions.fm_csr_read_status.output_rules.csr_rdata_status",
-        "function_model.transactions.fm_csr_read_status.output_rules.csr_ready_read",
-        "function_model.transactions.fm_csr_read_status.outputs.csr_error_read",
-        "function_model.transactions.fm_csr_read_status.outputs.csr_rdata_status",
-        "function_model.transactions.fm_csr_read_status.outputs.csr_ready_read",
-        "function_model.transactions.fm_csr_read_status.outputs.output_0",
-        "function_model.transactions.fm_csr_read_status.preconditions.precondition_0",
-        "function_model.transactions.fm_csr_read_status.side_effects.side_effect_0",
-        "function_model.transactions.fm_read_request",
-        "function_model.transactions.fm_read_request.inputs.input_0",
-        "function_model.transactions.fm_read_request.inputs.input_1",
-        "function_model.transactions.fm_read_request.inputs.input_2",
-        "function_model.transactions.fm_read_request.output_rules.mem_rd_addr_rule",
-        "function_model.transactions.fm_read_request.output_rules.mem_rd_data_ready_rule",
-        "function_model.transactions.fm_read_request.output_rules.mem_rd_valid_rule",
-        "function_model.transactions.fm_read_request.outputs.fsm_state",
-        "function_model.transactions.fm_read_request.outputs.mem_rd_addr_rule",
-        "function_model.transactions.fm_read_request.outputs.mem_rd_data_ready_rule",
-        "function_model.transactions.fm_read_request.outputs.mem_rd_valid_rule",
-        "function_model.transactions.fm_read_request.outputs.output_0",
-        "function_model.transactions.fm_read_request.preconditions.precondition_0",
-        "function_model.transactions.fm_read_request.side_effects.side_effect_0",
-        "function_model.transactions.fm_read_request.state_updates.fsm_state",
-        "function_model.transactions.fm_reset",
-        "function_model.transactions.fm_reset.inputs.input_0",
-        "function_model.transactions.fm_reset.output_rules.csr_ready_reset",
-        "function_model.transactions.fm_reset.output_rules.irq_done_reset",
-        "function_model.transactions.fm_reset.output_rules.irq_error_reset",
-        "function_model.transactions.fm_reset.output_rules.mem_rd_valid_reset",
-        "function_model.transactions.fm_reset.output_rules.mem_wr_valid_reset",
-        "function_model.transactions.fm_reset.outputs.busy",
-        "function_model.transactions.fm_reset.outputs.csr_ready_reset",
-        "function_model.transactions.fm_reset.outputs.done",
-        "function_model.transactions.fm_reset.outputs.error",
-        "function_model.transactions.fm_reset.outputs.fsm_state",
-        "function_model.transactions.fm_reset.outputs.irq_done_reset",
-        "function_model.transactions.fm_reset.outputs.irq_error_reset",
-        "function_model.transactions.fm_reset.outputs.mem_rd_valid_reset",
-        "function_model.transactions.fm_reset.outputs.mem_wr_valid_reset",
-        "function_model.transactions.fm_reset.outputs.output_0",
-        "function_model.transactions.fm_reset.outputs.progress_bytes",
-        "function_model.transactions.fm_reset.outputs.remaining_bytes",
-        "function_model.transactions.fm_reset.outputs.write_buffer_full",
-        "function_model.transactions.fm_reset.preconditions.precondition_0",
-        "function_model.transactions.fm_reset.side_effects.side_effect_0",
-        "function_model.transactions.fm_reset.state_updates.busy",
-        "function_model.transactions.fm_reset.state_updates.done",
-        "function_model.transactions.fm_reset.state_updates.error",
-        "function_model.transactions.fm_reset.state_updates.fsm_state",
-        "function_model.transactions.fm_reset.state_updates.progress_bytes",
-        "function_model.transactions.fm_reset.state_updates.remaining_bytes",
-        "function_model.transactions.fm_reset.state_updates.write_buffer_full",
-        "function_model.transactions.fm_start_transfer",
-        "function_model.transactions.fm_start_transfer.inputs.input_0",
-        "function_model.transactions.fm_start_transfer.inputs.input_1",
-        "function_model.transactions.fm_start_transfer.inputs.input_2",
-        "function_model.transactions.fm_start_transfer.output_rules.irq_done_zero_length",
-        "function_model.transactions.fm_start_transfer.output_rules.mem_rd_valid_start",
-        "function_model.transactions.fm_start_transfer.outputs.busy",
-        "function_model.transactions.fm_start_transfer.outputs.done",
-        "function_model.transactions.fm_start_transfer.outputs.error",
-        "function_model.transactions.fm_start_transfer.outputs.fsm_state",
-        "function_model.transactions.fm_start_transfer.outputs.irq_done_zero_length",
-        "function_model.transactions.fm_start_transfer.outputs.mem_rd_valid_start",
-        "function_model.transactions.fm_start_transfer.outputs.output_0",
-        "function_model.transactions.fm_start_transfer.outputs.progress_bytes",
-        "function_model.transactions.fm_start_transfer.outputs.remaining_bytes",
-        "function_model.transactions.fm_start_transfer.preconditions.precondition_0",
-        "function_model.transactions.fm_start_transfer.side_effects.side_effect_0",
-        "function_model.transactions.fm_start_transfer.state_updates.busy",
-        "function_model.transactions.fm_start_transfer.state_updates.done",
-        "function_model.transactions.fm_start_transfer.state_updates.error",
-        "function_model.transactions.fm_start_transfer.state_updates.fsm_state",
-        "function_model.transactions.fm_start_transfer.state_updates.progress_bytes",
-        "function_model.transactions.fm_start_transfer.state_updates.remaining_bytes",
-        "function_model.transactions.fm_write_accept",
-        "function_model.transactions.fm_write_accept.inputs.input_0",
-        "function_model.transactions.fm_write_accept.inputs.input_1",
-        "function_model.transactions.fm_write_accept.inputs.input_2",
-        "function_model.transactions.fm_write_accept.output_rules.irq_done_on_final_write",
-        "function_model.transactions.fm_write_accept.output_rules.mem_wr_valid_after_accept",
-        "function_model.transactions.fm_write_accept.outputs.busy",
-        "function_model.transactions.fm_write_accept.outputs.done",
-        "function_model.transactions.fm_write_accept.outputs.fsm_state",
-        "function_model.transactions.fm_write_accept.outputs.irq_done_on_final_write",
-        "function_model.transactions.fm_write_accept.outputs.mem_wr_valid_after_accept",
-        "function_model.transactions.fm_write_accept.outputs.output_0",
-        "function_model.transactions.fm_write_accept.outputs.progress_bytes",
-        "function_model.transactions.fm_write_accept.outputs.remaining_bytes",
-        "function_model.transactions.fm_write_accept.outputs.write_buffer_full",
-        "function_model.transactions.fm_write_accept.preconditions.precondition_0",
-        "function_model.transactions.fm_write_accept.side_effects.side_effect_0",
-        "function_model.transactions.fm_write_accept.state_updates.busy",
-        "function_model.transactions.fm_write_accept.state_updates.done",
-        "function_model.transactions.fm_write_accept.state_updates.fsm_state",
-        "function_model.transactions.fm_write_accept.state_updates.progress_bytes",
-        "function_model.transactions.fm_write_accept.state_updates.remaining_bytes",
-        "function_model.transactions.fm_write_accept.state_updates.write_buffer_full",
-        "function_model.transactions.fm_write_request",
-        "function_model.transactions.fm_write_request.inputs.input_0",
-        "function_model.transactions.fm_write_request.inputs.input_1",
-        "function_model.transactions.fm_write_request.inputs.input_2",
-        "function_model.transactions.fm_write_request.inputs.input_3",
-        "function_model.transactions.fm_write_request.inputs.input_4",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_addr_rule",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_data_rule",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_strb_rule",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_valid_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_addr_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_data_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_strb_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_valid_rule",
-        "function_model.transactions.fm_write_request.outputs.output_0",
-        "function_model.transactions.fm_write_request.preconditions.precondition_0",
-        "function_model.transactions.fm_write_request.side_effects.side_effect_0",
-        "parameters.len_width",
-        "reset_abort_policy",
-        "single_outstanding_copy_engine"
+        "main_dma_fsm",
+        "one_beat_per_cycle_when_ready",
+        "scratch_to_stream",
+        "stream_to_scratch"
       ],
       "function_model_refs": [
         "function_model.invariants.invariant_0",
         "function_model.invariants.invariant_1",
         "function_model.invariants.invariant_2",
-        "function_model.invariants.invariant_3",
-        "function_model.invariants.invariant_4",
-        "function_model.transactions.fm_capture_read_data",
-        "function_model.transactions.fm_capture_read_data.inputs.input_0",
-        "function_model.transactions.fm_capture_read_data.output_rules.mem_rd_data_ready_capture",
-        "function_model.transactions.fm_capture_read_data.outputs.fsm_state",
-        "function_model.transactions.fm_capture_read_data.outputs.mem_rd_data_ready_capture",
-        "function_model.transactions.fm_capture_read_data.outputs.output_0",
-        "function_model.transactions.fm_capture_read_data.outputs.read_data_buffer",
-        "function_model.transactions.fm_capture_read_data.outputs.write_buffer_full",
-        "function_model.transactions.fm_capture_read_data.preconditions.precondition_0",
-        "function_model.transactions.fm_capture_read_data.side_effects.side_effect_0",
-        "function_model.transactions.fm_capture_read_data.state_updates.fsm_state",
-        "function_model.transactions.fm_capture_read_data.state_updates.read_data_buffer",
-        "function_model.transactions.fm_capture_read_data.state_updates.write_buffer_full",
-        "function_model.transactions.fm_clear_abort",
-        "function_model.transactions.fm_clear_abort.inputs.input_0",
-        "function_model.transactions.fm_clear_abort.inputs.input_1",
-        "function_model.transactions.fm_clear_abort.inputs.input_2",
-        "function_model.transactions.fm_clear_abort.output_rules.mem_rd_valid_abort",
-        "function_model.transactions.fm_clear_abort.output_rules.mem_wr_valid_abort",
-        "function_model.transactions.fm_clear_abort.outputs.busy",
-        "function_model.transactions.fm_clear_abort.outputs.done",
-        "function_model.transactions.fm_clear_abort.outputs.error",
-        "function_model.transactions.fm_clear_abort.outputs.fsm_state",
-        "function_model.transactions.fm_clear_abort.outputs.mem_rd_valid_abort",
-        "function_model.transactions.fm_clear_abort.outputs.mem_wr_valid_abort",
-        "function_model.transactions.fm_clear_abort.outputs.output_0",
-        "function_model.transactions.fm_clear_abort.outputs.write_buffer_full",
-        "function_model.transactions.fm_clear_abort.preconditions.precondition_0",
-        "function_model.transactions.fm_clear_abort.side_effects.side_effect_0",
-        "function_model.transactions.fm_clear_abort.state_updates.busy",
-        "function_model.transactions.fm_clear_abort.state_updates.done",
-        "function_model.transactions.fm_clear_abort.state_updates.error",
-        "function_model.transactions.fm_clear_abort.state_updates.fsm_state",
-        "function_model.transactions.fm_clear_abort.state_updates.write_buffer_full",
-        "function_model.transactions.fm_csr_read_status",
-        "function_model.transactions.fm_csr_read_status.inputs.input_0",
-        "function_model.transactions.fm_csr_read_status.inputs.input_1",
-        "function_model.transactions.fm_csr_read_status.output_rules.csr_error_read",
-        "function_model.transactions.fm_csr_read_status.output_rules.csr_rdata_status",
-        "function_model.transactions.fm_csr_read_status.output_rules.csr_ready_read",
-        "function_model.transactions.fm_csr_read_status.outputs.csr_error_read",
-        "function_model.transactions.fm_csr_read_status.outputs.csr_rdata_status",
-        "function_model.transactions.fm_csr_read_status.outputs.csr_ready_read",
-        "function_model.transactions.fm_csr_read_status.outputs.output_0",
-        "function_model.transactions.fm_csr_read_status.preconditions.precondition_0",
-        "function_model.transactions.fm_csr_read_status.side_effects.side_effect_0",
-        "function_model.transactions.fm_read_request",
-        "function_model.transactions.fm_read_request.inputs.input_0",
-        "function_model.transactions.fm_read_request.inputs.input_1",
-        "function_model.transactions.fm_read_request.inputs.input_2",
-        "function_model.transactions.fm_read_request.output_rules.mem_rd_addr_rule",
-        "function_model.transactions.fm_read_request.output_rules.mem_rd_data_ready_rule",
-        "function_model.transactions.fm_read_request.output_rules.mem_rd_valid_rule",
-        "function_model.transactions.fm_read_request.outputs.fsm_state",
-        "function_model.transactions.fm_read_request.outputs.mem_rd_addr_rule",
-        "function_model.transactions.fm_read_request.outputs.mem_rd_data_ready_rule",
-        "function_model.transactions.fm_read_request.outputs.mem_rd_valid_rule",
-        "function_model.transactions.fm_read_request.outputs.output_0",
-        "function_model.transactions.fm_read_request.preconditions.precondition_0",
-        "function_model.transactions.fm_read_request.side_effects.side_effect_0",
-        "function_model.transactions.fm_read_request.state_updates.fsm_state",
-        "function_model.transactions.fm_reset",
-        "function_model.transactions.fm_reset.inputs.input_0",
-        "function_model.transactions.fm_reset.output_rules.csr_ready_reset",
-        "function_model.transactions.fm_reset.output_rules.irq_done_reset",
-        "function_model.transactions.fm_reset.output_rules.irq_error_reset",
-        "function_model.transactions.fm_reset.output_rules.mem_rd_valid_reset",
-        "function_model.transactions.fm_reset.output_rules.mem_wr_valid_reset",
-        "function_model.transactions.fm_reset.outputs.busy",
-        "function_model.transactions.fm_reset.outputs.csr_ready_reset",
-        "function_model.transactions.fm_reset.outputs.done",
-        "function_model.transactions.fm_reset.outputs.error",
-        "function_model.transactions.fm_reset.outputs.fsm_state",
-        "function_model.transactions.fm_reset.outputs.irq_done_reset",
-        "function_model.transactions.fm_reset.outputs.irq_error_reset",
-        "function_model.transactions.fm_reset.outputs.mem_rd_valid_reset",
-        "function_model.transactions.fm_reset.outputs.mem_wr_valid_reset",
-        "function_model.transactions.fm_reset.outputs.output_0",
-        "function_model.transactions.fm_reset.outputs.progress_bytes",
-        "function_model.transactions.fm_reset.outputs.remaining_bytes",
-        "function_model.transactions.fm_reset.outputs.write_buffer_full",
-        "function_model.transactions.fm_reset.preconditions.precondition_0",
-        "function_model.transactions.fm_reset.side_effects.side_effect_0",
-        "function_model.transactions.fm_reset.state_updates.busy",
-        "function_model.transactions.fm_reset.state_updates.done",
-        "function_model.transactions.fm_reset.state_updates.error",
-        "function_model.transactions.fm_reset.state_updates.fsm_state",
-        "function_model.transactions.fm_reset.state_updates.progress_bytes",
-        "function_model.transactions.fm_reset.state_updates.remaining_bytes",
-        "function_model.transactions.fm_reset.state_updates.write_buffer_full",
-        "function_model.transactions.fm_start_transfer",
-        "function_model.transactions.fm_start_transfer.inputs.input_0",
-        "function_model.transactions.fm_start_transfer.inputs.input_1",
-        "function_model.transactions.fm_start_transfer.inputs.input_2",
-        "function_model.transactions.fm_start_transfer.output_rules.irq_done_zero_length",
-        "function_model.transactions.fm_start_transfer.output_rules.mem_rd_valid_start",
-        "function_model.transactions.fm_start_transfer.outputs.busy",
-        "function_model.transactions.fm_start_transfer.outputs.done",
-        "function_model.transactions.fm_start_transfer.outputs.error",
-        "function_model.transactions.fm_start_transfer.outputs.fsm_state",
-        "function_model.transactions.fm_start_transfer.outputs.irq_done_zero_length",
-        "function_model.transactions.fm_start_transfer.outputs.mem_rd_valid_start",
-        "function_model.transactions.fm_start_transfer.outputs.output_0",
-        "function_model.transactions.fm_start_transfer.outputs.progress_bytes",
-        "function_model.transactions.fm_start_transfer.outputs.remaining_bytes",
-        "function_model.transactions.fm_start_transfer.preconditions.precondition_0",
-        "function_model.transactions.fm_start_transfer.side_effects.side_effect_0",
-        "function_model.transactions.fm_start_transfer.state_updates.busy",
-        "function_model.transactions.fm_start_transfer.state_updates.done",
-        "function_model.transactions.fm_start_transfer.state_updates.error",
-        "function_model.transactions.fm_start_transfer.state_updates.fsm_state",
-        "function_model.transactions.fm_start_transfer.state_updates.progress_bytes",
-        "function_model.transactions.fm_start_transfer.state_updates.remaining_bytes",
-        "function_model.transactions.fm_write_accept",
-        "function_model.transactions.fm_write_accept.inputs.input_0",
-        "function_model.transactions.fm_write_accept.inputs.input_1",
-        "function_model.transactions.fm_write_accept.inputs.input_2",
-        "function_model.transactions.fm_write_accept.output_rules.irq_done_on_final_write",
-        "function_model.transactions.fm_write_accept.output_rules.mem_wr_valid_after_accept",
-        "function_model.transactions.fm_write_accept.outputs.busy",
-        "function_model.transactions.fm_write_accept.outputs.done",
-        "function_model.transactions.fm_write_accept.outputs.fsm_state",
-        "function_model.transactions.fm_write_accept.outputs.irq_done_on_final_write",
-        "function_model.transactions.fm_write_accept.outputs.mem_wr_valid_after_accept",
-        "function_model.transactions.fm_write_accept.outputs.output_0",
-        "function_model.transactions.fm_write_accept.outputs.progress_bytes",
-        "function_model.transactions.fm_write_accept.outputs.remaining_bytes",
-        "function_model.transactions.fm_write_accept.outputs.write_buffer_full",
-        "function_model.transactions.fm_write_accept.preconditions.precondition_0",
-        "function_model.transactions.fm_write_accept.side_effects.side_effect_0",
-        "function_model.transactions.fm_write_accept.state_updates.busy",
-        "function_model.transactions.fm_write_accept.state_updates.done",
-        "function_model.transactions.fm_write_accept.state_updates.fsm_state",
-        "function_model.transactions.fm_write_accept.state_updates.progress_bytes",
-        "function_model.transactions.fm_write_accept.state_updates.remaining_bytes",
-        "function_model.transactions.fm_write_accept.state_updates.write_buffer_full",
-        "function_model.transactions.fm_write_request",
-        "function_model.transactions.fm_write_request.inputs.input_0",
-        "function_model.transactions.fm_write_request.inputs.input_1",
-        "function_model.transactions.fm_write_request.inputs.input_2",
-        "function_model.transactions.fm_write_request.inputs.input_3",
-        "function_model.transactions.fm_write_request.inputs.input_4",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_addr_rule",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_data_rule",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_strb_rule",
-        "function_model.transactions.fm_write_request.output_rules.mem_wr_valid_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_addr_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_data_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_strb_rule",
-        "function_model.transactions.fm_write_request.outputs.mem_wr_valid_rule",
-        "function_model.transactions.fm_write_request.outputs.output_0",
-        "function_model.transactions.fm_write_request.preconditions.precondition_0",
-        "function_model.transactions.fm_write_request.side_effects.side_effect_0"
+        "function_model.invariants.invariant_3"
       ],
       "cycle_model_refs": [],
-      "structural_refs": [
-        "parameters.len_width"
-      ],
+      "structural_refs": [],
       "owner_matches": [
-        {
-          "ref": "function_model.transactions.fm_reset",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.preconditions.precondition_0",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.inputs.input_0",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.outputs.output_0",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.outputs.csr_ready_reset",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.outputs.mem_rd_valid_reset",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.outputs.mem_wr_valid_reset",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.outputs.irq_done_reset",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.outputs.irq_error_reset",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.outputs.fsm_state",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.outputs.busy",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.outputs.done",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.outputs.error",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.outputs.remaining_bytes",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.outputs.progress_bytes",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.outputs.write_buffer_full",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.output_rules.csr_ready_reset",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.output_rules.mem_rd_valid_reset",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.output_rules.mem_wr_valid_reset",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.output_rules.irq_done_reset",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.output_rules.irq_error_reset",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.state_updates.fsm_state",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.state_updates.busy",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.state_updates.done",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.state_updates.error",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.state_updates.remaining_bytes",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.state_updates.progress_bytes",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.state_updates.write_buffer_full",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_reset.side_effects.side_effect_0",
-          "matched_ref": "function_model.transactions.FM_RESET"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.preconditions.precondition_0",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.inputs.input_0",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.inputs.input_1",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.inputs.input_2",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.outputs.output_0",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.outputs.mem_rd_valid_start",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.outputs.irq_done_zero_length",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.outputs.busy",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.outputs.done",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.outputs.error",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.outputs.remaining_bytes",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.outputs.progress_bytes",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.outputs.fsm_state",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.output_rules.mem_rd_valid_start",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.output_rules.irq_done_zero_length",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.state_updates.busy",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.state_updates.done",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.state_updates.error",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.state_updates.remaining_bytes",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.state_updates.progress_bytes",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.state_updates.fsm_state",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_start_transfer.side_effects.side_effect_0",
-          "matched_ref": "function_model.transactions.FM_START_TRANSFER"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_read_status",
-          "matched_ref": "function_model.transactions.FM_CSR_READ_STATUS"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_read_status.preconditions.precondition_0",
-          "matched_ref": "function_model.transactions.FM_CSR_READ_STATUS"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_read_status.inputs.input_0",
-          "matched_ref": "function_model.transactions.FM_CSR_READ_STATUS"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_read_status.inputs.input_1",
-          "matched_ref": "function_model.transactions.FM_CSR_READ_STATUS"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_read_status.outputs.output_0",
-          "matched_ref": "function_model.transactions.FM_CSR_READ_STATUS"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_read_status.outputs.csr_ready_read",
-          "matched_ref": "function_model.transactions.FM_CSR_READ_STATUS"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_read_status.outputs.csr_rdata_status",
-          "matched_ref": "function_model.transactions.FM_CSR_READ_STATUS"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_read_status.outputs.csr_error_read",
-          "matched_ref": "function_model.transactions.FM_CSR_READ_STATUS"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_read_status.output_rules.csr_ready_read",
-          "matched_ref": "function_model.transactions.FM_CSR_READ_STATUS"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_read_status.output_rules.csr_rdata_status",
-          "matched_ref": "function_model.transactions.FM_CSR_READ_STATUS"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_read_status.output_rules.csr_error_read",
-          "matched_ref": "function_model.transactions.FM_CSR_READ_STATUS"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_read_status.side_effects.side_effect_0",
-          "matched_ref": "function_model.transactions.FM_CSR_READ_STATUS"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.preconditions.precondition_0",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.inputs.input_0",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.inputs.input_1",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.inputs.input_2",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.outputs.output_0",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.outputs.mem_rd_valid_rule",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.outputs.mem_rd_addr_rule",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.outputs.mem_rd_data_ready_rule",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.outputs.fsm_state",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.output_rules.mem_rd_valid_rule",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.output_rules.mem_rd_addr_rule",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.output_rules.mem_rd_data_ready_rule",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.state_updates.fsm_state",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_read_request.side_effects.side_effect_0",
-          "matched_ref": "function_model.transactions.FM_READ_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_capture_read_data",
-          "matched_ref": "function_model.transactions.FM_CAPTURE_READ_DATA"
-        },
-        {
-          "ref": "function_model.transactions.fm_capture_read_data.preconditions.precondition_0",
-          "matched_ref": "function_model.transactions.FM_CAPTURE_READ_DATA"
-        },
-        {
-          "ref": "function_model.transactions.fm_capture_read_data.inputs.input_0",
-          "matched_ref": "function_model.transactions.FM_CAPTURE_READ_DATA"
-        },
-        {
-          "ref": "function_model.transactions.fm_capture_read_data.outputs.output_0",
-          "matched_ref": "function_model.transactions.FM_CAPTURE_READ_DATA"
-        },
-        {
-          "ref": "function_model.transactions.fm_capture_read_data.outputs.mem_rd_data_ready_capture",
-          "matched_ref": "function_model.transactions.FM_CAPTURE_READ_DATA"
-        },
-        {
-          "ref": "function_model.transactions.fm_capture_read_data.outputs.read_data_buffer",
-          "matched_ref": "function_model.transactions.FM_CAPTURE_READ_DATA"
-        },
-        {
-          "ref": "function_model.transactions.fm_capture_read_data.outputs.write_buffer_full",
-          "matched_ref": "function_model.transactions.FM_CAPTURE_READ_DATA"
-        },
-        {
-          "ref": "function_model.transactions.fm_capture_read_data.outputs.fsm_state",
-          "matched_ref": "function_model.transactions.FM_CAPTURE_READ_DATA"
-        },
-        {
-          "ref": "function_model.transactions.fm_capture_read_data.output_rules.mem_rd_data_ready_capture",
-          "matched_ref": "function_model.transactions.FM_CAPTURE_READ_DATA"
-        },
-        {
-          "ref": "function_model.transactions.fm_capture_read_data.state_updates.read_data_buffer",
-          "matched_ref": "function_model.transactions.FM_CAPTURE_READ_DATA"
-        },
-        {
-          "ref": "function_model.transactions.fm_capture_read_data.state_updates.write_buffer_full",
-          "matched_ref": "function_model.transactions.FM_CAPTURE_READ_DATA"
-        },
-        {
-          "ref": "function_model.transactions.fm_capture_read_data.state_updates.fsm_state",
-          "matched_ref": "function_model.transactions.FM_CAPTURE_READ_DATA"
-        },
-        {
-          "ref": "function_model.transactions.fm_capture_read_data.side_effects.side_effect_0",
-          "matched_ref": "function_model.transactions.FM_CAPTURE_READ_DATA"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.preconditions.precondition_0",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.inputs.input_0",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.inputs.input_1",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.inputs.input_2",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.inputs.input_3",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.inputs.input_4",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.outputs.output_0",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.outputs.mem_wr_valid_rule",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.outputs.mem_wr_addr_rule",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.outputs.mem_wr_data_rule",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.outputs.mem_wr_strb_rule",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.output_rules.mem_wr_valid_rule",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.output_rules.mem_wr_addr_rule",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.output_rules.mem_wr_data_rule",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.output_rules.mem_wr_strb_rule",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_request.side_effects.side_effect_0",
-          "matched_ref": "function_model.transactions.FM_WRITE_REQUEST"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.preconditions.precondition_0",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.inputs.input_0",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.inputs.input_1",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.inputs.input_2",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.outputs.output_0",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.outputs.irq_done_on_final_write",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.outputs.mem_wr_valid_after_accept",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.outputs.remaining_bytes",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.outputs.progress_bytes",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.outputs.write_buffer_full",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.outputs.busy",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.outputs.done",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.outputs.fsm_state",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.output_rules.irq_done_on_final_write",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.output_rules.mem_wr_valid_after_accept",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.state_updates.remaining_bytes",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.state_updates.progress_bytes",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.state_updates.write_buffer_full",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.state_updates.busy",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.state_updates.done",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.state_updates.fsm_state",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_write_accept.side_effects.side_effect_0",
-          "matched_ref": "function_model.transactions.FM_WRITE_ACCEPT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.preconditions.precondition_0",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.inputs.input_0",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.inputs.input_1",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.inputs.input_2",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.outputs.output_0",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.outputs.mem_rd_valid_abort",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.outputs.mem_wr_valid_abort",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.outputs.busy",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.outputs.done",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.outputs.error",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.outputs.fsm_state",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.outputs.write_buffer_full",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.output_rules.mem_rd_valid_abort",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.output_rules.mem_wr_valid_abort",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.state_updates.busy",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.state_updates.done",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.state_updates.error",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.state_updates.fsm_state",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.state_updates.write_buffer_full",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
-        {
-          "ref": "function_model.transactions.fm_clear_abort.side_effects.side_effect_0",
-          "matched_ref": "function_model.transactions.FM_CLEAR_ABORT"
-        },
         {
           "ref": "function_model.invariants.invariant_0",
           "matched_ref": "control_owner_fallback"
         },
         {
           "ref": "function_model.invariants.invariant_1",
-          "matched_ref": "semantic_terms:beat,data,read,write"
+          "matched_ref": "control_owner_fallback"
         },
         {
           "ref": "function_model.invariants.invariant_2",
-          "matched_ref": "semantic_terms:read,request,write"
+          "matched_ref": "control_owner_fallback"
         },
         {
           "ref": "function_model.invariants.invariant_3",
-          "matched_ref": "semantic_terms:length,or,reset,transfer,write"
-        },
-        {
-          "ref": "function_model.invariants.invariant_4",
           "matched_ref": "control_owner_fallback"
-        }
-      ],
-      "structural_owner_matches": [
-        {
-          "ref": "parameters.len_width",
-          "matched_ref": "semantic_terms:length,progress,transfer"
-        }
-      ],
-      "verification_scope": "module",
-      "requires_module_equivalence": true,
-      "blocked": false,
-      "blocker": ""
-    },
-    {
-      "name": "irq_status",
-      "kind": "rtl_module",
-      "rtl_module": "irq_status",
-      "rtl_file": "rtl/irq_status.sv",
-      "source_sections": [
-        "COMPLETE_OR_LOOP",
-        "CTRL",
-        "FM_CLEAR_ABORT",
-        "FM_ILLEGAL_CSR_OR_START",
-        "FM_RESET",
-        "FM_WRITE_ACCEPT",
-        "STATUS",
-        "df_status",
-        "function_model",
-        "status_interrupts"
-      ],
-      "ssot_refs": [
-        "COMPLETE_OR_LOOP",
-        "CTRL",
-        "FM_CLEAR_ABORT",
-        "FM_ILLEGAL_CSR_OR_START",
-        "FM_RESET",
-        "FM_WRITE_ACCEPT",
-        "STATUS",
-        "df_status",
-        "function_model.transactions.FM_CSR_WRITE_CONFIG",
-        "function_model.transactions.fm_csr_write_config",
-        "function_model.transactions.fm_csr_write_config.inputs.input_0",
-        "function_model.transactions.fm_csr_write_config.inputs.input_1",
-        "function_model.transactions.fm_csr_write_config.inputs.input_2",
-        "function_model.transactions.fm_csr_write_config.output_rules.csr_error_legal_write",
-        "function_model.transactions.fm_csr_write_config.output_rules.csr_ready_idle_write",
-        "function_model.transactions.fm_csr_write_config.outputs.csr_error_legal_write",
-        "function_model.transactions.fm_csr_write_config.outputs.csr_ready_idle_write",
-        "function_model.transactions.fm_csr_write_config.outputs.done",
-        "function_model.transactions.fm_csr_write_config.outputs.dst_addr",
-        "function_model.transactions.fm_csr_write_config.outputs.error",
-        "function_model.transactions.fm_csr_write_config.outputs.irq_done_en",
-        "function_model.transactions.fm_csr_write_config.outputs.irq_error_en",
-        "function_model.transactions.fm_csr_write_config.outputs.length_bytes",
-        "function_model.transactions.fm_csr_write_config.outputs.output_0",
-        "function_model.transactions.fm_csr_write_config.outputs.src_addr",
-        "function_model.transactions.fm_csr_write_config.preconditions.precondition_0",
-        "function_model.transactions.fm_csr_write_config.side_effects.side_effect_0",
-        "function_model.transactions.fm_csr_write_config.state_updates.done",
-        "function_model.transactions.fm_csr_write_config.state_updates.dst_addr",
-        "function_model.transactions.fm_csr_write_config.state_updates.error",
-        "function_model.transactions.fm_csr_write_config.state_updates.irq_done_en",
-        "function_model.transactions.fm_csr_write_config.state_updates.irq_error_en",
-        "function_model.transactions.fm_csr_write_config.state_updates.length_bytes",
-        "function_model.transactions.fm_csr_write_config.state_updates.src_addr",
-        "status_interrupts"
-      ],
-      "function_model_refs": [
-        "function_model.transactions.fm_csr_write_config",
-        "function_model.transactions.fm_csr_write_config.inputs.input_0",
-        "function_model.transactions.fm_csr_write_config.inputs.input_1",
-        "function_model.transactions.fm_csr_write_config.inputs.input_2",
-        "function_model.transactions.fm_csr_write_config.output_rules.csr_error_legal_write",
-        "function_model.transactions.fm_csr_write_config.output_rules.csr_ready_idle_write",
-        "function_model.transactions.fm_csr_write_config.outputs.csr_error_legal_write",
-        "function_model.transactions.fm_csr_write_config.outputs.csr_ready_idle_write",
-        "function_model.transactions.fm_csr_write_config.outputs.done",
-        "function_model.transactions.fm_csr_write_config.outputs.dst_addr",
-        "function_model.transactions.fm_csr_write_config.outputs.error",
-        "function_model.transactions.fm_csr_write_config.outputs.irq_done_en",
-        "function_model.transactions.fm_csr_write_config.outputs.irq_error_en",
-        "function_model.transactions.fm_csr_write_config.outputs.length_bytes",
-        "function_model.transactions.fm_csr_write_config.outputs.output_0",
-        "function_model.transactions.fm_csr_write_config.outputs.src_addr",
-        "function_model.transactions.fm_csr_write_config.preconditions.precondition_0",
-        "function_model.transactions.fm_csr_write_config.side_effects.side_effect_0",
-        "function_model.transactions.fm_csr_write_config.state_updates.done",
-        "function_model.transactions.fm_csr_write_config.state_updates.dst_addr",
-        "function_model.transactions.fm_csr_write_config.state_updates.error",
-        "function_model.transactions.fm_csr_write_config.state_updates.irq_done_en",
-        "function_model.transactions.fm_csr_write_config.state_updates.irq_error_en",
-        "function_model.transactions.fm_csr_write_config.state_updates.length_bytes",
-        "function_model.transactions.fm_csr_write_config.state_updates.src_addr"
-      ],
-      "cycle_model_refs": [],
-      "structural_refs": [],
-      "owner_matches": [
-        {
-          "ref": "function_model.transactions.fm_csr_write_config",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.preconditions.precondition_0",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.inputs.input_0",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.inputs.input_1",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.inputs.input_2",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.outputs.output_0",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.outputs.csr_ready_idle_write",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.outputs.csr_error_legal_write",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.outputs.src_addr",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.outputs.dst_addr",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.outputs.length_bytes",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.outputs.irq_done_en",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.outputs.irq_error_en",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.outputs.done",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.outputs.error",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.output_rules.csr_ready_idle_write",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.output_rules.csr_error_legal_write",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.state_updates.src_addr",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.state_updates.dst_addr",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.state_updates.length_bytes",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.state_updates.irq_done_en",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.state_updates.irq_error_en",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.state_updates.done",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.state_updates.error",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
-        },
-        {
-          "ref": "function_model.transactions.fm_csr_write_config.side_effects.side_effect_0",
-          "matched_ref": "function_model.transactions.FM_CSR_WRITE_CONFIG"
         }
       ],
       "structural_owner_matches": [],
@@ -2543,7 +956,7 @@
     }
   ],
   "orphan_function_cycle_refs": [],
-  "function_cycle_ref_count": 232,
+  "function_cycle_ref_count": 55,
   "authority_contract": {
     "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
     "general_evaluation_criteria": [

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "ip": "dma_scratch_ui_live_20260519a",
-  "generated_at": "2026-05-18T19:50:22Z",
+  "generated_at": "2026-05-18T20:24:22Z",
   "emitter": "fl-model-gen",
   "produced": [
     "model/functional_model.py",

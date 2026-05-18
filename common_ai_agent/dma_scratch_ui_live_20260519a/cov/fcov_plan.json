@@ -1,32 +1,19 @@
 {
   "schema_version": 1,
+  "type": "functional_coverage_plan",
   "ip": "dma_scratch_ui_live_20260519a",
   "source": "dma_scratch_ui_live_20260519a/yaml/dma_scratch_ui_live_20260519a.ssot.yaml",
   "planned_before_rtl": true,
-  "semantic_authority": "SSOT function_model/cycle_model/test_requirements/coverage_goals",
-  "type": "functional_coverage_plan",
   "level": "union",
   "summary": {
-    "total_bins": 62,
+    "total_bins": 33,
     "by_class": {
-      "scenario": 11,
-      "transaction": 1,
-      "error_path": 1,
-      "datapath": 1,
-      "transaction_type": 10,
-      "error": 2,
-      "handshake": 1,
-      "cycle_rule": 1,
-      "stall": 1,
-      "protocol": 4,
-      "latency": 3,
-      "pipeline_stage": 5,
-      "ordering": 5,
-      "backpressure": 2,
-      "performance": 2,
-      "frequency": 1,
-      "throughput": 1,
-      "state_transition": 10
+      "scenario": 9,
+      "transaction_type": 4,
+      "state_transition": 10,
+      "error": 1,
+      "protocol_handshake": 2,
+      "latency_bin": 7
     }
   },
   "bins": [
@@ -35,485 +22,218 @@
       "class": "scenario",
       "source": "test_requirements.scenarios[0]",
       "scenario": "SC01",
-      "description": "reset_defaults"
+      "description": "reset contract"
     },
     {
       "id": "SC02_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[1]",
       "scenario": "SC02",
-      "description": "csr_programming_readback"
+      "description": "primary approved behavior"
     },
     {
       "id": "SC03_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[2]",
       "scenario": "SC03",
-      "description": "illegal_csr_access"
+      "description": "cycle handshake and backpressure"
     },
     {
       "id": "SC04_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[3]",
       "scenario": "SC04",
-      "description": "zero_length_transfer"
+      "description": "error and recovery policy"
     },
     {
       "id": "SC05_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[4]",
       "scenario": "SC05",
-      "description": "single_beat_copy"
+      "description": "debug and trace observability"
     },
     {
       "id": "SC06_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[5]",
       "scenario": "SC06",
-      "description": "multi_beat_copy"
+      "description": "function_model transaction FM1"
     },
     {
       "id": "SC07_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[6]",
       "scenario": "SC07",
-      "description": "partial_final_beat"
+      "description": "function_model transaction FM2"
     },
     {
       "id": "SC08_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[7]",
       "scenario": "SC08",
-      "description": "read_backpressure"
+      "description": "function_model transaction FM3"
     },
     {
       "id": "SC09_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[8]",
       "scenario": "SC09",
-      "description": "write_backpressure"
+      "description": "function_model transaction FM4"
     },
     {
-      "id": "SC10_executed",
-      "class": "scenario",
-      "source": "test_requirements.scenarios[9]",
-      "scenario": "SC10",
-      "description": "soft_reset_abort"
-    },
-    {
-      "id": "SC11_executed",
-      "class": "scenario",
-      "source": "test_requirements.scenarios[10]",
-      "scenario": "SC11",
-      "description": "status_w1c_irq_clear"
-    },
-    {
-      "id": "fcov_tx_all",
-      "class": "transaction",
-      "coverage_domain": "function",
-      "source": "function_model.transactions",
-      "source_ref": "function_model.transactions",
-      "description": "Each named transaction sampled at least once."
-    },
-    {
-      "id": "fcov_error",
-      "class": "error_path",
-      "coverage_domain": "function",
-      "source": "function_model.transactions.FM_ILLEGAL_CSR_OR_START",
-      "source_ref": "function_model.transactions.FM_ILLEGAL_CSR_OR_START",
-      "description": "Illegal CSR and start-while-busy errors observed."
-    },
-    {
-      "id": "fcov_strobe",
-      "class": "datapath",
-      "coverage_domain": "function",
-      "source": "function_model.derived_signals.write_strobe",
-      "source_ref": "function_model.derived_signals.write_strobe",
-      "description": "Full and partial write strobes observed."
-    },
-    {
-      "id": "function_reset",
+      "id": "function_feature_1",
       "class": "transaction_type",
-      "coverage_domain": "function",
       "source": "function_model.transactions[0]",
-      "source_ref": "function_model.transactions.fm_reset",
-      "description": "reset"
+      "description": "feature_1"
     },
     {
-      "id": "function_csr_write_config",
+      "id": "function_feature_2",
       "class": "transaction_type",
-      "coverage_domain": "function",
       "source": "function_model.transactions[1]",
-      "source_ref": "function_model.transactions.fm_csr_write_config",
-      "description": "csr_write_config"
+      "description": "feature_2"
     },
     {
-      "id": "function_start_transfer",
+      "id": "function_feature_3",
       "class": "transaction_type",
-      "coverage_domain": "function",
       "source": "function_model.transactions[2]",
-      "source_ref": "function_model.transactions.fm_start_transfer",
-      "description": "start_transfer"
+      "description": "feature_3"
     },
     {
-      "id": "function_csr_read_status",
+      "id": "function_feature_4",
       "class": "transaction_type",
-      "coverage_domain": "function",
       "source": "function_model.transactions[3]",
-      "source_ref": "function_model.transactions.fm_csr_read_status",
-      "description": "csr_read_status"
+      "description": "feature_4"
     },
     {
-      "id": "function_memory_read_request",
-      "class": "transaction_type",
-      "coverage_domain": "function",
-      "source": "function_model.transactions[4]",
-      "source_ref": "function_model.transactions.fm_read_request",
-      "description": "memory_read_request"
-    },
-    {
-      "id": "function_capture_read_data",
-      "class": "transaction_type",
-      "coverage_domain": "function",
-      "source": "function_model.transactions[5]",
-      "source_ref": "function_model.transactions.fm_capture_read_data",
-      "description": "capture_read_data"
-    },
-    {
-      "id": "function_memory_write_request",
-      "class": "transaction_type",
-      "coverage_domain": "function",
-      "source": "function_model.transactions[6]",
-      "source_ref": "function_model.transactions.fm_write_request",
-      "description": "memory_write_request"
-    },
-    {
-      "id": "function_memory_write_accept",
-      "class": "transaction_type",
-      "coverage_domain": "function",
-      "source": "function_model.transactions[7]",
-      "source_ref": "function_model.transactions.fm_write_accept",
-      "description": "memory_write_accept"
-    },
-    {
-      "id": "function_clear_or_abort",
-      "class": "transaction_type",
-      "coverage_domain": "function",
-      "source": "function_model.transactions[8]",
-      "source_ref": "function_model.transactions.fm_clear_abort",
-      "description": "clear_or_abort"
-    },
-    {
-      "id": "function_illegal_csr_or_start",
-      "class": "transaction_type",
-      "coverage_domain": "function",
-      "source": "function_model.transactions[9]",
-      "source_ref": "function_model.transactions.fm_illegal_csr_or_start",
-      "description": "illegal_csr_or_start"
-    },
-    {
-      "id": "error_error_0",
-      "class": "error",
-      "coverage_domain": "function",
-      "source": "error_handling.error_sources[0]",
-      "source_ref": "error_handling.error_sources[0]",
-      "description": "{'id': 'ERR_ILLEGAL_CSR', 'condition': 'CSR address is not one of 0, 4, 8, 12, 16, or 20.', 'architectural_effect': 'Assert csr_error for the accepted access, set sticky error, and assert irq_error if enabled.'}"
-    },
-    {
-      "id": "error_error_1",
-      "class": "error",
-      "coverage_domain": "function",
-      "source": "error_handling.error_sources[1]",
-      "source_ref": "error_handling.error_sources[1]",
-      "description": "{'id': 'ERR_START_WHILE_BUSY', 'condition': 'CTRL.start is written with 1 while busy is already 1.', 'architectural_effect': 'Assert csr_error, set sticky error, keep the active transfer state intact, and assert irq_error if enabled.'}"
-    },
-    {
-      "id": "ccov_handshakes",
-      "class": "handshake",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules",
-      "source_ref": "cycle_model.handshake_rules",
-      "description": "CSR, read address, read data, and write handshakes observed."
-    },
-    {
-      "id": "ccov_pipeline",
-      "class": "cycle_rule",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.pipeline",
-      "source_ref": "cycle_model.pipeline",
-      "description": "All declared pipeline stages observed."
-    },
-    {
-      "id": "ccov_backpressure",
-      "class": "stall",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.backpressure",
-      "source_ref": "cycle_model.backpressure",
-      "description": "Read and write stall cases observed."
-    },
-    {
-      "id": "cycle_handshake_0",
-      "class": "protocol",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules[0]",
-      "source_ref": "cycle_model.handshake_rules[0]",
-      "description": "{'signal': 'csr_valid/csr_ready', 'rule': 'CSR request fields remain stable while csr_valid is high and csr_ready is low.'}"
-    },
-    {
-      "id": "cycle_handshake_1",
-      "class": "protocol",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules[1]",
-      "source_ref": "cycle_model.handshake_rules[1]",
-      "description": "{'signal': 'mem_rd_valid/mem_rd_ready', 'rule': 'mem_rd_addr remains stable until the read address handshake completes.'}"
-    },
-    {
-      "id": "cycle_handshake_2",
-      "class": "protocol",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules[2]",
-      "source_ref": "cycle_model.handshake_rules[2]",
-      "description": "{'signal': 'mem_rd_data_valid/mem_rd_data_ready', 'rule': 'mem_rd_data is sampled only on valid/ready and is not consumed when ready is low.'}"
-    },
-    {
-      "id": "cycle_handshake_3",
-      "class": "protocol",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules[3]",
-      "source_ref": "cycle_model.handshake_rules[3]",
-      "description": "{'signal': 'mem_wr_valid/mem_wr_ready', 'rule': 'mem_wr_addr, mem_wr_data, and mem_wr_strb remain stable until write acceptance.'}"
-    },
-    {
-      "id": "cycle_latency_csr_access",
-      "class": "latency",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.latency.csr_access",
-      "source_ref": "cycle_model.latency.csr_access",
-      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'CSR read/write completes in the accepted cycle for ready-high operation.'}"
-    },
-    {
-      "id": "cycle_latency_zero_length_transfer",
-      "class": "latency",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.latency.zero_length_transfer",
-      "source_ref": "cycle_model.latency.zero_length_transfer",
-      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'A start with LENGTH=0 sets done without memory requests on the start accepting clock edge.'}"
-    },
-    {
-      "id": "cycle_latency_per_beat_transfer",
-      "class": "latency",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.latency.per_beat_transfer",
-      "source_ref": "cycle_model.latency.per_beat_transfer",
-      "description": "{'min_cycles': 2, 'max_cycles': None, 'description': 'At least read data capture plus write acceptance per beat; unbounded with external backpressure.'}"
-    },
-    {
-      "id": "cycle_pipeline_csr_accept",
-      "class": "pipeline_stage",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.pipeline[0]",
-      "source_ref": "cycle_model.pipeline[0]",
-      "description": "Accept configuration, status clear, abort, or start command."
-    },
-    {
-      "id": "cycle_pipeline_read_addr",
-      "class": "pipeline_stage",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.pipeline[1]",
-      "source_ref": "cycle_model.pipeline[1]",
-      "description": "Issue source read address when active transfer has no pending buffered write."
-    },
-    {
-      "id": "cycle_pipeline_capture_read_data",
-      "class": "pipeline_stage",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.pipeline[2]",
-      "source_ref": "cycle_model.pipeline[2]",
-      "description": "Capture source read payload on read-data valid/ready."
-    },
-    {
-      "id": "cycle_pipeline_write_beat",
-      "class": "pipeline_stage",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.pipeline[3]",
-      "source_ref": "cycle_model.pipeline[3]",
-      "description": "Issue destination write and update progress when accepted."
-    },
-    {
-      "id": "cycle_pipeline_complete_or_loop",
-      "class": "pipeline_stage",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.pipeline[4]",
-      "source_ref": "cycle_model.pipeline[4]",
-      "description": "Set done on final beat or return to READ_ADDR for additional bytes."
-    },
-    {
-      "id": "cycle_ordering_0",
-      "class": "ordering",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.ordering[0]",
-      "source_ref": "cycle_model.ordering[0]",
-      "description": "Accepted CSR writes update state on clk edges."
-    },
-    {
-      "id": "cycle_ordering_1",
-      "class": "ordering",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.ordering[1]",
-      "source_ref": "cycle_model.ordering[1]",
-      "description": "Read-address acceptance precedes dependent read-data capture."
-    },
-    {
-      "id": "cycle_ordering_2",
-      "class": "ordering",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.ordering[2]",
-      "source_ref": "cycle_model.ordering[2]",
-      "description": "Read-data capture precedes dependent write request acceptance."
-    },
-    {
-      "id": "cycle_ordering_3",
-      "class": "ordering",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.ordering[3]",
-      "source_ref": "cycle_model.ordering[3]",
-      "description": "Progress increments only after the corresponding write handshake."
-    },
-    {
-      "id": "cycle_ordering_4",
-      "class": "ordering",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.ordering[4]",
-      "source_ref": "cycle_model.ordering[4]",
-      "description": "Backpressure stalls only the affected handshake stage and preserves payload stability."
-    },
-    {
-      "id": "cycle_backpressure_0",
-      "class": "backpressure",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.backpressure[0]",
-      "source_ref": "cycle_model.backpressure[0]",
-      "description": "Any ready-low condition holds the corresponding valid and payload stable."
-    },
-    {
-      "id": "cycle_backpressure_1",
-      "class": "backpressure",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.backpressure[1]",
-      "source_ref": "cycle_model.backpressure[1]",
-      "description": "The engine supports at most one uncommitted read data beat."
-    },
-    {
-      "id": "cycle_perf_outstanding",
-      "class": "performance",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.performance.outstanding",
-      "source_ref": "cycle_model.performance.outstanding",
-      "description": "{'max': 1, 'description': 'One read response/write beat in flight.'}"
-    },
-    {
-      "id": "cycle_perf_depth",
-      "class": "performance",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.performance.depth",
-      "source_ref": "cycle_model.performance.depth",
-      "description": "{'pipeline_stages': 5, 'queue_depth': 1, 'description': 'CSR accept, read request, read capture, write request, complete/loop.'}"
-    },
-    {
-      "id": "cycle_perf_frequency_mhz",
-      "class": "frequency",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.performance.frequency_mhz",
-      "source_ref": "cycle_model.performance.frequency_mhz",
-      "description": "100"
-    },
-    {
-      "id": "cycle_perf_throughput",
-      "class": "throughput",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.performance.throughput",
-      "source_ref": "cycle_model.performance.throughput",
-      "description": "{'sustained_beats_per_cycle': 0.5, 'condition': 'No memory backpressure and single outstanding read/write sequencing.'}"
-    },
-    {
-      "id": "fsm_control_idle_to_done_0",
+      "id": "fsm_control_idle_to_accept_0",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.control.transitions[0]",
-      "source_ref": "fsm.control.transitions[0]",
-      "description": "{'from': 'IDLE', 'to': 'DONE', 'when': 'start_pulse && length_bytes == 0'}"
+      "description": "{'from': 'IDLE', 'to': 'ACCEPT', 'when': 'A legal transaction, packet, command, or CSR operation is accepted'}"
     },
     {
-      "id": "fsm_control_idle_to_read_req_1",
+      "id": "fsm_control_accept_to_exec_feature_1_1",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.control.transitions[1]",
-      "source_ref": "fsm.control.transitions[1]",
-      "description": "{'from': 'IDLE', 'to': 'READ_REQ', 'when': 'start_pulse && length_bytes != 0'}"
+      "description": "{'from': 'ACCEPT', 'to': 'EXEC_FEATURE_1', 'when': 'Inputs and configuration match function_model preconditions'}"
     },
     {
-      "id": "fsm_control_idle_to_error_2",
+      "id": "fsm_control_exec_feature_1_to_exec_feature_2_2",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.control.transitions[2]",
-      "source_ref": "fsm.control.transitions[2]",
-      "description": "{'from': 'IDLE', 'to': 'ERROR', 'when': 'start_pulse && busy'}"
+      "description": "{'from': 'EXEC_FEATURE_1', 'to': 'EXEC_FEATURE_2', 'when': 'The current SSOT-owned behavior slice completes'}"
     },
     {
-      "id": "fsm_control_read_req_to_wait_rdata_3",
+      "id": "fsm_control_exec_feature_2_to_exec_feature_3_3",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.control.transitions[3]",
-      "source_ref": "fsm.control.transitions[3]",
-      "description": "{'from': 'READ_REQ', 'to': 'WAIT_RDATA', 'when': 'mem_rd_valid && mem_rd_ready'}"
+      "description": "{'from': 'EXEC_FEATURE_2', 'to': 'EXEC_FEATURE_3', 'when': 'The current SSOT-owned behavior slice completes'}"
     },
     {
-      "id": "fsm_control_wait_rdata_to_write_req_4",
+      "id": "fsm_control_exec_feature_3_to_exec_feature_4_4",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.control.transitions[4]",
-      "source_ref": "fsm.control.transitions[4]",
-      "description": "{'from': 'WAIT_RDATA', 'to': 'WRITE_REQ', 'when': 'mem_rd_data_valid && mem_rd_data_ready'}"
+      "description": "{'from': 'EXEC_FEATURE_3', 'to': 'EXEC_FEATURE_4', 'when': 'The current SSOT-owned behavior slice completes'}"
     },
     {
-      "id": "fsm_control_write_req_to_done_5",
+      "id": "fsm_control_exec_feature_4_to_exec_feature_5_5",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.control.transitions[5]",
-      "source_ref": "fsm.control.transitions[5]",
-      "description": "{'from': 'WRITE_REQ', 'to': 'DONE', 'when': 'mem_wr_valid && mem_wr_ready && remaining_bytes <= beat_bytes'}"
+      "description": "{'from': 'EXEC_FEATURE_4', 'to': 'EXEC_FEATURE_5', 'when': 'The current SSOT-owned behavior slice completes'}"
     },
     {
-      "id": "fsm_control_write_req_to_read_req_6",
+      "id": "fsm_control_exec_feature_5_to_complete_6",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.control.transitions[6]",
-      "source_ref": "fsm.control.transitions[6]",
-      "description": "{'from': 'WRITE_REQ', 'to': 'READ_REQ', 'when': 'mem_wr_valid && mem_wr_ready && remaining_bytes > beat_bytes'}"
+      "description": "{'from': 'EXEC_FEATURE_5', 'to': 'COMPLETE', 'when': 'The current SSOT-owned behavior slice completes'}"
     },
     {
-      "id": "fsm_control_read_req_wait_rdata_write_req_to_idle_7",
+      "id": "fsm_control_complete_to_idle_7",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.control.transitions[7]",
-      "source_ref": "fsm.control.transitions[7]",
-      "description": "{'from': ['READ_REQ', 'WAIT_RDATA', 'WRITE_REQ'], 'to': 'IDLE', 'when': 'soft_reset_pulse'}"
+      "description": "{'from': 'COMPLETE', 'to': 'IDLE', 'when': 'Observable result/status handoff completes'}"
     },
     {
-      "id": "fsm_control_done_to_idle_8",
+      "id": "fsm_control_from_to_error_8",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.control.transitions[8]",
-      "source_ref": "fsm.control.transitions[8]",
-      "description": "{'from': 'DONE', 'to': 'IDLE', 'when': 'done is cleared and no new start is pending'}"
+      "description": "{'from': '*', 'to': 'ERROR', 'when': 'error_handling.error_sources condition is detected'}"
     },
     {
       "id": "fsm_control_error_to_idle_9",
       "class": "state_transition",
-      "coverage_domain": "cycle",
       "source": "fsm.control.transitions[9]",
-      "source_ref": "fsm.control.transitions[9]",
-      "description": "{'from': 'ERROR', 'to': 'IDLE', 'when': 'error is cleared and no new start is pending'}"
+      "description": "{'from': 'ERROR', 'to': 'IDLE', 'when': 'Reset or approved recovery action clears the error'}"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_PROTOCOL', 'condition': 'Downstream protocol response is non-OKAY or invalid', 'architectural_effect': 'Set error status and block signoff until handled'}"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[0]",
+      "description": "handshake_0"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[1]",
+      "description": "handshake_1"
+    },
+    {
+      "id": "latency_control_or_request_accept_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.control_or_request_accept",
+      "description": "control_or_request_accept latency == 0 cycles",
+      "bucket": "min",
+      "cycles": 0
+    },
+    {
+      "id": "latency_control_or_request_accept_unbounded",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.control_or_request_accept",
+      "description": "control_or_request_accept latency unbounded (no max_cycles)",
+      "bucket": "unbounded"
+    },
+    {
+      "id": "latency_primary_operation_lt_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.primary_operation",
+      "description": "primary_operation latency < 1 cycles",
+      "bucket": "<min",
+      "threshold": 1
+    },
+    {
+      "id": "latency_primary_operation_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.primary_operation",
+      "description": "primary_operation latency == 1 cycles",
+      "bucket": "min",
+      "cycles": 1
+    },
+    {
+      "id": "latency_primary_operation_unbounded",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.primary_operation",
+      "description": "primary_operation latency unbounded (no max_cycles)",
+      "bucket": "unbounded"
+    },
+    {
+      "id": "latency_response_or_observable_result_at_min",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.response_or_observable_result",
+      "description": "response_or_observable_result latency == 0 cycles",
+      "bucket": "min",
+      "cycles": 0
+    },
+    {
+      "id": "latency_response_or_observable_result_unbounded",
+      "class": "latency_bin",
+      "source": "cycle_model.latency.response_or_observable_result",
+      "description": "response_or_observable_result latency unbounded (no max_cycles)",
+      "bucket": "unbounded"
     }
   ]
 }

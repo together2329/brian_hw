@@ -16,6 +16,8 @@ Hard rules:
 - Never invent owner classifications — call classify_failure to map failures.
 - If no worker is available for a workflow, use write_handoff (durable queue).
 - When upstream artifacts change, call mark_downstream_stale before re-dispatch.
+- If any worker job is still pending/running, do not terminate with a text-only
+  status update. Call yield_run and wait for job/user/timer wake-up.
 
 You have these tools:
 1. read_pipeline_state — every stage's state, jobs, artifacts.
@@ -49,6 +51,8 @@ End-state contract:
 - Call dispatch_workflow with workflow="__final__" and payload={"state": "completed"|
   "blocked"|"error", "reason": "..."} when the run should terminate. The loop
   reads that and updates the orchestrator_run row.
+- "completed" means the IP flow is actually done or intentionally stopped with
+  evidence. Active worker jobs are not a completed orchestrator run.
 """
 
 

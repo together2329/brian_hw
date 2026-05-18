@@ -570,6 +570,30 @@ class OrchestratorReactLoop:
         self._initial_user_message = initial_user_message
         self._llm_caller = llm_caller
 
+    def _active_worker_job_ids(self) -> list[str]:
+        """Return live pending/running job ids for this IP, best-effort."""
+        try:
+            state, _summary = orch_tools.read_pipeline_state(
+                ip=self.ctx.ip_name,
+                include_jobs=True,
+            )
+        except Exception:
+            return []
+        if not isinstance(state, dict):
+            return []
+        jobs: list[dict[str, Any]] = []
+        for key in ("active_jobs", "jobs"):
+            value = state.get(key)
+            if isinstance(value, list):
+                jobs.extend(item for item in value if isinstance(item, dict))
+        ids: list[str] = []
+        for job in jobs:
+            status = str(job.get("status") or "").lower()
+            job_id = str(job.get("job_id") or "")
+            if job_id and status in {"pending", "running", "queued"} and job_id not in ids:
+                ids.append(job_id)
+        return ids
+
     @staticmethod
     def _translate_caller_to_stream(caller, error_sink: list):
         """Convert ``caller(messages, tools) -> dict`` into a streaming
@@ -673,60 +697,89 @@ class OrchestratorReactLoop:
         if self._initial_user_message:
             messages.append({"role": "user", "content": self._initial_user_message})
 
-        try:
-            run_react_agent_impl(
-                messages, tracker, "orchestrator", bridge.deps,
-                mode="oneshot", preface_enabled=False,
-            )
-        except Exception as exc:
-            self.db.update_orchestrator_run(
-                self.ctx.run_id, status="error",
-                final_state="llm_error", ended=True,
-            )
-            return RunOutcome(
-                status="error",
-                final_state="llm_error",
-                steps_taken=tracker.current,
-                error=f"{type(exc).__name__}: {exc}",
-            )
+        while True:
+            try:
+                run_react_agent_impl(
+                    messages, tracker, "orchestrator", bridge.deps,
+                    mode="oneshot", preface_enabled=False,
+                )
+            except Exception as exc:
+                self.db.update_orchestrator_run(
+                    self.ctx.run_id, status="error",
+                    final_state="llm_error", ended=True,
+                )
+                return RunOutcome(
+                    status="error",
+                    final_state="llm_error",
+                    steps_taken=tracker.current,
+                    error=f"{type(exc).__name__}: {exc}",
+                )
 
-        # react_loop catches LLM exceptions silently and breaks iteration.
-        # Promote them to a run-level error here.
-        if error_sink:
-            exc = error_sink[0]
-            self.db.update_orchestrator_run(
-                self.ctx.run_id, status="error",
-                final_state="llm_error", ended=True,
-            )
-            return RunOutcome(
-                status="error",
-                final_state="llm_error",
-                steps_taken=tracker.current,
-                error=f"{type(exc).__name__}: {exc}",
-            )
+            # react_loop catches LLM exceptions silently and breaks iteration.
+            # Promote them to a run-level error here.
+            if error_sink:
+                exc = error_sink[0]
+                self.db.update_orchestrator_run(
+                    self.ctx.run_id, status="error",
+                    final_state="llm_error", ended=True,
+                )
+                return RunOutcome(
+                    status="error",
+                    final_state="llm_error",
+                    steps_taken=tracker.current,
+                    error=f"{type(exc).__name__}: {exc}",
+                )
 
-        # Derive outcome from the persisted run row.
-        run_row = self.db.get_orchestrator_run(self.ctx.run_id)
-        if run_row is None:
-            return RunOutcome(
-                status="error", final_state="unknown",
-                steps_taken=tracker.current,
-            )
-        # If the loop terminated via cap exhaustion, react_loop's tracker has
-        # already exceeded; mark the run blocked if it's still running.
-        if run_row["status"] == "running" and tracker.current >= max_steps:
-            self.db.update_orchestrator_run(
-                self.ctx.run_id, status="blocked",
-                final_state="cap_exceeded", ended=True,
-            )
+            # Derive outcome from the persisted run row.
             run_row = self.db.get_orchestrator_run(self.ctx.run_id)
-        elif run_row["status"] == "running":
-            # LLM returned no more tool calls — treat as natural completion.
-            self.db.update_orchestrator_run(
-                self.ctx.run_id, status="completed",
-                final_state="completed", ended=True,
-            )
-            run_row = self.db.get_orchestrator_run(self.ctx.run_id)
+            if run_row is None:
+                return RunOutcome(
+                    status="error", final_state="unknown",
+                    steps_taken=tracker.current,
+                )
+            # If the loop terminated via cap exhaustion, react_loop's tracker
+            # has already exceeded; mark the run blocked if it's still running.
+            if run_row["status"] == "running" and tracker.current >= max_steps:
+                self.db.update_orchestrator_run(
+                    self.ctx.run_id, status="blocked",
+                    final_state="cap_exceeded", ended=True,
+                )
+                run_row = self.db.get_orchestrator_run(self.ctx.run_id)
+                break
+            if run_row["status"] == "running":
+                active_job_ids = self._active_worker_job_ids()
+                if active_job_ids:
+                    bridge.yield_run_handler({
+                        "wake_on": {
+                            "job_ids": active_job_ids,
+                            "user_message": True,
+                            "after_seconds": 240,
+                        },
+                        "reason": (
+                            "LLM returned a text-only status while worker jobs "
+                            "were still active; auto-yielding instead of "
+                            "marking the orchestrator run completed."
+                        ),
+                    })
+                    messages.append({
+                        "role": "user",
+                        "content": (
+                            "[orchestrator-auto-wake] Worker jobs are still "
+                            "active or just woke the loop. Continue the "
+                            "evidence-gated pipeline: read_pipeline_state, "
+                            "read artifacts for completed stages, dispatch "
+                            "next stages, or yield_run again. Do not finalize "
+                            "while active jobs remain."
+                        ),
+                    })
+                    continue
+                # LLM returned no more tool calls and no live workers remain.
+                self.db.update_orchestrator_run(
+                    self.ctx.run_id, status="completed",
+                    final_state="completed", ended=True,
+                )
+                run_row = self.db.get_orchestrator_run(self.ctx.run_id)
+            break
 
         return RunOutcome(
             status=run_row["status"],
