@@ -1,0 +1,4 @@
+rtl/atcdmac100_core.sv: No such file or directory
+error: Unable to find the root module "atcdmac100" in the Verilog source.
+     : Perhaps ``-s atcdmac100'' is incorrect?
+1 error(s) during elaboration.

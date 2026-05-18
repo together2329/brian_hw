@@ -1,0 +1,23 @@
+===== pyslang =====
+command: pyslang rtl/atcdmac100_core.sv rtl/atcdmac100.sv
+returncode: 1
+errors: 2 warnings: 0
+pyslang missing file(s): rtl/atcdmac100_core.sv, rtl/atcdmac100.sv
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/atcdmac100.f --top-module atcdmac100
+returncode: 1
+errors: 3 warnings: 0
+%Error: Cannot find file containing module: 'rtl/atcdmac100_core.sv'
+        ... See the manual at https://verilator.org/verilator_doc.html?v=5.046 for more assistance.
+        ... Looked in:
+             rtl/rtl/atcdmac100_core.sv
+             rtl/rtl/atcdmac100_core.sv.v
+             rtl/rtl/atcdmac100_core.sv.sv
+             rtl/atcdmac100_core.sv
+             rtl/atcdmac100_core.sv.v
+             rtl/atcdmac100_core.sv.sv
+             obj_dir/rtl/atcdmac100_core.sv
+             obj_dir/rtl/atcdmac100_core.sv.v
+             obj_dir/rtl/atcdmac100_core.sv.sv
+%Error: Cannot find file containing module: 'rtl/atcdmac100.sv'
+%Error: Exiting due to 2 error(s)

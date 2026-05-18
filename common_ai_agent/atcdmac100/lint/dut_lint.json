@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "type": "dut_lint",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "pyslang+verilator",
+  "command": "pyslang rtl/atcdmac100_core.sv rtl/atcdmac100.sv && verilator --lint-only -Wall -Irtl -f list/atcdmac100.f --top-module atcdmac100",
+  "cwd": "atcdmac100",
+  "top": "atcdmac100",
+  "filelist": "atcdmac100/list/atcdmac100.f",
+  "rtl_files": [
+    "rtl/atcdmac100_core.sv",
+    "rtl/atcdmac100.sv"
+  ],
+  "timestamp": "2026-05-18T02:52:55.918292+00:00",
+  "returncode": 1,
+  "errors": 5,
+  "warnings": 0,
+  "waived_warnings": 0,
+  "tool_results": [
+    {
+      "tool": "pyslang",
+      "available": true,
+      "command": "pyslang rtl/atcdmac100_core.sv rtl/atcdmac100.sv",
+      "returncode": 1,
+      "errors": 2,
+      "warnings": 0,
+      "diagnostics": [
+        {
+          "severity": "error",
+          "message": "pyslang missing file(s): rtl/atcdmac100_core.sv, rtl/atcdmac100.sv"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "tool": "verilator",
+      "available": true,
+      "command": "verilator --lint-only -Wall -Irtl -f list/atcdmac100.f --top-module atcdmac100",
+      "returncode": 1,
+      "errors": 3,
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": false
+    }
+  ],
+  "suppression_violation_count": 0,
+  "suppression_violations": [],
+  "style_violation_count": 0,
+  "style_violations": [],
+  "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
+  "passed": false
+}
