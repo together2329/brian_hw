@@ -11499,47 +11499,39 @@
     },
     {
       "path": "generation_flow.steps[5]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[5].command",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[5].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "generation_flow.steps[5].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "integration",
@@ -11714,429 +11706,6 @@
     },
     {
       "path": "integration.integration_notes[1]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0].backpressure",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0].handshake",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0].name",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0].ports",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0].ports[0]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0].ports[1]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0].ports[2]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0].ports[3]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0].ports[4]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0].ports[5]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0].ports[6]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0].protocol",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[0].role",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[1]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[1].backpressure",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[1].handshake",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[1].name",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[1].ports",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[1].ports[0]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[1].ports[1]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[1].ports[2]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[1].protocol",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[1].role",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[2]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[2].backpressure",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[2].handshake",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[2].name",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[2].ports",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[2].ports[0]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[2].ports[1]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[2].ports[2]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[2].protocol",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[2].role",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[3]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[3].backpressure",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[3].handshake",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[3].name",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[3].ports",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[3].ports[0]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[3].ports[1]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[3].ports[2]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[3].ports[3]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[3].ports[4]",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[3].protocol",
-      "authority": "user",
-      "mode_allowed": [
-        "starter",
-        "engineering",
-        "signoff"
-      ]
-    },
-    {
-      "path": "interfaces[3].role",
       "authority": "user",
       "mode_allowed": [
         "starter",
@@ -17546,25 +17115,21 @@
     },
     {
       "path": "rtl_contract.unresolved_expression_refs",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "rtl_contract.unresolved_expression_refs[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "run_mode",
@@ -17838,14 +17403,12 @@
     },
     {
       "path": "sub_modules[0].cycle_model_refs[1]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].dataflow_refs",
@@ -17876,36 +17439,30 @@
     },
     {
       "path": "sub_modules[0].dataflow_refs[2]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].decomposition_refs",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].decomposition_refs[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].description",
@@ -17918,25 +17475,21 @@
     },
     {
       "path": "sub_modules[0].feature_refs",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].feature_refs[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].file",
@@ -18012,25 +17565,21 @@
     },
     {
       "path": "sub_modules[0].function_model_refs[4]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].function_model_refs[5]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].implements",
@@ -18124,113 +17673,93 @@
     },
     {
       "path": "sub_modules[0].register_refs[6]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].source_sections",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].source_sections[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].source_sections[1]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].source_sections[2]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].source_sections[3]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].source_sections[4]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].source_sections[5]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].test_refs",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].test_refs[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[0].type",
@@ -18378,14 +17907,12 @@
     },
     {
       "path": "sub_modules[1].fsm_refs[1]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[1].function_model_refs",
@@ -18407,47 +17934,39 @@
     },
     {
       "path": "sub_modules[1].function_model_refs[10]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[1].function_model_refs[11]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[1].function_model_refs[12]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[1].function_model_refs[13]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[1].function_model_refs[1]",
@@ -18496,47 +18015,39 @@
     },
     {
       "path": "sub_modules[1].function_model_refs[6]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[1].function_model_refs[7]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[1].function_model_refs[8]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[1].function_model_refs[9]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[1].implements",
@@ -18630,25 +18141,21 @@
     },
     {
       "path": "sub_modules[1].source_sections",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[1].source_sections[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[1].type",
@@ -18769,14 +18276,12 @@
     },
     {
       "path": "sub_modules[2].function_model_refs[4]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[2].implements",
@@ -18843,212 +18348,174 @@
     },
     {
       "path": "sub_modules[3]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].dataflow_refs",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].dataflow_refs[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].decomposition_refs",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].decomposition_refs[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].description",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].file",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].implements",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].implements[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].implements[1]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].name",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].ownership",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].source_sections",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].source_sections[0]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].source_sections[1]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].source_sections[2]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].source_sections[3]",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].ssot_gen",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "sub_modules[3].wiring_only",
-      "authority": "generated_default",
+      "authority": "user",
       "mode_allowed": [
         "starter",
-        "engineering"
-      ],
-      "review_needed_for": "",
-      "signoff_critical": false,
-      "source": "repair_ssot_schema"
+        "engineering",
+        "signoff"
+      ]
     },
     {
       "path": "synthesis",

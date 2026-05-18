@@ -1971,49 +1971,6 @@ metadata:
   - orchestrator_context.cada7b15caa8
   notes:
   - Engineering draft refreshed from visible pipeline goal and prior inline DMA intent.
-interfaces:
-- name: csr_if
-  protocol: simple_csr_valid_ready
-  role: target
-  ports:
-  - csr_valid
-  - csr_ready
-  - csr_write
-  - csr_addr
-  - csr_wdata
-  - csr_rdata
-  - csr_error
-  handshake: csr_valid && csr_ready accepts a CSR request; read data is same-cycle with acceptance.
-  backpressure: csr_ready may be held low only during reset or implementation-defined one-cycle internal stalls.
-- name: mem_read_addr_if
-  protocol: native_valid_ready
-  role: initiator
-  ports:
-  - mem_rd_valid
-  - mem_rd_ready
-  - mem_rd_addr
-  handshake: mem_rd_valid && mem_rd_ready accepts a read address.
-  backpressure: Hold mem_rd_valid and mem_rd_addr stable until ready.
-- name: mem_read_data_if
-  protocol: native_valid_ready
-  role: target
-  ports:
-  - mem_rd_data_valid
-  - mem_rd_data_ready
-  - mem_rd_data
-  handshake: mem_rd_data_valid && mem_rd_data_ready transfers data into read_data_buffer.
-  backpressure: Assert mem_rd_data_ready only when the write buffer can capture data.
-- name: mem_write_if
-  protocol: native_valid_ready
-  role: initiator
-  ports:
-  - mem_wr_valid
-  - mem_wr_ready
-  - mem_wr_addr
-  - mem_wr_data
-  - mem_wr_strb
-  handshake: mem_wr_valid && mem_wr_ready accepts the destination write beat.
-  backpressure: Hold write payload stable until ready.
 rtl_contract:
   owner: ssot-gen
   type: ssot_derived_rule_contract
