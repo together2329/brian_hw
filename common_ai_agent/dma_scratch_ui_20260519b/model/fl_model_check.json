@@ -1,0 +1,188 @@
+{
+  "artifact": "fl_model_check.json",
+  "coverage_bin_count": 59,
+  "coverage_traceability": {
+    "cycle_requirements_covered_by": [
+      "cycle_bins"
+    ],
+    "debug_requirements_covered_by": [
+      "debug_bins"
+    ],
+    "error_requirements_covered_by": [
+      "error_bins"
+    ],
+    "fsm_requirements_covered_by": [
+      "fsm_bins"
+    ],
+    "scenarios_covered": [
+      "SC01",
+      "SC02",
+      "SC03",
+      "SC04",
+      "SC05",
+      "SC06",
+      "SC07",
+      "SC08",
+      "SC09",
+      "SC10",
+      "SC11",
+      "SC12"
+    ],
+    "security_requirements_covered_by": [
+      "security_safety_bins"
+    ],
+    "transactions_covered": [
+      "FM_RESET",
+      "FM_APB_WRITE",
+      "FM_APB_READ",
+      "FM_START",
+      "FM_READ_ACCEPT",
+      "FM_READ_DATA",
+      "FM_WRITE_ACCEPT"
+    ]
+  },
+  "error_case_checks": {
+    "covered_cases": [
+      "ERR_ZERO_LENGTH",
+      "CTRL.clear_done recovery"
+    ],
+    "passed": true
+  },
+  "expected_transactions": [
+    "FM_RESET",
+    "FM_APB_WRITE",
+    "FM_APB_READ",
+    "FM_START",
+    "FM_READ_ACCEPT",
+    "FM_READ_DATA",
+    "FM_WRITE_ACCEPT"
+  ],
+  "fcov_plan_path": "dma_scratch_ui_20260519b/cov/fcov_plan.json",
+  "importability": {
+    "dataclasses_used": false,
+    "method": "importlib.util.module_from_spec + spec.loader.exec_module without sys.modules pre-registration",
+    "passed": true
+  },
+  "invariant_checks": {
+    "failures": [],
+    "passed": true
+  },
+  "ip": "dma_scratch_ui_20260519b",
+  "missing_transactions": [],
+  "model_path": "dma_scratch_ui_20260519b/model/functional_model.py",
+  "passed": true,
+  "represented_transactions": [
+    "FM_RESET",
+    "FM_APB_WRITE",
+    "FM_APB_READ",
+    "FM_START",
+    "FM_READ_ACCEPT",
+    "FM_READ_DATA",
+    "FM_WRITE_ACCEPT"
+  ],
+  "reset_checks": {
+    "passed": true
+  },
+  "semantic_authority": "dma_scratch_ui_20260519b/yaml/dma_scratch_ui_20260519b.ssot.yaml",
+  "ssot_tbd_report": "none",
+  "state_variables": {
+    "busy": {
+      "reset": 0,
+      "source": "function_model.state_variables.busy",
+      "width": 1
+    },
+    "byte_index": {
+      "reset": 0,
+      "source": "function_model.state_variables.byte_index",
+      "width": 32
+    },
+    "captured_rdata": {
+      "reset": 0,
+      "source": "function_model.state_variables.captured_rdata",
+      "width": 32
+    },
+    "current_dst": {
+      "reset": 0,
+      "source": "function_model.state_variables.current_dst",
+      "width": 32
+    },
+    "current_src": {
+      "reset": 0,
+      "source": "function_model.state_variables.current_src",
+      "width": 32
+    },
+    "done": {
+      "reset": 0,
+      "source": "function_model.state_variables.done",
+      "width": 1
+    },
+    "dst_addr": {
+      "reset": 0,
+      "source": "function_model.state_variables.dst_addr",
+      "width": 32
+    },
+    "error": {
+      "reset": 0,
+      "source": "function_model.state_variables.error",
+      "width": 1
+    },
+    "irq_enable": {
+      "reset": 0,
+      "source": "function_model.state_variables.irq_enable",
+      "width": 1
+    },
+    "irq_status": {
+      "reset": 0,
+      "source": "function_model.state_variables.irq_status",
+      "width": 1
+    },
+    "length_bytes": {
+      "reset": 0,
+      "source": "function_model.state_variables.length_bytes",
+      "width": 32
+    },
+    "src_addr": {
+      "reset": 0,
+      "source": "function_model.state_variables.src_addr",
+      "width": 32
+    }
+  },
+  "trace_event_count": 17,
+  "transaction_results": [
+    {
+      "id": "FM_RESET",
+      "passed": true,
+      "source_ref": "function_model.transactions.FM_RESET"
+    },
+    {
+      "id": "FM_APB_WRITE",
+      "passed": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE"
+    },
+    {
+      "id": "FM_APB_READ",
+      "passed": true,
+      "source_ref": "function_model.transactions.FM_APB_READ"
+    },
+    {
+      "id": "FM_START",
+      "passed": true,
+      "source_ref": "function_model.transactions.FM_START"
+    },
+    {
+      "id": "FM_READ_ACCEPT",
+      "passed": true,
+      "source_ref": "function_model.transactions.FM_READ_ACCEPT"
+    },
+    {
+      "id": "FM_READ_DATA",
+      "passed": true,
+      "source_ref": "function_model.transactions.FM_READ_DATA"
+    },
+    {
+      "id": "FM_WRITE_ACCEPT",
+      "passed": true,
+      "source_ref": "function_model.transactions.FM_WRITE_ACCEPT"
+    }
+  ]
+}
