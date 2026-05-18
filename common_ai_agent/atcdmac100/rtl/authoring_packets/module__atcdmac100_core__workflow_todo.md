@@ -22,16 +22,16 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, dataflow, error_handling, features, fsm, function_model, interrupts, io_list, registers, test_requirements, traceability
-- Module slice: 14/14 section=workflow_todo task_limit=48
-- Slice rule: Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, dataflow, decomposition, decomposition.owners, decomposition.source_refs, error_handling, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM_AHB_READ, function_model.transactions.FM_AHB_WRITE, function_model.transactions.FM_ARBITRATE, function_model.transactions.FM_COMPLETE, function_model.transactions.FM_ERROR_ABORT, function_model.transactions.FM_HANDSHAKE_ACK
+- Module slice: 16/17 section=workflow_todo task_limit=48
+- Slice rule: Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
   - atcdmac100_core.hclk <= hclk (integration.connections[0])
-  - atcdmac100_core.hresetn <= hresetn (integration.connections[1])
+  - atcdmac100_core.hresetn <= RTL_TODO_2_quality_gates_rtl_gen (integration.connections[1])
   - atcdmac100_core.dma_int <= dma_int (integration.connections[2])
   - atcdmac100_core.dma_req <= dma_req (integration.connections[3])
   - atcdmac100_core.dma_ack <= dma_ack (integration.connections[4])
@@ -49,13 +49,14 @@
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: workflow_todo.rtl_gen
 - Source ref: workflow_todos.rtl-gen[0]
 - Detail: Implement ATCDMAC100 top and core using SSOT ports, register map, function_model, cycle_model, and dynamic TODO ledger.
 SSOT ref: workflow_todos.rtl-gen[0].
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via cycle_model.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+SSOT item context: id=RTL_TODO_1.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - rtl_compile.json, dut_lint.json, rtl_todo_plan audit, and rtl_authoring_provenance all pass.
   - SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json

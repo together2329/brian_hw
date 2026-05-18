@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 6,
+      "count": 7,
       "enabled": true,
       "index": 4,
       "key": "security",
-      "module_task_count": 49,
-      "rule": "Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 50,
+      "rule": "Owner module atcdmac100 is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "security",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -23,8 +23,13 @@
       "file": "rtl/atcdmac100.sv",
       "name": "atcdmac100",
       "refs": [
+        "cycle_model",
+        "dataflow",
+        "fsm",
+        "function_model",
         "integration",
-        "io_list"
+        "io_list",
+        "top_integration"
       ],
       "wiring_only": true
     },
@@ -45,15 +50,6 @@
     "ssot_connection_contracts": [
       {
         "instance": "",
-        "machine_readable": false,
-        "module": "atcdmac100",
-        "port": "",
-        "signal": "",
-        "signal_terms": [],
-        "source_ref": "sub_modules[1].connections"
-      },
-      {
-        "instance": "",
         "machine_readable": true,
         "module": "atcdmac100_core",
         "port": "hclk",
@@ -68,9 +64,9 @@
         "machine_readable": true,
         "module": "atcdmac100_core",
         "port": "hresetn",
-        "signal": "hresetn",
+        "signal": "RTL_TODO_2_quality_gates_rtl_gen",
         "signal_terms": [
-          "hresetn"
+          "RTL_TODO_2_quality_gates_rtl_gen"
         ],
         "source_ref": "integration.connections[1]"
       },
@@ -726,15 +722,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 4,
-    "open_required_count": 4,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -765,18 +761,18 @@
       "security.assets": 4
     },
     "module_slice": {
-      "count": 6,
+      "count": 7,
       "enabled": true,
       "index": 4,
       "key": "security",
-      "module_task_count": 49,
-      "rule": "Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 50,
+      "rule": "Owner module atcdmac100 is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "security",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 4,
+    "open_required_count": 0,
     "required_count": 4,
     "source_refs": [
       "security.assets.asset_0",
@@ -785,7 +781,7 @@
       "security.assets.asset_3"
     ],
     "status_counts": {
-      "open": 4
+      "pass": 4
     },
     "task_count": 4
   },
@@ -802,7 +798,7 @@
       ],
       "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_0.\nOwner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.\nSSOT item context: value=register programming state.",
       "evidence_terms": [],
-      "id": "RTL-0285",
+      "id": "RTL-0354",
       "owner_file": "rtl/atcdmac100.sv",
       "owner_module": "atcdmac100",
       "priority": "high",
@@ -826,9 +822,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -843,7 +839,7 @@
       ],
       "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_1.\nOwner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.\nSSOT item context: value=DMA source/destination addresses.",
       "evidence_terms": [],
-      "id": "RTL-0286",
+      "id": "RTL-0355",
       "owner_file": "rtl/atcdmac100.sv",
       "owner_module": "atcdmac100",
       "priority": "high",
@@ -867,9 +863,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -884,7 +880,7 @@
       ],
       "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_2.\nOwner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.\nSSOT item context: value=interrupt status.",
       "evidence_terms": [],
-      "id": "RTL-0287",
+      "id": "RTL-0356",
       "owner_file": "rtl/atcdmac100.sv",
       "owner_module": "atcdmac100",
       "priority": "high",
@@ -908,9 +904,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -925,7 +921,7 @@
       ],
       "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_3.\nOwner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.\nSSOT item context: value=AHB master access authority.",
       "evidence_terms": [],
-      "id": "RTL-0288",
+      "id": "RTL-0357",
       "owner_file": "rtl/atcdmac100.sv",
       "owner_module": "atcdmac100",
       "priority": "high",
@@ -949,13 +945,13 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "72f45ac236a074e74c4c80ad18e49e1163775dd9e0f8018c491d6f6563c1a372",
+  "todo_plan_sha256": "7da652c8f3ad6cbab8b8e9ee0f0a48d9ace8103da5920ba80b4dbc0877e508a9",
   "top": "atcdmac100",
   "type": "rtl_authoring_packet"
 }

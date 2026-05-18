@@ -68,46 +68,88 @@
   },
   "bins": [
     {
-      "id": "SC_AHB_REG_executed",
+      "id": "SC01_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[0]",
-      "scenario": "SC_AHB_REG",
-      "description": "AHB register programming"
+      "scenario": "SC01",
+      "description": "reset contract"
     },
     {
-      "id": "SC_MEM_COPY_executed",
+      "id": "SC02_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[1]",
-      "scenario": "SC_MEM_COPY",
-      "description": "single-channel memory copy"
+      "scenario": "SC02",
+      "description": "primary approved behavior"
     },
     {
-      "id": "SC_ARB_executed",
+      "id": "SC03_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[2]",
-      "scenario": "SC_ARB",
-      "description": "priority round-robin arbitration"
+      "scenario": "SC03",
+      "description": "cycle handshake and backpressure"
     },
     {
-      "id": "SC_HANDSHAKE_executed",
+      "id": "SC04_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[3]",
-      "scenario": "SC_HANDSHAKE",
-      "description": "hardware request acknowledge"
+      "scenario": "SC04",
+      "description": "error and recovery policy"
     },
     {
-      "id": "SC_ERROR_ABORT_executed",
+      "id": "SC05_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[4]",
-      "scenario": "SC_ERROR_ABORT",
-      "description": "error and abort handling"
+      "scenario": "SC05",
+      "description": "debug and trace observability"
     },
     {
-      "id": "SC_CHAIN_executed",
+      "id": "SC06_executed",
       "class": "scenario",
       "source": "test_requirements.scenarios[5]",
-      "scenario": "SC_CHAIN",
-      "description": "chain transfer continuation"
+      "scenario": "SC06",
+      "description": "function_model transaction FM_RESET"
+    },
+    {
+      "id": "SC07_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC07",
+      "description": "function_model transaction FM_AHB_WRITE"
+    },
+    {
+      "id": "SC08_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC08",
+      "description": "function_model transaction FM_AHB_READ"
+    },
+    {
+      "id": "SC09_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC09",
+      "description": "function_model transaction FM_ARBITRATE"
+    },
+    {
+      "id": "SC10_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[9]",
+      "scenario": "SC10",
+      "description": "function_model transaction FM_MASTER_READ"
+    },
+    {
+      "id": "SC11_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[10]",
+      "scenario": "SC11",
+      "description": "function_model transaction FM_MASTER_WRITE"
+    },
+    {
+      "id": "SC12_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[11]",
+      "scenario": "SC12",
+      "description": "function_model transaction FM_COMPLETE"
     },
     {
       "id": "fcov_reg_idcfg",
@@ -398,52 +440,20 @@
       "description": "no chain continuation"
     },
     {
-      "id": "error_ahb_hresp_mst_error",
+      "id": "error_error_0",
       "class": "error",
       "coverage_domain": "function",
       "source": "error_handling.error_sources[0]",
       "source_ref": "error_handling.error_sources[0]",
-      "description": "AHB hresp_mst error"
-    },
-    {
-      "id": "error_unaligned_source_or_destination_address",
-      "class": "error",
-      "coverage_domain": "function",
-      "source": "error_handling.error_sources[1]",
-      "source_ref": "error_handling.error_sources[1]",
-      "description": "unaligned source or destination address"
-    },
-    {
-      "id": "error_reserved_width_or_address_control_mode",
-      "class": "error",
-      "coverage_domain": "function",
-      "source": "error_handling.error_sources[2]",
-      "source_ref": "error_handling.error_sources[2]",
-      "description": "reserved width or address-control mode"
-    },
-    {
-      "id": "error_zero_transfer_size_when_enabling_a_channel",
-      "class": "error",
-      "coverage_domain": "function",
-      "source": "error_handling.error_sources[3]",
-      "source_ref": "error_handling.error_sources[3]",
-      "description": "zero transfer size when enabling a channel"
-    },
-    {
-      "id": "error_software_chabort_for_enabled_channel",
-      "class": "error",
-      "coverage_domain": "function",
-      "source": "error_handling.error_sources[4]",
-      "source_ref": "error_handling.error_sources[4]",
-      "description": "software ChAbort for enabled channel"
+      "description": "{'id': 'ERR_PROTOCOL', 'condition': 'Downstream protocol response is non-OKAY or invalid', 'architectural_effect': 'Set error status and block signoff until handled'}"
     }
   ],
   "summary": {
-    "total_bins": 47,
-    "scenario_bins": 6,
+    "total_bins": 49,
+    "scenario_bins": 12,
     "transaction_bins": 9,
     "protocol_bins": 0,
     "state_transition_bins": 10,
-    "error_bins": 6
+    "error_bins": 2
   }
 }

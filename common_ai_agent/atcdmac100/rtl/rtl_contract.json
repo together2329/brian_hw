@@ -1,0 +1,106 @@
+{
+  "contract": {
+    "clock": "hclk",
+    "input_map": {
+      "dma_req": "dma_req",
+      "haddr": "haddr",
+      "hburst": "hburst",
+      "hgrant_mst": "hgrant_mst",
+      "hrdata_mst": "hrdata_mst",
+      "hready_mst": "hready_mst",
+      "hreadyin": "hreadyin",
+      "hresp_mst": "hresp_mst",
+      "hsel": "hsel",
+      "hsize": "hsize",
+      "htrans": "htrans",
+      "hwdata": "hwdata",
+      "hwrite": "hwrite"
+    },
+    "outputs": [
+      {
+        "name": "dma_int",
+        "port": "dma_int",
+        "width": 1
+      },
+      {
+        "name": "dma_ack",
+        "port": "dma_ack",
+        "width": "REQ_ACK_NUM"
+      },
+      {
+        "name": "hrdata",
+        "port": "hrdata",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "name": "hresp",
+        "port": "hresp",
+        "width": 2
+      },
+      {
+        "name": "hready",
+        "port": "hready",
+        "width": 1
+      },
+      {
+        "name": "haddr_mst",
+        "port": "haddr_mst",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "name": "htrans_mst",
+        "port": "htrans_mst",
+        "width": 2
+      },
+      {
+        "name": "hwrite_mst",
+        "port": "hwrite_mst",
+        "width": 1
+      },
+      {
+        "name": "hsize_mst",
+        "port": "hsize_mst",
+        "width": 3
+      },
+      {
+        "name": "hprot_mst",
+        "port": "hprot_mst",
+        "width": 4
+      },
+      {
+        "name": "hlock_mst",
+        "port": "hlock_mst",
+        "width": 1
+      },
+      {
+        "name": "hburst_mst",
+        "port": "hburst_mst",
+        "width": 3
+      },
+      {
+        "name": "hwdata_mst",
+        "port": "hwdata_mst",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "name": "hbusreq_mst",
+        "port": "hbusreq_mst",
+        "width": 1
+      }
+    ],
+    "reset": "hresetn",
+    "reset_active": "low",
+    "sample_condition": "hreadyin",
+    "special_outputs": {
+      "ready_output": "hready"
+    },
+    "top": "atcdmac100",
+    "transaction": "FM_AHB_READ"
+  },
+  "generated_at": "2026-05-18T03:17:21Z",
+  "ip": "atcdmac100",
+  "schema_version": 1,
+  "source": "DS079 SSOT + LLM-authored RTL contract for ATLAS tb-gen",
+  "top": "atcdmac100",
+  "type": "generic_ssot_rule_rtl_contract"
+}

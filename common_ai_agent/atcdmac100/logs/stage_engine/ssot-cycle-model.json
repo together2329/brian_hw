@@ -5,10 +5,10 @@
     "atcdmac100/model/cl_model_check.json when executable CL is required"
   ],
   "blocker": "",
-  "created_at": "2026-05-18T02:49:56Z",
+  "created_at": "2026-05-18T03:12:53Z",
   "headline": "[ssot-cycle-model] PASS",
   "ip": "atcdmac100",
-  "message": "[ssot-cycle-model] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py\nmodule: atcdmac100\nsource: atcdmac100/yaml/atcdmac100.ssot.yaml\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py atcdmac100 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcdmac100/model/functional_model.py\n[emit_fl_model] decomposition_units=8 fcov_bins=47 passed=True\n- emit_cycle_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py atcdmac100 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_cycle_model] trigger fired: cycle_model.handshake_rules is non-empty\n[emit_cycle_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcdmac100/model/cycle_model.py\n[emit_cycle_model] CL self-check passed=True\n\nexpected artifacts:\n- atcdmac100/model/functional_model.py\n- atcdmac100/model/cycle_model.py when executable CL is required\n- atcdmac100/model/cl_model_check.json when executable CL is required",
+  "message": "[ssot-cycle-model] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py\nmodule: atcdmac100\nsource: atcdmac100/yaml/atcdmac100.ssot.yaml\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py atcdmac100 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcdmac100/model/functional_model.py\n[emit_fl_model] decomposition_units=8 fcov_bins=49 passed=True\n- emit_cycle_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py atcdmac100 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_cycle_model] trigger fired: cycle_model.executable=pymtl3\n[emit_cycle_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcdmac100/model/cycle_model.py\n[emit_cycle_model] CL self-check passed=True\n\nexpected artifacts:\n- atcdmac100/model/functional_model.py\n- atcdmac100/model/cycle_model.py when executable CL is required\n- atcdmac100/model/cl_model_check.json when executable CL is required",
   "metadata": {},
   "returncode": 0,
   "runs": [
@@ -17,14 +17,14 @@
       "label": "emit_fl_model",
       "returncode": 0,
       "stderr": "",
-      "stdout": "[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcdmac100/model/functional_model.py\n[emit_fl_model] decomposition_units=8 fcov_bins=47 passed=True"
+      "stdout": "[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcdmac100/model/functional_model.py\n[emit_fl_model] decomposition_units=8 fcov_bins=49 passed=True"
     },
     {
       "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py atcdmac100 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
       "label": "emit_cycle_model",
       "returncode": 0,
       "stderr": "",
-      "stdout": "[emit_cycle_model] trigger fired: cycle_model.handshake_rules is non-empty\n[emit_cycle_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcdmac100/model/cycle_model.py\n[emit_cycle_model] CL self-check passed=True"
+      "stdout": "[emit_cycle_model] trigger fired: cycle_model.executable=pymtl3\n[emit_cycle_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcdmac100/model/cycle_model.py\n[emit_cycle_model] CL self-check passed=True"
     }
   ],
   "stage": "ssot-cycle-model",

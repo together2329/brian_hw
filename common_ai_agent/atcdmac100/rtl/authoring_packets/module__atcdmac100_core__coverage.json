@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 14,
+      "count": 17,
       "enabled": true,
-      "index": 12,
+      "index": 14,
       "key": "coverage",
-      "module_task_count": 278,
-      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 353,
+      "rule": "Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "coverage",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -25,13 +25,27 @@
       "refs": [
         "cycle_model",
         "dataflow",
+        "decomposition",
+        "decomposition.owners",
+        "decomposition.source_refs",
         "error_handling",
         "features",
         "fsm",
         "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.FM_AHB_READ",
+        "function_model.transactions.FM_AHB_WRITE",
+        "function_model.transactions.FM_ARBITRATE",
+        "function_model.transactions.FM_COMPLETE",
+        "function_model.transactions.FM_ERROR_ABORT",
+        "function_model.transactions.FM_HANDSHAKE_ACK",
+        "function_model.transactions.FM_MASTER_READ",
+        "function_model.transactions.FM_MASTER_WRITE",
+        "function_model.transactions.FM_RESET",
         "interrupts",
         "io_list",
         "registers",
+        "registers.register_list",
         "test_requirements",
         "traceability"
       ],
@@ -68,9 +82,9 @@
         "machine_readable": true,
         "module": "atcdmac100_core",
         "port": "hresetn",
-        "signal": "hresetn",
+        "signal": "RTL_TODO_2_quality_gates_rtl_gen",
         "signal_terms": [
-          "hresetn"
+          "RTL_TODO_2_quality_gates_rtl_gen"
         ],
         "source_ref": "integration.connections[1]"
       },
@@ -379,15 +393,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 13,
-    "open_required_count": 13,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -418,18 +432,18 @@
       "coverage.functional_bin": 13
     },
     "module_slice": {
-      "count": 14,
+      "count": 17,
       "enabled": true,
-      "index": 12,
+      "index": 14,
       "key": "coverage",
-      "module_task_count": 278,
-      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 353,
+      "rule": "Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "coverage",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 13,
+    "open_required_count": 0,
     "required_count": 13,
     "source_refs": [
       "test_requirements.coverage_goals.planned_bins.FCOV_REG_IDCFG",
@@ -447,7 +461,7 @@
       "test_requirements.coverage_goals.planned_bins.CCOV_ERROR_RESPONSE"
     ],
     "status_counts": {
-      "open": 13
+      "pass": 13
     },
     "task_count": 13
   },
@@ -465,7 +479,7 @@
       ],
       "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_REG_IDCFG.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_REG_IDCFG.",
       "evidence_terms": [],
-      "id": "RTL-0332",
+      "id": "RTL-0408",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
@@ -489,9 +503,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -507,7 +521,7 @@
       ],
       "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_INT_W1C.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_INT_W1C.",
       "evidence_terms": [],
-      "id": "RTL-0333",
+      "id": "RTL-0409",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
@@ -531,9 +545,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -549,7 +563,7 @@
       ],
       "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_DMA_READ_WRITE.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_DMA_READ_WRITE.",
       "evidence_terms": [],
-      "id": "RTL-0334",
+      "id": "RTL-0410",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
@@ -573,9 +587,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -591,7 +605,7 @@
       ],
       "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_DMA_WRITE.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_DMA_WRITE.",
       "evidence_terms": [],
-      "id": "RTL-0335",
+      "id": "RTL-0411",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
@@ -615,9 +629,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -633,7 +647,7 @@
       ],
       "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_TC_INT.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_TC_INT.",
       "evidence_terms": [],
-      "id": "RTL-0336",
+      "id": "RTL-0412",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
@@ -657,9 +671,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -675,7 +689,7 @@
       ],
       "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_ERROR_ABORT.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_ERROR_ABORT.",
       "evidence_terms": [],
-      "id": "RTL-0337",
+      "id": "RTL-0413",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
@@ -699,9 +713,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -717,7 +731,7 @@
       ],
       "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_REQ_ACK.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_REQ_ACK.",
       "evidence_terms": [],
-      "id": "RTL-0338",
+      "id": "RTL-0414",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
@@ -741,9 +755,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -759,7 +773,7 @@
       ],
       "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_PRIORITY.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=FCOV_PRIORITY.",
       "evidence_terms": [],
-      "id": "RTL-0339",
+      "id": "RTL-0415",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
@@ -783,9 +797,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -801,7 +815,7 @@
       ],
       "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_AHB_SLAVE_ACCESS.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=CCOV_AHB_SLAVE_ACCESS.",
       "evidence_terms": [],
-      "id": "RTL-0340",
+      "id": "RTL-0416",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
@@ -825,9 +839,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -843,7 +857,7 @@
       ],
       "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_MASTER_READ_WRITE.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=CCOV_MASTER_READ_WRITE.",
       "evidence_terms": [],
-      "id": "RTL-0341",
+      "id": "RTL-0417",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
@@ -867,9 +881,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -885,7 +899,7 @@
       ],
       "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_WAIT_STATE.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=CCOV_WAIT_STATE.",
       "evidence_terms": [],
-      "id": "RTL-0342",
+      "id": "RTL-0418",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
@@ -909,9 +923,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -927,7 +941,7 @@
       ],
       "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_HANDSHAKE_WAIT.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=CCOV_HANDSHAKE_WAIT.",
       "evidence_terms": [],
-      "id": "RTL-0343",
+      "id": "RTL-0419",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
@@ -951,9 +965,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -969,7 +983,7 @@
       ],
       "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_ERROR_RESPONSE.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=CCOV_ERROR_RESPONSE.",
       "evidence_terms": [],
-      "id": "RTL-0344",
+      "id": "RTL-0420",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
@@ -993,13 +1007,13 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "72f45ac236a074e74c4c80ad18e49e1163775dd9e0f8018c491d6f6563c1a372",
+  "todo_plan_sha256": "7da652c8f3ad6cbab8b8e9ee0f0a48d9ace8103da5920ba80b4dbc0877e508a9",
   "top": "atcdmac100",
   "type": "rtl_authoring_packet"
 }

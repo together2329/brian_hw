@@ -1,0 +1,33 @@
+{
+  "description": "Dynamic lint todo list from lint/lint_todo_plan.json",
+  "name": "atcdmac100-lint",
+  "schema_version": "todo_tracker.dynamic.v1",
+  "source_plan": "lint/lint_todo_plan.json",
+  "tasks": [
+    {
+      "activeForm": "Run DUT lint and close all report findings",
+      "approval_policy": "evidence_required",
+      "content": "Run DUT lint and close all report findings",
+      "criteria": "lint/dut_lint.json exists and dut_lint exits 0 with no blocking findings.",
+      "detail": "Use the lint workflow report as the approval source for syntax, style, and structural RTL findings.",
+      "priority": "high",
+      "required_evidence": [
+        "atcdmac100/lint/dut_lint.json",
+        "dut_lint returncode 0"
+      ],
+      "source_id": "LINT-0001",
+      "source_plan": "lint/lint_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "atcdmac100/lint/dut_lint.json",
+          "dut_lint returncode 0",
+          "dut_lint"
+        ],
+        "reason": "[lint] PASS",
+        "status": "pass"
+      }
+    }
+  ],
+  "ui_grouping": false
+}

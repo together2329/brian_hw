@@ -22,16 +22,16 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 44
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, dataflow, error_handling, features, fsm, function_model, interrupts, io_list, registers, test_requirements, traceability
-- Module slice: 7/14 section=registers task_limit=48
-- Slice rule: Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, dataflow, decomposition, decomposition.owners, decomposition.source_refs, error_handling, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM_AHB_READ, function_model.transactions.FM_AHB_WRITE, function_model.transactions.FM_ARBITRATE, function_model.transactions.FM_COMPLETE, function_model.transactions.FM_ERROR_ABORT, function_model.transactions.FM_HANDSHAKE_ACK
+- Module slice: 9/17 section=registers task_limit=48
+- Slice rule: Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
   - atcdmac100_core.hclk <= hclk (integration.connections[0])
-  - atcdmac100_core.hresetn <= hresetn (integration.connections[1])
+  - atcdmac100_core.hresetn <= RTL_TODO_2_quality_gates_rtl_gen (integration.connections[1])
   - atcdmac100_core.dma_int <= dma_int (integration.connections[2])
   - atcdmac100_core.dma_req <= dma_req (integration.connections[3])
   - atcdmac100_core.dma_ack <= dma_ack (integration.connections[4])
@@ -45,18 +45,18 @@
 
 ## Tasks
 
-### RTL-0212: Implement CSR/register IdRev
+### RTL-0272: Implement CSR/register IdRev
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.IdRev
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.IdRev.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=IdRev; width=32; reset=0x01021012; access=RO; offset=0x00.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -69,18 +69,18 @@ SSOT item context: name=IdRev; width=32; reset=0x01021012; access=RO; offset=0x0
   - IdRev decode uses SSOT address/offset 0x00
 - SSOT refs: registers.register_list.IdRev
 
-### RTL-0213: Implement field IdRev.ID
+### RTL-0273: Implement field IdRev.ID
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.IdRev.fields.ID
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.IdRev.fields.ID.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ID; reset=0x01021; access=RO.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -95,18 +95,18 @@ SSOT item context: name=ID; reset=0x01021; access=RO.
   - ID write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.IdRev.fields.ID
 
-### RTL-0214: Implement field IdRev.RevMajor
+### RTL-0274: Implement field IdRev.RevMajor
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.IdRev.fields.RevMajor
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.IdRev.fields.RevMajor.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=RevMajor; reset=0x1; access=RO.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -121,18 +121,18 @@ SSOT item context: name=RevMajor; reset=0x1; access=RO.
   - RevMajor write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.IdRev.fields.RevMajor
 
-### RTL-0215: Implement field IdRev.RevMinor
+### RTL-0275: Implement field IdRev.RevMinor
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.IdRev.fields.RevMinor
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.IdRev.fields.RevMinor.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=RevMinor; reset=0x2; access=RO.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -147,18 +147,18 @@ SSOT item context: name=RevMinor; reset=0x2; access=RO.
   - RevMinor write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.IdRev.fields.RevMinor
 
-### RTL-0216: Implement CSR/register DMACfg
+### RTL-0276: Implement CSR/register DMACfg
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.DMACfg
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.DMACfg.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=DMACfg; width=32; reset=CONFIG; access=RO; offset=0x10.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -171,18 +171,18 @@ SSOT item context: name=DMACfg; width=32; reset=CONFIG; access=RO; offset=0x10.
   - DMACfg decode uses SSOT address/offset 0x10
 - SSOT refs: registers.register_list.DMACfg
 
-### RTL-0217: Implement field DMACfg.ChainXfr
+### RTL-0277: Implement field DMACfg.ChainXfr
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.DMACfg.fields.ChainXfr
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DMACfg.fields.ChainXfr.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ChainXfr; reset=CHAIN_TRANSFER_SUPPORT; access=RO.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -197,18 +197,18 @@ SSOT item context: name=ChainXfr; reset=CHAIN_TRANSFER_SUPPORT; access=RO.
   - ChainXfr write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.DMACfg.fields.ChainXfr
 
-### RTL-0218: Implement field DMACfg.ReqSync
+### RTL-0278: Implement field DMACfg.ReqSync
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.DMACfg.fields.ReqSync
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DMACfg.fields.ReqSync.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ReqSync; reset=0x0; access=RO.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -223,18 +223,18 @@ SSOT item context: name=ReqSync; reset=0x0; access=RO.
   - ReqSync write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.DMACfg.fields.ReqSync
 
-### RTL-0219: Implement field DMACfg.ReqNum
+### RTL-0279: Implement field DMACfg.ReqNum
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.DMACfg.fields.ReqNum
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DMACfg.fields.ReqNum.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ReqNum; reset=REQ_ACK_NUM; access=RO.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -249,18 +249,18 @@ SSOT item context: name=ReqNum; reset=REQ_ACK_NUM; access=RO.
   - ReqNum write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.DMACfg.fields.ReqNum
 
-### RTL-0220: Implement field DMACfg.FIFODepth
+### RTL-0280: Implement field DMACfg.FIFODepth
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.DMACfg.fields.FIFODepth
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DMACfg.fields.FIFODepth.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=FIFODepth; reset=FIFO_DEPTH; access=RO.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -275,18 +275,18 @@ SSOT item context: name=FIFODepth; reset=FIFO_DEPTH; access=RO.
   - FIFODepth write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.DMACfg.fields.FIFODepth
 
-### RTL-0221: Implement field DMACfg.ChannelNum
+### RTL-0281: Implement field DMACfg.ChannelNum
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.DMACfg.fields.ChannelNum
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DMACfg.fields.ChannelNum.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ChannelNum; reset=DMA_CH_NUM; access=RO.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -301,18 +301,18 @@ SSOT item context: name=ChannelNum; reset=DMA_CH_NUM; access=RO.
   - ChannelNum write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.DMACfg.fields.ChannelNum
 
-### RTL-0222: Implement CSR/register DMACtrl
+### RTL-0282: Implement CSR/register DMACtrl
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.DMACtrl
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.DMACtrl.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=DMACtrl; width=32; reset=0x0; access=WO; offset=0x20.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -325,18 +325,18 @@ SSOT item context: name=DMACtrl; width=32; reset=0x0; access=WO; offset=0x20.
   - DMACtrl decode uses SSOT address/offset 0x20
 - SSOT refs: registers.register_list.DMACtrl
 
-### RTL-0223: Implement field DMACtrl.Reset
+### RTL-0283: Implement field DMACtrl.Reset
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.DMACtrl.fields.Reset
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.DMACtrl.fields.Reset.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=Reset; reset=0x0; access=WO.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -351,18 +351,18 @@ SSOT item context: name=Reset; reset=0x0; access=WO.
   - Reset write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.DMACtrl.fields.Reset
 
-### RTL-0224: Implement CSR/register IntStatus
+### RTL-0284: Implement CSR/register IntStatus
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.IntStatus
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.IntStatus.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=IntStatus; width=32; reset=0x0; access=R/W1C; offset=0x30.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -375,18 +375,18 @@ SSOT item context: name=IntStatus; width=32; reset=0x0; access=R/W1C; offset=0x3
   - IntStatus decode uses SSOT address/offset 0x30
 - SSOT refs: registers.register_list.IntStatus
 
-### RTL-0225: Implement field IntStatus.TC
+### RTL-0285: Implement field IntStatus.TC
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.IntStatus.fields.TC
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.IntStatus.fields.TC.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=TC; reset=0x0; access=R/W1C.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -401,18 +401,18 @@ SSOT item context: name=TC; reset=0x0; access=R/W1C.
   - TC write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.IntStatus.fields.TC
 
-### RTL-0226: Implement field IntStatus.Abort
+### RTL-0286: Implement field IntStatus.Abort
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.IntStatus.fields.Abort
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.IntStatus.fields.Abort.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=Abort; reset=0x0; access=R/W1C.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -427,18 +427,18 @@ SSOT item context: name=Abort; reset=0x0; access=R/W1C.
   - Abort write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.IntStatus.fields.Abort
 
-### RTL-0227: Implement field IntStatus.Error
+### RTL-0287: Implement field IntStatus.Error
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.IntStatus.fields.Error
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.IntStatus.fields.Error.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=Error; reset=0x0; access=R/W1C.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -453,18 +453,18 @@ SSOT item context: name=Error; reset=0x0; access=R/W1C.
   - Error write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.IntStatus.fields.Error
 
-### RTL-0228: Implement CSR/register ChEN
+### RTL-0288: Implement CSR/register ChEN
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.ChEN
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.ChEN.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ChEN; width=32; reset=0x0; access=RO; offset=0x34.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -477,18 +477,18 @@ SSOT item context: name=ChEN; width=32; reset=0x0; access=RO; offset=0x34.
   - ChEN decode uses SSOT address/offset 0x34
 - SSOT refs: registers.register_list.ChEN
 
-### RTL-0229: Implement field ChEN.ChEN
+### RTL-0289: Implement field ChEN.ChEN
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChEN.fields.ChEN
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChEN.fields.ChEN.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ChEN; reset=0x0; access=RO.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -503,18 +503,18 @@ SSOT item context: name=ChEN; reset=0x0; access=RO.
   - ChEN write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChEN.fields.ChEN
 
-### RTL-0230: Implement CSR/register ChAbort
+### RTL-0290: Implement CSR/register ChAbort
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.ChAbort
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.ChAbort.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ChAbort; width=32; reset=0x0; access=WO; offset=0x40.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -527,18 +527,18 @@ SSOT item context: name=ChAbort; width=32; reset=0x0; access=WO; offset=0x40.
   - ChAbort decode uses SSOT address/offset 0x40
 - SSOT refs: registers.register_list.ChAbort
 
-### RTL-0231: Implement field ChAbort.ChAbort
+### RTL-0291: Implement field ChAbort.ChAbort
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChAbort.fields.ChAbort
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChAbort.fields.ChAbort.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ChAbort; reset=0x0; access=WO.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -553,18 +553,18 @@ SSOT item context: name=ChAbort; reset=0x0; access=WO.
   - ChAbort write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChAbort.fields.ChAbort
 
-### RTL-0232: Implement CSR/register ChnCtrl
+### RTL-0292: Implement CSR/register ChnCtrl
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.ChnCtrl
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.ChnCtrl.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ChnCtrl; width=32; reset=0x000A0000; access=R/W; offset=0x44+n*0x14.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -577,18 +577,18 @@ SSOT item context: name=ChnCtrl; width=32; reset=0x000A0000; access=R/W; offset=
   - ChnCtrl decode uses SSOT address/offset 0x44+n*0x14
 - SSOT refs: registers.register_list.ChnCtrl
 
-### RTL-0233: Implement field ChnCtrl.Priority
+### RTL-0293: Implement field ChnCtrl.Priority
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.Priority
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.Priority.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=Priority; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -603,18 +603,18 @@ SSOT item context: name=Priority; reset=0x0; access=R/W.
   - Priority write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.Priority
 
-### RTL-0234: Implement field ChnCtrl.SrcBurstSize
+### RTL-0294: Implement field ChnCtrl.SrcBurstSize
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.SrcBurstSize
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.SrcBurstSize.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=SrcBurstSize; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -629,18 +629,18 @@ SSOT item context: name=SrcBurstSize; reset=0x0; access=R/W.
   - SrcBurstSize write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.SrcBurstSize
 
-### RTL-0235: Implement field ChnCtrl.SrcWidth
+### RTL-0295: Implement field ChnCtrl.SrcWidth
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.SrcWidth
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.SrcWidth.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=SrcWidth; reset=0x2; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -655,18 +655,18 @@ SSOT item context: name=SrcWidth; reset=0x2; access=R/W.
   - SrcWidth write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.SrcWidth
 
-### RTL-0236: Implement field ChnCtrl.DstWidth
+### RTL-0296: Implement field ChnCtrl.DstWidth
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.DstWidth
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.DstWidth.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=DstWidth; reset=0x2; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -681,18 +681,18 @@ SSOT item context: name=DstWidth; reset=0x2; access=R/W.
   - DstWidth write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.DstWidth
 
-### RTL-0237: Implement field ChnCtrl.SrcMode
+### RTL-0297: Implement field ChnCtrl.SrcMode
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.SrcMode
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.SrcMode.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=SrcMode; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -707,18 +707,18 @@ SSOT item context: name=SrcMode; reset=0x0; access=R/W.
   - SrcMode write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.SrcMode
 
-### RTL-0238: Implement field ChnCtrl.DstMode
+### RTL-0298: Implement field ChnCtrl.DstMode
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.DstMode
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.DstMode.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=DstMode; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -733,18 +733,18 @@ SSOT item context: name=DstMode; reset=0x0; access=R/W.
   - DstMode write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.DstMode
 
-### RTL-0239: Implement field ChnCtrl.SrcAddrCtrl
+### RTL-0299: Implement field ChnCtrl.SrcAddrCtrl
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.SrcAddrCtrl
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.SrcAddrCtrl.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=SrcAddrCtrl; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -759,18 +759,18 @@ SSOT item context: name=SrcAddrCtrl; reset=0x0; access=R/W.
   - SrcAddrCtrl write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.SrcAddrCtrl
 
-### RTL-0240: Implement field ChnCtrl.DstAddrCtrl
+### RTL-0300: Implement field ChnCtrl.DstAddrCtrl
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.DstAddrCtrl
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.DstAddrCtrl.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=DstAddrCtrl; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -785,18 +785,18 @@ SSOT item context: name=DstAddrCtrl; reset=0x0; access=R/W.
   - DstAddrCtrl write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.DstAddrCtrl
 
-### RTL-0241: Implement field ChnCtrl.SrcReqSel
+### RTL-0301: Implement field ChnCtrl.SrcReqSel
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.SrcReqSel
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.SrcReqSel.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=SrcReqSel; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -811,18 +811,18 @@ SSOT item context: name=SrcReqSel; reset=0x0; access=R/W.
   - SrcReqSel write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.SrcReqSel
 
-### RTL-0242: Implement field ChnCtrl.DstReqSel
+### RTL-0302: Implement field ChnCtrl.DstReqSel
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.DstReqSel
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.DstReqSel.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=DstReqSel; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -837,18 +837,18 @@ SSOT item context: name=DstReqSel; reset=0x0; access=R/W.
   - DstReqSel write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.DstReqSel
 
-### RTL-0243: Implement field ChnCtrl.IntAbtMask
+### RTL-0303: Implement field ChnCtrl.IntAbtMask
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.IntAbtMask
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.IntAbtMask.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=IntAbtMask; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -863,18 +863,18 @@ SSOT item context: name=IntAbtMask; reset=0x0; access=R/W.
   - IntAbtMask write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.IntAbtMask
 
-### RTL-0244: Implement field ChnCtrl.IntErrMask
+### RTL-0304: Implement field ChnCtrl.IntErrMask
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.IntErrMask
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.IntErrMask.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=IntErrMask; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -889,18 +889,18 @@ SSOT item context: name=IntErrMask; reset=0x0; access=R/W.
   - IntErrMask write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.IntErrMask
 
-### RTL-0245: Implement field ChnCtrl.IntTCMask
+### RTL-0305: Implement field ChnCtrl.IntTCMask
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.IntTCMask
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.IntTCMask.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=IntTCMask; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -915,18 +915,18 @@ SSOT item context: name=IntTCMask; reset=0x0; access=R/W.
   - IntTCMask write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.IntTCMask
 
-### RTL-0246: Implement field ChnCtrl.Enable
+### RTL-0306: Implement field ChnCtrl.Enable
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnCtrl.fields.Enable
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnCtrl.fields.Enable.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=Enable; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -941,18 +941,18 @@ SSOT item context: name=Enable; reset=0x0; access=R/W.
   - Enable write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnCtrl.fields.Enable
 
-### RTL-0247: Implement CSR/register ChnSrcAddr
+### RTL-0307: Implement CSR/register ChnSrcAddr
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.ChnSrcAddr
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.ChnSrcAddr.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ChnSrcAddr; width=32; reset=0x0; access=R/W; offset=0x48+n*0x14.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -965,18 +965,18 @@ SSOT item context: name=ChnSrcAddr; width=32; reset=0x0; access=R/W; offset=0x48
   - ChnSrcAddr decode uses SSOT address/offset 0x48+n*0x14
 - SSOT refs: registers.register_list.ChnSrcAddr
 
-### RTL-0248: Implement field ChnSrcAddr.SrcAddr
+### RTL-0308: Implement field ChnSrcAddr.SrcAddr
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnSrcAddr.fields.SrcAddr
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnSrcAddr.fields.SrcAddr.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=SrcAddr; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -991,18 +991,18 @@ SSOT item context: name=SrcAddr; reset=0x0; access=R/W.
   - SrcAddr write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnSrcAddr.fields.SrcAddr
 
-### RTL-0249: Implement CSR/register ChnDstAddr
+### RTL-0309: Implement CSR/register ChnDstAddr
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.ChnDstAddr
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.ChnDstAddr.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ChnDstAddr; width=32; reset=0x0; access=R/W; offset=0x4C+n*0x14.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -1015,18 +1015,18 @@ SSOT item context: name=ChnDstAddr; width=32; reset=0x0; access=R/W; offset=0x4C
   - ChnDstAddr decode uses SSOT address/offset 0x4C+n*0x14
 - SSOT refs: registers.register_list.ChnDstAddr
 
-### RTL-0250: Implement field ChnDstAddr.DstAddr
+### RTL-0310: Implement field ChnDstAddr.DstAddr
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnDstAddr.fields.DstAddr
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnDstAddr.fields.DstAddr.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=DstAddr; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -1041,18 +1041,18 @@ SSOT item context: name=DstAddr; reset=0x0; access=R/W.
   - DstAddr write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnDstAddr.fields.DstAddr
 
-### RTL-0251: Implement CSR/register ChnTranSize
+### RTL-0311: Implement CSR/register ChnTranSize
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.ChnTranSize
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.ChnTranSize.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ChnTranSize; width=32; reset=0x0; access=R/W; offset=0x50+n*0x14.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -1065,18 +1065,18 @@ SSOT item context: name=ChnTranSize; width=32; reset=0x0; access=R/W; offset=0x5
   - ChnTranSize decode uses SSOT address/offset 0x50+n*0x14
 - SSOT refs: registers.register_list.ChnTranSize
 
-### RTL-0252: Implement field ChnTranSize.TranSize
+### RTL-0312: Implement field ChnTranSize.TranSize
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnTranSize.fields.TranSize
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnTranSize.fields.TranSize.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=TranSize; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -1091,18 +1091,18 @@ SSOT item context: name=TranSize; reset=0x0; access=R/W.
   - TranSize write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnTranSize.fields.TranSize
 
-### RTL-0253: Implement CSR/register ChnLLPointer
+### RTL-0313: Implement CSR/register ChnLLPointer
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.ChnLLPointer
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.ChnLLPointer.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=ChnLLPointer; width=32; reset=0x0; access=R/W; offset=0x54+n*0x14.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -1115,18 +1115,18 @@ SSOT item context: name=ChnLLPointer; width=32; reset=0x0; access=R/W; offset=0x
   - ChnLLPointer decode uses SSOT address/offset 0x54+n*0x14
 - SSOT refs: registers.register_list.ChnLLPointer
 
-### RTL-0254: Implement field ChnLLPointer.LLPointer
+### RTL-0314: Implement field ChnLLPointer.LLPointer
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnLLPointer.fields.LLPointer
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnLLPointer.fields.LLPointer.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=LLPointer; reset=0x0; access=R/W.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -1141,18 +1141,18 @@ SSOT item context: name=LLPointer; reset=0x0; access=R/W.
   - LLPointer write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.ChnLLPointer.fields.LLPointer
 
-### RTL-0255: Implement field ChnLLPointer.Reserved
+### RTL-0315: Implement field ChnLLPointer.Reserved
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.ChnLLPointer.fields.Reserved
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.ChnLLPointer.fields.Reserved.
-Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.
+Owner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.
 SSOT item context: name=Reserved; reset=0x0; access=reserved.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT

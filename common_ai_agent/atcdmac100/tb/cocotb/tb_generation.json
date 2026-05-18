@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_generation",
+  "status": "pass",
+  "ip": "atcdmac100",
+  "generated_at": "2026-05-18T03:17:22Z",
+  "manifest": "atcdmac100/tb/cocotb/tb_manifest.json",
+  "test": "atcdmac100/tb/cocotb/test_atcdmac100.py",
+  "runner": "atcdmac100/tb/cocotb/test_runner.py",
+  "goals": 62,
+  "rtl_sources": 2
+}

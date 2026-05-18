@@ -22,25 +22,14 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: integration, io_list
-- Tool-evidence blockers:
-  - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
-  - dut_compile: Missing canonical DUT compile artifact: rtl/rtl_compile.json.
-  - dut_lint: Missing canonical DUT lint artifact: lint/dut_lint.json.
-  - dynamic_todo_closure: 338 required non-closure TODO(s) remain open.
-- Tool-evidence runbook:
-  - common_ai_agent_authoring: stages=ssot-rtl; artifact=atcdmac100/rtl/rtl_authoring_provenance.json
-  - dut_compile: stages=ssot-rtl, dut_compile; artifact=atcdmac100/rtl/rtl_compile.json
-  - dut_lint: stages=lint, dut_lint; artifact=atcdmac100/lint/dut_lint.json
-  - dynamic_todo_closure: stages=audit-rtl; artifact=atcdmac100/rtl/rtl_todo_plan.json
+- Owner refs: cycle_model, dataflow, fsm, function_model, integration, io_list, top_integration
 - SSOT connection contracts:
-  - atcdmac100.<port> <= <signal> (sub_modules[1].connections)
   - atcdmac100_core.hclk <= hclk (integration.connections[0])
-  - atcdmac100_core.hresetn <= hresetn (integration.connections[1])
+  - atcdmac100_core.hresetn <= RTL_TODO_2_quality_gates_rtl_gen (integration.connections[1])
   - atcdmac100_core.dma_int <= dma_int (integration.connections[2])
   - atcdmac100_core.dma_req <= dma_req (integration.connections[3])
   - atcdmac100_core.dma_ack <= dma_ack (integration.connections[4])
@@ -50,6 +39,7 @@
   - atcdmac100_core.hsize <= hsize (integration.connections[8])
   - atcdmac100_core.hburst <= hburst (integration.connections[9])
   - atcdmac100_core.hwdata <= hwdata (integration.connections[10])
+  - atcdmac100_core.hsel <= hsel (integration.connections[11])
 - SSOT top IO contracts: 29
 
 ## Tasks
@@ -58,13 +48,13 @@
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
-- Current reason: Missing common_ai_agent RTL authoring provenance.
+- Current reason: RTL authoring provenance proves common_ai_agent rtl-gen ownership.
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -81,13 +71,13 @@ Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
-- Current reason: Missing canonical DUT compile artifact: rtl/rtl_compile.json.
+- Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true
@@ -102,13 +92,13 @@ Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
-- Current reason: Missing canonical DUT lint artifact: lint/dut_lint.json.
+- Current reason: DUT-only lint artifact passed with zero errors, warnings, and suppression violations.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -124,13 +114,13 @@ Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dynamic_todo_closure
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
-- Current reason: 338 required non-closure TODO(s) remain open.
+- Current reason: Every required non-closure TODO has pass status.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero

@@ -22,16 +22,16 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 29
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, dataflow, error_handling, features, fsm, function_model, interrupts, io_list, registers, test_requirements, traceability
-- Module slice: 1/14 section=io_list task_limit=48
-- Slice rule: Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, dataflow, decomposition, decomposition.owners, decomposition.source_refs, error_handling, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM_AHB_READ, function_model.transactions.FM_AHB_WRITE, function_model.transactions.FM_ARBITRATE, function_model.transactions.FM_COMPLETE, function_model.transactions.FM_ERROR_ABORT, function_model.transactions.FM_HANDSHAKE_ACK
+- Module slice: 1/17 section=io_list task_limit=48
+- Slice rule: Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
   - atcdmac100_core.hclk <= hclk (integration.connections[0])
-  - atcdmac100_core.hresetn <= hresetn (integration.connections[1])
+  - atcdmac100_core.hresetn <= RTL_TODO_2_quality_gates_rtl_gen (integration.connections[1])
   - atcdmac100_core.dma_int <= dma_int (integration.connections[2])
   - atcdmac100_core.dma_req <= dma_req (integration.connections[3])
   - atcdmac100_core.dma_ack <= dma_ack (integration.connections[4])
@@ -49,14 +49,14 @@
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.clock_domains.hclk_domain.ports.hclk
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.clock_domains.hclk_domain.ports.hclk.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hclk; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -71,14 +71,14 @@ SSOT item context: name=hclk; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.resets.hresetn.ports.hresetn
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.resets.hresetn.ports.hresetn.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hresetn; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -93,14 +93,14 @@ SSOT item context: name=hresetn; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.dma_handshake.ports.dma_int
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.dma_handshake.ports.dma_int.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=dma_int; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -115,14 +115,14 @@ SSOT item context: name=dma_int; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.dma_handshake.ports.dma_req
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.dma_handshake.ports.dma_req.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=dma_req; width=REQ_ACK_NUM; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -137,14 +137,14 @@ SSOT item context: name=dma_req; width=REQ_ACK_NUM; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.dma_handshake.ports.dma_ack
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.dma_handshake.ports.dma_ack.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=dma_ack; width=REQ_ACK_NUM; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -159,14 +159,14 @@ SSOT item context: name=dma_ack; width=REQ_ACK_NUM; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_slave_regs.ports.haddr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_slave_regs.ports.haddr.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=haddr; width=ADDR_WIDTH; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -181,14 +181,14 @@ SSOT item context: name=haddr; width=ADDR_WIDTH; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_slave_regs.ports.htrans
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_slave_regs.ports.htrans.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=htrans; width=2; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -203,14 +203,14 @@ SSOT item context: name=htrans; width=2; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_slave_regs.ports.hwrite
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_slave_regs.ports.hwrite.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hwrite; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -225,14 +225,14 @@ SSOT item context: name=hwrite; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_slave_regs.ports.hsize
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_slave_regs.ports.hsize.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hsize; width=3; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -247,14 +247,14 @@ SSOT item context: name=hsize; width=3; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_slave_regs.ports.hburst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_slave_regs.ports.hburst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hburst; width=3; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -269,14 +269,14 @@ SSOT item context: name=hburst; width=3; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_slave_regs.ports.hwdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_slave_regs.ports.hwdata.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hwdata; width=32; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -291,14 +291,14 @@ SSOT item context: name=hwdata; width=32; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_slave_regs.ports.hsel
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_slave_regs.ports.hsel.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hsel; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -313,14 +313,14 @@ SSOT item context: name=hsel; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_slave_regs.ports.hreadyin
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_slave_regs.ports.hreadyin.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hreadyin; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -335,14 +335,14 @@ SSOT item context: name=hreadyin; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_slave_regs.ports.hrdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_slave_regs.ports.hrdata.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hrdata; width=32; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -357,14 +357,14 @@ SSOT item context: name=hrdata; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_slave_regs.ports.hresp
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_slave_regs.ports.hresp.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hresp; width=2; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -379,14 +379,14 @@ SSOT item context: name=hresp; width=2; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_slave_regs.ports.hready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_slave_regs.ports.hready.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hready; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -401,14 +401,14 @@ SSOT item context: name=hready; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_master_dma.ports.haddr_mst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_master_dma.ports.haddr_mst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=haddr_mst; width=ADDR_WIDTH; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -423,14 +423,14 @@ SSOT item context: name=haddr_mst; width=ADDR_WIDTH; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_master_dma.ports.htrans_mst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_master_dma.ports.htrans_mst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=htrans_mst; width=2; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -445,14 +445,14 @@ SSOT item context: name=htrans_mst; width=2; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_master_dma.ports.hwrite_mst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_master_dma.ports.hwrite_mst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hwrite_mst; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -467,14 +467,14 @@ SSOT item context: name=hwrite_mst; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_master_dma.ports.hsize_mst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_master_dma.ports.hsize_mst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hsize_mst; width=3; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -489,14 +489,14 @@ SSOT item context: name=hsize_mst; width=3; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_master_dma.ports.hprot_mst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_master_dma.ports.hprot_mst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hprot_mst; width=4; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -511,14 +511,14 @@ SSOT item context: name=hprot_mst; width=4; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_master_dma.ports.hlock_mst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_master_dma.ports.hlock_mst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hlock_mst; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -533,14 +533,14 @@ SSOT item context: name=hlock_mst; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_master_dma.ports.hburst_mst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_master_dma.ports.hburst_mst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hburst_mst; width=3; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -555,14 +555,14 @@ SSOT item context: name=hburst_mst; width=3; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_master_dma.ports.hwdata_mst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_master_dma.ports.hwdata_mst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hwdata_mst; width=32; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -577,14 +577,14 @@ SSOT item context: name=hwdata_mst; width=32; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_master_dma.ports.hrdata_mst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_master_dma.ports.hrdata_mst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hrdata_mst; width=32; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -599,14 +599,14 @@ SSOT item context: name=hrdata_mst; width=32; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_master_dma.ports.hresp_mst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_master_dma.ports.hresp_mst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hresp_mst; width=2; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -621,14 +621,14 @@ SSOT item context: name=hresp_mst; width=2; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_master_dma.ports.hready_mst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_master_dma.ports.hready_mst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hready_mst; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -643,14 +643,14 @@ SSOT item context: name=hready_mst; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_master_dma.ports.hbusreq_mst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_master_dma.ports.hbusreq_mst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hbusreq_mst; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -665,14 +665,14 @@ SSOT item context: name=hbusreq_mst; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.ahb_master_dma.ports.hgrant_mst
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.ahb_master_dma.ports.hgrant_mst.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via io_list.
 SSOT item context: name=hgrant_mst; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified

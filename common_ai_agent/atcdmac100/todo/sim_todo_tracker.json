@@ -1,0 +1,63 @@
+{
+  "description": "Dynamic sim todo list from sim/sim_todo_plan.json",
+  "name": "atcdmac100-sim",
+  "schema_version": "todo_tracker.dynamic.v1",
+  "source_plan": "sim/sim_todo_plan.json",
+  "tasks": [
+    {
+      "activeForm": "Run generated testbench and collect simulator evidence",
+      "approval_policy": "evidence_required",
+      "content": "Run generated testbench and collect simulator evidence",
+      "criteria": "sim.sh and check_tb_sim_evidence both exit 0; results.xml, scoreboard_events.jsonl, and sim_report.txt exist.",
+      "detail": "Run the generated TB through sim.sh and require machine-readable pass/fail evidence.",
+      "priority": "high",
+      "required_evidence": [
+        "atcdmac100/sim/results.xml or atcdmac100/tb/cocotb/results.xml",
+        "atcdmac100/sim/scoreboard_events.jsonl",
+        "atcdmac100/sim/sim_report.txt"
+      ],
+      "source_id": "SIM-0001",
+      "source_plan": "sim/sim_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "atcdmac100/sim/results.xml or atcdmac100/tb/cocotb/results.xml",
+          "atcdmac100/sim/scoreboard_events.jsonl",
+          "atcdmac100/sim/sim_report.txt",
+          "sim",
+          "sim_evidence",
+          "ssot_coverage_summary"
+        ],
+        "reason": "[sim] PASS",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Produce coverage-ready scoreboard rows",
+      "approval_policy": "evidence_required",
+      "content": "Produce coverage-ready scoreboard rows",
+      "criteria": "ssot_coverage_summary exits 0, or a blocked coverage capability is explicitly recorded by policy.",
+      "detail": "Simulation evidence must carry goal/scenario/coverage references so Coverage can audit FL/CL bins against RTL observations.",
+      "priority": "high",
+      "required_evidence": [
+        "atcdmac100/cov/coverage.json",
+        "ssot_coverage_summary returncode 0 or explicit rc=3 policy override"
+      ],
+      "source_id": "SIM-0002",
+      "source_plan": "sim/sim_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "atcdmac100/cov/coverage.json",
+          "ssot_coverage_summary returncode 0 or explicit rc=3 policy override",
+          "sim",
+          "sim_evidence",
+          "ssot_coverage_summary"
+        ],
+        "reason": "[sim] PASS",
+        "status": "pass"
+      }
+    }
+  ],
+  "ui_grouping": false
+}

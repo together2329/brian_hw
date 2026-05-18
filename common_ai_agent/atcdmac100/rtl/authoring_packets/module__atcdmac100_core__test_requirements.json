@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 14,
+      "count": 17,
       "enabled": true,
-      "index": 11,
+      "index": 13,
       "key": "test_requirements",
-      "module_task_count": 278,
-      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 353,
+      "rule": "Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "test_requirements",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -25,13 +25,27 @@
       "refs": [
         "cycle_model",
         "dataflow",
+        "decomposition",
+        "decomposition.owners",
+        "decomposition.source_refs",
         "error_handling",
         "features",
         "fsm",
         "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.FM_AHB_READ",
+        "function_model.transactions.FM_AHB_WRITE",
+        "function_model.transactions.FM_ARBITRATE",
+        "function_model.transactions.FM_COMPLETE",
+        "function_model.transactions.FM_ERROR_ABORT",
+        "function_model.transactions.FM_HANDSHAKE_ACK",
+        "function_model.transactions.FM_MASTER_READ",
+        "function_model.transactions.FM_MASTER_WRITE",
+        "function_model.transactions.FM_RESET",
         "interrupts",
         "io_list",
         "registers",
+        "registers.register_list",
         "test_requirements",
         "traceability"
       ],
@@ -68,9 +82,9 @@
         "machine_readable": true,
         "module": "atcdmac100_core",
         "port": "hresetn",
-        "signal": "hresetn",
+        "signal": "RTL_TODO_2_quality_gates_rtl_gen",
         "signal_terms": [
-          "hresetn"
+          "RTL_TODO_2_quality_gates_rtl_gen"
         ],
         "source_ref": "integration.connections[1]"
       },
@@ -379,15 +393,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 6,
-    "open_required_count": 6,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -415,62 +429,68 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
-      "test_requirements.scenario": 6
+      "test_requirements.scenario": 12
     },
     "module_slice": {
-      "count": 14,
+      "count": 17,
       "enabled": true,
-      "index": 11,
+      "index": 13,
       "key": "test_requirements",
-      "module_task_count": 278,
-      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 353,
+      "rule": "Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "test_requirements",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 6,
-    "required_count": 6,
+    "open_required_count": 0,
+    "required_count": 12,
     "source_refs": [
-      "test_requirements.scenarios.SC_AHB_REG",
-      "test_requirements.scenarios.SC_MEM_COPY",
-      "test_requirements.scenarios.SC_ARB",
-      "test_requirements.scenarios.SC_HANDSHAKE",
-      "test_requirements.scenarios.SC_ERROR_ABORT",
-      "test_requirements.scenarios.SC_CHAIN"
+      "test_requirements.scenarios.SC01",
+      "test_requirements.scenarios.SC02",
+      "test_requirements.scenarios.SC03",
+      "test_requirements.scenarios.SC04",
+      "test_requirements.scenarios.SC05",
+      "test_requirements.scenarios.SC06",
+      "test_requirements.scenarios.SC07",
+      "test_requirements.scenarios.SC08",
+      "test_requirements.scenarios.SC09",
+      "test_requirements.scenarios.SC10",
+      "test_requirements.scenarios.SC11",
+      "test_requirements.scenarios.SC12"
     ],
     "status_counts": {
-      "open": 6
+      "pass": 12
     },
-    "task_count": 6
+    "task_count": 12
   },
   "tasks": [
     {
       "category": "test_requirements.scenario",
-      "content": "Keep RTL observable for scenario SC_AHB_REG",
+      "content": "Keep RTL observable for scenario SC01",
       "criteria": [
         "RTL exposes enough signals/status/outputs for the scenario checker",
         "FunctionalModel expected result and RTL observed result can be compared",
         "Scenario has coverage refs or a precise SSOT reason for exclusion",
-        "Traceability keeps source_ref test_requirements.scenarios.SC_AHB_REG",
+        "Traceability keeps source_ref test_requirements.scenarios.SC01",
         "Primary implementation evidence is in rtl/atcdmac100_core.sv",
-        "Downstream checker compares RTL-observed behavior against expected result: hready=1, hresp=OKAY, read data matches programmed or RO values, W1C clears only written status bits."
+        "Downstream checker compares RTL-observed behavior against expected result: Architectural state, status, outputs, and debug observability match function_model reset outputs."
       ],
-      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_AHB_REG.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC_AHB_REG; name=AHB register programming; expected=hready=1, hresp=OKAY, read data matches programmed or RO values, W1C clears only written status bits..",
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC01.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC01; name=reset contract; expected=Architectural state, status, outputs, and debug observability match function_model reset outputs..",
       "evidence_terms": [],
-      "id": "RTL-0326",
+      "id": "RTL-0396",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
       "required": true,
-      "source_ref": "test_requirements.scenarios.SC_AHB_REG",
+      "source_ref": "test_requirements.scenarios.SC01",
       "ssot_context": {
-        "expected": "hready=1, hresp=OKAY, read data matches programmed or RO values, W1C clears only written status bits.",
-        "id": "SC_AHB_REG",
-        "name": "AHB register programming"
+        "expected": "Architectural state, status, outputs, and debug observability match function_model reset outputs.",
+        "id": "SC01",
+        "name": "reset contract"
       },
       "ssot_refs": [
-        "test_requirements.scenarios.SC_AHB_REG"
+        "test_requirements.scenarios.SC01"
       ],
       "static_evidence": {
         "required": false,
@@ -484,37 +504,37 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "test_requirements.scenario",
-      "content": "Keep RTL observable for scenario SC_MEM_COPY",
+      "content": "Keep RTL observable for scenario SC02",
       "criteria": [
         "RTL exposes enough signals/status/outputs for the scenario checker",
         "FunctionalModel expected result and RTL observed result can be compared",
         "Scenario has coverage refs or a precise SSOT reason for exclusion",
-        "Traceability keeps source_ref test_requirements.scenarios.SC_MEM_COPY",
+        "Traceability keeps source_ref test_requirements.scenarios.SC02",
         "Primary implementation evidence is in rtl/atcdmac100_core.sv",
-        "Downstream checker compares RTL-observed behavior against expected result: AHB master issues read/write pairs, bytes_done advances, IntStatus.TC bit sets, channel disables."
+        "Downstream checker compares RTL-observed behavior against expected result: Externally observable result/status/side effects match the function_model primary transaction."
       ],
-      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_MEM_COPY.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC_MEM_COPY; name=single-channel memory copy; expected=AHB master issues read/write pairs, bytes_done advances, IntStatus.TC bit sets, channel disables..",
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC02.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC02; name=primary approved behavior; expected=Externally observable result/status/side effects match the function_model primary transaction..",
       "evidence_terms": [],
-      "id": "RTL-0327",
+      "id": "RTL-0397",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
       "required": true,
-      "source_ref": "test_requirements.scenarios.SC_MEM_COPY",
+      "source_ref": "test_requirements.scenarios.SC02",
       "ssot_context": {
-        "expected": "AHB master issues read/write pairs, bytes_done advances, IntStatus.TC bit sets, channel disables.",
-        "id": "SC_MEM_COPY",
-        "name": "single-channel memory copy"
+        "expected": "Externally observable result/status/side effects match the function_model primary transaction.",
+        "id": "SC02",
+        "name": "primary approved behavior"
       },
       "ssot_refs": [
-        "test_requirements.scenarios.SC_MEM_COPY"
+        "test_requirements.scenarios.SC02"
       ],
       "static_evidence": {
         "required": false,
@@ -528,37 +548,37 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "test_requirements.scenario",
-      "content": "Keep RTL observable for scenario SC_ARB",
+      "content": "Keep RTL observable for scenario SC03",
       "criteria": [
         "RTL exposes enough signals/status/outputs for the scenario checker",
         "FunctionalModel expected result and RTL observed result can be compared",
         "Scenario has coverage refs or a precise SSOT reason for exclusion",
-        "Traceability keeps source_ref test_requirements.scenarios.SC_ARB",
+        "Traceability keeps source_ref test_requirements.scenarios.SC03",
         "Primary implementation evidence is in rtl/atcdmac100_core.sv",
-        "Downstream checker compares RTL-observed behavior against expected result: High priority service precedes low priority; same priority rotates without starvation."
+        "Downstream checker compares RTL-observed behavior against expected result: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules."
       ],
-      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_ARB.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC_ARB; name=priority round-robin arbitration; expected=High priority service precedes low priority; same priority rotates without starvation..",
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC03.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC03; name=cycle handshake and backpressure; expected=Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules..",
       "evidence_terms": [],
-      "id": "RTL-0328",
+      "id": "RTL-0398",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
       "required": true,
-      "source_ref": "test_requirements.scenarios.SC_ARB",
+      "source_ref": "test_requirements.scenarios.SC03",
       "ssot_context": {
-        "expected": "High priority service precedes low priority; same priority rotates without starvation.",
-        "id": "SC_ARB",
-        "name": "priority round-robin arbitration"
+        "expected": "Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.",
+        "id": "SC03",
+        "name": "cycle handshake and backpressure"
       },
       "ssot_refs": [
-        "test_requirements.scenarios.SC_ARB"
+        "test_requirements.scenarios.SC03"
       ],
       "static_evidence": {
         "required": false,
@@ -572,37 +592,37 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "test_requirements.scenario",
-      "content": "Keep RTL observable for scenario SC_HANDSHAKE",
+      "content": "Keep RTL observable for scenario SC04",
       "criteria": [
         "RTL exposes enough signals/status/outputs for the scenario checker",
         "FunctionalModel expected result and RTL observed result can be compared",
         "Scenario has coverage refs or a precise SSOT reason for exclusion",
-        "Traceability keeps source_ref test_requirements.scenarios.SC_HANDSHAKE",
+        "Traceability keeps source_ref test_requirements.scenarios.SC04",
         "Primary implementation evidence is in rtl/atcdmac100_core.sv",
-        "Downstream checker compares RTL-observed behavior against expected result: Master traffic waits for request and dma_ack asserts after SrcBurstSize service, then deasserts after request drops."
+        "Downstream checker compares RTL-observed behavior against expected result: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state."
       ],
-      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_HANDSHAKE.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC_HANDSHAKE; name=hardware request acknowledge; expected=Master traffic waits for request and dma_ack asserts after SrcBurstSize service, then deasserts after request drops..",
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC04.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC04; name=error and recovery policy; expected=Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state..",
       "evidence_terms": [],
-      "id": "RTL-0329",
+      "id": "RTL-0399",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
       "required": true,
-      "source_ref": "test_requirements.scenarios.SC_HANDSHAKE",
+      "source_ref": "test_requirements.scenarios.SC04",
       "ssot_context": {
-        "expected": "Master traffic waits for request and dma_ack asserts after SrcBurstSize service, then deasserts after request drops.",
-        "id": "SC_HANDSHAKE",
-        "name": "hardware request acknowledge"
+        "expected": "Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.",
+        "id": "SC04",
+        "name": "error and recovery policy"
       },
       "ssot_refs": [
-        "test_requirements.scenarios.SC_HANDSHAKE"
+        "test_requirements.scenarios.SC04"
       ],
       "static_evidence": {
         "required": false,
@@ -616,37 +636,37 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "test_requirements.scenario",
-      "content": "Keep RTL observable for scenario SC_ERROR_ABORT",
+      "content": "Keep RTL observable for scenario SC05",
       "criteria": [
         "RTL exposes enough signals/status/outputs for the scenario checker",
         "FunctionalModel expected result and RTL observed result can be compared",
         "Scenario has coverage refs or a precise SSOT reason for exclusion",
-        "Traceability keeps source_ref test_requirements.scenarios.SC_ERROR_ABORT",
+        "Traceability keeps source_ref test_requirements.scenarios.SC05",
         "Primary implementation evidence is in rtl/atcdmac100_core.sv",
-        "Downstream checker compares RTL-observed behavior against expected result: Channel disables, IntStatus.Error or Abort sets, dma_int asserts according to mask, no ack on error."
+        "Downstream checker compares RTL-observed behavior against expected result: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior."
       ],
-      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_ERROR_ABORT.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC_ERROR_ABORT; name=error and abort handling; expected=Channel disables, IntStatus.Error or Abort sets, dma_int asserts according to mask, no ack on error..",
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC05.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC05; name=debug and trace observability; expected=Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior..",
       "evidence_terms": [],
-      "id": "RTL-0330",
+      "id": "RTL-0400",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
       "required": true,
-      "source_ref": "test_requirements.scenarios.SC_ERROR_ABORT",
+      "source_ref": "test_requirements.scenarios.SC05",
       "ssot_context": {
-        "expected": "Channel disables, IntStatus.Error or Abort sets, dma_int asserts according to mask, no ack on error.",
-        "id": "SC_ERROR_ABORT",
-        "name": "error and abort handling"
+        "expected": "Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.",
+        "id": "SC05",
+        "name": "debug and trace observability"
       },
       "ssot_refs": [
-        "test_requirements.scenarios.SC_ERROR_ABORT"
+        "test_requirements.scenarios.SC05"
       ],
       "static_evidence": {
         "required": false,
@@ -660,37 +680,37 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "test_requirements.scenario",
-      "content": "Keep RTL observable for scenario SC_CHAIN",
+      "content": "Keep RTL observable for scenario SC06",
       "criteria": [
         "RTL exposes enough signals/status/outputs for the scenario checker",
         "FunctionalModel expected result and RTL observed result can be compared",
         "Scenario has coverage refs or a precise SSOT reason for exclusion",
-        "Traceability keeps source_ref test_requirements.scenarios.SC_CHAIN",
+        "Traceability keeps source_ref test_requirements.scenarios.SC06",
         "Primary implementation evidence is in rtl/atcdmac100_core.sv",
-        "Downstream checker compares RTL-observed behavior against expected result: Completion records chain pending/preload behavior and allows software to resume continuation."
+        "Downstream checker compares RTL-observed behavior against expected result: Outputs and side effects match `FM_RESET` exactly."
       ],
-      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_CHAIN.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC_CHAIN; name=chain transfer continuation; expected=Completion records chain pending/preload behavior and allows software to resume continuation..",
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC06.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC06; name=function_model transaction FM_RESET; expected=Outputs and side effects match `FM_RESET` exactly..",
       "evidence_terms": [],
-      "id": "RTL-0331",
+      "id": "RTL-0401",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "normal",
       "required": true,
-      "source_ref": "test_requirements.scenarios.SC_CHAIN",
+      "source_ref": "test_requirements.scenarios.SC06",
       "ssot_context": {
-        "expected": "Completion records chain pending/preload behavior and allows software to resume continuation.",
-        "id": "SC_CHAIN",
-        "name": "chain transfer continuation"
+        "expected": "Outputs and side effects match `FM_RESET` exactly.",
+        "id": "SC06",
+        "name": "function_model transaction FM_RESET"
       },
       "ssot_refs": [
-        "test_requirements.scenarios.SC_CHAIN"
+        "test_requirements.scenarios.SC06"
       ],
       "static_evidence": {
         "required": false,
@@ -704,13 +724,277 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC07",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC07",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Outputs and side effects match `FM_AHB_WRITE` exactly."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC07.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC07; name=function_model transaction FM_AHB_WRITE; expected=Outputs and side effects match `FM_AHB_WRITE` exactly..",
+      "evidence_terms": [],
+      "id": "RTL-0402",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC07",
+      "ssot_context": {
+        "expected": "Outputs and side effects match `FM_AHB_WRITE` exactly.",
+        "id": "SC07",
+        "name": "function_model transaction FM_AHB_WRITE"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC07"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC08",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC08",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Outputs and side effects match `FM_AHB_READ` exactly."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC08.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC08; name=function_model transaction FM_AHB_READ; expected=Outputs and side effects match `FM_AHB_READ` exactly..",
+      "evidence_terms": [],
+      "id": "RTL-0403",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC08",
+      "ssot_context": {
+        "expected": "Outputs and side effects match `FM_AHB_READ` exactly.",
+        "id": "SC08",
+        "name": "function_model transaction FM_AHB_READ"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC08"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC09",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC09",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Outputs and side effects match `FM_ARBITRATE` exactly."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC09.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC09; name=function_model transaction FM_ARBITRATE; expected=Outputs and side effects match `FM_ARBITRATE` exactly..",
+      "evidence_terms": [],
+      "id": "RTL-0404",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC09",
+      "ssot_context": {
+        "expected": "Outputs and side effects match `FM_ARBITRATE` exactly.",
+        "id": "SC09",
+        "name": "function_model transaction FM_ARBITRATE"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC09"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC10",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC10",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Outputs and side effects match `FM_MASTER_READ` exactly."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC10.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC10; name=function_model transaction FM_MASTER_READ; expected=Outputs and side effects match `FM_MASTER_READ` exactly..",
+      "evidence_terms": [],
+      "id": "RTL-0405",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC10",
+      "ssot_context": {
+        "expected": "Outputs and side effects match `FM_MASTER_READ` exactly.",
+        "id": "SC10",
+        "name": "function_model transaction FM_MASTER_READ"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC10"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC11",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC11",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Outputs and side effects match `FM_MASTER_WRITE` exactly."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC11.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC11; name=function_model transaction FM_MASTER_WRITE; expected=Outputs and side effects match `FM_MASTER_WRITE` exactly..",
+      "evidence_terms": [],
+      "id": "RTL-0406",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC11",
+      "ssot_context": {
+        "expected": "Outputs and side effects match `FM_MASTER_WRITE` exactly.",
+        "id": "SC11",
+        "name": "function_model transaction FM_MASTER_WRITE"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC11"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC12",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC12",
+        "Primary implementation evidence is in rtl/atcdmac100_core.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: Outputs and side effects match `FM_COMPLETE` exactly."
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC12.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.\nSSOT item context: id=SC12; name=function_model transaction FM_COMPLETE; expected=Outputs and side effects match `FM_COMPLETE` exactly..",
+      "evidence_terms": [],
+      "id": "RTL-0407",
+      "owner_file": "rtl/atcdmac100_core.sv",
+      "owner_module": "atcdmac100_core",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC12",
+      "ssot_context": {
+        "expected": "Outputs and side effects match `FM_COMPLETE` exactly.",
+        "id": "SC12",
+        "name": "function_model transaction FM_COMPLETE"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC12"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "72f45ac236a074e74c4c80ad18e49e1163775dd9e0f8018c491d6f6563c1a372",
+  "todo_plan_sha256": "7da652c8f3ad6cbab8b8e9ee0f0a48d9ace8103da5920ba80b4dbc0877e508a9",
   "top": "atcdmac100",
   "type": "rtl_authoring_packet"
 }

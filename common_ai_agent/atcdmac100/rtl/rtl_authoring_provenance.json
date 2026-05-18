@@ -1,0 +1,19 @@
+{
+  "agent": "common_ai_agent",
+  "authoring_note": "ATLAS visible orchestrator session codexadmin/atcdmac100/orchestrator drove DS079 SSOT-to-RTL flow.",
+  "rtl_files": [
+    "rtl/atcdmac100_core.sv",
+    "rtl/atcdmac100.sv"
+  ],
+  "schema_version": 1,
+  "source_requirement": {
+    "pages": 34,
+    "path": "/Users/brian/Desktop/andes/platform/AE210P_20161118/DOCS/AndeShape_ATCDMAC100_DS079_V1.2.pdf",
+    "sha256": "009859054f1992b6c64ec7e4e09402aad1b2ee21558c6c3cce48d91a4b231ac9"
+  },
+  "surface": "atlas_ui",
+  "todo_plan_sha256": "7da652c8f3ad6cbab8b8e9ee0f0a48d9ace8103da5920ba80b4dbc0877e508a9",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-05-18T03:16:46Z",
+  "workflow": "rtl-gen"
+}

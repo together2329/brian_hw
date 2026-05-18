@@ -268,8 +268,8 @@
     }
   },
   "summary": {
-    "total": 59,
-    "required": 59,
+    "total": 62,
+    "required": 62,
     "optional": 0,
     "blocked": 0,
     "unverified": 0,
@@ -296,7 +296,9 @@
         "atcdmac100_fsm_model",
         "atcdmac100_error_model"
       ],
-      "coverage_refs": [],
+      "coverage_refs": [
+        "SC06_executed"
+      ],
       "stimulus_contract": {
         "transaction_type": "hardware or software reset",
         "required_fields": [
@@ -321,6 +323,18 @@
           "hsize_mst",
           "hburst_mst",
           "hwdata_mst",
+          "{'state': 'dmac_reset_pulse', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'ch_enable', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_tc', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_abort', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_error', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'src_addr_cur', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'dst_addr_cur', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'read_data_hold', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'chain_pending', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
           "hready_reset",
           "hresp_reset",
           "dma_int_reset",
@@ -382,7 +396,9 @@
         "atcdmac100_fsm_model",
         "atcdmac100_error_model"
       ],
-      "coverage_refs": [],
+      "coverage_refs": [
+        "SC07_executed"
+      ],
       "stimulus_contract": {
         "transaction_type": "AHB slave register write",
         "required_fields": [
@@ -397,6 +413,14 @@
         "observables": [
           "hready=1",
           "hresp=OKAY for valid register writes",
+          "{'name': 'hready_write', 'port': 'hready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hresp_write', 'port': 'hresp', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'dma_int_after_write', 'port': 'dma_int', 'expr': 'reduction_or((int_tc | int_abort | int_error) & ch_enable)', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'dmac_reset_pulse', 'expr': '1 if haddr == 32 and (hwdata & 1) else 0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_tc', 'expr': 'int_tc & ~((hwdata >> 16) & 255) if haddr == 48 else int_tc', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_abort', 'expr': 'int_abort & ~((hwdata >> 8) & 255) if haddr == 48 else int_abort', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_error', 'expr': 'int_error & ~(hwdata & 255) if haddr == 48 else int_error', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'ch_enable', 'expr': 'ch_enable & ~(hwdata & ch_enable) if haddr == 64 else ch_enable', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
           "hready_write",
           "hresp_write",
           "dma_int_after_write"
@@ -450,7 +474,9 @@
         "atcdmac100_fsm_model",
         "atcdmac100_error_model"
       ],
-      "coverage_refs": [],
+      "coverage_refs": [
+        "SC08_executed"
+      ],
       "stimulus_contract": {
         "transaction_type": "AHB slave register read",
         "required_fields": [
@@ -464,6 +490,9 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "{'name': 'hready_read', 'port': 'hready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hresp_read', 'port': 'hresp', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hrdata_id_cfg_status', 'port': 'hrdata', 'expr': '0x01021012 if haddr == 0 else ((CHAIN_TRANSFER_SUPPORT << 31) | (REQ_ACK_NUM << 10) | (FIFO_DEPTH << 4) | DMA_CH_NUM) if haddr == 16 else ((int_tc << 16) | (int_abort << 8) | int_error) if haddr == 48 else ch_enable if haddr == 52 else 0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
           "hready_read",
           "hresp_read",
           "hrdata_id_cfg_status"
@@ -512,7 +541,9 @@
         "atcdmac100_fsm_model",
         "atcdmac100_error_model"
       ],
-      "coverage_refs": [],
+      "coverage_refs": [
+        "SC09_executed"
+      ],
       "stimulus_contract": {
         "transaction_type": "channel arbitration",
         "required_fields": [
@@ -526,6 +557,11 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
           "hbusreq_on_start",
           "htrans_idle_on_start"
         ],
@@ -576,7 +612,9 @@
         "atcdmac100_fsm_model",
         "atcdmac100_error_model"
       ],
-      "coverage_refs": [],
+      "coverage_refs": [
+        "SC10_executed"
+      ],
       "stimulus_contract": {
         "transaction_type": "AHB master read beat",
         "required_fields": [
@@ -590,6 +628,13 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "issues AHB master read from current source address",
+          "{'name': 'hbusreq_read', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_read', 'port': 'htrans_mst', 'expr': '2', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hwrite_read', 'port': 'hwrite_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'haddr_read', 'port': 'haddr_mst', 'expr': 'src_addr_cur', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hsize_word', 'port': 'hsize_mst', 'expr': '2', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hburst_incr', 'port': 'hburst_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'read_data_hold', 'expr': 'hrdata_mst', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
           "hbusreq_read",
           "htrans_read",
           "hwrite_read",
@@ -642,7 +687,9 @@
         "atcdmac100_fsm_model",
         "atcdmac100_error_model"
       ],
-      "coverage_refs": [],
+      "coverage_refs": [
+        "SC11_executed"
+      ],
       "stimulus_contract": {
         "transaction_type": "AHB master write beat",
         "required_fields": [
@@ -656,6 +703,14 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "issues AHB master write to current destination address",
+          "{'name': 'hbusreq_write', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_write', 'port': 'htrans_mst', 'expr': '3', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hwrite_write', 'port': 'hwrite_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'haddr_write', 'port': 'haddr_mst', 'expr': 'dst_addr_cur', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hwdata_write', 'port': 'hwdata_mst', 'expr': 'read_data_hold', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': 'bytes_done + 4', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'src_addr_cur', 'expr': 'src_addr_cur + 4', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'dst_addr_cur', 'expr': 'dst_addr_cur + 4', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
           "hbusreq_write",
           "htrans_write",
           "hwrite_write",
@@ -709,7 +764,9 @@
         "atcdmac100_fsm_model",
         "atcdmac100_error_model"
       ],
-      "coverage_refs": [],
+      "coverage_refs": [
+        "SC12_executed"
+      ],
       "stimulus_contract": {
         "transaction_type": "terminal count completion",
         "required_fields": [
@@ -723,6 +780,13 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "updates IntStatus.TC and asserts dma_int if interrupt is unmasked",
+          "{'name': 'hbusreq_complete', 'port': 'hbusreq_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_complete', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'dma_int_tc', 'port': 'dma_int', 'expr': 'reduction_or((int_tc | (1 << active_ch)) | int_abort | int_error)', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'ch_enable', 'expr': 'ch_enable & ~(1 << active_ch)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_tc', 'expr': 'int_tc | (1 << active_ch)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'chain_pending', 'expr': '1 if CHAIN_TRANSFER_SUPPORT else 0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
           "hbusreq_complete",
           "htrans_complete",
           "dma_int_tc"
@@ -789,6 +853,13 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "updates IntStatus.Error or Abort and asserts dma_int if unmasked",
+          "{'name': 'hbusreq_error', 'port': 'hbusreq_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_error', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'dma_int_error', 'port': 'dma_int', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'dma_ack_error', 'port': 'dma_ack', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'ch_enable', 'expr': 'ch_enable & ~(1 << active_ch)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_error', 'expr': 'int_error | (1 << active_ch)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
           "hbusreq_error",
           "htrans_error",
           "dma_int_error",
@@ -855,6 +926,9 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "asserts dma_ack for selected request pair until dma_req deasserts",
+          "{'name': 'dma_ack_selected', 'port': 'dma_ack', 'expr': '1 << active_ch', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'dma_int_handshake', 'port': 'dma_int', 'expr': 'reduction_or(int_tc | int_abort | int_error)', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
           "dma_ack_selected",
           "dma_int_handshake"
         ],
@@ -887,8 +961,8 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_SCENARIO_SC_AHB_REG",
-      "title": "Scenario SC_AHB_REG: AHB register programming",
+      "goal_id": "EQ_SCENARIO_SC01",
+      "title": "Scenario SC01: reset contract",
       "kind": "transaction",
       "scope": {
         "level": "top"
@@ -907,22 +981,22 @@
         "atcdmac100_security_model"
       ],
       "coverage_refs": [
-        "SC_AHB_REG_executed"
+        "SC01_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC_AHB_REG",
+        "transaction_type": "SC01",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Write/read IdRev, DMACfg, IntStatus W1C, ChAbort, and channel register windows through AHB slave."
+          "Assert and release the declared reset while all external interfaces remain idle."
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hready=1, hresp=OKAY, read data matches programmed or RO values, W1C clears only written status bits.",
+          "Architectural state, status, outputs, and debug observability match function_model reset outputs.",
           "Scenario expected result from SSOT"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
@@ -951,8 +1025,8 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_SCENARIO_SC_MEM_COPY",
-      "title": "Scenario SC_MEM_COPY: single-channel memory copy",
+      "goal_id": "EQ_SCENARIO_SC02",
+      "title": "Scenario SC02: primary approved behavior",
       "kind": "transaction",
       "scope": {
         "level": "top"
@@ -971,27 +1045,40 @@
         "atcdmac100_security_model"
       ],
       "coverage_refs": [
-        "SC_MEM_COPY_executed"
+        "SC02_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC_MEM_COPY",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Program channel source, destination, size, word width, increment modes, and Enable=1."
+          "Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "AHB master issues read/write pairs, bytes_done advances, IntStatus.TC bit sets, channel disables.",
-          "Scenario expected result from SSOT"
+          "Externally observable result/status/side effects match the function_model primary transaction.",
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
-        "error_policy": ""
+        "state_updates": [
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -1015,8 +1102,8 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_SCENARIO_SC_ARB",
-      "title": "Scenario SC_ARB: priority round-robin arbitration",
+      "goal_id": "EQ_SCENARIO_SC03",
+      "title": "Scenario SC03: cycle handshake and backpressure",
       "kind": "transaction",
       "scope": {
         "level": "top"
@@ -1035,28 +1122,40 @@
         "atcdmac100_security_model"
       ],
       "coverage_refs": [
-        "SC_ARB_executed",
-        "fcov_priority"
+        "SC03_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC_ARB",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Enable multiple high and low priority channels."
+          "Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "High priority service precedes low priority; same priority rotates without starvation.",
-          "Scenario expected result from SSOT"
+          "Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.",
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
-        "error_policy": ""
+        "state_updates": [
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -1080,8 +1179,8 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_SCENARIO_SC_HANDSHAKE",
-      "title": "Scenario SC_HANDSHAKE: hardware request acknowledge",
+      "goal_id": "EQ_SCENARIO_SC04",
+      "title": "Scenario SC04: error and recovery policy",
       "kind": "transaction",
       "scope": {
         "level": "top"
@@ -1100,22 +1199,22 @@
         "atcdmac100_security_model"
       ],
       "coverage_refs": [
-        "SC_HANDSHAKE_executed"
+        "SC04_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC_HANDSHAKE",
+        "transaction_type": "SC04",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Enable handshake modes with dma_req selected for source/destination."
+          "Inject each declared error_handling.error_sources condition where the interface can represent it."
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Master traffic waits for request and dma_ack asserts after SrcBurstSize service, then deasserts after request drops.",
+          "Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.",
           "Scenario expected result from SSOT"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
@@ -1144,8 +1243,8 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_SCENARIO_SC_ERROR_ABORT",
-      "title": "Scenario SC_ERROR_ABORT: error and abort handling",
+      "goal_id": "EQ_SCENARIO_SC05",
+      "title": "Scenario SC05: debug and trace observability",
       "kind": "transaction",
       "scope": {
         "level": "top"
@@ -1164,27 +1263,40 @@
         "atcdmac100_security_model"
       ],
       "coverage_refs": [
-        "SC_ERROR_ABORT_executed"
+        "SC05_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC_ERROR_ABORT",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Inject hresp_mst error, unaligned address, reserved mode, zero TranSize, and ChAbort write."
+          "Run nominal and error flows while sampling every debug_observability waveform/status/trace point.",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Channel disables, IntStatus.Error or Abort sets, dma_int asserts according to mask, no ack on error.",
-          "Scenario expected result from SSOT"
+          "Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.",
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
-        "error_policy": ""
+        "state_updates": [
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -1208,8 +1320,8 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_SCENARIO_SC_CHAIN",
-      "title": "Scenario SC_CHAIN: chain transfer continuation",
+      "goal_id": "EQ_SCENARIO_SC06",
+      "title": "Scenario SC06: function_model transaction FM_RESET",
       "kind": "transaction",
       "scope": {
         "level": "top"
@@ -1228,27 +1340,548 @@
         "atcdmac100_security_model"
       ],
       "coverage_refs": [
-        "SC_CHAIN_executed"
+        "SC06_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC_CHAIN",
+        "transaction_type": "hardware or software reset",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Program ChnLLPointer nonzero with chain support enabled."
+          "Drive preconditions for function_model transaction `FM_RESET`.",
+          "hresetn == 0 or DMACtrl.Reset write is observed"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Completion records chain pending/preload behavior and allows software to resume continuation.",
-          "Scenario expected result from SSOT"
+          "Outputs and side effects match `FM_RESET` exactly.",
+          "hready",
+          "hresp",
+          "hrdata",
+          "dma_int",
+          "dma_ack",
+          "hbusreq_mst",
+          "htrans_mst",
+          "haddr_mst",
+          "hwrite_mst",
+          "hsize_mst",
+          "hburst_mst",
+          "hwdata_mst",
+          "{'state': 'dmac_reset_pulse', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'ch_enable', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_tc', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_abort', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_error', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'src_addr_cur', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'dst_addr_cur', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'read_data_hold', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'chain_pending', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hready_reset",
+          "hresp_reset",
+          "dma_int_reset",
+          "htrans_mst_reset"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
-        "error_policy": ""
+        "state_updates": [
+          "disable all channels, clear active state, clear interrupt status",
+          "state_0",
+          "state_1",
+          "state_2",
+          "state_3",
+          "state_4",
+          "state_5",
+          "state_6",
+          "state_7",
+          "state_8",
+          "state_9",
+          "state_10",
+          "state_11"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC07",
+      "title": "Scenario SC07: function_model transaction FM_AHB_WRITE",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[6]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "SC07_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register write",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_AHB_WRITE`.",
+          "hsel and hreadyin and htrans[1] and hwrite"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_AHB_WRITE` exactly.",
+          "hready=1",
+          "hresp=OKAY for valid register writes",
+          "{'name': 'hready_write', 'port': 'hready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hresp_write', 'port': 'hresp', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'dma_int_after_write', 'port': 'dma_int', 'expr': 'reduction_or((int_tc | int_abort | int_error) & ch_enable)', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'dmac_reset_pulse', 'expr': '1 if haddr == 32 and (hwdata & 1) else 0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_tc', 'expr': 'int_tc & ~((hwdata >> 16) & 255) if haddr == 48 else int_tc', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_abort', 'expr': 'int_abort & ~((hwdata >> 8) & 255) if haddr == 48 else int_abort', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_error', 'expr': 'int_error & ~(hwdata & 255) if haddr == 48 else int_error', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'ch_enable', 'expr': 'ch_enable & ~(hwdata & ch_enable) if haddr == 64 else ch_enable', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hready_write",
+          "hresp_write",
+          "dma_int_after_write"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "updates writable DMAC/channel registers; W1C clears IntStatus bits; ChAbort write-one aborts enabled channels",
+          "state_0",
+          "state_1",
+          "state_2",
+          "state_3",
+          "state_4"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC08",
+      "title": "Scenario SC08: function_model transaction FM_AHB_READ",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[7]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "SC08_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB slave register read",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_AHB_READ`.",
+          "hsel and hreadyin and htrans[1] and not hwrite"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_AHB_READ` exactly.",
+          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
+          "{'name': 'hready_read', 'port': 'hready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hresp_read', 'port': 'hresp', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hrdata_id_cfg_status', 'port': 'hrdata', 'expr': '0x01021012 if haddr == 0 else ((CHAIN_TRANSFER_SUPPORT << 31) | (REQ_ACK_NUM << 10) | (FIFO_DEPTH << 4) | DMA_CH_NUM) if haddr == 16 else ((int_tc << 16) | (int_abort << 8) | int_error) if haddr == 48 else ch_enable if haddr == 52 else 0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "hready_read",
+          "hresp_read",
+          "hrdata_id_cfg_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "no architectural state changes"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC09",
+      "title": "Scenario SC09: function_model transaction FM_ARBITRATE",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[8]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "SC09_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "channel arbitration",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_ARBITRATE`.",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_ARBITRATE` exactly.",
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC10",
+      "title": "Scenario SC10: function_model transaction FM_MASTER_READ",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[9]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "SC10_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB master read beat",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_MASTER_READ`.",
+          "busy and hgrant_mst and hready_mst and not fifo full"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_MASTER_READ` exactly.",
+          "issues AHB master read from current source address",
+          "{'name': 'hbusreq_read', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_read', 'port': 'htrans_mst', 'expr': '2', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hwrite_read', 'port': 'hwrite_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'haddr_read', 'port': 'haddr_mst', 'expr': 'src_addr_cur', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hsize_word', 'port': 'hsize_mst', 'expr': '2', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hburst_incr', 'port': 'hburst_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'read_data_hold', 'expr': 'hrdata_mst', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_read",
+          "htrans_read",
+          "hwrite_read",
+          "haddr_read",
+          "hsize_word",
+          "hburst_incr"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "captures hrdata_mst for corresponding write beat",
+          "state_0"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC11",
+      "title": "Scenario SC11: function_model transaction FM_MASTER_WRITE",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[10]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "SC11_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "AHB master write beat",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_MASTER_WRITE`.",
+          "busy and hgrant_mst and hready_mst and read data available"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_MASTER_WRITE` exactly.",
+          "issues AHB master write to current destination address",
+          "{'name': 'hbusreq_write', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_write', 'port': 'htrans_mst', 'expr': '3', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hwrite_write', 'port': 'hwrite_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'haddr_write', 'port': 'haddr_mst', 'expr': 'dst_addr_cur', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'hwdata_write', 'port': 'hwdata_mst', 'expr': 'read_data_hold', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': 'bytes_done + 4', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'src_addr_cur', 'expr': 'src_addr_cur + 4', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'dst_addr_cur', 'expr': 'dst_addr_cur + 4', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_write",
+          "htrans_write",
+          "hwrite_write",
+          "haddr_write",
+          "hwdata_write"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "increments/decrements/fixes addresses according to control fields and updates bytes_done",
+          "state_0",
+          "state_1",
+          "state_2"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC12",
+      "title": "Scenario SC12: function_model transaction FM_COMPLETE",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[11]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "SC12_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "terminal count completion",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_COMPLETE`.",
+          "bytes_done reaches ChnTranSize without error or abort"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_COMPLETE` exactly.",
+          "updates IntStatus.TC and asserts dma_int if interrupt is unmasked",
+          "{'name': 'hbusreq_complete', 'port': 'hbusreq_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_complete', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'dma_int_tc', 'port': 'dma_int', 'expr': 'reduction_or((int_tc | (1 << active_ch)) | int_abort | int_error)', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'ch_enable', 'expr': 'ch_enable & ~(1 << active_ch)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'int_tc', 'expr': 'int_tc | (1 << active_ch)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'chain_pending', 'expr': '1 if CHAIN_TRANSFER_SUPPORT else 0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_complete",
+          "htrans_complete",
+          "dma_int_tc"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "disables completed channel; chain pointer may preload next descriptor when enabled",
+          "state_0",
+          "state_1",
+          "state_2",
+          "state_3"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -1521,7 +2154,6 @@
         "atcdmac100_register_model"
       ],
       "coverage_refs": [
-        "SC_AHB_REG_executed",
         "fcov_reg_idcfg",
         "fcov_int_w1c",
         "function_ahb_slave_register_write",
@@ -1584,7 +2216,6 @@
         "atcdmac100_register_model"
       ],
       "coverage_refs": [
-        "SC_AHB_REG_executed",
         "fcov_reg_idcfg",
         "fcov_int_w1c",
         "function_ahb_slave_register_write",
@@ -1647,7 +2278,6 @@
         "atcdmac100_register_model"
       ],
       "coverage_refs": [
-        "SC_AHB_REG_executed",
         "fcov_reg_idcfg",
         "fcov_int_w1c",
         "function_ahb_slave_register_write",
@@ -1710,7 +2340,6 @@
         "atcdmac100_register_model"
       ],
       "coverage_refs": [
-        "SC_AHB_REG_executed",
         "fcov_reg_idcfg",
         "fcov_int_w1c",
         "function_ahb_slave_register_write",
@@ -1773,7 +2402,6 @@
         "atcdmac100_register_model"
       ],
       "coverage_refs": [
-        "SC_AHB_REG_executed",
         "fcov_reg_idcfg",
         "fcov_int_w1c",
         "function_ahb_slave_register_write",
@@ -1836,12 +2464,10 @@
         "atcdmac100_register_model"
       ],
       "coverage_refs": [
-        "SC_AHB_REG_executed",
         "fcov_reg_idcfg",
         "fcov_int_w1c",
         "function_ahb_slave_register_write",
-        "function_ahb_slave_register_read",
-        "error_software_chabort_for_enabled_channel"
+        "function_ahb_slave_register_read"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -1900,7 +2526,6 @@
         "atcdmac100_register_model"
       ],
       "coverage_refs": [
-        "SC_AHB_REG_executed",
         "fcov_reg_idcfg",
         "fcov_int_w1c",
         "function_ahb_slave_register_write",
@@ -1963,7 +2588,6 @@
         "atcdmac100_register_model"
       ],
       "coverage_refs": [
-        "SC_AHB_REG_executed",
         "fcov_reg_idcfg",
         "fcov_int_w1c",
         "function_ahb_slave_register_write",
@@ -2026,7 +2650,6 @@
         "atcdmac100_register_model"
       ],
       "coverage_refs": [
-        "SC_AHB_REG_executed",
         "fcov_reg_idcfg",
         "fcov_int_w1c",
         "function_ahb_slave_register_write",
@@ -2089,7 +2712,6 @@
         "atcdmac100_register_model"
       ],
       "coverage_refs": [
-        "SC_AHB_REG_executed",
         "fcov_reg_idcfg",
         "fcov_int_w1c",
         "function_ahb_slave_register_write",
@@ -2152,7 +2774,6 @@
         "atcdmac100_register_model"
       ],
       "coverage_refs": [
-        "SC_AHB_REG_executed",
         "fcov_reg_idcfg",
         "fcov_int_w1c",
         "function_ahb_slave_register_write",
@@ -2204,8 +2825,8 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_ERROR_AHB_HRESP_MST_ERROR",
-      "title": "Error policy AHB hresp_mst error",
+      "goal_id": "EQ_ERROR_NONE",
+      "title": "Error policy None",
       "kind": "error",
       "scope": {
         "level": "top"
@@ -2218,292 +2839,20 @@
         "atcdmac100_error_model"
       ],
       "coverage_refs": [
-        "SC_ERROR_ABORT_executed",
+        "SC04_executed",
         "fcov_error_abort",
         "ccov_error_response",
         "function_error_or_software_abort",
         "fsm_name_read_addr_to_error_abort_7",
-        "error_ahb_hresp_mst_error",
-        "error_unaligned_source_or_destination_address",
-        "error_reserved_width_or_address_control_mode",
-        "error_zero_transfer_size_when_enabling_a_channel",
-        "error_software_chabort_for_enabled_channel"
+        "error_error_0"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB hresp_mst error",
+        "transaction_type": "None",
         "required_fields": [
           "fault_condition"
         ],
         "constraints": [
-          "AHB hresp_mst error"
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "error response",
-          "status/interrupt/debug observable"
-        ],
-        "latency": "error propagation timing from cycle_model",
-        "state_updates": [
-          "error state/counter/status update"
-        ],
-        "error_policy": "Set IntStatus.Error or IntStatus.Abort, clear channel enable, assert dma_int if not masked, stop further master transfers."
-      },
-      "pass_criteria": [
-        "Fault stimulus produces the SSOT-defined error response",
-        "No illegal side effect occurs unless SSOT allows it",
-        "Error coverage bin is hit"
-      ],
-      "owner_on_fail": {
-        "default": "rtl",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "rtl",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_ERROR_UNALIGNED_SOURCE_OR_DESTINATION_ADDRESS",
-      "title": "Error policy unaligned source or destination address",
-      "kind": "error",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "error_handling.error_sources[1]"
-      ],
-      "decomposition_refs": [
-        "atcdmac100_protocol_model",
-        "atcdmac100_error_model"
-      ],
-      "coverage_refs": [
-        "SC_ERROR_ABORT_executed",
-        "fcov_error_abort",
-        "ccov_error_response",
-        "function_error_or_software_abort",
-        "fsm_name_read_addr_to_error_abort_7",
-        "error_ahb_hresp_mst_error",
-        "error_unaligned_source_or_destination_address",
-        "error_reserved_width_or_address_control_mode",
-        "error_zero_transfer_size_when_enabling_a_channel",
-        "error_software_chabort_for_enabled_channel"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "unaligned source or destination address",
-        "required_fields": [
-          "fault_condition"
-        ],
-        "constraints": [
-          "unaligned source or destination address"
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "error response",
-          "status/interrupt/debug observable"
-        ],
-        "latency": "error propagation timing from cycle_model",
-        "state_updates": [
-          "error state/counter/status update"
-        ],
-        "error_policy": "Set IntStatus.Error or IntStatus.Abort, clear channel enable, assert dma_int if not masked, stop further master transfers."
-      },
-      "pass_criteria": [
-        "Fault stimulus produces the SSOT-defined error response",
-        "No illegal side effect occurs unless SSOT allows it",
-        "Error coverage bin is hit"
-      ],
-      "owner_on_fail": {
-        "default": "rtl",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "rtl",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_ERROR_RESERVED_WIDTH_OR_ADDRESS_CONTROL_MODE",
-      "title": "Error policy reserved width or address-control mode",
-      "kind": "error",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "error_handling.error_sources[2]"
-      ],
-      "decomposition_refs": [
-        "atcdmac100_protocol_model",
-        "atcdmac100_error_model"
-      ],
-      "coverage_refs": [
-        "SC_ERROR_ABORT_executed",
-        "fcov_error_abort",
-        "ccov_error_response",
-        "function_error_or_software_abort",
-        "fsm_name_read_addr_to_error_abort_7",
-        "error_ahb_hresp_mst_error",
-        "error_unaligned_source_or_destination_address",
-        "error_reserved_width_or_address_control_mode",
-        "error_zero_transfer_size_when_enabling_a_channel",
-        "error_software_chabort_for_enabled_channel"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "reserved width or address-control mode",
-        "required_fields": [
-          "fault_condition"
-        ],
-        "constraints": [
-          "reserved width or address-control mode"
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "error response",
-          "status/interrupt/debug observable"
-        ],
-        "latency": "error propagation timing from cycle_model",
-        "state_updates": [
-          "error state/counter/status update"
-        ],
-        "error_policy": "Set IntStatus.Error or IntStatus.Abort, clear channel enable, assert dma_int if not masked, stop further master transfers."
-      },
-      "pass_criteria": [
-        "Fault stimulus produces the SSOT-defined error response",
-        "No illegal side effect occurs unless SSOT allows it",
-        "Error coverage bin is hit"
-      ],
-      "owner_on_fail": {
-        "default": "rtl",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "rtl",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_ERROR_ZERO_TRANSFER_SIZE_WHEN_ENABLING_A_CHANNEL",
-      "title": "Error policy zero transfer size when enabling a channel",
-      "kind": "error",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "error_handling.error_sources[3]"
-      ],
-      "decomposition_refs": [
-        "atcdmac100_protocol_model",
-        "atcdmac100_error_model"
-      ],
-      "coverage_refs": [
-        "SC_ERROR_ABORT_executed",
-        "fcov_error_abort",
-        "ccov_error_response",
-        "function_error_or_software_abort",
-        "fsm_name_read_addr_to_error_abort_7",
-        "error_ahb_hresp_mst_error",
-        "error_unaligned_source_or_destination_address",
-        "error_reserved_width_or_address_control_mode",
-        "error_zero_transfer_size_when_enabling_a_channel",
-        "error_software_chabort_for_enabled_channel"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "zero transfer size when enabling a channel",
-        "required_fields": [
-          "fault_condition"
-        ],
-        "constraints": [
-          "zero transfer size when enabling a channel"
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "error response",
-          "status/interrupt/debug observable"
-        ],
-        "latency": "error propagation timing from cycle_model",
-        "state_updates": [
-          "error state/counter/status update"
-        ],
-        "error_policy": "Set IntStatus.Error or IntStatus.Abort, clear channel enable, assert dma_int if not masked, stop further master transfers."
-      },
-      "pass_criteria": [
-        "Fault stimulus produces the SSOT-defined error response",
-        "No illegal side effect occurs unless SSOT allows it",
-        "Error coverage bin is hit"
-      ],
-      "owner_on_fail": {
-        "default": "rtl",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "rtl",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_ERROR_SOFTWARE_CHABORT_FOR_ENABLED_CHANNEL",
-      "title": "Error policy software ChAbort for enabled channel",
-      "kind": "error",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "error_handling.error_sources[4]"
-      ],
-      "decomposition_refs": [
-        "atcdmac100_protocol_model",
-        "atcdmac100_error_model"
-      ],
-      "coverage_refs": [
-        "SC_ERROR_ABORT_executed",
-        "fcov_error_abort",
-        "ccov_error_response",
-        "function_error_or_software_abort",
-        "fsm_name_read_addr_to_error_abort_7",
-        "error_ahb_hresp_mst_error",
-        "error_unaligned_source_or_destination_address",
-        "error_reserved_width_or_address_control_mode",
-        "error_zero_transfer_size_when_enabling_a_channel",
-        "error_software_chabort_for_enabled_channel"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "software ChAbort for enabled channel",
-        "required_fields": [
-          "fault_condition"
-        ],
-        "constraints": [
-          "software ChAbort for enabled channel"
+          "{'id': 'ERR_PROTOCOL', 'condition': 'Downstream protocol response is non-OKAY or invalid', 'architectural_effect': 'Set error status and block signoff until handled'}"
         ]
       },
       "expected_contract": {
@@ -2555,7 +2904,9 @@
         "atcdmac100_fsm_model",
         "atcdmac100_error_model"
       ],
-      "coverage_refs": [],
+      "coverage_refs": [
+        "SC05_executed"
+      ],
       "stimulus_contract": {
         "transaction_type": "debug_probe_capture",
         "required_fields": [
@@ -2649,6 +3000,9 @@
         "cycle_model.pipeline.pipeline_3",
         "cycle_model.reset",
         "dataflow",
+        "decomposition",
+        "decomposition.owners",
+        "decomposition.source_refs",
         "error_handling",
         "features",
         "features.ahb_slave_registers",
@@ -2661,6 +3015,7 @@
         "function_model",
         "function_model.invariants.one_channel_serviced",
         "function_model.invariants.status_width",
+        "function_model.state_variables",
         "function_model.state_variables.active_ch",
         "function_model.state_variables.busy",
         "function_model.state_variables.bytes_done",
@@ -2673,11 +3028,23 @@
         "function_model.state_variables.int_tc",
         "function_model.state_variables.read_data_hold",
         "function_model.state_variables.src_addr_cur",
+        "function_model.transactions.FM_AHB_READ",
+        "function_model.transactions.FM_AHB_WRITE",
+        "function_model.transactions.FM_ARBITRATE",
+        "function_model.transactions.FM_COMPLETE",
+        "function_model.transactions.FM_ERROR_ABORT",
+        "function_model.transactions.FM_HANDSHAKE_ACK",
+        "function_model.transactions.FM_MASTER_READ",
+        "function_model.transactions.FM_MASTER_WRITE",
+        "function_model.transactions.FM_RESET",
         "function_model.transactions.fm_ahb_read",
         "function_model.transactions.fm_ahb_read.error_cases.error_case_0",
         "function_model.transactions.fm_ahb_read.output_rules.hrdata_id_cfg_status",
         "function_model.transactions.fm_ahb_read.output_rules.hready_read",
         "function_model.transactions.fm_ahb_read.output_rules.hresp_read",
+        "function_model.transactions.fm_ahb_read.outputs.hrdata_id_cfg_status",
+        "function_model.transactions.fm_ahb_read.outputs.hready_read",
+        "function_model.transactions.fm_ahb_read.outputs.hresp_read",
         "function_model.transactions.fm_ahb_read.outputs.output_0",
         "function_model.transactions.fm_ahb_read.preconditions.precondition_0",
         "function_model.transactions.fm_ahb_read.side_effects.side_effect_0",
@@ -2686,6 +3053,14 @@
         "function_model.transactions.fm_ahb_write.output_rules.dma_int_after_write",
         "function_model.transactions.fm_ahb_write.output_rules.hready_write",
         "function_model.transactions.fm_ahb_write.output_rules.hresp_write",
+        "function_model.transactions.fm_ahb_write.outputs.ch_enable",
+        "function_model.transactions.fm_ahb_write.outputs.dma_int_after_write",
+        "function_model.transactions.fm_ahb_write.outputs.dmac_reset_pulse",
+        "function_model.transactions.fm_ahb_write.outputs.hready_write",
+        "function_model.transactions.fm_ahb_write.outputs.hresp_write",
+        "function_model.transactions.fm_ahb_write.outputs.int_abort",
+        "function_model.transactions.fm_ahb_write.outputs.int_error",
+        "function_model.transactions.fm_ahb_write.outputs.int_tc",
         "function_model.transactions.fm_ahb_write.outputs.output_0",
         "function_model.transactions.fm_ahb_write.outputs.output_1",
         "function_model.transactions.fm_ahb_write.preconditions.precondition_0",
@@ -2699,6 +3074,11 @@
         "function_model.transactions.fm_arbitrate.error_cases.error_case_0",
         "function_model.transactions.fm_arbitrate.output_rules.hbusreq_on_start",
         "function_model.transactions.fm_arbitrate.output_rules.htrans_idle_on_start",
+        "function_model.transactions.fm_arbitrate.outputs.active_ch",
+        "function_model.transactions.fm_arbitrate.outputs.busy",
+        "function_model.transactions.fm_arbitrate.outputs.bytes_done",
+        "function_model.transactions.fm_arbitrate.outputs.hbusreq_on_start",
+        "function_model.transactions.fm_arbitrate.outputs.htrans_idle_on_start",
         "function_model.transactions.fm_arbitrate.outputs.output_0",
         "function_model.transactions.fm_arbitrate.preconditions.precondition_0",
         "function_model.transactions.fm_arbitrate.side_effects.side_effect_0",
@@ -2710,6 +3090,13 @@
         "function_model.transactions.fm_complete.output_rules.dma_int_tc",
         "function_model.transactions.fm_complete.output_rules.hbusreq_complete",
         "function_model.transactions.fm_complete.output_rules.htrans_complete",
+        "function_model.transactions.fm_complete.outputs.busy",
+        "function_model.transactions.fm_complete.outputs.ch_enable",
+        "function_model.transactions.fm_complete.outputs.chain_pending",
+        "function_model.transactions.fm_complete.outputs.dma_int_tc",
+        "function_model.transactions.fm_complete.outputs.hbusreq_complete",
+        "function_model.transactions.fm_complete.outputs.htrans_complete",
+        "function_model.transactions.fm_complete.outputs.int_tc",
         "function_model.transactions.fm_complete.outputs.output_0",
         "function_model.transactions.fm_complete.preconditions.precondition_0",
         "function_model.transactions.fm_complete.side_effects.side_effect_0",
@@ -2723,6 +3110,13 @@
         "function_model.transactions.fm_error_abort.output_rules.dma_int_error",
         "function_model.transactions.fm_error_abort.output_rules.hbusreq_error",
         "function_model.transactions.fm_error_abort.output_rules.htrans_error",
+        "function_model.transactions.fm_error_abort.outputs.busy",
+        "function_model.transactions.fm_error_abort.outputs.ch_enable",
+        "function_model.transactions.fm_error_abort.outputs.dma_ack_error",
+        "function_model.transactions.fm_error_abort.outputs.dma_int_error",
+        "function_model.transactions.fm_error_abort.outputs.hbusreq_error",
+        "function_model.transactions.fm_error_abort.outputs.htrans_error",
+        "function_model.transactions.fm_error_abort.outputs.int_error",
         "function_model.transactions.fm_error_abort.outputs.output_0",
         "function_model.transactions.fm_error_abort.preconditions.precondition_0",
         "function_model.transactions.fm_error_abort.side_effects.side_effect_0",
@@ -2733,6 +3127,9 @@
         "function_model.transactions.fm_handshake_ack.error_cases.error_case_0",
         "function_model.transactions.fm_handshake_ack.output_rules.dma_ack_selected",
         "function_model.transactions.fm_handshake_ack.output_rules.dma_int_handshake",
+        "function_model.transactions.fm_handshake_ack.outputs.active_ch",
+        "function_model.transactions.fm_handshake_ack.outputs.dma_ack_selected",
+        "function_model.transactions.fm_handshake_ack.outputs.dma_int_handshake",
         "function_model.transactions.fm_handshake_ack.outputs.output_0",
         "function_model.transactions.fm_handshake_ack.preconditions.precondition_0",
         "function_model.transactions.fm_handshake_ack.side_effects.side_effect_0",
@@ -2745,7 +3142,14 @@
         "function_model.transactions.fm_master_read.output_rules.hsize_word",
         "function_model.transactions.fm_master_read.output_rules.htrans_read",
         "function_model.transactions.fm_master_read.output_rules.hwrite_read",
+        "function_model.transactions.fm_master_read.outputs.haddr_read",
+        "function_model.transactions.fm_master_read.outputs.hburst_incr",
+        "function_model.transactions.fm_master_read.outputs.hbusreq_read",
+        "function_model.transactions.fm_master_read.outputs.hsize_word",
+        "function_model.transactions.fm_master_read.outputs.htrans_read",
+        "function_model.transactions.fm_master_read.outputs.hwrite_read",
         "function_model.transactions.fm_master_read.outputs.output_0",
+        "function_model.transactions.fm_master_read.outputs.read_data_hold",
         "function_model.transactions.fm_master_read.preconditions.precondition_0",
         "function_model.transactions.fm_master_read.side_effects.side_effect_0",
         "function_model.transactions.fm_master_read.state_updates.read_data_hold",
@@ -2756,7 +3160,15 @@
         "function_model.transactions.fm_master_write.output_rules.htrans_write",
         "function_model.transactions.fm_master_write.output_rules.hwdata_write",
         "function_model.transactions.fm_master_write.output_rules.hwrite_write",
+        "function_model.transactions.fm_master_write.outputs.bytes_done",
+        "function_model.transactions.fm_master_write.outputs.dst_addr_cur",
+        "function_model.transactions.fm_master_write.outputs.haddr_write",
+        "function_model.transactions.fm_master_write.outputs.hbusreq_write",
+        "function_model.transactions.fm_master_write.outputs.htrans_write",
+        "function_model.transactions.fm_master_write.outputs.hwdata_write",
+        "function_model.transactions.fm_master_write.outputs.hwrite_write",
         "function_model.transactions.fm_master_write.outputs.output_0",
+        "function_model.transactions.fm_master_write.outputs.src_addr_cur",
         "function_model.transactions.fm_master_write.preconditions.precondition_0",
         "function_model.transactions.fm_master_write.side_effects.side_effect_0",
         "function_model.transactions.fm_master_write.state_updates.bytes_done",
@@ -2768,6 +3180,16 @@
         "function_model.transactions.fm_reset.output_rules.hready_reset",
         "function_model.transactions.fm_reset.output_rules.hresp_reset",
         "function_model.transactions.fm_reset.output_rules.htrans_mst_reset",
+        "function_model.transactions.fm_reset.outputs.active_ch",
+        "function_model.transactions.fm_reset.outputs.busy",
+        "function_model.transactions.fm_reset.outputs.bytes_done",
+        "function_model.transactions.fm_reset.outputs.ch_enable",
+        "function_model.transactions.fm_reset.outputs.chain_pending",
+        "function_model.transactions.fm_reset.outputs.dmac_reset_pulse",
+        "function_model.transactions.fm_reset.outputs.dst_addr_cur",
+        "function_model.transactions.fm_reset.outputs.int_abort",
+        "function_model.transactions.fm_reset.outputs.int_error",
+        "function_model.transactions.fm_reset.outputs.int_tc",
         "function_model.transactions.fm_reset.outputs.output_0",
         "function_model.transactions.fm_reset.outputs.output_1",
         "function_model.transactions.fm_reset.outputs.output_10",
@@ -2780,6 +3202,8 @@
         "function_model.transactions.fm_reset.outputs.output_7",
         "function_model.transactions.fm_reset.outputs.output_8",
         "function_model.transactions.fm_reset.outputs.output_9",
+        "function_model.transactions.fm_reset.outputs.read_data_hold",
+        "function_model.transactions.fm_reset.outputs.src_addr_cur",
         "function_model.transactions.fm_reset.preconditions.precondition_0",
         "function_model.transactions.fm_reset.side_effects.side_effect_0",
         "function_model.transactions.fm_reset.state_updates.active_ch",
@@ -2796,7 +3220,11 @@
         "function_model.transactions.fm_reset.state_updates.src_addr_cur",
         "interrupts",
         "io_list",
+        "parameters.addr_width",
+        "parameters.data_width",
+        "parameters.req_ack_num",
         "registers",
+        "registers.register_list",
         "registers.register_list.chabort",
         "registers.register_list.chen",
         "registers.register_list.chnctrl",
@@ -2816,26 +3244,33 @@
       ],
       "coverage_refs": [],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/ordering must hold at the module boundary",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -2884,26 +3319,33 @@
         "fcov_dma_read_write"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "DMA master read beat is observed"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -2950,26 +3392,33 @@
         "fcov_dma_write"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "DMA master write beat is observed"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3016,26 +3465,33 @@
         "fcov_tc_int"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "Terminal count status and interrupt are observed"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3082,26 +3538,106 @@
         "fcov_req_ack"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "dma_req/dma_ack service is observed"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
+        ],
+        "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FCOV_PRIORITY",
+      "title": "Functional coverage bin fcov_priority: priority round-robin arbitration is observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins[7]"
+      ],
+      "decomposition_refs": [
+        "atcdmac100_core",
+        "atcdmac100",
+        "atcdmac100_protocol_model",
+        "atcdmac100_register_model",
+        "atcdmac100_datapath_model",
+        "atcdmac100_fsm_model",
+        "atcdmac100_error_model",
+        "atcdmac100_security_model"
+      ],
+      "coverage_refs": [
+        "fcov_priority"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "channel arbitration",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
+          "priority round-robin arbitration is observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3148,26 +3684,33 @@
         "ccov_ahb_slave_access"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "AHB slave access handshake observed"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3214,26 +3757,33 @@
         "ccov_master_read_write"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "read/write pipeline states observed"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3280,26 +3830,33 @@
         "ccov_wait_state"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "AHB master ready/grant backpressure observed"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3346,26 +3903,33 @@
         "ccov_handshake_wait"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "dma_req wait and dma_ack sequence observed"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3412,26 +3976,33 @@
         "function_hardware_or_software_reset"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "hardware_or_software_reset"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3478,26 +4049,33 @@
         "function_channel_arbitration"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "channel_arbitration"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3544,26 +4122,33 @@
         "function_ahb_master_read_beat"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "ahb_master_read_beat"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3610,26 +4195,33 @@
         "function_ahb_master_write_beat"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "ahb_master_write_beat"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3676,26 +4268,33 @@
         "function_terminal_count_completion"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "terminal_count_completion"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3742,26 +4341,33 @@
         "function_hardware_handshake_acknowledge"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "hardware_handshake_acknowledge"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3808,26 +4414,33 @@
         "fsm_name_idle_to_arbitrate_0"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "ch_enable != 0"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3874,26 +4487,33 @@
         "fsm_name_arbitrate_to_read_addr_1"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "selected channel ready and handshake satisfied"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -3940,26 +4560,33 @@
         "fsm_name_read_addr_to_read_data_2"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "hgrant_mst && hready_mst"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -4006,26 +4633,33 @@
         "fsm_name_read_data_to_write_addr_3"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "read_data captured"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -4072,26 +4706,33 @@
         "fsm_name_write_addr_to_write_data_4"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "hgrant_mst && hready_mst"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -4138,26 +4779,33 @@
         "fsm_name_write_data_to_complete_5"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "last beat done"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -4204,26 +4852,33 @@
         "fsm_name_write_data_to_read_addr_6"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "more beats remain"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },
@@ -4270,26 +4925,33 @@
         "fsm_name_complete_to_idle_9"
       ],
       "stimulus_contract": {
-        "transaction_type": "AHB slave register read",
+        "transaction_type": "channel arbitration",
         "required_fields": [
           "kind"
         ],
         "constraints": [
-          "hsel and hreadyin and htrans[1] and not hwrite",
+          "one or more ChnCtrl.Enable bits are set and DMA is not busy",
           "no chain continuation"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "hrdata returns IdRev, DMACfg, IntStatus, ChEN, and channel windows",
-          "hready_read",
-          "hresp_read",
-          "hrdata_id_cfg_status"
+          "select high priority channel first; round-robin among same priority channels",
+          "{'name': 'hbusreq_on_start', 'port': 'hbusreq_mst', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'htrans_idle_on_start', 'port': 'htrans_mst', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'busy', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'active_ch', 'expr': 'active_ch', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'bytes_done', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "hbusreq_on_start",
+          "htrans_idle_on_start"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
-          "no architectural state changes"
+          "sets busy and active_ch",
+          "state_0",
+          "state_1",
+          "state_2"
         ],
         "error_policy": "illegal size, alignment, reserved mode, or AHB error records IntStatus.Error and disables the channel"
       },

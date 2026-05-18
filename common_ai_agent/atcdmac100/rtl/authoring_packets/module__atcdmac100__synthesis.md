@@ -22,17 +22,16 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 4
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: integration, io_list
-- Module slice: 5/6 section=synthesis task_limit=48
-- Slice rule: Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, dataflow, fsm, function_model, integration, io_list, top_integration
+- Module slice: 5/7 section=synthesis task_limit=48
+- Slice rule: Owner module atcdmac100 is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
-  - atcdmac100.<port> <= <signal> (sub_modules[1].connections)
   - atcdmac100_core.hclk <= hclk (integration.connections[0])
-  - atcdmac100_core.hresetn <= hresetn (integration.connections[1])
+  - atcdmac100_core.hresetn <= RTL_TODO_2_quality_gates_rtl_gen (integration.connections[1])
   - atcdmac100_core.dma_int <= dma_int (integration.connections[2])
   - atcdmac100_core.dma_req <= dma_req (integration.connections[3])
   - atcdmac100_core.dma_ack <= dma_ack (integration.connections[4])
@@ -42,22 +41,23 @@
   - atcdmac100_core.hsize <= hsize (integration.connections[8])
   - atcdmac100_core.hburst <= hburst (integration.connections[9])
   - atcdmac100_core.hwdata <= hwdata (integration.connections[10])
+  - atcdmac100_core.hsel <= hsel (integration.connections[11])
 - SSOT top IO contracts: 29
 
 ## Tasks
 
-### RTL-0321: Implement synthesis item constraint_0
+### RTL-0390: Implement synthesis item constraint_0
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_0
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_0.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 SSOT item context: value=single hclk clock.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -66,18 +66,18 @@ SSOT item context: value=single hclk clock.
   - Primary implementation evidence is in rtl/atcdmac100.sv
 - SSOT refs: synthesis.constraints.constraint_0
 
-### RTL-0322: Implement synthesis item constraint_1
+### RTL-0391: Implement synthesis item constraint_1
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_1
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_1.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 SSOT item context: value=active-low hresetn reset.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -86,18 +86,18 @@ SSOT item context: value=active-low hresetn reset.
   - Primary implementation evidence is in rtl/atcdmac100.sv
 - SSOT refs: synthesis.constraints.constraint_1
 
-### RTL-0323: Implement synthesis item constraint_2
+### RTL-0392: Implement synthesis item constraint_2
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_2
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_2.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 SSOT item context: value=no inferred latches.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -106,18 +106,18 @@ SSOT item context: value=no inferred latches.
   - Primary implementation evidence is in rtl/atcdmac100.sv
 - SSOT refs: synthesis.constraints.constraint_2
 
-### RTL-0324: Implement synthesis item constraint_3
+### RTL-0393: Implement synthesis item constraint_3
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_3
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_3.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 SSOT item context: value=AHB outputs registered or stable during wait states.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

@@ -224,7 +224,7 @@
     ],
     "unsupported_transaction_check": true,
     "trace_entries": 10,
-    "coverage_bins": 47,
+    "coverage_bins": 49,
     "invariants_total": 2,
     "invariants_evaluated": 2,
     "invariants_failed": [],
@@ -235,7 +235,7 @@
     "error_cases_planned": 0
   },
   "decomposition_units": 8,
-  "fcov_bins": 47,
+  "fcov_bins": 49,
   "authority_contract": {
     "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
     "general_evaluation_criteria": [

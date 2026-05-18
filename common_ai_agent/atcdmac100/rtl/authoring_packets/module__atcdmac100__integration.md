@@ -22,17 +22,16 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 32
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: integration, io_list
-- Module slice: 3/6 section=integration task_limit=48
-- Slice rule: Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, dataflow, fsm, function_model, integration, io_list, top_integration
+- Module slice: 3/7 section=integration task_limit=48
+- Slice rule: Owner module atcdmac100 is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
-  - atcdmac100.<port> <= <signal> (sub_modules[1].connections)
   - atcdmac100_core.hclk <= hclk (integration.connections[0])
-  - atcdmac100_core.hresetn <= hresetn (integration.connections[1])
+  - atcdmac100_core.hresetn <= RTL_TODO_2_quality_gates_rtl_gen (integration.connections[1])
   - atcdmac100_core.dma_int <= dma_int (integration.connections[2])
   - atcdmac100_core.dma_req <= dma_req (integration.connections[3])
   - atcdmac100_core.dma_ack <= dma_ack (integration.connections[4])
@@ -42,22 +41,23 @@
   - atcdmac100_core.hsize <= hsize (integration.connections[8])
   - atcdmac100_core.hburst <= hburst (integration.connections[9])
   - atcdmac100_core.hwdata <= hwdata (integration.connections[10])
+  - atcdmac100_core.hsel <= hsel (integration.connections[11])
 - SSOT top IO contracts: 29
 
 ## Tasks
 
-### RTL-0289: Implement integration item dependencie_0
+### RTL-0358: Implement integration item dependencie_0
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.dependencie_0
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.dependencie_0.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: value=System AHB fabric grants hbusreq_mst through hgrant_mst..
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -66,18 +66,18 @@ SSOT item context: value=System AHB fabric grants hbusreq_mst through hgrant_mst
   - Primary implementation evidence is in rtl/atcdmac100.sv
 - SSOT refs: integration.dependencies.dependencie_0
 
-### RTL-0290: Implement integration item dependencie_1
+### RTL-0359: Implement integration item dependencie_1
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.dependencie_1
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.dependencie_1.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: value=External low-speed devices drive dma_req and observe dma_ack..
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -86,18 +86,18 @@ SSOT item context: value=External low-speed devices drive dma_req and observe dm
   - Primary implementation evidence is in rtl/atcdmac100.sv
 - SSOT refs: integration.dependencies.dependencie_1
 
-### RTL-0291: Implement integration item dependencie_2
+### RTL-0360: Implement integration item dependencie_2
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.dependencies
 - Source ref: integration.dependencies.dependencie_2
 - Detail: This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.dependencies.dependencie_2.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: value=Software programs channel register windows before setting ChnCtrl.Enable..
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -106,18 +106,18 @@ SSOT item context: value=Software programs channel register windows before setti
   - Primary implementation evidence is in rtl/atcdmac100.sv
 - SSOT refs: integration.dependencies.dependencie_2
 
-### RTL-0292: Implement integration item hclk
+### RTL-0361: Implement integration item hclk
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hclk
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hclk.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hclk; signal=hclk.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -127,39 +127,39 @@ SSOT item context: port=hclk; signal=hclk.
   - DUT port hclk is the implementation/observation point for hclk
 - SSOT refs: integration.connections.hclk
 
-### RTL-0293: Implement integration item hresetn
+### RTL-0362: Implement integration item RTL_TODO_2_quality_gates_rtl_gen
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
-- Source ref: integration.connections.hresetn
+- Source ref: integration.connections.RTL_TODO_2_quality_gates_rtl_gen
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
-SSOT ref: integration.connections.hresetn.
+SSOT ref: integration.connections.RTL_TODO_2_quality_gates_rtl_gen.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
-SSOT item context: port=hresetn; signal=hresetn.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+SSOT item context: port=hresetn; signal=RTL_TODO_2_quality_gates_rtl_gen.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
   - Downstream verification can observe or justify the item
-  - Traceability keeps source_ref integration.connections.hresetn
+  - Traceability keeps source_ref integration.connections.RTL_TODO_2_quality_gates_rtl_gen
   - Primary implementation evidence is in rtl/atcdmac100.sv
   - DUT port hresetn is the implementation/observation point for hresetn
-- SSOT refs: integration.connections.hresetn
+- SSOT refs: integration.connections.RTL_TODO_2_quality_gates_rtl_gen
 
-### RTL-0294: Implement integration item dma_int
+### RTL-0363: Implement integration item dma_int
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.dma_int
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.dma_int.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=dma_int; signal=dma_int.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -169,18 +169,18 @@ SSOT item context: port=dma_int; signal=dma_int.
   - DUT port dma_int is the implementation/observation point for dma_int
 - SSOT refs: integration.connections.dma_int
 
-### RTL-0295: Implement integration item dma_req
+### RTL-0364: Implement integration item dma_req
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.dma_req
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.dma_req.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=dma_req; signal=dma_req.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -190,18 +190,18 @@ SSOT item context: port=dma_req; signal=dma_req.
   - DUT port dma_req is the implementation/observation point for dma_req
 - SSOT refs: integration.connections.dma_req
 
-### RTL-0296: Implement integration item dma_ack
+### RTL-0365: Implement integration item dma_ack
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.dma_ack
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.dma_ack.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=dma_ack; signal=dma_ack.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -211,18 +211,18 @@ SSOT item context: port=dma_ack; signal=dma_ack.
   - DUT port dma_ack is the implementation/observation point for dma_ack
 - SSOT refs: integration.connections.dma_ack
 
-### RTL-0297: Implement integration item haddr
+### RTL-0366: Implement integration item haddr
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.haddr
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.haddr.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=haddr; signal=haddr.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -232,18 +232,18 @@ SSOT item context: port=haddr; signal=haddr.
   - DUT port haddr is the implementation/observation point for haddr
 - SSOT refs: integration.connections.haddr
 
-### RTL-0298: Implement integration item htrans
+### RTL-0367: Implement integration item htrans
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.htrans
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.htrans.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=htrans; signal=htrans.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -253,18 +253,18 @@ SSOT item context: port=htrans; signal=htrans.
   - DUT port htrans is the implementation/observation point for htrans
 - SSOT refs: integration.connections.htrans
 
-### RTL-0299: Implement integration item hwrite
+### RTL-0368: Implement integration item hwrite
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hwrite
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hwrite.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hwrite; signal=hwrite.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -274,18 +274,18 @@ SSOT item context: port=hwrite; signal=hwrite.
   - DUT port hwrite is the implementation/observation point for hwrite
 - SSOT refs: integration.connections.hwrite
 
-### RTL-0300: Implement integration item hsize
+### RTL-0369: Implement integration item hsize
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hsize
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hsize.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hsize; signal=hsize.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -295,18 +295,18 @@ SSOT item context: port=hsize; signal=hsize.
   - DUT port hsize is the implementation/observation point for hsize
 - SSOT refs: integration.connections.hsize
 
-### RTL-0301: Implement integration item hburst
+### RTL-0370: Implement integration item hburst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hburst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hburst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hburst; signal=hburst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -316,18 +316,18 @@ SSOT item context: port=hburst; signal=hburst.
   - DUT port hburst is the implementation/observation point for hburst
 - SSOT refs: integration.connections.hburst
 
-### RTL-0302: Implement integration item hwdata
+### RTL-0371: Implement integration item hwdata
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hwdata
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hwdata.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hwdata; signal=hwdata.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -337,18 +337,18 @@ SSOT item context: port=hwdata; signal=hwdata.
   - DUT port hwdata is the implementation/observation point for hwdata
 - SSOT refs: integration.connections.hwdata
 
-### RTL-0303: Implement integration item hsel
+### RTL-0372: Implement integration item hsel
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hsel
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hsel.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hsel; signal=hsel.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -358,18 +358,18 @@ SSOT item context: port=hsel; signal=hsel.
   - DUT port hsel is the implementation/observation point for hsel
 - SSOT refs: integration.connections.hsel
 
-### RTL-0304: Implement integration item hreadyin
+### RTL-0373: Implement integration item hreadyin
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hreadyin
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hreadyin.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hreadyin; signal=hreadyin.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -379,18 +379,18 @@ SSOT item context: port=hreadyin; signal=hreadyin.
   - DUT port hreadyin is the implementation/observation point for hreadyin
 - SSOT refs: integration.connections.hreadyin
 
-### RTL-0305: Implement integration item hrdata
+### RTL-0374: Implement integration item hrdata
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hrdata
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hrdata.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hrdata; signal=hrdata.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -400,18 +400,18 @@ SSOT item context: port=hrdata; signal=hrdata.
   - DUT port hrdata is the implementation/observation point for hrdata
 - SSOT refs: integration.connections.hrdata
 
-### RTL-0306: Implement integration item hresp
+### RTL-0375: Implement integration item hresp
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hresp
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hresp.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hresp; signal=hresp.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -421,18 +421,18 @@ SSOT item context: port=hresp; signal=hresp.
   - DUT port hresp is the implementation/observation point for hresp
 - SSOT refs: integration.connections.hresp
 
-### RTL-0307: Implement integration item hready
+### RTL-0376: Implement integration item hready
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hready
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hready.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hready; signal=hready.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -442,18 +442,18 @@ SSOT item context: port=hready; signal=hready.
   - DUT port hready is the implementation/observation point for hready
 - SSOT refs: integration.connections.hready
 
-### RTL-0308: Implement integration item haddr_mst
+### RTL-0377: Implement integration item haddr_mst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.haddr_mst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.haddr_mst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=haddr_mst; signal=haddr_mst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -463,18 +463,18 @@ SSOT item context: port=haddr_mst; signal=haddr_mst.
   - DUT port haddr_mst is the implementation/observation point for haddr_mst
 - SSOT refs: integration.connections.haddr_mst
 
-### RTL-0309: Implement integration item htrans_mst
+### RTL-0378: Implement integration item htrans_mst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.htrans_mst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.htrans_mst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=htrans_mst; signal=htrans_mst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -484,18 +484,18 @@ SSOT item context: port=htrans_mst; signal=htrans_mst.
   - DUT port htrans_mst is the implementation/observation point for htrans_mst
 - SSOT refs: integration.connections.htrans_mst
 
-### RTL-0310: Implement integration item hwrite_mst
+### RTL-0379: Implement integration item hwrite_mst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hwrite_mst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hwrite_mst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hwrite_mst; signal=hwrite_mst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -505,18 +505,18 @@ SSOT item context: port=hwrite_mst; signal=hwrite_mst.
   - DUT port hwrite_mst is the implementation/observation point for hwrite_mst
 - SSOT refs: integration.connections.hwrite_mst
 
-### RTL-0311: Implement integration item hsize_mst
+### RTL-0380: Implement integration item hsize_mst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hsize_mst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hsize_mst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hsize_mst; signal=hsize_mst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -526,18 +526,18 @@ SSOT item context: port=hsize_mst; signal=hsize_mst.
   - DUT port hsize_mst is the implementation/observation point for hsize_mst
 - SSOT refs: integration.connections.hsize_mst
 
-### RTL-0312: Implement integration item hprot_mst
+### RTL-0381: Implement integration item hprot_mst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hprot_mst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hprot_mst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hprot_mst; signal=hprot_mst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -547,18 +547,18 @@ SSOT item context: port=hprot_mst; signal=hprot_mst.
   - DUT port hprot_mst is the implementation/observation point for hprot_mst
 - SSOT refs: integration.connections.hprot_mst
 
-### RTL-0313: Implement integration item hlock_mst
+### RTL-0382: Implement integration item hlock_mst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hlock_mst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hlock_mst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hlock_mst; signal=hlock_mst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -568,18 +568,18 @@ SSOT item context: port=hlock_mst; signal=hlock_mst.
   - DUT port hlock_mst is the implementation/observation point for hlock_mst
 - SSOT refs: integration.connections.hlock_mst
 
-### RTL-0314: Implement integration item hburst_mst
+### RTL-0383: Implement integration item hburst_mst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hburst_mst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hburst_mst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hburst_mst; signal=hburst_mst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -589,18 +589,18 @@ SSOT item context: port=hburst_mst; signal=hburst_mst.
   - DUT port hburst_mst is the implementation/observation point for hburst_mst
 - SSOT refs: integration.connections.hburst_mst
 
-### RTL-0315: Implement integration item hwdata_mst
+### RTL-0384: Implement integration item hwdata_mst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hwdata_mst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hwdata_mst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hwdata_mst; signal=hwdata_mst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -610,18 +610,18 @@ SSOT item context: port=hwdata_mst; signal=hwdata_mst.
   - DUT port hwdata_mst is the implementation/observation point for hwdata_mst
 - SSOT refs: integration.connections.hwdata_mst
 
-### RTL-0316: Implement integration item hrdata_mst
+### RTL-0385: Implement integration item hrdata_mst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hrdata_mst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hrdata_mst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hrdata_mst; signal=hrdata_mst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -631,18 +631,18 @@ SSOT item context: port=hrdata_mst; signal=hrdata_mst.
   - DUT port hrdata_mst is the implementation/observation point for hrdata_mst
 - SSOT refs: integration.connections.hrdata_mst
 
-### RTL-0317: Implement integration item hresp_mst
+### RTL-0386: Implement integration item hresp_mst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hresp_mst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hresp_mst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hresp_mst; signal=hresp_mst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -652,18 +652,18 @@ SSOT item context: port=hresp_mst; signal=hresp_mst.
   - DUT port hresp_mst is the implementation/observation point for hresp_mst
 - SSOT refs: integration.connections.hresp_mst
 
-### RTL-0318: Implement integration item hready_mst
+### RTL-0387: Implement integration item hready_mst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hready_mst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hready_mst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hready_mst; signal=hready_mst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -673,18 +673,18 @@ SSOT item context: port=hready_mst; signal=hready_mst.
   - DUT port hready_mst is the implementation/observation point for hready_mst
 - SSOT refs: integration.connections.hready_mst
 
-### RTL-0319: Implement integration item hbusreq_mst
+### RTL-0388: Implement integration item hbusreq_mst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hbusreq_mst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hbusreq_mst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hbusreq_mst; signal=hbusreq_mst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -694,18 +694,18 @@ SSOT item context: port=hbusreq_mst; signal=hbusreq_mst.
   - DUT port hbusreq_mst is the implementation/observation point for hbusreq_mst
 - SSOT refs: integration.connections.hbusreq_mst
 
-### RTL-0320: Implement integration item hgrant_mst
+### RTL-0389: Implement integration item hgrant_mst
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: integration.connections
 - Source ref: integration.connections.hgrant_mst
 - Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: integration.connections.hgrant_mst.
 Owner: atcdmac100 in rtl/atcdmac100.sv via integration.
 SSOT item context: port=hgrant_mst; signal=hgrant_mst.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

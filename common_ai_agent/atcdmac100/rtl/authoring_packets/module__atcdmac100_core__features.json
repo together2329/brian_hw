@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 14,
+      "count": 17,
       "enabled": true,
-      "index": 8,
+      "index": 10,
       "key": "features",
-      "module_task_count": 278,
-      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 353,
+      "rule": "Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "features",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -25,13 +25,27 @@
       "refs": [
         "cycle_model",
         "dataflow",
+        "decomposition",
+        "decomposition.owners",
+        "decomposition.source_refs",
         "error_handling",
         "features",
         "fsm",
         "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.FM_AHB_READ",
+        "function_model.transactions.FM_AHB_WRITE",
+        "function_model.transactions.FM_ARBITRATE",
+        "function_model.transactions.FM_COMPLETE",
+        "function_model.transactions.FM_ERROR_ABORT",
+        "function_model.transactions.FM_HANDSHAKE_ACK",
+        "function_model.transactions.FM_MASTER_READ",
+        "function_model.transactions.FM_MASTER_WRITE",
+        "function_model.transactions.FM_RESET",
         "interrupts",
         "io_list",
         "registers",
+        "registers.register_list",
         "test_requirements",
         "traceability"
       ],
@@ -68,9 +82,9 @@
         "machine_readable": true,
         "module": "atcdmac100_core",
         "port": "hresetn",
-        "signal": "hresetn",
+        "signal": "RTL_TODO_2_quality_gates_rtl_gen",
         "signal_terms": [
-          "hresetn"
+          "RTL_TODO_2_quality_gates_rtl_gen"
         ],
         "source_ref": "integration.connections[1]"
       },
@@ -379,15 +393,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 6,
-    "open_required_count": 6,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -418,18 +432,18 @@
       "features.item": 6
     },
     "module_slice": {
-      "count": 14,
+      "count": 17,
       "enabled": true,
-      "index": 8,
+      "index": 10,
       "key": "features",
-      "module_task_count": 278,
-      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 353,
+      "rule": "Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "features",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 6,
+    "open_required_count": 0,
     "required_count": 6,
     "source_refs": [
       "features.ahb_slave_registers",
@@ -440,7 +454,7 @@
       "features.interrupt_status"
     ],
     "status_counts": {
-      "open": 6
+      "pass": 6
     },
     "task_count": 6
   },
@@ -457,7 +471,7 @@
       ],
       "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.ahb_slave_registers.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via features.\nSSOT item context: id=ahb_slave_registers.",
       "evidence_terms": [],
-      "id": "RTL-0278",
+      "id": "RTL-0338",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -481,9 +495,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -498,7 +512,7 @@
       ],
       "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.multi_channel_dma.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via features.\nSSOT item context: id=multi_channel_dma.",
       "evidence_terms": [],
-      "id": "RTL-0279",
+      "id": "RTL-0339",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -522,9 +536,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -539,7 +553,7 @@
       ],
       "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.priority_round_robin.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via features.\nSSOT item context: id=priority_round_robin.",
       "evidence_terms": [],
-      "id": "RTL-0280",
+      "id": "RTL-0340",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -563,9 +577,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -580,7 +594,7 @@
       ],
       "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.hardware_handshake.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via features.\nSSOT item context: id=hardware_handshake.",
       "evidence_terms": [],
-      "id": "RTL-0281",
+      "id": "RTL-0341",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -604,9 +618,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -621,7 +635,7 @@
       ],
       "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.chain_transfer.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via features.\nSSOT item context: id=chain_transfer.",
       "evidence_terms": [],
-      "id": "RTL-0282",
+      "id": "RTL-0342",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -645,9 +659,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -662,7 +676,7 @@
       ],
       "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.interrupt_status.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via features.\nSSOT item context: id=interrupt_status.",
       "evidence_terms": [],
-      "id": "RTL-0283",
+      "id": "RTL-0343",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -686,13 +700,13 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "72f45ac236a074e74c4c80ad18e49e1163775dd9e0f8018c491d6f6563c1a372",
+  "todo_plan_sha256": "7da652c8f3ad6cbab8b8e9ee0f0a48d9ace8103da5920ba80b4dbc0877e508a9",
   "top": "atcdmac100",
   "type": "rtl_authoring_packet"
 }

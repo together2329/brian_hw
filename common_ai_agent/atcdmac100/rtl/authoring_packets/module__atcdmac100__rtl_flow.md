@@ -22,17 +22,16 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: integration, io_list
-- Module slice: 1/6 section=rtl_flow task_limit=48
-- Slice rule: Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, dataflow, fsm, function_model, integration, io_list, top_integration
+- Module slice: 1/7 section=rtl_flow task_limit=48
+- Slice rule: Owner module atcdmac100 is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
-  - atcdmac100.<port> <= <signal> (sub_modules[1].connections)
   - atcdmac100_core.hclk <= hclk (integration.connections[0])
-  - atcdmac100_core.hresetn <= hresetn (integration.connections[1])
+  - atcdmac100_core.hresetn <= RTL_TODO_2_quality_gates_rtl_gen (integration.connections[1])
   - atcdmac100_core.dma_int <= dma_int (integration.connections[2])
   - atcdmac100_core.dma_req <= dma_req (integration.connections[3])
   - atcdmac100_core.dma_ack <= dma_ack (integration.connections[4])
@@ -42,6 +41,7 @@
   - atcdmac100_core.hsize <= hsize (integration.connections[8])
   - atcdmac100_core.hburst <= hburst (integration.connections[9])
   - atcdmac100_core.hwdata <= hwdata (integration.connections[10])
+  - atcdmac100_core.hsel <= hsel (integration.connections[11])
 - SSOT top IO contracts: 29
 
 ## Tasks
@@ -69,14 +69,14 @@ Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_flow.top
 - Source ref: io_list
 - Detail: The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.
 SSOT ref: io_list.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 SSOT item context: value=atcdmac100.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Top module name matches SSOT top_module
   - Every SSOT top-level port appears with matching direction and width

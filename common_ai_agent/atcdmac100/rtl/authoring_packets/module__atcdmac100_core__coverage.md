@@ -22,16 +22,16 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 13
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, dataflow, error_handling, features, fsm, function_model, interrupts, io_list, registers, test_requirements, traceability
-- Module slice: 12/14 section=coverage task_limit=48
-- Slice rule: Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, dataflow, decomposition, decomposition.owners, decomposition.source_refs, error_handling, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM_AHB_READ, function_model.transactions.FM_AHB_WRITE, function_model.transactions.FM_ARBITRATE, function_model.transactions.FM_COMPLETE, function_model.transactions.FM_ERROR_ABORT, function_model.transactions.FM_HANDSHAKE_ACK
+- Module slice: 14/17 section=coverage task_limit=48
+- Slice rule: Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
   - atcdmac100_core.hclk <= hclk (integration.connections[0])
-  - atcdmac100_core.hresetn <= hresetn (integration.connections[1])
+  - atcdmac100_core.hresetn <= RTL_TODO_2_quality_gates_rtl_gen (integration.connections[1])
   - atcdmac100_core.dma_int <= dma_int (integration.connections[2])
   - atcdmac100_core.dma_req <= dma_req (integration.connections[3])
   - atcdmac100_core.dma_ack <= dma_ack (integration.connections[4])
@@ -45,18 +45,18 @@
 
 ## Tasks
 
-### RTL-0332: Provide RTL evidence for coverage bin FCOV_REG_IDCFG
+### RTL-0408: Provide RTL evidence for coverage bin FCOV_REG_IDCFG
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.FCOV_REG_IDCFG
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_REG_IDCFG.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.
 SSOT item context: id=FCOV_REG_IDCFG.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals
@@ -66,18 +66,18 @@ SSOT item context: id=FCOV_REG_IDCFG.
   - FCOV_REG_IDCFG can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals
 - SSOT refs: test_requirements.coverage_goals.planned_bins.FCOV_REG_IDCFG
 
-### RTL-0333: Provide RTL evidence for coverage bin FCOV_INT_W1C
+### RTL-0409: Provide RTL evidence for coverage bin FCOV_INT_W1C
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.FCOV_INT_W1C
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_INT_W1C.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.
 SSOT item context: id=FCOV_INT_W1C.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals
@@ -87,18 +87,18 @@ SSOT item context: id=FCOV_INT_W1C.
   - FCOV_INT_W1C can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals
 - SSOT refs: test_requirements.coverage_goals.planned_bins.FCOV_INT_W1C
 
-### RTL-0334: Provide RTL evidence for coverage bin FCOV_DMA_READ_WRITE
+### RTL-0410: Provide RTL evidence for coverage bin FCOV_DMA_READ_WRITE
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.FCOV_DMA_READ_WRITE
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_DMA_READ_WRITE.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.
 SSOT item context: id=FCOV_DMA_READ_WRITE.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals
@@ -108,18 +108,18 @@ SSOT item context: id=FCOV_DMA_READ_WRITE.
   - FCOV_DMA_READ_WRITE can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals
 - SSOT refs: test_requirements.coverage_goals.planned_bins.FCOV_DMA_READ_WRITE
 
-### RTL-0335: Provide RTL evidence for coverage bin FCOV_DMA_WRITE
+### RTL-0411: Provide RTL evidence for coverage bin FCOV_DMA_WRITE
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.FCOV_DMA_WRITE
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_DMA_WRITE.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.
 SSOT item context: id=FCOV_DMA_WRITE.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals
@@ -129,18 +129,18 @@ SSOT item context: id=FCOV_DMA_WRITE.
   - FCOV_DMA_WRITE can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals
 - SSOT refs: test_requirements.coverage_goals.planned_bins.FCOV_DMA_WRITE
 
-### RTL-0336: Provide RTL evidence for coverage bin FCOV_TC_INT
+### RTL-0412: Provide RTL evidence for coverage bin FCOV_TC_INT
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.FCOV_TC_INT
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_TC_INT.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.
 SSOT item context: id=FCOV_TC_INT.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals
@@ -150,18 +150,18 @@ SSOT item context: id=FCOV_TC_INT.
   - FCOV_TC_INT can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals
 - SSOT refs: test_requirements.coverage_goals.planned_bins.FCOV_TC_INT
 
-### RTL-0337: Provide RTL evidence for coverage bin FCOV_ERROR_ABORT
+### RTL-0413: Provide RTL evidence for coverage bin FCOV_ERROR_ABORT
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.FCOV_ERROR_ABORT
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_ERROR_ABORT.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.
 SSOT item context: id=FCOV_ERROR_ABORT.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals
@@ -171,18 +171,18 @@ SSOT item context: id=FCOV_ERROR_ABORT.
   - FCOV_ERROR_ABORT can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals
 - SSOT refs: test_requirements.coverage_goals.planned_bins.FCOV_ERROR_ABORT
 
-### RTL-0338: Provide RTL evidence for coverage bin FCOV_REQ_ACK
+### RTL-0414: Provide RTL evidence for coverage bin FCOV_REQ_ACK
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.FCOV_REQ_ACK
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_REQ_ACK.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.
 SSOT item context: id=FCOV_REQ_ACK.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals
@@ -192,18 +192,18 @@ SSOT item context: id=FCOV_REQ_ACK.
   - FCOV_REQ_ACK can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals
 - SSOT refs: test_requirements.coverage_goals.planned_bins.FCOV_REQ_ACK
 
-### RTL-0339: Provide RTL evidence for coverage bin FCOV_PRIORITY
+### RTL-0415: Provide RTL evidence for coverage bin FCOV_PRIORITY
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.FCOV_PRIORITY
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_PRIORITY.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.
 SSOT item context: id=FCOV_PRIORITY.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals
@@ -213,18 +213,18 @@ SSOT item context: id=FCOV_PRIORITY.
   - FCOV_PRIORITY can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals
 - SSOT refs: test_requirements.coverage_goals.planned_bins.FCOV_PRIORITY
 
-### RTL-0340: Provide RTL evidence for coverage bin CCOV_AHB_SLAVE_ACCESS
+### RTL-0416: Provide RTL evidence for coverage bin CCOV_AHB_SLAVE_ACCESS
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.CCOV_AHB_SLAVE_ACCESS
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_AHB_SLAVE_ACCESS.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.
 SSOT item context: id=CCOV_AHB_SLAVE_ACCESS.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals
@@ -234,18 +234,18 @@ SSOT item context: id=CCOV_AHB_SLAVE_ACCESS.
   - CCOV_AHB_SLAVE_ACCESS can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals
 - SSOT refs: test_requirements.coverage_goals.planned_bins.CCOV_AHB_SLAVE_ACCESS
 
-### RTL-0341: Provide RTL evidence for coverage bin CCOV_MASTER_READ_WRITE
+### RTL-0417: Provide RTL evidence for coverage bin CCOV_MASTER_READ_WRITE
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.CCOV_MASTER_READ_WRITE
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_MASTER_READ_WRITE.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.
 SSOT item context: id=CCOV_MASTER_READ_WRITE.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals
@@ -255,18 +255,18 @@ SSOT item context: id=CCOV_MASTER_READ_WRITE.
   - CCOV_MASTER_READ_WRITE can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals
 - SSOT refs: test_requirements.coverage_goals.planned_bins.CCOV_MASTER_READ_WRITE
 
-### RTL-0342: Provide RTL evidence for coverage bin CCOV_WAIT_STATE
+### RTL-0418: Provide RTL evidence for coverage bin CCOV_WAIT_STATE
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.CCOV_WAIT_STATE
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_WAIT_STATE.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.
 SSOT item context: id=CCOV_WAIT_STATE.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals
@@ -276,18 +276,18 @@ SSOT item context: id=CCOV_WAIT_STATE.
   - CCOV_WAIT_STATE can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals
 - SSOT refs: test_requirements.coverage_goals.planned_bins.CCOV_WAIT_STATE
 
-### RTL-0343: Provide RTL evidence for coverage bin CCOV_HANDSHAKE_WAIT
+### RTL-0419: Provide RTL evidence for coverage bin CCOV_HANDSHAKE_WAIT
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.CCOV_HANDSHAKE_WAIT
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_HANDSHAKE_WAIT.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.
 SSOT item context: id=CCOV_HANDSHAKE_WAIT.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals
@@ -297,18 +297,18 @@ SSOT item context: id=CCOV_HANDSHAKE_WAIT.
   - CCOV_HANDSHAKE_WAIT can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals
 - SSOT refs: test_requirements.coverage_goals.planned_bins.CCOV_HANDSHAKE_WAIT
 
-### RTL-0344: Provide RTL evidence for coverage bin CCOV_ERROR_RESPONSE
+### RTL-0420: Provide RTL evidence for coverage bin CCOV_ERROR_RESPONSE
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.CCOV_ERROR_RESPONSE
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.CCOV_ERROR_RESPONSE.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via test_requirements.
 SSOT item context: id=CCOV_ERROR_RESPONSE.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals

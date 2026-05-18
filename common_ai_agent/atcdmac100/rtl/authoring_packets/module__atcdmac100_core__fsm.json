@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 14,
+      "count": 17,
       "enabled": true,
-      "index": 6,
+      "index": 8,
       "key": "fsm",
-      "module_task_count": 278,
-      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 353,
+      "rule": "Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "fsm",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -25,13 +25,27 @@
       "refs": [
         "cycle_model",
         "dataflow",
+        "decomposition",
+        "decomposition.owners",
+        "decomposition.source_refs",
         "error_handling",
         "features",
         "fsm",
         "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.FM_AHB_READ",
+        "function_model.transactions.FM_AHB_WRITE",
+        "function_model.transactions.FM_ARBITRATE",
+        "function_model.transactions.FM_COMPLETE",
+        "function_model.transactions.FM_ERROR_ABORT",
+        "function_model.transactions.FM_HANDSHAKE_ACK",
+        "function_model.transactions.FM_MASTER_READ",
+        "function_model.transactions.FM_MASTER_WRITE",
+        "function_model.transactions.FM_RESET",
         "interrupts",
         "io_list",
         "registers",
+        "registers.register_list",
         "test_requirements",
         "traceability"
       ],
@@ -68,9 +82,9 @@
         "machine_readable": true,
         "module": "atcdmac100_core",
         "port": "hresetn",
-        "signal": "hresetn",
+        "signal": "RTL_TODO_2_quality_gates_rtl_gen",
         "signal_terms": [
-          "hresetn"
+          "RTL_TODO_2_quality_gates_rtl_gen"
         ],
         "source_ref": "integration.connections[1]"
       },
@@ -379,15 +393,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 19,
-    "open_required_count": 19,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -419,18 +433,18 @@
       "fsm.transition": 10
     },
     "module_slice": {
-      "count": 14,
+      "count": 17,
       "enabled": true,
-      "index": 6,
+      "index": 8,
       "key": "fsm",
-      "module_task_count": 278,
-      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 353,
+      "rule": "Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "fsm",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 19,
+    "open_required_count": 0,
     "required_count": 19,
     "source_refs": [
       "fsm.fsm.states.state_0",
@@ -454,7 +468,7 @@
       "fsm.fsm.transitions.transition_9"
     ],
     "status_counts": {
-      "open": 19
+      "pass": 19
     },
     "task_count": 19
   },
@@ -474,7 +488,7 @@
       "evidence_terms": [
         "IDLE"
       ],
-      "id": "RTL-0259",
+      "id": "RTL-0319",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -487,8 +501,10 @@
         "fsm.fsm.states.state_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -496,7 +512,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -506,9 +522,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -526,7 +542,7 @@
       "evidence_terms": [
         "ARBITRATE"
       ],
-      "id": "RTL-0260",
+      "id": "RTL-0320",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -539,8 +555,10 @@
         "fsm.fsm.states.state_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ARBITRATE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -548,7 +566,7 @@
           "ARBITRATE"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -558,9 +576,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -578,7 +596,7 @@
       "evidence_terms": [
         "READ_ADDR"
       ],
-      "id": "RTL-0261",
+      "id": "RTL-0321",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -591,8 +609,10 @@
         "fsm.fsm.states.state_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "READ_ADDR"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -600,7 +620,7 @@
           "READ_ADDR"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -610,9 +630,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -630,7 +650,7 @@
       "evidence_terms": [
         "READ_DATA"
       ],
-      "id": "RTL-0262",
+      "id": "RTL-0322",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -643,8 +663,10 @@
         "fsm.fsm.states.state_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "READ_DATA"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -652,7 +674,7 @@
           "READ_DATA"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -662,9 +684,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -682,7 +704,7 @@
       "evidence_terms": [
         "WRITE_ADDR"
       ],
-      "id": "RTL-0263",
+      "id": "RTL-0323",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -695,8 +717,10 @@
         "fsm.fsm.states.state_4"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "WRITE_ADDR"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -704,7 +728,7 @@
           "WRITE_ADDR"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -714,9 +738,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -734,7 +758,7 @@
       "evidence_terms": [
         "WRITE_DATA"
       ],
-      "id": "RTL-0264",
+      "id": "RTL-0324",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -747,8 +771,10 @@
         "fsm.fsm.states.state_5"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "WRITE_DATA"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -756,7 +782,7 @@
           "WRITE_DATA"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -766,9 +792,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -786,7 +812,7 @@
       "evidence_terms": [
         "COMPLETE"
       ],
-      "id": "RTL-0265",
+      "id": "RTL-0325",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -799,8 +825,10 @@
         "fsm.fsm.states.state_6"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "COMPLETE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -808,7 +836,7 @@
           "COMPLETE"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -818,9 +846,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -838,7 +866,7 @@
       "evidence_terms": [
         "ERROR_ABORT"
       ],
-      "id": "RTL-0266",
+      "id": "RTL-0326",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -851,8 +879,10 @@
         "fsm.fsm.states.state_7"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ERROR_ABORT"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -860,7 +890,7 @@
           "ERROR_ABORT"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -870,9 +900,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -890,7 +920,7 @@
       "evidence_terms": [
         "CHAIN_LOAD"
       ],
-      "id": "RTL-0267",
+      "id": "RTL-0327",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -903,8 +933,10 @@
         "fsm.fsm.states.state_8"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "CHAIN_LOAD"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -912,7 +944,7 @@
           "CHAIN_LOAD"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -922,9 +954,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -947,7 +979,7 @@
         "ch_enable",
         "enable"
       ],
-      "id": "RTL-0268",
+      "id": "RTL-0328",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -962,8 +994,13 @@
         "fsm.fsm.transitions.transition_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "ARBITRATE",
+          "IDLE",
+          "ch",
+          "enable"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -975,7 +1012,7 @@
           "enable"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -985,9 +1022,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1009,7 +1046,7 @@
         "READ",
         "READ_ADDR"
       ],
-      "id": "RTL-0269",
+      "id": "RTL-0329",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1024,8 +1061,13 @@
         "fsm.fsm.transitions.transition_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "ADDR",
+          "ARBITRATE",
+          "READ",
+          "READ_ADDR"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1036,7 +1078,7 @@
           "READ_ADDR"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1046,9 +1088,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1076,7 +1118,7 @@
         "hready_mst",
         "mst"
       ],
-      "id": "RTL-0270",
+      "id": "RTL-0330",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1091,8 +1133,19 @@
         "fsm.fsm.transitions.transition_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 10,
+        "matched_terms": [
+          "ADDR",
+          "DATA",
+          "READ",
+          "READ_ADDR",
+          "READ_DATA",
+          "hgrant",
+          "hgrant_mst",
+          "hready",
+          "hready_mst",
+          "mst"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1109,7 +1162,7 @@
           "mst"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1119,9 +1172,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1148,7 +1201,7 @@
         "read",
         "read_data"
       ],
-      "id": "RTL-0271",
+      "id": "RTL-0331",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1163,8 +1216,18 @@
         "fsm.fsm.transitions.transition_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 9,
+        "matched_terms": [
+          "ADDR",
+          "DATA",
+          "READ",
+          "READ_DATA",
+          "WRITE",
+          "WRITE_ADDR",
+          "data",
+          "read",
+          "read_data"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1180,7 +1243,7 @@
           "read_data"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1190,9 +1253,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1220,7 +1283,7 @@
         "hready_mst",
         "mst"
       ],
-      "id": "RTL-0272",
+      "id": "RTL-0332",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1235,8 +1298,19 @@
         "fsm.fsm.transitions.transition_4"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 10,
+        "matched_terms": [
+          "ADDR",
+          "DATA",
+          "WRITE",
+          "WRITE_ADDR",
+          "WRITE_DATA",
+          "hgrant",
+          "hgrant_mst",
+          "hready",
+          "hready_mst",
+          "mst"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1253,7 +1327,7 @@
           "mst"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1263,9 +1337,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1287,7 +1361,7 @@
         "WRITE",
         "WRITE_DATA"
       ],
-      "id": "RTL-0273",
+      "id": "RTL-0333",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1302,8 +1376,13 @@
         "fsm.fsm.transitions.transition_5"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "COMPLETE",
+          "DATA",
+          "WRITE",
+          "WRITE_DATA"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1314,7 +1393,7 @@
           "WRITE_DATA"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1324,9 +1403,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1350,7 +1429,7 @@
         "WRITE",
         "WRITE_DATA"
       ],
-      "id": "RTL-0274",
+      "id": "RTL-0334",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1365,8 +1444,15 @@
         "fsm.fsm.transitions.transition_6"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "ADDR",
+          "DATA",
+          "READ",
+          "READ_ADDR",
+          "WRITE",
+          "WRITE_DATA"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1379,7 +1465,7 @@
           "WRITE_DATA"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1389,9 +1475,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1417,7 +1503,7 @@
         "hresp_mst",
         "mst"
       ],
-      "id": "RTL-0275",
+      "id": "RTL-0335",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1432,8 +1518,17 @@
         "fsm.fsm.transitions.transition_7"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "ABORT",
+          "ADDR",
+          "ERROR_ABORT",
+          "READ",
+          "READ_ADDR",
+          "hresp",
+          "hresp_mst",
+          "mst"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1448,7 +1543,7 @@
           "mst"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1458,9 +1553,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1486,7 +1581,7 @@
         "SUPPORT",
         "TRANSFER"
       ],
-      "id": "RTL-0276",
+      "id": "RTL-0336",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1501,8 +1596,17 @@
         "fsm.fsm.transitions.transition_8"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "CHAIN",
+          "CHAIN_LOAD",
+          "CHAIN_TRANSFER_SUPPORT",
+          "COMPLETE",
+          "ChnLLPointer",
+          "LOAD",
+          "SUPPORT",
+          "TRANSFER"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1517,7 +1621,7 @@
           "TRANSFER"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1527,9 +1631,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1549,7 +1653,7 @@
         "COMPLETE",
         "IDLE"
       ],
-      "id": "RTL-0277",
+      "id": "RTL-0337",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1564,8 +1668,11 @@
         "fsm.fsm.transitions.transition_9"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "COMPLETE",
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1574,7 +1681,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1584,13 +1691,13 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "72f45ac236a074e74c4c80ad18e49e1163775dd9e0f8018c491d6f6563c1a372",
+  "todo_plan_sha256": "7da652c8f3ad6cbab8b8e9ee0f0a48d9ace8103da5920ba80b4dbc0877e508a9",
   "top": "atcdmac100",
   "type": "rtl_authoring_packet"
 }

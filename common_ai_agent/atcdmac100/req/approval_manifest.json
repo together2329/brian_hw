@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "type": "requirement_approval_manifest",
+  "ip": "atcdmac100",
+  "approved": true,
+  "approved_by": "brian",
+  "approved_at_utc": "2026-05-18T03:34:30Z",
+  "decision_note": "User requested full ATLAS flow using AndeShape ATCDMAC100 DS079 V1.2 document requirements.",
+  "target": "atcdmac100/req/atcdmac100_requirements.md",
+  "target_sha256": "828df834b0bdb8790fb07a1995ea72931729f06045c7862b8bc023448ad8f27c",
+  "source": "atcdmac100/req/source/ATCDMAC100_DS079_V1_2_extracted.md",
+  "source_sha256": "da27defb17f2d88b340be4fa4a12af3d7cd25499daef199cef118a02280524c1",
+  "original_pdf": "/Users/brian/Desktop/andes/platform/AE210P_20161118/DOCS/AndeShape_ATCDMAC100_DS079_V1.2.pdf",
+  "original_pdf_sha256": "009859054f1992b6c64ec7e4e09402aad1b2ee21558c6c3cce48d91a4b231ac9"
+}

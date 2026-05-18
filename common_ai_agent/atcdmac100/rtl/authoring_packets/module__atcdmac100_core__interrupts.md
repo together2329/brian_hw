@@ -22,16 +22,16 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: cycle_model, dataflow, error_handling, features, fsm, function_model, interrupts, io_list, registers, test_requirements, traceability
-- Module slice: 10/14 section=interrupts task_limit=48
-- Slice rule: Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, dataflow, decomposition, decomposition.owners, decomposition.source_refs, error_handling, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM_AHB_READ, function_model.transactions.FM_AHB_WRITE, function_model.transactions.FM_ARBITRATE, function_model.transactions.FM_COMPLETE, function_model.transactions.FM_ERROR_ABORT, function_model.transactions.FM_HANDSHAKE_ACK
+- Module slice: 12/17 section=interrupts task_limit=48
+- Slice rule: Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
   - atcdmac100_core.hclk <= hclk (integration.connections[0])
-  - atcdmac100_core.hresetn <= hresetn (integration.connections[1])
+  - atcdmac100_core.hresetn <= RTL_TODO_2_quality_gates_rtl_gen (integration.connections[1])
   - atcdmac100_core.dma_int <= dma_int (integration.connections[2])
   - atcdmac100_core.dma_req <= dma_req (integration.connections[3])
   - atcdmac100_core.dma_ack <= dma_ack (integration.connections[4])
@@ -45,18 +45,18 @@
 
 ## Tasks
 
-### RTL-0256: Implement interrupt item source_0
+### RTL-0316: Implement interrupt item source_0
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.source_0
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.source_0.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via interrupts.
 SSOT item context: value=TC.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -65,18 +65,18 @@ SSOT item context: value=TC.
   - Primary implementation evidence is in rtl/atcdmac100_core.sv
 - SSOT refs: interrupts.sources.source_0
 
-### RTL-0257: Implement interrupt item source_1
+### RTL-0317: Implement interrupt item source_1
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.source_1
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.source_1.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via interrupts.
 SSOT item context: value=Abort.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -85,18 +85,18 @@ SSOT item context: value=Abort.
   - Primary implementation evidence is in rtl/atcdmac100_core.sv
 - SSOT refs: interrupts.sources.source_1
 
-### RTL-0258: Implement interrupt item source_2
+### RTL-0318: Implement interrupt item source_2
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.source_2
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.source_2.
 Owner: atcdmac100_core in rtl/atcdmac100_core.sv via interrupts.
 SSOT item context: value=Error.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100_core.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

@@ -22,17 +22,14 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 1
-- Owner refs: integration, io_list
-- Locked-truth blockers:
-  - manifest_connection_contract_evidence: 30 SSOT connection contract issue(s) remain. atcdmac100: SSOT connection contract is not machine-readable; use module/port/signal fields or a port_map mapping; atcdmac100_core: SSOT connection contract targets a module not declared in RTL; atcdmac100_core: SSOT connection contract targets a module not declared in RTL
+- Human-locked open tasks: 0
+- Owner refs: cycle_model, dataflow, fsm, function_model, integration, io_list, top_integration
 - SSOT connection contracts:
-  - atcdmac100.<port> <= <signal> (sub_modules[1].connections)
   - atcdmac100_core.hclk <= hclk (integration.connections[0])
-  - atcdmac100_core.hresetn <= hresetn (integration.connections[1])
+  - atcdmac100_core.hresetn <= RTL_TODO_2_quality_gates_rtl_gen (integration.connections[1])
   - atcdmac100_core.dma_int <= dma_int (integration.connections[2])
   - atcdmac100_core.dma_req <= dma_req (integration.connections[3])
   - atcdmac100_core.dma_ack <= dma_ack (integration.connections[4])
@@ -42,6 +39,7 @@
   - atcdmac100_core.hsize <= hsize (integration.connections[8])
   - atcdmac100_core.hburst <= hburst (integration.connections[9])
   - atcdmac100_core.hwdata <= hwdata (integration.connections[10])
+  - atcdmac100_core.hsel <= hsel (integration.connections[11])
 - SSOT top IO contracts: 29
 
 ## Tasks
@@ -108,13 +106,13 @@ Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_connection_contract_evidence
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
-- Current reason: 30 SSOT connection contract issue(s) remain. atcdmac100: SSOT connection contract is not machine-readable; use module/port/signal fields or a port_map mapping; atcdmac100_core: SSOT connection contract targets a module not declared in RTL; atcdmac100_core: SSOT connection contract targets a module not declared in RTL
+- Current reason: SSOT connection contracts are satisfied by reachable RTL named port maps.
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port

@@ -2,6 +2,15 @@
 
 ## 2026-05-18
 
+- Added [[atcdmac100-document-flow-ui-honesty-20260518]] as the corrective
+  record for the Andes ATCDMAC100 PDF-based DMA run. It records the real
+  artifacts and numbers produced by the backend/common-engine path
+  (SSOT/models/RTL/lint/TB/sim/coverage/goal-audit/syn/STA), plus the process
+  failure: the visible ATLAS tab was open, but most execution was not driven by
+  right-side Orchestrator chat. The page marks the run as backend evidence, not
+  UI product-flow proof, records STA setup fail at `hclk@10ns` with WNS
+  `-22.560ns`, and records that PnR route was interrupted after the UI/process
+  mismatch was challenged.
 - Added [[atlas-browser-control-runbook]] so future agents can operate the
   visible ATLAS in-app Browser instead of substituting backend-only checks. The
   page records the exact Browser bootstrap, visible ATLAS URL open/reload,

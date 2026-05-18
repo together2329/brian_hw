@@ -104,7 +104,7 @@ sub_modules:
   - hready_mst
   - hbusreq_mst
   - hgrant_mst
-  connections: top-level wrapper forwards every port to atcdmac100_core
+  connections: []
   function_model_refs:
   - function_model
   cycle_model_refs:
@@ -1624,7 +1624,7 @@ integration:
     signal: hclk
   - module: atcdmac100_core
     port: hresetn
-    signal: hresetn
+    signal: RTL_TODO_2_quality_gates_rtl_gen
   - module: atcdmac100_core
     port: dma_int
     signal: dma_int

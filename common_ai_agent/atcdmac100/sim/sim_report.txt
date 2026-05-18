@@ -1,0 +1,6 @@
+TESTS=1 PASS=1 FAIL=0
+results=atcdmac100/sim/results.xml
+scoreboard=atcdmac100/sim/scoreboard_events.jsonl
+coverage_functional=atcdmac100/cov/coverage_functional.json
+waveforms=atcdmac100/sim/atcdmac100.vcd
+0 errors, 0 warnings

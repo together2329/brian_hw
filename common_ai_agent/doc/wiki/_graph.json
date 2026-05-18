@@ -1,23 +1,40 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-18T01:50:28Z",
+  "generated_at": "2026-05-18T03:52:55Z",
   "root": "doc/wiki",
-  "node_count": 44,
-  "edge_count": 280,
+  "node_count": 45,
+  "edge_count": 288,
   "tags": {
+    "atcdmac100": [
+      "atcdmac100-document-flow-ui-honesty-20260518"
+    ],
     "atlas-ui": [
+      "atcdmac100-document-flow-ui-honesty-20260518",
       "atlas-pipeline-worker-workspace-jump",
       "pl330-real-orchestrator-ui-lessons-20260517"
     ],
     "debugging": [
       "pl330-real-orchestrator-ui-lessons-20260517"
     ],
+    "dma": [
+      "atcdmac100-document-flow-ui-honesty-20260518"
+    ],
+    "evidence": [
+      "atcdmac100-document-flow-ui-honesty-20260518"
+    ],
+    "honesty": [
+      "atcdmac100-document-flow-ui-honesty-20260518"
+    ],
     "multi-worker": [
       "pl330-real-orchestrator-ui-lessons-20260517"
     ],
     "orchestrator": [
+      "atcdmac100-document-flow-ui-honesty-20260518",
       "atlas-pipeline-worker-workspace-jump",
       "pl330-real-orchestrator-ui-lessons-20260517"
+    ],
+    "pdf-import": [
+      "atcdmac100-document-flow-ui-honesty-20260518"
     ],
     "pipeline": [
       "atlas-pipeline-worker-workspace-jump"
@@ -30,6 +47,9 @@
     ],
     "rtl-gen": [
       "pl330-real-orchestrator-ui-lessons-20260517"
+    ],
+    "signoff": [
+      "atcdmac100-document-flow-ui-honesty-20260518"
     ],
     "worker": [
       "atlas-pipeline-worker-workspace-jump"
@@ -87,6 +107,7 @@
       "workflow-ownership-and-boundaries"
     ],
     "run": [
+      "atcdmac100-document-flow-ui-honesty-20260518",
       "pl330-real-orchestrator-ui-lessons-20260517"
     ],
     "runbook": [
@@ -176,6 +197,46 @@
       "size_bytes": 13939
     },
     {
+      "id": "atcdmac100-document-flow-ui-honesty-20260518",
+      "title": "ATCDMAC100 Document Flow UI Honesty 2026-05-18",
+      "type": "run",
+      "tags": [
+        "atcdmac100",
+        "atlas-ui",
+        "orchestrator",
+        "pdf-import",
+        "dma",
+        "signoff",
+        "evidence",
+        "honesty"
+      ],
+      "related": [
+        "atlas-browser-control-runbook",
+        "pipeline-progress-debugging",
+        "orchestrator-worker-handoff",
+        "full-flow-pipeline",
+        "pl330-real-orchestrator-ui-lessons-20260517",
+        "atlas-pipeline-screen"
+      ],
+      "outgoing": [
+        "atlas-browser-control-runbook",
+        "pipeline-progress-debugging",
+        "orchestrator-worker-handoff",
+        "full-flow-pipeline",
+        "pl330-real-orchestrator-ui-lessons-20260517",
+        "atlas-pipeline-screen"
+      ],
+      "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-18",
+      "summary": "Corrective run record for the Andes ATCDMAC100 DMA controller flow started from `AndeShape_ATCDMAC100_DS079_V1.2.pdf`. This page intentionally records both the technical artifact state and the process mistake: the visible ATLAS UI was open, but most work was executed through backend workflow scripts instead of by typing into the right-side Orchestrator…",
+      "path": "doc/wiki/atcdmac100-document-flow-ui-honesty-20260518.md",
+      "size_bytes": 10633
+    },
+    {
       "id": "atcuart100-pipeline-run",
       "title": "atcuart100 — Andes 16550-class APB UART Pipeline Run (2026-05-17)",
       "type": "reference",
@@ -238,6 +299,7 @@
       "related": [],
       "outgoing": [],
       "incoming": [
+        "atcdmac100-document-flow-ui-honesty-20260518",
         "index",
         "log"
       ],
@@ -289,6 +351,7 @@
         "atlas-pipeline-db-state"
       ],
       "incoming": [
+        "atcdmac100-document-flow-ui-honesty-20260518",
         "atlas-pipeline-db-state",
         "atlas-pipeline-worker-workspace-jump",
         "index",
@@ -437,6 +500,7 @@
       "incoming": [
         "agent-autonomous-ip-implementation-pattern",
         "arm-m0-min-pipeline-run",
+        "atcdmac100-document-flow-ui-honesty-20260518",
         "atcuart100-pipeline-run",
         "atcwdt200-pipeline-run-20260517",
         "atlas-pipeline-db-state",
@@ -611,6 +675,7 @@
         "orchestrator-worker-handoff",
         "orchestrator-worker-handoff-review",
         "pl330-real-orchestrator-ui-lessons-20260517",
+        "atcdmac100-document-flow-ui-honesty-20260518",
         "golden-todo-evidence",
         "wiki-curation-policy",
         "agent-autonomous-ip-implementation-pattern",
@@ -651,7 +716,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 16843
+      "size_bytes": 17617
     },
     {
       "id": "karpathy-llm-wiki-pattern",
@@ -685,6 +750,7 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "atcdmac100-document-flow-ui-honesty-20260518",
         "atlas-browser-control-runbook",
         "atlas-pipeline-worker-workspace-jump",
         "atlas-pipeline-screen",
@@ -714,9 +780,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added [[atlas-browser-control-runbook]] so future agents can operate the visible ATLAS in-app Browser instead of substituting backend-only checks. The page records the exact Browser bootstrap, visible ATLAS URL open/reload, DOM/screenshot inspection, semantic button/chat input interaction, coordinate mouse move/click/type/scroll, and the PL330 signoff…",
+      "summary": "- Added [[atcdmac100-document-flow-ui-honesty-20260518]] as the corrective record for the Andes ATCDMAC100 PDF-based DMA run. It records the real artifacts and numbers produced by the backend/common-engine path (SSOT/models/RTL/lint/TB/sim/coverage/goal-audit/syn/STA), plus the process failure: the visible ATLAS tab was open, but most execution was not…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 52191
+      "size_bytes": 52822
     },
     {
       "id": "mini-cpu-rerun-20260517",
@@ -828,6 +894,7 @@
         "human-review-and-escalation"
       ],
       "incoming": [
+        "atcdmac100-document-flow-ui-honesty-20260518",
         "atlas-pipeline-worker-workspace-jump",
         "full-flow-pipeline",
         "gpio-orchestrator-multiworker-run",
@@ -947,6 +1014,7 @@
       ],
       "incoming": [
         "agent-autonomous-ip-implementation-pattern",
+        "atcdmac100-document-flow-ui-honesty-20260518",
         "atlas-pipeline-worker-workspace-jump",
         "index",
         "log",
@@ -999,6 +1067,7 @@
         "round2-retry-budget-cross-workflow-routing-20260517"
       ],
       "incoming": [
+        "atcdmac100-document-flow-ui-honesty-20260518",
         "atlas-pipeline-worker-workspace-jump",
         "index",
         "log"

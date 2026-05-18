@@ -22,6 +22,7 @@ This section is additive; it does not replace the reading order below.
 | Multi-user or shared-worker collision risk | [[multi-user-worker-isolation]] + [[multi-user-worker-conflicts]] |
 | Orchestrator/worker handoff concept | [[orchestrator-worker-handoff]] + [[orchestrator-worker-handoff-review]] |
 | PL330 visible UI Orchestrator/worker lessons | [[pl330-real-orchestrator-ui-lessons-20260517]] |
+| ATCDMAC100 document-flow honesty record | [[atcdmac100-document-flow-ui-honesty-20260518]] |
 | Evidence approval and TodoTracker behavior | [[golden-todo-evidence]] |
 | When to update wiki during development | [[wiki-curation-policy]] |
 | How agent autonomously implements a new IP end-to-end | [[agent-autonomous-ip-implementation-pattern]] |
@@ -84,6 +85,7 @@ be loaded on a different machine and inspected without recreating the DB.
 - [[triple-llm-rv32i-experiment]] — `rv32i_min` SSOT 동일 입력을 3개 LLM provider(claude / gpt-codex / glm)에 병렬로 흘려 동일 파이프라인(ssot-gen → fl/cl → equiv-goals → rtl-gen)을 거치게 한 비교 실험. provider별 출력 품질·실패 패턴·재시도 비용을 한 시야로 측정.
 - [[orchestrator-workflow-bring-up-20260517]] — `workflow/orchestrator/` 디렉토리가 실재로 만들어진 날의 풀 세션 기록: 13파일(system_prompt + routing_policy + retry_budget + 7 slash commands + run-to-green template) 생성, 5 worker × 4 model spawn (glm / gpt-5.3-codex / deepseek / kimi), trace JSONL 인프라(`core/orchestrator_trace.py` + `/api/orchestrator/trace`), Pipeline UI orchestra view (WorkerOrchestraBar + PendingQABanner + OrchestratorTraceStrip + 양방향 화살표), 그리고 sub-agent fire-and-forget 패턴이 interactive workflow(ssot-gen)에서 hang 되는 mismatch 발견 + QA card escape hatch fix까지. e2e 검증: real-LLM orchestrator(gpt-5.5 xhigh)가 3개 worker에 분산 dispatch + sim_debug worker 단일 dispatch + scratch `simple_counter` SSOT 생성 후 pending QA로 자동 정지 (2026-05-17).
 - [[pl330-real-orchestrator-ui-lessons-20260517]] — visible ATLAS UI validation on `pl330realverify`: user challenged fake-looking progress, real Browser/API/worker evidence was required, Orchestrator must dispatch workers instead of direct worker chat, RTL handoff should be `/ssot-rtl <ip>` rather than a giant TODO payload, and active scoped job dedupe prevents duplicate loading runs. RTL compile/lint passed; full RTL audit still had open required TODOs. Also records the accidental `tb-gen` dispatch/cancel that polluted the TB stage card (2026-05-17).
+- [[atcdmac100-document-flow-ui-honesty-20260518]] — corrective record for the Andes ATCDMAC100 PDF-based DMA flow. Real backend/common-engine artifacts were produced through SSOT, models, RTL, lint, TB, sim, coverage, goal-audit, synthesis, and pre-route STA, but the run is explicitly not valid ATLAS UI Orchestrator product-flow proof because most stages were driven by backend scripts rather than right-side Orchestrator chat. Records STA setup failure (`hclk@10ns` WNS `-22.560ns`) and interrupted PnR route.
 
 ## Debugging And Operations
 
@@ -93,6 +95,7 @@ be loaded on a different machine and inspected without recreating the DB.
 - [[provider-and-llm-call-accounting]] — first stop for "how many LLM calls/tokens/cost did this workflow use?"
 - [[rtl-version-run-history]] — first stop for "which SSOT/RTL/TB version did this lint/sim/coverage/syn/sta/pnr run use?"
 - [[pl330-real-orchestrator-ui-lessons-20260517]] — first stop for visible UI Orchestrator/worker validation, `/ssot-rtl` handoff versus TODO payloads, duplicate dispatch loading, and contaminated stage-card status.
+- [[atcdmac100-document-flow-ui-honesty-20260518]] — first stop for distinguishing backend-generated ATCDMAC100 evidence from real UI Orchestrator/worker proof.
 
 ## Open Improvements
 

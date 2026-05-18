@@ -8,12 +8,12 @@
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 14,
+      "count": 17,
       "enabled": true,
-      "index": 7,
+      "index": 9,
       "key": "registers",
-      "module_task_count": 278,
-      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 353,
+      "rule": "Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "registers",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -25,13 +25,27 @@
       "refs": [
         "cycle_model",
         "dataflow",
+        "decomposition",
+        "decomposition.owners",
+        "decomposition.source_refs",
         "error_handling",
         "features",
         "fsm",
         "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.FM_AHB_READ",
+        "function_model.transactions.FM_AHB_WRITE",
+        "function_model.transactions.FM_ARBITRATE",
+        "function_model.transactions.FM_COMPLETE",
+        "function_model.transactions.FM_ERROR_ABORT",
+        "function_model.transactions.FM_HANDSHAKE_ACK",
+        "function_model.transactions.FM_MASTER_READ",
+        "function_model.transactions.FM_MASTER_WRITE",
+        "function_model.transactions.FM_RESET",
         "interrupts",
         "io_list",
         "registers",
+        "registers.register_list",
         "test_requirements",
         "traceability"
       ],
@@ -68,9 +82,9 @@
         "machine_readable": true,
         "module": "atcdmac100_core",
         "port": "hresetn",
-        "signal": "hresetn",
+        "signal": "RTL_TODO_2_quality_gates_rtl_gen",
         "signal_terms": [
-          "hresetn"
+          "RTL_TODO_2_quality_gates_rtl_gen"
         ],
         "source_ref": "integration.connections[1]"
       },
@@ -379,15 +393,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 44,
-    "open_required_count": 44,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -419,18 +433,18 @@
       "registers.register": 11
     },
     "module_slice": {
-      "count": 14,
+      "count": 17,
       "enabled": true,
-      "index": 7,
+      "index": 9,
       "key": "registers",
-      "module_task_count": 278,
-      "rule": "Owner module atcdmac100_core is split into 14 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 353,
+      "rule": "Owner module atcdmac100_core is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "registers",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 44,
+    "open_required_count": 0,
     "required_count": 44,
     "source_refs": [
       "registers.register_list.IdRev",
@@ -459,7 +473,7 @@
       "registers.register_list.ChnCtrl.fields.SrcWidth"
     ],
     "status_counts": {
-      "open": 44
+      "pass": 44
     },
     "task_count": 44
   },
@@ -478,11 +492,11 @@
         "IdRev access policy RO is implemented without read/write shortcuts",
         "IdRev decode uses SSOT address/offset 0x00"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.IdRev.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=IdRev; width=32; reset=0x01021012; access=RO; offset=0x00.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.IdRev.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=IdRev; width=32; reset=0x01021012; access=RO; offset=0x00.",
       "evidence_terms": [
         "IdRev"
       ],
-      "id": "RTL-0212",
+      "id": "RTL-0272",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -499,8 +513,10 @@
         "registers.register_list.IdRev"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IdRev"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -508,7 +524,7 @@
           "IdRev"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -518,9 +534,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -539,12 +555,12 @@
         "ID readback returns implemented RTL state when readable",
         "ID write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IdRev.fields.ID.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ID; reset=0x01021; access=RO.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IdRev.fields.ID.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ID; reset=0x01021; access=RO.",
       "evidence_terms": [
         "ID",
         "IdRev"
       ],
-      "id": "RTL-0213",
+      "id": "RTL-0273",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -559,8 +575,11 @@
         "registers.register_list.IdRev.fields.ID"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "ID",
+          "IdRev"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -569,7 +588,7 @@
           "IdRev"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -579,9 +598,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -600,11 +619,11 @@
         "RevMajor readback returns implemented RTL state when readable",
         "RevMajor write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IdRev.fields.RevMajor.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=RevMajor; reset=0x1; access=RO.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IdRev.fields.RevMajor.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=RevMajor; reset=0x1; access=RO.",
       "evidence_terms": [
         "RevMajor"
       ],
-      "id": "RTL-0214",
+      "id": "RTL-0274",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -619,8 +638,10 @@
         "registers.register_list.IdRev.fields.RevMajor"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "RevMajor"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -628,7 +649,7 @@
           "RevMajor"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -638,9 +659,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -659,11 +680,11 @@
         "RevMinor readback returns implemented RTL state when readable",
         "RevMinor write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IdRev.fields.RevMinor.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=RevMinor; reset=0x2; access=RO.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IdRev.fields.RevMinor.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=RevMinor; reset=0x2; access=RO.",
       "evidence_terms": [
         "RevMinor"
       ],
-      "id": "RTL-0215",
+      "id": "RTL-0275",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -678,8 +699,10 @@
         "registers.register_list.IdRev.fields.RevMinor"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "RevMinor"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -687,7 +710,7 @@
           "RevMinor"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -697,9 +720,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -716,11 +739,11 @@
         "DMACfg access policy RO is implemented without read/write shortcuts",
         "DMACfg decode uses SSOT address/offset 0x10"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DMACfg.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DMACfg; width=32; reset=CONFIG; access=RO; offset=0x10.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DMACfg.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=DMACfg; width=32; reset=CONFIG; access=RO; offset=0x10.",
       "evidence_terms": [
         "DMACfg"
       ],
-      "id": "RTL-0216",
+      "id": "RTL-0276",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -737,8 +760,10 @@
         "registers.register_list.DMACfg"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "DMACfg"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -746,7 +771,7 @@
           "DMACfg"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -756,9 +781,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -777,11 +802,11 @@
         "ChainXfr readback returns implemented RTL state when readable",
         "ChainXfr write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.ChainXfr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChainXfr; reset=CHAIN_TRANSFER_SUPPORT; access=RO.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.ChainXfr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ChainXfr; reset=CHAIN_TRANSFER_SUPPORT; access=RO.",
       "evidence_terms": [
         "ChainXfr"
       ],
-      "id": "RTL-0217",
+      "id": "RTL-0277",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -796,8 +821,10 @@
         "registers.register_list.DMACfg.fields.ChainXfr"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ChainXfr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -805,7 +832,7 @@
           "ChainXfr"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -815,9 +842,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -836,11 +863,11 @@
         "ReqSync readback returns implemented RTL state when readable",
         "ReqSync write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.ReqSync.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ReqSync; reset=0x0; access=RO.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.ReqSync.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ReqSync; reset=0x0; access=RO.",
       "evidence_terms": [
         "ReqSync"
       ],
-      "id": "RTL-0218",
+      "id": "RTL-0278",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -855,8 +882,10 @@
         "registers.register_list.DMACfg.fields.ReqSync"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ReqSync"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -864,7 +893,7 @@
           "ReqSync"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -874,9 +903,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -895,11 +924,11 @@
         "ReqNum readback returns implemented RTL state when readable",
         "ReqNum write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.ReqNum.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ReqNum; reset=REQ_ACK_NUM; access=RO.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.ReqNum.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ReqNum; reset=REQ_ACK_NUM; access=RO.",
       "evidence_terms": [
         "ReqNum"
       ],
-      "id": "RTL-0219",
+      "id": "RTL-0279",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -914,8 +943,10 @@
         "registers.register_list.DMACfg.fields.ReqNum"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ReqNum"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -923,7 +954,7 @@
           "ReqNum"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -933,9 +964,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -954,11 +985,11 @@
         "FIFODepth readback returns implemented RTL state when readable",
         "FIFODepth write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.FIFODepth.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=FIFODepth; reset=FIFO_DEPTH; access=RO.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.FIFODepth.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=FIFODepth; reset=FIFO_DEPTH; access=RO.",
       "evidence_terms": [
         "FIFODepth"
       ],
-      "id": "RTL-0220",
+      "id": "RTL-0280",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -973,8 +1004,10 @@
         "registers.register_list.DMACfg.fields.FIFODepth"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "FIFODepth"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -982,7 +1015,7 @@
           "FIFODepth"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -992,9 +1025,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1013,11 +1046,11 @@
         "ChannelNum readback returns implemented RTL state when readable",
         "ChannelNum write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.ChannelNum.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChannelNum; reset=DMA_CH_NUM; access=RO.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACfg.fields.ChannelNum.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ChannelNum; reset=DMA_CH_NUM; access=RO.",
       "evidence_terms": [
         "ChannelNum"
       ],
-      "id": "RTL-0221",
+      "id": "RTL-0281",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1032,8 +1065,10 @@
         "registers.register_list.DMACfg.fields.ChannelNum"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ChannelNum"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1041,7 +1076,7 @@
           "ChannelNum"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1051,9 +1086,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1070,11 +1105,11 @@
         "DMACtrl access policy WO is implemented without read/write shortcuts",
         "DMACtrl decode uses SSOT address/offset 0x20"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DMACtrl.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DMACtrl; width=32; reset=0x0; access=WO; offset=0x20.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.DMACtrl.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=DMACtrl; width=32; reset=0x0; access=WO; offset=0x20.",
       "evidence_terms": [
         "DMACtrl"
       ],
-      "id": "RTL-0222",
+      "id": "RTL-0282",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1091,8 +1126,10 @@
         "registers.register_list.DMACtrl"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "DMACtrl"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1100,7 +1137,7 @@
           "DMACtrl"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1110,9 +1147,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1131,11 +1168,11 @@
         "Reset readback returns implemented RTL state when readable",
         "Reset write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACtrl.fields.Reset.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=Reset; reset=0x0; access=WO.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DMACtrl.fields.Reset.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=Reset; reset=0x0; access=WO.",
       "evidence_terms": [
         "Reset"
       ],
-      "id": "RTL-0223",
+      "id": "RTL-0283",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1150,8 +1187,10 @@
         "registers.register_list.DMACtrl.fields.Reset"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "Reset"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1159,7 +1198,7 @@
           "Reset"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1169,9 +1208,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1188,11 +1227,11 @@
         "IntStatus access policy R/W1C is implemented without read/write shortcuts",
         "IntStatus decode uses SSOT address/offset 0x30"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.IntStatus.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=IntStatus; width=32; reset=0x0; access=R/W1C; offset=0x30.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.IntStatus.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=IntStatus; width=32; reset=0x0; access=R/W1C; offset=0x30.",
       "evidence_terms": [
         "IntStatus"
       ],
-      "id": "RTL-0224",
+      "id": "RTL-0284",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1209,8 +1248,10 @@
         "registers.register_list.IntStatus"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IntStatus"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1218,7 +1259,7 @@
           "IntStatus"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1228,9 +1269,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1249,11 +1290,11 @@
         "TC readback returns implemented RTL state when readable",
         "TC write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IntStatus.fields.TC.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=TC; reset=0x0; access=R/W1C.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IntStatus.fields.TC.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=TC; reset=0x0; access=R/W1C.",
       "evidence_terms": [
         "TC"
       ],
-      "id": "RTL-0225",
+      "id": "RTL-0285",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1268,8 +1309,10 @@
         "registers.register_list.IntStatus.fields.TC"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "TC"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1277,7 +1320,7 @@
           "TC"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1287,9 +1330,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1308,11 +1351,11 @@
         "Abort readback returns implemented RTL state when readable",
         "Abort write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IntStatus.fields.Abort.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=Abort; reset=0x0; access=R/W1C.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IntStatus.fields.Abort.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=Abort; reset=0x0; access=R/W1C.",
       "evidence_terms": [
         "Abort"
       ],
-      "id": "RTL-0226",
+      "id": "RTL-0286",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1327,8 +1370,10 @@
         "registers.register_list.IntStatus.fields.Abort"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "Abort"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1336,7 +1381,7 @@
           "Abort"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1346,9 +1391,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1367,9 +1412,9 @@
         "Error readback returns implemented RTL state when readable",
         "Error write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IntStatus.fields.Error.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=Error; reset=0x0; access=R/W1C.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.IntStatus.fields.Error.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=Error; reset=0x0; access=R/W1C.",
       "evidence_terms": [],
-      "id": "RTL-0227",
+      "id": "RTL-0287",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1395,9 +1440,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1414,11 +1459,11 @@
         "ChEN access policy RO is implemented without read/write shortcuts",
         "ChEN decode uses SSOT address/offset 0x34"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChEN.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChEN; width=32; reset=0x0; access=RO; offset=0x34.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChEN.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ChEN; width=32; reset=0x0; access=RO; offset=0x34.",
       "evidence_terms": [
         "ChEN"
       ],
-      "id": "RTL-0228",
+      "id": "RTL-0288",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1435,8 +1480,10 @@
         "registers.register_list.ChEN"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ChEN"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1444,7 +1491,7 @@
           "ChEN"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1454,9 +1501,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1475,11 +1522,11 @@
         "ChEN readback returns implemented RTL state when readable",
         "ChEN write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChEN.fields.ChEN.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChEN; reset=0x0; access=RO.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChEN.fields.ChEN.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ChEN; reset=0x0; access=RO.",
       "evidence_terms": [
         "ChEN"
       ],
-      "id": "RTL-0229",
+      "id": "RTL-0289",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1494,8 +1541,10 @@
         "registers.register_list.ChEN.fields.ChEN"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ChEN"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1503,7 +1552,7 @@
           "ChEN"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1513,9 +1562,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1532,11 +1581,11 @@
         "ChAbort access policy WO is implemented without read/write shortcuts",
         "ChAbort decode uses SSOT address/offset 0x40"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChAbort.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChAbort; width=32; reset=0x0; access=WO; offset=0x40.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChAbort.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ChAbort; width=32; reset=0x0; access=WO; offset=0x40.",
       "evidence_terms": [
         "ChAbort"
       ],
-      "id": "RTL-0230",
+      "id": "RTL-0290",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1553,8 +1602,10 @@
         "registers.register_list.ChAbort"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ChAbort"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1562,7 +1613,7 @@
           "ChAbort"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1572,9 +1623,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1593,11 +1644,11 @@
         "ChAbort readback returns implemented RTL state when readable",
         "ChAbort write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChAbort.fields.ChAbort.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChAbort; reset=0x0; access=WO.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChAbort.fields.ChAbort.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ChAbort; reset=0x0; access=WO.",
       "evidence_terms": [
         "ChAbort"
       ],
-      "id": "RTL-0231",
+      "id": "RTL-0291",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1612,8 +1663,10 @@
         "registers.register_list.ChAbort.fields.ChAbort"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ChAbort"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1621,7 +1674,7 @@
           "ChAbort"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1631,9 +1684,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1650,11 +1703,11 @@
         "ChnCtrl access policy R/W is implemented without read/write shortcuts",
         "ChnCtrl decode uses SSOT address/offset 0x44+n*0x14"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnCtrl.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChnCtrl; width=32; reset=0x000A0000; access=R/W; offset=0x44+n*0x14.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnCtrl.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ChnCtrl; width=32; reset=0x000A0000; access=R/W; offset=0x44+n*0x14.",
       "evidence_terms": [
         "ChnCtrl"
       ],
-      "id": "RTL-0232",
+      "id": "RTL-0292",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1671,8 +1724,10 @@
         "registers.register_list.ChnCtrl"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ChnCtrl"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1680,7 +1735,7 @@
           "ChnCtrl"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1690,9 +1745,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1711,11 +1766,11 @@
         "Priority readback returns implemented RTL state when readable",
         "Priority write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.Priority.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=Priority; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.Priority.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=Priority; reset=0x0; access=R/W.",
       "evidence_terms": [
         "Priority"
       ],
-      "id": "RTL-0233",
+      "id": "RTL-0293",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1730,8 +1785,10 @@
         "registers.register_list.ChnCtrl.fields.Priority"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "Priority"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1739,7 +1796,7 @@
           "Priority"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1749,9 +1806,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1770,11 +1827,11 @@
         "SrcBurstSize readback returns implemented RTL state when readable",
         "SrcBurstSize write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcBurstSize.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=SrcBurstSize; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcBurstSize.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=SrcBurstSize; reset=0x0; access=R/W.",
       "evidence_terms": [
         "SrcBurstSize"
       ],
-      "id": "RTL-0234",
+      "id": "RTL-0294",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1789,8 +1846,10 @@
         "registers.register_list.ChnCtrl.fields.SrcBurstSize"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "SrcBurstSize"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1798,7 +1857,7 @@
           "SrcBurstSize"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1808,9 +1867,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1829,11 +1888,11 @@
         "SrcWidth readback returns implemented RTL state when readable",
         "SrcWidth write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcWidth.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=SrcWidth; reset=0x2; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcWidth.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=SrcWidth; reset=0x2; access=R/W.",
       "evidence_terms": [
         "SrcWidth"
       ],
-      "id": "RTL-0235",
+      "id": "RTL-0295",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1848,8 +1907,10 @@
         "registers.register_list.ChnCtrl.fields.SrcWidth"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "SrcWidth"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1857,7 +1918,7 @@
           "SrcWidth"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1867,9 +1928,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1888,11 +1949,11 @@
         "DstWidth readback returns implemented RTL state when readable",
         "DstWidth write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.DstWidth.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DstWidth; reset=0x2; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.DstWidth.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=DstWidth; reset=0x2; access=R/W.",
       "evidence_terms": [
         "DstWidth"
       ],
-      "id": "RTL-0236",
+      "id": "RTL-0296",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1907,8 +1968,10 @@
         "registers.register_list.ChnCtrl.fields.DstWidth"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "DstWidth"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1916,7 +1979,7 @@
           "DstWidth"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1926,9 +1989,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1947,11 +2010,11 @@
         "SrcMode readback returns implemented RTL state when readable",
         "SrcMode write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcMode.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=SrcMode; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcMode.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=SrcMode; reset=0x0; access=R/W.",
       "evidence_terms": [
         "SrcMode"
       ],
-      "id": "RTL-0237",
+      "id": "RTL-0297",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -1966,8 +2029,10 @@
         "registers.register_list.ChnCtrl.fields.SrcMode"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "SrcMode"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1975,7 +2040,7 @@
           "SrcMode"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1985,9 +2050,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2006,11 +2071,11 @@
         "DstMode readback returns implemented RTL state when readable",
         "DstMode write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.DstMode.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DstMode; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.DstMode.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=DstMode; reset=0x0; access=R/W.",
       "evidence_terms": [
         "DstMode"
       ],
-      "id": "RTL-0238",
+      "id": "RTL-0298",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2025,8 +2090,10 @@
         "registers.register_list.ChnCtrl.fields.DstMode"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "DstMode"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2034,7 +2101,7 @@
           "DstMode"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2044,9 +2111,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2065,11 +2132,11 @@
         "SrcAddrCtrl readback returns implemented RTL state when readable",
         "SrcAddrCtrl write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcAddrCtrl.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=SrcAddrCtrl; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcAddrCtrl.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=SrcAddrCtrl; reset=0x0; access=R/W.",
       "evidence_terms": [
         "SrcAddrCtrl"
       ],
-      "id": "RTL-0239",
+      "id": "RTL-0299",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2084,8 +2151,10 @@
         "registers.register_list.ChnCtrl.fields.SrcAddrCtrl"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "SrcAddrCtrl"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2093,7 +2162,7 @@
           "SrcAddrCtrl"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2103,9 +2172,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2124,11 +2193,11 @@
         "DstAddrCtrl readback returns implemented RTL state when readable",
         "DstAddrCtrl write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.DstAddrCtrl.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DstAddrCtrl; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.DstAddrCtrl.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=DstAddrCtrl; reset=0x0; access=R/W.",
       "evidence_terms": [
         "DstAddrCtrl"
       ],
-      "id": "RTL-0240",
+      "id": "RTL-0300",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2143,8 +2212,10 @@
         "registers.register_list.ChnCtrl.fields.DstAddrCtrl"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "DstAddrCtrl"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2152,7 +2223,7 @@
           "DstAddrCtrl"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2162,9 +2233,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2183,11 +2254,11 @@
         "SrcReqSel readback returns implemented RTL state when readable",
         "SrcReqSel write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcReqSel.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=SrcReqSel; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.SrcReqSel.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=SrcReqSel; reset=0x0; access=R/W.",
       "evidence_terms": [
         "SrcReqSel"
       ],
-      "id": "RTL-0241",
+      "id": "RTL-0301",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2202,8 +2273,10 @@
         "registers.register_list.ChnCtrl.fields.SrcReqSel"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "SrcReqSel"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2211,7 +2284,7 @@
           "SrcReqSel"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2221,9 +2294,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2242,11 +2315,11 @@
         "DstReqSel readback returns implemented RTL state when readable",
         "DstReqSel write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.DstReqSel.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DstReqSel; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.DstReqSel.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=DstReqSel; reset=0x0; access=R/W.",
       "evidence_terms": [
         "DstReqSel"
       ],
-      "id": "RTL-0242",
+      "id": "RTL-0302",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2261,8 +2334,10 @@
         "registers.register_list.ChnCtrl.fields.DstReqSel"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "DstReqSel"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2270,7 +2345,7 @@
           "DstReqSel"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2280,9 +2355,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2301,11 +2376,11 @@
         "IntAbtMask readback returns implemented RTL state when readable",
         "IntAbtMask write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.IntAbtMask.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=IntAbtMask; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.IntAbtMask.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=IntAbtMask; reset=0x0; access=R/W.",
       "evidence_terms": [
         "IntAbtMask"
       ],
-      "id": "RTL-0243",
+      "id": "RTL-0303",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2320,8 +2395,10 @@
         "registers.register_list.ChnCtrl.fields.IntAbtMask"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IntAbtMask"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2329,7 +2406,7 @@
           "IntAbtMask"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2339,9 +2416,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2360,11 +2437,11 @@
         "IntErrMask readback returns implemented RTL state when readable",
         "IntErrMask write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.IntErrMask.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=IntErrMask; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.IntErrMask.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=IntErrMask; reset=0x0; access=R/W.",
       "evidence_terms": [
         "IntErrMask"
       ],
-      "id": "RTL-0244",
+      "id": "RTL-0304",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2379,8 +2456,10 @@
         "registers.register_list.ChnCtrl.fields.IntErrMask"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IntErrMask"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2388,7 +2467,7 @@
           "IntErrMask"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2398,9 +2477,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2419,11 +2498,11 @@
         "IntTCMask readback returns implemented RTL state when readable",
         "IntTCMask write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.IntTCMask.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=IntTCMask; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.IntTCMask.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=IntTCMask; reset=0x0; access=R/W.",
       "evidence_terms": [
         "IntTCMask"
       ],
-      "id": "RTL-0245",
+      "id": "RTL-0305",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2438,8 +2517,10 @@
         "registers.register_list.ChnCtrl.fields.IntTCMask"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IntTCMask"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2447,7 +2528,7 @@
           "IntTCMask"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2457,9 +2538,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2478,11 +2559,11 @@
         "Enable readback returns implemented RTL state when readable",
         "Enable write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.Enable.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=Enable; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnCtrl.fields.Enable.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=Enable; reset=0x0; access=R/W.",
       "evidence_terms": [
         "Enable"
       ],
-      "id": "RTL-0246",
+      "id": "RTL-0306",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2497,8 +2578,10 @@
         "registers.register_list.ChnCtrl.fields.Enable"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "Enable"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2506,7 +2589,7 @@
           "Enable"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2516,9 +2599,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2535,11 +2618,11 @@
         "ChnSrcAddr access policy R/W is implemented without read/write shortcuts",
         "ChnSrcAddr decode uses SSOT address/offset 0x48+n*0x14"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnSrcAddr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChnSrcAddr; width=32; reset=0x0; access=R/W; offset=0x48+n*0x14.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnSrcAddr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ChnSrcAddr; width=32; reset=0x0; access=R/W; offset=0x48+n*0x14.",
       "evidence_terms": [
         "ChnSrcAddr"
       ],
-      "id": "RTL-0247",
+      "id": "RTL-0307",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2556,8 +2639,10 @@
         "registers.register_list.ChnSrcAddr"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ChnSrcAddr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2565,7 +2650,7 @@
           "ChnSrcAddr"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -2575,9 +2660,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2596,12 +2681,12 @@
         "SrcAddr readback returns implemented RTL state when readable",
         "SrcAddr write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnSrcAddr.fields.SrcAddr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=SrcAddr; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnSrcAddr.fields.SrcAddr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=SrcAddr; reset=0x0; access=R/W.",
       "evidence_terms": [
         "ChnSrcAddr",
         "SrcAddr"
       ],
-      "id": "RTL-0248",
+      "id": "RTL-0308",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2616,8 +2701,11 @@
         "registers.register_list.ChnSrcAddr.fields.SrcAddr"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "ChnSrcAddr",
+          "SrcAddr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2626,7 +2714,7 @@
           "SrcAddr"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2636,9 +2724,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2655,11 +2743,11 @@
         "ChnDstAddr access policy R/W is implemented without read/write shortcuts",
         "ChnDstAddr decode uses SSOT address/offset 0x4C+n*0x14"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnDstAddr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChnDstAddr; width=32; reset=0x0; access=R/W; offset=0x4C+n*0x14.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnDstAddr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ChnDstAddr; width=32; reset=0x0; access=R/W; offset=0x4C+n*0x14.",
       "evidence_terms": [
         "ChnDstAddr"
       ],
-      "id": "RTL-0249",
+      "id": "RTL-0309",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2676,8 +2764,10 @@
         "registers.register_list.ChnDstAddr"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ChnDstAddr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2685,7 +2775,7 @@
           "ChnDstAddr"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -2695,9 +2785,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2716,12 +2806,12 @@
         "DstAddr readback returns implemented RTL state when readable",
         "DstAddr write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnDstAddr.fields.DstAddr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=DstAddr; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnDstAddr.fields.DstAddr.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=DstAddr; reset=0x0; access=R/W.",
       "evidence_terms": [
         "ChnDstAddr",
         "DstAddr"
       ],
-      "id": "RTL-0250",
+      "id": "RTL-0310",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2736,8 +2826,11 @@
         "registers.register_list.ChnDstAddr.fields.DstAddr"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "ChnDstAddr",
+          "DstAddr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2746,7 +2839,7 @@
           "DstAddr"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2756,9 +2849,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2775,11 +2868,11 @@
         "ChnTranSize access policy R/W is implemented without read/write shortcuts",
         "ChnTranSize decode uses SSOT address/offset 0x50+n*0x14"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnTranSize.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChnTranSize; width=32; reset=0x0; access=R/W; offset=0x50+n*0x14.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnTranSize.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ChnTranSize; width=32; reset=0x0; access=R/W; offset=0x50+n*0x14.",
       "evidence_terms": [
         "ChnTranSize"
       ],
-      "id": "RTL-0251",
+      "id": "RTL-0311",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2796,8 +2889,10 @@
         "registers.register_list.ChnTranSize"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ChnTranSize"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2805,7 +2900,7 @@
           "ChnTranSize"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -2815,9 +2910,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2836,12 +2931,12 @@
         "TranSize readback returns implemented RTL state when readable",
         "TranSize write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnTranSize.fields.TranSize.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=TranSize; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnTranSize.fields.TranSize.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=TranSize; reset=0x0; access=R/W.",
       "evidence_terms": [
         "ChnTranSize",
         "TranSize"
       ],
-      "id": "RTL-0252",
+      "id": "RTL-0312",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2856,8 +2951,11 @@
         "registers.register_list.ChnTranSize.fields.TranSize"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "ChnTranSize",
+          "TranSize"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2866,7 +2964,7 @@
           "TranSize"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2876,9 +2974,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2895,11 +2993,11 @@
         "ChnLLPointer access policy R/W is implemented without read/write shortcuts",
         "ChnLLPointer decode uses SSOT address/offset 0x54+n*0x14"
       ],
-      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnLLPointer.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=ChnLLPointer; width=32; reset=0x0; access=R/W; offset=0x54+n*0x14.",
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.ChnLLPointer.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=ChnLLPointer; width=32; reset=0x0; access=R/W; offset=0x54+n*0x14.",
       "evidence_terms": [
         "ChnLLPointer"
       ],
-      "id": "RTL-0253",
+      "id": "RTL-0313",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2916,8 +3014,10 @@
         "registers.register_list.ChnLLPointer"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ChnLLPointer"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2925,7 +3025,7 @@
           "ChnLLPointer"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -2935,9 +3035,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2956,12 +3056,12 @@
         "LLPointer readback returns implemented RTL state when readable",
         "LLPointer write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnLLPointer.fields.LLPointer.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=LLPointer; reset=0x0; access=R/W.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnLLPointer.fields.LLPointer.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=LLPointer; reset=0x0; access=R/W.",
       "evidence_terms": [
         "ChnLLPointer",
         "LLPointer"
       ],
-      "id": "RTL-0254",
+      "id": "RTL-0314",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -2976,8 +3076,11 @@
         "registers.register_list.ChnLLPointer.fields.LLPointer"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "ChnLLPointer",
+          "LLPointer"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2986,7 +3089,7 @@
           "LLPointer"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2996,9 +3099,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3017,13 +3120,13 @@
         "Reserved readback returns implemented RTL state when readable",
         "Reserved write/clear side effects are connected to owning control/status logic"
       ],
-      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnLLPointer.fields.Reserved.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.\nSSOT item context: name=Reserved; reset=0x0; access=reserved.",
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.ChnLLPointer.fields.Reserved.\nOwner: atcdmac100_core in rtl/atcdmac100_core.sv via registers.register_list.\nSSOT item context: name=Reserved; reset=0x0; access=reserved.",
       "evidence_terms": [
         "GPIO_MASK",
         "Reserved",
         "mask"
       ],
-      "id": "RTL-0255",
+      "id": "RTL-0315",
       "owner_file": "rtl/atcdmac100_core.sv",
       "owner_module": "atcdmac100_core",
       "priority": "high",
@@ -3038,8 +3141,11 @@
         "registers.register_list.ChnLLPointer.fields.Reserved"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "Reserved",
+          "mask"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -3049,7 +3155,7 @@
           "mask"
         ],
         "source_scope": "rtl/atcdmac100_core.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -3059,13 +3165,13 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/atcdmac100_core.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "72f45ac236a074e74c4c80ad18e49e1163775dd9e0f8018c491d6f6563c1a372",
+  "todo_plan_sha256": "7da652c8f3ad6cbab8b8e9ee0f0a48d9ace8103da5920ba80b4dbc0877e508a9",
   "top": "atcdmac100",
   "type": "rtl_authoring_packet"
 }

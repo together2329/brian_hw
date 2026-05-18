@@ -22,17 +22,16 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 6
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: integration, io_list
-- Module slice: 2/6 section=parameters task_limit=48
-- Slice rule: Owner module atcdmac100 is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Owner refs: cycle_model, dataflow, fsm, function_model, integration, io_list, top_integration
+- Module slice: 2/7 section=parameters task_limit=48
+- Slice rule: Owner module atcdmac100 is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
 - SSOT connection contracts:
-  - atcdmac100.<port> <= <signal> (sub_modules[1].connections)
   - atcdmac100_core.hclk <= hclk (integration.connections[0])
-  - atcdmac100_core.hresetn <= hresetn (integration.connections[1])
+  - atcdmac100_core.hresetn <= RTL_TODO_2_quality_gates_rtl_gen (integration.connections[1])
   - atcdmac100_core.dma_int <= dma_int (integration.connections[2])
   - atcdmac100_core.dma_req <= dma_req (integration.connections[3])
   - atcdmac100_core.dma_ack <= dma_ack (integration.connections[4])
@@ -42,6 +41,7 @@
   - atcdmac100_core.hsize <= hsize (integration.connections[8])
   - atcdmac100_core.hburst <= hburst (integration.connections[9])
   - atcdmac100_core.hwdata <= hwdata (integration.connections[10])
+  - atcdmac100_core.hsel <= hsel (integration.connections[11])
 - SSOT top IO contracts: 29
 
 ## Tasks
@@ -50,14 +50,14 @@
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.ADDR_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.ADDR_WIDTH.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 SSOT item context: name=ADDR_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -70,14 +70,14 @@ SSOT item context: name=ADDR_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.DATA_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.DATA_WIDTH.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 SSOT item context: name=DATA_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -90,14 +90,14 @@ SSOT item context: name=DATA_WIDTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.DMA_CH_NUM
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.DMA_CH_NUM.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 SSOT item context: name=DMA_CH_NUM.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -110,14 +110,14 @@ SSOT item context: name=DMA_CH_NUM.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.REQ_ACK_NUM
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.REQ_ACK_NUM.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 SSOT item context: name=REQ_ACK_NUM.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -130,14 +130,14 @@ SSOT item context: name=REQ_ACK_NUM.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.FIFO_DEPTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.FIFO_DEPTH.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 SSOT item context: name=FIFO_DEPTH.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -150,14 +150,14 @@ SSOT item context: name=FIFO_DEPTH.
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.CHAIN_TRANSFER_SUPPORT
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.CHAIN_TRANSFER_SUPPORT.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 SSOT item context: name=CHAIN_TRANSFER_SUPPORT.
-- Current reason: Owner RTL file is missing: rtl/atcdmac100.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects

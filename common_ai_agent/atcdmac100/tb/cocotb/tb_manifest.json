@@ -1,0 +1,565 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "atcdmac100",
+  "top": "atcdmac100",
+  "generated_at": "2026-05-18T03:17:22Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "atcdmac100/yaml/atcdmac100.ssot.yaml",
+  "equivalence_goals": "atcdmac100/verify/equivalence_goals.json",
+  "rtl_contract": "atcdmac100/rtl/rtl_contract.json",
+  "rtl_contract_source": "rtl_contract_json",
+  "clock": "hclk",
+  "reset": "hresetn",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "ADDR_WIDTH": 32,
+    "DATA_WIDTH": 32,
+    "DMA_CH_NUM": 8,
+    "REQ_ACK_NUM": 16,
+    "FIFO_DEPTH": 8,
+    "CHAIN_TRANSFER_SUPPORT": 1
+  },
+  "registers": {
+    "config": {},
+    "register_list": [
+      {
+        "name": "IdRev",
+        "offset": 0,
+        "access": "ro",
+        "index": 0
+      },
+      {
+        "name": "DMACfg",
+        "offset": 16,
+        "access": "ro",
+        "index": 1
+      },
+      {
+        "name": "DMACtrl",
+        "offset": 32,
+        "access": "wo",
+        "index": 2
+      },
+      {
+        "name": "IntStatus",
+        "offset": 48,
+        "access": "r/w1c",
+        "index": 3
+      },
+      {
+        "name": "ChEN",
+        "offset": 52,
+        "access": "ro",
+        "index": 4
+      },
+      {
+        "name": "ChAbort",
+        "offset": 64,
+        "access": "wo",
+        "index": 5
+      },
+      {
+        "name": "ChnCtrl",
+        "offset": 24,
+        "access": "r/w",
+        "index": 6
+      },
+      {
+        "name": "ChnSrcAddr",
+        "offset": 28,
+        "access": "r/w",
+        "index": 7
+      },
+      {
+        "name": "ChnDstAddr",
+        "offset": 32,
+        "access": "r/w",
+        "index": 8
+      },
+      {
+        "name": "ChnTranSize",
+        "offset": 36,
+        "access": "r/w",
+        "index": 9
+      },
+      {
+        "name": "ChnLLPointer",
+        "offset": 40,
+        "access": "r/w",
+        "index": 10
+      }
+    ]
+  },
+  "state_observables": [
+    "dmac_reset_pulse",
+    "active_ch",
+    "busy",
+    "ch_enable",
+    "int_tc",
+    "int_abort",
+    "int_error",
+    "bytes_done",
+    "src_addr_cur",
+    "dst_addr_cur",
+    "read_data_hold",
+    "chain_pending"
+  ],
+  "state_observable_aliases": {
+    "active_ch": [
+      "active_ch_q"
+    ],
+    "int_tc": [
+      "int_tc_q"
+    ],
+    "int_abort": [
+      "int_abort_q"
+    ],
+    "int_error": [
+      "int_error_q"
+    ]
+  },
+  "rtl_signal_names": [
+    "DstAddr",
+    "DstAddrCtrl",
+    "DstMode",
+    "DstReqSel",
+    "DstWidth",
+    "IntAbtMask",
+    "IntErrMask",
+    "IntTCMask",
+    "LLPointer",
+    "RTL_TODO_1_io_list_done",
+    "RTL_TODO_2_quality_gates_rtl_gen",
+    "SrcAddr",
+    "SrcAddrCtrl",
+    "SrcBurstSize",
+    "SrcMode",
+    "SrcReqSel",
+    "SrcWidth",
+    "TranSize",
+    "ack_onehot",
+    "active_burst_len",
+    "active_ch_q",
+    "active_dst_addr_ctrl",
+    "active_dst_req_sel",
+    "active_dst_width",
+    "active_enable",
+    "active_hburst",
+    "active_int_mask",
+    "active_req_sel",
+    "active_src_addr_ctrl",
+    "active_src_width",
+    "addr_hi_nonzero",
+    "arb_ch_d",
+    "arb_valid_d",
+    "busy",
+    "bytes_done",
+    "cfg_ch_mask",
+    "ch0_ctrl_q",
+    "ch0_dst_q",
+    "ch0_llp_q",
+    "ch0_llp_read",
+    "ch0_size_q",
+    "ch0_src_q",
+    "ch1_ctrl_q",
+    "ch1_dst_q",
+    "ch1_llp_q",
+    "ch1_llp_read",
+    "ch1_size_q",
+    "ch1_src_q",
+    "ch2_ctrl_q",
+    "ch2_dst_q",
+    "ch2_llp_q",
+    "ch2_llp_read",
+    "ch2_size_q",
+    "ch2_src_q",
+    "ch3_ctrl_q",
+    "ch3_dst_q",
+    "ch3_llp_q",
+    "ch3_llp_read",
+    "ch3_size_q",
+    "ch3_src_q",
+    "ch4_ctrl_q",
+    "ch4_dst_q",
+    "ch4_llp_q",
+    "ch4_llp_read",
+    "ch4_size_q",
+    "ch4_src_q",
+    "ch5_ctrl_q",
+    "ch5_dst_q",
+    "ch5_llp_q",
+    "ch5_llp_read",
+    "ch5_size_q",
+    "ch5_src_q",
+    "ch6_ctrl_q",
+    "ch6_dst_q",
+    "ch6_llp_q",
+    "ch6_llp_read",
+    "ch6_size_q",
+    "ch6_src_q",
+    "ch7_ctrl_q",
+    "ch7_dst_q",
+    "ch7_llp_q",
+    "ch7_llp_read",
+    "ch7_size_q",
+    "ch7_src_q",
+    "chain_pending",
+    "chain_taken",
+    "ctrl_cur_q",
+    "ctrl_reserved_bad",
+    "dma_ack_q",
+    "dmac_reset_pulse",
+    "do_core_reset",
+    "dst_cur_q",
+    "eligible_mask",
+    "enabled_mask",
+    "fsm_state_cover",
+    "hclk",
+    "hrdata_d",
+    "hwdata_addr",
+    "hwdata_aligned_addr",
+    "int_abort_q",
+    "int_error_q",
+    "int_tc_q",
+    "last_rr_q",
+    "llp_cur_q",
+    "master_error",
+    "master_fire",
+    "next_dst",
+    "next_remaining",
+    "next_src",
+    "priority_mask",
+    "read_data_q",
+    "read_hsize",
+    "remaining_q",
+    "slave_access",
+    "slave_bad",
+    "slave_read",
+    "slave_write",
+    "src_cur_q",
+    "state_q",
+    "status_enabled",
+    "write_hsize"
+  ],
+  "ports": [
+    {
+      "name": "hclk",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "hresetn",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "dma_int",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "dma_req",
+      "direction": "input",
+      "width": 16
+    },
+    {
+      "name": "dma_ack",
+      "direction": "output",
+      "width": 16
+    },
+    {
+      "name": "haddr",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "htrans",
+      "direction": "input",
+      "width": 2
+    },
+    {
+      "name": "hwrite",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "hsize",
+      "direction": "input",
+      "width": 3
+    },
+    {
+      "name": "hburst",
+      "direction": "input",
+      "width": 3
+    },
+    {
+      "name": "hwdata",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "hsel",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "hreadyin",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "hrdata",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "hresp",
+      "direction": "output",
+      "width": 2
+    },
+    {
+      "name": "hready",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "haddr_mst",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "htrans_mst",
+      "direction": "output",
+      "width": 2
+    },
+    {
+      "name": "hwrite_mst",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "hsize_mst",
+      "direction": "output",
+      "width": 3
+    },
+    {
+      "name": "hprot_mst",
+      "direction": "output",
+      "width": 4
+    },
+    {
+      "name": "hlock_mst",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "hburst_mst",
+      "direction": "output",
+      "width": 3
+    },
+    {
+      "name": "hwdata_mst",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "hrdata_mst",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "hresp_mst",
+      "direction": "input",
+      "width": 2
+    },
+    {
+      "name": "hready_mst",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "hbusreq_mst",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "hgrant_mst",
+      "direction": "input",
+      "width": 1
+    }
+  ],
+  "port_widths": {
+    "hclk": 1,
+    "hresetn": 1,
+    "dma_int": 1,
+    "dma_req": 16,
+    "dma_ack": 16,
+    "haddr": 32,
+    "htrans": 2,
+    "hwrite": 1,
+    "hsize": 3,
+    "hburst": 3,
+    "hwdata": 32,
+    "hsel": 1,
+    "hreadyin": 1,
+    "hrdata": 32,
+    "hresp": 2,
+    "hready": 1,
+    "haddr_mst": 32,
+    "htrans_mst": 2,
+    "hwrite_mst": 1,
+    "hsize_mst": 3,
+    "hprot_mst": 4,
+    "hlock_mst": 1,
+    "hburst_mst": 3,
+    "hwdata_mst": 32,
+    "hrdata_mst": 32,
+    "hresp_mst": 2,
+    "hready_mst": 1,
+    "hbusreq_mst": 1,
+    "hgrant_mst": 1
+  },
+  "input_ports": [
+    "dma_req",
+    "haddr",
+    "hburst",
+    "hclk",
+    "hgrant_mst",
+    "hrdata_mst",
+    "hready_mst",
+    "hreadyin",
+    "hresetn",
+    "hresp_mst",
+    "hsel",
+    "hsize",
+    "htrans",
+    "hwdata",
+    "hwrite"
+  ],
+  "output_ports": [
+    "dma_ack",
+    "dma_int",
+    "haddr_mst",
+    "hburst_mst",
+    "hbusreq_mst",
+    "hlock_mst",
+    "hprot_mst",
+    "hrdata",
+    "hready",
+    "hresp",
+    "hsize_mst",
+    "htrans_mst",
+    "hwdata_mst",
+    "hwrite_mst"
+  ],
+  "inout_ports": [],
+  "input_map": {
+    "dma_req": "dma_req",
+    "haddr": "haddr",
+    "hburst": "hburst",
+    "hgrant_mst": "hgrant_mst",
+    "hrdata_mst": "hrdata_mst",
+    "hready_mst": "hready_mst",
+    "hreadyin": "hreadyin",
+    "hresp_mst": "hresp_mst",
+    "hsel": "hsel",
+    "hsize": "hsize",
+    "htrans": "htrans",
+    "hwdata": "hwdata",
+    "hwrite": "hwrite"
+  },
+  "sample_condition": "hreadyin",
+  "sample_inputs": [],
+  "outputs": [
+    {
+      "name": "dma_int",
+      "port": "dma_int",
+      "width": 1
+    },
+    {
+      "name": "dma_ack",
+      "port": "dma_ack",
+      "width": 16
+    },
+    {
+      "name": "hrdata",
+      "port": "hrdata",
+      "width": 32
+    },
+    {
+      "name": "hresp",
+      "port": "hresp",
+      "width": 2
+    },
+    {
+      "name": "hready",
+      "port": "hready",
+      "width": 1
+    },
+    {
+      "name": "haddr_mst",
+      "port": "haddr_mst",
+      "width": 32
+    },
+    {
+      "name": "htrans_mst",
+      "port": "htrans_mst",
+      "width": 2
+    },
+    {
+      "name": "hwrite_mst",
+      "port": "hwrite_mst",
+      "width": 1
+    },
+    {
+      "name": "hsize_mst",
+      "port": "hsize_mst",
+      "width": 3
+    },
+    {
+      "name": "hprot_mst",
+      "port": "hprot_mst",
+      "width": 4
+    },
+    {
+      "name": "hlock_mst",
+      "port": "hlock_mst",
+      "width": 1
+    },
+    {
+      "name": "hburst_mst",
+      "port": "hburst_mst",
+      "width": 3
+    },
+    {
+      "name": "hwdata_mst",
+      "port": "hwdata_mst",
+      "width": 32
+    },
+    {
+      "name": "hbusreq_mst",
+      "port": "hbusreq_mst",
+      "width": 1
+    }
+  ],
+  "special_outputs": {
+    "ready_output": "hready"
+  },
+  "transaction_kind": "FM_AHB_READ",
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcdmac100/rtl/atcdmac100_core.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcdmac100/rtl/atcdmac100.sv"
+  ],
+  "goal_count": 62,
+  "module_goal_count": 1,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_ATCDMAC100_CORE",
+      "rtl_module": "atcdmac100_core",
+      "rtl_file": "rtl/atcdmac100_core.sv"
+    }
+  ]
+}

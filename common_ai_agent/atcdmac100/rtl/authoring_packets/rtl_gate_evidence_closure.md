@@ -22,15 +22,14 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 8
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
-- Owner refs: integration, io_list
+- Owner refs: cycle_model, dataflow, fsm, function_model, integration, io_list, top_integration
 - SSOT connection contracts:
-  - atcdmac100.<port> <= <signal> (sub_modules[1].connections)
   - atcdmac100_core.hclk <= hclk (integration.connections[0])
-  - atcdmac100_core.hresetn <= hresetn (integration.connections[1])
+  - atcdmac100_core.hresetn <= RTL_TODO_2_quality_gates_rtl_gen (integration.connections[1])
   - atcdmac100_core.dma_int <= dma_int (integration.connections[2])
   - atcdmac100_core.dma_req <= dma_req (integration.connections[3])
   - atcdmac100_core.dma_ack <= dma_ack (integration.connections[4])
@@ -40,6 +39,7 @@
   - atcdmac100_core.hsize <= hsize (integration.connections[8])
   - atcdmac100_core.hburst <= hburst (integration.connections[9])
   - atcdmac100_core.hwdata <= hwdata (integration.connections[10])
+  - atcdmac100_core.hsel <= hsel (integration.connections[11])
 - SSOT top IO contracts: 29
 
 ## Tasks
@@ -48,13 +48,13 @@
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.static_rtl_evidence
 - Detail: After RTL exists, derive_rtl_todos.py --audit-rtl must find concrete DUT source terms for every static-evidence-required task.
 SSOT ref: quality_gates.rtl_gen.static_rtl_evidence.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
-- Current reason: 194 static-evidence-required task(s) still lack DUT RTL evidence.
+- Current reason: Static DUT RTL evidence audit has no missing required task.
 - Criteria:
   - derive_rtl_todos.py --audit-rtl ran after the final RTL edit
   - rtl_todo_plan.json static_rtl_evidence.missing is zero
@@ -68,13 +68,13 @@ Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.owner_logic_structure_evidence
 - Detail: Static token evidence is not enough. Each SSOT behavior-owner RTL module must contain real assign/procedural/state structure appropriate for its owned function_model, cycle_model, register, memory, or FSM contract.
 SSOT ref: quality_gates.rtl_gen.owner_logic_structure_evidence.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
-- Current reason: 1 owner logic structure issue(s) remain. atcdmac100_core: Behavior-owner module is not declared in its owner file
+- Current reason: Behavior-owner RTL modules contain real implementation structure.
 - Criteria:
   - Every active behavior-owner module is declared in its owner file
   - Behavior-owner modules contain non-placeholder assign/procedural implementation logic
@@ -87,13 +87,13 @@ Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence
 - Detail: Production RTL cannot carry audit-banned incomplete/fake implementation markers in source code or comments. Generated RTL uses the project SystemVerilog subset: ANSI ports default to input/output logic, with no package/import/interface/modport, no function/task, no for/while, and no typedef/enum/always_ff/always_comb. If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract.
 SSOT ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
-- Current reason: 1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)
+- Current reason: RTL sources contain no placeholder markers or disallowed default-policy constructs.
 - Criteria:
   - Listed RTL source files contain no TODO/TBD/FIXME/HACK markers
   - Listed RTL source files contain no audit-banned incomplete/fake implementation text
@@ -109,13 +109,13 @@ Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.top_io_contract_evidence
 - Detail: The top wrapper must expose the SSOT-declared clock/reset and explicit IO ports. A compiling top with missing, renamed, or wrong-direction ports cannot close RTL generation.
 SSOT ref: quality_gates.rtl_gen.top_io_contract_evidence.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
-- Current reason: 1 top IO contract issue(s) remain. atcdmac100: SSOT top module is not declared in listed RTL sources
+- Current reason: SSOT top IO contracts match the RTL top declaration.
 - Criteria:
   - SSOT clock/reset names are declared on the RTL top module
   - Explicit io_list ports/signals are declared on the RTL top module
@@ -128,13 +128,13 @@ Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.top_output_drive_evidence
 - Detail: Declaring output ports is not enough. Each SSOT-declared top output must be driven by nonconstant RTL logic, a procedural assignment, or a declared child-module output connection. Constant tieoffs require an explicit SSOT constant/tieoff allowance.
 SSOT ref: quality_gates.rtl_gen.top_output_drive_evidence.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
-- Current reason: 1 top output drive issue(s) remain. atcdmac100: SSOT top module is not declared, so output drive evidence cannot be checked
+- Current reason: SSOT top outputs have non-placeholder RTL drive evidence.
 - Criteria:
   - Every SSOT output/inout top contract has drive evidence in the RTL top
   - Non-waived output constants are rejected as placeholder tieoffs
@@ -147,13 +147,13 @@ Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.top_input_consumption_evidence
 - Detail: Declaring input ports is not enough. Each SSOT-declared non-clock/reset top input must feed real RTL logic, a procedural/control expression, or a declared child-module input/inout connection. Unused inputs require an explicit SSOT unused/reserved allowance.
 SSOT ref: quality_gates.rtl_gen.top_input_consumption_evidence.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
-- Current reason: 1 top input consumption issue(s) remain. atcdmac100: SSOT top module is not declared, so input consumption evidence cannot be checked
+- Current reason: SSOT top inputs have RTL consumption evidence.
 - Criteria:
   - Every non-clock/reset SSOT input/inout top contract has consumption evidence in the RTL top
   - Child-instance consumption evidence uses a declared child input/inout port, not an unknown direction
@@ -166,13 +166,13 @@ Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_hierarchy_integration
 - Detail: File existence is not enough for general IP RTL. Every SSOT manifest-owned non-top RTL module must be declared and reachable from the SSOT top through real module instantiation.
 SSOT ref: quality_gates.rtl_gen.manifest_hierarchy_integration.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
-- Current reason: 2 manifest hierarchy integration issue(s) remain. atcdmac100: SSOT top module is not declared in listed RTL sources; atcdmac100_core: SSOT manifest child module is not declared in listed RTL sources
+- Current reason: Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.
 - Criteria:
   - Every manifest-owned non-top submodule is declared in listed DUT RTL sources
   - Each child module is reachable from the SSOT top module through SystemVerilog instantiation
@@ -204,13 +204,13 @@ Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_signal_flow_evidence
 - Detail: Named port maps prove that ports are connected, but not that the connected signals are useful. Child inputs must not be placeholder constants unless SSOT explicitly allows the tieoff, and child outputs must feed a top output, parent logic, or another declared child input/inout.
 SSOT ref: quality_gates.rtl_gen.manifest_signal_flow_evidence.
 Owner: atcdmac100 in rtl/atcdmac100.sv via top_fallback.
-- Current reason: 1 manifest signal-flow issue(s) remain. atcdmac100: None: SSOT top module is not declared, so manifest signal-flow evidence cannot be checked
+- Current reason: Manifest child port maps carry live non-placeholder RTL signal flow.
 - Criteria:
   - Reachable manifest child input/inout ports are not tied to constants without an SSOT connection/tieoff allowance
   - Reachable manifest child output/inout ports are consumed by top outputs, parent RTL logic, or declared child inputs/inouts

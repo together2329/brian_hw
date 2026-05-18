@@ -3,34 +3,15 @@
 ## Status
 
 - Top: atcdmac100
-- Packets: 23
-- LLM-actionable tasks: 334
-- Human-locked tasks: 1
-- Tool-evidence tasks: 4
-- Deferred human QA allowed: True
-- PASS allowed: False
+- Packets: 27
+- LLM-actionable tasks: 0
+- Human-locked tasks: 0
+- Tool-evidence tasks: 0
+- Deferred human QA allowed: False
+- PASS allowed: True
 - Target scale locked: False
 - Pending connection-contract suggestions: 0
 - Recommended packet batch limit: 4
-
-## Next LLM Packets
-
-- module__atcdmac100_core__function_model_01: rtl/authoring_packets/module__atcdmac100_core__function_model_01.json (llm_open=48, human_locked=0)
-- module__atcdmac100_core__function_model_02: rtl/authoring_packets/module__atcdmac100_core__function_model_02.json (llm_open=48, human_locked=0)
-- module__atcdmac100_core__registers: rtl/authoring_packets/module__atcdmac100_core__registers.json (llm_open=44, human_locked=0)
-- module__atcdmac100_core__function_model_03: rtl/authoring_packets/module__atcdmac100_core__function_model_03.json (llm_open=39, human_locked=0)
-- module__atcdmac100_core__io_list: rtl/authoring_packets/module__atcdmac100_core__io_list.json (llm_open=29, human_locked=0)
-- module__atcdmac100_core__cycle_model: rtl/authoring_packets/module__atcdmac100_core__cycle_model.json (llm_open=20, human_locked=0)
-- module__atcdmac100_core__fsm: rtl/authoring_packets/module__atcdmac100_core__fsm.json (llm_open=19, human_locked=0)
-- module__atcdmac100_core__coverage: rtl/authoring_packets/module__atcdmac100_core__coverage.json (llm_open=13, human_locked=0)
-
-## Tool Evidence Queue
-
-- rtl_gate_tool_evidence: tool_evidence=4, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
-
-## Human-Locked Queue
-
-- rtl_gate_human_closure: human_locked=1, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 

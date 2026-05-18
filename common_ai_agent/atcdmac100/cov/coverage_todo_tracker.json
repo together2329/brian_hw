@@ -1,0 +1,61 @@
+{
+  "description": "Dynamic coverage todo list from cov/coverage_todo_plan.json",
+  "name": "atcdmac100-coverage",
+  "schema_version": "todo_tracker.dynamic.v1",
+  "source_plan": "cov/coverage_todo_plan.json",
+  "tasks": [
+    {
+      "activeForm": "Audit SSOT function and cycle coverage against RTL simulation evidence",
+      "approval_policy": "evidence_required",
+      "content": "Audit SSOT function and cycle coverage against RTL simulation evidence",
+      "criteria": "check_tb_sim_evidence exits 0, ssot_coverage_summary exits 0, coverage.json status is pass/ok, and function/cycle bins meet target.",
+      "detail": "Coverage approval comes from SSOT coverage bins matched to scoreboard rows observed from RTL simulation, not raw model-only hits.",
+      "priority": "high",
+      "required_evidence": [
+        "atcdmac100/cov/fcov_plan.json",
+        "atcdmac100/cov/coverage_functional.json",
+        "atcdmac100/cov/coverage.json",
+        "atcdmac100/sim/scoreboard_events.jsonl"
+      ],
+      "source_id": "COV-0001",
+      "source_plan": "cov/coverage_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "atcdmac100/cov/fcov_plan.json",
+          "atcdmac100/cov/coverage_functional.json",
+          "atcdmac100/cov/coverage.json",
+          "atcdmac100/sim/scoreboard_events.jsonl",
+          "sim_evidence",
+          "ssot_coverage_summary"
+        ],
+        "reason": "[coverage] PASS - SSOT functional coverage summary approved",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Record coverage limitations instead of approving unsupported proof",
+      "approval_policy": "evidence_required",
+      "content": "Record coverage limitations instead of approving unsupported proof",
+      "criteria": "coverage.json limitations is empty for pass, or each limitation is surfaced in human_review_needed.",
+      "detail": "If a coverage adapter cannot prove a bin, keep the stage blocked or human_review_needed with limitations attached.",
+      "priority": "high",
+      "required_evidence": [
+        "atcdmac100/cov/coverage.json limitations"
+      ],
+      "source_id": "COV-0002",
+      "source_plan": "cov/coverage_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "atcdmac100/cov/coverage.json limitations",
+          "sim_evidence",
+          "ssot_coverage_summary"
+        ],
+        "reason": "[coverage] PASS - SSOT functional coverage summary approved",
+        "status": "pass"
+      }
+    }
+  ],
+  "ui_grouping": false
+}
