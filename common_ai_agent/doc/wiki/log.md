@@ -2,6 +2,23 @@
 
 ## 2026-05-18
 
+- Added [[atlas-browser-control-runbook]] so future agents can operate the
+  visible ATLAS in-app Browser instead of substituting backend-only checks. The
+  page records the exact Browser bootstrap, visible ATLAS URL open/reload,
+  DOM/screenshot inspection, semantic button/chat input interaction, coordinate
+  mouse move/click/type/scroll, and the PL330 signoff verification pattern where
+  STA/PSTA had to be shown as failed from `wns.json` rather than passed by
+  artifact existence. Extended the same runbook with the concrete synthesis
+  path: dispatch `syn` via Orchestrator/Pipeline, run `/syn-auto <ip>`, verify
+  `syn/out/synth.v`, `syn/out/syn.report.md`, `syn/out/area.json`, and surface
+  cells/area/warnings in the browser/API. The PL330 synthesis evidence is
+  `1321` cells, `16400.0 um2`, sky130 SS corner, no warnings. Follow-up:
+  diagnosed why SYN looked absent in the browser: the frontend `Full IP
+  pipeline` route stopped at `goal-audit` while the backend canonical pipeline
+  already included `syn`, `sta`, `pnr`, and `sta-post`. The full route now
+  matches the backend 15-stage order; the focused `PPA signoff` route remains
+  for RTL → SYN → STA → PNR → PSTA. Recorded the concrete PL330 STA/PNR/PSTA
+  evidence and generated SDC path.
 - Added [[atlas-pipeline-worker-workspace-jump]] to document the real UI
   workflow drilldown behavior: clicking `ssot-gen`, `rtl-gen`, or `tb-gen` in
   the Pipeline worker row opens `.session/<session>/<ip>/<workflow>` in

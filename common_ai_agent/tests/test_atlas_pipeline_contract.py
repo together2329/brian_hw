@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import shlex
 from pathlib import Path
 
@@ -27,6 +28,23 @@ def test_default_pipeline_is_ssot_to_signoff_chain() -> None:
         "goal-audit",
     ]
     assert len(stage_ids) == len(set(stage_ids))
+
+
+def test_frontend_full_flow_matches_backend_default_pipeline() -> None:
+    stage_ids = [stage["id"] for stage in jobs._PIPELINE_STAGES]
+    pipeline_js = (
+        Path(__file__).resolve().parents[1] / "frontend" / "atlas" / "pipeline.jsx"
+    ).read_text(encoding="utf-8")
+
+    match = re.search(
+        r"id:\s*'full'.*?stages:\s*\[([^\]]+)\]",
+        pipeline_js,
+        flags=re.S,
+    )
+
+    assert match, "frontend full flow definition not found"
+    frontend_stage_ids = re.findall(r"'([^']+)'", match.group(1))
+    assert frontend_stage_ids == stage_ids
 
 
 def test_fl_model_workflow_prompt_is_stage_specific() -> None:

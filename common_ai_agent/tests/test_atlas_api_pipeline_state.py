@@ -482,6 +482,99 @@ def test_pipeline_state_marks_goal_audit_failed_when_audit_json_fails(
     assert goal_audit["error_summary"] == "blockers=req"
 
 
+def test_pipeline_state_marks_sta_failed_when_wns_json_reports_setup_fail(
+    tmp_path: Path, monkeypatch
+) -> None:
+    ip = "sta_fail_ip"
+    sta_dir = tmp_path / ip / "sta" / "out"
+    sta_dir.mkdir(parents=True)
+    (sta_dir / "wns.json").write_text(
+        json.dumps(
+            {
+                "clocks": [
+                    {
+                        "name": "clk",
+                        "setup_wns_ns": -1.25,
+                        "setup_violations": 2,
+                        "hold_wns_ns": 0.12,
+                        "hold_violations": 0,
+                    }
+                ],
+                "summary": {
+                    "all_setup_met": False,
+                    "all_hold_met": True,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    client = _make_client(tmp_path, monkeypatch)
+    data = client.get(f"/api/pipeline/state?ip={ip}").json()
+
+    sta = data["stages"]["sta"]
+    assert sta["state"] == "failed"
+    assert sta["source"] == "fs"
+    assert "setup WNS=-1.25" in sta["error_summary"]
+    assert sta["top"] == "pre-route setup WNS=-1.25 viol=2"
+
+
+def test_pipeline_state_evidence_failure_overrides_completed_db_row(
+    tmp_path: Path, monkeypatch
+) -> None:
+    import os
+    from core.atlas_db import AtlasDB
+
+    ip = "sta_db_override_ip"
+    sta_dir = tmp_path / ip / "sta-post" / "out"
+    sta_dir.mkdir(parents=True)
+    (sta_dir / "wns.json").write_text(
+        json.dumps(
+            {
+                "clocks": [
+                    {
+                        "name": "clk",
+                        "setup_wns_ns": -3.5,
+                        "setup_violations": 1,
+                        "hold_wns_ns": 0.2,
+                        "hold_violations": 0,
+                    }
+                ],
+                "summary": {
+                    "all_setup_met": False,
+                    "all_hold_met": True,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    db_path = tmp_path / "atlas.db"
+    os.environ["ATLAS_DB_PATH"] = str(db_path)
+    with AtlasDB(str(db_path)) as db:
+        ws = db.upsert_workspace(tmp_path.name or "default", local_path=str(tmp_path))
+        ipb = db.upsert_ip_block(ws["id"], ip)
+        run = db.start_workflow_run(
+            session_id="default",
+            workspace_id=ws["id"],
+            ip_id=ipb["id"],
+            workflow="sta-post",
+            mode="pipeline",
+            model_profile="gpt-5.3-codex",
+            reasoning_effort="high",
+            trigger="test",
+        )
+        db.finish_workflow_run(run["id"], status="completed")
+
+    client = _make_client(tmp_path, monkeypatch)
+    data = client.get(f"/api/pipeline/state?ip={ip}").json()
+
+    sta_post = data["stages"]["sta-post"]
+    assert sta_post["state"] == "failed"
+    assert sta_post["source"] == "fs"
+    assert "setup WNS=-3.5" in sta_post["error_summary"]
+
+
 def test_orchestrator_mode_get_reflects_env(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
     client = _make_client(tmp_path, monkeypatch)

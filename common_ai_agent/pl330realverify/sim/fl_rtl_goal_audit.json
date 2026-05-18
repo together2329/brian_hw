@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "type": "fl_rtl_goal_audit",
+  "ip": "pl330realverify",
+  "generated_at": "2026-05-17T23:52:18Z",
+  "status": "fail",
+  "source_of_truth": {
+    "ssot": "pl330realverify/yaml/pl330realverify.ssot.yaml",
+    "functional_model": "pl330realverify/model/functional_model.py",
+    "cycle_model": "SSOT cycle_model section",
+    "equivalence_goals": "pl330realverify/verify/equivalence_goals.json"
+  },
+  "summary": {
+    "total_checks": 16,
+    "passed_checks": 11,
+    "failed_checks": 5,
+    "blockers": [
+      "req",
+      "fl_rtl_compare",
+      "mismatch_classification",
+      "functional_coverage",
+      "fresh_evidence"
+    ]
+  },
+  "checks": [
+    {
+      "id": "req",
+      "label": "Human-approved requirement artifact exists",
+      "status": "fail",
+      "owner": "human gate",
+      "evidence": [
+        "pl330realverify/req/pl330realverify_requirements.md"
+      ],
+      "detail": "requirement markdown must exist under req/, contain at least 1000 bytes, contain no TODO/TBD markers, and match req/approval_manifest.json; bytes=692; approval_manifest=False; pending_review=False; review_decision=False; requirement markdown is too small; bytes=692",
+      "next_action": "capture requirement intent in pl330realverify/req/*.md before SSOT signoff"
+    },
+    {
+      "id": "ssot",
+      "label": "SSOT contains function_model and cycle_model source of truth",
+      "status": "pass",
+      "owner": "ssot-gen",
+      "evidence": "pl330realverify/yaml/pl330realverify.ssot.yaml",
+      "detail": "SSOT parsed with function_model and cycle_model",
+      "next_action": "repair SSOT from requirement answers; do not infer product behavior in RTL"
+    },
+    {
+      "id": "fl_model",
+      "label": "Executable functional model passes self-check",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": [
+        "pl330realverify/model/functional_model.py",
+        "pl330realverify/model/fl_model_check.json"
+      ],
+      "detail": "fl_model_check.passed=True",
+      "next_action": "rerun /ssot-equiv-goals pl330realverify after repairing FunctionalModel from SSOT"
+    },
+    {
+      "id": "fl_decomposition",
+      "label": "Functional model decomposition is complete",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": "pl330realverify/model/decomposition.json",
+      "detail": "complete=True units=13",
+      "next_action": "split FunctionalModel behavior into units before coverage/equivalence planning"
+    },
+    {
+      "id": "fcov_plan",
+      "label": "Functional coverage plan exists before RTL signoff",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": "pl330realverify/cov/fcov_plan.json",
+      "detail": "planned_before_rtl=True bins=70",
+      "next_action": "derive functional coverage bins from SSOT/decomposition before RTL/TB signoff"
+    },
+    {
+      "id": "equivalence_goals",
+      "label": "SSOT-traceable equivalence goals are generated",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": "pl330realverify/verify/equivalence_goals.json",
+      "detail": "total=81 blocked=0 errors=[]",
+      "next_action": "rerun /ssot-equiv-goals pl330realverify or answer SSOT blockers"
+    },
+    {
+      "id": "module_equivalence_goals",
+      "label": "Each RTL owner module has an exact FL-vs-RTL functionality goal",
+      "status": "pass",
+      "owner": "fl-model-gen",
+      "evidence": "pl330realverify/verify/equivalence_goals.json",
+      "detail": "module_contracts=6 module_goals=6 missing=[] blocked=[]",
+      "next_action": "rerun /ssot-fl-model and /ssot-equiv-goals; every module owning function_model refs needs a scope.level=module goal"
+    },
+    {
+      "id": "rtl_artifacts",
+      "label": "RTL and filelist artifacts exist without placeholder markers",
+      "status": "pass",
+      "owner": "rtl-gen",
+      "evidence": [
+        "pl330realverify/rtl/pl330realverify.sv",
+        "pl330realverify/rtl/pl330realverify_axi_rd.sv",
+        "pl330realverify/rtl/pl330realverify_axi_wr.sv",
+        "pl330realverify/rtl/pl330realverify_channel_fsm.sv",
+        "pl330realverify/rtl/pl330realverify_datapath.sv",
+        "pl330realverify/rtl/pl330realverify_event_irq.sv",
+        "pl330realverify/rtl/pl330realverify_regs.sv",
+        "pl330realverify/list/pl330realverify.f"
+      ],
+      "detail": "rtl_files=7 list_exists=True",
+      "next_action": "run /ssot-rtl pl330realverify; repair only RTL when SSOT/FL behavior is clear"
+    },
+    {
+      "id": "dut_compile",
+      "label": "DUT-only RTL compile evidence passes with a real HDL tool",
+      "status": "pass",
+      "owner": "rtl-gen",
+      "evidence": "pl330realverify/rtl/rtl_compile.json",
+      "detail": "passed=True dut_only=True tool=iverilog",
+      "next_action": "run a DUT-only compile command with verilator/pyslang/slang/iverilog and repair diagnostics"
+    },
+    {
+      "id": "dut_lint",
+      "label": "DUT-only lint evidence passes with a real HDL lint/parser tool",
+      "status": "pass",
+      "owner": "rtl-gen",
+      "evidence": "pl330realverify/lint/dut_lint.json",
+      "detail": "passed=True dut_only=True tool=pyslang+verilator",
+      "next_action": "run DUT-only lint; do not count cocotb/pytest as RTL lint evidence"
+    },
+    {
+      "id": "scoreboard_contract",
+      "label": "TB consumes equivalence_goals.json and emits required scoreboard rows",
+      "status": "pass",
+      "owner": "tb-gen",
+      "evidence": [
+        "pl330realverify/sim/scoreboard_events.jsonl",
+        "workflow/tb-gen/scripts/check_scoreboard_events.py"
+      ],
+      "detail": "[check_scoreboard_events] PASS: goals=81 required=81 scoreboard_rows=82 goals_with_rows=81",
+      "next_action": "repair cocotb/pyuvm TB to instantiate EquivalenceScoreboard and cover all required goals"
+    },
+    {
+      "id": "simulation",
+      "label": "RTL simulation completed with waveform evidence",
+      "status": "pass",
+      "owner": "sim",
+      "evidence": [
+        "pl330realverify/sim/results.xml",
+        "pl330realverify/sim/pl330realverify.vcd"
+      ],
+      "detail": "{\"errors\": 0, \"exists\": true, \"failures\": 0, \"parse_error\": \"\", \"tests\": 4}",
+      "next_action": "run /sim pl330realverify; simulation must emit results.xml, scoreboard_events.jsonl, and waveform"
+    },
+    {
+      "id": "fl_rtl_compare",
+      "label": "FL-vs-RTL comparator passes all equivalence goals",
+      "status": "fail",
+      "owner": "sim_debug",
+      "evidence": "pl330realverify/sim/fl_rtl_compare.json",
+      "detail": "missing sim/fl_rtl_compare.json",
+      "next_action": "run /sim-debug pl330realverify; repair classified owner or answer human gate"
+    },
+    {
+      "id": "mismatch_classification",
+      "label": "Mismatches are absent or fully routed before signoff",
+      "status": "fail",
+      "owner": "sim_debug",
+      "evidence": "pl330realverify/sim/mismatch_classification.json",
+      "detail": "missing sim/mismatch_classification.json",
+      "next_action": "loopable classifications may repair the owner; human classifications must open ATLAS question and persist answer"
+    },
+    {
+      "id": "functional_coverage",
+      "label": "Functional coverage is backed by RTL-observed scoreboard evidence",
+      "status": "fail",
+      "owner": "tb-gen",
+      "evidence": "pl330realverify/cov/coverage.json",
+      "detail": "missing cov/coverage.json",
+      "next_action": "rerun /coverage after /sim; coverage must be proven by passing scoreboard rows with real rtl_observed signals"
+    },
+    {
+      "id": "fresh_evidence",
+      "label": "Simulation, compare, and coverage evidence is newer than SSOT/model inputs",
+      "status": "fail",
+      "owner": "LLM loop",
+      "evidence": [
+        "pl330realverify/sim/scoreboard_events.jsonl older than pl330realverify/yaml/pl330realverify.ssot.yaml",
+        "pl330realverify/sim/results.xml older than pl330realverify/yaml/pl330realverify.ssot.yaml"
+      ],
+      "detail": "pl330realverify/sim/scoreboard_events.jsonl older than pl330realverify/yaml/pl330realverify.ssot.yaml; pl330realverify/sim/results.xml older than pl330realverify/yaml/pl330realverify.ssot.yaml",
+      "next_action": "rerun /sim pl330realverify and /sim-debug pl330realverify after source artifact changes"
+    }
+  ],
+  "stop_condition": {
+    "req_ok": false,
+    "ssot_ok": true,
+    "fl_model_pass": true,
+    "cycle_model_present": true,
+    "equivalence_goals_generated": true,
+    "scoreboard_from_goals": true,
+    "simulation_complete": true,
+    "fl_rtl_compare_complete": false,
+    "mismatches_classified_or_zero": false,
+    "coverage_linked": false,
+    "signoff_evidence_backed": false
+  }
+}

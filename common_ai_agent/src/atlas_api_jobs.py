@@ -1093,6 +1093,126 @@ def _copy_artifact_version_context(dst: dict[str, Any], src: dict[str, Any]) -> 
     _copy_rtl_version_context(dst, src)
 
 
+def _coerce_bool(value: Any, default: bool = True) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    if isinstance(value, (int, float)):
+        return bool(value)
+    text = str(value).strip().lower()
+    if text in {"1", "true", "yes", "y", "pass", "passed", "ok"}:
+        return True
+    if text in {"0", "false", "no", "n", "fail", "failed", "error"}:
+        return False
+    return default
+
+
+def _timing_wns_doc(ip_dir: Path, stage: str) -> tuple[dict[str, Any] | None, str]:
+    rel = "sta-post/out/wns.json" if stage == "sta-post" else "sta/out/wns.json"
+    path = ip_dir / rel
+    if not path.is_file():
+        return None, ""
+    try:
+        return json.loads(path.read_text(encoding="utf-8")), rel
+    except Exception:
+        return None, f"unparseable artifact: {rel}"
+
+
+def _timing_artifact_failure(ip_dir: Path, stage: str) -> str:
+    doc, rel_or_error = _timing_wns_doc(ip_dir, stage)
+    if doc is None:
+        return rel_or_error
+    summary = doc.get("summary") if isinstance(doc.get("summary"), dict) else doc
+    clocks = [c for c in (doc.get("clocks") or []) if isinstance(c, dict)]
+    def _clock_met(clock: dict[str, Any], wns_key: str, viol_key: str) -> bool:
+        try:
+            wns = float(clock.get(wns_key) or 0)
+        except Exception:
+            wns = 0.0
+        try:
+            violations = int(clock.get(viol_key) or 0)
+        except Exception:
+            violations = 0
+        return wns >= 0 and violations == 0
+
+    setup_ok = _coerce_bool(summary.get("all_setup_met"), default=True)
+    hold_ok = _coerce_bool(summary.get("all_hold_met"), default=True)
+    if "all_setup_met" not in summary and clocks:
+        setup_ok = all(_clock_met(c, "setup_wns_ns", "setup_violations") for c in clocks)
+    if "all_hold_met" not in summary and clocks:
+        hold_ok = all(_clock_met(c, "hold_wns_ns", "hold_violations") for c in clocks)
+    if setup_ok and hold_ok:
+        return ""
+    reasons: list[str] = []
+    for clock in clocks:
+        name = clock.get("name") or "clock"
+        if not setup_ok:
+            reasons.append(
+                f"{name} setup WNS={clock.get('setup_wns_ns', '?')} "
+                f"viol={clock.get('setup_violations', '?')}"
+            )
+        if not hold_ok:
+            reasons.append(
+                f"{name} hold WNS={clock.get('hold_wns_ns', '?')} "
+                f"viol={clock.get('hold_violations', '?')}"
+            )
+    if not reasons:
+        if not setup_ok:
+            reasons.append("setup timing not met")
+        if not hold_ok:
+            reasons.append("hold timing not met")
+    return "; ".join(reasons)
+
+
+def _timing_artifact_summary(ip_dir: Path, stage: str) -> tuple[str, str]:
+    doc, _ = _timing_wns_doc(ip_dir, stage)
+    if not doc:
+        return "", ""
+    clocks = [c for c in (doc.get("clocks") or []) if isinstance(c, dict)]
+    if not clocks:
+        return "", ""
+    worst_setup = min((c.get("setup_wns_ns") for c in clocks if c.get("setup_wns_ns") is not None), default="?")
+    worst_hold = min((c.get("hold_wns_ns") for c in clocks if c.get("hold_wns_ns") is not None), default="?")
+    setup_viol = sum(int(c.get("setup_violations") or 0) for c in clocks)
+    hold_viol = sum(int(c.get("hold_violations") or 0) for c in clocks)
+    mode = "post-route" if stage == "sta-post" else "pre-route"
+    return (
+        f"{mode} setup WNS={worst_setup} viol={setup_viol}",
+        f"hold WNS={worst_hold} viol={hold_viol}",
+    )
+
+
+def _pnr_artifact_failure(ip_dir: Path) -> str:
+    drc_path = ip_dir / "pnr" / "out" / "drc.json"
+    if not drc_path.is_file():
+        return ""
+    try:
+        doc = json.loads(drc_path.read_text(encoding="utf-8"))
+    except Exception:
+        return "unparseable artifact: pnr/out/drc.json"
+    try:
+        drc_count = int(doc.get("drc_count", 0))
+    except Exception:
+        drc_count = 0
+    if drc_count > 0:
+        return f"drc_count={drc_count}"
+    return ""
+
+
+def _pnr_artifact_summary(ip_dir: Path) -> tuple[str, str]:
+    drc_path = ip_dir / "pnr" / "out" / "drc.json"
+    if not drc_path.is_file():
+        return "", ""
+    try:
+        doc = json.loads(drc_path.read_text(encoding="utf-8"))
+    except Exception:
+        return "", ""
+    drc_count = doc.get("drc_count", "?")
+    spef_ready = (ip_dir / "pnr" / "out" / "routed.spef").is_file()
+    return (f"DRC={drc_count}", "SPEF ready" if spef_ready else "SPEF missing")
+
+
 def _ensure_stage_artifact_version_for_job(
     job: dict[str, Any],
     project_root: Path,
@@ -1802,6 +1922,21 @@ def _job_artifact_failure(
             if failures > 0:
                 return True, f"{ip}/{results_xml.relative_to(ip_dir).as_posix()} failures={failures}"
             return False, ""
+    if stage == "sta" or workflow == "sta":
+        reason = _timing_artifact_failure(ip_dir, "sta")
+        if reason:
+            return True, f"{ip}/sta/out/wns.json {reason}"
+        return False, ""
+    if stage == "pnr" or workflow == "pnr":
+        reason = _pnr_artifact_failure(ip_dir)
+        if reason:
+            return True, f"{ip}/pnr/out/drc.json {reason}"
+        return False, ""
+    if stage == "sta-post" or workflow == "sta-post":
+        reason = _timing_artifact_failure(ip_dir, "sta-post")
+        if reason:
+            return True, f"{ip}/sta-post/out/wns.json {reason}"
+        return False, ""
     if stage != "goal-audit":
         return False, ""
     audit_path = ip_dir / "sim" / "fl_rtl_goal_audit.json"
@@ -2537,6 +2672,22 @@ def register_jobs_routes(
                     return (f"bins {bins_hit}/{bins_total}", "")
                 except Exception:
                     pass
+            if stage_id == "syn":
+                try:
+                    doc = json.loads((ip_dir / "syn" / "out" / "area.json").read_text(encoding="utf-8"))
+                    cells = doc.get("total_cells", "?")
+                    area = doc.get("total_area_um2", "?")
+                    return (f"cells={cells}", f"area={area} um2")
+                except Exception:
+                    pass
+            if stage_id == "pnr":
+                top, secondary = _pnr_artifact_summary(ip_dir)
+                if top or secondary:
+                    return top, secondary
+            if stage_id in ("sta", "sta-post"):
+                top, secondary = _timing_artifact_summary(ip_dir, stage_id)
+                if top or secondary:
+                    return top, secondary
             return ("", "")
 
         def _stage_history(stage_id: str) -> list[dict[str, Any]]:
@@ -2561,12 +2712,12 @@ def register_jobs_routes(
         for stage in _PIPELINE_STAGES:
             sid = stage["id"]
             fake_job = {"ip": ip, "stage_id": sid, "workflow": stage["workflow"]}
-            ok, _ = _job_artifact_recovery(fake_job, pr)
             failed, failure_reason = _job_artifact_failure(fake_job, pr)
-            if ok:
-                passed_stages.add(sid)
-            elif failed:
+            ok, _ = _job_artifact_recovery(fake_job, pr)
+            if failed:
                 failed_stages[sid] = failure_reason
+            elif ok:
+                passed_stages.add(sid)
 
         # Compute the orchestrator block once up front so each stage card can
         # carry its own per-workflow handoff summary (avoids a second loop
@@ -2585,18 +2736,25 @@ def register_jobs_routes(
             # determine state — DB-first, FS-fallback
             state: str
             db_state, db_error = _state_from_db(stage["workflow"])
+            source = "none"
             if running_job:
                 state = "running"
+                source = "db" if db_state is not None else "memory"
+            elif sid in failed_stages:
+                state = "failed"  # explicit artifact failure overrides stale/optimistic DB success
+                source = "fs"
             elif db_state == "failed" and sid in passed_stages:
                 state = "passed"
+                source = "fs"
             elif db_state is not None:
                 state = db_state  # DB is source of truth for completed runs
-            elif sid in failed_stages:
-                state = "failed"  # FS evidence exists but explicitly reports a failed audit
+                source = "db"
             elif sid in passed_stages:
                 state = "passed"  # FS evidence without a DB row (hand-placed)
+                source = "fs"
             elif sid == "rtl" and _rtl_blocked:
                 state = "blocked"
+                source = "fs"
             else:
                 # check if all deps are passed (ready) or any dep missing (locked)
                 deps = _PIPELINE_STAGE_DEPS.get(sid, ())
@@ -2685,7 +2843,7 @@ def register_jobs_routes(
                 "blame": stage_blame,
                 "locked_reason": locked_reason,
                 "error_summary": db_error if state == "failed" and db_error else failed_stages.get(sid),
-                "source": "db" if db_state is not None else ("fs" if sid in passed_stages or sid in failed_stages else "none"),
+                "source": source,
                 "workflow": stage_workflow,
                 "handoffs": stage_handoffs,
             }

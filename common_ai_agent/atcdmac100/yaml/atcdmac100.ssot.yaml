@@ -1,0 +1,299 @@
+ip: atcdmac100
+schema_version: 0.1.0
+source_requirement: "ATLAS goal: implement ATCDMAC100 from imported AndeShape ATCDMAC100 DS079 V1.2 requirement; engineering draft bootstrapped because no handoff text is visible to this worker."
+top_module:
+  name: atcdmac100
+  file: rtl/atcdmac100.sv
+  version: "DS079_V1.2_engineering_draft"
+  type: rtl
+  description: "ATCDMAC100 compatible programmable DMA controller with APB register interface, AHB-Lite master data mover, interrupt generation, and one memory-to-memory channel in the draft baseline."
+  target: "synthesizable SystemVerilog, single clock/reset, FPGA/ASIC signoff pipeline"
+parameters:
+  - name: ADDR_WIDTH
+    type: int
+    default: 32
+    description: "System byte address width."
+  - name: DATA_WIDTH
+    type: int
+    default: 32
+    description: "AHB data bus width; supported draft value is 32."
+  - name: LEN_WIDTH
+    type: int
+    default: 16
+    description: "DMA transfer length field width in bytes."
+  - name: NUM_CHANNELS
+    type: int
+    default: 1
+    description: "Draft baseline implements one channel; schema leaves room for DS079 expansion."
+  - name: FIFO_DEPTH
+    type: int
+    default: 4
+    description: "Internal read-data buffering depth in DATA_WIDTH words."
+io_list:
+  - {name: hclk, direction: input, width: 1, protocol: clock, role: clock, description: "Controller and bus clock."}
+  - {name: hresetn, direction: input, width: 1, protocol: reset_n, role: reset, description: "Active-low synchronous reset."}
+  - {name: psel, direction: input, width: 1, protocol: apb, role: slave_select, description: "APB peripheral select."}
+  - {name: penable, direction: input, width: 1, protocol: apb, role: slave_enable, description: "APB access phase indicator."}
+  - {name: pwrite, direction: input, width: 1, protocol: apb, role: slave_write, description: "APB write direction."}
+  - {name: paddr, direction: input, width: ADDR_WIDTH, protocol: apb, role: slave_addr, description: "APB byte address."}
+  - {name: pwdata, direction: input, width: DATA_WIDTH, protocol: apb, role: slave_wdata, description: "APB write data."}
+  - {name: prdata, direction: output, width: DATA_WIDTH, protocol: apb, role: slave_rdata, description: "APB read data."}
+  - {name: pready, direction: output, width: 1, protocol: apb, role: slave_ready, description: "APB ready; draft register block is zero-wait except reset."}
+  - {name: pslverr, direction: output, width: 1, protocol: apb, role: slave_error, description: "APB decode/protection error."}
+  - {name: hgrant, direction: input, width: 1, protocol: ahb_lite, role: master_grant, description: "External bus grant/accept qualifier for draft arbitration model."}
+  - {name: hready, direction: input, width: 1, protocol: ahb_lite, role: master_ready, description: "AHB transfer completion/backpressure."}
+  - {name: hresp, direction: input, width: 1, protocol: ahb_lite, role: master_response, description: "AHB response; 1 indicates error in draft model."}
+  - {name: hrdata, direction: input, width: DATA_WIDTH, protocol: ahb_lite, role: master_rdata, description: "AHB read data."}
+  - {name: haddr, direction: output, width: ADDR_WIDTH, protocol: ahb_lite, role: master_addr, description: "AHB byte address."}
+  - {name: hwrite, direction: output, width: 1, protocol: ahb_lite, role: master_write, description: "AHB write direction."}
+  - {name: htrans, direction: output, width: 2, protocol: ahb_lite, role: master_trans, description: "AHB transfer type: 00 IDLE, 10 NONSEQ, 11 SEQ."}
+  - {name: hsize, direction: output, width: 3, protocol: ahb_lite, role: master_size, description: "AHB beat size; draft fixed to DATA_WIDTH bytes."}
+  - {name: hburst, direction: output, width: 3, protocol: ahb_lite, role: master_burst, description: "AHB burst type; draft uses INCR."}
+  - {name: hwdata, direction: output, width: DATA_WIDTH, protocol: ahb_lite, role: master_wdata, description: "AHB write data."}
+  - {name: dma_req, direction: input, width: NUM_CHANNELS, protocol: dma_request, role: request, description: "Optional hardware request input per channel; level-sensitive when enabled."}
+  - {name: dma_ack, direction: output, width: NUM_CHANNELS, protocol: dma_request, role: acknowledge, description: "Pulse/level acknowledgement while a request is accepted."}
+  - {name: irq, direction: output, width: 1, protocol: interrupt, role: irq, description: "OR of enabled terminal-count and error interrupts."}
+interfaces:
+  - name: apb_slave
+    protocol: apb
+    role: slave
+    ports: [psel, penable, pwrite, paddr, pwdata, prdata, pready, pslverr]
+    handshake: "Write/read transfer completes when psel && penable && pready. Address/control sampled in setup phase psel && !penable."
+    backpressure: "pready may deassert; draft register accesses keep pready=1 outside reset."
+  - name: ahb_lite_master
+    protocol: ahb_lite
+    role: master
+    ports: [hgrant, hready, hresp, hrdata, haddr, hwrite, htrans, hsize, hburst, hwdata]
+    handshake: "Address/control valid when htrans[1]=1 and hgrant=1; beat completes on hready=1; hresp=1 records error and terminates channel."
+    backpressure: "Hold address/control stable while hready=0; issue IDLE when no active beat or FIFO cannot accept/provide data."
+  - name: request_irq
+    protocol: dma_request_interrupt
+    role: mixed
+    ports: [dma_req, dma_ack, irq]
+    handshake: "dma_req qualifies software-enabled channel start when hardware request enable is set; dma_ack asserted during accepted active service; irq remains high until status bits are cleared."
+features:
+  - id: cfg_regs
+    description: "APB programmable control/status register file with source address, destination address, length, control, status, interrupt enable, and interrupt status."
+  - id: mem_to_mem_dma
+    description: "Copies LEN bytes from SRC_ADDR to DST_ADDR using AHB-Lite read/write beats; addresses increment when configured."
+  - id: interrupt
+    description: "Terminal-count and error interrupt status with write-one-to-clear behavior and maskable irq output."
+  - id: error_handling
+    description: "AHB response errors stop the active channel, set ERR status, and prevent further writes until software clears/restarts."
+sub_modules:
+  - name: atcdmac100_apb_regs
+    type: register_block
+    description: "APB decode, writable configuration registers, status/IRQ clear logic."
+    implements: [cfg_regs, interrupt]
+    register_refs: [CTRL, SRC_ADDR, DST_ADDR, LEN, STATUS, INT_EN, INT_STATUS]
+    function_model_refs: [apb_write_reg, apb_read_reg, clear_interrupt]
+  - name: atcdmac100_channel
+    type: control_fsm
+    description: "Single DMA channel sequencing, counters, address updates, and request qualification."
+    implements: [mem_to_mem_dma, error_handling]
+    fsm_refs: [channel_fsm]
+    dataflow_refs: [dma_copy_path]
+    function_model_refs: [start_transfer, complete_transfer, ahb_error]
+    cycle_model_refs: [cm_dma_copy]
+  - name: atcdmac100_ahb_master
+    type: bus_master
+    description: "AHB-Lite address/control generation, read buffering, write data phase generation."
+    implements: [mem_to_mem_dma]
+    dataflow_refs: [ahb_read_path, ahb_write_path]
+    function_model_refs: [issue_read_beat, issue_write_beat]
+    cycle_model_refs: [cm_ahb_handshake]
+  - name: atcdmac100_irq
+    type: interrupt_controller
+    description: "Interrupt status/mask aggregation and irq output."
+    implements: [interrupt]
+    register_refs: [STATUS, INT_EN, INT_STATUS]
+    function_model_refs: [complete_transfer, ahb_error, clear_interrupt]
+dataflow:
+  - id: dma_copy_path
+    description: "For each accepted beat, read DATA_WIDTH bits from SRC_ADDR + bytes_done and write the same data to DST_ADDR + bytes_done."
+    sources: [SRC_ADDR, hrdata]
+    sinks: [DST_ADDR, hwdata]
+    ordering: "Read beat data must be captured before the corresponding write beat is issued; writes preserve read order."
+  - id: ahb_read_path
+    description: "AHB master emits read address/control with hwrite=0; returned hrdata is pushed to internal FIFO on hready && !hresp."
+    backpressure: "No read is issued when FIFO is full or channel is not RUN."
+  - id: ahb_write_path
+    description: "AHB master emits write address/control with hwrite=1 and drains FIFO data to hwdata on completed write beat."
+    backpressure: "No write is issued when FIFO is empty or hready is low."
+function_model:
+  state:
+    ctrl: {width: DATA_WIDTH, reset: 0}
+    src_addr: {width: ADDR_WIDTH, reset: 0}
+    dst_addr: {width: ADDR_WIDTH, reset: 0}
+    len_bytes: {width: LEN_WIDTH, reset: 0}
+    bytes_done: {width: LEN_WIDTH, reset: 0}
+    busy: {width: 1, reset: 0}
+    done: {width: 1, reset: 0}
+    err: {width: 1, reset: 0}
+    int_en: {width: 2, reset: 0}
+    int_status: {width: 2, reset: 0}
+  transactions:
+    - id: reset
+      trigger: "!hresetn"
+      state_updates:
+        - {state: ctrl, expr: "0", width: DATA_WIDTH}
+        - {state: src_addr, expr: "0", width: ADDR_WIDTH}
+        - {state: dst_addr, expr: "0", width: ADDR_WIDTH}
+        - {state: len_bytes, expr: "0", width: LEN_WIDTH}
+        - {state: bytes_done, expr: "0", width: LEN_WIDTH}
+        - {state: busy, expr: "0", width: 1}
+        - {state: done, expr: "0", width: 1}
+        - {state: err, expr: "0", width: 1}
+        - {state: int_en, expr: "0", width: 2}
+        - {state: int_status, expr: "0", width: 2}
+      output_rules:
+        - {port: pready, expr: "1'b0", width: 1}
+        - {port: irq, expr: "1'b0", width: 1}
+        - {port: htrans, expr: "2'b00", width: 2}
+    - id: apb_write_reg
+      trigger: "psel && penable && pwrite && pready"
+      state_updates:
+        - {state: src_addr, expr: "addr_is_SRC_ADDR ? pwdata[ADDR_WIDTH-1:0] : src_addr", width: ADDR_WIDTH}
+        - {state: dst_addr, expr: "addr_is_DST_ADDR ? pwdata[ADDR_WIDTH-1:0] : dst_addr", width: ADDR_WIDTH}
+        - {state: len_bytes, expr: "addr_is_LEN ? pwdata[LEN_WIDTH-1:0] : len_bytes", width: LEN_WIDTH}
+        - {state: ctrl, expr: "addr_is_CTRL ? pwdata : ctrl", width: DATA_WIDTH}
+        - {state: int_en, expr: "addr_is_INT_EN ? pwdata[1:0] : int_en", width: 2}
+      output_rules:
+        - {port: pslverr, expr: "addr_decode_error", width: 1}
+        - {port: pready, expr: "1'b1", width: 1}
+    - id: apb_read_reg
+      trigger: "psel && penable && !pwrite && pready"
+      output_rules:
+        - {port: prdata, expr: "reg_read_mux(paddr)", width: DATA_WIDTH}
+        - {port: pslverr, expr: "addr_decode_error", width: 1}
+        - {port: pready, expr: "1'b1", width: 1}
+    - id: start_transfer
+      trigger: "ctrl.start && !busy && len_bytes != 0 && (ctrl.hw_req_en ? |dma_req : 1'b1)"
+      state_updates:
+        - {state: busy, expr: "1'b1", width: 1}
+        - {state: done, expr: "1'b0", width: 1}
+        - {state: err, expr: "1'b0", width: 1}
+        - {state: bytes_done, expr: "0", width: LEN_WIDTH}
+      output_rules:
+        - {port: dma_ack, expr: "dma_req & {NUM_CHANNELS{ctrl.hw_req_en}}", width: NUM_CHANNELS}
+    - id: issue_read_beat
+      trigger: "busy && fifo_not_full && read_bytes_issued < len_bytes && hgrant && hready"
+      output_rules:
+        - {port: haddr, expr: "src_addr + read_bytes_issued", width: ADDR_WIDTH}
+        - {port: hwrite, expr: "1'b0", width: 1}
+        - {port: htrans, expr: "read_first_beat ? 2'b10 : 2'b11", width: 2}
+        - {port: hsize, expr: "log2(DATA_WIDTH/8)", width: 3}
+        - {port: hburst, expr: "3'b001", width: 3}
+    - id: issue_write_beat
+      trigger: "busy && fifo_not_empty && hgrant && hready"
+      state_updates:
+        - {state: bytes_done, expr: "bytes_done + (DATA_WIDTH/8)", width: LEN_WIDTH}
+      output_rules:
+        - {port: haddr, expr: "dst_addr + bytes_done", width: ADDR_WIDTH}
+        - {port: hwrite, expr: "1'b1", width: 1}
+        - {port: htrans, expr: "write_first_beat ? 2'b10 : 2'b11", width: 2}
+        - {port: hwdata, expr: "fifo_rdata", width: DATA_WIDTH}
+    - id: complete_transfer
+      trigger: "busy && (bytes_done + (DATA_WIDTH/8)) >= len_bytes && write_beat_complete && !hresp"
+      state_updates:
+        - {state: busy, expr: "1'b0", width: 1}
+        - {state: done, expr: "1'b1", width: 1}
+        - {state: int_status, expr: "int_status | 2'b01", width: 2}
+      output_rules:
+        - {port: irq, expr: "|(int_status & int_en)", width: 1}
+        - {port: htrans, expr: "2'b00", width: 2}
+    - id: ahb_error
+      trigger: "busy && hready && hresp"
+      state_updates:
+        - {state: busy, expr: "1'b0", width: 1}
+        - {state: err, expr: "1'b1", width: 1}
+        - {state: int_status, expr: "int_status | 2'b10", width: 2}
+      output_rules:
+        - {port: irq, expr: "|(int_status & int_en)", width: 1}
+        - {port: htrans, expr: "2'b00", width: 2}
+    - id: clear_interrupt
+      trigger: "psel && penable && pwrite && addr_is_INT_STATUS"
+      state_updates:
+        - {state: int_status, expr: "int_status & ~pwdata[1:0]", width: 2}
+      output_rules:
+        - {port: irq, expr: "|((int_status & ~pwdata[1:0]) & int_en)", width: 1}
+cycle_model:
+  - id: cm_ahb_handshake
+    clock: hclk
+    reset: hresetn
+    rule: "During hready=0, haddr/hwrite/htrans/hsize/hburst/hwdata remain stable; next beat may issue only after hready=1."
+    latency: "Variable; one beat per hready-accepted cycle in zero-wait memory."
+  - id: cm_dma_copy
+    clock: hclk
+    reset: hresetn
+    rule: "After start, read and write beats alternate or pipeline through FIFO until bytes_done reaches len_bytes or an error occurs."
+    latency: "At least 2 cycles per DATA_WIDTH beat plus APB programming cycles; increases with hready stalls."
+registers:
+  - {name: CTRL, offset: 0x00, width: 32, access: rw, reset: 0x00000000, fields: [{name: start, bits: "0", access: rw1s}, {name: int_en_global, bits: "1", access: rw}, {name: hw_req_en, bits: "2", access: rw}, {name: src_inc, bits: "3", access: rw}, {name: dst_inc, bits: "4", access: rw}]}
+  - {name: SRC_ADDR, offset: 0x04, width: 32, access: rw, reset: 0x00000000, fields: [{name: src_addr, bits: "31:0", access: rw}]}
+  - {name: DST_ADDR, offset: 0x08, width: 32, access: rw, reset: 0x00000000, fields: [{name: dst_addr, bits: "31:0", access: rw}]}
+  - {name: LEN, offset: 0x0C, width: 32, access: rw, reset: 0x00000000, fields: [{name: len_bytes, bits: "15:0", access: rw}]}
+  - {name: STATUS, offset: 0x10, width: 32, access: ro, reset: 0x00000000, fields: [{name: busy, bits: "0", access: ro}, {name: done, bits: "1", access: ro}, {name: err, bits: "2", access: ro}]}
+  - {name: INT_EN, offset: 0x14, width: 32, access: rw, reset: 0x00000000, fields: [{name: done_en, bits: "0", access: rw}, {name: err_en, bits: "1", access: rw}]}
+  - {name: INT_STATUS, offset: 0x18, width: 32, access: w1c_ro, reset: 0x00000000, fields: [{name: done_irq, bits: "0", access: w1c}, {name: err_irq, bits: "1", access: w1c}]}
+interrupts:
+  - {name: irq_done, source: "INT_STATUS.done_irq", enable: "INT_EN.done_en & CTRL.int_en_global", output: irq, clear: "write 1 to INT_STATUS[0]"}
+  - {name: irq_error, source: "INT_STATUS.err_irq", enable: "INT_EN.err_en & CTRL.int_en_global", output: irq, clear: "write 1 to INT_STATUS[1]"}
+fsm:
+  - id: channel_fsm
+    clock: hclk
+    reset: hresetn
+    states: [IDLE, ARBITRATE, READ, WRITE, DONE, ERROR]
+    reset_state: IDLE
+    transitions:
+      - {from: IDLE, to: ARBITRATE, condition: "start_transfer"}
+      - {from: ARBITRATE, to: READ, condition: "hgrant && fifo_not_full"}
+      - {from: READ, to: WRITE, condition: "read_data_valid || fifo_not_empty"}
+      - {from: WRITE, to: READ, condition: "more_bytes && fifo_has_space && !hresp"}
+      - {from: WRITE, to: DONE, condition: "last_write_complete && !hresp"}
+      - {from: ARBITRATE, to: ERROR, condition: "hready && hresp"}
+      - {from: READ, to: ERROR, condition: "hready && hresp"}
+      - {from: WRITE, to: ERROR, condition: "hready && hresp"}
+      - {from: DONE, to: IDLE, condition: "!ctrl.start"}
+      - {from: ERROR, to: IDLE, condition: "software_clear_and_restart"}
+custom:
+  assumptions:
+    - "The imported DS079 V1.2 text was not visible to this headless worker; this SSOT is an engineering draft for downstream repair/audit against the imported document."
+    - "Baseline bus architecture is APB slave for registers plus AHB-Lite master for memory data movement; exact DS079 signal naming and optional features must be reconciled by later goal-audit/architect stages."
+    - "NUM_CHANNELS defaults to 1 with draft ownership refs; multi-channel, scatter-gather, endian, burst, and peripheral-handshake details are TBD until DS079 evidence is attached."
+    - "Reset is modeled active-low synchronous on hclk; if DS079 specifies asynchronous reset, RTL must update SSOT first."
+  tbd:
+    - "Confirm exact DS079 register map, reset values, access policies, bus protocols, number of channels, and interrupt semantics."
+    - "Confirm whether ATCDMAC100 requires AHB, AHB5, APB3/APB4, AXI, peripheral DMA handshakes, linked-list descriptors, or low-power signals."
+test_requirements:
+  - id: apb_reg_access
+    stimulus: "Reset, write each RW register via APB, read back, attempt reserved/invalid address access."
+    expected_results: "RW fields retain legal values; RO status reflects internal state; invalid address sets pslverr without corrupting state."
+    checkers: [apb_protocol_checker, register_mirror_scoreboard]
+    coverage: "All defined offsets, field access types, reset values, invalid address path."
+  - id: dma_nominal_copy
+    stimulus: "Program SRC_ADDR, DST_ADDR, LEN, enable interrupts, start channel with zero-wait AHB memory model."
+    expected_results: "Destination memory equals source for LEN bytes; STATUS.done=1, busy=0, err=0, irq asserts when enabled."
+    checkers: [memory_scoreboard, irq_checker, ahb_protocol_checker]
+    coverage: "Lengths 1 beat, multiple beats, unaligned/partial final beat TBD, hready stalls."
+  - id: ahb_error
+    stimulus: "Inject hresp error during read and write phases."
+    expected_results: "Channel stops, STATUS.err=1, INT_STATUS.err_irq=1, irq follows mask, no further data beats until restart."
+    checkers: [error_state_checker, no_extra_beat_assertion]
+    coverage: "Error in ARBITRATE/READ/WRITE states."
+quality_gates:
+  - "SSOT schema repair/check passes in engineering mode."
+  - "RTL top module must be rtl/atcdmac100.sv and match every io_list port name/direction/width."
+  - "Function-level and cycle-level models must implement every transaction id and fsm transition before equivalence."
+  - "Lint, simulation, coverage, synthesis, STA, PnR, post-route STA, and goal audit must not waive DS079 mismatches without explicit QA."
+workflow_todos:
+  - owner: rtl-gen
+    task: "Generate synthesizable rtl/atcdmac100.sv and owned submodules from this SSOT only; do not change interfaces without SSOT update."
+  - owner: fl-gen
+    task: "Create function model using function_model.transactions and reconcile assumptions against DS079 evidence when available."
+  - owner: cl-gen
+    task: "Create cycle model for AHB/APB handshakes, stalls, interrupts, and FSM transitions."
+  - owner: tb-gen
+    task: "Build APB/AHB memory testbench with register, nominal copy, stall, and error scenarios plus coverage."
+  - owner: goal-audit
+    task: "Compare final artifacts against imported AndeShape ATCDMAC100 DS079 V1.2 and raise QA for every divergence."

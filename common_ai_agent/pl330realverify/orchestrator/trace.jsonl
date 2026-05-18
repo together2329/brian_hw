@@ -108,3 +108,4 @@
 {"ts": "2026-05-17T23:43:26.230Z", "step": 3, "lens": "result", "actor": "sta-post-worker", "kind": "run_completed", "corr": "corr_09018543", "run_id": "run_da9a766f", "status": "completed"}
 {"ts": "2026-05-17T23:44:02.684Z", "step": 1, "lens": "interaction", "actor": "sim_debug-worker", "kind": "http_recv", "corr": "corr_672a7702", "peer": "orchestrator", "requested_workflow": "sim_debug", "task_preview": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: pl330realverify\n- workflow: sim_debug\n-", "sync": false, "has_todos": false}
 {"ts": "2026-05-17T23:44:02.700Z", "step": 2, "lens": "interaction", "actor": "sim_debug-worker", "kind": "http_accepted", "corr": "corr_672a7702", "peer": "orchestrator", "status": 200, "run_id": "run_45ec05c2"}
+{"ts": "2026-05-17T23:47:36.819Z", "step": 3, "lens": "result", "actor": "sim_debug-worker", "kind": "run_completed", "corr": "corr_672a7702", "run_id": "run_45ec05c2", "status": "error"}

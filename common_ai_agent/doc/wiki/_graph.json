@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-17T22:57:36Z",
+  "generated_at": "2026-05-18T01:50:28Z",
   "root": "doc/wiki",
-  "node_count": 43,
-  "edge_count": 278,
+  "node_count": 44,
+  "edge_count": 280,
   "tags": {
     "atlas-ui": [
       "atlas-pipeline-worker-workspace-jump",
@@ -48,6 +48,7 @@
       "arm-m0-min-pipeline-run",
       "atcuart100-pipeline-run",
       "atcwdt200-pipeline-run-20260517",
+      "atlas-browser-control-runbook",
       "atlas-pipeline-db-state",
       "atlas-pipeline-screen",
       "common-ai-agent-map",
@@ -228,6 +229,23 @@
       "summary": "Run snapshot for building an `atcwdt200` watchdog-timer IP from the legacy Andes reference at `/Users/brian/Desktop/andes/atcwdt200/` through the common_ai_agent flow: requirements import, SSOT, FL/CL, RTL, TB, sim, and lint.",
       "path": "doc/wiki/atcwdt200-pipeline-run-20260517.md",
       "size_bytes": 6493
+    },
+    {
+      "id": "atlas-browser-control-runbook",
+      "title": "ATLAS Browser Control Runbook",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "This page is the concrete handoff for agents that must operate the visible ATLAS UI, not just call backend scripts. Use it when the user asks for \"web browser\", \"ATLAS UI\", \"I want to see it\", or visible click/type validation.",
+      "path": "doc/wiki/atlas-browser-control-runbook.md",
+      "size_bytes": 12012
     },
     {
       "id": "atlas-pipeline-db-state",
@@ -584,6 +602,7 @@
         "workflow-ownership-and-boundaries",
         "atlas-pipeline-screen",
         "pipeline-progress-debugging",
+        "atlas-browser-control-runbook",
         "atlas-pipeline-worker-workspace-jump",
         "run-mode-and-provenance-policy",
         "arm-m0-min-current-status",
@@ -632,7 +651,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 16362
+      "size_bytes": 16843
     },
     {
       "id": "karpathy-llm-wiki-pattern",
@@ -666,6 +685,7 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "atlas-browser-control-runbook",
         "atlas-pipeline-worker-workspace-jump",
         "atlas-pipeline-screen",
         "pl330-real-orchestrator-ui-lessons-20260517",
@@ -694,9 +714,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added [[atlas-pipeline-worker-workspace-jump]] to document the real UI workflow drilldown behavior: clicking `ssot-gen`, `rtl-gen`, or `tb-gen` in the Pipeline worker row opens `.session/<session>/<ip>/<workflow>` in Workspace, shows worker chat history, and previews the representative SSOT, RTL authoring status, or cocotb TB file. Cross-linked it from…",
+      "summary": "- Added [[atlas-browser-control-runbook]] so future agents can operate the visible ATLAS in-app Browser instead of substituting backend-only checks. The page records the exact Browser bootstrap, visible ATLAS URL open/reload, DOM/screenshot inspection, semantic button/chat input interaction, coordinate mouse move/click/type/scroll, and the PL330 signoff…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 50920
+      "size_bytes": 52191
     },
     {
       "id": "mini-cpu-rerun-20260517",

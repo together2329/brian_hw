@@ -14,6 +14,7 @@ This section is additive; it does not replace the reading order below.
 | Overall source-of-truth map | [[common-ai-agent-map]] |
 | What owns SSOT/RTL/TB/sim/coverage artifacts | [[workflow-ownership-and-boundaries]] |
 | How to run/debug the visible product flow | [[atlas-pipeline-screen]] + [[pipeline-progress-debugging]] |
+| How to control the visible in-app browser | [[atlas-browser-control-runbook]] |
 | How Pipeline worker detail opens real workspaces | [[atlas-pipeline-worker-workspace-jump]] |
 | Run Mode / Exec Mode and SSOT provenance policy | [[run-mode-and-provenance-policy]] |
 | Why headless is not product-flow authority | [[pipeline-progress-debugging]] |
@@ -55,6 +56,7 @@ regression.
 ## UI
 
 - [[atlas-pipeline-screen]] — `◫ Pipeline` top-level screen: click-to-run stage dispatcher, per-stage scoresheet, owner-aware blame routing.
+- [[atlas-browser-control-runbook]] — exact recipe for future agents to open the in-app Browser, reload ATLAS, inspect DOM/screenshot state, click/type with Playwright locators, and move/click/type by mouse coordinates.
 - [[atlas-pipeline-worker-workspace-jump]] — how `ssot-gen`, `rtl-gen`, and `tb-gen` worker detail clicks open the real workflow workspace, chat history, and representative artifacts.
 - [[run-mode-and-provenance-policy]] — placement and semantics for global `Run Mode` plus `Exec Mode`, and the Pipeline-specific evidence summary.
 - [[atlas-pipeline-db-state]] — how `/api/pipeline/state` derives state (DB-first, FS-fallback for hand-placed evidence) and the migration plan for moving KPI dots fully into the DB.
@@ -86,6 +88,7 @@ be loaded on a different machine and inspected without recreating the DB.
 ## Debugging And Operations
 
 - [[pipeline-progress-debugging]] — first stop for "is it really running?", "is worker or LLM stuck?", and "where is progress recorded?"
+- [[atlas-browser-control-runbook]] — first stop for "use the web browser so I can see it", visible mouse/keyboard interaction, and browser reload after backend code changes.
 - [[multi-user-worker-isolation]] — first stop for "could this worker belong to another user/IP/session?"
 - [[provider-and-llm-call-accounting]] — first stop for "how many LLM calls/tokens/cost did this workflow use?"
 - [[rtl-version-run-history]] — first stop for "which SSOT/RTL/TB version did this lint/sim/coverage/syn/sta/pnr run use?"
