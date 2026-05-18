@@ -64,6 +64,14 @@
     "content": "write ssot"
   },
   {
+    "role": "assistant",
+    "content": "Final Answer: [SSOT HANDOFF] done"
+  },
+  {
+    "role": "user",
+    "content": "write ssot"
+  },
+  {
     "role": "tool",
     "name": "write_file",
     "content": "Successfully wrote to 'demo_ip/yaml/demo_ip.ssot.yaml'."

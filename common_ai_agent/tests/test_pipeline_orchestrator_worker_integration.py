@@ -555,7 +555,7 @@ def test_orchestrator_dispatch_worker_prompt_includes_chat_context(
 
         _make_client(tmp_path, monkeypatch)
         with AtlasDB(str(tmp_path / "atlas.db")) as db:
-            workspace = db.upsert_workspace("default", owner_user_id="u", local_path=str(tmp_path))
+            workspace = db.upsert_workspace(tmp_path.name or "default", owner_user_id="u", local_path=str(tmp_path))
             ip_row = db.upsert_ip_block(workspace["id"], ip, ssot_path=f"{ip}/yaml/{ip}.ssot.yaml")
             db.record_chat_message(
                 ip_row["id"],

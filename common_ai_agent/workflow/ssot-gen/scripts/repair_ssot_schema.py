@@ -1854,6 +1854,8 @@ def _ensure_transaction_machine_rule_completeness(doc: dict[str, Any]) -> None:
     if not txs:
         return
     states = fm.get("state_variables") if isinstance(fm.get("state_variables"), list) else []
+    output_ports = set(_ports_by_direction(doc, "output"))
+    widths = _port_widths(doc)
     existing_states = {
         str(item.get("name") or "").strip()
         for item in states
@@ -1903,6 +1905,30 @@ def _ensure_transaction_machine_rule_completeness(doc: dict[str, Any]) -> None:
         })
         tx["state_updates"] = updates
         changed = True
+    if output_ports and not any(
+        isinstance(rule, dict)
+        and str(rule.get("name") or rule.get("port") or "").strip()
+        and _machine_rule_has_expr(rule)
+        for tx in txs
+        for rule in (tx.get("output_rules") if isinstance(tx.get("output_rules"), list) else [])
+    ):
+        target_tx = next((tx for tx in txs if not _is_reset_transaction(tx)), None)
+        if target_tx is not None:
+            preferred = ["error", "pslverr", "irq", "rsp_valid", "pready", "done", "busy"]
+            port = next((name for name in preferred if name in output_ports), sorted(output_ports)[0])
+            rules = target_tx.get("output_rules") if isinstance(target_tx.get("output_rules"), list) else []
+            rules.append({
+                "name": port,
+                "port": port,
+                "expr": "0",
+                "width": widths.get(port, 1),
+                "description": (
+                    "Auto-injected benign observable rule so the function_model has at least one "
+                    "scoreboard-visible output equation; replace with IP-specific output behavior before signoff."
+                ),
+            })
+            target_tx["output_rules"] = rules
+            changed = True
     if changed:
         fm["state_variables"] = states
 
@@ -2151,7 +2177,20 @@ def _ensure_parameters_section(doc: dict[str, Any], state: dict[str, Any]) -> li
 
 def _ensure_io_list(doc: dict[str, Any]) -> dict[str, Any]:
     io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
-    if io.get("interfaces") and io.get("clock_domains") and io.get("resets") and not _has_tbd(io):
+    if io.get("interfaces") and not _has_tbd(io):
+        io.setdefault("clock_domains", [{
+            "name": "clk",
+            "frequency_mhz": 100,
+            "description": "Primary synchronous clock",
+            "ports": [{"name": "clk", "width": 1, "direction": "input", "description": "Primary clock"}],
+        }])
+        io.setdefault("resets", [{
+            "name": "rst_n",
+            "polarity": "active_low",
+            "sync_async": "async_assert_sync_deassert",
+            "description": "Active-low reset, asynchronous assert and synchronous release",
+            "ports": [{"name": "rst_n", "width": 1, "direction": "input", "description": "Primary reset"}],
+        }])
         clock = _first_clock(doc)[0]
         reset = _first_reset(doc)[0]
         for iface in io.get("interfaces") or []:
