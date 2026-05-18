@@ -1,0 +1,61 @@
+{
+  "description": "Dynamic tb-gen todo list from tb/tb_todo_plan.json",
+  "name": "dma_scratch_ui_live_20260519a-tb-gen",
+  "schema_version": "todo_tracker.dynamic.v1",
+  "source_plan": "tb/tb_todo_plan.json",
+  "tasks": [
+    {
+      "activeForm": "Generate SSOT-derived pyuvm/cocotb testbench",
+      "approval_policy": "evidence_required",
+      "content": "Generate SSOT-derived pyuvm/cocotb testbench",
+      "criteria": "emit_goal_scoreboard_cocotb exits 0 and writes test_<ip>.py, test_runner.py, tb_manifest.json, and tb_generation.json.",
+      "detail": "Derive the testbench from SSOT scenarios, equivalence goals, and the RTL contract; do not approve a fixed template fallback.",
+      "priority": "high",
+      "required_evidence": [
+        "dma_scratch_ui_live_20260519a/tb/cocotb/test_dma_scratch_ui_live_20260519a.py",
+        "dma_scratch_ui_live_20260519a/tb/cocotb/test_runner.py",
+        "dma_scratch_ui_live_20260519a/tb/cocotb/tb_manifest.json",
+        "dma_scratch_ui_live_20260519a/tb/cocotb/tb_generation.json"
+      ],
+      "source_id": "TB-0001",
+      "source_plan": "tb/tb_todo_plan.json",
+      "status": "human_review_needed",
+      "todo_completion": {
+        "evidence_basis": [
+          "dma_scratch_ui_live_20260519a/tb/cocotb/test_dma_scratch_ui_live_20260519a.py",
+          "dma_scratch_ui_live_20260519a/tb/cocotb/test_runner.py",
+          "dma_scratch_ui_live_20260519a/tb/cocotb/tb_manifest.json",
+          "dma_scratch_ui_live_20260519a/tb/cocotb/tb_generation.json",
+          "emit_goal_scoreboard_cocotb"
+        ],
+        "reason": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair",
+        "status": "open"
+      }
+    },
+    {
+      "activeForm": "Validate TB structure and scoreboard contract",
+      "approval_policy": "evidence_required",
+      "content": "Validate TB structure and scoreboard contract",
+      "criteria": "check_pyuvm_structure and equivalence_scoreboard --self-check both exit 0.",
+      "detail": "The generated TB must instantiate the common equivalence scoreboard and expose the rows required by SIM and Coverage.",
+      "priority": "high",
+      "required_evidence": [
+        "check_pyuvm_structure returncode 0",
+        "equivalence_scoreboard_self_check returncode 0"
+      ],
+      "source_id": "TB-0002",
+      "source_plan": "tb/tb_todo_plan.json",
+      "status": "human_review_needed",
+      "todo_completion": {
+        "evidence_basis": [
+          "check_pyuvm_structure returncode 0",
+          "equivalence_scoreboard_self_check returncode 0",
+          "emit_goal_scoreboard_cocotb"
+        ],
+        "reason": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair",
+        "status": "open"
+      }
+    }
+  ],
+  "ui_grouping": false
+}

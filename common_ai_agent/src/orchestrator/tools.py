@@ -244,6 +244,8 @@ def read_artifact(ip: str, stage: str, project_root: Optional[Path] = None) -> T
         "cl-model": ("model/cl_model_check.json",),
         "equivalence": ("verify/equivalence_goals.json",),
         "rtl": (
+            "rtl/rtl_blocked.json",
+            "rtl/rtl_blocked_resolved.json",
             "rtl/rtl_compile.json",
             "lint/dut_lint.json",
             "rtl/rtl_todo_plan.json",

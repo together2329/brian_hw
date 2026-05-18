@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "type": "mismatch_classification",
+  "ip": "dma_scratch_ui_live_20260519a",
+  "generated_at": "2026-05-18T20:54:43Z",
+  "status": "action_required",
+  "classifications": [
+    {
+      "goal_id": "",
+      "classification": "stale_oracle",
+      "owner": "fl-model-gen",
+      "llm_loop_allowed": true,
+      "reason": "derived FL/equivalence oracle artifacts are older than the current SSOT; scoreboard mismatches cannot be assigned to RTL until the oracle is regenerated",
+      "evidence": {
+        "stale_evidence": [
+          "dma_scratch_ui_live_20260519a/model/functional_model.py older than dma_scratch_ui_live_20260519a/yaml/dma_scratch_ui_live_20260519a.ssot.yaml",
+          "dma_scratch_ui_live_20260519a/model/fl_model_check.json older than dma_scratch_ui_live_20260519a/yaml/dma_scratch_ui_live_20260519a.ssot.yaml",
+          "dma_scratch_ui_live_20260519a/model/decomposition.json older than dma_scratch_ui_live_20260519a/yaml/dma_scratch_ui_live_20260519a.ssot.yaml",
+          "dma_scratch_ui_live_20260519a/cov/fcov_plan.json older than dma_scratch_ui_live_20260519a/yaml/dma_scratch_ui_live_20260519a.ssot.yaml",
+          "dma_scratch_ui_live_20260519a/verify/equivalence_goals.json older than dma_scratch_ui_live_20260519a/yaml/dma_scratch_ui_live_20260519a.ssot.yaml"
+        ],
+        "sim_result": "stale"
+      },
+      "authority_policy": {
+        "locked_artifacts": [
+          "ssot_spec",
+          "interface_contract",
+          "performance_target"
+        ],
+        "llm_editable_artifacts": [
+          "functional_model",
+          "equivalence_goals",
+          "coverage_plan",
+          "tb",
+          "scoreboard_implementation"
+        ],
+        "rule": "Regenerate derived oracle artifacts from SSOT before classifying RTL/TB mismatches."
+      },
+      "repair_prompt": "Regenerate FunctionalModel, FL checks, coverage/equivalence oracle artifacts from the current SSOT, then rerun tb-gen, sim, coverage, sim-debug, and goal-audit. Do not repair RTL from stale oracle evidence.",
+      "human_question": ""
+    }
+  ]
+}

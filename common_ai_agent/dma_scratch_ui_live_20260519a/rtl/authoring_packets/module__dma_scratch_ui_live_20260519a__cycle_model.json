@@ -1,0 +1,1761 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 6,
+      "key": "cycle_model",
+      "module_task_count": 208,
+      "rule": "Owner module dma_scratch_ui_live_20260519a is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "name": "dma_scratch_ui_live_20260519a",
+      "refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "name": "dma_scratch_ui_live_20260519a",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awaddr",
+          "s_axil_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awaddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awvalid",
+          "s_axil_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awvalid",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awready",
+          "s_axil_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awready",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wdata",
+          "s_axil_wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wdata",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wstrb",
+          "s_axil_wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wstrb",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "DATA_WIDTH/8"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wvalid",
+          "s_axil_wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wvalid",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wready",
+          "s_axil_wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wready",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bresp",
+          "s_axil_bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bresp",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bvalid",
+          "s_axil_bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bvalid",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bready",
+          "s_axil_bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bready",
+        "source_ref": "io_list.interfaces[0].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_araddr",
+          "s_axil_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_araddr",
+        "source_ref": "io_list.interfaces[0].ports[10]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_arvalid",
+          "s_axil_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_arvalid",
+        "source_ref": "io_list.interfaces[0].ports[11]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_arready",
+          "s_axil_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_arready",
+        "source_ref": "io_list.interfaces[0].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rdata",
+          "s_axil_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axil_rdata",
+        "source_ref": "io_list.interfaces[0].ports[13]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rresp",
+          "s_axil_rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rresp",
+        "source_ref": "io_list.interfaces[0].ports[14]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rvalid",
+          "s_axil_rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rvalid",
+        "source_ref": "io_list.interfaces[0].ports[15]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rready",
+          "s_axil_rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rready",
+        "source_ref": "io_list.interfaces[0].ports[16]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_araddr",
+          "m_axi_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_araddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_arvalid",
+          "m_axi_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_arvalid",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_arready",
+          "m_axi_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_arready",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rdata",
+          "m_axi_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "m_axi_rdata",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rresp",
+          "m_axi_rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rresp",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rvalid",
+          "m_axi_rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rvalid",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rready",
+          "m_axi_rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rready",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awaddr",
+          "m_axi_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awaddr",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awvalid",
+          "m_axi_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awvalid",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awready",
+          "m_axi_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awready",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wdata",
+          "m_axi_wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wdata",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wstrb",
+          "m_axi_wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wstrb",
+        "source_ref": "io_list.interfaces[1].ports[11]",
+        "width": "DATA_WIDTH/8"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wvalid",
+          "m_axi_wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wvalid",
+        "source_ref": "io_list.interfaces[1].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wready",
+          "m_axi_wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wready",
+        "source_ref": "io_list.interfaces[1].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bresp",
+          "m_axi_bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bresp",
+        "source_ref": "io_list.interfaces[1].ports[14]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bvalid",
+          "m_axi_bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bvalid",
+        "source_ref": "io_list.interfaces[1].ports[15]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bready",
+          "m_axi_bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bready",
+        "source_ref": "io_list.interfaces[1].ports[16]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_scratch_ui_live_20260519a",
+  "kind": "module",
+  "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+  "owner_module": "dma_scratch_ui_live_20260519a",
+  "packet_id": "module__dma_scratch_ui_live_20260519a__cycle_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.backpressure": 1,
+      "cycle_model.clock": 1,
+      "cycle_model.handshake_rules": 10,
+      "cycle_model.latency": 1,
+      "cycle_model.observability": 1,
+      "cycle_model.ordering": 4,
+      "cycle_model.pipeline": 3,
+      "cycle_model.reset": 1
+    },
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 6,
+      "key": "cycle_model",
+      "module_task_count": 208,
+      "rule": "Owner module dma_scratch_ui_live_20260519a is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 22,
+    "source_refs": [
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.latency",
+      "cycle_model.handshake_rules.s_axil_arvalid_s_axil_arready",
+      "cycle_model.handshake_rules.s_axil_awvalid_s_axil_awready",
+      "cycle_model.handshake_rules.s_axil_bvalid_s_axil_bready",
+      "cycle_model.handshake_rules.s_axil_rvalid_s_axil_rready",
+      "cycle_model.handshake_rules.s_axil_wvalid_s_axil_wready",
+      "cycle_model.handshake_rules.m_axi_arvalid_m_axi_arready",
+      "cycle_model.handshake_rules.m_axi_awvalid_m_axi_awready",
+      "cycle_model.handshake_rules.m_axi_bvalid_m_axi_bready",
+      "cycle_model.handshake_rules.m_axi_rvalid_m_axi_rready",
+      "cycle_model.handshake_rules.m_axi_wvalid_m_axi_wready",
+      "cycle_model.pipeline.S0_ACCEPT",
+      "cycle_model.pipeline.S1_EVALUATE",
+      "cycle_model.pipeline.S2_OBSERVE",
+      "cycle_model.ordering.ordering_rule_0",
+      "cycle_model.ordering.ordering_rule_1",
+      "cycle_model.ordering.ordering_rule_2",
+      "cycle_model.ordering.ordering_rule_3",
+      "cycle_model.backpressure.backpressure_rule_0",
+      "cycle_model.observability.observability_signal_0"
+    ],
+    "status_counts": {
+      "pass": 22
+    },
+    "task_count": 22
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=clk.",
+      "evidence_terms": [],
+      "id": "RTL-0144",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "clk"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: signal=rst_n.",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0145",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {
+        "signal": "rst_n"
+      },
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "rst",
+          "rst_n"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.",
+      "evidence_terms": [],
+      "id": "RTL-0146",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {},
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: s_axil_arvalid/s_axil_arready",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.s_axil_arvalid_s_axil_arready",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.handshake_rules.s_axil_arvalid_s_axil_arready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.s_axil_arvalid_s_axil_arready.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: signal=s_axil_arvalid/s_axil_arready.",
+      "evidence_terms": [
+        "arready",
+        "arvalid",
+        "axil",
+        "s_axil_arready",
+        "s_axil_arvalid"
+      ],
+      "id": "RTL-0147",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.s_axil_arvalid_s_axil_arready",
+      "ssot_context": {
+        "signal": "s_axil_arvalid/s_axil_arready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.s_axil_arvalid_s_axil_arready"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "arready",
+          "arvalid",
+          "axil",
+          "s_axil_arready",
+          "s_axil_arvalid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "arready",
+          "arvalid",
+          "axil",
+          "s_axil_arready",
+          "s_axil_arvalid"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: s_axil_awvalid/s_axil_awready",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.s_axil_awvalid_s_axil_awready",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.handshake_rules.s_axil_awvalid_s_axil_awready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.s_axil_awvalid_s_axil_awready.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: signal=s_axil_awvalid/s_axil_awready.",
+      "evidence_terms": [
+        "awready",
+        "awvalid",
+        "axil",
+        "s_axil_awready",
+        "s_axil_awvalid"
+      ],
+      "id": "RTL-0148",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.s_axil_awvalid_s_axil_awready",
+      "ssot_context": {
+        "signal": "s_axil_awvalid/s_axil_awready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.s_axil_awvalid_s_axil_awready"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "awready",
+          "awvalid",
+          "axil",
+          "s_axil_awready",
+          "s_axil_awvalid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "awready",
+          "awvalid",
+          "axil",
+          "s_axil_awready",
+          "s_axil_awvalid"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: s_axil_bvalid/s_axil_bready",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.s_axil_bvalid_s_axil_bready",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.handshake_rules.s_axil_bvalid_s_axil_bready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.s_axil_bvalid_s_axil_bready.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: signal=s_axil_bvalid/s_axil_bready.",
+      "evidence_terms": [
+        "axil",
+        "bready",
+        "bvalid",
+        "s_axil_bready",
+        "s_axil_bvalid"
+      ],
+      "id": "RTL-0149",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.s_axil_bvalid_s_axil_bready",
+      "ssot_context": {
+        "signal": "s_axil_bvalid/s_axil_bready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.s_axil_bvalid_s_axil_bready"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "axil",
+          "bready",
+          "bvalid",
+          "s_axil_bready",
+          "s_axil_bvalid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axil",
+          "bready",
+          "bvalid",
+          "s_axil_bready",
+          "s_axil_bvalid"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: s_axil_rvalid/s_axil_rready",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.s_axil_rvalid_s_axil_rready",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.handshake_rules.s_axil_rvalid_s_axil_rready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.s_axil_rvalid_s_axil_rready.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: signal=s_axil_rvalid/s_axil_rready.",
+      "evidence_terms": [
+        "axil",
+        "rready",
+        "rvalid",
+        "s_axil_rready",
+        "s_axil_rvalid"
+      ],
+      "id": "RTL-0150",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.s_axil_rvalid_s_axil_rready",
+      "ssot_context": {
+        "signal": "s_axil_rvalid/s_axil_rready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.s_axil_rvalid_s_axil_rready"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "axil",
+          "rready",
+          "rvalid",
+          "s_axil_rready",
+          "s_axil_rvalid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axil",
+          "rready",
+          "rvalid",
+          "s_axil_rready",
+          "s_axil_rvalid"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: s_axil_wvalid/s_axil_wready",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.s_axil_wvalid_s_axil_wready",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.handshake_rules.s_axil_wvalid_s_axil_wready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.s_axil_wvalid_s_axil_wready.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: signal=s_axil_wvalid/s_axil_wready.",
+      "evidence_terms": [
+        "axil",
+        "s_axil_wready",
+        "s_axil_wvalid",
+        "wready",
+        "wvalid"
+      ],
+      "id": "RTL-0151",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.s_axil_wvalid_s_axil_wready",
+      "ssot_context": {
+        "signal": "s_axil_wvalid/s_axil_wready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.s_axil_wvalid_s_axil_wready"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "axil",
+          "s_axil_wready",
+          "s_axil_wvalid",
+          "wready",
+          "wvalid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axil",
+          "s_axil_wready",
+          "s_axil_wvalid",
+          "wready",
+          "wvalid"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: m_axi_arvalid/m_axi_arready",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.m_axi_arvalid_m_axi_arready",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.handshake_rules.m_axi_arvalid_m_axi_arready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.m_axi_arvalid_m_axi_arready.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: signal=m_axi_arvalid/m_axi_arready.",
+      "evidence_terms": [
+        "arready",
+        "arvalid",
+        "axi",
+        "m_axi_arready",
+        "m_axi_arvalid"
+      ],
+      "id": "RTL-0152",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.m_axi_arvalid_m_axi_arready",
+      "ssot_context": {
+        "signal": "m_axi_arvalid/m_axi_arready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.m_axi_arvalid_m_axi_arready"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "arready",
+          "arvalid",
+          "axi",
+          "m_axi_arready",
+          "m_axi_arvalid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "arready",
+          "arvalid",
+          "axi",
+          "m_axi_arready",
+          "m_axi_arvalid"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: m_axi_awvalid/m_axi_awready",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.m_axi_awvalid_m_axi_awready",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.handshake_rules.m_axi_awvalid_m_axi_awready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.m_axi_awvalid_m_axi_awready.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: signal=m_axi_awvalid/m_axi_awready.",
+      "evidence_terms": [
+        "awready",
+        "awvalid",
+        "axi",
+        "m_axi_awready",
+        "m_axi_awvalid"
+      ],
+      "id": "RTL-0153",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.m_axi_awvalid_m_axi_awready",
+      "ssot_context": {
+        "signal": "m_axi_awvalid/m_axi_awready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.m_axi_awvalid_m_axi_awready"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "awready",
+          "awvalid",
+          "axi",
+          "m_axi_awready",
+          "m_axi_awvalid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "awready",
+          "awvalid",
+          "axi",
+          "m_axi_awready",
+          "m_axi_awvalid"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: m_axi_bvalid/m_axi_bready",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.m_axi_bvalid_m_axi_bready",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.handshake_rules.m_axi_bvalid_m_axi_bready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.m_axi_bvalid_m_axi_bready.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: signal=m_axi_bvalid/m_axi_bready.",
+      "evidence_terms": [
+        "axi",
+        "bready",
+        "bvalid",
+        "m_axi_bready",
+        "m_axi_bvalid"
+      ],
+      "id": "RTL-0154",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.m_axi_bvalid_m_axi_bready",
+      "ssot_context": {
+        "signal": "m_axi_bvalid/m_axi_bready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.m_axi_bvalid_m_axi_bready"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "axi",
+          "bready",
+          "bvalid",
+          "m_axi_bready",
+          "m_axi_bvalid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axi",
+          "bready",
+          "bvalid",
+          "m_axi_bready",
+          "m_axi_bvalid"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: m_axi_rvalid/m_axi_rready",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.m_axi_rvalid_m_axi_rready",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.handshake_rules.m_axi_rvalid_m_axi_rready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.m_axi_rvalid_m_axi_rready.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: signal=m_axi_rvalid/m_axi_rready.",
+      "evidence_terms": [
+        "axi",
+        "m_axi_rready",
+        "m_axi_rvalid",
+        "rready",
+        "rvalid"
+      ],
+      "id": "RTL-0155",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.m_axi_rvalid_m_axi_rready",
+      "ssot_context": {
+        "signal": "m_axi_rvalid/m_axi_rready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.m_axi_rvalid_m_axi_rready"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "axi",
+          "m_axi_rready",
+          "m_axi_rvalid",
+          "rready",
+          "rvalid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axi",
+          "m_axi_rready",
+          "m_axi_rvalid",
+          "rready",
+          "rvalid"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: m_axi_wvalid/m_axi_wready",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.m_axi_wvalid_m_axi_wready",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.handshake_rules.m_axi_wvalid_m_axi_wready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.m_axi_wvalid_m_axi_wready.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: signal=m_axi_wvalid/m_axi_wready.",
+      "evidence_terms": [
+        "axi",
+        "m_axi_wready",
+        "m_axi_wvalid",
+        "wready",
+        "wvalid"
+      ],
+      "id": "RTL-0156",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.m_axi_wvalid_m_axi_wready",
+      "ssot_context": {
+        "signal": "m_axi_wvalid/m_axi_wready"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.m_axi_wvalid_m_axi_wready"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "axi",
+          "m_axi_wready",
+          "m_axi_wvalid",
+          "wready",
+          "wvalid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axi",
+          "m_axi_wready",
+          "m_axi_wvalid",
+          "wready",
+          "wvalid"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S0_ACCEPT",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S0_ACCEPT",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.pipeline.S0_ACCEPT timing uses SSOT cycle/latency 0..N",
+        "cycle_model.pipeline.S0_ACCEPT appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_ACCEPT.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: stage=S0_ACCEPT; action=Accept legal request/command/packet/control work under declared handshake rules.; cycle=0..N.",
+      "evidence_terms": [],
+      "id": "RTL-0157",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S0_ACCEPT",
+      "ssot_context": {
+        "action": "Accept legal request/command/packet/control work under declared handshake rules.",
+        "cycle": "0..N",
+        "stage": "S0_ACCEPT"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S0_ACCEPT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S1_EVALUATE",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S1_EVALUATE",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.pipeline.S1_EVALUATE timing uses SSOT cycle/latency N..M",
+        "cycle_model.pipeline.S1_EVALUATE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_EVALUATE.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: stage=S1_EVALUATE; action=Evaluate function_model transaction and update only declared state.; cycle=N..M.",
+      "evidence_terms": [],
+      "id": "RTL-0158",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S1_EVALUATE",
+      "ssot_context": {
+        "action": "Evaluate function_model transaction and update only declared state.",
+        "cycle": "N..M",
+        "stage": "S1_EVALUATE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S1_EVALUATE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: S2_OBSERVE",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.S2_OBSERVE",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.pipeline.S2_OBSERVE timing uses SSOT cycle/latency M..K",
+        "cycle_model.pipeline.S2_OBSERVE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_OBSERVE.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: stage=S2_OBSERVE; action=Publish response/status/output/debug event and hold it stable until accepted.; cycle=M..K.",
+      "evidence_terms": [],
+      "id": "RTL-0159",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.S2_OBSERVE",
+      "ssot_context": {
+        "action": "Publish response/status/output/debug event and hold it stable until accepted.",
+        "cycle": "M..K",
+        "stage": "S2_OBSERVE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.S2_OBSERVE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=Accepted requests update architectural state only on clock edges..",
+      "evidence_terms": [],
+      "id": "RTL-0160",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "ssot_context": {
+        "value": "Accepted requests update architectural state only on clock edges."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_1",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_1",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=Completion/status/interrupt updates occur after the operation reaches its terminal FSM state..",
+      "evidence_terms": [],
+      "id": "RTL-0161",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_1",
+      "ssot_context": {
+        "value": "Completion/status/interrupt updates occur after the operation reaches its terminal FSM state."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_2",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_2",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=Backpressure stalls the active handshake stage without corrupting stored state..",
+      "evidence_terms": [],
+      "id": "RTL-0162",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_2",
+      "ssot_context": {
+        "value": "Backpressure stalls the active handshake stage without corrupting stored state."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_3",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_3",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.ordering.ordering_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_3.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=Read/dataflow stages must precede dependent write/output stages where declared in dataflow..",
+      "evidence_terms": [],
+      "id": "RTL-0163",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_3",
+      "ssot_context": {
+        "value": "Read/dataflow stages must precede dependent write/output stages where declared in dataflow."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable..",
+      "evidence_terms": [],
+      "id": "RTL-0164",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "ssot_context": {
+        "value": "Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.observability",
+      "content": "Implement observability signal: observability_signal_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.observability.observability_signal_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "cycle_model.observability.observability_signal_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..",
+      "evidence_terms": [],
+      "id": "RTL-0165",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "ssot_context": {
+        "value": "Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.observability_signal_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "28bc079a169dab10d71db849865eaa967a9ec34475c2cd554f104a55d373a2c9",
+  "top": "dma_scratch_ui_live_20260519a",
+  "type": "rtl_authoring_packet"
+}

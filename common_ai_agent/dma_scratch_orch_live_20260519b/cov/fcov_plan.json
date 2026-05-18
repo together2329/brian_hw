@@ -1,0 +1,391 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "dma_scratch_orch_live_20260519b",
+  "source": "dma_scratch_orch_live_20260519b/yaml/dma_scratch_orch_live_20260519b.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "dma_scratch_orch_live_20260519b/req/",
+      "dma_scratch_orch_live_20260519b/yaml/dma_scratch_orch_live_20260519b.ssot.yaml",
+      "dma_scratch_orch_live_20260519b/model/functional_model.py",
+      "dma_scratch_orch_live_20260519b/cov/fcov_plan.json",
+      "dma_scratch_orch_live_20260519b/yaml/dma_scratch_orch_live_20260519b.ssot.yaml#io_list",
+      "dma_scratch_orch_live_20260519b/yaml/dma_scratch_orch_live_20260519b.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "dma_scratch_orch_live_20260519b/rtl/",
+      "dma_scratch_orch_live_20260519b/tb/",
+      "dma_scratch_orch_live_20260519b/sim/",
+      "dma_scratch_orch_live_20260519b/vectors/",
+      "dma_scratch_orch_live_20260519b/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC01",
+      "description": "reset contract"
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC02",
+      "description": "primary approved behavior"
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC03",
+      "description": "cycle handshake and backpressure"
+    },
+    {
+      "id": "SC04_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC04",
+      "description": "error and recovery policy"
+    },
+    {
+      "id": "SC05_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC05",
+      "description": "debug and trace observability"
+    },
+    {
+      "id": "SC06_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC06",
+      "description": "function_model transaction FM1"
+    },
+    {
+      "id": "SC07_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC07",
+      "description": "function_model transaction FM2"
+    },
+    {
+      "id": "SC08_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC08",
+      "description": "function_model transaction FM3"
+    },
+    {
+      "id": "fcov_primary_transaction",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions",
+      "source_ref": "function_model.transactions",
+      "description": "Primary function_model transaction observed with RTL scoreboard evidence"
+    },
+    {
+      "id": "ccov_primary_cycle_rule",
+      "class": "cycle_rule",
+      "coverage_domain": "cycle",
+      "source": "cycle_model",
+      "source_ref": "cycle_model",
+      "description": "Primary cycle_model rule observed with RTL waveform/checker evidence"
+    },
+    {
+      "id": "function_feature_1",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm1",
+      "description": "feature_1"
+    },
+    {
+      "id": "function_feature_2",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm2",
+      "description": "feature_2"
+    },
+    {
+      "id": "function_feature_3",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[2]",
+      "source_ref": "function_model.transactions.fm3",
+      "description": "feature_3"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'rd_addr_valid/rd_addr_ready', 'rule': 'rd_addr_valid payload remains stable until rd_addr_ready is sampled asserted on dma_read_addr.'}"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'signal': 'rd_data_valid/rd_data_ready', 'rule': 'rd_data_valid payload remains stable until rd_data_ready is sampled asserted on dma_read_data.'}"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'signal': 'wr_data_valid/wr_data_ready', 'rule': 'wr_data_valid payload remains stable until wr_data_ready is sampled asserted on dma_write_data.'}"
+    },
+    {
+      "id": "cycle_latency_control_or_request_accept",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.control_or_request_accept",
+      "source_ref": "cycle_model.latency.control_or_request_accept",
+      "description": "{'min_cycles': 0, 'max_cycles': None, 'description': 'Bounded by declared valid/ready or protocol acceptance rules'}"
+    },
+    {
+      "id": "cycle_latency_primary_operation",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.primary_operation",
+      "source_ref": "cycle_model.latency.primary_operation",
+      "description": "{'min_cycles': 1, 'max_cycles': None, 'description': 'Runs on clk at nominal 100 MHz; max depends on declared backpressure and implementation state'}"
+    },
+    {
+      "id": "cycle_latency_response_or_observable_result",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.response_or_observable_result",
+      "source_ref": "cycle_model.latency.response_or_observable_result",
+      "description": "{'min_cycles': 0, 'max_cycles': None, 'description': 'Held stable until the declared response/output acceptance condition'}"
+    },
+    {
+      "id": "cycle_pipeline_s0_accept",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Accept legal request/command/packet/control work under declared handshake rules."
+    },
+    {
+      "id": "cycle_pipeline_s1_evaluate",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Evaluate function_model transaction and update only declared state."
+    },
+    {
+      "id": "cycle_pipeline_s2_observe",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Publish response/status/output/debug event and hold it stable until accepted."
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "Accepted requests update architectural state only on clock edges."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "Completion/status/interrupt updates occur after the operation reaches its terminal FSM state."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "Backpressure stalls the active handshake stage without corrupting stored state."
+    },
+    {
+      "id": "cycle_ordering_3",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[3]",
+      "source_ref": "cycle_model.ordering[3]",
+      "description": "Read/dataflow stages must precede dependent write/output stages where declared in dataflow."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable."
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'max': 1, 'description': 'Default one accepted operation until the SSOT declares deeper buffering'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 3, 'queue_depth': 1, 'description': 'Default accept/evaluate/observe cycle model depth'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "100"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_beats_per_cycle': 1, 'condition': 'No backpressure on the active interface'}"
+    },
+    {
+      "id": "fsm_control_idle_to_accept_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[0]",
+      "source_ref": "fsm.control.transitions[0]",
+      "description": "{'from': 'IDLE', 'to': 'ACCEPT', 'when': 'A legal transaction, packet, command, or CSR operation is accepted'}"
+    },
+    {
+      "id": "fsm_control_accept_to_exec_feature_1_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[1]",
+      "source_ref": "fsm.control.transitions[1]",
+      "description": "{'from': 'ACCEPT', 'to': 'EXEC_FEATURE_1', 'when': 'Inputs and configuration match function_model preconditions'}"
+    },
+    {
+      "id": "fsm_control_exec_feature_1_to_exec_feature_2_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[2]",
+      "source_ref": "fsm.control.transitions[2]",
+      "description": "{'from': 'EXEC_FEATURE_1', 'to': 'EXEC_FEATURE_2', 'when': 'The current SSOT-owned behavior slice completes'}"
+    },
+    {
+      "id": "fsm_control_exec_feature_2_to_exec_feature_3_3",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[3]",
+      "source_ref": "fsm.control.transitions[3]",
+      "description": "{'from': 'EXEC_FEATURE_2', 'to': 'EXEC_FEATURE_3', 'when': 'The current SSOT-owned behavior slice completes'}"
+    },
+    {
+      "id": "fsm_control_exec_feature_3_to_complete_4",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[4]",
+      "source_ref": "fsm.control.transitions[4]",
+      "description": "{'from': 'EXEC_FEATURE_3', 'to': 'COMPLETE', 'when': 'The current SSOT-owned behavior slice completes'}"
+    },
+    {
+      "id": "fsm_control_complete_to_idle_5",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[5]",
+      "source_ref": "fsm.control.transitions[5]",
+      "description": "{'from': 'COMPLETE', 'to': 'IDLE', 'when': 'Observable result/status handoff completes'}"
+    },
+    {
+      "id": "fsm_control_from_to_error_6",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[6]",
+      "source_ref": "fsm.control.transitions[6]",
+      "description": "{'from': '*', 'to': 'ERROR', 'when': 'error_handling.error_sources condition is detected'}"
+    },
+    {
+      "id": "fsm_control_error_to_idle_7",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[7]",
+      "source_ref": "fsm.control.transitions[7]",
+      "description": "{'from': 'ERROR', 'to': 'IDLE', 'when': 'Reset or approved recovery action clears the error'}"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_PROTOCOL', 'condition': 'Downstream protocol response is non-OKAY or invalid', 'architectural_effect': 'Set error status and block signoff until handled'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 40,
+    "scenario_bins": 8,
+    "transaction_bins": 3,
+    "protocol_bins": 3,
+    "state_transition_bins": 8,
+    "error_bins": 1
+  }
+}

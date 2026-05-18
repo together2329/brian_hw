@@ -126,6 +126,29 @@ class TestReadArtifact:
         assert rtl_compile_entry["data"]["errors"] == 3
         assert "rtl/rtl_compile.json" in summary
 
+    def test_reads_rtl_blocker_json(self, tmp_path):
+        ip = "ipA"
+        (tmp_path / ip / "rtl").mkdir(parents=True)
+        blocked_path = tmp_path / ip / "rtl" / "rtl_blocked.json"
+        blocked_path.write_text(
+            json.dumps(
+                {
+                    "reason": "SSOT-derived dynamic RTL TODO gate is blocked",
+                    "questions": [{"id": "RTL_DYNAMIC_TODO_OWNERSHIP"}],
+                }
+            ),
+            encoding="utf-8",
+        )
+        result, summary = orch_tools.read_artifact(
+            ip=ip, stage="rtl", project_root=tmp_path
+        )
+        rtl_blocker_entry = next(
+            a for a in result["artifacts"] if a["rel"].endswith("rtl_blocked.json")
+        )
+        assert rtl_blocker_entry["exists"]
+        assert rtl_blocker_entry["data"]["questions"][0]["id"] == "RTL_DYNAMIC_TODO_OWNERSHIP"
+        assert "rtl/rtl_blocked.json" in summary
+
     def test_reports_missing_files(self, tmp_path):
         result, summary = orch_tools.read_artifact(
             ip="ipA", stage="sim", project_root=tmp_path

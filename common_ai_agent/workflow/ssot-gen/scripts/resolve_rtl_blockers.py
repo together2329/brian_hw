@@ -108,6 +108,130 @@ def _suggested_target_scale_answer(blocker: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+_MODULE_CONTRACT_QIDS = {
+    "RTL_MODULE_CONTRACTS",
+    "RTL_DYNAMIC_TODO_OWNERSHIP",
+    "SSOT_BEHAVIOR_OWNERSHIP",
+    "RTL_MODULE_BEHAVIOR_MATCH",
+}
+
+
+def _string_list(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if isinstance(value, tuple):
+        return [str(item).strip() for item in value if str(item).strip()]
+    text = str(value or "").strip()
+    return [text] if text else []
+
+
+def _question_ref_list(qdoc: dict[str, Any], key: str) -> list[str]:
+    available = qdoc.get("available_refs") if isinstance(qdoc.get("available_refs"), dict) else {}
+    return _string_list(available.get(key))
+
+
+def _default_module_implements(name: str, file_name: str) -> str:
+    text = f"{name} {file_name}".lower()
+    if "read" in text:
+        return "Owns DMA read-side transaction behavior from SSOT dataflow and cycle model evidence."
+    if "write" in text:
+        return "Owns DMA write-side transaction behavior from SSOT dataflow and cycle model evidence."
+    if "fifo" in text or "queue" in text:
+        return "Owns buffering and backpressure behavior between SSOT dataflow producers and consumers."
+    if "irq" in text or "interrupt" in text:
+        return "Owns interrupt/status behavior traced to SSOT error handling, registers, and test requirements."
+    if "csr" in text or "reg" in text:
+        return "Owns register-visible control/status behavior traced to SSOT registers and function model evidence."
+    return "Owns the SSOT behavior assigned to this manifest RTL module."
+
+
+def _recommended_module_contract_rows(qdoc: dict[str, Any]) -> list[dict[str, Any]]:
+    modules = qdoc.get("missing_modules")
+    if not isinstance(modules, list) or not modules:
+        modules = qdoc.get("candidate_modules")
+    if not isinstance(modules, list):
+        modules = []
+
+    source_sections = _question_ref_list(qdoc, "source_sections") or [
+        "features",
+        "io_list",
+        "parameters",
+        "function_model",
+        "cycle_model",
+        "dataflow",
+        "fsm",
+        "test_requirements",
+    ]
+    function_model_refs = _question_ref_list(qdoc, "function_model_refs")
+    decomposition_refs = _question_ref_list(qdoc, "decomposition_refs")
+    cycle_model_refs = _question_ref_list(qdoc, "cycle_model_refs")
+    feature_refs = _question_ref_list(qdoc, "feature_refs")
+    dataflow_refs = _question_ref_list(qdoc, "dataflow_refs")
+    register_refs = _question_ref_list(qdoc, "register_refs")
+    fsm_refs = _question_ref_list(qdoc, "fsm_refs")
+    test_refs = _question_ref_list(qdoc, "test_refs")
+    ports = _question_ref_list(qdoc, "ports")
+    interfaces = _question_ref_list(qdoc, "interfaces") or ["control_data"]
+
+    orphan_refs = _string_list(qdoc.get("orphan_refs"))
+    if orphan_refs:
+        function_model_refs = sorted({
+            *function_model_refs,
+            *(ref for ref in orphan_refs if ref == "function_model" or ref.startswith("function_model.")),
+        })
+        decomposition_refs = sorted({
+            *decomposition_refs,
+            *(ref for ref in orphan_refs if ref in {"decomposition", "functional_decomposition"} or ref.startswith(("decomposition.", "functional_decomposition."))),
+        })
+
+    rows: list[dict[str, Any]] = []
+    for item in modules:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or item.get("module") or Path(str(item.get("file") or "")).stem).strip()
+        file_name = str(item.get("file") or "").strip()
+        if not name:
+            continue
+        rows.append({
+            "name": name,
+            "file": file_name,
+            "implements": [_default_module_implements(name, file_name)],
+            "source_sections": source_sections,
+            "function_model_refs": function_model_refs,
+            "decomposition_refs": decomposition_refs,
+            "cycle_model_refs": cycle_model_refs,
+            "feature_refs": feature_refs,
+            "dataflow_refs": dataflow_refs,
+            "register_refs": register_refs,
+            "fsm_refs": fsm_refs,
+            "test_refs": test_refs,
+            "ports": ports,
+            "internal_interfaces": interfaces,
+            "wiring_only": False,
+        })
+    return rows
+
+
+def _recommended_default_answers(blocker: dict[str, Any]) -> list[dict[str, Any]]:
+    questions = blocker.get("questions") if isinstance(blocker.get("questions"), list) else []
+    answers: list[dict[str, Any]] = []
+    for qdoc in questions:
+        if not isinstance(qdoc, dict):
+            continue
+        qid = str(qdoc.get("id") or "").strip()
+        if qid in _MODULE_CONTRACT_QIDS:
+            rows = _recommended_module_contract_rows(qdoc)
+            if rows:
+                answers.append({
+                    "id": qid,
+                    "answer": "Use the blocker recommended default: repair sub_modules into a module contract ledger using available SSOT refs.",
+                    "module_contracts": rows,
+                })
+        elif qid == "RTL_TARGET_SCALE_POLICY":
+            answers.append(_suggested_target_scale_answer(blocker))
+    return answers
+
+
 def _ensure_dict(parent: dict[str, Any], key: str) -> dict[str, Any]:
     val = parent.get(key)
     if not isinstance(val, dict):
@@ -1275,6 +1399,11 @@ def main() -> int:
         action="store_true",
         help="Explicitly lock the RTL_TARGET_SCALE_POLICY suggested_ssot_target_scale into SSOT target_scale.",
     )
+    ap.add_argument(
+        "--use-recommended-defaults",
+        action="store_true",
+        help="Apply machine-readable recommended defaults from rtl_blocked.json for module-contract/ownership blockers.",
+    )
     ns = ap.parse_args()
     root = Path(ns.root).resolve()
     ip_dir = root / ns.ip
@@ -1292,6 +1421,8 @@ def main() -> int:
     answers = _load_answers(root, ns.ip, answers_path)
     if ns.use_suggested_target_scale:
         answers.append(_suggested_target_scale_answer(blocker))
+    if ns.use_recommended_defaults:
+        answers.extend(_recommended_default_answers(blocker))
     if not answers:
         raise SystemExit("[resolve_rtl_blockers] no rtl_blocker_answers found")
     doc = apply_answers(doc, blocker, answers)

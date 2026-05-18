@@ -1,0 +1,55 @@
+{
+  "artifacts": [
+    "dma_scratch_ui_live_20260519a/tb/cocotb/test_dma_scratch_ui_live_20260519a.py",
+    "dma_scratch_ui_live_20260519a/tb/cocotb/test_runner.py",
+    "dma_scratch_ui_live_20260519a/tb/cocotb/tb_manifest.json",
+    "dma_scratch_ui_live_20260519a/tb/cocotb/tb_generation.json",
+    "dma_scratch_ui_live_20260519a/sim/scoreboard_events.jsonl after /sim",
+    "dma_scratch_ui_live_20260519a/cov/coverage.json after /sim",
+    "dma_scratch_ui_live_20260519a/tb/tb_todo_plan.json",
+    "dma_scratch_ui_live_20260519a/todo/tb_todo_tracker.json",
+    "dma_scratch_ui_live_20260519a/tb/tb_todo_tracker.json"
+  ],
+  "blocker": "dma_scratch_ui_live_20260519a/tb/cocotb/tb_blocked.json",
+  "created_at": "2026-05-18T20:53:46Z",
+  "headline": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair",
+  "ip": "dma_scratch_ui_live_20260519a",
+  "message": "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair\nmodule: dma_scratch_ui_live_20260519a\nsource: dma_scratch_ui_live_20260519a/yaml/dma_scratch_ui_live_20260519a.ssot.yaml\ngenerator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py\nvalidator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.sh\nblocker: SSOT/RTL contract is not concrete enough for generic cocotb scoreboard generation.\nevidence: dma_scratch_ui_live_20260519a/tb/cocotb/tb_blocked.json\nnext: Repair SSOT/RTL contract through ATLAS, rerun /ssot-rtl, then rerun /tb.\n\nquestions:\n- TB_GENERATOR_INPUT: Provide the missing source artifact required by generic TB generation.\n  recommended: Run the owning ATLAS stage shown in the evidence, then rerun /tb.\n\nruns:\n- emit_goal_scoreboard_cocotb: exit 2\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py dma_scratch_ui_live_20260519a --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[SSOT QUESTION] tb-gen blocked for dma_scratch_ui_live_20260519a: missing RTL contract: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/dma_scratch_ui_live_20260519a/rtl/rtl_contract.json\n\nexpected artifacts:\n- dma_scratch_ui_live_20260519a/tb/cocotb/test_dma_scratch_ui_live_20260519a.py\n- dma_scratch_ui_live_20260519a/tb/cocotb/test_runner.py\n- dma_scratch_ui_live_20260519a/tb/cocotb/tb_manifest.json\n- dma_scratch_ui_live_20260519a/tb/cocotb/tb_generation.json\n- dma_scratch_ui_live_20260519a/sim/scoreboard_events.jsonl after /sim\n- dma_scratch_ui_live_20260519a/cov/coverage.json after /sim\n- dma_scratch_ui_live_20260519a/tb/tb_todo_plan.json\n- dma_scratch_ui_live_20260519a/todo/tb_todo_tracker.json\n- dma_scratch_ui_live_20260519a/tb/tb_todo_tracker.json",
+  "metadata": {
+    "tb_blocked": {
+      "ip": "dma_scratch_ui_live_20260519a",
+      "next_action": "Repair SSOT/RTL contract through ATLAS, rerun /ssot-rtl, then rerun /tb.",
+      "owner": "ssot-gen + rtl-gen + tb-gen",
+      "questions": [
+        {
+          "decision_needed": "Provide the missing source artifact required by generic TB generation.",
+          "downstream_effect": "The generator must consume disk-truth SSOT, FL, equivalence-goal, and RTL-contract artifacts.",
+          "evidence": "missing RTL contract: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/dma_scratch_ui_live_20260519a/rtl/rtl_contract.json",
+          "id": "TB_GENERATOR_INPUT",
+          "options": [
+            "Run the owning ATLAS stage shown in the evidence, then rerun /tb."
+          ],
+          "recommended_default": "Run the owning ATLAS stage shown in the evidence, then rerun /tb."
+        }
+      ],
+      "reason": "SSOT/RTL contract is not concrete enough for generic cocotb scoreboard generation.",
+      "schema_version": 1,
+      "status": "blocked",
+      "timestamp": "2026-05-18T20:53:46Z",
+      "type": "tb_blocker"
+    }
+  },
+  "returncode": 2,
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py dma_scratch_ui_live_20260519a --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "emit_goal_scoreboard_cocotb",
+      "returncode": 2,
+      "stderr": "",
+      "stdout": "[SSOT QUESTION] tb-gen blocked for dma_scratch_ui_live_20260519a: missing RTL contract: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/dma_scratch_ui_live_20260519a/rtl/rtl_contract.json"
+    }
+  ],
+  "stage": "ssot-tb-cocotb",
+  "status": "human_gate",
+  "workflow": "tb-gen"
+}

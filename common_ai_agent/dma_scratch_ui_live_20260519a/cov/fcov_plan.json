@@ -6,20 +6,14 @@
   "planned_before_rtl": true,
   "level": "union",
   "summary": {
-    "total_bins": 44,
+    "total_bins": 41,
     "by_class": {
       "scenario": 9,
       "transaction_type": 4,
-      "state_transition": 9,
+      "state_transition": 10,
       "error": 1,
-      "protocol_handshake": 2,
-      "latency_bin": 7,
-      "pipeline_stage": 3,
-      "ordering": 4,
-      "backpressure": 1,
-      "frequency": 1,
-      "throughput": 1,
-      "performance": 2
+      "protocol_handshake": 10,
+      "latency_bin": 7
     }
   },
   "bins": [
@@ -141,27 +135,33 @@
       "description": "{'from': 'EXEC_FEATURE_3', 'to': 'EXEC_FEATURE_4', 'when': 'The current SSOT-owned behavior slice completes'}"
     },
     {
-      "id": "fsm_control_exec_feature_4_to_complete_5",
+      "id": "fsm_control_exec_feature_4_to_exec_feature_5_5",
       "class": "state_transition",
       "source": "fsm.control.transitions[5]",
-      "description": "{'from': 'EXEC_FEATURE_4', 'to': 'COMPLETE', 'when': 'The current SSOT-owned behavior slice completes'}"
+      "description": "{'from': 'EXEC_FEATURE_4', 'to': 'EXEC_FEATURE_5', 'when': 'The current SSOT-owned behavior slice completes'}"
     },
     {
-      "id": "fsm_control_complete_to_idle_6",
+      "id": "fsm_control_exec_feature_5_to_complete_6",
       "class": "state_transition",
       "source": "fsm.control.transitions[6]",
+      "description": "{'from': 'EXEC_FEATURE_5', 'to': 'COMPLETE', 'when': 'The current SSOT-owned behavior slice completes'}"
+    },
+    {
+      "id": "fsm_control_complete_to_idle_7",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[7]",
       "description": "{'from': 'COMPLETE', 'to': 'IDLE', 'when': 'Observable result/status handoff completes'}"
     },
     {
-      "id": "fsm_control_from_to_error_7",
+      "id": "fsm_control_from_to_error_8",
       "class": "state_transition",
-      "source": "fsm.control.transitions[7]",
+      "source": "fsm.control.transitions[8]",
       "description": "{'from': '*', 'to': 'ERROR', 'when': 'error_handling.error_sources condition is detected'}"
     },
     {
-      "id": "fsm_control_error_to_idle_8",
+      "id": "fsm_control_error_to_idle_9",
       "class": "state_transition",
-      "source": "fsm.control.transitions[8]",
+      "source": "fsm.control.transitions[9]",
       "description": "{'from': 'ERROR', 'to': 'IDLE', 'when': 'Reset or approved recovery action clears the error'}"
     },
     {
@@ -174,13 +174,61 @@
       "id": "cycle_handshake_0",
       "class": "protocol_handshake",
       "source": "cycle_model.handshake_rules[0]",
-      "description": "req_valid payload remains stable until req_ready is sampled asserted on control_data."
+      "description": "handshake_0"
     },
     {
       "id": "cycle_handshake_1",
       "class": "protocol_handshake",
       "source": "cycle_model.handshake_rules[1]",
-      "description": "rsp_valid payload remains stable until rsp_ready is sampled asserted on control_data."
+      "description": "handshake_1"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[2]",
+      "description": "handshake_2"
+    },
+    {
+      "id": "cycle_handshake_3",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[3]",
+      "description": "handshake_3"
+    },
+    {
+      "id": "cycle_handshake_4",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[4]",
+      "description": "handshake_4"
+    },
+    {
+      "id": "cycle_handshake_5",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[5]",
+      "description": "handshake_5"
+    },
+    {
+      "id": "cycle_handshake_6",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[6]",
+      "description": "handshake_6"
+    },
+    {
+      "id": "cycle_handshake_7",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[7]",
+      "description": "handshake_7"
+    },
+    {
+      "id": "cycle_handshake_8",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[8]",
+      "description": "handshake_8"
+    },
+    {
+      "id": "cycle_handshake_9",
+      "class": "protocol_handshake",
+      "source": "cycle_model.handshake_rules[9]",
+      "description": "handshake_9"
     },
     {
       "id": "latency_control_or_request_accept_at_min",
@@ -234,78 +282,6 @@
       "source": "cycle_model.latency.response_or_observable_result",
       "description": "response_or_observable_result latency unbounded (no max_cycles)",
       "bucket": "unbounded"
-    },
-    {
-      "id": "cycle_pipeline_s0_accept",
-      "class": "pipeline_stage",
-      "source": "cycle_model.pipeline[0]",
-      "description": "Accept legal request/command/packet/control work under declared handshake rules."
-    },
-    {
-      "id": "cycle_pipeline_s1_evaluate",
-      "class": "pipeline_stage",
-      "source": "cycle_model.pipeline[1]",
-      "description": "Evaluate function_model transaction and update only declared state."
-    },
-    {
-      "id": "cycle_pipeline_s2_observe",
-      "class": "pipeline_stage",
-      "source": "cycle_model.pipeline[2]",
-      "description": "Publish response/status/output/debug event and hold it stable until accepted."
-    },
-    {
-      "id": "cycle_ordering_0",
-      "class": "ordering",
-      "source": "cycle_model.ordering[0]",
-      "description": "Accepted requests update architectural state only on clock edges."
-    },
-    {
-      "id": "cycle_ordering_1",
-      "class": "ordering",
-      "source": "cycle_model.ordering[1]",
-      "description": "Completion/status/interrupt updates occur after the operation reaches its terminal FSM state."
-    },
-    {
-      "id": "cycle_ordering_2",
-      "class": "ordering",
-      "source": "cycle_model.ordering[2]",
-      "description": "Backpressure stalls the active handshake stage without corrupting stored state."
-    },
-    {
-      "id": "cycle_ordering_3",
-      "class": "ordering",
-      "source": "cycle_model.ordering[3]",
-      "description": "Read/dataflow stages must precede dependent write/output stages where declared in dataflow."
-    },
-    {
-      "id": "cycle_backpressure_0",
-      "class": "backpressure",
-      "source": "cycle_model.backpressure[0]",
-      "description": "Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable."
-    },
-    {
-      "id": "cycle_perf_frequency_mhz",
-      "class": "frequency",
-      "source": "cycle_model.performance.frequency_mhz",
-      "description": "100"
-    },
-    {
-      "id": "cycle_perf_throughput",
-      "class": "throughput",
-      "source": "cycle_model.performance.throughput",
-      "description": "{'sustained_beats_per_cycle': 1, 'condition': 'No backpressure on the active interface'}"
-    },
-    {
-      "id": "cycle_perf_outstanding",
-      "class": "performance",
-      "source": "cycle_model.performance.outstanding",
-      "description": "{'max': 1, 'description': 'Default one accepted operation until the SSOT declares deeper buffering'}"
-    },
-    {
-      "id": "cycle_perf_depth",
-      "class": "performance",
-      "source": "cycle_model.performance.depth",
-      "description": "{'pipeline_stages': 3, 'queue_depth': 1, 'description': 'Default accept/evaluate/observe cycle model depth'}"
     }
   ]
 }

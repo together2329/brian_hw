@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import shlex
 from pathlib import Path
@@ -61,9 +62,58 @@ def test_fl_model_workflow_prompt_is_stage_specific() -> None:
     assert len({fl_prompt, cl_prompt, eq_prompt}) == 3
 
 
+def test_ssot_gen_rtl_blocker_prompt_uses_resolver_driver() -> None:
+    prompt = jobs._workflow_prompt_with_stage_driver(
+        workflow="ssot-gen",
+        ip="demo_ip",
+        stage_id="ssot",
+        prompt="Repair rtl_blocked.json RTL_MODULE_CONTRACTS using defaults.",
+    )
+
+    assert "/resolve-rtl-blockers demo_ip --use-recommended-defaults" in prompt
+    assert "/repair-ssot demo_ip" in prompt
+    assert "do not rewrite the IP from scratch" in prompt
+
+
 def test_pipeline_workflow_lookup_keeps_first_fl_model_stage() -> None:
     assert jobs._PIPELINE_BY_WORKFLOW["fl-model-gen"]["id"] == "fl-model"
     assert jobs._PIPELINE_BY_WORKFLOW["sim_debug"]["id"] == "sim-debug"
+
+
+def test_pipeline_stage_aliases_match_orchestrator_vocabulary() -> None:
+    assert jobs._resolve_pipeline_stage("equiv-goals")["id"] == "equivalence"
+    assert jobs._resolve_pipeline_stage("ssot-equiv-goals")["id"] == "equivalence"
+    assert jobs._resolve_pipeline_stage("cl-model-gen")["id"] == "cl-model"
+    assert jobs._resolve_pipeline_stage("rtl-gen")["id"] == "rtl"
+    assert jobs._resolve_pipeline_stage("psta")["id"] == "sta-post"
+
+
+def test_rtl_blocker_artifact_fails_job_with_question_ids(tmp_path) -> None:
+    ip = "demo_dma"
+    rtl_dir = tmp_path / ip / "rtl"
+    rtl_dir.mkdir(parents=True)
+    (rtl_dir / "rtl_blocked.json").write_text(
+        json.dumps(
+            {
+                "reason": "SSOT-derived dynamic RTL TODO gate is blocked",
+                "questions": [
+                    {"id": "RTL_DYNAMIC_TODO_OWNERSHIP"},
+                    {"id": "RTL_MODULE_CONTRACTS"},
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "rtl", "workflow": "rtl-gen"},
+        tmp_path,
+    )
+
+    assert failed
+    assert "rtl/rtl_blocked.json" in reason
+    assert "RTL_DYNAMIC_TODO_OWNERSHIP" in reason
+    assert "RTL_MODULE_CONTRACTS" in reason
 
 
 def test_pipeline_dag_fans_out_after_rtl() -> None:

@@ -5,17 +5,16 @@
   "source": "model/cycle_model.py",
   "backend": "pymtl3",
   "pymtl3_available": true,
-  "timestamp": "2026-05-18T20:29:48Z",
+  "timestamp": "2026-05-18T20:44:29Z",
   "passed": true,
   "self_check": {
     "passed": true,
     "backend": "pymtl3",
     "pymtl3_available": true,
     "transactions": 4,
-    "results_observed": 4,
-    "missing_results": 0,
-    "coverage_bins": 21,
-    "coverage_hit": 21,
+    "results_observed": 3,
+    "coverage_bins": 18,
+    "coverage_hit": 18,
     "performance_targets": {
       "frequency_mhz": 100,
       "throughput": {
@@ -43,7 +42,6 @@
     "pipeline_stages": 3,
     "queue_depth": 1
   },
-  "decomposition_units": 4,
-  "fcov_bins": 21,
-  "fcov_plan": "cov/cl_fcov_plan.json"
+  "decomposition_units": 2,
+  "fcov_bins": 18
 }

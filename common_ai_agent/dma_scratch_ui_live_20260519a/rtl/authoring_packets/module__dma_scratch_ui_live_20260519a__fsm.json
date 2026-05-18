@@ -1,0 +1,1620 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 7,
+      "key": "fsm",
+      "module_task_count": 208,
+      "rule": "Owner module dma_scratch_ui_live_20260519a is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "name": "dma_scratch_ui_live_20260519a",
+      "refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "name": "dma_scratch_ui_live_20260519a",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awaddr",
+          "s_axil_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awaddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awvalid",
+          "s_axil_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awvalid",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awready",
+          "s_axil_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awready",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wdata",
+          "s_axil_wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wdata",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wstrb",
+          "s_axil_wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wstrb",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "DATA_WIDTH/8"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wvalid",
+          "s_axil_wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wvalid",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wready",
+          "s_axil_wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wready",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bresp",
+          "s_axil_bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bresp",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bvalid",
+          "s_axil_bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bvalid",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bready",
+          "s_axil_bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bready",
+        "source_ref": "io_list.interfaces[0].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_araddr",
+          "s_axil_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_araddr",
+        "source_ref": "io_list.interfaces[0].ports[10]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_arvalid",
+          "s_axil_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_arvalid",
+        "source_ref": "io_list.interfaces[0].ports[11]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_arready",
+          "s_axil_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_arready",
+        "source_ref": "io_list.interfaces[0].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rdata",
+          "s_axil_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axil_rdata",
+        "source_ref": "io_list.interfaces[0].ports[13]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rresp",
+          "s_axil_rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rresp",
+        "source_ref": "io_list.interfaces[0].ports[14]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rvalid",
+          "s_axil_rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rvalid",
+        "source_ref": "io_list.interfaces[0].ports[15]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rready",
+          "s_axil_rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rready",
+        "source_ref": "io_list.interfaces[0].ports[16]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_araddr",
+          "m_axi_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_araddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_arvalid",
+          "m_axi_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_arvalid",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_arready",
+          "m_axi_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_arready",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rdata",
+          "m_axi_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "m_axi_rdata",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rresp",
+          "m_axi_rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rresp",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rvalid",
+          "m_axi_rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rvalid",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rready",
+          "m_axi_rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rready",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awaddr",
+          "m_axi_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awaddr",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awvalid",
+          "m_axi_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awvalid",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awready",
+          "m_axi_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awready",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wdata",
+          "m_axi_wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wdata",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wstrb",
+          "m_axi_wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wstrb",
+        "source_ref": "io_list.interfaces[1].ports[11]",
+        "width": "DATA_WIDTH/8"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wvalid",
+          "m_axi_wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wvalid",
+        "source_ref": "io_list.interfaces[1].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wready",
+          "m_axi_wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wready",
+        "source_ref": "io_list.interfaces[1].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bresp",
+          "m_axi_bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bresp",
+        "source_ref": "io_list.interfaces[1].ports[14]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bvalid",
+          "m_axi_bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bvalid",
+        "source_ref": "io_list.interfaces[1].ports[15]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bready",
+          "m_axi_bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bready",
+        "source_ref": "io_list.interfaces[1].ports[16]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_scratch_ui_live_20260519a",
+  "kind": "module",
+  "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+  "owner_module": "dma_scratch_ui_live_20260519a",
+  "packet_id": "module__dma_scratch_ui_live_20260519a__fsm",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "fsm.state": 9,
+      "fsm.transition": 10
+    },
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 7,
+      "key": "fsm",
+      "module_task_count": 208,
+      "rule": "Owner module dma_scratch_ui_live_20260519a is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "fsm",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 19,
+    "source_refs": [
+      "fsm.control.states.state_0",
+      "fsm.control.states.state_1",
+      "fsm.control.states.state_2",
+      "fsm.control.states.state_3",
+      "fsm.control.states.state_4",
+      "fsm.control.states.state_5",
+      "fsm.control.states.state_6",
+      "fsm.control.states.state_7",
+      "fsm.control.states.state_8",
+      "fsm.control.transitions.transition_0",
+      "fsm.control.transitions.transition_1",
+      "fsm.control.transitions.transition_2",
+      "fsm.control.transitions.transition_3",
+      "fsm.control.transitions.transition_4",
+      "fsm.control.transitions.transition_5",
+      "fsm.control.transitions.transition_6",
+      "fsm.control.transitions.transition_7",
+      "fsm.control.transitions.transition_8",
+      "fsm.control.transitions.transition_9"
+    ],
+    "status_counts": {
+      "pass": 19
+    },
+    "task_count": 19
+  },
+  "tasks": [
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_0",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=IDLE.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0166",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_0",
+      "ssot_context": {
+        "value": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_0"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_1",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_1",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_1.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=ACCEPT.",
+      "evidence_terms": [
+        "ACCEPT"
+      ],
+      "id": "RTL-0167",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_1",
+      "ssot_context": {
+        "value": "ACCEPT"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_1"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "ACCEPT"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ACCEPT"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_2",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_2",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_2.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=EXEC_FEATURE_1.",
+      "evidence_terms": [
+        "EXEC_FEATURE_1"
+      ],
+      "id": "RTL-0168",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_2",
+      "ssot_context": {
+        "value": "EXEC_FEATURE_1"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_2"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "EXEC_FEATURE_1"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "EXEC_FEATURE_1"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_3",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_3",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_3.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=EXEC_FEATURE_2.",
+      "evidence_terms": [
+        "EXEC_FEATURE_2"
+      ],
+      "id": "RTL-0169",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_3",
+      "ssot_context": {
+        "value": "EXEC_FEATURE_2"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_3"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "EXEC_FEATURE_2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "EXEC_FEATURE_2"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_4",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_4",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_4.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=EXEC_FEATURE_3.",
+      "evidence_terms": [
+        "EXEC_FEATURE_3"
+      ],
+      "id": "RTL-0170",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_4",
+      "ssot_context": {
+        "value": "EXEC_FEATURE_3"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_4"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "EXEC_FEATURE_3"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "EXEC_FEATURE_3"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_5",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_5",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_5.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=EXEC_FEATURE_4.",
+      "evidence_terms": [
+        "EXEC_FEATURE_4"
+      ],
+      "id": "RTL-0171",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_5",
+      "ssot_context": {
+        "value": "EXEC_FEATURE_4"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_5"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "EXEC_FEATURE_4"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "EXEC_FEATURE_4"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_6",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_6",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_6.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=EXEC_FEATURE_5.",
+      "evidence_terms": [
+        "EXEC_FEATURE_5"
+      ],
+      "id": "RTL-0172",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_6",
+      "ssot_context": {
+        "value": "EXEC_FEATURE_5"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_6"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "EXEC_FEATURE_5"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "EXEC_FEATURE_5"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_7",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_7",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_7.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=COMPLETE.",
+      "evidence_terms": [
+        "COMPLETE"
+      ],
+      "id": "RTL-0173",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_7",
+      "ssot_context": {
+        "value": "COMPLETE"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_7"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "COMPLETE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "COMPLETE"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.state",
+      "content": "Implement FSM state control.state_8",
+      "criteria": [
+        "State is encoded/reachable or explicitly replaced by equivalent logic",
+        "Reset/entry/exit behavior matches SSOT",
+        "FSM style follows SSOT/user override when present, otherwise uses the conventional state-register plus next-state/output-decode structure",
+        "Coverage can observe the state or equivalent condition",
+        "Traceability keeps source_ref fsm.control.states.state_8",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Every SSOT state must be encoded or explicitly proven equivalent by a simpler implementation. Default to the conventional explicit FSM style unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.states.state_8.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=ERROR.",
+      "evidence_terms": [],
+      "id": "RTL-0174",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.states.state_8",
+      "ssot_context": {
+        "value": "ERROR"
+      },
+      "ssot_refs": [
+        "fsm.control.states.state_8"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_0",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fsm.control.transitions.transition_0 transition path IDLE -> ACCEPT is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: from=IDLE; to=ACCEPT.",
+      "evidence_terms": [
+        "ACCEPT",
+        "IDLE"
+      ],
+      "id": "RTL-0175",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_0",
+      "ssot_context": {
+        "from": "IDLE",
+        "to": "ACCEPT"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_0"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "ACCEPT",
+          "IDLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ACCEPT",
+          "IDLE"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_1",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_1",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fsm.control.transitions.transition_1 transition path ACCEPT -> EXEC_FEATURE_1 is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_1.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: from=ACCEPT; to=EXEC_FEATURE_1.",
+      "evidence_terms": [
+        "ACCEPT",
+        "EXEC",
+        "EXEC_FEATURE_1"
+      ],
+      "id": "RTL-0176",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_1",
+      "ssot_context": {
+        "from": "ACCEPT",
+        "to": "EXEC_FEATURE_1"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_1"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "ACCEPT",
+          "EXEC",
+          "EXEC_FEATURE_1"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ACCEPT",
+          "EXEC",
+          "EXEC_FEATURE_1"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_2",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_2",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fsm.control.transitions.transition_2 transition path EXEC_FEATURE_1 -> EXEC_FEATURE_2 is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_2.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: from=EXEC_FEATURE_1; to=EXEC_FEATURE_2.",
+      "evidence_terms": [
+        "EXEC",
+        "EXEC_FEATURE_1",
+        "EXEC_FEATURE_2"
+      ],
+      "id": "RTL-0177",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_2",
+      "ssot_context": {
+        "from": "EXEC_FEATURE_1",
+        "to": "EXEC_FEATURE_2"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_2"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "EXEC",
+          "EXEC_FEATURE_1",
+          "EXEC_FEATURE_2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "EXEC",
+          "EXEC_FEATURE_1",
+          "EXEC_FEATURE_2"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_3",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_3",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fsm.control.transitions.transition_3 transition path EXEC_FEATURE_2 -> EXEC_FEATURE_3 is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_3.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: from=EXEC_FEATURE_2; to=EXEC_FEATURE_3.",
+      "evidence_terms": [
+        "EXEC",
+        "EXEC_FEATURE_2",
+        "EXEC_FEATURE_3"
+      ],
+      "id": "RTL-0178",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_3",
+      "ssot_context": {
+        "from": "EXEC_FEATURE_2",
+        "to": "EXEC_FEATURE_3"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_3"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "EXEC",
+          "EXEC_FEATURE_2",
+          "EXEC_FEATURE_3"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "EXEC",
+          "EXEC_FEATURE_2",
+          "EXEC_FEATURE_3"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_4",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_4",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fsm.control.transitions.transition_4 transition path EXEC_FEATURE_3 -> EXEC_FEATURE_4 is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_4.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: from=EXEC_FEATURE_3; to=EXEC_FEATURE_4.",
+      "evidence_terms": [
+        "EXEC",
+        "EXEC_FEATURE_3",
+        "EXEC_FEATURE_4"
+      ],
+      "id": "RTL-0179",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_4",
+      "ssot_context": {
+        "from": "EXEC_FEATURE_3",
+        "to": "EXEC_FEATURE_4"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_4"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "EXEC",
+          "EXEC_FEATURE_3",
+          "EXEC_FEATURE_4"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "EXEC",
+          "EXEC_FEATURE_3",
+          "EXEC_FEATURE_4"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_5",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_5",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fsm.control.transitions.transition_5 transition path EXEC_FEATURE_4 -> EXEC_FEATURE_5 is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_5.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: from=EXEC_FEATURE_4; to=EXEC_FEATURE_5.",
+      "evidence_terms": [
+        "EXEC",
+        "EXEC_FEATURE_4",
+        "EXEC_FEATURE_5"
+      ],
+      "id": "RTL-0180",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_5",
+      "ssot_context": {
+        "from": "EXEC_FEATURE_4",
+        "to": "EXEC_FEATURE_5"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_5"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "EXEC",
+          "EXEC_FEATURE_4",
+          "EXEC_FEATURE_5"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "EXEC",
+          "EXEC_FEATURE_4",
+          "EXEC_FEATURE_5"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_6",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_6",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fsm.control.transitions.transition_6 transition path EXEC_FEATURE_5 -> COMPLETE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_6.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: from=EXEC_FEATURE_5; to=COMPLETE.",
+      "evidence_terms": [
+        "COMPLETE",
+        "EXEC",
+        "EXEC_FEATURE_5"
+      ],
+      "id": "RTL-0181",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_6",
+      "ssot_context": {
+        "from": "EXEC_FEATURE_5",
+        "to": "COMPLETE"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_6"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "COMPLETE",
+          "EXEC",
+          "EXEC_FEATURE_5"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COMPLETE",
+          "EXEC",
+          "EXEC_FEATURE_5"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_7",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_7",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fsm.control.transitions.transition_7 transition path COMPLETE -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_7.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: from=COMPLETE; to=IDLE.",
+      "evidence_terms": [
+        "COMPLETE",
+        "IDLE"
+      ],
+      "id": "RTL-0182",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_7",
+      "ssot_context": {
+        "from": "COMPLETE",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_7"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "COMPLETE",
+          "IDLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "COMPLETE",
+          "IDLE"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_8",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_8",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fsm.control.transitions.transition_8 transition path * -> ERROR is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_8.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: from=*; to=ERROR.",
+      "evidence_terms": [],
+      "id": "RTL-0183",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_8",
+      "ssot_context": {
+        "from": "*",
+        "to": "ERROR"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_8"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "fsm.transition",
+      "content": "Implement FSM transition control.transition_9",
+      "criteria": [
+        "Transition condition is present in RTL control logic",
+        "Transition action/state update is implemented",
+        "Illegal/missing transition behavior is handled per SSOT",
+        "Traceability keeps source_ref fsm.control.transitions.transition_9",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fsm.control.transitions.transition_9 transition path ERROR -> IDLE is encoded or explicitly proven equivalent"
+      ],
+      "detail": "Transition condition, action, and timing must be implemented in RTL and covered downstream. Use the conventional explicit FSM structure by default unless SSOT/user specifies another synthesizable style.\nSSOT ref: fsm.control.transitions.transition_9.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: from=ERROR; to=IDLE.",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "id": "RTL-0184",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "fsm.control.transitions.transition_9",
+      "ssot_context": {
+        "from": "ERROR",
+        "to": "IDLE"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions.transition_9"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "28bc079a169dab10d71db849865eaa967a9ec34475c2cd554f104a55d373a2c9",
+  "top": "dma_scratch_ui_live_20260519a",
+  "type": "rtl_authoring_packet"
+}

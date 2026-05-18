@@ -592,6 +592,48 @@ def test_orchestrator_custom_rtl_prompt_keeps_ssot_rtl_driver(
         jobs._jobs.clear()
 
 
+def test_orchestrator_rtl_prompt_mentions_driver_without_command_still_prepends_driver(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core import tools
+
+    ip = "tool_dispatch_rtl_driver_prose_ip"
+    (tmp_path / ip / "rtl").mkdir(parents=True)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("rtl") as (rtl_url, rtl_worker):
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_ACTIVE_SESSION", f"u/{ip}/orchestrator")
+        monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+        monkeypatch.setenv("WORKER_URL_RTL_GEN", rtl_url)
+
+        _make_client(tmp_path, monkeypatch)
+        raw = tools.dispatch_workflow(
+            workflow="rtl-gen",
+            ip=ip,
+            prompt=(
+                "Regenerate RTL using slash command /ssot-rtl equivalent; "
+                "prior artifact was stale."
+            ),
+            reason="advance after ssot repair",
+        )
+        result = json.loads(raw)
+
+        assert result["ok"] is True
+        payload = rtl_worker.requests[0]["payload"]
+        assert "run /ssot-rtl" in payload["task"]
+        assert payload["task"].index("run /ssot-rtl") < payload["task"].index(
+            "Regenerate RTL"
+        )
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
 def test_orchestrator_dispatch_worker_prompt_includes_chat_context(
     tmp_path: Path,
     monkeypatch,

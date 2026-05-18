@@ -1,0 +1,34 @@
+{
+  "artifacts": [
+    "dma_scratch_orch_live_20260519b/verify/equivalence_goals.json",
+    "dma_scratch_orch_live_20260519b/model/functional_model.py",
+    "dma_scratch_orch_live_20260519b/model/decomposition.json",
+    "dma_scratch_orch_live_20260519b/cov/fcov_plan.json"
+  ],
+  "blocker": "",
+  "created_at": "2026-05-18T21:29:45Z",
+  "headline": "[ssot-equiv-goals] PASS",
+  "ip": "dma_scratch_orch_live_20260519b",
+  "message": "[ssot-equiv-goals] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py\nmodule: dma_scratch_orch_live_20260519b\nsource: dma_scratch_orch_live_20260519b/yaml/dma_scratch_orch_live_20260519b.ssot.yaml\ngoals: total=34 required=34 blocked=0 module=1/1\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py dma_scratch_orch_live_20260519b --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/dma_scratch_orch_live_20260519b/model/functional_model.py\n[emit_fl_model] decomposition_units=6 fcov_bins=40 passed=True\n- emit_equivalence_goals: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py dma_scratch_orch_live_20260519b --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_equivalence_goals] wrote dma_scratch_orch_live_20260519b/verify/equivalence_goals.json\n[emit_equivalence_goals] total=34 required=34 blocked=0 unverified=0\n\nexpected artifacts:\n- dma_scratch_orch_live_20260519b/verify/equivalence_goals.json\n- dma_scratch_orch_live_20260519b/model/functional_model.py\n- dma_scratch_orch_live_20260519b/model/decomposition.json\n- dma_scratch_orch_live_20260519b/cov/fcov_plan.json",
+  "metadata": {},
+  "returncode": 0,
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py dma_scratch_orch_live_20260519b --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "emit_fl_model",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/dma_scratch_orch_live_20260519b/model/functional_model.py\n[emit_fl_model] decomposition_units=6 fcov_bins=40 passed=True"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py dma_scratch_orch_live_20260519b --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "emit_equivalence_goals",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[emit_equivalence_goals] wrote dma_scratch_orch_live_20260519b/verify/equivalence_goals.json\n[emit_equivalence_goals] total=34 required=34 blocked=0 unverified=0"
+    }
+  ],
+  "stage": "ssot-equiv-goals",
+  "status": "pass",
+  "workflow": "fl-model-gen"
+}

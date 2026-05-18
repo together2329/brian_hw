@@ -279,6 +279,64 @@ module_contracts:
     assert history[-1]["unresolved"] == []
 
 
+def test_recommended_defaults_project_module_contracts(tmp_path: Path):
+    root = Path(__file__).resolve().parents[1]
+    script = root / "workflow" / "ssot-gen" / "scripts" / "resolve_rtl_blockers.py"
+    ip = "demo_defaults"
+    ip_dir = tmp_path / ip
+    (ip_dir / "yaml").mkdir(parents=True)
+    (ip_dir / "rtl").mkdir(parents=True)
+    ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.write_text(
+        yaml.safe_dump(
+            {
+                "sub_modules": [
+                    {"name": "demo_read_engine", "file": "rtl/demo_read_engine.sv", "ownership": "manifest"}
+                ]
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_blocked.json").write_text(
+        json.dumps(
+            {
+                "questions": [
+                    {
+                        "id": "RTL_MODULE_CONTRACTS",
+                        "missing_modules": [{"name": "demo_read_engine", "file": "rtl/demo_read_engine.sv"}],
+                        "available_refs": {
+                            "source_sections": ["function_model", "cycle_model", "dataflow"],
+                            "function_model_refs": ["function_model.transactions.FM1"],
+                            "cycle_model_refs": ["cycle_model.pipeline.S0_ACCEPT"],
+                            "dataflow_refs": ["dataflow.sequence"],
+                            "ports": ["clk", "rst_n", "req_valid"],
+                        },
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [sys.executable, str(script), ip, "--root", str(tmp_path), "--use-recommended-defaults"],
+        text=True,
+        capture_output=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0, result.stderr or result.stdout
+    doc = yaml.safe_load(ssot_path.read_text(encoding="utf-8"))
+    module = doc["sub_modules"][0]
+    assert module["source_sections"] == ["function_model", "cycle_model", "dataflow"]
+    assert module["function_model_refs"] == ["function_model.transactions.FM1"]
+    assert module["cycle_model_refs"] == ["cycle_model.pipeline.S0_ACCEPT"]
+    assert module["ports"] == ["clk", "rst_n", "req_valid"]
+    assert module["contract_status"] == "approved_by_rtl_blocker_answer"
+    assert (ip_dir / "rtl" / "rtl_blocked_resolved.json").is_file()
+
+
 def test_connection_contract_answer_projects_into_integration_and_submodules():
     resolver = _load_resolver()
     doc = {

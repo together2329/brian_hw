@@ -1,0 +1,3367 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 5,
+      "key": "function_model",
+      "module_task_count": 208,
+      "rule": "Owner module dma_scratch_ui_live_20260519a is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "name": "dma_scratch_ui_live_20260519a",
+      "refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "name": "dma_scratch_ui_live_20260519a",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awaddr",
+          "s_axil_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awaddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awvalid",
+          "s_axil_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awvalid",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awready",
+          "s_axil_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awready",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wdata",
+          "s_axil_wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wdata",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wstrb",
+          "s_axil_wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wstrb",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "DATA_WIDTH/8"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wvalid",
+          "s_axil_wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wvalid",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wready",
+          "s_axil_wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wready",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bresp",
+          "s_axil_bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bresp",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bvalid",
+          "s_axil_bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bvalid",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bready",
+          "s_axil_bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bready",
+        "source_ref": "io_list.interfaces[0].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_araddr",
+          "s_axil_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_araddr",
+        "source_ref": "io_list.interfaces[0].ports[10]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_arvalid",
+          "s_axil_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_arvalid",
+        "source_ref": "io_list.interfaces[0].ports[11]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_arready",
+          "s_axil_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_arready",
+        "source_ref": "io_list.interfaces[0].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rdata",
+          "s_axil_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axil_rdata",
+        "source_ref": "io_list.interfaces[0].ports[13]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rresp",
+          "s_axil_rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rresp",
+        "source_ref": "io_list.interfaces[0].ports[14]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rvalid",
+          "s_axil_rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rvalid",
+        "source_ref": "io_list.interfaces[0].ports[15]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rready",
+          "s_axil_rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rready",
+        "source_ref": "io_list.interfaces[0].ports[16]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_araddr",
+          "m_axi_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_araddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_arvalid",
+          "m_axi_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_arvalid",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_arready",
+          "m_axi_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_arready",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rdata",
+          "m_axi_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "m_axi_rdata",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rresp",
+          "m_axi_rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rresp",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rvalid",
+          "m_axi_rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rvalid",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rready",
+          "m_axi_rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rready",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awaddr",
+          "m_axi_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awaddr",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awvalid",
+          "m_axi_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awvalid",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awready",
+          "m_axi_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awready",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wdata",
+          "m_axi_wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wdata",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wstrb",
+          "m_axi_wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wstrb",
+        "source_ref": "io_list.interfaces[1].ports[11]",
+        "width": "DATA_WIDTH/8"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wvalid",
+          "m_axi_wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wvalid",
+        "source_ref": "io_list.interfaces[1].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wready",
+          "m_axi_wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wready",
+        "source_ref": "io_list.interfaces[1].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bresp",
+          "m_axi_bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bresp",
+        "source_ref": "io_list.interfaces[1].ports[14]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bvalid",
+          "m_axi_bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bvalid",
+        "source_ref": "io_list.interfaces[1].ports[15]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bready",
+          "m_axi_bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bready",
+        "source_ref": "io_list.interfaces[1].ports[16]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_scratch_ui_live_20260519a",
+  "kind": "module",
+  "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+  "owner_module": "dma_scratch_ui_live_20260519a",
+  "packet_id": "module__dma_scratch_ui_live_20260519a__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.error_case": 4,
+      "function_model.input": 4,
+      "function_model.invariant": 4,
+      "function_model.output": 9,
+      "function_model.output_rule": 1,
+      "function_model.precondition": 4,
+      "function_model.side_effect": 4,
+      "function_model.state_update": 4,
+      "function_model.state_variable": 6,
+      "function_model.transaction": 4
+    },
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 5,
+      "key": "function_model",
+      "module_task_count": 208,
+      "rule": "Owner module dma_scratch_ui_live_20260519a is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 44,
+    "source_refs": [
+      "function_model.state_variables.state",
+      "function_model.state_variables.error",
+      "function_model.state_variables.fm1_observed",
+      "function_model.state_variables.fm2_observed",
+      "function_model.state_variables.fm3_observed",
+      "function_model.state_variables.fm4_observed",
+      "function_model.transactions.FM1",
+      "function_model.transactions.FM1.preconditions.precondition_0",
+      "function_model.transactions.FM1.inputs.input_0",
+      "function_model.transactions.FM1.outputs.output_0",
+      "function_model.transactions.FM1.outputs.m_axi_rdata",
+      "function_model.transactions.FM1.outputs.fm1_observed",
+      "function_model.transactions.FM1.output_rules.m_axi_rdata",
+      "function_model.transactions.FM1.state_updates.fm1_observed",
+      "function_model.transactions.FM1.side_effects.side_effect_0",
+      "function_model.transactions.FM1.error_cases.error_case_0",
+      "function_model.transactions.FM2",
+      "function_model.transactions.FM2.preconditions.precondition_0",
+      "function_model.transactions.FM2.inputs.input_0",
+      "function_model.transactions.FM2.outputs.output_0",
+      "function_model.transactions.FM2.outputs.fm2_observed",
+      "function_model.transactions.FM2.state_updates.fm2_observed",
+      "function_model.transactions.FM2.side_effects.side_effect_0",
+      "function_model.transactions.FM2.error_cases.error_case_0"
+    ],
+    "status_counts": {
+      "pass": 44
+    },
+    "task_count": 44
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state state",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.state",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "state reset behavior matches SSOT value IDLE"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.state.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=state; reset=IDLE.",
+      "evidence_terms": [],
+      "id": "RTL-0100",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.state",
+      "ssot_context": {
+        "name": "state",
+        "reset": "IDLE"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.state"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state error",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.error",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "error reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.error.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=error; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0101",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.error",
+      "ssot_context": {
+        "name": "error",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.error"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state fm1_observed",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.fm1_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fm1_observed width matches SSOT value 1",
+        "fm1_observed reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.fm1_observed.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=fm1_observed; width=1; reset=0.",
+      "evidence_terms": [
+        "fm1",
+        "fm1_observed",
+        "observed"
+      ],
+      "id": "RTL-0102",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.fm1_observed",
+      "ssot_context": {
+        "name": "fm1_observed",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.fm1_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm1",
+          "fm1_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm1",
+          "fm1_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state fm2_observed",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.fm2_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fm2_observed width matches SSOT value 1",
+        "fm2_observed reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.fm2_observed.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=fm2_observed; width=1; reset=0.",
+      "evidence_terms": [
+        "fm2",
+        "fm2_observed",
+        "observed"
+      ],
+      "id": "RTL-0103",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.fm2_observed",
+      "ssot_context": {
+        "name": "fm2_observed",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.fm2_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state fm3_observed",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.fm3_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fm3_observed width matches SSOT value 1",
+        "fm3_observed reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.fm3_observed.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=fm3_observed; width=1; reset=0.",
+      "evidence_terms": [
+        "fm3",
+        "fm3_observed",
+        "observed"
+      ],
+      "id": "RTL-0104",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.fm3_observed",
+      "ssot_context": {
+        "name": "fm3_observed",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.fm3_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state fm4_observed",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.fm4_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fm4_observed width matches SSOT value 1",
+        "fm4_observed reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.fm4_observed.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=fm4_observed; width=1; reset=0.",
+      "evidence_terms": [
+        "fm4",
+        "fm4_observed",
+        "observed"
+      ],
+      "id": "RTL-0105",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.fm4_observed",
+      "ssot_context": {
+        "name": "fm4_observed",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.fm4_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM1",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM1",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM1.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1.",
+      "evidence_terms": [],
+      "id": "RTL-0106",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1",
+      "ssot_context": {
+        "id": "FM1",
+        "name": "feature_1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM1: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.preconditions.precondition_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=Feature trigger is asserted under legal configuration.",
+      "evidence_terms": [],
+      "id": "RTL-0107",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "Feature trigger is asserted under legal configuration"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM1: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.inputs.input_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "DUT port [\"m_axi_rdata\"] is the implementation/observation point for feature_1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.inputs.input_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"m_axi_rdata\"]; signal=[\"Inputs described by io_list and dataflow\"]; state=[\"fm1_observed\"].",
+      "evidence_terms": [
+        "axi",
+        "fm1",
+        "fm1_observed",
+        "io",
+        "io_list",
+        "list",
+        "m_axi_rdata",
+        "observed",
+        "rdata"
+      ],
+      "id": "RTL-0108",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.inputs.input_0",
+      "ssot_context": {
+        "id": "FM1",
+        "name": "feature_1",
+        "port": "[\"m_axi_rdata\"]",
+        "signal": "[\"Inputs described by io_list and dataflow\"]",
+        "state": "[\"fm1_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 9,
+        "matched_terms": [
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "io",
+          "io_list",
+          "list",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "io",
+          "io_list",
+          "list",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM1: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.outputs.output_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "DUT port [\"m_axi_rdata\"] is the implementation/observation point for feature_1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.outputs.output_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"m_axi_rdata\"]; signal=[\"Architectural output matches feature definition\"]; state=[\"fm1_observed\"].",
+      "evidence_terms": [
+        "Architectural",
+        "axi",
+        "fm1",
+        "fm1_observed",
+        "m_axi_rdata",
+        "observed",
+        "rdata"
+      ],
+      "id": "RTL-0109",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.outputs.output_0",
+      "ssot_context": {
+        "id": "FM1",
+        "name": "feature_1",
+        "port": "[\"m_axi_rdata\"]",
+        "signal": "[\"Architectural output matches feature definition\"]",
+        "state": "[\"fm1_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Architectural",
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM1: m_axi_rdata",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.outputs.m_axi_rdata",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "DUT port [\"m_axi_rdata\"] is the implementation/observation point for feature_1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.outputs.m_axi_rdata.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"m_axi_rdata\"]; signal=[{\"description\": \"Auto-injected benign observable rule so the function_model has at least one scoreboard-visible outp...; state=[\"fm1_observed\"].",
+      "evidence_terms": [
+        "Auto",
+        "IP",
+        "axi",
+        "fm1",
+        "fm1_observed",
+        "m_axi_rdata",
+        "observed",
+        "rdata"
+      ],
+      "id": "RTL-0110",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.outputs.m_axi_rdata",
+      "ssot_context": {
+        "id": "FM1",
+        "name": "feature_1",
+        "port": "[\"m_axi_rdata\"]",
+        "signal": "[{\"description\": \"Auto-injected benign observable rule so the function_model has at least one scoreboard-visible outp...",
+        "state": "[\"fm1_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.outputs.m_axi_rdata"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Auto",
+          "IP",
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM1: fm1_observed",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.outputs.fm1_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "DUT port [\"m_axi_rdata\"] is the implementation/observation point for feature_1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.outputs.fm1_observed.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"m_axi_rdata\"]; signal=[{\"description\": \"Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific a...; state=[\"fm1_observed\"].",
+      "evidence_terms": [
+        "IP",
+        "Repair",
+        "axi",
+        "fm1",
+        "fm1_observed",
+        "m_axi_rdata",
+        "observed",
+        "rdata"
+      ],
+      "id": "RTL-0111",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.outputs.fm1_observed",
+      "ssot_context": {
+        "id": "FM1",
+        "name": "feature_1",
+        "port": "[\"m_axi_rdata\"]",
+        "signal": "[{\"description\": \"Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific a...",
+        "state": "[\"fm1_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.outputs.fm1_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IP",
+          "Repair",
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM1: m_axi_rdata",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.output_rules.m_axi_rdata",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "m_axi_rdata width matches SSOT value DATA_WIDTH",
+        "m_axi_rdata RTL expression implements SSOT expression 0",
+        "DUT port m_axi_rdata is the implementation/observation point for m_axi_rdata",
+        "m_axi_rdata is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.output_rules.m_axi_rdata.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=m_axi_rdata; port=m_axi_rdata; expr=0; width=DATA_WIDTH.",
+      "evidence_terms": [
+        "axi",
+        "m_axi_rdata",
+        "rdata"
+      ],
+      "id": "RTL-0112",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.output_rules.m_axi_rdata",
+      "ssot_context": {
+        "expr": "0",
+        "name": "m_axi_rdata",
+        "port": "m_axi_rdata",
+        "width": "DATA_WIDTH"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.output_rules.m_axi_rdata"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "axi",
+          "m_axi_rdata",
+          "rdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axi",
+          "m_axi_rdata",
+          "rdata"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM1: fm1_observed",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.state_updates.fm1_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fm1_observed width matches SSOT value 1",
+        "fm1_observed RTL expression implements SSOT expression 1",
+        "fm1_observed updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.state_updates.fm1_observed.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=fm1_observed; expr=1; width=1.",
+      "evidence_terms": [
+        "fm1",
+        "fm1_observed",
+        "observed"
+      ],
+      "id": "RTL-0113",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.state_updates.fm1_observed",
+      "ssot_context": {
+        "expr": "1",
+        "name": "fm1_observed",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.state_updates.fm1_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm1",
+          "fm1_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm1",
+          "fm1_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM1: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "DUT port [\"m_axi_rdata\"] is the implementation/observation point for feature_1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.side_effects.side_effect_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"m_axi_rdata\"]; signal=[\"Architectural state updates according to FSM/control policy\"]; state=[\"fm1_observed\"].",
+      "evidence_terms": [
+        "Architectural",
+        "axi",
+        "fm1",
+        "fm1_observed",
+        "m_axi_rdata",
+        "observed",
+        "rdata"
+      ],
+      "id": "RTL-0114",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM1",
+        "name": "feature_1",
+        "port": "[\"m_axi_rdata\"]",
+        "signal": "[\"Architectural state updates according to FSM/control policy\"]",
+        "state": "[\"fm1_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Architectural",
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM1: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM1.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "DUT port [\"m_axi_rdata\"] is the implementation/observation point for feature_1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.error_cases.error_case_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"m_axi_rdata\"]; signal=[{\"condition\": \"Downstream protocol response is non-OKAY or invalid\", \"result\": \"Set error status and block signoff u...; state=[\"fm1_observed\"].",
+      "evidence_terms": [
+        "Downstream",
+        "OKAY",
+        "Set",
+        "axi",
+        "fm1",
+        "fm1_observed",
+        "m_axi_rdata",
+        "observed",
+        "rdata"
+      ],
+      "id": "RTL-0115",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM1.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM1",
+        "name": "feature_1",
+        "port": "[\"m_axi_rdata\"]",
+        "signal": "[{\"condition\": \"Downstream protocol response is non-OKAY or invalid\", \"result\": \"Set error status and block signoff u...",
+        "state": "[\"fm1_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Downstream",
+          "OKAY",
+          "Set",
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM2",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM2",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM2.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM2; name=feature_2.",
+      "evidence_terms": [],
+      "id": "RTL-0116",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2",
+      "ssot_context": {
+        "id": "FM2",
+        "name": "feature_2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM2: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.preconditions.precondition_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=Feature trigger is asserted under legal configuration.",
+      "evidence_terms": [],
+      "id": "RTL-0117",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "Feature trigger is asserted under legal configuration"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM2: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.inputs.input_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.inputs.input_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM2; name=feature_2; signal=[\"Inputs described by io_list and dataflow\"]; state=[\"fm2_observed\"].",
+      "evidence_terms": [
+        "fm2",
+        "fm2_observed",
+        "io",
+        "io_list",
+        "list",
+        "observed"
+      ],
+      "id": "RTL-0118",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.inputs.input_0",
+      "ssot_context": {
+        "id": "FM2",
+        "name": "feature_2",
+        "signal": "[\"Inputs described by io_list and dataflow\"]",
+        "state": "[\"fm2_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "io",
+          "io_list",
+          "list",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm2",
+          "fm2_observed",
+          "io",
+          "io_list",
+          "list",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM2: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.outputs.output_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.outputs.output_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM2; name=feature_2; signal=[\"Architectural output matches feature definition\"]; state=[\"fm2_observed\"].",
+      "evidence_terms": [
+        "Architectural",
+        "fm2",
+        "fm2_observed",
+        "observed"
+      ],
+      "id": "RTL-0119",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.outputs.output_0",
+      "ssot_context": {
+        "id": "FM2",
+        "name": "feature_2",
+        "signal": "[\"Architectural output matches feature definition\"]",
+        "state": "[\"fm2_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Architectural",
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM2: fm2_observed",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.outputs.fm2_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.outputs.fm2_observed.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM2; name=feature_2; signal=[{\"description\": \"Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific a...; state=[\"fm2_observed\"].",
+      "evidence_terms": [
+        "IP",
+        "Repair",
+        "fm2",
+        "fm2_observed",
+        "observed"
+      ],
+      "id": "RTL-0120",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.outputs.fm2_observed",
+      "ssot_context": {
+        "id": "FM2",
+        "name": "feature_2",
+        "signal": "[{\"description\": \"Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific a...",
+        "state": "[\"fm2_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.outputs.fm2_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IP",
+          "Repair",
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM2: fm2_observed",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.state_updates.fm2_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fm2_observed width matches SSOT value 1",
+        "fm2_observed RTL expression implements SSOT expression 1",
+        "fm2_observed updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.state_updates.fm2_observed.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=fm2_observed; expr=1; width=1.",
+      "evidence_terms": [
+        "fm2",
+        "fm2_observed",
+        "observed"
+      ],
+      "id": "RTL-0121",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.state_updates.fm2_observed",
+      "ssot_context": {
+        "expr": "1",
+        "name": "fm2_observed",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.state_updates.fm2_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM2: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.side_effects.side_effect_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM2; name=feature_2; signal=[\"Architectural state updates according to FSM/control policy\"]; state=[\"fm2_observed\"].",
+      "evidence_terms": [
+        "Architectural",
+        "fm2",
+        "fm2_observed",
+        "observed"
+      ],
+      "id": "RTL-0122",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM2",
+        "name": "feature_2",
+        "signal": "[\"Architectural state updates according to FSM/control policy\"]",
+        "state": "[\"fm2_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Architectural",
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM2: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM2.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM2.error_cases.error_case_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM2; name=feature_2; signal=[{\"condition\": \"Downstream protocol response is non-OKAY or invalid\", \"result\": \"Set error status and block signoff u...; state=[\"fm2_observed\"].",
+      "evidence_terms": [
+        "Downstream",
+        "OKAY",
+        "Set",
+        "fm2",
+        "fm2_observed",
+        "observed"
+      ],
+      "id": "RTL-0123",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM2.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM2",
+        "name": "feature_2",
+        "signal": "[{\"condition\": \"Downstream protocol response is non-OKAY or invalid\", \"result\": \"Set error status and block signoff u...",
+        "state": "[\"fm2_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Downstream",
+          "OKAY",
+          "Set",
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM3",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM3",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM3.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM3; name=feature_3.",
+      "evidence_terms": [],
+      "id": "RTL-0124",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3",
+      "ssot_context": {
+        "id": "FM3",
+        "name": "feature_3"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM3: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.preconditions.precondition_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=Feature trigger is asserted under legal configuration.",
+      "evidence_terms": [],
+      "id": "RTL-0125",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "Feature trigger is asserted under legal configuration"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM3: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.inputs.input_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.inputs.input_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM3; name=feature_3; signal=[\"Inputs described by io_list and dataflow\"]; state=[\"fm3_observed\"].",
+      "evidence_terms": [
+        "fm3",
+        "fm3_observed",
+        "io",
+        "io_list",
+        "list",
+        "observed"
+      ],
+      "id": "RTL-0126",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.inputs.input_0",
+      "ssot_context": {
+        "id": "FM3",
+        "name": "feature_3",
+        "signal": "[\"Inputs described by io_list and dataflow\"]",
+        "state": "[\"fm3_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "io",
+          "io_list",
+          "list",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm3",
+          "fm3_observed",
+          "io",
+          "io_list",
+          "list",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM3: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.outputs.output_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.outputs.output_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM3; name=feature_3; signal=[\"Architectural output matches feature definition\"]; state=[\"fm3_observed\"].",
+      "evidence_terms": [
+        "Architectural",
+        "fm3",
+        "fm3_observed",
+        "observed"
+      ],
+      "id": "RTL-0127",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.outputs.output_0",
+      "ssot_context": {
+        "id": "FM3",
+        "name": "feature_3",
+        "signal": "[\"Architectural output matches feature definition\"]",
+        "state": "[\"fm3_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Architectural",
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM3: fm3_observed",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.outputs.fm3_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.outputs.fm3_observed.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM3; name=feature_3; signal=[{\"description\": \"Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific a...; state=[\"fm3_observed\"].",
+      "evidence_terms": [
+        "IP",
+        "Repair",
+        "fm3",
+        "fm3_observed",
+        "observed"
+      ],
+      "id": "RTL-0128",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.outputs.fm3_observed",
+      "ssot_context": {
+        "id": "FM3",
+        "name": "feature_3",
+        "signal": "[{\"description\": \"Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific a...",
+        "state": "[\"fm3_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.outputs.fm3_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IP",
+          "Repair",
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM3: fm3_observed",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.state_updates.fm3_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fm3_observed width matches SSOT value 1",
+        "fm3_observed RTL expression implements SSOT expression 1",
+        "fm3_observed updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.state_updates.fm3_observed.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=fm3_observed; expr=1; width=1.",
+      "evidence_terms": [
+        "fm3",
+        "fm3_observed",
+        "observed"
+      ],
+      "id": "RTL-0129",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.state_updates.fm3_observed",
+      "ssot_context": {
+        "expr": "1",
+        "name": "fm3_observed",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.state_updates.fm3_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM3: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.side_effects.side_effect_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM3; name=feature_3; signal=[\"Architectural state updates according to FSM/control policy\"]; state=[\"fm3_observed\"].",
+      "evidence_terms": [
+        "Architectural",
+        "fm3",
+        "fm3_observed",
+        "observed"
+      ],
+      "id": "RTL-0130",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM3",
+        "name": "feature_3",
+        "signal": "[\"Architectural state updates according to FSM/control policy\"]",
+        "state": "[\"fm3_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Architectural",
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM3: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM3.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM3.error_cases.error_case_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM3; name=feature_3; signal=[{\"condition\": \"Downstream protocol response is non-OKAY or invalid\", \"result\": \"Set error status and block signoff u...; state=[\"fm3_observed\"].",
+      "evidence_terms": [
+        "Downstream",
+        "OKAY",
+        "Set",
+        "fm3",
+        "fm3_observed",
+        "observed"
+      ],
+      "id": "RTL-0131",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM3.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM3",
+        "name": "feature_3",
+        "signal": "[{\"condition\": \"Downstream protocol response is non-OKAY or invalid\", \"result\": \"Set error status and block signoff u...",
+        "state": "[\"fm3_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Downstream",
+          "OKAY",
+          "Set",
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM4",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM4",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM4.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM4; name=feature_4.",
+      "evidence_terms": [],
+      "id": "RTL-0132",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4",
+      "ssot_context": {
+        "id": "FM4",
+        "name": "feature_4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM4: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.preconditions.precondition_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: value=Feature trigger is asserted under legal configuration.",
+      "evidence_terms": [],
+      "id": "RTL-0133",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "Feature trigger is asserted under legal configuration"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM4: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.inputs.input_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.inputs.input_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM4; name=feature_4; signal=[\"Inputs described by io_list and dataflow\"]; state=[\"fm4_observed\"].",
+      "evidence_terms": [
+        "fm4",
+        "fm4_observed",
+        "io",
+        "io_list",
+        "list",
+        "observed"
+      ],
+      "id": "RTL-0134",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.inputs.input_0",
+      "ssot_context": {
+        "id": "FM4",
+        "name": "feature_4",
+        "signal": "[\"Inputs described by io_list and dataflow\"]",
+        "state": "[\"fm4_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "io",
+          "io_list",
+          "list",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm4",
+          "fm4_observed",
+          "io",
+          "io_list",
+          "list",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM4: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.outputs.output_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.outputs.output_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM4; name=feature_4; signal=[\"Architectural output matches feature definition\"]; state=[\"fm4_observed\"].",
+      "evidence_terms": [
+        "Architectural",
+        "fm4",
+        "fm4_observed",
+        "observed"
+      ],
+      "id": "RTL-0135",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.outputs.output_0",
+      "ssot_context": {
+        "id": "FM4",
+        "name": "feature_4",
+        "signal": "[\"Architectural output matches feature definition\"]",
+        "state": "[\"fm4_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Architectural",
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM4: fm4_observed",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.outputs.fm4_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.outputs.fm4_observed.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM4; name=feature_4; signal=[{\"description\": \"Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific a...; state=[\"fm4_observed\"].",
+      "evidence_terms": [
+        "IP",
+        "Repair",
+        "fm4",
+        "fm4_observed",
+        "observed"
+      ],
+      "id": "RTL-0136",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.outputs.fm4_observed",
+      "ssot_context": {
+        "id": "FM4",
+        "name": "feature_4",
+        "signal": "[{\"description\": \"Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific a...",
+        "state": "[\"fm4_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.outputs.fm4_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IP",
+          "Repair",
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM4: fm4_observed",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.state_updates.fm4_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "fm4_observed width matches SSOT value 1",
+        "fm4_observed RTL expression implements SSOT expression 1",
+        "fm4_observed updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.state_updates.fm4_observed.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=fm4_observed; expr=1; width=1.",
+      "evidence_terms": [
+        "fm4",
+        "fm4_observed",
+        "observed"
+      ],
+      "id": "RTL-0137",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.state_updates.fm4_observed",
+      "ssot_context": {
+        "expr": "1",
+        "name": "fm4_observed",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.state_updates.fm4_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM4: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.side_effects.side_effect_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM4; name=feature_4; signal=[\"Architectural state updates according to FSM/control policy\"]; state=[\"fm4_observed\"].",
+      "evidence_terms": [
+        "Architectural",
+        "fm4",
+        "fm4_observed",
+        "observed"
+      ],
+      "id": "RTL-0138",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM4",
+        "name": "feature_4",
+        "signal": "[\"Architectural state updates according to FSM/control policy\"]",
+        "state": "[\"fm4_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Architectural",
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM4: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.error_cases.error_case_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: id=FM4; name=feature_4; signal=[{\"condition\": \"Downstream protocol response is non-OKAY or invalid\", \"result\": \"Set error status and block signoff u...; state=[\"fm4_observed\"].",
+      "evidence_terms": [
+        "Downstream",
+        "OKAY",
+        "Set",
+        "fm4",
+        "fm4_observed",
+        "observed"
+      ],
+      "id": "RTL-0139",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM4",
+        "name": "feature_4",
+        "signal": "[{\"condition\": \"Downstream protocol response is non-OKAY or invalid\", \"result\": \"Set error status and block signoff u...",
+        "state": "[\"fm4_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Downstream",
+          "OKAY",
+          "Set",
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "DUT port [\"m_axi_rdata\"] is the implementation/observation point for [\"m_axi_rdata\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: port=[\"m_axi_rdata\"]; signal=No externally visible output changes except through declared interfaces, registers, interrupts, or debug signals.; state=[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\", \"fm4_observed\"].",
+      "evidence_terms": [
+        "axi",
+        "fm1",
+        "fm1_observed",
+        "fm2",
+        "fm2_observed",
+        "fm3",
+        "fm3_observed",
+        "fm4",
+        "fm4_observed",
+        "m_axi_rdata",
+        "observed",
+        "rdata"
+      ],
+      "id": "RTL-0140",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "port": "[\"m_axi_rdata\"]",
+        "signal": "No externally visible output changes except through declared interfaces, registers, interrupts, or debug signals.",
+        "state": "[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\", \"fm4_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "static_evidence": {
+        "matched_count": 12,
+        "matched_terms": [
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "fm2",
+          "fm2_observed",
+          "fm3",
+          "fm3_observed",
+          "fm4",
+          "fm4_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "fm2",
+          "fm2_observed",
+          "fm3",
+          "fm3_observed",
+          "fm4",
+          "fm4_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "DUT port [\"m_axi_rdata\"] is the implementation/observation point for [\"m_axi_rdata\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: port=[\"m_axi_rdata\"]; signal=All state updates are synchronous to the declared clock and return to reset values under the declared reset policy.; state=[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\", \"fm4_observed\"].",
+      "evidence_terms": [
+        "axi",
+        "fm1",
+        "fm1_observed",
+        "fm2",
+        "fm2_observed",
+        "fm3",
+        "fm3_observed",
+        "fm4",
+        "fm4_observed",
+        "m_axi_rdata",
+        "observed",
+        "rdata"
+      ],
+      "id": "RTL-0141",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "port": "[\"m_axi_rdata\"]",
+        "signal": "All state updates are synchronous to the declared clock and return to reset values under the declared reset policy.",
+        "state": "[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\", \"fm4_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "static_evidence": {
+        "matched_count": 12,
+        "matched_terms": [
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "fm2",
+          "fm2_observed",
+          "fm3",
+          "fm3_observed",
+          "fm4",
+          "fm4_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "fm2",
+          "fm2_observed",
+          "fm3",
+          "fm3_observed",
+          "fm4",
+          "fm4_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "DUT port [\"m_axi_rdata\"] is the implementation/observation point for [\"m_axi_rdata\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: port=[\"m_axi_rdata\"]; signal=Every declared error source has a defined architectural effect and recovery path.; state=[\"state\", \"error\"].",
+      "evidence_terms": [
+        "axi",
+        "m_axi_rdata",
+        "rdata"
+      ],
+      "id": "RTL-0142",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "port": "[\"m_axi_rdata\"]",
+        "signal": "Every declared error source has a defined architectural effect and recovery path.",
+        "state": "[\"state\", \"error\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "axi",
+          "m_axi_rdata",
+          "rdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axi",
+          "m_axi_rdata",
+          "rdata"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_3",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_3",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "DUT port [\"m_axi_rdata\"] is the implementation/observation point for [\"m_axi_rdata\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: port=[\"m_axi_rdata\"]; signal=Data movement and ordering follow the dataflow section without bypassing declared buffers or counters.; state=[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\", \"fm4_observed\"].",
+      "evidence_terms": [
+        "Data",
+        "axi",
+        "fm1",
+        "fm1_observed",
+        "fm2",
+        "fm2_observed",
+        "fm3",
+        "fm3_observed",
+        "fm4",
+        "fm4_observed",
+        "m_axi_rdata",
+        "observed",
+        "rdata"
+      ],
+      "id": "RTL-0143",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_3",
+      "ssot_context": {
+        "port": "[\"m_axi_rdata\"]",
+        "signal": "Data movement and ordering follow the dataflow section without bypassing declared buffers or counters.",
+        "state": "[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\", \"fm4_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_3"
+      ],
+      "static_evidence": {
+        "matched_count": 13,
+        "matched_terms": [
+          "Data",
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "fm2",
+          "fm2_observed",
+          "fm3",
+          "fm3_observed",
+          "fm4",
+          "fm4_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Data",
+          "axi",
+          "fm1",
+          "fm1_observed",
+          "fm2",
+          "fm2_observed",
+          "fm3",
+          "fm3_observed",
+          "fm4",
+          "fm4_observed",
+          "m_axi_rdata",
+          "observed",
+          "rdata"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "28bc079a169dab10d71db849865eaa967a9ec34475c2cd554f104a55d373a2c9",
+  "top": "dma_scratch_ui_live_20260519a",
+  "type": "rtl_authoring_packet"
+}

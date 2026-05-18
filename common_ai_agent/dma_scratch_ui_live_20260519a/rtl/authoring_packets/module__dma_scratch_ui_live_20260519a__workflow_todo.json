@@ -1,0 +1,4155 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 14,
+      "key": "workflow_todo",
+      "module_task_count": 208,
+      "rule": "Owner module dma_scratch_ui_live_20260519a is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "name": "dma_scratch_ui_live_20260519a",
+      "refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "name": "dma_scratch_ui_live_20260519a",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awaddr",
+          "s_axil_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awaddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awvalid",
+          "s_axil_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awvalid",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awready",
+          "s_axil_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awready",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wdata",
+          "s_axil_wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wdata",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wstrb",
+          "s_axil_wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wstrb",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "DATA_WIDTH/8"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wvalid",
+          "s_axil_wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wvalid",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wready",
+          "s_axil_wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wready",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bresp",
+          "s_axil_bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bresp",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bvalid",
+          "s_axil_bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bvalid",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bready",
+          "s_axil_bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bready",
+        "source_ref": "io_list.interfaces[0].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_araddr",
+          "s_axil_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_araddr",
+        "source_ref": "io_list.interfaces[0].ports[10]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_arvalid",
+          "s_axil_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_arvalid",
+        "source_ref": "io_list.interfaces[0].ports[11]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_arready",
+          "s_axil_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_arready",
+        "source_ref": "io_list.interfaces[0].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rdata",
+          "s_axil_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axil_rdata",
+        "source_ref": "io_list.interfaces[0].ports[13]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rresp",
+          "s_axil_rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rresp",
+        "source_ref": "io_list.interfaces[0].ports[14]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rvalid",
+          "s_axil_rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rvalid",
+        "source_ref": "io_list.interfaces[0].ports[15]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rready",
+          "s_axil_rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rready",
+        "source_ref": "io_list.interfaces[0].ports[16]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_araddr",
+          "m_axi_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_araddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_arvalid",
+          "m_axi_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_arvalid",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_arready",
+          "m_axi_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_arready",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rdata",
+          "m_axi_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "m_axi_rdata",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rresp",
+          "m_axi_rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rresp",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rvalid",
+          "m_axi_rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rvalid",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rready",
+          "m_axi_rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rready",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awaddr",
+          "m_axi_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awaddr",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awvalid",
+          "m_axi_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awvalid",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awready",
+          "m_axi_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awready",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wdata",
+          "m_axi_wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wdata",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wstrb",
+          "m_axi_wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wstrb",
+        "source_ref": "io_list.interfaces[1].ports[11]",
+        "width": "DATA_WIDTH/8"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wvalid",
+          "m_axi_wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wvalid",
+        "source_ref": "io_list.interfaces[1].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wready",
+          "m_axi_wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wready",
+        "source_ref": "io_list.interfaces[1].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bresp",
+          "m_axi_bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bresp",
+        "source_ref": "io_list.interfaces[1].ports[14]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bvalid",
+          "m_axi_bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bvalid",
+        "source_ref": "io_list.interfaces[1].ports[15]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bready",
+          "m_axi_bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bready",
+        "source_ref": "io_list.interfaces[1].ports[16]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_scratch_ui_live_20260519a",
+  "kind": "module",
+  "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+  "owner_module": "dma_scratch_ui_live_20260519a",
+  "packet_id": "module__dma_scratch_ui_live_20260519a__workflow_todo",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "workflow_todo.rtl_gen": 40
+    },
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 14,
+      "key": "workflow_todo",
+      "module_task_count": 208,
+      "rule": "Owner module dma_scratch_ui_live_20260519a is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 40,
+    "source_refs": [
+      "workflow_todos.rtl-gen[0]",
+      "workflow_todos.rtl-gen[1]",
+      "workflow_todos.rtl-gen[2]",
+      "workflow_todos.rtl-gen[3]",
+      "workflow_todos.rtl-gen[4]",
+      "workflow_todos.rtl-gen[5]",
+      "workflow_todos.rtl-gen[6]",
+      "workflow_todos.rtl-gen[7]",
+      "workflow_todos.rtl-gen[8]",
+      "workflow_todos.rtl-gen[9]",
+      "workflow_todos.rtl-gen[10]",
+      "workflow_todos.rtl-gen[11]",
+      "workflow_todos.rtl-gen[12]",
+      "workflow_todos.rtl-gen[13]",
+      "workflow_todos.rtl-gen[14]",
+      "workflow_todos.rtl-gen[15]",
+      "workflow_todos.rtl-gen[16]",
+      "workflow_todos.rtl-gen[17]",
+      "workflow_todos.rtl-gen[18]",
+      "workflow_todos.rtl-gen[19]",
+      "workflow_todos.rtl-gen[20]",
+      "workflow_todos.rtl-gen[21]",
+      "workflow_todos.rtl-gen[22]",
+      "workflow_todos.rtl-gen[23]"
+    ],
+    "status_counts": {
+      "pass": 40
+    },
+    "task_count": 40
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement the complete SSOT RTL contract without fixed-template fallback behavior",
+      "criteria": [
+        "Generated RTL drives only SSOT-approved externally visible behavior",
+        "No placeholder heartbeat, tie-off, alive-only, or comment-only implementation is used as evidence",
+        "derive_rtl_todos.py --audit-rtl reports every required TODO as pass",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[0]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model, function_model, quality_gates.rtl, quality_gates.rtl_gen, top_module"
+      ],
+      "detail": "Use the current SSOT as the only source for ports, parameters, function_model, cycle_model, registers, dataflow, error/security/debug behavior, decomposition ownership, and quality gates.\nSSOT ref: workflow_todos.rtl-gen[0].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_IMPLEMENT_SSOT_CONTRACT.",
+      "evidence_terms": [
+        "20260519a",
+        "CONTRACT",
+        "RTL_IMPLEMENT_SSOT_CONTRACT",
+        "SSOT",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "gates",
+        "live",
+        "quality",
+        "quality_gates",
+        "rtl_gen",
+        "scratch",
+        "top",
+        "top_module",
+        "ui"
+      ],
+      "id": "RTL-0020",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[0]",
+      "ssot_context": {
+        "id": "RTL_IMPLEMENT_SSOT_CONTRACT"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "function_model",
+        "quality_gates.rtl",
+        "quality_gates.rtl_gen",
+        "top_module",
+        "workflow_todos.rtl-gen[0]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "CONTRACT",
+          "RTL_IMPLEMENT_SSOT_CONTRACT",
+          "SSOT",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "gates",
+          "live",
+          "quality",
+          "quality_gates",
+          "rtl_gen",
+          "scratch",
+          "top",
+          "top_module",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_IMPLEMENT_SSOT_CONTRACT",
+        "source_refs": [
+          "cycle_model",
+          "function_model",
+          "quality_gates.rtl",
+          "quality_gates.rtl_gen",
+          "top_module"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement or account for SSOT module slice `dma_scratch_ui_live_20260519a_behavior_contract`",
+      "criteria": [
+        "Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module",
+        "Module slice has traceability evidence in rtl_todo_plan.json",
+        "No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model, dataflow, decomposition, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM1, function_model.transactions.FM2, function_model.transactions.FM3, function_model.transactions.FM4, test_requirements"
+      ],
+      "detail": "Conceptual owner for SSOT function-model behavior implemented by the generated RTL.\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A_BEHAVIOR_CONTRACT.",
+      "evidence_terms": [
+        "20260519A",
+        "20260519a",
+        "CONTRACT",
+        "DMA",
+        "LIVE",
+        "RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A_BEHAVIOR_CONTRACT",
+        "SCRATCH",
+        "UI",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0021",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "ssot_context": {
+        "id": "RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A_BEHAVIOR_CONTRACT"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "features",
+        "fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.FM1",
+        "function_model.transactions.FM2",
+        "function_model.transactions.FM3",
+        "function_model.transactions.FM4",
+        "test_requirements",
+        "workflow_todos.rtl-gen[1]"
+      ],
+      "static_evidence": {
+        "matched_count": 11,
+        "matched_terms": [
+          "20260519A",
+          "20260519a",
+          "DMA",
+          "LIVE",
+          "SCRATCH",
+          "UI",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519A",
+          "20260519a",
+          "CONTRACT",
+          "DMA",
+          "LIVE",
+          "RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A_BEHAVIOR_CONTRACT",
+          "SCRATCH",
+          "UI",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A_BEHAVIOR_CONTRACT",
+        "source_refs": [
+          "cycle_model",
+          "dataflow",
+          "decomposition",
+          "features",
+          "fsm",
+          "function_model",
+          "function_model.state_variables",
+          "function_model.transactions.FM1",
+          "function_model.transactions.FM2",
+          "function_model.transactions.FM3",
+          "function_model.transactions.FM4",
+          "test_requirements"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement or account for SSOT module slice `dma_scratch_ui_live_20260519a`",
+      "criteria": [
+        "Owned SSOT refs are implemented in the owner RTL file or explicitly mapped to the top integration module",
+        "Module slice has traceability evidence in rtl_todo_plan.json",
+        "No function/cycle/register/dataflow/FSM task owned by this slice remains orphaned",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[2]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: dataflow, decomposition, integration, io_list, top_module"
+      ],
+      "detail": "Top-level integration module matching SSOT top_module\nSSOT ref: workflow_todos.rtl-gen[2].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A.",
+      "evidence_terms": [
+        "20260519A",
+        "20260519a",
+        "DMA",
+        "LIVE",
+        "RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A",
+        "SCRATCH",
+        "UI",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "io",
+        "io_list",
+        "list",
+        "live",
+        "scratch",
+        "top",
+        "top_module"
+      ],
+      "id": "RTL-0022",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[2]",
+      "ssot_context": {
+        "id": "RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A"
+      },
+      "ssot_refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module",
+        "workflow_todos.rtl-gen[2]"
+      ],
+      "static_evidence": {
+        "matched_count": 13,
+        "matched_terms": [
+          "20260519A",
+          "20260519a",
+          "DMA",
+          "LIVE",
+          "SCRATCH",
+          "UI",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "io",
+          "io_list",
+          "list",
+          "live",
+          "scratch"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519A",
+          "20260519a",
+          "DMA",
+          "LIVE",
+          "RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A",
+          "SCRATCH",
+          "UI",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "io",
+          "io_list",
+          "list",
+          "live",
+          "scratch",
+          "top",
+          "top_module"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_MODULE_DMA_SCRATCH_UI_LIVE_20260519A",
+        "source_refs": [
+          "dataflow",
+          "decomposition",
+          "integration",
+          "io_list",
+          "top_module"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement FunctionalModel transaction `FM1` in RTL",
+      "criteria": [
+        "RTL samples the transaction only under the approved preconditions",
+        "All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping",
+        "All side effects and error cases have observable state, status, or handoff evidence",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[3]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: function_model.transactions.FM1, function_model.transactions[0]"
+      ],
+      "detail": "Preconditions: Feature trigger is asserted under legal configuration. Outputs: Architectural output matches feature definition; name=m_axi_rdata; description=Auto-injected benign observable rule so the function_model has at least one scoreboard-vis...; description=Repair marker making this transaction machine-checkable; ssot-gen should r.... Side effects: Architectural state updates according to FSM/control policy. Error cases: condition=Downstream protocol response is non-OKAY or invalid.\nSSOT ref: workflow_todos.rtl-gen[3].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_FM_TX_FM1.",
+      "evidence_terms": [
+        "20260519a",
+        "FM",
+        "FM1",
+        "RTL_FM_TX_FM1",
+        "TX",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0023",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[3]",
+      "ssot_context": {
+        "id": "RTL_FM_TX_FM1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM1",
+        "function_model.transactions[0]",
+        "workflow_todos.rtl-gen[3]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "FM1",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "FM",
+          "FM1",
+          "RTL_FM_TX_FM1",
+          "TX",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_FM_TX_FM1",
+        "source_refs": [
+          "function_model.transactions.FM1",
+          "function_model.transactions[0]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Drive output rule `m_axi_rdata` from FunctionalModel expression",
+      "criteria": [
+        "RTL output `m_axi_rdata` follows the SSOT expression",
+        "Expression inputs are mapped through rtl_contract.input_map or declared ports",
+        "FL-vs-RTL scoreboard can compare this observable without changing SSOT",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[4]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: function_model.transactions[0].output_rules[0]"
+      ],
+      "detail": "Expression: 0\nSSOT ref: workflow_todos.rtl-gen[4].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_OUTPUT_RULE_M_AXI_RDATA.",
+      "evidence_terms": [
+        "20260519a",
+        "AXI",
+        "RDATA",
+        "RTL_OUTPUT_RULE_M_AXI_RDATA",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0024",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[4]",
+      "ssot_context": {
+        "id": "RTL_OUTPUT_RULE_M_AXI_RDATA"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0].output_rules[0]",
+        "workflow_todos.rtl-gen[4]"
+      ],
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "20260519a",
+          "AXI",
+          "RDATA",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "AXI",
+          "RDATA",
+          "RTL_OUTPUT_RULE_M_AXI_RDATA",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_OUTPUT_RULE_M_AXI_RDATA",
+        "source_refs": [
+          "function_model.transactions[0].output_rules[0]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement state update `fm1_observed` from FunctionalModel expression",
+      "criteria": [
+        "RTL updates the state only on the approved sample condition",
+        "Reset value and width match function_model.state_variables",
+        "Debug/status visibility remains consistent with SSOT traceability",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[5]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: function_model.transactions[0].state_updates[0]"
+      ],
+      "detail": "Expression: 1\nSSOT ref: workflow_todos.rtl-gen[5].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_STATE_UPDATE_FM1_OBSERVED.",
+      "evidence_terms": [
+        "20260519a",
+        "FM1",
+        "OBSERVED",
+        "RTL_STATE_UPDATE_FM1_OBSERVED",
+        "UPDATE",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0025",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[5]",
+      "ssot_context": {
+        "id": "RTL_STATE_UPDATE_FM1_OBSERVED"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0].state_updates[0]",
+        "workflow_todos.rtl-gen[5]"
+      ],
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "20260519a",
+          "FM1",
+          "OBSERVED",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "FM1",
+          "OBSERVED",
+          "RTL_STATE_UPDATE_FM1_OBSERVED",
+          "UPDATE",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_STATE_UPDATE_FM1_OBSERVED",
+        "source_refs": [
+          "function_model.transactions[0].state_updates[0]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement FunctionalModel transaction `FM2` in RTL",
+      "criteria": [
+        "RTL samples the transaction only under the approved preconditions",
+        "All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping",
+        "All side effects and error cases have observable state, status, or handoff evidence",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[6]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: function_model.transactions.FM2, function_model.transactions[1]"
+      ],
+      "detail": "Preconditions: Feature trigger is asserted under legal configuration. Outputs: Architectural output matches feature definition; description=Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectu.... Side effects: Architectural state updates according to FSM/control policy. Error cases: condition=Downstream protocol response is non-OKAY or invalid.\nSSOT ref: workflow_todos.rtl-gen[6].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_FM_TX_FM2.",
+      "evidence_terms": [
+        "20260519a",
+        "FM",
+        "FM2",
+        "RTL_FM_TX_FM2",
+        "TX",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0026",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[6]",
+      "ssot_context": {
+        "id": "RTL_FM_TX_FM2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM2",
+        "function_model.transactions[1]",
+        "workflow_todos.rtl-gen[6]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "FM2",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "FM",
+          "FM2",
+          "RTL_FM_TX_FM2",
+          "TX",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_FM_TX_FM2",
+        "source_refs": [
+          "function_model.transactions.FM2",
+          "function_model.transactions[1]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement state update `fm2_observed` from FunctionalModel expression",
+      "criteria": [
+        "RTL updates the state only on the approved sample condition",
+        "Reset value and width match function_model.state_variables",
+        "Debug/status visibility remains consistent with SSOT traceability",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[7]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: function_model.transactions[1].state_updates[0]"
+      ],
+      "detail": "Expression: 1\nSSOT ref: workflow_todos.rtl-gen[7].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_STATE_UPDATE_FM2_OBSERVED.",
+      "evidence_terms": [
+        "20260519a",
+        "FM2",
+        "OBSERVED",
+        "RTL_STATE_UPDATE_FM2_OBSERVED",
+        "UPDATE",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0027",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[7]",
+      "ssot_context": {
+        "id": "RTL_STATE_UPDATE_FM2_OBSERVED"
+      },
+      "ssot_refs": [
+        "function_model.transactions[1].state_updates[0]",
+        "workflow_todos.rtl-gen[7]"
+      ],
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "20260519a",
+          "FM2",
+          "OBSERVED",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "FM2",
+          "OBSERVED",
+          "RTL_STATE_UPDATE_FM2_OBSERVED",
+          "UPDATE",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_STATE_UPDATE_FM2_OBSERVED",
+        "source_refs": [
+          "function_model.transactions[1].state_updates[0]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement FunctionalModel transaction `FM3` in RTL",
+      "criteria": [
+        "RTL samples the transaction only under the approved preconditions",
+        "All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping",
+        "All side effects and error cases have observable state, status, or handoff evidence",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[8]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: function_model.transactions.FM3, function_model.transactions[2]"
+      ],
+      "detail": "Preconditions: Feature trigger is asserted under legal configuration. Outputs: Architectural output matches feature definition; description=Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectu.... Side effects: Architectural state updates according to FSM/control policy. Error cases: condition=Downstream protocol response is non-OKAY or invalid.\nSSOT ref: workflow_todos.rtl-gen[8].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_FM_TX_FM3.",
+      "evidence_terms": [
+        "20260519a",
+        "FM",
+        "FM3",
+        "RTL_FM_TX_FM3",
+        "TX",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0028",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[8]",
+      "ssot_context": {
+        "id": "RTL_FM_TX_FM3"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM3",
+        "function_model.transactions[2]",
+        "workflow_todos.rtl-gen[8]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "FM3",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "FM",
+          "FM3",
+          "RTL_FM_TX_FM3",
+          "TX",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_FM_TX_FM3",
+        "source_refs": [
+          "function_model.transactions.FM3",
+          "function_model.transactions[2]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement state update `fm3_observed` from FunctionalModel expression",
+      "criteria": [
+        "RTL updates the state only on the approved sample condition",
+        "Reset value and width match function_model.state_variables",
+        "Debug/status visibility remains consistent with SSOT traceability",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[9]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: function_model.transactions[2].state_updates[0]"
+      ],
+      "detail": "Expression: 1\nSSOT ref: workflow_todos.rtl-gen[9].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_STATE_UPDATE_FM3_OBSERVED.",
+      "evidence_terms": [
+        "20260519a",
+        "FM3",
+        "OBSERVED",
+        "RTL_STATE_UPDATE_FM3_OBSERVED",
+        "UPDATE",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0029",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[9]",
+      "ssot_context": {
+        "id": "RTL_STATE_UPDATE_FM3_OBSERVED"
+      },
+      "ssot_refs": [
+        "function_model.transactions[2].state_updates[0]",
+        "workflow_todos.rtl-gen[9]"
+      ],
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "20260519a",
+          "FM3",
+          "OBSERVED",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "FM3",
+          "OBSERVED",
+          "RTL_STATE_UPDATE_FM3_OBSERVED",
+          "UPDATE",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_STATE_UPDATE_FM3_OBSERVED",
+        "source_refs": [
+          "function_model.transactions[2].state_updates[0]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement FunctionalModel transaction `FM4` in RTL",
+      "criteria": [
+        "RTL samples the transaction only under the approved preconditions",
+        "All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping",
+        "All side effects and error cases have observable state, status, or handoff evidence",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[10]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: function_model.transactions.FM4, function_model.transactions[3]"
+      ],
+      "detail": "Preconditions: Feature trigger is asserted under legal configuration. Outputs: Architectural output matches feature definition; description=Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectu.... Side effects: Architectural state updates according to FSM/control policy. Error cases: condition=Downstream protocol response is non-OKAY or invalid.\nSSOT ref: workflow_todos.rtl-gen[10].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_FM_TX_FM4.",
+      "evidence_terms": [
+        "20260519a",
+        "FM",
+        "FM4",
+        "RTL_FM_TX_FM4",
+        "TX",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0030",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[10]",
+      "ssot_context": {
+        "id": "RTL_FM_TX_FM4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4",
+        "function_model.transactions[3]",
+        "workflow_todos.rtl-gen[10]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "FM4",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "FM",
+          "FM4",
+          "RTL_FM_TX_FM4",
+          "TX",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_FM_TX_FM4",
+        "source_refs": [
+          "function_model.transactions.FM4",
+          "function_model.transactions[3]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement state update `fm4_observed` from FunctionalModel expression",
+      "criteria": [
+        "RTL updates the state only on the approved sample condition",
+        "Reset value and width match function_model.state_variables",
+        "Debug/status visibility remains consistent with SSOT traceability",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[11]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: function_model.transactions[3].state_updates[0]"
+      ],
+      "detail": "Expression: 1\nSSOT ref: workflow_todos.rtl-gen[11].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_STATE_UPDATE_FM4_OBSERVED.",
+      "evidence_terms": [
+        "20260519a",
+        "FM4",
+        "OBSERVED",
+        "RTL_STATE_UPDATE_FM4_OBSERVED",
+        "UPDATE",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0031",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[11]",
+      "ssot_context": {
+        "id": "RTL_STATE_UPDATE_FM4_OBSERVED"
+      },
+      "ssot_refs": [
+        "function_model.transactions[3].state_updates[0]",
+        "workflow_todos.rtl-gen[11]"
+      ],
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "20260519a",
+          "FM4",
+          "OBSERVED",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "FM4",
+          "OBSERVED",
+          "RTL_STATE_UPDATE_FM4_OBSERVED",
+          "UPDATE",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_STATE_UPDATE_FM4_OBSERVED",
+        "source_refs": [
+          "function_model.transactions[3].state_updates[0]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model handshake rule 0",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[12]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.handshake_rules[0]"
+      ],
+      "detail": "rule=s_axil_arvalid payload remains stable until s_axil_arready is sampled asserted on axil_ctrl.\nSSOT ref: workflow_todos.rtl-gen[12].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_ITEM_0.",
+      "evidence_terms": [
+        "20260519a",
+        "ITEM",
+        "RTL_CYCLE_handshake_rules_ITEM_0",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "handshake",
+        "live",
+        "rules",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0032",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[12]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_handshake_rules_ITEM_0"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[0]",
+        "workflow_todos.rtl-gen[12]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "ITEM",
+          "RTL_CYCLE_handshake_rules_ITEM_0",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "rules",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_handshake_rules_ITEM_0",
+        "source_refs": [
+          "cycle_model.handshake_rules[0]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model handshake rule 1",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[13]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.handshake_rules[1]"
+      ],
+      "detail": "rule=s_axil_awvalid payload remains stable until s_axil_awready is sampled asserted on axil_ctrl.\nSSOT ref: workflow_todos.rtl-gen[13].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_1.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_handshake_rules_1",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "handshake",
+        "live",
+        "rules",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0033",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[13]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_handshake_rules_1"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[1]",
+        "workflow_todos.rtl-gen[13]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_handshake_rules_1",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "rules",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_handshake_rules_1",
+        "source_refs": [
+          "cycle_model.handshake_rules[1]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model handshake rule 2",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[14]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.handshake_rules[2]"
+      ],
+      "detail": "rule=s_axil_bvalid payload remains stable until s_axil_bready is sampled asserted on axil_ctrl.\nSSOT ref: workflow_todos.rtl-gen[14].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_2.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_handshake_rules_2",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "handshake",
+        "live",
+        "rules",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0034",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[14]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_handshake_rules_2"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[2]",
+        "workflow_todos.rtl-gen[14]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_handshake_rules_2",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "rules",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_handshake_rules_2",
+        "source_refs": [
+          "cycle_model.handshake_rules[2]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model handshake rule 3",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[15]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.handshake_rules[3]"
+      ],
+      "detail": "rule=s_axil_rvalid payload remains stable until s_axil_rready is sampled asserted on axil_ctrl.\nSSOT ref: workflow_todos.rtl-gen[15].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_3.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_handshake_rules_3",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "handshake",
+        "live",
+        "rules",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0035",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[15]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_handshake_rules_3"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[3]",
+        "workflow_todos.rtl-gen[15]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_handshake_rules_3",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "rules",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_handshake_rules_3",
+        "source_refs": [
+          "cycle_model.handshake_rules[3]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model handshake rule 4",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[16]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.handshake_rules[4]"
+      ],
+      "detail": "rule=s_axil_wvalid payload remains stable until s_axil_wready is sampled asserted on axil_ctrl.\nSSOT ref: workflow_todos.rtl-gen[16].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_4.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_handshake_rules_4",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "handshake",
+        "live",
+        "rules",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0036",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[16]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_handshake_rules_4"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[4]",
+        "workflow_todos.rtl-gen[16]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_handshake_rules_4",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "rules",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_handshake_rules_4",
+        "source_refs": [
+          "cycle_model.handshake_rules[4]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model handshake rule 5",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[17]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.handshake_rules[5]"
+      ],
+      "detail": "rule=m_axi_arvalid payload remains stable until m_axi_arready is sampled asserted on axi_mem.\nSSOT ref: workflow_todos.rtl-gen[17].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_5.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_handshake_rules_5",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "handshake",
+        "live",
+        "rules",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0037",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[17]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_handshake_rules_5"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[5]",
+        "workflow_todos.rtl-gen[17]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_handshake_rules_5",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "rules",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_handshake_rules_5",
+        "source_refs": [
+          "cycle_model.handshake_rules[5]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model handshake rule 6",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[18]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.handshake_rules[6]"
+      ],
+      "detail": "rule=m_axi_awvalid payload remains stable until m_axi_awready is sampled asserted on axi_mem.\nSSOT ref: workflow_todos.rtl-gen[18].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_6.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_handshake_rules_6",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "handshake",
+        "live",
+        "rules",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0038",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[18]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_handshake_rules_6"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[6]",
+        "workflow_todos.rtl-gen[18]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_handshake_rules_6",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "rules",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_handshake_rules_6",
+        "source_refs": [
+          "cycle_model.handshake_rules[6]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model handshake rule 7",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[19]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.handshake_rules[7]"
+      ],
+      "detail": "rule=m_axi_bvalid payload remains stable until m_axi_bready is sampled asserted on axi_mem.\nSSOT ref: workflow_todos.rtl-gen[19].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_7.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_handshake_rules_7",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "handshake",
+        "live",
+        "rules",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0039",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[19]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_handshake_rules_7"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[7]",
+        "workflow_todos.rtl-gen[19]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_handshake_rules_7",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "rules",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_handshake_rules_7",
+        "source_refs": [
+          "cycle_model.handshake_rules[7]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model handshake rule 8",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[20]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.handshake_rules[8]"
+      ],
+      "detail": "rule=m_axi_rvalid payload remains stable until m_axi_rready is sampled asserted on axi_mem.\nSSOT ref: workflow_todos.rtl-gen[20].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_8.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_handshake_rules_8",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "handshake",
+        "live",
+        "rules",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0040",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[20]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_handshake_rules_8"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[8]",
+        "workflow_todos.rtl-gen[20]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_handshake_rules_8",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "rules",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_handshake_rules_8",
+        "source_refs": [
+          "cycle_model.handshake_rules[8]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model handshake rule 9",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[21]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.handshake_rules[9]"
+      ],
+      "detail": "rule=m_axi_wvalid payload remains stable until m_axi_wready is sampled asserted on axi_mem.\nSSOT ref: workflow_todos.rtl-gen[21].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_9.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_handshake_rules_9",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "handshake",
+        "live",
+        "rules",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0041",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[21]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_handshake_rules_9"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[9]",
+        "workflow_todos.rtl-gen[21]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_handshake_rules_9",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "handshake",
+          "live",
+          "rules",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_handshake_rules_9",
+        "source_refs": [
+          "cycle_model.handshake_rules[9]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model pipeline stage 0",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[22]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.pipeline[0]"
+      ],
+      "detail": "action=Accept legal request/command/packet/control work under declared handshake rules.\nSSOT ref: workflow_todos.rtl-gen[22].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_pipeline_ITEM_0.",
+      "evidence_terms": [
+        "20260519a",
+        "ITEM",
+        "RTL_CYCLE_pipeline_ITEM_0",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0042",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[22]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_pipeline_ITEM_0"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[0]",
+        "workflow_todos.rtl-gen[22]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "ITEM",
+          "RTL_CYCLE_pipeline_ITEM_0",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_pipeline_ITEM_0",
+        "source_refs": [
+          "cycle_model.pipeline[0]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model pipeline stage 1",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[23]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.pipeline[1]"
+      ],
+      "detail": "action=Evaluate function_model transaction and update only declared state.\nSSOT ref: workflow_todos.rtl-gen[23].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_pipeline_1.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_pipeline_1",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0043",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[23]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_pipeline_1"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[1]",
+        "workflow_todos.rtl-gen[23]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_pipeline_1",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_pipeline_1",
+        "source_refs": [
+          "cycle_model.pipeline[1]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model pipeline stage 2",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[24]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.pipeline[2]"
+      ],
+      "detail": "action=Publish response/status/output/debug event and hold it stable until accepted.\nSSOT ref: workflow_todos.rtl-gen[24].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_pipeline_2.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_pipeline_2",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0044",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[24]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_pipeline_2"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[2]",
+        "workflow_todos.rtl-gen[24]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_pipeline_2",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_pipeline_2",
+        "source_refs": [
+          "cycle_model.pipeline[2]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model ordering rule 0",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[25]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.ordering[0]"
+      ],
+      "detail": "Accepted requests update architectural state only on clock edges.\nSSOT ref: workflow_todos.rtl-gen[25].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_ordering_ITEM_0.",
+      "evidence_terms": [
+        "20260519a",
+        "ITEM",
+        "RTL_CYCLE_ordering_ITEM_0",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0045",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[25]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_ordering_ITEM_0"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]",
+        "workflow_todos.rtl-gen[25]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "ITEM",
+          "RTL_CYCLE_ordering_ITEM_0",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_ordering_ITEM_0",
+        "source_refs": [
+          "cycle_model.ordering[0]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model ordering rule 1",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[26]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.ordering[1]"
+      ],
+      "detail": "Completion/status/interrupt updates occur after the operation reaches its terminal FSM state.\nSSOT ref: workflow_todos.rtl-gen[26].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_ordering_1.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_ordering_1",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0046",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[26]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_ordering_1"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[1]",
+        "workflow_todos.rtl-gen[26]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_ordering_1",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_ordering_1",
+        "source_refs": [
+          "cycle_model.ordering[1]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model ordering rule 2",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[27]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.ordering[2]"
+      ],
+      "detail": "Backpressure stalls the active handshake stage without corrupting stored state.\nSSOT ref: workflow_todos.rtl-gen[27].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_ordering_2.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_ordering_2",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0047",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[27]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_ordering_2"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[2]",
+        "workflow_todos.rtl-gen[27]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_ordering_2",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_ordering_2",
+        "source_refs": [
+          "cycle_model.ordering[2]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model ordering rule 3",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[28]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.ordering[3]"
+      ],
+      "detail": "Read/dataflow stages must precede dependent write/output stages where declared in dataflow.\nSSOT ref: workflow_todos.rtl-gen[28].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_ordering_3.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_CYCLE_ordering_3",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0048",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[28]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_ordering_3"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[3]",
+        "workflow_todos.rtl-gen[28]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_CYCLE_ordering_3",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_ordering_3",
+        "source_refs": [
+          "cycle_model.ordering[3]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement cycle_model backpressure rule 0",
+      "criteria": [
+        "RTL timing/handshake behavior follows this cycle_model entry",
+        "Signals remain stable or advance only under the approved protocol phase",
+        "The behavior is visible to waveform/sim-debug or scoreboard checks",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[29]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: cycle_model.backpressure[0]"
+      ],
+      "detail": "Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable.\nSSOT ref: workflow_todos.rtl-gen[29].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_backpressure_ITEM_0.",
+      "evidence_terms": [
+        "20260519a",
+        "ITEM",
+        "RTL_CYCLE_backpressure_ITEM_0",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0049",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[29]",
+      "ssot_context": {
+        "id": "RTL_CYCLE_backpressure_ITEM_0"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure[0]",
+        "workflow_todos.rtl-gen[29]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "ITEM",
+          "RTL_CYCLE_backpressure_ITEM_0",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CYCLE_backpressure_ITEM_0",
+        "source_refs": [
+          "cycle_model.backpressure[0]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Close all rtl_gate.rtl_gen quality-gate TODOs with fresh evidence",
+      "criteria": [
+        "SSOT authority, workflow TODO format, owner traceability, static RTL evidence, compile, lint, and closure gate TODOs pass",
+        "rtl_compile.json and lint/dut_lint.json are fresh and clean",
+        "open_required_todos is zero",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[39]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: generation_flow, quality_gates.rtl, quality_gates.rtl_gen, workflow_todos.rtl-gen"
+      ],
+      "detail": "Run dynamic TODO audit, DUT compile, DUT-only lint, and static traceability checks after the final RTL edit. The gate TODOs are pass/fail work items, not summary prose.\nSSOT ref: workflow_todos.rtl-gen[39].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CLOSE_GATE_TODOS.",
+      "evidence_terms": [
+        "20260519a",
+        "CLOSE",
+        "GATE",
+        "RTL_CLOSE_GATE_TODOS",
+        "TODOS",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "flow",
+        "gates",
+        "generation",
+        "generation_flow",
+        "live",
+        "quality",
+        "quality_gates",
+        "rtl_gen",
+        "scratch"
+      ],
+      "id": "RTL-0059",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[39]",
+      "ssot_context": {
+        "id": "RTL_CLOSE_GATE_TODOS"
+      },
+      "ssot_refs": [
+        "generation_flow",
+        "quality_gates.rtl",
+        "quality_gates.rtl_gen",
+        "workflow_todos.rtl-gen",
+        "workflow_todos.rtl-gen[39]"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "CLOSE",
+          "GATE",
+          "RTL_CLOSE_GATE_TODOS",
+          "TODOS",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "flow",
+          "gates",
+          "generation",
+          "generation_flow",
+          "live",
+          "quality",
+          "quality_gates",
+          "rtl_gen",
+          "scratch"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_CLOSE_GATE_TODOS",
+        "source_refs": [
+          "generation_flow",
+          "quality_gates.rtl",
+          "quality_gates.rtl_gen",
+          "workflow_todos.rtl-gen"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Expose RTL behavior needed by SSOT scenario `SC01`",
+      "criteria": [
+        "RTL has observable behavior for the scenario checker without weakening expected results",
+        "Scenario coverage can be closed by tb-gen using function_model/cycle_model",
+        "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[30]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: test_requirements.scenarios[0]"
+      ],
+      "detail": "Stimulus: Assert and release the declared reset while all external interfaces remain idle.. Expected: Architectural state, status, outputs, and debug observability match function_model reset outputs..\nSSOT ref: workflow_todos.rtl-gen[30].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC01.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_SCENARIO_SUPPORT_SC01",
+        "SC01",
+        "SCENARIO",
+        "SUPPORT",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0050",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[30]",
+      "ssot_context": {
+        "id": "RTL_SCENARIO_SUPPORT_SC01"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]",
+        "workflow_todos.rtl-gen[30]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_SCENARIO_SUPPORT_SC01",
+          "SC01",
+          "SCENARIO",
+          "SUPPORT",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_SCENARIO_SUPPORT_SC01",
+        "source_refs": [
+          "test_requirements.scenarios[0]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Expose RTL behavior needed by SSOT scenario `SC02`",
+      "criteria": [
+        "RTL has observable behavior for the scenario checker without weakening expected results",
+        "Scenario coverage can be closed by tb-gen using function_model/cycle_model",
+        "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[31]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: test_requirements.scenarios[1]"
+      ],
+      "detail": "Stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.. Expected: Externally observable result/status/side effects match the function_model primary transaction..\nSSOT ref: workflow_todos.rtl-gen[31].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC02.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_SCENARIO_SUPPORT_SC02",
+        "SC02",
+        "SCENARIO",
+        "SUPPORT",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0051",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[31]",
+      "ssot_context": {
+        "id": "RTL_SCENARIO_SUPPORT_SC02"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]",
+        "workflow_todos.rtl-gen[31]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_SCENARIO_SUPPORT_SC02",
+          "SC02",
+          "SCENARIO",
+          "SUPPORT",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_SCENARIO_SUPPORT_SC02",
+        "source_refs": [
+          "test_requirements.scenarios[1]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Expose RTL behavior needed by SSOT scenario `SC03`",
+      "criteria": [
+        "RTL has observable behavior for the scenario checker without weakening expected results",
+        "Scenario coverage can be closed by tb-gen using function_model/cycle_model",
+        "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[32]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: test_requirements.scenarios[2]"
+      ],
+      "detail": "Stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.. Expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules..\nSSOT ref: workflow_todos.rtl-gen[32].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC03.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_SCENARIO_SUPPORT_SC03",
+        "SC03",
+        "SCENARIO",
+        "SUPPORT",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0052",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[32]",
+      "ssot_context": {
+        "id": "RTL_SCENARIO_SUPPORT_SC03"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]",
+        "workflow_todos.rtl-gen[32]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_SCENARIO_SUPPORT_SC03",
+          "SC03",
+          "SCENARIO",
+          "SUPPORT",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_SCENARIO_SUPPORT_SC03",
+        "source_refs": [
+          "test_requirements.scenarios[2]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Expose RTL behavior needed by SSOT scenario `SC04`",
+      "criteria": [
+        "RTL has observable behavior for the scenario checker without weakening expected results",
+        "Scenario coverage can be closed by tb-gen using function_model/cycle_model",
+        "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[33]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: test_requirements.scenarios[3]"
+      ],
+      "detail": "Stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.. Expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state..\nSSOT ref: workflow_todos.rtl-gen[33].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC04.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_SCENARIO_SUPPORT_SC04",
+        "SC04",
+        "SCENARIO",
+        "SUPPORT",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0053",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[33]",
+      "ssot_context": {
+        "id": "RTL_SCENARIO_SUPPORT_SC04"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]",
+        "workflow_todos.rtl-gen[33]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_SCENARIO_SUPPORT_SC04",
+          "SC04",
+          "SCENARIO",
+          "SUPPORT",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_SCENARIO_SUPPORT_SC04",
+        "source_refs": [
+          "test_requirements.scenarios[3]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Expose RTL behavior needed by SSOT scenario `SC05`",
+      "criteria": [
+        "RTL has observable behavior for the scenario checker without weakening expected results",
+        "Scenario coverage can be closed by tb-gen using function_model/cycle_model",
+        "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[34]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: test_requirements.scenarios[4]"
+      ],
+      "detail": "Stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.. Expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior..\nSSOT ref: workflow_todos.rtl-gen[34].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC05.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_SCENARIO_SUPPORT_SC05",
+        "SC05",
+        "SCENARIO",
+        "SUPPORT",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0054",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[34]",
+      "ssot_context": {
+        "id": "RTL_SCENARIO_SUPPORT_SC05"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[4]",
+        "workflow_todos.rtl-gen[34]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_SCENARIO_SUPPORT_SC05",
+          "SC05",
+          "SCENARIO",
+          "SUPPORT",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_SCENARIO_SUPPORT_SC05",
+        "source_refs": [
+          "test_requirements.scenarios[4]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Expose RTL behavior needed by SSOT scenario `SC06`",
+      "criteria": [
+        "RTL has observable behavior for the scenario checker without weakening expected results",
+        "Scenario coverage can be closed by tb-gen using function_model/cycle_model",
+        "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[35]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: test_requirements.scenarios[5]"
+      ],
+      "detail": "Stimulus: Drive preconditions for function_model transaction `FM1`.. Expected: Outputs and side effects match `FM1` exactly..\nSSOT ref: workflow_todos.rtl-gen[35].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC06.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_SCENARIO_SUPPORT_SC06",
+        "SC06",
+        "SCENARIO",
+        "SUPPORT",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0055",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[35]",
+      "ssot_context": {
+        "id": "RTL_SCENARIO_SUPPORT_SC06"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[5]",
+        "workflow_todos.rtl-gen[35]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_SCENARIO_SUPPORT_SC06",
+          "SC06",
+          "SCENARIO",
+          "SUPPORT",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_SCENARIO_SUPPORT_SC06",
+        "source_refs": [
+          "test_requirements.scenarios[5]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Expose RTL behavior needed by SSOT scenario `SC07`",
+      "criteria": [
+        "RTL has observable behavior for the scenario checker without weakening expected results",
+        "Scenario coverage can be closed by tb-gen using function_model/cycle_model",
+        "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[36]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: test_requirements.scenarios[6]"
+      ],
+      "detail": "Stimulus: Drive preconditions for function_model transaction `FM2`.. Expected: Outputs and side effects match `FM2` exactly..\nSSOT ref: workflow_todos.rtl-gen[36].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC07.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_SCENARIO_SUPPORT_SC07",
+        "SC07",
+        "SCENARIO",
+        "SUPPORT",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0056",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[36]",
+      "ssot_context": {
+        "id": "RTL_SCENARIO_SUPPORT_SC07"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[6]",
+        "workflow_todos.rtl-gen[36]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_SCENARIO_SUPPORT_SC07",
+          "SC07",
+          "SCENARIO",
+          "SUPPORT",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_SCENARIO_SUPPORT_SC07",
+        "source_refs": [
+          "test_requirements.scenarios[6]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Expose RTL behavior needed by SSOT scenario `SC08`",
+      "criteria": [
+        "RTL has observable behavior for the scenario checker without weakening expected results",
+        "Scenario coverage can be closed by tb-gen using function_model/cycle_model",
+        "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[37]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: test_requirements.scenarios[7]"
+      ],
+      "detail": "Stimulus: Drive preconditions for function_model transaction `FM3`.. Expected: Outputs and side effects match `FM3` exactly..\nSSOT ref: workflow_todos.rtl-gen[37].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC08.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_SCENARIO_SUPPORT_SC08",
+        "SC08",
+        "SCENARIO",
+        "SUPPORT",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0057",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[37]",
+      "ssot_context": {
+        "id": "RTL_SCENARIO_SUPPORT_SC08"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[7]",
+        "workflow_todos.rtl-gen[37]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_SCENARIO_SUPPORT_SC08",
+          "SC08",
+          "SCENARIO",
+          "SUPPORT",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_SCENARIO_SUPPORT_SC08",
+        "source_refs": [
+          "test_requirements.scenarios[7]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Expose RTL behavior needed by SSOT scenario `SC09`",
+      "criteria": [
+        "RTL has observable behavior for the scenario checker without weakening expected results",
+        "Scenario coverage can be closed by tb-gen using function_model/cycle_model",
+        "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[38]",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv",
+        "Semantic source_refs covered: test_requirements.scenarios[8]"
+      ],
+      "detail": "Stimulus: Drive preconditions for function_model transaction `FM4`.. Expected: Outputs and side effects match `FM4` exactly..\nSSOT ref: workflow_todos.rtl-gen[38].\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC09.",
+      "evidence_terms": [
+        "20260519a",
+        "RTL_SCENARIO_SUPPORT_SC09",
+        "SC09",
+        "SCENARIO",
+        "SUPPORT",
+        "dma",
+        "dma_scratch_ui_live_20260519a",
+        "live",
+        "scratch",
+        "ui"
+      ],
+      "id": "RTL-0058",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[38]",
+      "ssot_context": {
+        "id": "RTL_SCENARIO_SUPPORT_SC09"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[8]",
+        "workflow_todos.rtl-gen[38]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519a",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519a",
+          "RTL_SCENARIO_SUPPORT_SC09",
+          "SC09",
+          "SCENARIO",
+          "SUPPORT",
+          "dma",
+          "dma_scratch_ui_live_20260519a",
+          "live",
+          "scratch",
+          "ui"
+        ],
+        "source_scope": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_SCENARIO_SUPPORT_SC09",
+        "source_refs": [
+          "test_requirements.scenarios[8]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    }
+  ],
+  "todo_plan_sha256": "28bc079a169dab10d71db849865eaa967a9ec34475c2cd554f104a55d373a2c9",
+  "top": "dma_scratch_ui_live_20260519a",
+  "type": "rtl_authoring_packet"
+}

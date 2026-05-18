@@ -1,0 +1,112 @@
+{
+  "approval_policy": "evidence_required",
+  "artifacts": [
+    "dma_scratch_ui_live_20260519a/sim/results.xml or dma_scratch_ui_live_20260519a/tb/cocotb/results.xml",
+    "dma_scratch_ui_live_20260519a/sim/scoreboard_events.jsonl",
+    "dma_scratch_ui_live_20260519a/cov/coverage.json",
+    "dma_scratch_ui_live_20260519a/sim/sim_report.txt"
+  ],
+  "fallback_if_no_evidence": "human_review_needed",
+  "gate": {
+    "all_required_todos_pass": false,
+    "approval_state": "rejected",
+    "open_required_todos": 2,
+    "status": "fail"
+  },
+  "generated_at": "2026-05-18T20:54:09Z",
+  "headline": "[sim] FAIL",
+  "human_review_needed": [],
+  "ip": "dma_scratch_ui_live_20260519a",
+  "runs": [
+    {
+      "cmd": "bash /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/sim.sh dma_scratch_ui_live_20260519a/tb/cocotb/test_runner.py",
+      "label": "sim",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Running cocotb Python runner: dma_scratch_ui_live_20260519a/tb/cocotb/test_runner.py\nUse 'make SIM=icarus' to run cocotb tests.\nOr: python3 -m cocotb_tools.runner ...\n\nSimulation: 0 errors, 0 warnings\nTests: 0 passed, 0 failed\n0 errors, 0 warnings"
+    },
+    {
+      "cmd": "bash /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_tb_sim_evidence.sh dma_scratch_ui_live_20260519a",
+      "label": "sim_evidence",
+      "returncode": 1,
+      "stderr": "",
+      "stdout": "[check_scoreboard_events] FAIL: scoreboard rows must include linked coverage refs\n[check_scoreboard_events] FAIL: missing dma_scratch_ui_live_20260519a/sim/scoreboard_events.jsonl\n[check_scoreboard_events] FAIL: dma_scratch_ui_live_20260519a/sim/scoreboard_events.jsonl has no scoreboard rows\n[check_scoreboard_events] FAIL: missing scoreboard rows for required goals: EQ_COVERAGE_CCOV_BACKPRESSURE, EQ_COVERAGE_CCOV_PIPELINE, EQ_COVERAGE_CYCLE_BACKPRESSURE_0, EQ_COVERAGE_CYCLE_BACKPRESSURE_1, EQ_COVERAGE_CYCLE_LATENCY_CSR_ACCESS, EQ_COVERAGE_CYCLE_PERF_DEPTH, EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ, EQ_COVERAGE_CYCLE_PERF_OUTSTANDING, EQ_COVERAGE_CYCLE_PERF_THROUGHPUT, EQ_COVERAGE_CYCLE_PIPELINE_READ_ADDR, EQ_COVERAGE_FCOV_STROBE, EQ_COVERAGE_FCOV_TX_ALL, ... +52"
+    }
+  ],
+  "schema_version": "golden_todo_stage.v1",
+  "stage": "sim",
+  "status": "fail",
+  "summary": {},
+  "tasks": [
+    {
+      "approval_policy": "evidence_required",
+      "approval_state": "rejected",
+      "content": "Run generated testbench and collect simulator evidence",
+      "criteria": "sim.sh and check_tb_sim_evidence both exit 0; results.xml, scoreboard_events.jsonl, and sim_report.txt exist.",
+      "detail": "Run the generated TB through sim.sh and require machine-readable pass/fail evidence.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "SIM-0001",
+      "owner_workflow": "sim",
+      "required": true,
+      "required_evidence": [
+        "dma_scratch_ui_live_20260519a/sim/results.xml or dma_scratch_ui_live_20260519a/tb/cocotb/results.xml",
+        "dma_scratch_ui_live_20260519a/sim/scoreboard_events.jsonl",
+        "dma_scratch_ui_live_20260519a/sim/sim_report.txt"
+      ],
+      "source_refs": [
+        "dma_scratch_ui_live_20260519a/tb/cocotb/test_runner.py",
+        "dma_scratch_ui_live_20260519a/yaml/dma_scratch_ui_live_20260519a.ssot.yaml"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "dma_scratch_ui_live_20260519a/sim/results.xml or dma_scratch_ui_live_20260519a/tb/cocotb/results.xml",
+          "dma_scratch_ui_live_20260519a/sim/scoreboard_events.jsonl",
+          "dma_scratch_ui_live_20260519a/sim/sim_report.txt",
+          "sim",
+          "sim_evidence"
+        ],
+        "reason": "[sim] FAIL",
+        "status": "open"
+      }
+    },
+    {
+      "approval_policy": "evidence_required",
+      "approval_state": "rejected",
+      "content": "Produce coverage-ready scoreboard rows",
+      "criteria": "ssot_coverage_summary exits 0, or a blocked coverage capability is explicitly recorded by policy.",
+      "detail": "Simulation evidence must carry goal/scenario/coverage references so Coverage can audit FL/CL bins against RTL observations.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "SIM-0002",
+      "owner_workflow": "sim",
+      "required": true,
+      "required_evidence": [
+        "dma_scratch_ui_live_20260519a/cov/coverage.json",
+        "ssot_coverage_summary returncode 0 or explicit rc=3 policy override"
+      ],
+      "source_refs": [
+        "dma_scratch_ui_live_20260519a/verify/equivalence_goals.json",
+        "dma_scratch_ui_live_20260519a/cov/fcov_plan.json"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "dma_scratch_ui_live_20260519a/cov/coverage.json",
+          "ssot_coverage_summary returncode 0 or explicit rc=3 policy override",
+          "sim",
+          "sim_evidence"
+        ],
+        "reason": "[sim] FAIL",
+        "status": "open"
+      }
+    }
+  ],
+  "todo_completion": {
+    "all_required_todos_pass": false,
+    "open_required_tasks": 2,
+    "status_counts": {
+      "open": 2,
+      "pass": 0
+    }
+  },
+  "type": "stage_todo_evidence_plan",
+  "workflow": "sim"
+}

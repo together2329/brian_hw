@@ -24,6 +24,7 @@ _OWNER_ROUTES: Dict[str, str] = {
     "timing_setup": HUMAN_ESCALATION,
     "timing_hold": "rtl-gen",
     "ssot_gap": "ssot-gen",
+    "pnr_setup": "pnr",
 }
 
 _COMPILE_HINTS = ("syntax error", "error:", "compile", "elaboration", "undefined")
@@ -41,6 +42,47 @@ _SSOT_GAP_HINTS = (
     "corner/library",
     "library policy",
     "quality_gates.eda",
+)
+_RTL_SSOT_CONTRACT_HINTS = (
+    "ssot behavior is not concrete enough",
+    "ssot-derived dynamic rtl todo gate",
+    "rtl_dynamic_todo_ownership",
+    "rtl_module_contracts",
+    "owner_traceability",
+    "module contract",
+    "manifest-owned rtl",
+    "module contracts",
+    "required ssot-derived rtl task",
+    "sub_modules into a module contract ledger",
+)
+_RTL_MISSING_ARTIFACT_HINTS = (
+    "llm-authored rtl evidence is missing or stale",
+    "llm_rtl_implementation_required",
+    "generate real rtl from ssot-derived todos",
+    "missing rtl files",
+    "filelist references missing file",
+    "filelist missing",
+    "missing canonical dut compile artifact",
+    "missing canonical dut lint artifact",
+    "missing rtl/rtl_compile.json",
+    "missing lint/dut_lint.json",
+    "ssot top module is not declared",
+    "manifest child module is not declared",
+    "no listed rtl source files were readable",
+)
+_PNR_SETUP_HINTS = (
+    "pnr",
+    "openroad",
+    "floorplan",
+    "place",
+    "cts",
+    "route",
+    "routed.def",
+    "routed.v",
+    "routed.spef",
+    "pdk",
+    "lef",
+    "def",
 )
 
 
@@ -100,6 +142,20 @@ def classify_failure(
 
     # 2. Stage-specific deterministic rules.
     if stage in ("rtl", "rtl-gen"):
+        if _text_has_any(error_text, _RTL_SSOT_CONTRACT_HINTS):
+            return {
+                "owner": "ssot_gap",
+                "next_workflow": "ssot-gen",
+                "reason": "rtl-gen blocked on missing SSOT module contracts",
+                "confidence": "high",
+            }
+        if _text_has_any(error_text, _RTL_MISSING_ARTIFACT_HINTS):
+            return {
+                "owner": "compile_error",
+                "next_workflow": "rtl-gen",
+                "reason": "RTL artifact/filelist is incomplete; rerun rtl-gen after preserving evidence",
+                "confidence": "high",
+            }
         if _text_has_any(error_text, _COMPILE_HINTS):
             return {
                 "owner": "compile_error",
@@ -155,6 +211,27 @@ def classify_failure(
             "next_workflow": HUMAN_ESCALATION,
             "reason": "timing stage failed without a parseable category",
             "confidence": "low",
+        }
+    if stage == "pnr":
+        if _text_has_any(error_text, _SSOT_GAP_HINTS):
+            return {
+                "owner": "ssot_gap",
+                "next_workflow": "ssot-gen",
+                "reason": "PnR preflight reported missing SSOT physical/EDA policy",
+                "confidence": "high",
+            }
+        if _text_has_any(error_text, _PNR_SETUP_HINTS):
+            return {
+                "owner": "pnr_setup",
+                "next_workflow": "pnr",
+                "reason": "PnR failed inside physical implementation/tool handoff; retry pnr after preserving evidence",
+                "confidence": "medium",
+            }
+        return {
+            "owner": "pnr_setup",
+            "next_workflow": "pnr",
+            "reason": "PnR stage failed; keep the loop in pnr before escalating",
+            "confidence": "medium",
         }
     if stage in ("ssot", "ssot-gen"):
         return {

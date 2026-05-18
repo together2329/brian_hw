@@ -43,6 +43,55 @@ class TestStageRules:
         assert result["owner"] == "compile_error"
         assert result["next_workflow"] == "rtl-gen"
 
+    def test_rtl_missing_filelist_routes_to_rtl_gen(self):
+        result = classify_failure(
+            "rtl",
+            error_text=(
+                "RTL validator failed: [check_rtl_disk] FAIL: "
+                "filelist references missing file: rtl/demo.sv"
+            ),
+        )
+        assert result["owner"] == "compile_error"
+        assert result["next_workflow"] == "rtl-gen"
+        assert result["confidence"] == "high"
+
+    def test_rtl_llm_implementation_required_routes_to_rtl_gen(self):
+        result = classify_failure(
+            "rtl",
+            error_text=(
+                "demo/rtl/rtl_blocked.json LLM-authored RTL evidence is missing or stale.; "
+                "questions=LLM_RTL_IMPLEMENTATION_REQUIRED; missing RTL files: rtl/demo.sv"
+            ),
+        )
+        assert result["owner"] == "compile_error"
+        assert result["next_workflow"] == "rtl-gen"
+        assert result["confidence"] == "high"
+
+    def test_rtl_contract_blocker_routes_to_ssot_gen(self):
+        result = classify_failure(
+            "rtl",
+            error_text=(
+                "rtl-gen BLOCKED: SSOT behavior is not concrete enough for "
+                "production RTL implementation. RTL_MODULE_CONTRACTS required."
+            ),
+        )
+        assert result["owner"] == "ssot_gap"
+        assert result["next_workflow"] == "ssot-gen"
+        assert result["confidence"] == "high"
+
+    def test_rtl_dynamic_todo_ownership_routes_to_ssot_gen(self):
+        result = classify_failure(
+            "rtl",
+            error_text=(
+                "stage evidence failed: demo/rtl/rtl_blocked.json "
+                "SSOT-derived dynamic RTL TODO gate is blocked; "
+                "questions=RTL_DYNAMIC_TODO_OWNERSHIP,RTL_MODULE_CONTRACTS"
+            ),
+        )
+        assert result["owner"] == "ssot_gap"
+        assert result["next_workflow"] == "ssot-gen"
+        assert result["confidence"] == "high"
+
     def test_lint_failure(self):
         result = classify_failure("lint")
         assert result["owner"] == "lint_violation"
@@ -95,6 +144,15 @@ class TestStageRules:
         assert result["owner"] == "ssot_gap"
         assert result["next_workflow"] == "ssot-gen"
         assert result["confidence"] == "high"
+
+    def test_pnr_failure_stays_in_pnr_loop(self):
+        result = classify_failure(
+            "pnr",
+            error_text="[Error] command exited 127\n[PNR PREFLIGHT] openroad not found",
+        )
+        assert result["owner"] == "pnr_setup"
+        assert result["next_workflow"] == "pnr"
+        assert result["confidence"] == "medium"
 
 
 class TestDefault:

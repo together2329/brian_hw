@@ -561,6 +561,10 @@ def _slash_command_failed(output: str) -> bool:
     lowered = text.lower()
     return (
         "[error]" in lowered
+        or re.search(r"\[[^\]\n]*(?:blocked|fail|failed)[^\]\n]*\]", lowered) is not None
+        or re.search(r"\[[^\]\n]+\]\s*(?:blocked|fail|failed)\b", lowered) is not None
+        or re.search(r"(^|\n)\s*(?:blocked|blocker):", lowered) is not None
+        or "status=error" in lowered
         or "❌" in text
         or "unknown command" in lowered
         or "script timed out" in lowered

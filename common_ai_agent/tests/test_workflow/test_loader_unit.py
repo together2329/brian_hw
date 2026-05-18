@@ -12,6 +12,7 @@ import sys
 import tempfile
 import types
 import unittest
+from unittest import mock
 from pathlib import Path
 
 # ── path setup (redundant with conftest but makes the file runnable directly) ──
@@ -990,6 +991,60 @@ class TestRegisterWorkspaceCommands(unittest.TestCase):
         register_workspace_commands(ws, _Reg())
         result = handlers["run"]("")
         self.assertIn("[Error]", result)
+
+    def test_bash_handler_python_script_uses_python_interpreter(self):
+        """bash:*.py commands run through Python, not bash."""
+        handlers = {}
+
+        class _Reg:
+            def register(self, name, handler, description="", aliases=[], usage=""):
+                handlers[name] = handler
+
+        scripts_dir = self.tmp / "scripts"
+        scripts_dir.mkdir()
+        script = scripts_dir / "repair.py"
+        script.write_text("#!/usr/bin/env python3\nprint('ok')\n", encoding="utf-8")
+        cmd_dir = self._write_cmd("repair", {
+            "name": "repair",
+            "handler": "bash:repair.py",
+        })
+        ws = self._ws(commands_dir=cmd_dir, scripts_dir=scripts_dir)
+        register_workspace_commands(ws, _Reg())
+
+        completed = types.SimpleNamespace(stdout="ok\n", stderr="", returncode=0)
+        with mock.patch("workflow.loader.subprocess.run", return_value=completed) as run:
+            result = handlers["repair"]("my_ip --mode engineering")
+
+        argv = run.call_args.args[0]
+        self.assertEqual(argv[:2], [sys.executable, str(script)])
+        self.assertEqual(argv[2:], ["my_ip", "--mode", "engineering"])
+        self.assertEqual(result, "ok")
+
+    def test_bash_handler_nonzero_returncode_becomes_error(self):
+        """bash:* command failures must be visible to orchestrator/worker routing."""
+        handlers = {}
+
+        class _Reg:
+            def register(self, name, handler, description="", aliases=[], usage=""):
+                handlers[name] = handler
+
+        scripts_dir = self.tmp / "scripts"
+        scripts_dir.mkdir(exist_ok=True)
+        script = scripts_dir / "fail.sh"
+        script.write_text("exit 7\n", encoding="utf-8")
+        cmd_dir = self._write_cmd("fail", {
+            "name": "fail",
+            "handler": "bash:fail.sh",
+        })
+        ws = self._ws(commands_dir=cmd_dir, scripts_dir=scripts_dir)
+        register_workspace_commands(ws, _Reg())
+
+        failed = types.SimpleNamespace(stdout="[PNR PREFLIGHT] cwd=/tmp\n", stderr="", returncode=7)
+        with mock.patch("workflow.loader.subprocess.run", return_value=failed):
+            result = handlers["fail"]("demo_ip")
+
+        self.assertIn("[Error] command exited 7", result)
+        self.assertIn("[PNR PREFLIGHT]", result)
 
 
 if __name__ == "__main__":

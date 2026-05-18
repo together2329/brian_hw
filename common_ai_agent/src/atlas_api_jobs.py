@@ -58,6 +58,36 @@ _PIPELINE_BY_ID       = {s["id"]: s       for s in _PIPELINE_STAGES}
 _PIPELINE_BY_WORKFLOW: dict[str, dict[str, str]] = {}
 for _stage in _PIPELINE_STAGES:
     _PIPELINE_BY_WORKFLOW.setdefault(_stage["workflow"], _stage)
+_PIPELINE_ALIASES: dict[str, str] = {
+    "ssot-gen": "ssot",
+    "fl": "fl-model",
+    "fl-model-gen": "fl-model",
+    "cl": "cl-model",
+    "cl-model-gen": "cl-model",
+    "cycle-model": "cl-model",
+    "ssot-cycle-model": "cl-model",
+    "equiv": "equivalence",
+    "equiv-goals": "equivalence",
+    "equivalence-goals": "equivalence",
+    "ssot-equiv-goals": "equivalence",
+    "rtl-gen": "rtl",
+    "tb-gen": "tb",
+    "sim_debug": "sim-debug",
+    "sim-debug": "sim-debug",
+    "debug": "sim-debug",
+    "psta": "sta-post",
+    "post-sta": "sta-post",
+}
+
+
+def _resolve_pipeline_stage(key: str) -> dict[str, str] | None:
+    name = str(key or "").strip()
+    if not name:
+        return None
+    alias = _PIPELINE_ALIASES.get(name) or _PIPELINE_ALIASES.get(name.lower())
+    if alias:
+        return _PIPELINE_BY_ID.get(alias)
+    return _PIPELINE_BY_ID.get(name) or _PIPELINE_BY_WORKFLOW.get(name)
 
 _PIPELINE_STAGE_ORDER = {stage["id"]: idx for idx, stage in enumerate(_PIPELINE_STAGES)}
 _PIPELINE_STAGE_DEPS: dict[str, tuple[str, ...]] = {
@@ -1384,6 +1414,8 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
             "machine-readable function_model output_rules/state_updates and sub_modules ownership refs. "
             f"Then run python3 workflow/ssot-gen/scripts/repair_ssot_schema.py {ip} --mode engineering "
             f"and bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip} --mode engineering. "
+            f"If {ip}/rtl/rtl_blocked.json exists, first run /resolve-rtl-blockers {ip} "
+            "--use-recommended-defaults, then rerun /repair-ssot and validation before handing back to rtl-gen. "
             "Finish with an [SSOT HANDOFF] summarizing assumptions, remaining TBDs, validation evidence, "
             "and downstream RTL/TB obligations."
         ),
@@ -1459,8 +1491,25 @@ def _workflow_prompt_with_stage_driver(
 
     driver_match = re.search(r"run\s+(/[A-Za-z0-9_\-]+)", default_prompt)
     driver = driver_match.group(1) if driver_match else ""
-    if driver and driver in custom_prompt:
+    if driver and _prompt_contains_executable_driver(custom_prompt, driver):
         return custom_prompt
+
+    rtl_blocker_terms = (
+        "rtl_blocked.json",
+        "rtl_module_contracts",
+        "rtl_dynamic_todo_ownership",
+        "ssot_behavior_ownership",
+        "missing ssot module contracts",
+    )
+    if workflow == "ssot-gen" and any(term in custom_prompt.lower() for term in rtl_blocker_terms):
+        return (
+            f"run /resolve-rtl-blockers {ip} --use-recommended-defaults; "
+            f"then run /repair-ssot {ip}; "
+            f"then bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip} --mode engineering. "
+            "This is an RTL blocker repair pass; do not rewrite the IP from scratch.\n\n"
+            "[Orchestrator worker instruction]\n"
+            + custom_prompt
+        )
 
     if workflow == "ssot-gen" and "[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]" in custom_prompt:
         return custom_prompt
@@ -1470,6 +1519,25 @@ def _workflow_prompt_with_stage_driver(
         + "\n\n[Orchestrator worker instruction]\n"
         + custom_prompt
     )
+
+
+def _prompt_contains_executable_driver(prompt: str, driver: str) -> bool:
+    """Return True only when *driver* appears as an executable command line."""
+    if not driver:
+        return False
+    text = str(prompt or "")
+    if driver not in text:
+        return False
+    text = re.sub(r"\s+(?:and|then)\s+/", "\n/", text, flags=re.IGNORECASE)
+    text = text.replace(";", "\n")
+    pattern = re.compile(rf"^{re.escape(driver)}(?:\s|$)")
+    for raw in text.splitlines():
+        line = raw.strip()
+        if line.lower().startswith("run "):
+            line = line[4:].strip()
+        if pattern.match(line):
+            return True
+    return False
 
 
 def _default_todo_template_for_job(workflow: str, stage_id: str, ip: str) -> str:
@@ -2013,6 +2081,24 @@ def _job_artifact_failure(
             return False, ""
     if stage == "rtl" or workflow == "rtl-gen":
         rtl_dir = ip_dir / "rtl"
+        blocked_path = rtl_dir / "rtl_blocked.json"
+        if blocked_path.is_file():
+            try:
+                blocked_doc = json.loads(blocked_path.read_text(encoding="utf-8"))
+            except Exception:
+                return True, f"unparseable artifact: {ip}/rtl/rtl_blocked.json"
+            if isinstance(blocked_doc, dict) and blocked_doc:
+                reason = str(blocked_doc.get("reason") or "rtl_blocked").strip()
+                questions = blocked_doc.get("questions")
+                question_ids: list[str] = []
+                if isinstance(questions, list):
+                    for item in questions:
+                        if isinstance(item, dict):
+                            qid = str(item.get("id") or "").strip()
+                            if qid:
+                                question_ids.append(qid)
+                suffix = f"; questions={','.join(question_ids)}" if question_ids else ""
+                return True, f"{ip}/rtl/rtl_blocked.json {reason}{suffix}"
         if rtl_dir.is_dir():
             placeholder_hits: list[str] = []
             for path in sorted(list(rtl_dir.glob("*.sv")) + list(rtl_dir.glob("*.v"))):
@@ -3085,7 +3171,7 @@ def register_jobs_routes(
         resolved = []
         for item in requested:
             key   = str(item).strip()
-            stage = _PIPELINE_BY_ID.get(key) or _PIPELINE_BY_WORKFLOW.get(key)
+            stage = _resolve_pipeline_stage(key)
             if not stage:
                 return JSONResponse({"error": f"unknown pipeline stage {key!r}"}, status_code=400)
             if not any(s["id"] == stage["id"] for s in resolved):
@@ -3395,7 +3481,7 @@ def register_jobs_routes(
         resolved = []
         for item in requested:
             key = str(item).strip()
-            stage = _PIPELINE_BY_ID.get(key) or _PIPELINE_BY_WORKFLOW.get(key)
+            stage = _resolve_pipeline_stage(key)
             if not stage:
                 return {"ok": False, "error": f"unknown pipeline stage {key!r}"}
             if not any(s["id"] == stage["id"] for s in resolved):

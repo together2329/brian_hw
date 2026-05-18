@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "type": "fl_functional_coverage_plan",
+  "ip": "dma_scratch_orch_live_20260519b",
+  "source": "dma_scratch_orch_live_20260519b/yaml/dma_scratch_orch_live_20260519b.ssot.yaml",
+  "planned_before_rtl": true,
+  "level": "fl",
+  "summary": {
+    "total_bins": 20,
+    "by_class": {
+      "scenario": 8,
+      "transaction_type": 3,
+      "state_transition": 8,
+      "error": 1
+    }
+  },
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC01",
+      "description": "reset contract"
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC02",
+      "description": "primary approved behavior"
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC03",
+      "description": "cycle handshake and backpressure"
+    },
+    {
+      "id": "SC04_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC04",
+      "description": "error and recovery policy"
+    },
+    {
+      "id": "SC05_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC05",
+      "description": "debug and trace observability"
+    },
+    {
+      "id": "SC06_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC06",
+      "description": "function_model transaction FM1"
+    },
+    {
+      "id": "SC07_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC07",
+      "description": "function_model transaction FM2"
+    },
+    {
+      "id": "SC08_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC08",
+      "description": "function_model transaction FM3"
+    },
+    {
+      "id": "function_feature_1",
+      "class": "transaction_type",
+      "source": "function_model.transactions[0]",
+      "description": "feature_1"
+    },
+    {
+      "id": "function_feature_2",
+      "class": "transaction_type",
+      "source": "function_model.transactions[1]",
+      "description": "feature_2"
+    },
+    {
+      "id": "function_feature_3",
+      "class": "transaction_type",
+      "source": "function_model.transactions[2]",
+      "description": "feature_3"
+    },
+    {
+      "id": "fsm_control_idle_to_accept_0",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[0]",
+      "description": "{'from': 'IDLE', 'to': 'ACCEPT', 'when': 'A legal transaction, packet, command, or CSR operation is accepted'}"
+    },
+    {
+      "id": "fsm_control_accept_to_exec_feature_1_1",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[1]",
+      "description": "{'from': 'ACCEPT', 'to': 'EXEC_FEATURE_1', 'when': 'Inputs and configuration match function_model preconditions'}"
+    },
+    {
+      "id": "fsm_control_exec_feature_1_to_exec_feature_2_2",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[2]",
+      "description": "{'from': 'EXEC_FEATURE_1', 'to': 'EXEC_FEATURE_2', 'when': 'The current SSOT-owned behavior slice completes'}"
+    },
+    {
+      "id": "fsm_control_exec_feature_2_to_exec_feature_3_3",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[3]",
+      "description": "{'from': 'EXEC_FEATURE_2', 'to': 'EXEC_FEATURE_3', 'when': 'The current SSOT-owned behavior slice completes'}"
+    },
+    {
+      "id": "fsm_control_exec_feature_3_to_complete_4",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[4]",
+      "description": "{'from': 'EXEC_FEATURE_3', 'to': 'COMPLETE', 'when': 'The current SSOT-owned behavior slice completes'}"
+    },
+    {
+      "id": "fsm_control_complete_to_idle_5",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[5]",
+      "description": "{'from': 'COMPLETE', 'to': 'IDLE', 'when': 'Observable result/status handoff completes'}"
+    },
+    {
+      "id": "fsm_control_from_to_error_6",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[6]",
+      "description": "{'from': '*', 'to': 'ERROR', 'when': 'error_handling.error_sources condition is detected'}"
+    },
+    {
+      "id": "fsm_control_error_to_idle_7",
+      "class": "state_transition",
+      "source": "fsm.control.transitions[7]",
+      "description": "{'from': 'ERROR', 'to': 'IDLE', 'when': 'Reset or approved recovery action clears the error'}"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "source": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_PROTOCOL', 'condition': 'Downstream protocol response is non-OKAY or invalid', 'architectural_effect': 'Set error status and block signoff until handled'}"
+    }
+  ]
+}

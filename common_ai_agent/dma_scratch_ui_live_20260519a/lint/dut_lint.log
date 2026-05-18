@@ -1,5 +1,14 @@
+===== pyslang =====
+command: pyslang rtl/dma_scratch_ui_live_20260519a.sv
+returncode: 0
+errors: 0 warnings: 0
+pyslang files: 1
+errors=0 warnings=0
+
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/dma_scratch_ui_live_20260519a.f --top-module dma_scratch_ui_live_20260519a
+returncode: 0
+errors: 0 warnings: 0
 - V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
-- Verilator: Built from 0.128 MB sources in 5 modules, into 0.048 MB in 3 C++ files needing 0.000 MB
-- Verilator: Walltime 0.032 s (elab=0.006, cvt=0.013, bld=0.000); cpu 0.017 s on 1 threads; allocated 9.375 MB
-=== iverilog ===
-[iverilog: 0 errors, 0 warnings]
+- Verilator: Built from 0.040 MB sources in 2 modules, into 0.032 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.029 s (elab=0.007, cvt=0.010, bld=0.000); cpu 0.014 s on 1 threads; allocated 8.891 MB

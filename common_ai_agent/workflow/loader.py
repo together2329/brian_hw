@@ -660,11 +660,16 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
                 "BENCHMARK_LOG": str(getattr(_ws, "workspace_dir", Path.cwd()) / ".benchmark"),
             }
             try:
+                runner = [sys.executable, str(_s)] if _s.suffix == ".py" else ["bash", str(_s)]
                 r = subprocess.run(
-                    ["bash", str(_s), *argv], env=env,
+                    [*runner, *argv], env=env,
                     capture_output=True, text=True, timeout=_timeout,
                 )
-                return (r.stdout or r.stderr or "(no output)").strip()
+                rendered = (r.stdout or r.stderr or "(no output)").strip()
+                returncode = int(getattr(r, "returncode", 0) or 0)
+                if returncode != 0:
+                    return f"[Error] command exited {returncode}\n{rendered}".strip()
+                return rendered
             except subprocess.TimeoutExpired:
                 return f"[Error] Script timed out ({_timeout}s)"
             except Exception as e:

@@ -1,0 +1,718 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 3,
+      "key": "parameters",
+      "module_task_count": 208,
+      "rule": "Owner module dma_scratch_ui_live_20260519a is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "parameters",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "name": "dma_scratch_ui_live_20260519a",
+      "refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/dma_scratch_ui_live_20260519a.sv",
+        "name": "dma_scratch_ui_live_20260519a",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awaddr",
+          "s_axil_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awaddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awvalid",
+          "s_axil_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awvalid",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_awready",
+          "s_axil_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_awready",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wdata",
+          "s_axil_wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wdata",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wstrb",
+          "s_axil_wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wstrb",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "DATA_WIDTH/8"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wvalid",
+          "s_axil_wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wvalid",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_wready",
+          "s_axil_wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_wready",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bresp",
+          "s_axil_bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bresp",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bvalid",
+          "s_axil_bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bvalid",
+        "source_ref": "io_list.interfaces[0].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_bready",
+          "s_axil_bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_bready",
+        "source_ref": "io_list.interfaces[0].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_araddr",
+          "s_axil_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_araddr",
+        "source_ref": "io_list.interfaces[0].ports[10]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_arvalid",
+          "s_axil_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_arvalid",
+        "source_ref": "io_list.interfaces[0].ports[11]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_arready",
+          "s_axil_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_arready",
+        "source_ref": "io_list.interfaces[0].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rdata",
+          "s_axil_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "s_axil_rdata",
+        "source_ref": "io_list.interfaces[0].ports[13]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rresp",
+          "s_axil_rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rresp",
+        "source_ref": "io_list.interfaces[0].ports[14]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rvalid",
+          "s_axil_rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rvalid",
+        "source_ref": "io_list.interfaces[0].ports[15]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axil_ctrl_s_axil_rready",
+          "s_axil_rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "s_axil_rready",
+        "source_ref": "io_list.interfaces[0].ports[16]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_araddr",
+          "m_axi_araddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_araddr",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_arvalid",
+          "m_axi_arvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_arvalid",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_arready",
+          "m_axi_arready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_arready",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rdata",
+          "m_axi_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "m_axi_rdata",
+        "source_ref": "io_list.interfaces[1].ports[3]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rresp",
+          "m_axi_rresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rresp",
+        "source_ref": "io_list.interfaces[1].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rvalid",
+          "m_axi_rvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rvalid",
+        "source_ref": "io_list.interfaces[1].ports[5]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_rready",
+          "m_axi_rready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_rready",
+        "source_ref": "io_list.interfaces[1].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awaddr",
+          "m_axi_awaddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awaddr",
+        "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "ADDR_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awvalid",
+          "m_axi_awvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awvalid",
+        "source_ref": "io_list.interfaces[1].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_awready",
+          "m_axi_awready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_awready",
+        "source_ref": "io_list.interfaces[1].ports[9]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wdata",
+          "m_axi_wdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wdata",
+        "source_ref": "io_list.interfaces[1].ports[10]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wstrb",
+          "m_axi_wstrb"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wstrb",
+        "source_ref": "io_list.interfaces[1].ports[11]",
+        "width": "DATA_WIDTH/8"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wvalid",
+          "m_axi_wvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wvalid",
+        "source_ref": "io_list.interfaces[1].ports[12]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_wready",
+          "m_axi_wready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_wready",
+        "source_ref": "io_list.interfaces[1].ports[13]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bresp",
+          "m_axi_bresp"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bresp",
+        "source_ref": "io_list.interfaces[1].ports[14]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bvalid",
+          "m_axi_bvalid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bvalid",
+        "source_ref": "io_list.interfaces[1].ports[15]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "axi_mem_m_axi_bready",
+          "m_axi_bready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "m_axi_bready",
+        "source_ref": "io_list.interfaces[1].ports[16]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "dma_scratch_ui_live_20260519a",
+  "kind": "module",
+  "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+  "owner_module": "dma_scratch_ui_live_20260519a",
+  "packet_id": "module__dma_scratch_ui_live_20260519a__parameters",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "parameters.item": 4
+    },
+    "module_slice": {
+      "count": 15,
+      "enabled": true,
+      "index": 3,
+      "key": "parameters",
+      "module_task_count": 208,
+      "rule": "Owner module dma_scratch_ui_live_20260519a is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "parameters",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 4,
+    "source_refs": [
+      "parameters.ADDR_WIDTH",
+      "parameters.DATA_WIDTH",
+      "parameters.LEN_WIDTH",
+      "parameters.FIFO_DEPTH"
+    ],
+    "status_counts": {
+      "pass": 4
+    },
+    "task_count": 4
+  },
+  "tasks": [
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter ADDR_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.ADDR_WIDTH",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.ADDR_WIDTH.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=ADDR_WIDTH; value=32.",
+      "evidence_terms": [],
+      "id": "RTL-0060",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.ADDR_WIDTH",
+      "ssot_context": {
+        "name": "ADDR_WIDTH",
+        "value": "32"
+      },
+      "ssot_refs": [
+        "parameters.ADDR_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter DATA_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.DATA_WIDTH",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.DATA_WIDTH.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=DATA_WIDTH; value=32.",
+      "evidence_terms": [],
+      "id": "RTL-0061",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.DATA_WIDTH",
+      "ssot_context": {
+        "name": "DATA_WIDTH",
+        "value": "32"
+      },
+      "ssot_refs": [
+        "parameters.DATA_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter LEN_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.LEN_WIDTH",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.LEN_WIDTH.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=LEN_WIDTH; value=16.",
+      "evidence_terms": [],
+      "id": "RTL-0062",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.LEN_WIDTH",
+      "ssot_context": {
+        "name": "LEN_WIDTH",
+        "value": "16"
+      },
+      "ssot_refs": [
+        "parameters.LEN_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter FIFO_DEPTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.FIFO_DEPTH",
+        "Primary implementation evidence is in rtl/dma_scratch_ui_live_20260519a.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.FIFO_DEPTH.\nOwner: dma_scratch_ui_live_20260519a in rtl/dma_scratch_ui_live_20260519a.sv via single_owner.\nSSOT item context: name=FIFO_DEPTH; value=2.",
+      "evidence_terms": [],
+      "id": "RTL-0063",
+      "owner_file": "rtl/dma_scratch_ui_live_20260519a.sv",
+      "owner_module": "dma_scratch_ui_live_20260519a",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.FIFO_DEPTH",
+      "ssot_context": {
+        "name": "FIFO_DEPTH",
+        "value": "2"
+      },
+      "ssot_refs": [
+        "parameters.FIFO_DEPTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "28bc079a169dab10d71db849865eaa967a9ec34475c2cd554f104a55d373a2c9",
+  "top": "dma_scratch_ui_live_20260519a",
+  "type": "rtl_authoring_packet"
+}

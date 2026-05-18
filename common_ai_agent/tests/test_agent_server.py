@@ -157,6 +157,13 @@ class TestAgentServerUnit(unittest.TestCase):
         commands = self.server_mod._extract_direct_slash_commands(task)
         self.assertEqual(commands, ["/ssot-cycle-model demo_ip", "/ssot-dual-fcov demo_ip"])
 
+    def test_slash_command_failure_detects_stage_blockers(self):
+        self.assertTrue(
+            self.server_mod._slash_command_failed("[RTL BLOCKED] rtl-gen waiting for LLM-authored RTL")
+        )
+        self.assertTrue(self.server_mod._slash_command_failed("[sim] FAIL missing results.xml"))
+        self.assertFalse(self.server_mod._slash_command_failed('<testsuite failures="0"></testsuite>'))
+
     def test_direct_slash_command_path_records_modified_files(self):
         from core.slash_commands import get_registry
 
