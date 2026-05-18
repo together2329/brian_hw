@@ -1241,7 +1241,7 @@ class TestCompressorToolCallAnnotation(unittest.TestCase):
 
 class TestWorkerWorkspaceActivation(unittest.TestCase):
     """Verify that _run_react_task activates workspace with the same steps as
-    main agent's _setup_workspace (steps 1-9, excluding slash commands)."""
+    main agent's _setup_workspace."""
 
     def test_workspace_activation_code_imports_merge_prompt(self):
         """The new activation block must import merge_prompt from workflow.loader."""
@@ -1273,6 +1273,14 @@ class TestWorkerWorkspaceActivation(unittest.TestCase):
         src = inspect.getsource(agent_server._run_react_task)
         self.assertIn("register_script_hooks", src)
         self.assertIn("_ws_hook_registry", src)
+
+    def test_workspace_activation_registers_slash_commands(self):
+        """Worker mode must register workflow slash commands for ATLAS drivers."""
+        import inspect
+        from core import agent_server
+        src = inspect.getsource(agent_server._run_react_task)
+        self.assertIn("register_workspace_commands", src)
+        self.assertIn("_extract_direct_slash_commands", src)
 
     def test_workspace_activation_patches_todo_rules(self):
         """patch_todo_rules must be called."""

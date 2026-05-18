@@ -149,6 +149,47 @@ class TestAgentServerUnit(unittest.TestCase):
         self.assertEqual(entry.status, "completed", entry.result)
         self.assertIn("demo_ip/yaml/demo_ip.ssot.yaml", entry.result["files_modified"])
 
+    def test_extract_direct_slash_commands_from_stage_driver_prompt(self):
+        task = (
+            "run /ssot-cycle-model demo_ip and /ssot-dual-fcov demo_ip; "
+            "generate the SSOT-derived cycle model"
+        )
+        commands = self.server_mod._extract_direct_slash_commands(task)
+        self.assertEqual(commands, ["/ssot-cycle-model demo_ip", "/ssot-dual-fcov demo_ip"])
+
+    def test_direct_slash_command_path_records_modified_files(self):
+        from core.slash_commands import get_registry
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "demo_ip").mkdir()
+            old_cwd = os.getcwd()
+            os.chdir(root)
+            registry = get_registry()
+
+            def touch_cmd(args: str) -> str:
+                ip = args.strip()
+                out = root / ip / "model" / "touch.json"
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text('{"ok": true}\n', encoding="utf-8")
+                return f"[touch] wrote {out.relative_to(root)}"
+
+            registry.register("unit-touch", touch_cmd, "unit test command")
+            entry = self.server_mod._create_run("run /unit-touch demo_ip")
+            try:
+                self.server_mod._execute_direct_slash_commands(
+                    entry,
+                    ["/unit-touch demo_ip"],
+                    project_root=str(root),
+                    ip="demo_ip",
+                )
+            finally:
+                registry.unregister("unit-touch")
+                os.chdir(old_cwd)
+
+        self.assertEqual(entry.status, "completed", entry.result)
+        self.assertIn("demo_ip/model/touch.json", entry.result["files_modified"])
+
 
 # ============================================================
 # Unit Tests — agent_client worker_call (mocked HTTP)

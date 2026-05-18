@@ -19,8 +19,20 @@ os.chdir(str(IP_DIR))
 # Add IP dir parent to Python path so 'tb.cocotb.xxx' imports work
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+if str(IP_DIR) not in sys.path:
+    sys.path.insert(0, str(IP_DIR))
 
-os.environ["PYTHONPATH"] = str(PROJECT_ROOT) + ":" + os.environ.get("PYTHONPATH", "")
+# Also need model dir for functional_model import
+_MODEL_DIR = str(IP_DIR / "model")
+if _MODEL_DIR not in sys.path:
+    sys.path.insert(0, _MODEL_DIR)
+
+# Build PYTHONPATH for the cocotb subprocess
+_paths = [str(PROJECT_ROOT), str(IP_DIR), _MODEL_DIR]
+_existing = os.environ.get("PYTHONPATH", "")
+if _existing:
+    _paths.append(_existing)
+os.environ["PYTHONPATH"] = ":".join(_paths)
 
 from cocotb.runner import get_runner  # noqa: E402
 

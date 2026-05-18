@@ -486,6 +486,136 @@ def _create_run(task: str, model: str = "") -> RunEntry:
     return entry
 
 
+def _snapshot_scope_files(project_root: str, ip: str) -> Dict[str, tuple[int, int]]:
+    """Return a cheap file snapshot for the IP scope.
+
+    Worker slash commands are deterministic stage entrypoints.  Capturing the
+    scope before/after lets the worker result expose modified files without
+    requiring a full LLM transcript scan.
+    """
+    if not ip:
+        return {}
+    root = Path(project_root or _project_root).resolve()
+    scope = (root / ip).resolve()
+    try:
+        scope.relative_to(root)
+    except ValueError:
+        return {}
+    if not scope.exists():
+        return {}
+    out: Dict[str, tuple[int, int]] = {}
+    for path in scope.rglob("*"):
+        if not path.is_file():
+            continue
+        try:
+            st = path.stat()
+        except OSError:
+            continue
+        try:
+            rel = str(path.relative_to(root))
+        except ValueError:
+            rel = str(path)
+        out[rel] = (int(st.st_mtime_ns), int(st.st_size))
+    return out
+
+
+def _changed_scope_files(before: Dict[str, tuple[int, int]], after: Dict[str, tuple[int, int]]) -> List[str]:
+    return sorted(path for path, sig in after.items() if before.get(path) != sig)
+
+
+def _extract_direct_slash_commands(task: str) -> List[str]:
+    """Extract coordinator-sent workflow slash commands from a worker task.
+
+    ATLAS dispatch prompts intentionally include canonical drivers such as
+    ``run /ssot-rtl <ip>``.  Treat those as worker commands, not prose for an
+    LLM to reinterpret.  The parser is deliberately conservative: it only
+    accepts commands at line starts or after common command separators.
+    """
+    if os.getenv("AGENT_SERVER_DIRECT_SLASH", "true").lower() not in {"1", "true", "yes", "on"}:
+        return []
+    text = str(task or "")
+    if "/" not in text:
+        return []
+    text = re.sub(r"\s+(?:and|then)\s+/", "\n/", text, flags=re.IGNORECASE)
+    text = text.replace(";", "\n")
+    commands: List[str] = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if line.lower().startswith("run "):
+            line = line[4:].strip()
+        match = re.match(r"^(/[A-Za-z0-9][A-Za-z0-9_-]*(?:\s+.*)?)$", line)
+        if not match:
+            continue
+        command = match.group(1).strip().rstrip(".")
+        # Drop obvious prose suffixes while preserving normal command args.
+        command = re.split(r"\s+(?:generate|using|after|before)\s+", command, maxsplit=1, flags=re.IGNORECASE)[0].strip()
+        if command and command not in commands:
+            commands.append(command)
+    return commands
+
+
+def _slash_command_failed(output: str) -> bool:
+    text = str(output or "")
+    lowered = text.lower()
+    return (
+        "[error]" in lowered
+        or "❌" in text
+        or "unknown command" in lowered
+        or "script timed out" in lowered
+        or "traceback" in lowered
+    )
+
+
+def _execute_direct_slash_commands(
+    entry: RunEntry,
+    commands: List[str],
+    *,
+    project_root: str,
+    ip: str,
+) -> None:
+    """Execute extracted slash commands and close the worker run."""
+    from core.slash_commands import get_registry
+
+    before = _snapshot_scope_files(project_root, ip)
+    registry = get_registry()
+    outputs: List[str] = []
+    failed = False
+    for command in commands:
+        entry.add_log("action", f"slash:{command}", role="assistant")
+        result = registry.execute(command)
+        rendered = "" if result is None else str(result)
+        outputs.append(f"$ {command}\n{rendered}".rstrip())
+        entry.add_log("observation", rendered[:2000], role="tool")
+        failed = failed or _slash_command_failed(rendered)
+
+    after = _snapshot_scope_files(project_root, ip)
+    files_modified = _changed_scope_files(before, after)
+    entry.status = "error" if failed else "completed"
+    entry.error = "direct slash command failed" if failed else None
+    entry.finished_at = time.time()
+    final_output = "\n\n".join(outputs)
+    entry.result = {
+        "run_id": entry.run_id,
+        "status": entry.status,
+        "result": final_output[:10000],
+        "files_modified": files_modified,
+        "files_examined": [],
+        "iterations": 0,
+        "todos_summary": _build_todos_summary(getattr(entry, "_todos", []) or [], entry),
+        "direct_slash_commands": commands,
+    }
+    _on_status_change()
+    entry.add_log(
+        "done" if not failed else "error",
+        f"Direct slash command path {'failed' if failed else 'completed'}; {len(files_modified)} files modified.",
+        role="system",
+    )
+    _fire_callback(entry)
+    _write_run_log(entry)
+
+
 def _get_run(run_id: str) -> Optional[RunEntry]:
     with _runs_lock:
         return _runs.get(run_id)
@@ -538,7 +668,8 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         try:
             from workflow.loader import (
                 load_workspace, merge_prompt, patch_todo_rules,
-                register_script_hooks, get_todo_template_registry,
+                register_script_hooks, register_workspace_commands,
+                get_todo_template_registry,
             )
             import builtins as _b
             import core.compressor as _comp
@@ -632,6 +763,24 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                     register_script_hooks(ws, _ws_hook_registry)
                 except Exception as _she:
                     entry.add_log("system", f"WARNING: script hooks setup failed: {_she}", role="system")
+
+            # ── 5b. Slash commands ──
+            # ATLAS orchestrator dispatches canonical workflow entrypoints as
+            # slash commands (for example, `run /ssot-rtl <ip>`).  Register the
+            # workspace commands in worker mode too, otherwise those drivers
+            # are forced through the LLM instead of the stage engine.
+            try:
+                from core.slash_commands import get_registry as _get_slash_registry
+                _slash_reg = _get_slash_registry()
+                _registered = register_workspace_commands(ws, _slash_reg)
+                if _registered:
+                    entry.add_log(
+                        "system",
+                        f"Registered {len(_registered)} workspace slash commands",
+                        role="system",
+                    )
+            except Exception as _cmd_exc:
+                entry.add_log("system", f"WARNING: command setup failed: {_cmd_exc}", role="system")
 
             # ── 6. Todo rules ──
             try:
@@ -1127,6 +1276,16 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         user_parts.append(full_task)
         messages.append({"role": "user", "content": "\n\n".join(user_parts)})
         entry.add_log("task", full_task, role="user")
+
+        direct_commands = _extract_direct_slash_commands(full_task)
+        if direct_commands:
+            _execute_direct_slash_commands(
+                entry,
+                direct_commands,
+                project_root=project_root or _project_root,
+                ip=ip,
+            )
+            return
 
         # ── Run the full ReAct loop ──
         updated_messages, final_agent_mode = run_react_agent_impl(
