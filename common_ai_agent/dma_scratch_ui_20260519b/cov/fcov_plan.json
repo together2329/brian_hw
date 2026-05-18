@@ -1,0 +1,523 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "dma_scratch_ui_20260519b",
+  "source": "dma_scratch_ui_20260519b/yaml/dma_scratch_ui_20260519b.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "dma_scratch_ui_20260519b/req/",
+      "dma_scratch_ui_20260519b/yaml/dma_scratch_ui_20260519b.ssot.yaml",
+      "dma_scratch_ui_20260519b/model/functional_model.py",
+      "dma_scratch_ui_20260519b/cov/fcov_plan.json",
+      "dma_scratch_ui_20260519b/yaml/dma_scratch_ui_20260519b.ssot.yaml#io_list",
+      "dma_scratch_ui_20260519b/yaml/dma_scratch_ui_20260519b.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "dma_scratch_ui_20260519b/rtl/",
+      "dma_scratch_ui_20260519b/tb/",
+      "dma_scratch_ui_20260519b/sim/",
+      "dma_scratch_ui_20260519b/vectors/",
+      "dma_scratch_ui_20260519b/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC01",
+      "description": "reset contract"
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC02",
+      "description": "primary approved behavior"
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC03",
+      "description": "cycle handshake and backpressure"
+    },
+    {
+      "id": "SC04_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC04",
+      "description": "error and recovery policy"
+    },
+    {
+      "id": "SC05_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC05",
+      "description": "debug and trace observability"
+    },
+    {
+      "id": "SC06_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC06",
+      "description": "function_model transaction FM_RESET"
+    },
+    {
+      "id": "SC07_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC07",
+      "description": "function_model transaction FM_APB_WRITE"
+    },
+    {
+      "id": "SC08_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC08",
+      "description": "function_model transaction FM_APB_READ"
+    },
+    {
+      "id": "SC09_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC09",
+      "description": "function_model transaction FM_START"
+    },
+    {
+      "id": "SC10_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[9]",
+      "scenario": "SC10",
+      "description": "function_model transaction FM_READ_ACCEPT"
+    },
+    {
+      "id": "SC11_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[10]",
+      "scenario": "SC11",
+      "description": "function_model transaction FM_READ_DATA"
+    },
+    {
+      "id": "SC12_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[11]",
+      "scenario": "SC12",
+      "description": "function_model transaction FM_WRITE_ACCEPT"
+    },
+    {
+      "id": "fcov_reset",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions",
+      "source_ref": "function_model.transactions",
+      "description": "Reset observed."
+    },
+    {
+      "id": "fcov_apb_write_read",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions",
+      "source_ref": "function_model.transactions",
+      "description": "CSR write/readback observed."
+    },
+    {
+      "id": "fcov_dma_copy",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions",
+      "source_ref": "function_model.transactions",
+      "description": "DMA copy beat and completion observed."
+    },
+    {
+      "id": "ccov_apb",
+      "class": "cycle_rule",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S0_CSR",
+      "source_ref": "cycle_model.pipeline.S0_CSR",
+      "description": "APB access cycle covered."
+    },
+    {
+      "id": "ccov_mem_bp",
+      "class": "cycle_rule",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure",
+      "source_ref": "cycle_model.backpressure",
+      "description": "Memory backpressure covered."
+    },
+    {
+      "id": "function_reset",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_reset",
+      "description": "reset"
+    },
+    {
+      "id": "function_apb_programming_and_clear",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm_apb_write",
+      "description": "apb_programming_and_clear"
+    },
+    {
+      "id": "function_apb_status_readback",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[2]",
+      "source_ref": "function_model.transactions.fm_apb_read",
+      "description": "apb_status_readback"
+    },
+    {
+      "id": "function_start_transfer",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[3]",
+      "source_ref": "function_model.transactions.fm_start",
+      "description": "start_transfer"
+    },
+    {
+      "id": "function_memory_read_request_accept",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[4]",
+      "source_ref": "function_model.transactions.fm_read_accept",
+      "description": "memory_read_request_accept"
+    },
+    {
+      "id": "function_memory_read_data_capture",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[5]",
+      "source_ref": "function_model.transactions.fm_read_data",
+      "description": "memory_read_data_capture"
+    },
+    {
+      "id": "function_memory_write_accept_and_advance",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[6]",
+      "source_ref": "function_model.transactions.fm_write_accept",
+      "description": "memory_write_accept_and_advance"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'psel/penable/pready', 'rule': 'Register access completes in any cycle psel && penable; pready is high.'}"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'signal': 'mem_rd_valid/mem_rd_ready', 'rule': 'mem_rd_addr remains stable until ready accepts the read request.'}"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'signal': 'mem_rdata_valid', 'rule': 'One read data beat is captured when valid is high after an accepted read request.'}"
+    },
+    {
+      "id": "cycle_handshake_3",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[3]",
+      "source_ref": "cycle_model.handshake_rules[3]",
+      "description": "{'signal': 'mem_wr_valid/mem_wr_ready', 'rule': 'mem_wr_addr/mem_wr_data/mem_wr_strb remain stable until ready accepts the write request.'}"
+    },
+    {
+      "id": "cycle_latency_register_access",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_access",
+      "source_ref": "cycle_model.latency.register_access",
+      "description": "{'min_cycles': 0, 'max_cycles': 0, 'description': 'Zero-wait APB-like accesses.'}"
+    },
+    {
+      "id": "cycle_latency_transfer",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.transfer",
+      "source_ref": "cycle_model.latency.transfer",
+      "description": "{'min_cycles': 3, 'max_cycles': None, 'description': 'Depends on length_bytes and memory backpressure/response latency.'}"
+    },
+    {
+      "id": "cycle_pipeline_s0_csr",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Accept APB register read/write and start command."
+    },
+    {
+      "id": "cycle_pipeline_s1_read_req",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Issue and hold read request until mem_rd_ready."
+    },
+    {
+      "id": "cycle_pipeline_s2_read_data",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Wait for mem_rdata_valid and capture mem_rdata."
+    },
+    {
+      "id": "cycle_pipeline_s3_write_req",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[3]",
+      "source_ref": "cycle_model.pipeline[3]",
+      "description": "Issue and hold write request until mem_wr_ready."
+    },
+    {
+      "id": "cycle_pipeline_s4_status",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[4]",
+      "source_ref": "cycle_model.pipeline[4]",
+      "description": "Advance counters or set done/irq on final beat."
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "APB start latches programmed fields before the first memory request."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "Each write beat uses data from the immediately preceding read data beat."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "The next read is not issued until the current write is accepted."
+    },
+    {
+      "id": "cycle_ordering_3",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[3]",
+      "source_ref": "cycle_model.ordering[3]",
+      "description": "Done and irq_status update only after the final write is accepted."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "mem_rd_ready low stalls READ_REQ with stable mem_rd_addr."
+    },
+    {
+      "id": "cycle_backpressure_1",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[1]",
+      "source_ref": "cycle_model.backpressure[1]",
+      "description": "absence of mem_rdata_valid stalls READ_DATA with no write request."
+    },
+    {
+      "id": "cycle_backpressure_2",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[2]",
+      "source_ref": "cycle_model.backpressure[2]",
+      "description": "mem_wr_ready low stalls WRITE_REQ with stable write payload."
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'max': 1, 'description': 'One transfer and one memory beat at a time.'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 5, 'queue_depth': 1, 'description': 'CSR/read/read-data/write/status sequencing.'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "100"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_beats_per_cycle': 1, 'condition': 'Memory has no backpressure and returns read data in one cycle.'}"
+    },
+    {
+      "id": "fsm_control_idle_to_read_req_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[0]",
+      "source_ref": "fsm.control.transitions[0]",
+      "description": "{'from': 'IDLE', 'to': 'READ_REQ', 'when': 'start accepted with length_bytes != 0'}"
+    },
+    {
+      "id": "fsm_control_idle_to_error_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[1]",
+      "source_ref": "fsm.control.transitions[1]",
+      "description": "{'from': 'IDLE', 'to': 'ERROR', 'when': 'start accepted with length_bytes == 0 or start while busy'}"
+    },
+    {
+      "id": "fsm_control_read_req_to_read_data_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[2]",
+      "source_ref": "fsm.control.transitions[2]",
+      "description": "{'from': 'READ_REQ', 'to': 'READ_DATA', 'when': 'mem_rd_valid && mem_rd_ready'}"
+    },
+    {
+      "id": "fsm_control_read_data_to_write_req_3",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[3]",
+      "source_ref": "fsm.control.transitions[3]",
+      "description": "{'from': 'READ_DATA', 'to': 'WRITE_REQ', 'when': 'mem_rdata_valid'}"
+    },
+    {
+      "id": "fsm_control_write_req_to_read_req_4",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[4]",
+      "source_ref": "fsm.control.transitions[4]",
+      "description": "{'from': 'WRITE_REQ', 'to': 'READ_REQ', 'when': 'mem_wr_valid && mem_wr_ready && !last_beat'}"
+    },
+    {
+      "id": "fsm_control_write_req_to_complete_5",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[5]",
+      "source_ref": "fsm.control.transitions[5]",
+      "description": "{'from': 'WRITE_REQ', 'to': 'COMPLETE', 'when': 'mem_wr_valid && mem_wr_ready && last_beat'}"
+    },
+    {
+      "id": "fsm_control_complete_to_idle_6",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[6]",
+      "source_ref": "fsm.control.transitions[6]",
+      "description": "{'from': 'COMPLETE', 'to': 'IDLE', 'when': 'completion status committed'}"
+    },
+    {
+      "id": "fsm_control_error_to_idle_7",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[7]",
+      "source_ref": "fsm.control.transitions[7]",
+      "description": "{'from': 'ERROR', 'to': 'IDLE', 'when': 'CTRL.clear_done or reset'}"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_START_BUSY', 'condition': 'Software writes CTRL.start while busy', 'architectural_effect': 'Set STATUS.error and continue current transfer.'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[1]",
+      "source_ref": "error_handling.error_sources[1]",
+      "description": "{'id': 'ERR_ZERO_LENGTH', 'condition': 'Software starts with LENGTH_BYTES == 0', 'architectural_effect': 'Set STATUS.error and do not start memory traffic.'}"
+    },
+    {
+      "id": "error_error_2",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[2]",
+      "source_ref": "error_handling.error_sources[2]",
+      "description": "{'id': 'ERR_BAD_CSR_ADDR', 'condition': 'APB access uses unsupported offset', 'architectural_effect': 'Assert pslverr for that access; architectural state unchanged.'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 57,
+    "scenario_bins": 12,
+    "transaction_bins": 7,
+    "protocol_bins": 4,
+    "state_transition_bins": 8,
+    "error_bins": 3
+  }
+}

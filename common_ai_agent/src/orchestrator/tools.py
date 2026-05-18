@@ -11,8 +11,10 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 import time
 from pathlib import Path
+from types import ModuleType
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from src.orchestrator.classify import HUMAN_ESCALATION, classify_failure
@@ -75,11 +77,29 @@ def _dispatch_workflow_bridge() -> Optional[Callable]:
     return getattr(core_tools, "_dispatch_workflow_callback", None)
 
 
-def _jobs_registry() -> Optional[Tuple[Dict[str, Any], Any]]:
-    """Return (_jobs, _jobs_lock) from src.atlas_api_jobs, or None."""
+def _atlas_api_jobs_module() -> Optional[ModuleType]:
+    """Return the already-loaded jobs module, regardless of import style."""
+    module = sys.modules.get("atlas_api_jobs") or sys.modules.get("src.atlas_api_jobs")
+    if isinstance(module, ModuleType):
+        return module
+    try:
+        import atlas_api_jobs  # type: ignore
+
+        return atlas_api_jobs
+    except Exception:
+        pass
     try:
         from src import atlas_api_jobs  # type: ignore
+
+        return atlas_api_jobs
     except Exception:
+        return None
+
+
+def _jobs_registry() -> Optional[Tuple[Dict[str, Any], Any]]:
+    """Return the live (_jobs, _jobs_lock) registry from atlas_api_jobs."""
+    atlas_api_jobs = _atlas_api_jobs_module()
+    if atlas_api_jobs is None:
         return None
     jobs = getattr(atlas_api_jobs, "_jobs", None)
     lock = getattr(atlas_api_jobs, "_jobs_lock", None)
@@ -89,12 +109,10 @@ def _jobs_registry() -> Optional[Tuple[Dict[str, Any], Any]]:
 
 
 def _pipeline_stage_deps() -> Dict[str, Tuple[str, ...]]:
-    try:
-        from src import atlas_api_jobs  # type: ignore
-
-        return getattr(atlas_api_jobs, "_PIPELINE_STAGE_DEPS", {})
-    except Exception:
+    atlas_api_jobs = _atlas_api_jobs_module()
+    if atlas_api_jobs is None:
         return {}
+    return getattr(atlas_api_jobs, "_PIPELINE_STAGE_DEPS", {})
 
 
 # ----------------------------------------------------------------------

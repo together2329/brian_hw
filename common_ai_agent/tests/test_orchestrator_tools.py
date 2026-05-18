@@ -62,6 +62,30 @@ class TestDispatchWorkflow:
 
 
 class TestWaitJob:
+    def test_uses_top_level_jobs_module_when_server_loaded_that_way(self, monkeypatch):
+        import sys
+        import threading
+        import types
+
+        live_module = types.ModuleType("atlas_api_jobs")
+        live_module._jobs = {
+            "live": {"job_id": "live", "status": "running", "workflow": "ssot-gen"}
+        }
+        live_module._jobs_lock = threading.Lock()
+
+        stale_module = types.ModuleType("src.atlas_api_jobs")
+        stale_module._jobs = {}
+        stale_module._jobs_lock = threading.Lock()
+
+        monkeypatch.setitem(sys.modules, "atlas_api_jobs", live_module)
+        monkeypatch.setitem(sys.modules, "src.atlas_api_jobs", stale_module)
+
+        result, summary = orch_tools.wait_job("live")
+
+        assert result["ok"] is True
+        assert result["job"]["workflow"] == "ssot-gen"
+        assert "live" in summary
+
     def test_snapshots_job_state(self, monkeypatch):
         import threading
 
