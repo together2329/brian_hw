@@ -93,3 +93,41 @@ corrupt .pptx -> markitdown rc=0, body 'not a pptx' (upstream parses arbitrary
 After deploying this change, the running atlas_ui Python process must be
 restarted - the route handler and helper are wired inside `create_app()`, so a
 hot reload does not pick them up.
+
+## Augment 2026-05-19: markitdown + cursor-agent vision
+
+`_convert_upload_to_markdown` now has two distinct stages:
+
+1. **Text rendering.** Try `markitdown` via subprocess first (Python 3.10 host
+   at `/opt/homebrew/bin/python3.10`). If markitdown succeeds, its stdout is
+   the Markdown body. If it fails (subprocess error, non-zero exit, timeout,
+   missing 3.10), the per-format extractor (`pymupdf4llm` for `.pdf`,
+   `python-pptx` for `.pptx`, `python-docx` for `.docx`) writes the body
+   instead. The per-format extractors stay in the codebase as the backup
+   path so a missing 3.10 toolchain does not break uploads.
+2. **Image extraction.** Always runs the per-format path because markitdown
+   does not emit clean image files: `PyMuPDF`/`fitz` for `.pdf`, `python-pptx`
+   `PICTURE` shapes for `.pptx`, `doc.part.rels` image relations for `.docx`.
+   Extracted images land in `<ip>/req/imports/images/<ts>_<idx>_<n>.<ext>`.
+3. **Image descriptions.** For each extracted image, the handler shells out
+   to `cursor-agent` (`/Users/brian/.local/bin/cursor-agent`, model
+   `sonnet-4`, 30 s timeout) with `Describe the content of @<img> in 2-3
+   sentences ...`. The descriptions are appended to the `.md` file under a
+   `## Extracted Images` heading, one `### \`<rel/path>\`` block per image,
+   with `_(no description)_` as a placeholder when the CLI is unavailable or
+   fails. Vision failures never block the upload.
+
+The response payload now carries `image_paths` per saved entry
+(repo-relative POSIX paths). When no images were extracted the list is empty
+and no `## Extracted Images` section is appended.
+
+On-disk layout extends to:
+
+```
+<ip>/req/imports/
+  originals/
+    <ts>_<idx>_<original_filename>
+  images/
+    <ts>_<idx>_<n>.<ext>
+  <ts>_<idx>_<basename>.md   # markitdown body + '## Extracted Images' tail
+```
