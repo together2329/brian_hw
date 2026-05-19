@@ -3328,6 +3328,8 @@ def register_jobs_routes(
             return JSONResponse({"error": "run_mode must be starter, engineering, or signoff"}, status_code=400)
         if body.get("exec_mode") is not None and not _normalize_exec_mode(body.get("exec_mode")):
             return JSONResponse({"error": "exec_mode must be single-worker or orchestrator"}, status_code=400)
+        if len(user_prompt) > 100_000:
+            return JSONResponse({"error": "prompt too large (max 100 000 chars)"}, status_code=400)
         requested = body.get("stages") or [s["id"] for s in _PIPELINE_STAGES]
         if not isinstance(requested, list) or not requested:
             return JSONResponse({"error": "stages must be a non-empty list"}, status_code=400)

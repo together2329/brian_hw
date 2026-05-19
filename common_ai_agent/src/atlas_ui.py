@@ -13525,7 +13525,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         _sw_db = os.environ.get("ATLAS_DB_PATH", "")
         if _sw_db:
             _sw_env["ATLAS_DB_PATH"] = _sw_db
-        _main_py = str(SOURCE_ROOT / "main.py")
+        _main_py = str(HERE / "main.py")
         _single_worker_proc = subprocess.Popen(
             [sys.executable, _main_py, "--serve", "--host", "127.0.0.1",
              "--port", str(_sw_port), "--all-workflows"],
