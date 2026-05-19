@@ -2503,7 +2503,7 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }) {
   const isActive = !!(pipelineState && pipelineState.orchestrator && pipelineState.orchestrator.active);
 
   React.useEffect(() => {
-    if (!ip || !isActive) {
+    if (!ip || ip === 'default') {
       if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
       return;
     }
@@ -2549,7 +2549,9 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }) {
       <div className="orch-chat-body">
         {messages.length === 0 ? (
           <div className="orch-chat-empty mute">
-            {isActive ? 'Waiting for orchestrator messages…' : 'Start orchestrator to see chat.'}
+            {ip && ip !== 'default'
+              ? `No orchestrator activity yet for ${ip}. Send a chat message or run a workflow to see logs here.`
+              : 'Pick an IP to see orchestrator chat.'}
           </div>
         ) : messages.map((m, i) => (
           <div key={m.id || i} className={roleClass(m.role || (m.payload && m.payload.role))}>
