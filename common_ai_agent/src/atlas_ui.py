@@ -12774,6 +12774,8 @@ def create_app():
         async def get_response(self, path, scope):
             resp = await super().get_response(path, scope)
             resp.headers["Cache-Control"] = "no-store, max-age=0"
+            if str(path).endswith(".js"):
+                resp.headers["Content-Type"] = "application/javascript; charset=utf-8"
             return resp
 
     app.mount("/", _NoCacheStatic(directory=str(FRONTEND), html=False),

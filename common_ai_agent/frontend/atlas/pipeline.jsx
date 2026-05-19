@@ -670,7 +670,7 @@ const ENH_EDGE_BADGE_POS = {
   12: { cx: 1020, cy: 423 },
   13: { cx: 1020, cy: 263 },
 };
-function EnhancedFlowCanvas({ pipelineState, ip, onSelectStage, selectedStage, selectedFlowId }) {
+function EnhancedFlowCanvas({ pipelineState, ip, onSelectStage, selectedStage, selectedFlowId, onChain }) {
   const stagesState = (pipelineState && pipelineState.stages) || {};
   const orch = (pipelineState && pipelineState.orchestrator) || {};
   const runningEntry = Object.entries(stagesState).find(([, s]) => s && s.state === 'running');
@@ -761,7 +761,14 @@ function EnhancedFlowCanvas({ pipelineState, ip, onSelectStage, selectedStage, s
          data-in-flow={inFlow ? 'yes' : 'no'}
          transform={`translate(${x}, ${y})`}
          style={{ cursor: onSelectStage ? 'pointer' : 'default' }}
-         onClick={() => onSelectStage && onSelectStage(stageId)}>
+         onClick={(ev) => {
+           if ((ev.metaKey || ev.ctrlKey) && typeof onChain === 'function') {
+             ev.preventDefault();
+             onChain(stageId);
+           } else {
+             onSelectStage && onSelectStage(stageId);
+           }
+         }}>
         <rect width={ENH_NODE_W} height={ENH_NODE_H} rx={7} />
         <text x={12} y={20} className="enh-node-title">{stageId}</text>
         <text x={12} y={36} className="enh-node-sub">{enhSubText(stageId, info)}</text>
@@ -876,7 +883,7 @@ function enhCardMeta(stageId, info) {
   if (info.model) parts.push(info.model);
   return parts.join(' · ');
 }
-function EnhancedDetailCards({ pipelineState, ip, onSelectStage }) {
+function EnhancedDetailCards({ pipelineState, ip, onSelectStage, onChain }) {
   const stagesState = (pipelineState && pipelineState.stages) || {};
   // Surface every active stage in canonical order
   const ORDER = ['ssot', 'fl-model', 'cl-model', 'equivalence', 'rtl', 'lint', 'tb', 'sim', 'syn', 'sim-debug', 'coverage', 'sta', 'pnr', 'sta-post', 'goal-audit'];
@@ -912,7 +919,14 @@ function EnhancedDetailCards({ pipelineState, ip, onSelectStage }) {
     })();
     return (
       <div key={stageId} className="enh-card" data-state={state}
-           onClick={() => onSelectStage && onSelectStage(stageId)}
+           onClick={(ev) => {
+             if ((ev.metaKey || ev.ctrlKey) && typeof onChain === 'function') {
+               ev.preventDefault();
+               onChain(stageId);
+             } else {
+               onSelectStage && onSelectStage(stageId);
+             }
+           }}
            style={{ cursor: onSelectStage ? 'pointer' : 'default' }}>
         <div className="enh-card-hd">
           <span className="enh-card-glyph">{glyph}</span>
@@ -2986,7 +3000,7 @@ window.AtlasPipeline = function AtlasPipeline() {
           )}
         </span>
       </div>
-      {!ip && (
+      {(!ip || ip === 'default') && (
         <div className="pipe-empty-state" style={{
           padding: '14px 18px',
           margin: '0 18px',
@@ -3013,7 +3027,7 @@ window.AtlasPipeline = function AtlasPipeline() {
         </div>
       )}
 
-      <div className="pipe-board"
+      {ip && ip !== 'default' && <div className="pipe-board"
            style={{ '--pipe-left-w': `${leftW}px`, '--pipe-right-w': `${rightW}px` }}>
         <div className="pipe-col-left">
           <StageStatusRail
@@ -3051,11 +3065,13 @@ window.AtlasPipeline = function AtlasPipeline() {
             ip={ip}
             onSelectStage={setSelectedStage}
             selectedStage={selectedStage}
-            selectedFlowId={selectedFlowId} />
+            selectedFlowId={selectedFlowId}
+            onChain={addToChain} />
           <EnhancedDetailCards
             pipelineState={pipelineState}
             ip={ip}
-            onSelectStage={setSelectedStage} />
+            onSelectStage={setSelectedStage}
+            onChain={addToChain} />
           <WorkerOrchestraBar
             ip={ip}
             currentTarget={chatTarget}
@@ -3087,7 +3103,7 @@ window.AtlasPipeline = function AtlasPipeline() {
         <div className="pipe-col-right">
           <PipelineOrchestratorChatPanel ip={ip} />
         </div>
-      </div>
+      </div>}
     </div>
   );
 };
