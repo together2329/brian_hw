@@ -26,3 +26,7 @@ full_conversation.json
 **/conversation.json
 **/full_conversation.json
 **/orchestrator/trace.jsonl
+
+# cmux verification IP working directories (per-run, not tracked)
+common_ai_agent/cmux_*/
+common_ai_agent/cmux_*.git/
