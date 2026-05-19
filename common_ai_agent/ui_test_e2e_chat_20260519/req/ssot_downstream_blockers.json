@@ -1,0 +1,6 @@
+{
+  "schema_version": "ssot_downstream_blockers.v1",
+  "ip": "ui_test_e2e_chat_20260519",
+  "ssot": "ui_test_e2e_chat_20260519/yaml/ui_test_e2e_chat_20260519.ssot.yaml",
+  "issues": []
+}
