@@ -2495,7 +2495,7 @@ function StageStatusRail({ activeIp, onSelectIp, state, simpleSummary, selectedS
   );
 }
 
-function OrchestratorChatPanel({ ip, pipelineState }) {
+function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }) {
   const [messages, setMessages] = React.useState([]);
   const [since, setSince] = React.useState(0);
   const pollingRef = React.useRef(null);
@@ -2567,7 +2567,7 @@ function OrchestratorChatPanel({ ip, pipelineState }) {
 }
 
 function PipelineOrchestratorChatPanel({ ip, pipelineState }) {
-  return <OrchestratorChatPanel ip={ip} pipelineState={pipelineState} />;
+  return <PipelineOrchestratorChatPanelImpl ip={ip} pipelineState={pipelineState} />;
 }
 
 // ─── Internal: PhaseGroup ──────────────────────────────────────────
