@@ -236,18 +236,38 @@ def _atlas_job_db_path(project_root: Path) -> str:
     )
 
 
+_UUID_RE = re.compile(r"^[a-f0-9]{32}$")
+
+
+def _canonical_user_id(db: Any, identifier: str) -> str:
+    """Resolve username/email/UUID to the canonical UUID from the users table.
+
+    UUID pass-through: if identifier already looks like a 32-hex UUID, return it.
+    Username/email lookup: query users table; return UUID if found.
+    Unknown identifier: return identifier as-is (e.g. "local-admin" sentinel).
+    """
+    ident = str(identifier or "").strip()
+    if not ident:
+        return ident
+    if _UUID_RE.match(ident):
+        return ident
+    try:
+        row = db.get_user_by_username(ident)
+        if row and row.get("id"):
+            return str(row["id"])
+        row = db.get_user_by_email(ident)
+        if row and row.get("id"):
+            return str(row["id"])
+    except Exception:
+        pass
+    return ident
+
+
 def _resolve_db_user_id(db: Any, owner_name: str, explicit_user_id: str = "") -> str:
     if explicit_user_id:
-        return explicit_user_id
+        return _canonical_user_id(db, explicit_user_id)
     owner = str(owner_name or "").strip()
-    if owner:
-        try:
-            row = db.get_user_by_username(owner)
-            if row and row.get("id"):
-                return str(row["id"])
-        except Exception:
-            pass
-    return owner or "local-admin"
+    return _canonical_user_id(db, owner) or "local-admin"
 
 
 def _record_job_db_start(job: dict[str, Any]) -> None:
@@ -1031,7 +1051,7 @@ def _job_db_workspace_and_ip(
     if workspace is None:
         workspace = db.upsert_workspace(
             project_root.name or "default",
-            owner_user_id=str(job.get("db_user_id") or "") or "local-admin",
+            owner_user_id=_canonical_user_id(db, str(job.get("db_user_id") or "") or "local-admin"),
             local_path=str(project_root),
         )
         job["db_workspace_id"] = workspace["id"]
@@ -3442,8 +3462,9 @@ def register_jobs_routes(
 
             pr = project_root()
             user = request.scope.get("user") or {}
-            db_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
+            _raw_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
             with AtlasDB(_atlas_job_db_path(pr)) as db:
+                db_user_id = _canonical_user_id(db, _raw_user_id)
                 workspace = db.upsert_workspace(
                     pr.name or "default",
                     owner_user_id=db_user_id,
@@ -3499,8 +3520,9 @@ def register_jobs_routes(
 
         pr = project_root()
         user = request.scope.get("user") or {}
-        db_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
+        _raw_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
         with AtlasDB(_atlas_job_db_path(pr)) as db:
+            db_user_id = _canonical_user_id(db, _raw_user_id)
             workspace = db.upsert_workspace(
                 pr.name or "default",
                 owner_user_id=db_user_id,
@@ -3555,8 +3577,9 @@ def register_jobs_routes(
 
         pr = project_root()
         user = request.scope.get("user") or {}
-        db_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
+        _raw_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
         with AtlasDB(_atlas_job_db_path(pr)) as db:
+            db_user_id = _canonical_user_id(db, _raw_user_id)
             workspace = db.upsert_workspace(
                 pr.name or "default",
                 owner_user_id=db_user_id,
@@ -3657,13 +3680,14 @@ def register_jobs_routes(
             else _resolve_pipeline_schedule(req_schedule, resolved)
         )
 
-        owner_user_id = _active_tool_owner()
+        _raw_owner = _active_tool_owner()
         chat_context = ""
         try:
             from core.atlas_db import AtlasDB
 
             pr_for_chat = project_root()
             with AtlasDB(_atlas_job_db_path(pr_for_chat)) as db:
+                owner_user_id = _canonical_user_id(db, _raw_owner)
                 workspace = db.upsert_workspace(
                     pr_for_chat.name or "default",
                     owner_user_id=owner_user_id,
