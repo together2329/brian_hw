@@ -1,10 +1,15 @@
 [
   {
     "role": "system",
-    "content": {
-      "static": "You are an AI coding agent running as a headless Worker. Execute tasks using available tools.\n\n## CRITICAL: Final Answer REQUIRED\n\nYour VERY LAST response MUST contain EXACTLY:\n  Final Answer: <one-line summary of what you did>\n\nWithout \"Final Answer:\" the coordinator sees an empty result.\n\n# Agent Identity\n\nYou are an expert AI coding agent operating in a ReAct (Reason + Act) loop.\n\nYour job is to complete software engineering tasks accurately and completely by:\n- Reasoning carefully before each action\n- Using tools to read, write, search, and execute — never fabricating results\n- Tracking progress via the todo list and updating it after every significant action\n- Asking for clarification only when genuinely blocked, not as a first response\n\nUse the provided function tools to complete tasks. Call tools when you need information or to take actions. You may call multiple tools in one turn for parallel execution.\n\nTOOLS: (use function tools provided by the API)\n\n# RULES — Normal Execution Mode\n\n1. Read before editing — never modify a file you haven't read first\n2. One task in_progress at a time — never start a new task before the current one is approved\n3. Mark completed before moving on — call `todo_update(status='completed')` as the FIRST action when done, not the last\n4. Review before approving — after completing, perform a critical self-review; only approve with concrete evidence\n5. Reject clearly — if work is wrong, reject with an exact description of the problem\n6. No skipping — tasks must be processed in order; never jump ahead\n7. No fabrication — never claim a tool ran or a file was written without actually calling the tool\n8. **Simple task → just do it.** A single read, one-line edit, quick lookup, trivial command — execute immediately, no todo_add needed.\n9. **Multi-step task → use `todo_add` to track.** When the user asks for something that needs ≥3 distinct steps, branches between files, or carries state across iterations, append items with `todo_add(content=\"...\", priority=...)` so progress is visible. Never call `todo_write` in Normal Mode — it's blocked and would wipe the existing list. Use `todo_add` to append, `todo_update` to change status, `todo_remove` to delete.\n10. **`todo_write` is plan-only.** If the work is large enough to need a fresh plan, switch to Plan Mode (`/plan`); otherwise build incrementally with `todo_add`.",
-      "dynamic": ""
-    }
+    "content": [
+      {
+        "type": "text",
+        "text": "Use the provided function tools to complete tasks. Call tools when you need information or to take actions. You may call multiple tools in one turn for parallel execution.\n\nTOOLS: (use function tools provided by the API)\n\n# RULES — Normal Execution Mode\n\n1. Read before editing — never modify a file you haven't read first\n2. One task in_progress at a time — never start a new task before the current one is approved\n3. Mark completed before moving on — call `todo_update(status='completed')` as the FIRST action when done, not the last\n4. Review before approving — after completing, perform a critical self-review; only approve with concrete evidence\n5. Reject clearly — if work is wrong, reject with an exact description of the problem\n6. No skipping — tasks must be processed in order; never jump ahead\n7. No fabrication — never claim a tool ran or a file was written without actually calling the tool\n8. **Simple task → just do it.** A single read, one-line edit, quick lookup, trivial command — execute immediately, no todo_add needed.\n9. **Multi-step task → use `todo_add` to track.** When the user asks for something that needs ≥3 distinct steps, branches between files, or carries state across iterations, append items with `todo_add(content=\"...\", priority=...)` so progress is visible. Never call `todo_write` in Normal Mode — it's blocked and would wipe the existing list. Use `todo_add` to append, `todo_update` to change status, `todo_remove` to delete.\n10. **`todo_write` is plan-only.** If the work is large enough to need a fresh plan, switch to Plan Mode (`/plan`); otherwise build incrementally with `todo_add`.\n",
+        "cache_control": {
+          "type": "ephemeral"
+        }
+      }
+    ]
   },
   {
     "role": "user",
@@ -72,12 +77,117 @@
     "content": "write ssot"
   },
   {
-    "role": "tool",
-    "name": "write_file",
-    "content": "Successfully wrote to 'demo_ip/yaml/demo_ip.ssot.yaml'."
+    "role": "assistant",
+    "content": "Final Answer: [SSOT HANDOFF] done"
+  },
+  {
+    "role": "user",
+    "content": "[Atlas UI language preference]\nUser-visible explanations, status summaries, questions, and reports should be written in English as much as possible. Keep code, file paths, commands, signal names, protocol names, and exact identifiers unchanged.\n\n[scope] You MUST confine every file read, write, edit, grep, find, and run_command to paths inside \"dma_scratch_ui_20260519b\". Do not touch files outside this directory unless I explicitly say so. The workspace root is still the project root: if a requested path already starts with \"dma_scratch_ui_20260519b/\", use it exactly once and never rewrite it as \"dma_scratch_ui_20260519b/dma_scratch_ui_20260519b/...\". For SSOT, the canonical path is \"dma_scratch_ui_20260519b/yaml/dma_scratch_ui_20260519b.ssot.yaml\", not \"dma_scratch_ui_20260519b/dma_scratch_ui_20260519b/yaml/dma_scratch_ui_20260519b.ssot.yaml\".\n\nworker auto-start smoke test only. Reply OK and stop.",
+    "turn_id": 1,
+    "timestamp": 1779166972.576975
   },
   {
     "role": "assistant",
-    "content": "Final Answer: [SSOT HANDOFF] done"
+    "content": "OK",
+    "turn_id": 1,
+    "iter_id": 0,
+    "timestamp": 1779166975.3495638,
+    "_tokens": {
+      "input": 4981,
+      "output": 27,
+      "total": 5008,
+      "cache_created": 0,
+      "cache_read": 0,
+      "total_cache_created": 0,
+      "total_cache_read": 0
+    }
+  },
+  {
+    "role": "user",
+    "content": "[Atlas UI language preference]\nUser-visible explanations, status summaries, questions, and reports should be written in English as much as possible. Keep code, file paths, commands, signal names, protocol names, and exact identifiers unchanged.\n\n[scope] You MUST confine every file read, write, edit, grep, find, and run_command to paths inside \"dma_scratch_ui_20260519b\". Do not touch files outside this directory unless I explicitly say so. The workspace root is still the project root: if a requested path already starts with \"dma_scratch_ui_20260519b/\", use it exactly once and never rewrite it as \"dma_scratch_ui_20260519b/dma_scratch_ui_20260519b/...\". For SSOT, the canonical path is \"dma_scratch_ui_20260519b/yaml/dma_scratch_ui_20260519b.ssot.yaml\", not \"dma_scratch_ui_20260519b/dma_scratch_ui_20260519b/yaml/dma_scratch_ui_20260519b.ssot.yaml\".\n\nworker auto-start smoke test via typing. Reply OK.",
+    "turn_id": 2,
+    "timestamp": 1779167029.496893
+  },
+  {
+    "role": "assistant",
+    "content": "OK",
+    "turn_id": 2,
+    "iter_id": 0,
+    "timestamp": 1779167030.980001,
+    "_tokens": {
+      "input": 5227,
+      "output": 5,
+      "total": 5232,
+      "cache_created": 0,
+      "cache_read": 4608,
+      "total_cache_created": 0,
+      "total_cache_read": 4608
+    }
+  },
+  {
+    "role": "user",
+    "content": "[Atlas UI language preference]\nUser-visible explanations, status summaries, questions, and reports should be written in English as much as possible. Keep code, file paths, commands, signal names, protocol names, and exact identifiers unchanged.\n\n[scope] You MUST confine every file read, write, edit, grep, find, and run_command to paths inside \"dma_scratch_ui_20260519b\". Do not touch files outside this directory unless I explicitly say so. The workspace root is still the project root: if a requested path already starts with \"dma_scratch_ui_20260519b/\", use it exactly once and never rewrite it as \"dma_scratch_ui_20260519b/dma_scratch_ui_20260519b/...\". For SSOT, the canonical path is \"dma_scratch_ui_20260519b/yaml/dma_scratch_ui_20260519b.ssot.yaml\", not \"dma_scratch_ui_20260519b/dma_scratch_ui_20260519b/yaml/dma_scratch_ui_20260519b.ssot.yaml\".\n\nsecond smoke: reply OK2 only.",
+    "turn_id": 3,
+    "timestamp": 1779167348.946233
+  },
+  {
+    "role": "assistant",
+    "content": "OK2",
+    "turn_id": 3,
+    "iter_id": 0,
+    "timestamp": 1779167351.633035,
+    "_tokens": {
+      "input": 5470,
+      "output": 6,
+      "total": 5476,
+      "cache_created": 0,
+      "cache_read": 4608,
+      "total_cache_created": 0,
+      "total_cache_read": 4608
+    }
+  },
+  {
+    "role": "user",
+    "content": "[Atlas UI language preference]\nUser-visible explanations, status summaries, questions, and reports should be written in English as much as possible. Keep code, file paths, commands, signal names, protocol names, and exact identifiers unchanged.\n\n[scope] You MUST confine every file read, write, edit, grep, find, and run_command to paths inside \"dma_scratch_ui_20260519e\". Do not touch files outside this directory unless I explicitly say so. The workspace root is still the project root: if a requested path already starts with \"dma_scratch_ui_20260519e/\", use it exactly once and never rewrite it as \"dma_scratch_ui_20260519e/dma_scratch_ui_20260519e/...\". For SSOT, the canonical path is \"dma_scratch_ui_20260519e/yaml/dma_scratch_ui_20260519e.ssot.yaml\", not \"dma_scratch_ui_20260519e/dma_scratch_ui_20260519e/yaml/dma_scratch_ui_20260519e.ssot.yaml\".\n\nworker auto-start final smoke. Reply FINAL_OK only.",
+    "turn_id": 1,
+    "timestamp": 1779168326.477611
+  },
+  {
+    "role": "assistant",
+    "content": "FINAL_OK",
+    "turn_id": 1,
+    "iter_id": 0,
+    "timestamp": 1779168328.9078348,
+    "_tokens": {
+      "input": 5717,
+      "output": 6,
+      "total": 5723,
+      "cache_created": 0,
+      "cache_read": 5120,
+      "total_cache_created": 0,
+      "total_cache_read": 5120
+    }
+  },
+  {
+    "role": "user",
+    "content": "[Atlas UI language preference]\nUser-visible explanations, status summaries, questions, and reports should be written in English as much as possible. Keep code, file paths, commands, signal names, protocol names, and exact identifiers unchanged.\n\nReply WORKER_OK only.",
+    "turn_id": 1,
+    "timestamp": 1779169068.282458
+  },
+  {
+    "role": "assistant",
+    "content": "WORKER_OK",
+    "turn_id": 1,
+    "iter_id": 0,
+    "timestamp": 1779169070.64111,
+    "_tokens": {
+      "input": 5781,
+      "output": 7,
+      "total": 5788,
+      "cache_created": 0,
+      "cache_read": 5632,
+      "total_cache_created": 0,
+      "total_cache_read": 5632
+    }
   }
 ]

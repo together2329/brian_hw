@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "blocker": "dma_e2e_multi/yaml/dma_e2e_multi.ssot.yaml",
+  "created_at": "2026-05-19T05:41:16Z",
+  "headline": "[lint] blocked: SSOT not found",
+  "ip": "dma_e2e_multi",
+  "message": "[lint] blocked: SSOT not found at dma_e2e_multi/yaml/dma_e2e_multi.ssot.yaml\nRun /new-ip dma_e2e_multi, approve dma_e2e_multi, and /to-ssot dma_e2e_multi first.",
+  "metadata": {},
+  "returncode": 2,
+  "runs": [],
+  "stage": "lint",
+  "status": "blocked",
+  "workflow": "lint"
+}
