@@ -2495,24 +2495,79 @@ function StageStatusRail({ activeIp, onSelectIp, state, simpleSummary, selectedS
   );
 }
 
-function PipelineOrchestratorChatPanel({ ip }) {
-  if (!window.ArchitectChat) {
-    return (
-      <div className="pipe-orch-chat-fallback">
-        <b>orchestrator chat</b>
-        <span className="mute">ArchitectChat is not loaded yet.</span>
-      </div>
-    );
-  }
+function OrchestratorChatPanel({ ip, pipelineState }) {
+  const [messages, setMessages] = React.useState([]);
+  const [since, setSince] = React.useState(0);
+  const pollingRef = React.useRef(null);
+
+  const isActive = !!(pipelineState && pipelineState.orchestrator && pipelineState.orchestrator.active);
+
+  React.useEffect(() => {
+    if (!ip || !isActive) {
+      if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
+      return;
+    }
+    let dead = false;
+    let currentSince = since;
+    const fetchOnce = async () => {
+      try {
+        const url = `/api/orchestrator/chat/messages?ip=${encodeURIComponent(ip)}&since=${currentSince}`;
+        const r = await fetch(url);
+        if (!r.ok) return;
+        const j = await r.json();
+        if (!dead && j.ok && Array.isArray(j.messages) && j.messages.length > 0) {
+          setMessages(prev => {
+            const ids = new Set(prev.map(m => m.id));
+            const fresh = j.messages.filter(m => !ids.has(m.id));
+            return fresh.length ? [...prev, ...fresh] : prev;
+          });
+          currentSince = j.next_since || currentSince;
+          setSince(currentSince);
+        }
+      } catch (_) {}
+    };
+    fetchOnce();
+    pollingRef.current = setInterval(fetchOnce, 1500);
+    return () => { dead = true; clearInterval(pollingRef.current); pollingRef.current = null; };
+  }, [ip, isActive]);
+
+  const roleClass = role => {
+    if (role === 'assistant') return 'md-bubble md-agent';
+    if (role === 'user') return 'md-bubble md-user md-agent';
+    if (role === 'tool') return 'md-bubble md-tool';
+    return 'md-bubble md-agent';
+  };
+
   return (
-    <div className="pipe-orch-chat-shell">
-      <window.ArchitectChat
-        view="pipeline"
-        selModule={ip ? { name: ip } : null}
-        selCluster={null}
-        onDiagramPlan={null} />
+    <div className="pipe-orch-chat-shell orch-chat-panel">
+      <div className="orch-chat-header">
+        <span className="orch-chat-title">ORCHESTRATOR CHAT</span>
+        <span className="orch-chat-status" data-active={isActive ? 'yes' : 'no'}>
+          {isActive ? 'live' : 'idle'}
+        </span>
+      </div>
+      <div className="orch-chat-body">
+        {messages.length === 0 ? (
+          <div className="orch-chat-empty mute">
+            {isActive ? 'Waiting for orchestrator messages…' : 'Start orchestrator to see chat.'}
+          </div>
+        ) : messages.map((m, i) => (
+          <div key={m.id || i} className={roleClass(m.role || (m.payload && m.payload.role))}>
+            <span className="orch-chat-role">
+              {(m.role || (m.payload && m.payload.role) || 'assistant').toUpperCase()}
+            </span>
+            <span className="orch-chat-content">
+              {m.content || (m.payload && (m.payload.content || m.payload.display_name)) || ''}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
+}
+
+function PipelineOrchestratorChatPanel({ ip, pipelineState }) {
+  return <OrchestratorChatPanel ip={ip} pipelineState={pipelineState} />;
 }
 
 // ─── Internal: PhaseGroup ──────────────────────────────────────────
@@ -3101,7 +3156,7 @@ window.AtlasPipeline = function AtlasPipeline() {
              data-active={dragRef.current === 'right' ? 'yes' : 'no'}
              onMouseDown={beginDrag('right')} />
         <div className="pipe-col-right">
-          <PipelineOrchestratorChatPanel ip={ip} />
+          <PipelineOrchestratorChatPanel ip={ip} pipelineState={pipelineState} />
         </div>
       </div>}
     </div>

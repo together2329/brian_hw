@@ -3958,6 +3958,44 @@ def register_jobs_routes(
             return JSONResponse({"error": str(e), "events": []}, status_code=500)
         return JSONResponse({"ip": ip, "count": len(events), "events": events})
 
+    # ── /api/orchestrator/chat/messages ────────────────────────────
+    #
+    # Poll natural-language chat messages (role=assistant/user/tool) for an IP.
+    # Frontend polls every 1.5s while orchestrator is active.
+
+    _CHAT_IP_RE = re.compile(r'^[A-Za-z][A-Za-z0-9_]*$')
+
+    @app.get("/api/orchestrator/chat/messages")
+    async def api_orchestrator_chat_messages(request: Request):
+        user_id = _request_db_user_id(request)
+        if not user_id:
+            return JSONResponse({"error": "not authenticated"}, status_code=401)
+        params = dict(request.query_params)
+        ip = (params.get("ip") or "").strip()
+        if not ip or not _CHAT_IP_RE.match(ip):
+            return JSONResponse({"error": "ip param missing or invalid"}, status_code=400)
+        try:
+            since = float(params["since"]) if params.get("since") else None
+        except (ValueError, TypeError):
+            return JSONResponse({"error": "since must be a unix timestamp"}, status_code=400)
+        try:
+            limit = int(params.get("limit") or "100")
+            limit = max(1, min(500, limit))
+        except Exception:
+            limit = 100
+        try:
+            from core.atlas_db import AtlasDB
+            pr = project_root()
+            db_path = _atlas_job_db_path(pr)
+            with AtlasDB(db_path) as db:
+                rows = db.list_chat_messages(ip_id=ip, limit=limit, since=since)
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+        # rows are newest-first; reverse for chronological order
+        rows = list(reversed(rows))
+        next_since = max((r.get("created_at") or 0) for r in rows) if rows else (since or 0)
+        return JSONResponse({"ok": True, "messages": rows, "next_since": next_since})
+
     @app.delete("/api/orchestrator/trace")
     async def api_orchestrator_trace_clear(request: Request):
         params = dict(request.query_params)

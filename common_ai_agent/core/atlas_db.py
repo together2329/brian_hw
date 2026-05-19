@@ -2884,9 +2884,11 @@ class AtlasDB:
         ip_id: Optional[str],
         limit: int = 50,
         after_id: str = None,
+        since: Optional[float] = None,
     ) -> List[Dict[str, Any]]:
         """Return chat messages for a room, newest first. ip_id=None or ""
-        selects the global room (ip_id IS NULL or = '')."""
+        selects the global room (ip_id IS NULL or = '').
+        since: unix timestamp (float); only rows with created_at > since are returned."""
         clauses = ["event_type = ?"]
         values: list[Any] = ["chat_message"]
         if ip_id:
@@ -2899,6 +2901,9 @@ class AtlasDB:
                 "created_at > (SELECT created_at FROM trace_events WHERE id = ?)"
             )
             values.append(after_id)
+        if since is not None:
+            clauses.append("created_at > ?")
+            values.append(float(since))
         where = " WHERE " + " AND ".join(clauses)
         rows = self._fetchall(
             f"SELECT * FROM trace_events{where} ORDER BY created_at DESC, id DESC LIMIT ?",
