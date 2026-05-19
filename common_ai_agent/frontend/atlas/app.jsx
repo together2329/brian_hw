@@ -1492,10 +1492,12 @@ const App = () => {
       )}
       {wfSwitching && (
         <div role="status" aria-live="polite" style={{
-          padding: '6px 12px', fontSize: 12, fontFamily: 'var(--mono)',
-          background: 'color-mix(in oklch, var(--accent) 12%, transparent)',
+          position: 'absolute', top: 0, left: 0, right: 0, zIndex: 300,
+          padding: '2px 10px', fontSize: 11, fontFamily: 'var(--mono)',
+          background: 'color-mix(in oklch, var(--accent) 22%, var(--bg, #000))',
           color: 'var(--accent)', borderBottom: '1px solid var(--accent)',
-          display: 'flex', alignItems: 'center', gap: 10,
+          display: 'flex', alignItems: 'center', gap: 8,
+          height: 20, lineHeight: '16px',
         }}>
           <span style={{
             display: 'inline-block',
@@ -1779,23 +1781,25 @@ const App = () => {
         <button className={`dir-btn ${screen === 'architect' ? 'active' : ''}`}
                 title="SoC structure · per-module status grid · block diagram (rich progress view)"
                 onClick={() => setScreen('architect')}>◇ Architect</button>
-        <label className="dir-select-wrap run-policy" title="Run Mode controls evidence strictness, not IP size">
+        <label className="dir-select-wrap run-policy">
           <span>run</span>
           <select
             className="dir-select policy"
             value={runMode}
-            onChange={e => saveRunPolicy(e.currentTarget.value, execMode)}>
+            onChange={e => saveRunPolicy(e.currentTarget.value, execMode)}
+            title="Run Mode controls evidence strictness, not IP size">
             {ATLAS_RUN_MODE_OPTIONS.map(opt => (
               <option key={opt.key} value={opt.key}>{opt.label}</option>
             ))}
           </select>
         </label>
-        <label className="dir-select-wrap run-policy" title="Exec Mode chooses single-worker execution or orchestrator-managed workers">
+        <label className="dir-select-wrap run-policy">
           <span>exec</span>
           <select
             className="dir-select exec"
             value={execMode}
-            onChange={e => saveRunPolicy(runMode, e.currentTarget.value)}>
+            onChange={e => saveRunPolicy(runMode, e.currentTarget.value)}
+            title="Exec Mode chooses single-worker execution or orchestrator-managed workers">
             {ATLAS_EXEC_MODE_OPTIONS.map(opt => (
               <option key={opt.key} value={opt.key}>{opt.label}</option>
             ))}

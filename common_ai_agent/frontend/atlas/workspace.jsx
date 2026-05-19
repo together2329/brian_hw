@@ -1484,9 +1484,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
   // 'ssot' shows a reviewer-friendly section-by-section SSOT view.
   // 'sim_summary' / 'debug' / 'coverage' / 'workflow_report' are workflow-specific first tabs.
   // 'qa' is the dedicated question-answer pane. 'checklist' is the SSOT
-  // readiness/checklist pane for ssot-gen, kept separate from Q&A.
+  // validation/readiness pane for ssot-gen, kept separate from Q&A.
+  // 'import_export' owns document upload/import and SSOT export.
   // Double-clicking a file in the left tree sets previewPath + flips tab.
-  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | checklist | split | preview | sim_summary | debug | coverage | workflow_report
+  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | checklist | import_export | split | preview | sim_summary | debug | coverage | workflow_report
   const [previewPath, setPreviewPath] = React.useState(() => {
     try {
       const saved = localStorage.getItem('atlasPreviewPath');
@@ -1505,7 +1506,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
       const d = ev && ev.detail || {};
       if (!d.sha) return;
       setGitShow({ sha: d.sha, ip: d.ip || '', subject: d.subject || '' });
-      setMainTab(t => (t === 'chat' || t === 'qa' || t === 'checklist') ? 'split' : t);
+      setMainTab(t => (t === 'chat' || t === 'qa' || t === 'checklist' || t === 'import_export') ? 'split' : t);
     };
     window.addEventListener('atlas-git-show', onShow);
     return () => window.removeEventListener('atlas-git-show', onShow);
@@ -2026,6 +2027,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
     : 0;
   const showQaTab = centerLayout === 'tabbed' || workflow === 'ssot-gen' || !!pendingQcard;
   const showSsotChecklistTab = workflow === 'ssot-gen';
+  const showSsotImportExportTab = workflow === 'ssot-gen';
   const showSsotTab = workflow === 'ssot-gen' || (window.SSOT_FILES || []).length > 0 || isSsotYamlPath(previewPath);
   const showSimSummaryTab = workflow === 'sim_debug';
   const showDebugTab = workflow === 'sim_debug';
@@ -3727,7 +3729,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               <span
                 className="tab-chip"
                 onClick={() => setMainTab('checklist')}
-                title="SSOT checklist: import docs, see missing items, and check RTL readiness"
+                title="SSOT validation: missing items, SSOT percent, and validator script"
                 style={{
                   cursor: 'pointer',
                   padding: '2px 8px', borderRadius: 2, marginLeft: 4,
@@ -3736,7 +3738,22 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                   border: '1px solid ' + (mainTab === 'checklist' ? 'var(--cyan)' : 'transparent'),
                   fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
                 }}
-              >Check List</span>
+              >Validation</span>
+            )}
+            {showSsotImportExportTab && (
+              <span
+                className="tab-chip"
+                onClick={() => setMainTab('import_export')}
+                title="Import docs and export SSOT artifacts"
+                style={{
+                  cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                  color: mainTab === 'import_export' ? 'var(--accent)' : 'var(--fg-mute)',
+                  background: mainTab === 'import_export' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'import_export' ? 'var(--accent)' : 'transparent'),
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
+                }}
+              >Import / Export</span>
             )}
             <span
               className="tab-chip"
@@ -3848,7 +3865,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               </span>
             ) : mainTab === 'checklist' ? (
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
-                SSOT checklist · import · missing items · RTL readiness
+                SSOT validation · missing items · SSOT percent · script gate
+              </span>
+            ) : mainTab === 'import_export' ? (
+              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
+                Upload/import docs · export SSOT
               </span>
             ) : mainTab === 'sim_summary' ? (
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
@@ -3877,7 +3898,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                 "Running / End of loop / Waiting on you" pill above the
                 input row already conveys this state, and louder, so two
                 redundant indicators just add noise to the tab header. */}
-            {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot' || mainTab === 'checklist') && (
+            {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot' || mainTab === 'checklist' || mainTab === 'import_export') && (
               <span style={{ fontSize: 10 }}>
                 <span className="mute" style={{ marginRight: 8 }}>{mainTab === 'split' ? 'chat only' : 'back to chat'}</span>
                 <span onClick={() => setMainTab('chat')} className="acc"
@@ -3910,6 +3931,18 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               onRunCommand={submitMsg}
               showChecklist={true}
               checklistOnly={true}
+            />
+          ) : mainTab === 'import_export' ? (
+            <SsotQaBoard
+              data={ssotQaBoardData}
+              sessions={ssotQaSessions}
+              activeSession={currentSession}
+              uiLang={uiLang}
+              onSelectSession={activateSsotQaSession}
+              onBack={() => setMainTab('chat')}
+              onRefresh={() => { refreshSsotQa(); refreshSsotQaSessions(); }}
+              onRunCommand={submitMsg}
+              importExportOnly={true}
             />
           ) : mainTab === 'chat' ? (
             renderChatPane()
@@ -4145,8 +4178,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
         </div>
 
         {/* prompt — breathing room below so the input row isn't flush
-            with the bottom edge of the viewport */}
-        <div style={{ position: 'relative', paddingBottom: 24 }}>
+            with the bottom edge of the viewport. Opaque background prevents
+            the status strip / input row from showing the previous tab's
+            content (e.g. Validation bottom cards) bleeding through when
+            the upstream pane scrolls into this vertical space. */}
+        <div style={{ position: 'relative', paddingBottom: 24, background: 'var(--bg)', zIndex: 2 }}>
           {showAt && atQuery && (
             <div className="slash-menu fade-in" style={{ maxHeight: 280, overflowY: 'auto' }}>
               <div style={{ padding: '6px 12px', fontSize: 10, color: 'var(--fg-mute)', letterSpacing: '0.1em', textTransform: 'uppercase', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -4216,9 +4252,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               : streaming
                 ? { icon: '◉', text: 'Agent running', color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
                 : ssotApproval && ssotApproval.approved
-                  ? { icon: '◆', text: `SSOT approved · run ${ssotApproval.generate_cmd || `/to-ssot ${ssotApproval.ip}`}`, color: 'var(--ok)', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)' }
+                  ? { icon: '◆', text: `SSOT ready · run ${ssotApproval.generate_cmd || `/to-ssot ${ssotApproval.ip}`}`, color: 'var(--ok)', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)' }
                   : ssotApproval
-                    ? { icon: '◆', text: `SSOT plan ready · approve ${ssotApproval.ip} before YAML write`, color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
+                    ? { icon: '◆', text: `SSOT plan ready · press To SSOT to generate`, color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
                 : { icon: '✓', text: 'End of loop · agent ready', color: 'var(--ok)', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)' };
             return (
               <div style={{
@@ -4865,8 +4901,8 @@ const SsotApprovalCard = ({ payload }) => {
     ['test_expectation', 'Tests'],
   ];
   const statusText = missing.length
-    ? `Missing ${missing.length} decision${missing.length === 1 ? '' : 's'}`
-    : approved ? 'Approved · YAML write enabled' : 'Answered · waiting for approval';
+    ? `Missing ${missing.length} decision${missing.length === 1 ? '' : 's'} · To SSOT carries review flags`
+    : approved ? 'YAML write enabled' : 'Ready · press To SSOT';
   return (
     <div className="react-block obs" style={{
       borderLeftColor: approved ? 'var(--ok)' : 'var(--warn)',
@@ -4877,7 +4913,7 @@ const SsotApprovalCard = ({ payload }) => {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
         <div>
-          <span className="rb-tag" style={{ color: approved ? 'var(--ok)' : 'var(--warn)' }}>ssot approval</span>
+          <span className="rb-tag" style={{ color: approved ? 'var(--ok)' : 'var(--warn)' }}>ssot to-yaml</span>
           <b style={{ marginLeft: 8 }}>{ip}</b>
         </div>
         <span style={{
@@ -4890,7 +4926,7 @@ const SsotApprovalCard = ({ payload }) => {
         }}>{statusText}</span>
       </div>
       <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginBottom: 10 }}>
-        Q&A is complete. Review the plan, approve it, then generate the SSOT YAML from the same Web UI session.
+        Review the plan, then press To SSOT. That action approves the current evidence and generates the SSOT YAML from this Web UI session.
       </div>
       <div style={{
         display: 'grid',
@@ -4911,19 +4947,11 @@ const SsotApprovalCard = ({ payload }) => {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <button
           className="mini-btn"
-          disabled={approved || missing.length > 0}
-          onClick={() => send(payload?.approve_cmd || `approve ${ip}`)}
-          title={missing.length ? 'Answer missing Q&A fields first' : 'Approve this SSOT plan'}
-        >
-          approve
-        </button>
-        <button
-          className="mini-btn"
-          disabled={!approved}
+          disabled={!ip}
           onClick={() => send(payload?.generate_cmd || `/to-ssot ${ip}`)}
-          title={approved ? 'Generate SSOT YAML' : 'Approve before writing YAML'}
+          title="Approve current evidence and generate SSOT YAML"
         >
-          generate SSOT
+          To SSOT
         </button>
         <button
           className="mini-btn"
@@ -4932,7 +4960,7 @@ const SsotApprovalCard = ({ payload }) => {
         >
           revise Q&A
         </button>
-        <code className="acc">{approved ? (payload?.generate_cmd || `/to-ssot ${ip}`) : (payload?.approve_cmd || `approve ${ip}`)}</code>
+        <code className="acc">{payload?.generate_cmd || `/to-ssot ${ip}`}</code>
       </div>
     </div>
   );
@@ -5133,6 +5161,7 @@ const SsotQaBoard = ({
   onSubmitPending,
   showChecklist = false,
   checklistOnly = false,
+  importExportOnly = false,
 }) => {
   const sections = Array.isArray(data?.sections) ? data.sections : [];
   const sessionRows = Array.isArray(sessions) ? sessions : [];
@@ -5167,27 +5196,27 @@ const SsotQaBoard = ({
         selectSession: 'Select an IP/session that uses',
         back: 'back to chat',
         title: 'Q&A Session',
-        subtitle: 'Answer questions here. The answers fill the SSOT promise sheet for RTL.',
-        checklistTitle: 'Check List',
-        checklistSubtitle: 'Fill the SSOT promise sheet before making RTL code.',
+        subtitle: 'Answer questions here. The answers fill the SSOT promise sheet.',
+        checklistTitle: 'Validation',
+        checklistSubtitle: 'Validate how complete the SSOT promise sheet is before generation.',
         legend: 'SSOT = design promise sheet. RTL = hardware code.',
-        rtlReadiness: 'RTL readiness',
+        rtlReadiness: 'SSOT Percent',
         nextAction: 'What to do now',
         needTitle: '9 boxes to fill',
         missingTitle: 'Empty boxes now',
         missingEmpty: 'No empty boxes.',
-        readyToGenerate: 'Ready to make RTL.',
-        needsSsotApproval: 'All boxes are filled. Press To SSOT and approve the promise sheet.',
-        blockedByMissing: 'RTL should wait because some boxes are empty.',
-        feedTitle: 'Use these 4 steps',
-        actionChatTitle: '1. New wishes = Chat',
-        actionChatDetail: 'Write what you want in normal words.',
-        actionImportTitle: '2. Old docs = Import',
-        actionImportDetail: 'Choose files you already have. They go into the Import folder and /import reads them.',
-        actionInterviewTitle: '3. Unknowns = Deep Interview',
-        actionInterviewDetail: 'Ask only the questions needed to fill empty boxes.',
-        actionToSsotTitle: '4. Promise sheet = To SSOT',
-        actionToSsotDetail: 'Turn the answers and files into the SSOT document.',
+        readyToGenerate: 'SSOT is complete. RTL generation can use it.',
+        needsSsotApproval: 'All boxes are filled. Press To SSOT to write the SSOT.',
+        blockedByMissing: 'SSOT is incomplete because some boxes are empty.',
+        feedTitle: 'Three-step SSOT flow',
+        actionChatTitle: 'Optional notes = Chat',
+        actionChatDetail: 'Use chat only for extra context.',
+        actionImportTitle: '1. Import',
+        actionImportDetail: 'Upload existing docs. Upload automatically imports them.',
+        actionInterviewTitle: '2. Deep Interview',
+        actionInterviewDetail: 'Ask only what import/wiki evidence cannot resolve.',
+        actionToSsotTitle: '3. To SSOT',
+        actionToSsotDetail: 'Approve current evidence and write the SSOT document.',
         chooseFile: 'choose file',
         openChat: 'open chat',
         filled: 'filled',
@@ -5225,6 +5254,26 @@ const SsotQaBoard = ({
         deepInterview: 'Deep Interview',
         toSsot: 'To SSOT',
         importReady: 'uploaded',
+        qaActionTitle: 'Next SSOT actions',
+        importExportTitle: 'Import / Export',
+        importExportSubtitle: 'Upload existing docs into SSOT import evidence, or export the current SSOT.',
+        uploadImportTitle: 'Upload (Import)',
+        uploadImportDetail: 'Drop files here or choose files. The imported list updates immediately.',
+        dropHere: 'Drop files to upload',
+        chooseFiles: 'choose files',
+        importedList: 'Imported files',
+        noImportedFiles: 'No imported files yet.',
+        exportTitle: 'Export',
+        exportDetail: 'Download the current SSOT artifact.',
+        exportMd: 'Markdown',
+        exportDocx: 'Word',
+        exportHtml: 'HTML',
+        validationScriptTitle: 'SSOT validator script',
+        validationScriptDetail: 'Runs workflow/ssot-gen/scripts/check_ssot_disk.sh against this IP.',
+        validationMode: 'mode',
+        runValidation: 'Run validation',
+        validationPass: 'PASS',
+        validationFail: 'FAIL',
       }
     : {
         noSession: '선택된 SSOT QA 세션이 없습니다.',
@@ -5232,26 +5281,26 @@ const SsotQaBoard = ({
         back: '채팅으로',
         title: 'Q&A Session',
         subtitle: '여기는 질문에 답하는 곳입니다. 답변이 SSOT 약속장의 빈칸을 채웁니다.',
-        checklistTitle: 'Check List',
-        checklistSubtitle: 'SSOT는 RTL 코드를 만들기 전에 채우는 약속장입니다. 빈칸을 채우면 RTL을 만들 준비가 됩니다.',
+        checklistTitle: 'Validation',
+        checklistSubtitle: 'SSOT 약속장이 얼마나 완성됐는지 검증합니다. 빈칸과 validator gate를 같이 봅니다.',
         legend: 'SSOT = 설계 약속장. RTL = 실제 회로 코드.',
-        rtlReadiness: 'RTL 생성 준비도',
+        rtlReadiness: 'SSOT Percent',
         nextAction: '지금 할 일',
         needTitle: '채워야 하는 9칸',
         missingTitle: '지금 비어 있는 칸',
         missingEmpty: '비어 있는 칸이 없습니다.',
-        readyToGenerate: 'RTL을 만들 준비가 됐습니다.',
-        needsSsotApproval: '9칸은 다 찼습니다. To SSOT를 눌러 약속장을 만들고 승인하세요.',
-        blockedByMissing: '아직 빈칸이 있어서 RTL 만들기는 이릅니다.',
-        feedTitle: '이 4단계만 보면 됩니다',
-        actionChatTitle: '1. 새로 원하는 것 = Chat',
-        actionChatDetail: '말하듯이 적으면 됩니다.',
-        actionImportTitle: '2. 이미 가진 문서 = Import',
-        actionImportDetail: '파일을 고르면 Import 폴더에 넣고 /import가 읽습니다.',
-        actionInterviewTitle: '3. 모르는 것 = Deep Interview',
-        actionInterviewDetail: '빈칸을 채우는 질문만 받습니다.',
-        actionToSsotTitle: '4. 약속장 만들기 = To SSOT',
-        actionToSsotDetail: '파일과 답변을 모아 SSOT 문서를 만듭니다.',
+        readyToGenerate: 'SSOT가 완성됐습니다. RTL 생성에 사용할 수 있습니다.',
+        needsSsotApproval: '9칸은 다 찼습니다. To SSOT를 눌러 SSOT를 만드세요.',
+        blockedByMissing: '아직 빈칸이 있어서 SSOT가 완성되지 않았습니다.',
+        feedTitle: 'SSOT 3단계 흐름',
+        actionChatTitle: '선택 메모 = Chat',
+        actionChatDetail: '추가 맥락이 있을 때만 씁니다.',
+        actionImportTitle: '1. Import',
+        actionImportDetail: '기존 문서를 업로드하세요. 업로드하면 자동으로 import됩니다.',
+        actionInterviewTitle: '2. Deep Interview',
+        actionInterviewDetail: 'import/wiki 근거로도 부족한 것만 질문합니다.',
+        actionToSsotTitle: '3. To SSOT',
+        actionToSsotDetail: '현재 근거를 승인하고 SSOT 문서를 만듭니다.',
         chooseFile: '파일 선택',
         openChat: '채팅 열기',
         filled: '채움',
@@ -5289,6 +5338,26 @@ const SsotQaBoard = ({
         deepInterview: 'Deep Interview',
         toSsot: 'To SSOT',
         importReady: '업로드됨',
+        qaActionTitle: '다음 SSOT 액션',
+        importExportTitle: 'Import / Export',
+        importExportSubtitle: '기존 문서를 SSOT import 근거로 업로드하거나 현재 SSOT를 내보냅니다.',
+        uploadImportTitle: 'Upload (Import)',
+        uploadImportDetail: '여기에 파일을 드롭하거나 파일을 선택하세요. import된 파일 목록이 즉시 갱신됩니다.',
+        dropHere: '파일을 놓으면 업로드됩니다',
+        chooseFiles: '파일 선택',
+        importedList: 'Import된 파일',
+        noImportedFiles: '아직 import된 파일이 없습니다.',
+        exportTitle: 'Export',
+        exportDetail: '현재 SSOT 산출물을 다운로드합니다.',
+        exportMd: 'Markdown',
+        exportDocx: 'Word',
+        exportHtml: 'HTML',
+        validationScriptTitle: 'SSOT validator script',
+        validationScriptDetail: 'workflow/ssot-gen/scripts/check_ssot_disk.sh를 이 IP에 대해 실행합니다.',
+        validationMode: 'mode',
+        runValidation: 'Validation 실행',
+        validationPass: 'PASS',
+        validationFail: 'FAIL',
       };
   const requirementHelp = uiLang === 'en'
     ? {
@@ -5358,11 +5427,11 @@ const SsotQaBoard = ({
     : (filledButNeedsSsot ? t.needsSsotApproval : t.blockedByMissing);
   const nextActionText = requirementMissing > 0
     ? (uiLang === 'en'
-      ? `${requirementMissing} decision${requirementMissing === 1 ? '' : 's'} are missing. Import existing docs first, then run Deep Interview for the gaps.`
-      : `${requirementMissing}개 결정이 부족합니다. 기존 문서가 있으면 먼저 Import하고, 남은 빈칸은 Deep Interview로 채우세요.`)
+      ? `${requirementMissing} decision${requirementMissing === 1 ? '' : 's'} are missing. Flow: Import, Deep Interview, To SSOT.`
+      : `${requirementMissing}개 결정이 부족합니다. 흐름은 Import, Deep Interview, To SSOT입니다.`)
     : (data?.approved
-      ? (uiLang === 'en' ? 'SSOT is approved. RTL generation can use it.' : 'SSOT가 승인되었습니다. RTL 생성에 사용할 수 있습니다.')
-      : (uiLang === 'en' ? 'Run To SSOT to document and approve the filled decisions.' : 'To SSOT로 채워진 결정을 문서화하고 승인하세요.'));
+      ? (uiLang === 'en' ? 'SSOT is ready. RTL generation can use it.' : 'SSOT가 준비됐습니다. RTL 생성에 사용할 수 있습니다.')
+      : (uiLang === 'en' ? 'Run To SSOT to document the filled decisions.' : 'To SSOT로 채워진 결정을 문서화하세요.'));
   const uploadDoneText = (count) => (
     uiLang === 'en'
       ? `${count} file${count === 1 ? '' : 's'} saved under ${data.ip}/req/imports/; /import started.`
@@ -5371,6 +5440,35 @@ const SsotQaBoard = ({
   const importInputRef = React.useRef(null);
   const [importBusy, setImportBusy] = React.useState(false);
   const [importStatus, setImportStatus] = React.useState('');
+  const [importDragActive, setImportDragActive] = React.useState(false);
+  const [validationMode, setValidationMode] = React.useState('engineering');
+  const [validationBusy, setValidationBusy] = React.useState(false);
+  const [validationResult, setValidationResult] = React.useState(null);
+  const importStorageKey = `atlas:ssot-imported-files:${activeSessionNorm || 'session'}:${data?.ip || 'ip'}`;
+  const readStoredImportedFiles = React.useCallback(() => {
+    try {
+      const raw = window.localStorage.getItem(importStorageKey);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.slice(0, 20) : [];
+    } catch (_) {
+      return [];
+    }
+  }, [importStorageKey]);
+  const [importedFiles, setImportedFilesState] = React.useState(() => readStoredImportedFiles());
+  const setImportedFiles = React.useCallback((updater) => {
+    setImportedFilesState(prev => {
+      const nextRaw = typeof updater === 'function' ? updater(prev) : updater;
+      const next = Array.isArray(nextRaw) ? nextRaw.slice(0, 20) : [];
+      try {
+        if (next.length) window.localStorage.setItem(importStorageKey, JSON.stringify(next));
+        else window.localStorage.removeItem(importStorageKey);
+      } catch (_) {}
+      return next;
+    });
+  }, [importStorageKey]);
+  React.useEffect(() => {
+    setImportedFilesState(readStoredImportedFiles());
+  }, [readStoredImportedFiles]);
   const runSsotCommand = (cmd) => {
     const text = String(cmd || '').trim();
     if (!text || !onRunCommand) return;
@@ -5388,8 +5486,21 @@ const SsotQaBoard = ({
   const uploadImportFiles = async (fileList) => {
     const files = Array.from(fileList || []);
     if (!files.length || !data?.ip) return;
+    const uploadStartedAt = Date.now();
     setImportBusy(true);
-    setImportStatus('');
+    setImportStatus(uiLang === 'en' ? `Uploading ${files.length} file${files.length === 1 ? '' : 's'}...` : `${files.length}개 파일 업로드 중...`);
+    setImportedFiles(prev => {
+      const queued = files.map((file, idx) => ({
+        name: file.name,
+        bytes: file.size || 0,
+        md_path: '',
+        original_path: '',
+        image_count: 0,
+        pending: true,
+        ts: uploadStartedAt + idx,
+      }));
+      return [...queued, ...prev].slice(0, 20);
+    });
     try {
       const payloadFiles = await Promise.all(files.map(async file => ({
         name: file.name,
@@ -5409,13 +5520,216 @@ const SsotQaBoard = ({
         throw new Error(payload?.error || `upload failed (${res.status})`);
       }
       setImportStatus(uploadDoneText((payload.paths || []).length));
+      const saved = Array.isArray(payload.saved) && payload.saved.length
+        ? payload.saved
+        : (Array.isArray(payload.paths) ? payload.paths.map(path => ({ name: String(path || '').split('/').pop(), original_path: path })) : []);
+      if (saved.length) {
+        setImportedFiles(prev => {
+          const next = saved.map(s => ({
+            name: s.name || '',
+            bytes: s.bytes || 0,
+            md_path: s.md_path || '',
+            original_path: s.original_path || '',
+            image_count: Array.isArray(s.image_paths) ? s.image_paths.length : 0,
+            pending: false,
+            ts: Date.now(),
+          }));
+          const savedNames = new Set(next.map(f => f.name));
+          const previous = prev.filter(f => !(f.pending && savedNames.has(f.name || '') && Number(f.ts || 0) >= uploadStartedAt && Number(f.ts || 0) < uploadStartedAt + files.length + 1));
+          return [...next, ...previous].slice(0, 20);
+        });
+      }
       if (payload.command) runSsotCommand(payload.command);
       setTimeout(() => { try { onRefresh && onRefresh(); } catch (_) {} }, 600);
     } catch (err) {
       setImportStatus(String(err?.message || err || 'upload failed'));
+      setImportedFiles(prev => prev.map(f => (
+        f.pending && Number(f.ts || 0) >= uploadStartedAt && Number(f.ts || 0) < uploadStartedAt + files.length + 1
+          ? { ...f, pending: false, error: true }
+          : f
+      )));
     } finally {
       setImportBusy(false);
     }
+  };
+  const exportSsot = (format) => {
+    const fmt = String(format || '').trim();
+    if (!fmt || !data?.ip) return;
+    window.location.href = `/api/ssot/export?ip=${encodeURIComponent(data.ip)}&format=${encodeURIComponent(fmt)}`;
+  };
+  const runValidation = async () => {
+    if (!data?.ip || validationBusy) return;
+    setValidationBusy(true);
+    setValidationResult(null);
+    try {
+      const res = await fetch('/api/ssot/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip: data.ip, mode: validationMode }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      setValidationResult({
+        ok: !!payload.ok,
+        mode: payload.mode || validationMode,
+        returncode: payload.returncode,
+        elapsed_ms: payload.elapsed_ms,
+        command: payload.command || '',
+        output: [payload.stdout || '', payload.stderr || '', payload.error || ''].filter(Boolean).join('\n').trim(),
+      });
+    } catch (err) {
+      setValidationResult({
+        ok: false,
+        mode: validationMode,
+        returncode: '',
+        elapsed_ms: '',
+        command: '',
+        output: String(err?.message || err || 'validation failed'),
+      });
+    } finally {
+      setValidationBusy(false);
+    }
+  };
+  const handleImportDrop = (ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    setImportDragActive(false);
+    uploadImportFiles(ev.dataTransfer?.files);
+  };
+  const renderImportStatus = () => {
+    if (!importStatus) return null;
+    const failed = importStatus.toLowerCase().includes('fail');
+    const importing = importBusy || importStatus.toLowerCase().includes('uploading') || importStatus.toLowerCase().includes('업로드 중');
+    const color = failed ? 'var(--err)' : importing ? 'var(--warn)' : 'var(--ok)';
+    const icon = failed ? '✕' : importing ? '⟳' : '✓';
+    return (
+      <div style={{
+        marginTop: 10, padding: '7px 9px',
+        border: `1px solid ${color}`, borderRadius: 2,
+        color, background: `color-mix(in oklch, ${color} 12%, transparent)`,
+        fontSize: 11, fontWeight: 600,
+        display: 'flex', alignItems: 'center', gap: 6,
+      }}>
+        <span style={{ fontSize: 13 }}>{icon}</span>
+        <span style={{ flex: 1 }}>{importStatus}</span>
+        <button type="button" onClick={() => setImportStatus('')}
+          style={{ background: 'transparent', border: 'none', color, cursor: 'pointer', fontSize: 12, padding: 0 }}>×</button>
+      </div>
+    );
+  };
+  const renderImportedFiles = () => (
+    <div style={{ marginTop: 12, padding: '8px 10px', border: '1px solid var(--line)', borderRadius: 2, background: 'var(--bg-2)', fontSize: 11, fontFamily: 'var(--mono)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
+        <span>📥 {t.importedList} · {importedFiles.length}</span>
+        {importedFiles.length ? (
+          <button type="button" onClick={() => setImportedFiles([])}
+            style={{ background: 'transparent', border: '1px solid var(--line)', color: 'var(--fg-mute)', cursor: 'pointer', fontSize: 10, padding: '1px 5px', borderRadius: 2 }}>clear</button>
+        ) : null}
+      </div>
+      {importedFiles.length ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {importedFiles.map((f, i) => (
+            <div key={`${f.name}-${f.ts || i}`} style={{ display: 'grid', gridTemplateColumns: '14px minmax(0, 1fr) auto', alignItems: 'center', gap: 6, padding: '4px 5px', color: 'var(--fg)', background: 'var(--bg-1)', borderRadius: 2 }}>
+              <span style={{ color: f.error ? 'var(--err)' : f.pending ? 'var(--warn)' : 'var(--ok)', fontWeight: 700 }}>
+                {f.error ? '✕' : f.pending ? '⟳' : '✓'}
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={f.name}>{f.name}</div>
+                {f.pending || f.error || f.md_path || f.original_path ? (
+                  <div className="mute" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 10 }} title={f.md_path || f.original_path || ''}>
+                    {f.pending ? 'uploading...' : f.error ? 'upload failed' : (f.md_path || f.original_path)}
+                  </div>
+                ) : null}
+              </div>
+              <span className="mute" style={{ fontSize: 10 }}>
+                {f.bytes ? (f.bytes < 1024 ? `${f.bytes}B` : `${(f.bytes/1024).toFixed(1)}K`) : ''}
+                {f.image_count ? ` · ${f.image_count} img` : ''}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ color: 'var(--fg-mute)', fontSize: 12 }}>{t.noImportedFiles}</div>
+      )}
+    </div>
+  );
+  const renderValidationScriptCard = () => {
+    const color = !validationResult ? 'var(--fg-mute)' : (validationResult.ok ? 'var(--ok)' : 'var(--err)');
+    return (
+      <div style={{
+        border: '1px solid var(--line)',
+        background: 'color-mix(in oklch, var(--bg-2) 58%, transparent)',
+        padding: 10,
+      }}>
+        <div style={{ color: 'var(--fg)', fontSize: 13, fontWeight: 800 }}>{t.validationScriptTitle}</div>
+        <div style={{ marginTop: 5, color: 'var(--fg-mute)', fontSize: 12, lineHeight: 1.45 }}>
+          {t.validationScriptDetail}
+        </div>
+        <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <label style={{ color: 'var(--fg-mute)', fontSize: 11 }}>
+            {t.validationMode}
+          </label>
+          <select
+            value={validationMode}
+            disabled={validationBusy}
+            onChange={ev => setValidationMode(ev.target.value)}
+            style={{
+              background: 'var(--bg)', color: 'var(--fg)',
+              border: '1px solid var(--line)', borderRadius: 2,
+              fontFamily: 'var(--mono)', fontSize: 11, padding: '3px 6px',
+            }}
+          >
+            <option value="starter">starter</option>
+            <option value="engineering">engineering</option>
+            <option value="signoff">signoff</option>
+          </select>
+          <button className="mini-btn" type="button" disabled={validationBusy} onClick={runValidation}>
+            {validationBusy ? 'running...' : t.runValidation}
+          </button>
+          {validationResult ? (
+            <AtlasStatusBadge
+              status={validationResult.ok ? 'approved' : 'failed'}
+              label={validationResult.ok ? t.validationPass : t.validationFail}
+              compact
+              soft
+            />
+          ) : null}
+        </div>
+        {validationResult ? (
+          <div style={{
+            marginTop: 10,
+            border: `1px solid ${color}`,
+            background: `color-mix(in oklch, ${color} 10%, transparent)`,
+            padding: 8,
+            color,
+            fontSize: 11,
+          }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: validationResult.output ? 6 : 0 }}>
+              <span>{validationResult.ok ? t.validationPass : t.validationFail}</span>
+              <span className="mute">mode={validationResult.mode}</span>
+              <span className="mute">rc={validationResult.returncode}</span>
+              {validationResult.elapsed_ms !== '' ? <span className="mute">{validationResult.elapsed_ms}ms</span> : null}
+            </div>
+            {validationResult.command ? (
+              <div className="mute" style={{ marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={validationResult.command}>
+                {validationResult.command}
+              </div>
+            ) : null}
+            {validationResult.output ? (
+              <pre style={{
+                margin: 0,
+                whiteSpace: 'pre-wrap',
+                color: 'var(--fg)',
+                fontFamily: 'var(--mono)',
+                fontSize: 11,
+                lineHeight: 1.45,
+                maxHeight: 180,
+                overflow: 'auto',
+              }}>{validationResult.output}</pre>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    );
   };
   // All QA cards (pending AND approved) default to expanded. Track the
   // *closed* set so newly-streamed items inherit the open-by-default rule.
@@ -5699,6 +6013,132 @@ const SsotQaBoard = ({
     );
   }
 
+  if (importExportOnly) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 12,
+        fontFamily: 'var(--mono)',
+        height: '100%',
+        minHeight: 0,
+        overflowY: 'auto',
+      }}>
+        <div style={{
+          border: '1px solid var(--line)',
+          background: 'var(--bg-1)',
+          padding: 14,
+        }}>
+          <input
+            ref={importInputRef}
+            type="file"
+            multiple
+            accept=".pdf,.pptx,.docx,.html,.htm,.md,.txt,.rst,.yaml,.yml,.json,.sv,.svh,.v,.vh,.py,.csv,.tsv,.xml,.f,.sdc,.tcl,.rpt,.log,.h,.c,.cpp,.png,.jpg,.jpeg,.gif,.webp,.bmp,.svg,.tif,.tiff"
+            style={{ display: 'none' }}
+            onChange={(ev) => {
+              const files = ev.target.files;
+              ev.target.value = '';
+              uploadImportFiles(files);
+            }}
+          />
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ flex: '1 1 360px', minWidth: 260 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ color: 'var(--fg)', fontSize: 16, fontWeight: 800 }}>{t.importExportTitle}</div>
+                <code className="acc">{data.ip}</code>
+              </div>
+              <div style={{ marginTop: 5, color: 'var(--fg-mute)', fontSize: 12, lineHeight: 1.45, maxWidth: 820 }}>
+                {t.importExportSubtitle}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <button className="mini-btn" type="button" onClick={onRefresh}>{t.refresh}</button>
+              <button className="mini-btn" type="button" onClick={onBack}>{t.chat}</button>
+            </div>
+          </div>
+        </div>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: 12,
+          alignItems: 'stretch',
+        }}>
+          <div style={{
+            border: '1px solid var(--line)',
+            background: 'color-mix(in oklch, var(--bg-2) 58%, transparent)',
+            padding: 14,
+          }}>
+            <div style={{ color: 'var(--fg)', fontSize: 14, fontWeight: 800 }}>{t.uploadImportTitle}</div>
+            <div style={{ marginTop: 5, color: 'var(--fg-mute)', fontSize: 12, lineHeight: 1.45 }}>
+              {t.uploadImportDetail}
+            </div>
+            <div
+              onDragEnter={(ev) => { ev.preventDefault(); ev.stopPropagation(); setImportDragActive(true); }}
+              onDragOver={(ev) => { ev.preventDefault(); ev.stopPropagation(); setImportDragActive(true); }}
+              onDragLeave={(ev) => { ev.preventDefault(); ev.stopPropagation(); setImportDragActive(false); }}
+              onDrop={handleImportDrop}
+              onClick={() => importInputRef.current?.click()}
+              style={{
+                marginTop: 12,
+                minHeight: 138,
+                border: `1px dashed ${importDragActive ? 'var(--accent)' : 'var(--line-2)'}`,
+                background: importDragActive
+                  ? 'color-mix(in oklch, var(--accent) 14%, transparent)'
+                  : 'color-mix(in oklch, var(--bg-1) 62%, transparent)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                cursor: 'pointer',
+                padding: 18,
+              }}
+            >
+              <div>
+                <div style={{ color: importDragActive ? 'var(--accent)' : 'var(--fg)', fontSize: 15, fontWeight: 800 }}>
+                  {importDragActive ? t.dropHere : t.uploadImportTitle}
+                </div>
+                <div style={{ marginTop: 6, color: 'var(--fg-mute)', fontSize: 12 }}>
+                  {t.dropHere} · {t.chooseFiles}
+                </div>
+                <button
+                  className="mini-btn"
+                  type="button"
+                  disabled={importBusy}
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    importInputRef.current?.click();
+                  }}
+                  style={{ marginTop: 12 }}
+                >
+                  {importBusy ? t.importing : t.chooseFiles}
+                </button>
+              </div>
+            </div>
+            {renderImportStatus()}
+            {renderImportedFiles()}
+          </div>
+
+          <div style={{
+            border: '1px solid var(--line)',
+            background: 'color-mix(in oklch, var(--bg-2) 58%, transparent)',
+            padding: 14,
+          }}>
+            <div style={{ color: 'var(--fg)', fontSize: 14, fontWeight: 800 }}>{t.exportTitle}</div>
+            <div style={{ marginTop: 5, color: 'var(--fg-mute)', fontSize: 12, lineHeight: 1.45 }}>
+              {t.exportDetail}
+            </div>
+            <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 }}>
+              <button className="mini-btn" type="button" onClick={() => exportSsot('md')}>{t.exportMd}</button>
+              <button className="mini-btn" type="button" onClick={() => exportSsot('docx')}>{t.exportDocx}</button>
+              <button className="mini-btn" type="button" onClick={() => exportSsot('html')}>{t.exportHtml}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{
       display: 'flex',
@@ -5707,24 +6147,17 @@ const SsotQaBoard = ({
       fontFamily: 'var(--mono)',
       height: '100%',
       minHeight: 0,
+      overflowY: 'auto',
     }}>
       {showChecklist ? (
       <div style={{
         border: '1px solid var(--line)',
         background: 'var(--bg-1)',
-        padding: 14,
+        paddingTop: 14,
+        paddingRight: 14,
+        paddingBottom: 100,
+        paddingLeft: 14,
       }}>
-        <input
-          ref={importInputRef}
-          type="file"
-          multiple
-          style={{ display: 'none' }}
-          onChange={(ev) => {
-            const files = ev.target.files;
-            ev.target.value = '';
-            uploadImportFiles(files);
-          }}
-        />
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 360px', minWidth: 260 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -5786,6 +6219,7 @@ const SsotQaBoard = ({
             </div>
           </div>
 
+          {checklistOnly ? renderValidationScriptCard() : (
           <div style={{
             border: '1px solid var(--line)',
             background: 'color-mix(in oklch, var(--bg-2) 52%, transparent)',
@@ -5813,6 +6247,56 @@ const SsotQaBoard = ({
                 >
                   {importBusy ? t.importing : t.chooseFile}
                 </button>
+                {importStatus ? (() => {
+                  const failed = importStatus.toLowerCase().includes('fail');
+                  const importing = importBusy;
+                  const color = failed ? 'var(--err)' : importing ? 'var(--warn)' : 'var(--ok)';
+                  const icon = failed ? '✕' : importing ? '⟳' : '✓';
+                  return (
+                    <div style={{
+                      marginTop: 8, padding: '6px 8px',
+                      border: `1px solid ${color}`, borderRadius: 2,
+                      color, background: `color-mix(in oklch, ${color} 12%, transparent)`,
+                      fontSize: 11, fontWeight: 600,
+                      display: 'flex', alignItems: 'center', gap: 6,
+                    }}>
+                      <span style={{ fontSize: 13 }}>{icon}</span>
+                      <span style={{ flex: 1 }}>{importStatus}</span>
+                      <button type="button" onClick={() => setImportStatus('')}
+                        style={{ background: 'transparent', border: 'none', color, cursor: 'pointer', fontSize: 12, padding: 0 }}>×</button>
+                    </div>
+                  );
+                })() : null}
+                {importedFiles.length > 0 ? (
+                  <div style={{ marginTop: 8, padding: '6px 8px', border: '1px solid var(--line)', borderRadius: 2, background: 'var(--bg-2)', fontSize: 11, fontFamily: 'var(--mono)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
+                      <span>📥 Imported · {importedFiles.length}</span>
+                      <button type="button" onClick={() => setImportedFiles([])}
+                        style={{ background: 'transparent', border: '1px solid var(--line)', color: 'var(--fg-mute)', cursor: 'pointer', fontSize: 10, padding: '1px 5px', borderRadius: 2 }}>clear</button>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      {importedFiles.map((f, i) => (
+                        <div key={`${f.name}-${f.ts || i}`} style={{ display: 'grid', gridTemplateColumns: '14px minmax(0, 1fr) auto', alignItems: 'center', gap: 6, padding: '3px 4px', color: 'var(--fg)' }}>
+                          <span style={{ color: f.error ? 'var(--err)' : f.pending ? 'var(--warn)' : 'var(--ok)', fontWeight: 700 }}>
+                            {f.error ? '✕' : f.pending ? '⟳' : '✓'}
+                          </span>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={f.name}>{f.name}</div>
+                            {f.pending || f.error || f.md_path || f.original_path ? (
+                              <div className="mute" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 10 }} title={f.md_path || f.original_path || ''}>
+                                {f.pending ? 'uploading...' : f.error ? 'upload failed' : (f.md_path || f.original_path)}
+                              </div>
+                            ) : null}
+                          </div>
+                          <span className="mute" style={{ fontSize: 10 }}>
+                            {f.bytes ? (f.bytes < 1024 ? `${f.bytes}B` : `${(f.bytes/1024).toFixed(1)}K`) : ''}
+                            {f.image_count ? ` · ${f.image_count} img` : ''}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
               <div style={{ borderTop: '2px solid var(--warn)', paddingTop: 7 }}>
                 <div style={{ color: 'var(--fg)', fontSize: 12, fontWeight: 700 }}>{t.actionInterviewTitle}</div>
@@ -5842,6 +6326,7 @@ const SsotQaBoard = ({
               </div>
             </div>
           </div>
+          )}
         </div>
 
         {requirementTotal > 0 ? (
@@ -5935,6 +6420,51 @@ const SsotQaBoard = ({
           </div>
         </div>
       )}
+
+      {!showChecklist && !checklistOnly ? (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: 12,
+        }}>
+          <div style={{
+            border: '1px solid var(--line)',
+            borderTop: '2px solid var(--warn)',
+            background: 'color-mix(in oklch, var(--bg-2) 58%, transparent)',
+            padding: 12,
+          }}>
+            <div style={{ color: 'var(--fg)', fontSize: 13, fontWeight: 800 }}>{t.actionInterviewTitle}</div>
+            <div style={{ color: 'var(--fg-mute)', fontSize: 12, lineHeight: 1.45, marginTop: 5 }}>{t.actionInterviewDetail}</div>
+            <button
+              className="mini-btn"
+              type="button"
+              onClick={() => runSsotCommand(`/grill-me ${data.ip}`)}
+              title="Run /grill-me for unresolved SSOT decisions"
+              style={{ marginTop: 10 }}
+            >
+              {t.deepInterview}
+            </button>
+          </div>
+          <div style={{
+            border: '1px solid var(--line)',
+            borderTop: '2px solid var(--ok)',
+            background: 'color-mix(in oklch, var(--bg-2) 58%, transparent)',
+            padding: 12,
+          }}>
+            <div style={{ color: 'var(--fg)', fontSize: 13, fontWeight: 800 }}>{t.actionToSsotTitle}</div>
+            <div style={{ color: 'var(--fg-mute)', fontSize: 12, lineHeight: 1.45, marginTop: 5 }}>{t.actionToSsotDetail}</div>
+            <button
+              className="mini-btn"
+              type="button"
+              onClick={() => runSsotCommand(`/to-ssot ${data.ip}`)}
+              title="Run /to-ssot for this IP"
+              style={{ marginTop: 10, borderColor: 'var(--ok)', color: 'var(--ok)' }}
+            >
+              {t.toSsot}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {!checklistOnly ? (
         <>
@@ -8117,7 +8647,7 @@ const ModuleTree = ({ topName, modules }) => (
       const meta = m.file ? `  ${m.file}` : '';
       const desc = m.description ? `${pad}   ${trimSsotValue(m.description, 140)}` : '';
       return (
-        <div key={m.name || idx}>
+        <div key={`${idx}-${m.name || 'mod'}`}>
           <div>{branch}<span style={{ color: 'var(--cyan)', fontWeight: 700 }}>{m.name || 'module'}</span><span className="mute">{meta}</span></div>
           {desc ? <div className="mute">{desc}</div> : null}
         </div>
@@ -9618,6 +10148,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
   const importDocRef = React.useRef(null);
   const [importDocBusy, setImportDocBusy] = React.useState(false);
   const [importDocStatus, setImportDocStatus] = React.useState('');
+  const [importedFiles, setImportedFiles] = React.useState([]);
   const [exportFormat, setExportFormat] = React.useState('');
 
   const handleImportDocFiles = async (fileList) => {
@@ -9660,6 +10191,20 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
       setImportDocStatus(uiLang === 'en'
         ? `${count} file(s) imported. /import started for ${ip}.`
         : `${count}개 파일 임포트 완료. ${ip} /import를 실행했습니다.`);
+      const saved = Array.isArray(payload.saved) ? payload.saved : [];
+      if (saved.length) {
+        setImportedFiles(prev => {
+          const next = saved.map(s => ({
+            name: s.name || '',
+            bytes: s.bytes || 0,
+            md_path: s.md_path || '',
+            original_path: s.original_path || '',
+            image_count: Array.isArray(s.image_paths) ? s.image_paths.length : 0,
+            ts: Date.now(),
+          }));
+          return [...next, ...prev].slice(0, 20);
+        });
+      }
     } catch (err) {
       setImportDocStatus(String(err?.message || err || 'upload failed'));
     } finally {
@@ -9766,10 +10311,112 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
   if (!filePaths.length) {
     return (
       <div style={{ flex: 1, minHeight: 0, padding: '16px 18px', overflow: 'auto' }}>
+        <input
+          ref={importDocRef}
+          type="file"
+          multiple
+          accept=".pdf,.pptx,.docx,.html,.htm,.md,.txt,.rst,.yaml,.yml,.json,.sv,.svh,.v,.vh,.py,.csv,.tsv,.xml,.f,.sdc,.tcl,.rpt,.log,.h,.c,.cpp,.png,.jpg,.jpeg,.gif,.webp,.bmp,.svg,.tif,.tiff"
+          style={{ display: 'none' }}
+          onChange={e => {
+            const files = e.target.files;
+            e.target.value = '';
+            handleImportDocFiles(files);
+          }}
+        />
         <div className="code" style={{ padding: 16, color: 'var(--fg-mute)' }}>
           # {t.empty}<br />
           # /grill-me → /to-ssot writes the review source.
         </div>
+        <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn"
+            disabled={importDocBusy}
+            onClick={() => importDocRef.current?.click()}
+            title="Upload requirement docs, notes, RTL, YAML, or logs into SSOT import evidence"
+            style={{ fontSize: 10 }}
+          >{importDocBusy ? t.importing : t.importDoc}</button>
+          <span className="mute" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)' }}>
+            Uploaded files are saved under req/imports.
+          </span>
+        </div>
+
+        {importDocStatus ? (() => {
+          const failed = importDocStatus.toLowerCase().includes('fail');
+          const importing = importDocStatus.toLowerCase().includes('importing') || importDocStatus.toLowerCase().includes('임포트 중');
+          const color = failed ? 'var(--err)' : importing ? 'var(--warn)' : 'var(--ok)';
+          const icon = failed ? '✕' : importing ? '⟳' : '✓';
+          return (
+            <div style={{
+              padding: '8px 14px',
+              fontSize: 'var(--ui-control-font-size)',
+              color, background: `color-mix(in oklch, ${color} 12%, transparent)`,
+              border: `1px solid ${color}`, borderRadius: 2,
+              marginTop: 10,
+              fontWeight: 600, letterSpacing: '0.02em',
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <span style={{ fontSize: 14 }}>{icon}</span>
+              <span style={{ flex: 1 }}>{importDocStatus}</span>
+              <button type="button"
+                onClick={() => setImportDocStatus('')}
+                style={{
+                  background: 'transparent', border: 'none', color, cursor: 'pointer',
+                  fontSize: 13, fontWeight: 700, padding: '0 4px',
+                }}
+                title="dismiss"
+              >×</button>
+            </div>
+          );
+        })() : null}
+
+        {importedFiles.length > 0 ? (
+          <div style={{
+            marginTop: 10, padding: '8px 10px',
+            border: '1px solid var(--line)', borderRadius: 2,
+            background: 'var(--bg-1)',
+            fontSize: 'var(--ui-control-font-size)',
+            fontFamily: 'var(--mono)',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              marginBottom: 6, fontWeight: 700, color: 'var(--fg-mute)',
+              letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+            }}>
+              <span>📥 Imported · {importedFiles.length}</span>
+              <button type="button" onClick={() => setImportedFiles([])}
+                style={{
+                  background: 'transparent', border: '1px solid var(--line)',
+                  color: 'var(--fg-mute)', cursor: 'pointer',
+                  fontSize: 10, padding: '1px 6px', borderRadius: 2,
+                }}>clear</button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {importedFiles.map((f, i) => (
+                <div key={i} style={{
+                  display: 'grid', gridTemplateColumns: '14px minmax(0, 1fr) auto',
+                  gap: 8, alignItems: 'center',
+                  padding: '4px 6px', background: 'var(--bg-2)',
+                  borderRadius: 2, color: 'var(--fg)',
+                }}>
+                  <span style={{ color: 'var(--ok)', fontWeight: 700 }}>✓</span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={f.name}>{f.name}</div>
+                    {f.md_path || f.original_path ? (
+                      <div className="mute" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 10 }} title={f.md_path || f.original_path}>
+                        {f.md_path || f.original_path}
+                      </div>
+                    ) : null}
+                  </div>
+                  <span className="mute" style={{ fontSize: 10 }}>
+                    {f.bytes ? (f.bytes < 1024 ? `${f.bytes}B` : `${(f.bytes/1024).toFixed(1)}K`) : ''}
+                    {f.image_count ? ` · ${f.image_count} img` : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -9788,6 +10435,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
           <div style={{
             color: 'var(--magenta)', fontWeight: 800, fontSize: 12,
             letterSpacing: '0.08em', textTransform: 'uppercase',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>{t.title}</div>
           <div className="mute trunc" style={{ marginTop: 3, fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)' }}>
             {selected || t.file} · {loading ? (ssotHasContent ? 'refreshing' : 'loading') : `${sections.length} ${t.sections}`} · {approvedCount} {t.approved} · {flagCount} {t.flags}
@@ -9816,8 +10464,13 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
             ref={importDocRef}
             type="file"
             multiple
+            accept=".pdf,.pptx,.docx,.html,.htm,.md,.txt,.rst,.yaml,.yml,.json,.sv,.svh,.v,.vh,.py,.csv,.tsv,.xml,.f,.sdc,.tcl,.rpt,.log,.h,.c,.cpp,.png,.jpg,.jpeg,.gif,.webp,.bmp,.svg,.tif,.tiff"
             style={{ display: 'none' }}
-            onChange={e => handleImportDocFiles(e.target.files)}
+            onChange={e => {
+              const files = e.target.files;
+              e.target.value = '';
+              handleImportDocFiles(files);
+            }}
           />
           <button
             type="button"
@@ -9862,12 +10515,83 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
         </div>
       </div>
 
-      {importDocStatus ? (
+      {importDocStatus ? (() => {
+        const failed = importDocStatus.toLowerCase().includes('fail');
+        const importing = importDocStatus.toLowerCase().includes('importing') || importDocStatus.toLowerCase().includes('임포트 중');
+        const color = failed ? 'var(--err)' : importing ? 'var(--warn)' : 'var(--ok)';
+        const icon = failed ? '✕' : importing ? '⟳' : '✓';
+        return (
+          <div style={{
+            padding: '8px 14px',
+            fontSize: 'var(--ui-control-font-size)',
+            color, background: `color-mix(in oklch, ${color} 12%, transparent)`,
+            border: `1px solid ${color}`, borderRadius: 2,
+            margin: '6px 14px',
+            fontWeight: 600, letterSpacing: '0.02em',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <span style={{ fontSize: 14 }}>{icon}</span>
+            <span style={{ flex: 1 }}>{importDocStatus}</span>
+            <button type="button"
+              onClick={() => setImportDocStatus('')}
+              style={{
+                background: 'transparent', border: 'none', color, cursor: 'pointer',
+                fontSize: 13, fontWeight: 700, padding: '0 4px',
+              }}
+              title="dismiss"
+            >×</button>
+          </div>
+        );
+      })() : null}
+
+      {importedFiles.length > 0 ? (
         <div style={{
-          padding: '4px 14px', fontSize: 11,
-          color: importDocStatus.toLowerCase().includes('fail') ? 'var(--warn)' : 'var(--fg-mute)',
-          borderBottom: '1px solid var(--line)', background: 'var(--bg-2)',
-        }}>{importDocStatus}</div>
+          margin: '0 14px 6px 14px', padding: '8px 10px',
+          border: '1px solid var(--line)', borderRadius: 2,
+          background: 'var(--bg-1)',
+          fontSize: 'var(--ui-control-font-size)',
+          fontFamily: 'var(--mono)',
+        }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            marginBottom: 6, fontWeight: 700, color: 'var(--fg-mute)',
+            letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+          }}>
+            <span>📥 Imported · {importedFiles.length}</span>
+            <button type="button" onClick={() => setImportedFiles([])}
+              style={{
+                background: 'transparent', border: '1px solid var(--line)',
+                color: 'var(--fg-mute)', cursor: 'pointer',
+                fontSize: 10, padding: '1px 6px', borderRadius: 2,
+              }}>clear</button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {importedFiles.map((f, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '4px 6px', background: 'var(--bg-2)',
+                borderRadius: 2, color: 'var(--fg)',
+              }}>
+                <span style={{ color: 'var(--ok)', fontWeight: 700 }}>✓</span>
+                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={f.name}>{f.name}</span>
+                <span className="mute" style={{ fontSize: 10 }}>
+                  {f.bytes ? (f.bytes < 1024 ? `${f.bytes}B` : `${(f.bytes/1024).toFixed(1)}K`) : ''}
+                  {f.image_count ? ` · ${f.image_count} img` : ''}
+                </span>
+                {f.md_path ? (
+                  <button type="button"
+                    onClick={() => setSelected(f.md_path)}
+                    style={{
+                      background: 'transparent', border: '1px solid var(--accent)',
+                      color: 'var(--accent)', cursor: 'pointer',
+                      fontSize: 10, padding: '1px 6px', borderRadius: 2,
+                    }}
+                    title={f.md_path}>open</button>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
       ) : null}
 
       <div style={{

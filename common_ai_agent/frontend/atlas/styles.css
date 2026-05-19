@@ -339,7 +339,7 @@ html[data-platform="windows"][data-font-scale="xl"] {
    Shared primitives
    ────────────────────────────────────────────── */
 .app {
-  --atlas-topbar-h: 44px; /* dir-switcher 2 rows × 22px, tight to free vertical space for chat input */
+  --atlas-topbar-h: 56px; /* dir-switcher 2 rows × 28px, gives row 1 enough vertical room so labels (SESSION_ID, WORKFLOW, FONT, RES, etc.) aren't clipped at the top edge */
   font-family: var(--mono);
   background: var(--bg);
   color: var(--fg);
@@ -3052,6 +3052,14 @@ body[data-resize-cursor="col"] {
   text-transform: uppercase;
   color: var(--fg-mute);
   flex: 0 0 auto;
+  background: var(--panel, #0f1118);
+  position: relative;
+  z-index: 2;
+}
+.orch-chat-input-row {
+  background: var(--bg-2, #151823);
+  position: relative;
+  z-index: 2;
 }
 .orch-chat-title { font-weight: 600; color: var(--fg-dim); }
 .orch-chat-status[data-active="yes"] { color: var(--ok, #76c893); }
@@ -3072,7 +3080,7 @@ body[data-resize-cursor="col"] {
 .orch-chat-content { white-space: pre-wrap; word-break: break-word; }
 .orch-chat-input-row {
   display: flex;
-  align-items: stretch;
+  align-items: flex-end;     /* was 'stretch' — caused send btn to grow vertically when row container had extra height */
   gap: 6px;
   padding: 8px 10px;
   border-top: 1px solid var(--line);
@@ -3082,6 +3090,7 @@ body[data-resize-cursor="col"] {
 .orch-chat-input {
   flex: 1 1 auto;
   min-height: 32px;
+  max-height: 64px;     /* keep input compact so chat body keeps most of the panel; reduces the "3-section equal split" feel when the textarea would otherwise stretch */
   padding: 6px 8px;
   border: 1px solid var(--line);
   border-radius: 3px;
@@ -3103,6 +3112,8 @@ body[data-resize-cursor="col"] {
   background: color-mix(in oklch, var(--accent) 14%, transparent);
   color: var(--accent, #f2b632);
   cursor: pointer;
+  max-height: 64px;     /* don't stretch with align-items:stretch when row height grows */
+  align-self: stretch;
   font-size: 14px;
   min-width: 32px;
 }

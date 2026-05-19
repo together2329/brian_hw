@@ -4548,6 +4548,20 @@ def create_app():
                     except Exception: pass
         except Exception:
             pass
+        # Also clear the active session-scoped todo.json — the GET /api/todos
+        # handler prefers that file over the global one (see api_todos: when
+        # active_session has a todo.json, it's the source of truth). Leaving
+        # it in place makes the UI snap back to old cards after refreshTodos.
+        try:
+            from pathlib import Path as _P
+            active = normalize_session_name(_active_session_value())
+            if active:
+                session_todo = PROJECT_ROOT / ".session" / active / "todo.json"
+                if session_todo.exists():
+                    try: session_todo.write_text('{"todos": []}', encoding="utf-8")
+                    except Exception: pass
+        except Exception:
+            pass
         return JSONResponse({"ok": True})
 
     def _tracker_stage(name: str) -> str:
@@ -7252,9 +7266,9 @@ def create_app():
                             "ssot": (
                                 f"{status}; waiting for /to-ssot {ip_name}"
                                 if status == "approved"
-                                else f"answered; waiting for approve {ip_name}"
+                                else f"answered; press /to-ssot {ip_name} to generate"
                                 if status == "answered"
-                                else f"planned; answer Web Q&A, then approve {ip_name}"
+                                else f"planned; answer Web Q&A, then press /to-ssot {ip_name}"
                             ),
                             "rtl": "blocked until SSOT ok",
                             "tb": "blocked until RTL/TB generation",
@@ -7520,9 +7534,13 @@ def create_app():
         ".v", ".vh", ".py", ".csv", ".tsv", ".xml", ".f", ".sdc",
         ".tcl", ".rpt", ".log", ".h", ".c", ".cpp",
         ".pdf", ".pptx", ".docx", ".html", ".htm",
+        ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg", ".tif", ".tiff",
     }
     # Suffixes treated as plain text (no markitdown invocation).
     _SSOT_IMPORT_PASSTHROUGH = {".md", ".txt", ".rst"}
+    _SSOT_IMPORT_IMAGE_EXTENSIONS = {
+        ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg", ".tif", ".tiff",
+    }
     # External Python 3.10 used to run markitdown (atlas_ui itself is on 3.9).
     _SSOT_MARKITDOWN_PY = "/opt/homebrew/bin/python3.10"
     _SSOT_IMPORT_SKIP_DIRS = {
@@ -8578,7 +8596,20 @@ def create_app():
         ]
         missing = _missing_ssot_decisions(ip, state)
         lang = os.environ.get("ATLAS_UI_LANG") or "English"
-        path_lines = "\n".join(f"- {p}" for p in imported_paths[:24]) or "- (none recorded; inspect the IP directory and draft SSOT)"
+        import_context_paths = [
+            f"{ip}/wiki/index.md",
+            f"{ip}/wiki/_graph.json",
+            f"{ip}/req/import_manifest.json",
+            f"{ip}/wiki/import-evidence.md",
+            *imported_paths[:24],
+        ]
+        seen_import_context: set[str] = set()
+        import_context_paths = [
+            path
+            for path in import_context_paths
+            if path and not (path in seen_import_context or seen_import_context.add(path))
+        ]
+        path_lines = "\n".join(f"- {p}" for p in import_context_paths) or "- (none recorded; inspect the IP directory and draft SSOT)"
         missing_line = ", ".join(missing) if missing else "(backend baseline decisions already filled; still inspect for SSOT TBD/conflicts)"
         return "\n".join([
             f"You are ssot-gen for IP `{ip}` in ATLAS UI.",
@@ -8587,6 +8618,8 @@ def create_app():
             "",
             "Goal: create IP-specific SSOT Q&A from the current evidence, not from a fixed template.",
             "This is a general-IP flow. Do not assume APB/register-only/simple peripheral structure unless evidence says so.",
+            "Use the per-IP wiki as the navigation index. Follow relevant wiki links and graph nodes for import history, notes, requirements, SSOT, RTL, model, verification, and logs.",
+            "Do not stop at the import manifest. Inspect the manifest, imported markdown, wiki import index, existing SSOT draft, and any other relevant IP artifacts before deciding what needs human clarification.",
             "",
             "Truth ownership model:",
             "- Human owns requirement/spec/interface/FL golden model/coverage goals/performance targets/sign-off.",
@@ -8601,13 +8634,14 @@ def create_app():
             path_lines,
             "",
             "Required action:",
-            f"1. Read `{ip}/yaml/{ip}.ssot.yaml` if it exists, plus relevant docs/RTL under `{ip}/` and the evidence paths above.",
-            "2. Detect unresolved SSOT decisions, contradictions, assumptions, TBD/null/placeholders, and any truth that needs human approval.",
-            "3. Generate ONLY the questions needed for this IP. The question set may be 0, 1, 4, 20, or more depending on complexity.",
-            "4. If the answer is not an immediate blocker, use `record_ssot_qa(questions=[...])` to save deferred QA cards.",
-            "5. Use `ask_user(questions=[...])` only when the answer blocks the next SSOT write or import pass.",
+            f"1. Read `{ip}/wiki/index.md`, `{ip}/wiki/_graph.json`, `{ip}/req/import_manifest.json`, `{ip}/wiki/import-evidence.md`, and `{ip}/yaml/{ip}.ssot.yaml` if they exist.",
+            f"2. Follow relevant wiki links and inspect relevant files under `{ip}/req`, `{ip}/doc`, `{ip}/rtl`, `{ip}/model`, `{ip}/tb`, `{ip}/sim`, `{ip}/lint`, and `{ip}/logs` when the index or evidence points there.",
+            "3. Detect unresolved SSOT decisions, contradictions, assumptions, TBD/null/placeholders, vague imported facts, and any truth that needs human approval or concretization.",
+            "4. Generate ONLY the questions needed for this IP. The question set may be 0, 1, 4, 20, or more depending on complexity.",
+            "5. If the answer is not an immediate blocker, use `record_ssot_qa(questions=[...])` to save deferred QA cards.",
+            "6. Use `ask_user(questions=[...])` only when the answer blocks the next SSOT write or import pass.",
             "   Do not ask plain prose questions in chat. Both tools preserve SSOT QA metadata.",
-            "6. Each question object must carry metadata so ATLAS can save it in SSOT QA preview:",
+            "7. Each question object must carry metadata so ATLAS can save it in SSOT QA preview:",
             "   - id: stable snake_case id",
             "   - section_id: canonical section bucket such as 00_overview, 03_interface, 06_registers, 18_verification, 19_workflow_todos, or a specific section number",
             "   - section_title: human-readable SSOT section title",
@@ -8617,7 +8651,7 @@ def create_app():
             "   - question, subtitle, kind, options when useful",
             "   - criteria: pass/fail criteria for using the answer downstream",
             "   - source_refs: SSOT paths, doc paths, or RTL paths that caused the question",
-            "7. Prefer section-specific QA cards. Group by SSOT section and ask concrete decisions, not generic template prompts.",
+            "8. Prefer section-specific QA cards. Group by SSOT section and ask concrete decisions, not generic template prompts.",
             "8. If downstream RTL needs explicit decomposition, write `workflow_todos.rtl-gen[]` with content/detail/criteria/source_refs.",
             "9. If no immediate answer is needed after recording deferred QA, say `[SSOT Q&A] deferred questions recorded` with a short evidence summary.",
             "10. If no human decision is needed at all, say `[SSOT Q&A] no generated questions required` and explain the evidence briefly.",
@@ -8628,11 +8662,20 @@ def create_app():
     def _render_approved_ssot_spec(ip: str, state: dict[str, Any]) -> str:
         decisions = _ssot_decisions(ip, state)
         lines = [
-            f"[APPROVED WEB SSOT SPEC] {ip}",
+            f"[WEB TO SSOT SPEC] {ip}",
             f"kind: {state.get('kind') or 'simple APB peripheral'}",
-            "source: Web UI Plan Mode + SSOT draft decisions",
+            "source: Web UI Plan Mode + SSOT draft decisions + per-IP wiki/import evidence",
             "",
-            "Use this as the source of truth for /to-ssot. Do not invent over missing fields.",
+            "Use this with the per-IP wiki as the source of truth for /to-ssot. Do not invent over missing fields.",
+            "Required evidence navigation before writing SSOT:",
+            f"- {ip}/wiki/index.md",
+            f"- {ip}/wiki/_graph.json",
+            f"- {ip}/wiki/import-evidence.md",
+            f"- {ip}/wiki/log.md",
+            f"- {ip}/wiki/notes.md",
+            f"- {ip}/req/import_manifest.json",
+            f"- relevant files linked by the wiki/import evidence under {ip}/req, {ip}/doc, {ip}/rtl, {ip}/model, {ip}/tb, {ip}/sim, {ip}/lint, and {ip}/logs",
+            "Generation rule: reconcile current decisions with import history, wiki summaries, source excerpts, conflicts, and downstream TODO evidence.",
         ]
         for key, _label in _SSOT_REQUIRED_DECISIONS:
             lines.append(f"- {key}: {decisions.get(key) or '(missing)'}")
@@ -8725,6 +8768,160 @@ def create_app():
                     target.write_text(content, encoding="utf-8")
                 except Exception:
                     pass
+
+    def _compact_import_wiki_text(value: Any, limit: int = 700) -> str:
+        text = " ".join(str(value or "").strip().split())
+        if len(text) <= limit:
+            return text
+        return text[: max(0, limit - 3)].rstrip() + "..."
+
+    def _refresh_ip_wiki_graph(ip: str) -> None:
+        try:
+            import subprocess
+
+            script = Path(__file__).resolve().parents[1] / "workflow" / "wiki" / "build_graph.py"
+            subprocess.run(
+                [
+                    "python3",
+                    str(script),
+                    "--ip",
+                    ip,
+                    "--project-root",
+                    str(PROJECT_ROOT),
+                    "--quiet",
+                ],
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=10,
+            )
+        except Exception:
+            pass
+
+    def _write_import_wiki_index(
+        ip: str,
+        kind: str,
+        artifacts: list[dict[str, Any]],
+        candidates: dict[str, str],
+        sources: dict[str, list[dict[str, str]]],
+        filled: list[str],
+        conflicts: list[dict[str, Any]],
+        todo_summary: dict[str, Any],
+        next_action: str,
+    ) -> None:
+        try:
+            _scaffold_ip_wiki(ip)
+            wiki_dir = PROJECT_ROOT / ip / "wiki"
+            wiki_dir.mkdir(parents=True, exist_ok=True)
+            updated = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            page = wiki_dir / "import-evidence.md"
+            lines: list[str] = [
+                "---",
+                "type: reference",
+                "tags: [import, ssot, requirements]",
+                f"updated: {updated[:10]}",
+                "---",
+                "",
+                f"# {ip} Import Evidence",
+                "",
+                "Index for files imported into the SSOT workflow. This page is generated by `/import` so agents can find imported requirements without re-scanning the full IP tree.",
+                "",
+                "## Summary",
+                "",
+                f"- IP: `{ip}`",
+                f"- Kind: `{kind}`",
+                f"- Last import: `{updated}`",
+                f"- Manifest: `{ip}/req/import_manifest.json`",
+                f"- Imported artifacts: {len(artifacts)}",
+                f"- Candidate facts: {len(candidates)}",
+                f"- Filled decisions: {len(filled)}",
+                f"- Conflicts: {len(conflicts)}",
+                f"- Next action: `{next_action}`",
+                "",
+                "## Imported files",
+                "",
+            ]
+            if artifacts:
+                lines.extend(["| path | bytes | derived md |", "| --- | ---: | --- |"])
+                for artifact in artifacts[:80]:
+                    path = _compact_import_wiki_text(artifact.get("path"), 240).replace("|", "\\|")
+                    size = artifact.get("size_bytes")
+                    md_path = _compact_import_wiki_text(artifact.get("md_path"), 240).replace("|", "\\|")
+                    lines.append(f"| `{path}` | {size if isinstance(size, int) else ''} | `{md_path}` |")
+            else:
+                lines.append("- No imported artifacts recorded.")
+            lines.extend(["", "## Candidate SSOT facts", ""])
+            if candidates:
+                for key in sorted(candidates):
+                    lines.extend([f"### {key}", "", _compact_import_wiki_text(candidates.get(key), 1200), ""])
+            else:
+                lines.append("- No candidate facts extracted.")
+            lines.extend(["", "## Source excerpts", ""])
+            if sources:
+                for key in sorted(sources):
+                    rows = sources.get(key) or []
+                    lines.extend([f"### {key}", ""])
+                    for row in rows[:8]:
+                        path = _compact_import_wiki_text(row.get("path"), 240)
+                        excerpt = _compact_import_wiki_text(row.get("excerpt"), 700)
+                        lines.append(f"- `{path}`: {excerpt}")
+                    lines.append("")
+            else:
+                lines.append("- No source excerpts recorded.")
+            lines.extend(["", "## Filled decisions", ""])
+            if filled:
+                for key in filled:
+                    lines.append(f"- `{key}`")
+            else:
+                lines.append("- None.")
+            lines.extend(["", "## Conflicts", ""])
+            if conflicts:
+                for conflict in conflicts[:40]:
+                    field = _compact_import_wiki_text(conflict.get("field"), 120)
+                    existing = _compact_import_wiki_text(conflict.get("existing"), 360)
+                    imported = _compact_import_wiki_text(conflict.get("imported"), 360)
+                    lines.extend([f"### {field}", "", f"- Existing: {existing}", f"- Imported: {imported}", ""])
+            else:
+                lines.append("- None.")
+            lines.extend(["", "## Workflow todo summary", ""])
+            if isinstance(todo_summary, dict) and todo_summary:
+                for key in sorted(todo_summary):
+                    lines.append(f"- `{key}`: `{todo_summary.get(key)}`")
+            else:
+                lines.append("- None.")
+            lines.extend([
+                "",
+                "## Agent usage",
+                "",
+                f"- Deep Interview should start from `{ip}/wiki/index.md` and `{ip}/wiki/_graph.json`, then read `{ip}/req/import_manifest.json`, this `[[import-evidence]]` page, `[[log]]`, `[[notes]]`, and any linked artifacts that look relevant.",
+                f"- Deep Interview should ask only the concretization questions needed after comparing import history, candidate facts, SSOT draft, requirements, RTL/model, and verification evidence.",
+                f"- To SSOT should use the wiki index, manifest, candidate facts, conflicts, and source excerpts as evidence, then write `{ip}/yaml/{ip}.ssot.yaml`.",
+            ])
+            page.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+
+            index_path = wiki_dir / "index.md"
+            if index_path.exists():
+                index_text = index_path.read_text(encoding="utf-8")
+                if "[[import-evidence]]" not in index_text:
+                    index_text = index_text.rstrip() + (
+                        "\n\n## Import Evidence\n\n"
+                        "- [[import-evidence]] - imported files, extracted SSOT facts, conflicts, and next actions.\n"
+                    )
+                    index_path.write_text(index_text, encoding="utf-8")
+
+            log_path = wiki_dir / "log.md"
+            log_line = (
+                f"\n## [{updated}] import | {len(artifacts)} artifacts\n\n"
+                f"- Page: [[import-evidence]]\n"
+                f"- Filled decisions: {len(filled)}\n"
+                f"- Conflicts: {len(conflicts)}\n"
+                f"- Next action: `{next_action}`\n"
+            )
+            with log_path.open("a", encoding="utf-8") as handle:
+                handle.write(log_line)
+            _refresh_ip_wiki_graph(ip)
+        except Exception:
+            pass
 
     def _ensure_new_ip_structure(ip: str) -> list[str]:
         dirs = [
@@ -9411,6 +9608,7 @@ def create_app():
         filled, conflicts = _record_ssot_decisions(ip, kind, candidates, sources)
         doc, custom = _ssot_custom(ip, kind)
         todo_summary = _apply_import_yaml_todos(ip, doc, custom, artifacts, candidates, sources)
+        next_action = "/grill-me" if conflicts or _missing_ssot_decisions(ip, state) else "/to-ssot"
         manifest_path = PROJECT_ROOT / ip / "req" / "import_manifest.json"
         try:
             manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -9428,7 +9626,7 @@ def create_app():
                         "filled_decisions": filled,
                         "conflicts": conflicts,
                         "workflow_todo_summary": todo_summary,
-                        "next": "/grill-me" if conflicts or _missing_ssot_decisions(ip, state) else "/to-ssot",
+                        "next": next_action,
                     },
                     ensure_ascii=False,
                     indent=2,
@@ -9466,6 +9664,7 @@ def create_app():
             state["approved"] = False
             state["approved_at"] = 0
         state["status"] = "answered" if not _missing_ssot_decisions(ip, state) else "planned"
+        _write_import_wiki_index(ip, kind, artifacts, candidates, sources, filled, conflicts, todo_summary, next_action)
         return filled, conflicts
 
     def _import_defaults_if_available(ip: str, kind: str, state: dict[str, Any]) -> tuple[list[str], list[dict[str, Any]], list[dict[str, Any]], list[str]]:
@@ -10185,8 +10384,8 @@ def create_app():
         lines += [
             "",
             "Next:",
-            "  /grill-me" if missing or conflicts else "  approve",
-            "  /to-ssot after approval",
+            "  /grill-me" if missing or conflicts else "  /to-ssot",
+            "  /to-ssot when ready; pressing it approves the current evidence",
         ]
         msg = "\n".join(lines)
         _append_session_message(_canonical_session_string(ip), "user", text)
@@ -10235,28 +10434,28 @@ def create_app():
         return result.stdout, ""
 
     def _describe_image(img: Path) -> str:
-        """Run cursor-agent (sonnet-4) over an extracted image and return a short
-        description. Empty string on any failure (timeout, missing CLI, non-zero
-        exit, parse error). The caller appends this under '## Extracted Images'.
+        """Describe an image through the configured project vision path.
+
+        Do not call ad-hoc CLIs here. The supported route is core.tools.read_image,
+        which uses ENABLE_IMAGE_READ / IMAGE_READ_MODEL / IMAGE_READ_* settings
+        and therefore follows the configured Ciela/vision model contract.
         """
-        cursor_bin = "/Users/brian/.local/bin/cursor-agent"
-        if not Path(cursor_bin).exists():
-            return ""
         try:
-            r = subprocess.run(
-                [
-                    cursor_bin,
-                    "-p", "--output-format", "text", "--model", "sonnet-4",
-                    f"Describe the content of @{img} in 2-3 sentences. "
-                    "Include visible text, diagrams, charts, key data.",
-                ],
-                capture_output=True, text=True, timeout=30,
+            from core.tools import read_image  # type: ignore
+        except Exception as exc:
+            return f"Image description unavailable: read_image import failed: {exc}"
+        try:
+            desc = read_image(
+                path=str(img),
+                prompt=(
+                    "Describe this image for SSOT import evidence in 2-3 sentences. "
+                    "Include visible text, diagrams, charts, key data, interfaces, "
+                    "signals, states, registers, or requirements if present."
+                ),
             )
-            if r.returncode == 0:
-                return (r.stdout or "").strip()
-        except Exception:
-            pass
-        return ""
+            return str(desc or "").strip()
+        except Exception as exc:
+            return f"Image description unavailable: {exc}"
 
     def _convert_upload_to_markdown(
         original_path: Path,
@@ -10296,6 +10495,28 @@ def create_app():
 
             if suffix == ".doc":
                 return None, [], "legacy .doc not supported (save as .docx)"
+
+            if suffix in _SSOT_IMPORT_IMAGE_EXTENSIONS:
+                desc = _describe_image(original_path)
+                try:
+                    rel = original_path.relative_to(PROJECT_ROOT).as_posix()
+                except ValueError:
+                    rel = original_path.as_posix()
+                md_target.write_text(
+                    "\n".join([
+                        f"# Image Import: {original_path.name}",
+                        "",
+                        f"Source: `{rel}`",
+                        "",
+                        "## Image Description",
+                        "",
+                        desc if desc else "_(no image description)_",
+                        "",
+                    ]),
+                    encoding="utf-8",
+                )
+                err = desc if desc.startswith("Error:") else ""
+                return md_target, [original_path], err
 
             md_written = False
             md_text, mk_err = _markitdown_convert(original_path)
@@ -10406,12 +10627,14 @@ def create_app():
 
             if image_paths:
                 desc_lines = ["", "", "## Extracted Images", ""]
-                for img_path in image_paths:
+                from concurrent.futures import ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=8) as pool:
+                    descs = list(pool.map(_describe_image, image_paths))
+                for img_path, desc in zip(image_paths, descs):
                     try:
                         rel = img_path.relative_to(PROJECT_ROOT).as_posix()
                     except ValueError:
                         rel = img_path.as_posix()
-                    desc = _describe_image(img_path)
                     desc_lines.append(f"### `{rel}`")
                     desc_lines.append(desc if desc else "_(no description)_")
                     desc_lines.append("")
@@ -10514,7 +10737,8 @@ def create_app():
                 errors.append(f"{filename}: write failed: {exc}")
                 continue
 
-            md_path, image_paths, conv_err = _convert_upload_to_markdown(
+            md_path, image_paths, conv_err = await asyncio.to_thread(
+                _convert_upload_to_markdown,
                 original_target, suffix, dest_dir, images_dir, stamp, idx, basename,
             )
             entry: dict[str, Any] = {
@@ -10608,6 +10832,74 @@ def create_app():
             filename=filename,
             headers={"Content-Disposition": f'attachment; filename="{filename}"'},
         )
+
+    @app.post("/api/ssot/validate")
+    async def api_ssot_validate(request: Request):
+        """Run the disk-truth SSOT validator for one IP.
+
+        This is intentionally a small wrapper around the existing
+        workflow/ssot-gen/scripts/check_ssot_disk.sh script so the UI reports
+        the same validation result as the pipeline gate.
+        """
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        ip = str((body or {}).get("ip") or _active_ssot_ip() or "").strip()
+        mode = str((body or {}).get("mode") or "engineering").strip().lower().replace("_", "-")
+        if mode == "eng":
+            mode = "engineering"
+        if mode == "sign-off":
+            mode = "signoff"
+        if mode not in {"starter", "engineering", "signoff"}:
+            return JSONResponse({"error": f"invalid mode {mode!r}"}, status_code=400)
+        if not _valid_ip_name(ip):
+            return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
+
+        script = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
+        if not script.is_file():
+            return JSONResponse({"error": f"validator script not found: {script}"}, status_code=404)
+
+        env = os.environ.copy()
+        env["IP_NAME"] = ip
+        env["ATLAS_RUN_MODE"] = mode
+        cmd = ["bash", str(script), ip, "--mode", mode]
+        started = time.time()
+        try:
+            proc = await asyncio.to_thread(
+                subprocess.run,
+                cmd,
+                cwd=str(PROJECT_ROOT),
+                env=env,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=30,
+            )
+        except subprocess.TimeoutExpired as exc:
+            return JSONResponse({
+                "ok": False,
+                "ip": ip,
+                "mode": mode,
+                "returncode": 124,
+                "stdout": exc.stdout or "",
+                "stderr": exc.stderr or "validation timed out",
+                "elapsed_ms": int((time.time() - started) * 1000),
+                "command": " ".join(shlex.quote(part) for part in cmd),
+            }, status_code=504)
+        except Exception as exc:
+            return JSONResponse({"error": f"validation failed to launch: {exc}"}, status_code=500)
+
+        return JSONResponse({
+            "ok": proc.returncode == 0,
+            "ip": ip,
+            "mode": mode,
+            "returncode": proc.returncode,
+            "stdout": proc.stdout or "",
+            "stderr": proc.stderr or "",
+            "elapsed_ms": int((time.time() - started) * 1000),
+            "command": " ".join(shlex.quote(part) for part in cmd),
+        })
 
     def _handle_grill_me_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
@@ -10865,19 +11157,35 @@ def create_app():
                 _append_session_message(_canonical_session_string(ip), "assistant", note)
                 _append_workflow_history("ssot-gen", "assistant", note)
                 _append_active_history("assistant", "```\n" + note + "\n```")
-            if _auto_approve_if_complete(ip, state, reason="auto_approve_from_import_before_to_ssot"):
-                state = _load_ssot_state(ip)
-                note = f"[SSOT APPROVED] {ip}: auto-approved because imported evidence filled all required decisions."
+            if not state.get("approved"):
+                missing_at_approval = _missing_ssot_decisions(ip, state)
+                state["approved"] = True
+                state["approved_at"] = time.time()
+                state["approval_source"] = "to_ssot"
+                state["status"] = "approved"
+                state["last_step"] = "approved_by_to_ssot"
+                state["active_session"] = _active_session_value() or _canonical_session_string(ip)
+                if missing_at_approval:
+                    state["approved_with_missing_decisions"] = missing_at_approval
+                _save_ssot_state(ip, state)
+                note = (
+                    f"[SSOT APPROVED] {ip}: To SSOT was pressed, so the current Web Q&A, "
+                    "import manifest, and per-IP wiki evidence are treated as approved for SSOT generation."
+                )
+                if missing_at_approval:
+                    note += "\nreview flags carried into SSOT: " + ", ".join(missing_at_approval)
+                if conflicts:
+                    note += "\nimport conflicts carried into SSOT review context: " + ", ".join(str(c.get("key") or "") for c in conflicts[:8])
                 _append_session_message(_canonical_session_string(ip), "assistant", note)
                 _append_workflow_history("ssot-gen", "assistant", note)
                 _append_active_history("assistant", "```\n" + note + "\n```")
         if not state.get("approved"):
             missing = _missing_ssot_decisions(ip, state) if state else [k for k, _ in _SSOT_REQUIRED_DECISIONS]
             msg = (
-                f"[SSOT GATE] blocked: {ip} is not approved yet\n"
-                "YAML writes need either complete imported evidence or explicit approval.\n"
-                f"missing decisions: {', '.join(missing) if missing else '(review not approved)'}\n\n"
-                f"Put files under {ip}/doc/ or run /import @doc, then /to-ssot again. Use /grill-me only for the listed gaps."
+                f"[SSOT GATE] blocked: {ip} has no usable SSOT state yet\n"
+                "YAML writes need imported evidence, Web Q&A state, or a scaffolded SSOT session.\n"
+                f"missing decisions: {', '.join(missing) if missing else '(state missing)'}\n\n"
+                f"Put files under {ip}/doc/ or upload/import docs, then press To SSOT again. Use Deep Interview only for the listed gaps."
             )
             _append_session_message(_canonical_session_string(ip), "user", text)
             _append_session_message(_canonical_session_string(ip), "assistant", msg)
@@ -10925,7 +11233,7 @@ def create_app():
             bridge_msg = f"[to-ssot] generic bridge failed before validation: {exc}"
         else:
             bridge_parts = [
-                f"[to-ssot] generic approved-state SSOT bridge for {ip}",
+                f"[to-ssot] generic Web To SSOT bridge for {ip}",
                 f"script: {script_path}",
                 f"ssot: {ssot_path}",
                 f"bridge exit: {draft.returncode}",
@@ -10965,13 +11273,18 @@ def create_app():
             "```text\n"
             f"{bridge_msg}\n"
             "```\n\n"
-            "Approved Web SSOT Spec, copied inline so this fresh run does not depend "
+            "Web To SSOT Spec, copied inline so this fresh run does not depend "
             "on stale workflow chat history:\n"
             "```text\n"
             f"{spec}\n"
             "```\n\n"
-            "Execute this as the approved SSOT write step. Do not call todo_write; "
-            "it is Plan Mode only. Use the approved Web SSOT Spec above as source truth, "
+            "Before writing the final SSOT, inspect the per-IP wiki navigation and import context. "
+            f"Start at `{ip}/wiki/index.md` and `{ip}/wiki/_graph.json`, then read "
+            f"`{ip}/wiki/import-evidence.md`, `{ip}/req/import_manifest.json`, "
+            "`log.md`, `notes.md`, and any linked artifacts that materially affect the SSOT. "
+            "Do not stop at the manifest JSON when wiki/import evidence points to more specific sources.\n\n"
+            "Execute this as the SSOT write step. Do not call todo_write; "
+            "it is Plan Mode only. Use the Web To SSOT Spec above as source truth, "
             "replace scaffold-only placeholders, "
             "write the complete production canonical SSOT, and run the exact validator "
             f"`bash {validator_path} {ip}` before emitting [SSOT HANDOFF]. "
@@ -11011,7 +11324,7 @@ def create_app():
         if not ssot_path.is_file():
             msg = (
                 f"[repair-ssot] blocked: SSOT not found at {ssot_path}\n"
-                f"Run /new-ip {ip}, approve {ip}, and /to-ssot {ip} first."
+                f"Run /new-ip {ip}, then /to-ssot {ip} first."
             )
             _append_session_message(session, "assistant", msg)
             _append_workflow_history("ssot-gen", "assistant", msg)
@@ -11084,7 +11397,7 @@ def create_app():
         if not ssot_path.is_file():
             _emit_workflow_result(
                 f"[repair-rtl] blocked: SSOT not found at {ip}/yaml/{ip}.ssot.yaml\n"
-                f"Run /new-ip {ip}, approve {ip}, and /to-ssot {ip} first.",
+                f"Run /new-ip {ip}, then /to-ssot {ip} first.",
                 "repair-rtl",
             )
             return True
@@ -11297,7 +11610,7 @@ def create_app():
         if not ssot_path.is_file():
             _emit_workflow_result(
                 f"[{alias}] blocked: SSOT not found at {ip}/yaml/{ip}.ssot.yaml\n"
-                f"Run /new-ip {ip}, approve {ip}, and /to-ssot {ip} first.",
+                f"Run /new-ip {ip}, then /to-ssot {ip} first.",
                 alias,
             )
             return True

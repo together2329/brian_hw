@@ -131,3 +131,9 @@ On-disk layout extends to:
     <ts>_<idx>_<n>.<ext>
   <ts>_<idx>_<basename>.md   # markitdown body + '## Extracted Images' tail
 ```
+
+## Related
+
+- [[ssot-conversion-flow-20260519]] — full upload → `/import` → `/grill-me` →
+  `/to-ssot` → `check_ssot_disk.sh` pipeline and why each stage is split for
+  human audit. This page covers stage 1 only; that page covers the chain.

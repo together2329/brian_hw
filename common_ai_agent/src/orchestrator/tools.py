@@ -675,9 +675,8 @@ def import_document(
     import uuid
 
     if project_root is None:
-        from src.config import project_root as _pr
-
-        project_root = _pr()
+        import os as _os
+        project_root = _os.getcwd()
     project_root = Path(project_root).expanduser().resolve()
 
     ip = str(ip or "").strip()
