@@ -25,8 +25,8 @@ if [ ! -f "${AREA}" ]; then echo "[SYN] missing ${AREA}" >&2; exit 2; fi
 python3 - "${IP}" "${AREA}" "${LOG}" "${NET}" "${RPT}" <<'PY'
 import json, pathlib, sys, re, os, datetime
 ip, area_path, log_path, net_path, rpt_path = sys.argv[1:6]
-area = json.loads(pathlib.Path(area_path).read_text())
-log  = pathlib.Path(log_path).read_text(errors="replace") if pathlib.Path(log_path).exists() else ""
+area = json.loads(pathlib.Path(area_path).read_text(encoding="utf-8", errors="replace"))
+log  = pathlib.Path(log_path).read_text(encoding="utf-8", errors="replace") if pathlib.Path(log_path).exists() else ""
 warnings = re.findall(r"^Warning: .*$", log, re.M)[:20]
 top5 = list(area.get("by_cell", {}).items())[:5]
 date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -61,6 +61,6 @@ if warnings:
 else:
     lines.append("_(none)_")
 lines.append("")
-pathlib.Path(rpt_path).write_text("\n".join(lines))
+pathlib.Path(rpt_path).write_text("\n".join(lines), encoding="utf-8")
 print(f"[SYN] wrote {rpt_path}")
 PY

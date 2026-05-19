@@ -75,6 +75,14 @@ def register_sessions_routes(
         sid = str((body or {}).get("session_id") or "").strip() or "default"
         ip = str((body or {}).get("ip") or "").strip() or "default"
         wf = str((body or {}).get("workflow") or "").strip() or "default"
+        raw_preserve = (body or {}).get("preserve_running")
+        if raw_preserve is None:
+            raw_preserve = (body or {}).get("preserveRunning")
+        preserve_running = (
+            bool(raw_preserve)
+            if isinstance(raw_preserve, bool)
+            else str(raw_preserve or "").strip().lower() in ("1", "true", "yes", "on")
+        )
         # Sanitize — refuse exotic path chars to avoid traversal.
         for label, val in (("session_id", sid), ("ip", ip), ("workflow", wf)):
             if not re.match(r"^[A-Za-z][A-Za-z0-9_-]*$", val):
@@ -111,10 +119,16 @@ def register_sessions_routes(
         # POST /api/control/stop is fire-and-forget and races with the
         # /wf prompt sent on the same flip — anchoring the halt here
         # makes the transition deterministic regardless of order.
+        #
+        # Orchestrator + multi-worker mode is different: workflow changes are
+        # deliberate focus switches between per-session workers. In that mode
+        # the frontend sends preserve_running=true so an already-running worker
+        # can continue while the user jumps to another worker and sends input.
         prev = active_session_value() or ""
         triple_changed = prev != canonical
         was_running = bool(getattr(bridge, "agent_running", False))
-        if triple_changed and was_running:
+        halted = bool(triple_changed and was_running and not preserve_running)
+        if halted:
             try:
                 bridge.request_stop_for_session(prev or canonical)
                 try:
@@ -263,7 +277,8 @@ def register_sessions_routes(
             "session_id": sid,
             "ip": ip,
             "workflow": wf,
-            "halted": triple_changed,
+            "halted": halted,
+            "preserve_running": preserve_running,
         })
 
     # ── /api/session/history ───────────────────────────────────────

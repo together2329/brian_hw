@@ -54,7 +54,7 @@ def register_workspaces_routes(
                 if not ws_json.exists():
                     continue
                 try:
-                    spec = json.loads(ws_json.read_text())
+                    spec = json.loads(ws_json.read_text(encoding="utf-8", errors="replace"))
                 except Exception:
                     spec = {}
                 items.append({

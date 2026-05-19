@@ -38,7 +38,7 @@ def _read_project_config() -> dict:
     result = {}
     if not _PROJECT_CONFIG.exists():
         return result
-    for line in _PROJECT_CONFIG.read_text().splitlines():
+    for line in _PROJECT_CONFIG.read_text(encoding="utf-8", errors="replace").splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
@@ -74,7 +74,13 @@ def _mod_script(mod_dir: str) -> str:
 
 def _run(cmd: str, timeout: int = 10) -> str:
     result = subprocess.run(
-        cmd, shell=True, capture_output=True, text=True, timeout=timeout
+        cmd,
+        shell=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=timeout,
     )
     out = (result.stdout or "").strip()
     err = (result.stderr or "").strip()

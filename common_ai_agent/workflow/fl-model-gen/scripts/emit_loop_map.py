@@ -102,7 +102,14 @@ def _try_render_svg(mmd_path: Path, svg_path: Path) -> tuple[bool, str]:
     cmd = [mmdc, "-i", str(mmd_path), "-o", str(svg_path)] if mmdc.endswith("mmdc") else \
           [mmdc, "-y", "@mermaid-js/mermaid-cli", "-i", str(mmd_path), "-o", str(svg_path)]
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=60,
+        )
         if result.returncode == 0 and svg_path.is_file():
             return True, "rendered"
         return False, (result.stderr or result.stdout or "non-zero exit").strip()[:200]

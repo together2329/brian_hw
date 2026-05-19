@@ -663,7 +663,7 @@ def _make_command_handler(spec: dict, ws: "WorkspaceConfig"):
                 runner = [sys.executable, str(_s)] if _s.suffix == ".py" else ["bash", str(_s)]
                 r = subprocess.run(
                     [*runner, *argv], env=env,
-                    capture_output=True, text=True, timeout=_timeout,
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=_timeout,
                 )
                 rendered = (r.stdout or r.stderr or "(no output)").strip()
                 returncode = int(getattr(r, "returncode", 0) or 0)

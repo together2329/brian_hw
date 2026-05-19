@@ -36,7 +36,7 @@ except Exception as exc:
     print(f"[PNR PREFLIGHT] PyYAML required to read SSOT: {exc}", file=sys.stderr)
     raise SystemExit(2)
 
-doc = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text()) or {}
+doc = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")) or {}
 pnr = doc.get("pnr") or {}
 required = [
     "utilization_pct",

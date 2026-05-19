@@ -149,7 +149,14 @@ def main() -> int:
         "-o",
         str(output),
     ]
-    proc = subprocess.run(command, cwd=ip_dir, text=True, capture_output=True)
+    proc = subprocess.run(
+        command,
+        cwd=ip_dir,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+    )
     text = (proc.stdout or "") + (proc.stderr or "")
     errors, diagnostics = _count_diagnostics(text)
     style_violations = _scan_style_violations(ip_dir, rtl_files)

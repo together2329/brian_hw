@@ -40,7 +40,7 @@ class VcdParts:
 
 def _parse_vcd(path: str) -> VcdParts:
     """Read a VCD file, return its parts split at $enddefinitions."""
-    text = Path(path).read_text()
+    text = Path(path).read_text(encoding="utf-8", errors="replace")
 
     if "$enddefinitions" not in text:
         raise ValueError(f"{path}: no $enddefinitions marker — corrupt VCD?")
@@ -193,7 +193,7 @@ def merge_concat(inputs: List[str], out_path: str = "") -> str:
         merged += "\n"
 
     if out_path:
-        Path(out_path).write_text(merged)
+        Path(out_path).write_text(merged, encoding="utf-8")
 
     return merged
 

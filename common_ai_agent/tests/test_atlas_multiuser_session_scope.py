@@ -1,6 +1,7 @@
 import json
 import sys
 from pathlib import Path
+from typing import Optional
 
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
@@ -21,10 +22,19 @@ def _register(client: TestClient, username: str) -> None:
     assert response.status_code == 200, response.text
 
 
-def _activate(client: TestClient, session_id: str, ip: str, workflow: str):
+def _activate(
+    client: TestClient,
+    session_id: str,
+    ip: str,
+    workflow: str,
+    preserve_running: Optional[bool] = None,
+):
+    body = {"session_id": session_id, "ip": ip, "workflow": workflow}
+    if preserve_running is not None:
+        body["preserve_running"] = preserve_running
     return client.post(
         "/api/session/activate",
-        json={"session_id": session_id, "ip": ip, "workflow": workflow},
+        json=body,
     )
 
 
@@ -105,6 +115,47 @@ def test_session_activate_records_db_control_plane_namespace(tmp_path, monkeypat
         listed = {row["id"]: row for row in db.list_all_sessions()}
         assert listed["alice/spi_core/orchestrator"]["ip"] == "spi_core"
         assert listed["alice/spi_core/orchestrator"]["workflow"] == "orchestrator"
+
+
+def test_session_activate_preserves_running_worker_when_requested(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    response = _activate(client, "alice", "spi_core", "orchestrator")
+    assert response.status_code == 200, response.text
+    orchestrator = app.state.bridge._ensure_session("alice/spi_core/orchestrator")
+    orchestrator.agent_running = True
+
+    preserved = _activate(
+        client,
+        "alice",
+        "spi_core",
+        "rtl-gen",
+        preserve_running=True,
+    )
+    assert preserved.status_code == 200, preserved.text
+    assert preserved.json()["active_session"] == "alice/spi_core/rtl-gen"
+    assert preserved.json()["halted"] is False
+    assert preserved.json()["preserve_running"] is True
+    assert orchestrator.agent_running is True
+
+    rtl = app.state.bridge._ensure_session("alice/spi_core/rtl-gen")
+    rtl.agent_running = True
+    halted = _activate(client, "alice", "spi_core", "tb-gen")
+    assert halted.status_code == 200, halted.text
+    assert halted.json()["active_session"] == "alice/spi_core/tb-gen"
+    assert halted.json()["halted"] is True
+    assert halted.json()["preserve_running"] is False
+    assert rtl.agent_running is False
 
 
 def test_session_activate_policy_and_mode_sweep_keeps_namespace_todos_isolated(tmp_path, monkeypatch):

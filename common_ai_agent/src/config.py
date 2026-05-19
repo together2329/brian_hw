@@ -2189,7 +2189,7 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
             "workflow", "prompts", "cursor_agent.md"
         )
         try:
-            with open(_prompt_path, "r") as _f:
+            with open(_prompt_path, "r", encoding="utf-8", errors="replace") as _f:
                 return _f.read()
         except Exception:
             pass  # fall through to normal prompt

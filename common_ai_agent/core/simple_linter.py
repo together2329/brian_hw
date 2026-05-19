@@ -176,6 +176,8 @@ class SimpleLinter:
                     ['pyflakes', str(filepath)],
                     capture_output=True,
                     text=True,
+                    encoding='utf-8',
+                    errors='replace',
                     timeout=5
                 )
 
@@ -255,6 +257,8 @@ class SimpleLinter:
                     ['vcs', '-full64', '-sverilog', '-q', '+lint=all', '-parse', str(filepath)],
                     capture_output=True,
                     text=True,
+                    encoding='utf-8',
+                    errors='replace',
                     timeout=30,
                     cwd=filepath.parent
                 )
@@ -301,6 +305,8 @@ class SimpleLinter:
                     ['iverilog', '-t', 'null', str(filepath)],
                     capture_output=True,
                     text=True,
+                    encoding='utf-8',
+                    errors='replace',
                     timeout=10,
                     cwd=filepath.parent  # Run in same directory for includes
                 )
@@ -359,6 +365,8 @@ class SimpleLinter:
                     ['verilator', '--lint-only', str(filepath)],
                     capture_output=True,
                     text=True,
+                    encoding='utf-8',
+                    errors='replace',
                     timeout=10
                 )
 
@@ -468,7 +476,7 @@ def hello():
 
 def unused_function():  # Warning: unused
     pass
-""")
+""", encoding="utf-8")
 
     print(f"Checking {test_py}:")
     errors = linter.check_file(str(test_py))
@@ -487,7 +495,7 @@ module test(
         count <= count + 1
     end  // Missing semicolon
 endmodule
-""")
+""", encoding="utf-8")
 
         print(f"Checking {test_v}:")
         errors = linter.check_file(str(test_v))

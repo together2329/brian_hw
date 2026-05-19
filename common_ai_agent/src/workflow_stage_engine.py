@@ -857,6 +857,8 @@ class WorkflowStageEngine:
                 command,
                 cwd=str(self.project_root),
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 capture_output=True,
                 timeout=timeout_s,
             )
@@ -1257,6 +1259,7 @@ class WorkflowStageEngine:
                     lines.append(f"    quality: {issue}")
         artifacts = [
             f"{ip}/yaml/{ip}.ssot.yaml",
+            f"{ip}/rtl/rtl_contract.json",
             f"{ip}/rtl/rtl_todo_plan.json",
             f"{ip}/rtl/rtl_todo_tracker.json",
             f"{ip}/rtl/rtl_traceability.json",

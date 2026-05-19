@@ -19,7 +19,7 @@ python3 - "${IP}" "${SSOT}" "${SDC}" <<'PY'
 import sys, pathlib, re
 
 ip, ssot_path, sdc_path = sys.argv[1:4]
-text = pathlib.Path(ssot_path).read_text()
+text = pathlib.Path(ssot_path).read_text(encoding="utf-8", errors="replace")
 
 # Lightweight YAML extraction — avoids hard yaml dep. Handles the canonical
 # 20-section SSOT shape: top-level mappings, list-of-mappings under clocks/
@@ -164,6 +164,6 @@ if mcyc:
         lines.append(cmd)
 
 lines.append("")
-pathlib.Path(sdc_path).write_text("\n".join(lines))
+pathlib.Path(sdc_path).write_text("\n".join(lines), encoding="utf-8")
 print(f"[STA] wrote {sdc_path} ({len(clocks)} clocks)")
 PY

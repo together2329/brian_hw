@@ -103,19 +103,19 @@ class MemorySystem:
     def _load(self):
         """Load memories from disk"""
         try:
-            with open(self.preferences_file, 'r') as f:
+            with open(self.preferences_file, 'r', encoding='utf-8', errors='replace') as f:
                 self._preferences = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             self._preferences = {}
 
         try:
-            with open(self.project_context_file, 'r') as f:
+            with open(self.project_context_file, 'r', encoding='utf-8', errors='replace') as f:
                 self._project_context = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             self._project_context = {}
 
         try:
-            with open(self.memory_rules_file, 'r') as f:
+            with open(self.memory_rules_file, 'r', encoding='utf-8', errors='replace') as f:
                 self._memory_rules = self._normalize_memory_rules(json.load(f))
         except (FileNotFoundError, json.JSONDecodeError):
             self._memory_rules = {"global": [], "workflows": {}}

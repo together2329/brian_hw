@@ -106,7 +106,7 @@ def _bin_decompose(value: str, width: int) -> List[Optional[str]]:
 
 def parse_vcd(path: str) -> Dict[str, Net]:
     """Parse a VCD file. Returns {ident: Net}."""
-    text = Path(path).read_text(errors='replace')
+    text = Path(path).read_text(encoding="utf-8", errors='replace')
     nets: Dict[str, Net] = {}
     scope_stack: List[str] = []
 

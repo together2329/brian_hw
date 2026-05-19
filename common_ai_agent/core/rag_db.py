@@ -196,7 +196,7 @@ class RAGDatabase:
         self.rag_dir.mkdir(parents=True, exist_ok=True)
         
         if not self.index_path.exists():
-            self.index_path.write_text('{"chunks": {}, "file_hashes": {}}')
+            self.index_path.write_text('{"chunks": {}, "file_hashes": {}}', encoding="utf-8")
         
         # Create default .ragconfig if not exists
         if not self.config_file.exists():
@@ -234,7 +234,7 @@ spec:
   exclude:
     - "README.md"
 """
-        self.config_file.write_text(default_config)
+        self.config_file.write_text(default_config, encoding="utf-8")
     
     def _load_config_patterns(self) -> dict:
         """
@@ -244,7 +244,7 @@ spec:
         patterns = {'include': [], 'exclude': []}
         
         try:
-            content = self.config_file.read_text()
+            content = self.config_file.read_text(encoding="utf-8", errors="replace")
             
             # Temporary storage per category
             cat_config = {}
@@ -1876,7 +1876,7 @@ Return ONLY valid JSON:
                 "embedding_model": config.EMBEDDING_MODEL,
                 "embedding_dimension": config.EMBEDDING_DIMENSION or self.embedding_dimension
             }
-            self.index_path.write_text(json.dumps(data, indent=2))
+            self.index_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
         except Exception as e:
             print(f"[RAG] Save failed: {e}")
 
@@ -1886,7 +1886,7 @@ Return ONLY valid JSON:
             if not self.index_path.exists():
                 return
 
-            data = json.loads(self.index_path.read_text())
+            data = json.loads(self.index_path.read_text(encoding="utf-8", errors="replace"))
             
             # Check for model compatibility BEFORE loading chunks
             import config
@@ -1920,7 +1920,7 @@ Return ONLY valid JSON:
                 config_backup = None
                 if self.config_file.exists():
                     try:
-                        config_backup = self.config_file.read_text()
+                        config_backup = self.config_file.read_text(encoding="utf-8", errors="replace")
                     except:
                         pass
 
@@ -1941,7 +1941,7 @@ Return ONLY valid JSON:
                     # Restore config file
                     if config_backup:
                         try:
-                            self.config_file.write_text(config_backup)
+                            self.config_file.write_text(config_backup, encoding="utf-8")
                             print(Color.success(f"  ✅ Restored .ragconfig settings"))
                         except Exception as e:
                             print(Color.warning(f"  ⚠️  Failed to restore .ragconfig: {e}"))

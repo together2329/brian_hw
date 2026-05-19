@@ -93,6 +93,12 @@ class SessionProcessManager:
         if effective_db:
             env["ATLAS_TRACE_DB_PATH"] = effective_db
         env.setdefault("ATLAS_PROJECT_ROOT", str(Path.cwd()))
+        # Windows defaults to the active ANSI code page for redirected text
+        # I/O unless UTF-8 mode is forced before Python starts. Worker output
+        # is DB/file backed, so every child should agree on UTF-8 regardless
+        # of the launching console locale.
+        env.setdefault("PYTHONUTF8", "1")
+        env.setdefault("PYTHONIOENCODING", "utf-8:replace")
         return env
 
     def spawn(self, session_id: str, db_path: Optional[str] = None) -> bool:

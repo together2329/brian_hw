@@ -43,6 +43,32 @@ if os.path.join(_project_root, 'src') not in sys.path:
 from core.session_names import normalize_session_name
 
 
+def _configure_text_stdio() -> None:
+    """Make redirected Windows consoles lossy instead of crashy."""
+
+    os.environ.setdefault("PYTHONUTF8", "1")
+    os.environ.setdefault("PYTHONIOENCODING", "utf-8:replace")
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="replace")
+        except Exception:
+            pass
+
+
+def _safe_print(line: str = "") -> None:
+    """Print terminal diagnostics without failing on legacy code pages."""
+
+    try:
+        print(line)
+    except UnicodeEncodeError:
+        encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+        safe = str(line).encode(encoding, errors="replace").decode(encoding, errors="replace")
+        print(safe)
+
+
+_configure_text_stdio()
+
+
 # ─── Data Models ─────────────────────────────────────────────────────────
 
 @dataclass
@@ -165,15 +191,15 @@ def _print_entry(run_id: str, entry_type: str, content: str):
         preview = preview[:147] + "..."
     # Add color/highlight for key entry types
     if entry_type in ("action", "tool_call"):
-        print(f"  {icon} [{short_id}] \033[1;36m{preview}\033[0m")
+        _safe_print(f"  {icon} [{short_id}] \033[1;36m{preview}\033[0m")
     elif entry_type == "error":
-        print(f"  {icon} [{short_id}] \033[1;31m{preview}\033[0m")
+        _safe_print(f"  {icon} [{short_id}] \033[1;31m{preview}\033[0m")
     elif entry_type in ("completion", "done"):
-        print(f"  {icon} [{short_id}] \033[1;32m{preview}\033[0m")
+        _safe_print(f"  {icon} [{short_id}] \033[1;32m{preview}\033[0m")
     elif entry_type == "iteration":
-        print(f"\n{icon} [{short_id}] {preview}")
+        _safe_print(f"\n{icon} [{short_id}] {preview}")
     else:
-        print(f"  {icon} [{short_id}] {preview}")
+        _safe_print(f"  {icon} [{short_id}] {preview}")
 
 
 def _cleanup_expired_runs():
@@ -248,7 +274,7 @@ def _write_run_log(entry: RunEntry) -> None:
             "error": entry.error,
             "result": entry.result,
             "entries": entry.log,
-        }, indent=2, default=str))
+        }, indent=2, default=str, ensure_ascii=False), encoding="utf-8")
     except Exception as e:
         print(f"[log-dir] WARNING: Failed to write {entry.run_id}: {e}")
 
@@ -279,7 +305,7 @@ def _save_runs():
                     "result": entry.result,
                     "log": entry.log,  # Full transcript
                 }
-        tmp.write_text(json.dumps(data, indent=2, default=str))
+        tmp.write_text(json.dumps(data, indent=2, default=str, ensure_ascii=False), encoding="utf-8")
         tmp.replace(_PERSISTENCE_FILE)
     except Exception as e:
         print(f"[persist] WARNING: Failed to save runs: {e}")
@@ -292,7 +318,7 @@ def _load_runs():
     if not _PERSISTENCE_FILE.exists():
         return
     try:
-        data = json.loads(_PERSISTENCE_FILE.read_text())
+        data = json.loads(_PERSISTENCE_FILE.read_text(encoding="utf-8", errors="replace"))
         runs_data = data.get("runs", {})
         now = time.time()
         restored = 0
@@ -347,7 +373,7 @@ def _save_registry():
         tmp = _REGISTRY_FILE.with_suffix(".tmp")
         with _runs_lock:
             data = {"saved_at": time.time(), "workers": dict(_worker_registry)}
-        tmp.write_text(json.dumps(data, indent=2))
+        tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
         tmp.replace(_REGISTRY_FILE)
     except Exception as e:
         print(f"[persist] WARNING: Failed to save registry: {e}")
@@ -360,7 +386,7 @@ def _load_registry():
     if not _REGISTRY_FILE.exists():
         return
     try:
-        data = json.loads(_REGISTRY_FILE.read_text())
+        data = json.loads(_REGISTRY_FILE.read_text(encoding="utf-8", errors="replace"))
         workers_data = data.get("workers", {})
         with _runs_lock:
             for name, entry in workers_data.items():
@@ -587,6 +613,10 @@ def _slash_command_needs_llm_followup(command: str, output: str) -> bool:
         and (
             "llm_rtl_implementation_required" in text
             or "llm-authored rtl evidence is missing or stale" in text
+            or "llm-authored rtl needs rtl-gen repair" in text
+            or "rtl-gen repair" in text
+            or "open_required_todos" in text
+            or "static_missing" in text
         )
     )
 
@@ -1505,8 +1535,18 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         wf_norm = (workflow or _SERVER_WORKFLOW or "").strip()
         had_writes = len(files_modified) > 0
         is_producing = wf_norm in _PRODUCING_WORKFLOWS
+        leaked_action = bool(_re.search(
+            r'(?im)^\s*(?:Thought:\s*)?Action:\s*(?:multi_tool_use\.parallel|[\w.]+)\s*\(',
+            final_output,
+        ))
         if is_producing and not had_writes:
-            if tracker.current == 0:
+            if leaked_action:
+                terminal_status = "error"
+                silent_fail_reason = (
+                    f"action-leak: workflow={wf_norm} emitted unexecuted "
+                    "Action text with 0 file writes"
+                )
+            elif tracker.current == 0:
                 terminal_status = "error"
                 silent_fail_reason = (
                     f"silent-fail: workflow={wf_norm} produced 0 tool calls "

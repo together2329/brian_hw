@@ -28,7 +28,7 @@ mkdir -p "${IP}/pnr/tcl" "${IP}/pnr/out"
 read UTIL AR CSPACE HOR VER < <(python3 - "${IP}/yaml/${IP}.ssot.yaml" <<'PY'
 import sys, pathlib
 try:
-    import yaml; d = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text()) or {}
+    import yaml; d = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")) or {}
 except Exception: d = {}
 p = d.get("pnr", {}) or {}
 io = p.get("io_layers", {}) or {}

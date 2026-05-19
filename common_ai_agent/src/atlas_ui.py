@@ -38,6 +38,22 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Optional, TYPE_CHECKING
 
+
+def _configure_utf8_process_io() -> None:
+    """Keep Atlas server/worker console I/O from crashing on Windows code pages."""
+
+    os.environ.setdefault("PYTHONUTF8", "1")
+    os.environ.setdefault("PYTHONIOENCODING", "utf-8:replace")
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="replace")
+        except Exception:
+            pass
+
+
+_configure_utf8_process_io()
+
+
 # Self-bootstrap PYTHONPATH so `python3 src/atlas_ui.py` works without
 # the caller exporting PYTHONPATH=.:src first. atlas_ui imports modules
 # from BOTH this directory (other src/*.py siblings) AND the repo root
@@ -530,6 +546,17 @@ def create_app():
         print(f"ERROR: frontend bundle not found at {FRONTEND}")
         sys.exit(1)
 
+    # Load common_ai_agent/.config even when atlas_ui.py is launched directly
+    # instead of through textual_main.py. Shell-set env still wins because
+    # src.config only fills missing keys at first load.
+    try:
+        try:
+            from . import config as _atlas_boot_config  # noqa: F401
+        except Exception:
+            import config as _atlas_boot_config  # type: ignore  # noqa: F401
+    except Exception:
+        pass
+
     app = FastAPI(title="ATLAS · common_ai_agent")
     _multi_raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
     _multi_user_env = _multi_raw not in ("0", "false", "no", "off")
@@ -778,6 +805,28 @@ def create_app():
         _inline_cache[template_name] = {"html": html, "stamp": latest}
         return html
 
+    def _html_with_atlas_boot_config(template_name: str) -> str:
+        html = _inline_html_cached(template_name)
+        if not html:
+            return html
+        exec_mode = (os.environ.get("ATLAS_EXEC_MODE")
+                     or os.environ.get("ATLAS_DEFAULT_EXEC_MODE")
+                     or ("orchestrator" if os.environ.get("ATLAS_ORCHESTRATOR_MODE", "1").strip().lower()
+                         not in ("0", "false", "no", "off") else "single-worker"))
+        payload = {
+            "run_mode": os.environ.get("ATLAS_RUN_MODE", "engineering"),
+            "exec_mode": exec_mode,
+            "multi_user": os.environ.get("ATLAS_MULTI_USER", "1"),
+            "multi_user_proc": os.environ.get("ATLAS_MULTI_USER_PROC", "1"),
+        }
+        script = (
+            "<script>window.ATLAS_BOOT_CONFIG="
+            + json.dumps(payload, separators=(",", ":"))
+            + ";window.ATLAS_DEFAULT_RUN_MODE=window.ATLAS_BOOT_CONFIG.run_mode;"
+            + "window.ATLAS_DEFAULT_EXEC_MODE=window.ATLAS_BOOT_CONFIG.exec_mode;</script>"
+        )
+        return html.replace("</head>", script + "\n</head>", 1)
+
     @app.get("/")
     async def index():
         """Serve index.html with local JSX inlined.
@@ -788,11 +837,11 @@ def create_app():
         dev-time Babel path but removes the fragile second fetch.
         Cached by frontend mtime — see _inline_html_cached().
         """
-        return HTMLResponse(_inline_html_cached("index.html"))
+        return HTMLResponse(_html_with_atlas_boot_config("index.html"))
 
     @app.get("/lobby")
     async def lobby():
-        return HTMLResponse(_inline_html_cached("lobby.html"))
+        return HTMLResponse(_html_with_atlas_boot_config("lobby.html"))
 
     # Per-process startup epoch — bumps every time the backend
     # restarts. Surfaced in /api/version so the frontend polling loop
@@ -1179,7 +1228,7 @@ def create_app():
                     for c in _candidates:
                         if c.exists():
                             try:
-                                return _json.loads(c.read_text())
+                                return _json.loads(c.read_text(encoding="utf-8", errors="replace"))
                             except Exception:
                                 return None
                     return None
@@ -1468,6 +1517,8 @@ def create_app():
                     cmd,
                     cwd=PROJECT_ROOT,
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     timeout=180,
@@ -1974,6 +2025,8 @@ def create_app():
                     cmd,
                     cwd=PROJECT_ROOT,
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     timeout=180,
@@ -2002,6 +2055,8 @@ def create_app():
                     cmd,
                     cwd=PROJECT_ROOT,
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     timeout=180,
@@ -3145,7 +3200,7 @@ def create_app():
                 return []
             try:
                 import yaml as _yaml  # type: ignore
-                doc = _yaml.safe_load(ssot_path.read_text(errors="replace"))
+                doc = _yaml.safe_load(ssot_path.read_text(encoding="utf-8", errors="replace"))
                 tr = (doc or {}).get("test_requirements") or {}
                 return list(tr.get("scenarios") or [])
             except Exception:
@@ -3156,7 +3211,7 @@ def create_app():
                 return []
             import json as _json
             out = []
-            for line in sb_path.read_text(errors="replace").splitlines():
+            for line in sb_path.read_text(encoding="utf-8", errors="replace").splitlines():
                 line = line.strip()
                 if not line:
                     continue
@@ -8850,6 +8905,8 @@ def create_app():
                 cmd,
                 cwd=str(PROJECT_ROOT),
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 capture_output=True,
                 timeout=timeout_s,
             )
@@ -9726,6 +9783,8 @@ def create_app():
                 [sys.executable, str(script_path), ip, "--root", str(PROJECT_ROOT)],
                 cwd=str(PROJECT_ROOT),
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 capture_output=True,
                 timeout=60,
             )
@@ -9733,6 +9792,8 @@ def create_app():
                 ["bash", str(validator_path), ip],
                 cwd=str(PROJECT_ROOT),
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 capture_output=True,
                 timeout=60,
             )
@@ -9843,6 +9904,8 @@ def create_app():
                 [sys.executable, str(script), ip, "--root", str(PROJECT_ROOT)],
                 cwd=str(PROJECT_ROOT),
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 capture_output=True,
                 timeout=60,
             )
@@ -9850,6 +9913,8 @@ def create_app():
                 ["bash", str(validator), ip],
                 cwd=str(PROJECT_ROOT),
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 capture_output=True,
                 timeout=60,
             )
@@ -10262,6 +10327,8 @@ def create_app():
                     ["bash", str(script), runner.relative_to(PROJECT_ROOT).as_posix()],
                     cwd=str(PROJECT_ROOT),
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     capture_output=True,
                     timeout=180,
                 )
@@ -10269,6 +10336,8 @@ def create_app():
                     ["bash", str(validator), ip],
                     cwd=str(PROJECT_ROOT),
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     capture_output=True,
                     timeout=180,
                 )
@@ -10283,6 +10352,8 @@ def create_app():
                         [sys.executable, str(coverage_script), str(PROJECT_ROOT / ip)],
                         cwd=str(PROJECT_ROOT),
                         text=True,
+                        encoding="utf-8",
+                        errors="replace",
                         capture_output=True,
                         timeout=90,
                     )
@@ -10365,6 +10436,8 @@ def create_app():
                         command,
                         cwd=str(PROJECT_ROOT),
                         text=True,
+                        encoding="utf-8",
+                        errors="replace",
                         capture_output=True,
                         timeout=timeout_s,
                     )
@@ -10521,6 +10594,8 @@ def create_app():
                         cmdline,
                         cwd=str(PROJECT_ROOT),
                         text=True,
+                        encoding="utf-8",
+                        errors="replace",
                         capture_output=True,
                         timeout=timeout_s,
                     )
@@ -10618,6 +10693,8 @@ def create_app():
                         command,
                         cwd=str(PROJECT_ROOT),
                         text=True,
+                        encoding="utf-8",
+                        errors="replace",
                         capture_output=True,
                         timeout=timeout_s,
                     )
@@ -10759,6 +10836,8 @@ def create_app():
                     [sys.executable, str(script), ip, "--root", str(PROJECT_ROOT)],
                     cwd=str(PROJECT_ROOT),
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     capture_output=True,
                     timeout=60,
                 )
@@ -10845,6 +10924,8 @@ def create_app():
                     [sys.executable, str(script), ip, "--root", str(PROJECT_ROOT)],
                     cwd=str(PROJECT_ROOT),
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     capture_output=True,
                     timeout=60,
                 )
@@ -10917,6 +10998,8 @@ def create_app():
                     [sys.executable, str(script), ip, "--root", str(PROJECT_ROOT)],
                     cwd=str(PROJECT_ROOT),
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     capture_output=True,
                     timeout=60,
                 )
@@ -11956,6 +12039,7 @@ def create_app():
         app,
         project_root=lambda: PROJECT_ROOT,
         normalize_session_name=normalize_session_name,
+        persist_config_values=_persist_config_values,
     )
 
     # ── Git API — status / diff / commit / push ─────────────────

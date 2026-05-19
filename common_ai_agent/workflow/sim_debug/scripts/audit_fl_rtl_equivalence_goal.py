@@ -529,6 +529,8 @@ def audit(ip: str, root: Path) -> dict[str, Any]:
                 "--require-all-goals",
             ],
             text=True,
+            encoding="utf-8",
+            errors="replace",
             capture_output=True,
             timeout=30,
         )

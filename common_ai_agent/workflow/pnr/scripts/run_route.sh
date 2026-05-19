@@ -84,11 +84,13 @@ import json, sys, pathlib, re
 out, count, rpt = sys.argv[1:4]
 violations = []
 if pathlib.Path(rpt).exists():
-    text = pathlib.Path(rpt).read_text(errors="replace")
+    text = pathlib.Path(rpt).read_text(encoding="utf-8", errors="replace")
     for m in re.finditer(r"^violation .*$", text, re.M):
         if len(violations) < 10: violations.append(m.group(0))
-pathlib.Path(out).write_text(json.dumps({
-  "drc_count": int(count), "first_10": violations}, indent=2))
+pathlib.Path(out).write_text(
+  json.dumps({"drc_count": int(count), "first_10": violations}, indent=2),
+  encoding="utf-8",
+)
 PY
 
 if [ "${RC}" -ne 0 ] || [ ! -s "${DEF}" ] || [ ! -s "${NET}" ]; then

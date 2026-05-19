@@ -22,7 +22,7 @@ date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 def jload(name):
     p = out / name
     if p.exists():
-        try: return json.loads(p.read_text())
+        try: return json.loads(p.read_text(encoding="utf-8", errors="replace"))
         except Exception: return None
     return None
 
@@ -81,6 +81,6 @@ lines += [
   f"- {out / 'routed.spef'}: {'ready ✓' if artifacts['routed.spef'] else 'missing ✗'}",
   "",
 ]
-pathlib.Path(rpt).write_text("\n".join(lines))
+pathlib.Path(rpt).write_text("\n".join(lines), encoding="utf-8")
 print(f"[PNR] wrote {rpt}")
 PY

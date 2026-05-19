@@ -653,11 +653,11 @@ def _next_job_counter(session_dir: str) -> int:
     count = 1
     if counter_path.exists():
         try:
-            count = int(counter_path.read_text().strip()) + 1
+            count = int(counter_path.read_text(encoding="utf-8", errors="replace").strip()) + 1
         except (ValueError, OSError):
             count = 1
     try:
-        counter_path.write_text(str(count))
+        counter_path.write_text(str(count), encoding="utf-8")
     except OSError:
         pass  # Cannot write counter — continue with in-memory count
     return count

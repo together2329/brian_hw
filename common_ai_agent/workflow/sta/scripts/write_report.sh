@@ -20,8 +20,8 @@ if [ ! -f "${JSON}" ]; then echo "[STA] missing ${JSON}" >&2; exit 2; fi
 python3 - "${IP}" "${JSON}" "${LOG}" "${RPT}" <<'PY'
 import json, pathlib, sys, re, datetime
 ip, json_p, log_p, rpt_p = sys.argv[1:5]
-d = json.loads(pathlib.Path(json_p).read_text())
-log = pathlib.Path(log_p).read_text(errors="replace") if pathlib.Path(log_p).exists() else ""
+d = json.loads(pathlib.Path(json_p).read_text(encoding="utf-8", errors="replace"))
+log = pathlib.Path(log_p).read_text(encoding="utf-8", errors="replace") if pathlib.Path(log_p).exists() else ""
 date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 errors = re.findall(r"^Error: .*$",   log, re.M)[:10]
 warns  = re.findall(r"^Warning: .*$", log, re.M)[:10]
@@ -71,6 +71,6 @@ if "FAIL" in result:
       "",
     ]
 
-pathlib.Path(rpt_p).write_text("\n".join(lines))
+pathlib.Path(rpt_p).write_text("\n".join(lines), encoding="utf-8")
 print(f"[STA] wrote {rpt_p}")
 PY

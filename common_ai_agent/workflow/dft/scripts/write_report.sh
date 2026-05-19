@@ -17,10 +17,10 @@ if [ ! -f "${JSON}" ]; then echo "[DFT] missing ${JSON}" >&2; exit 2; fi
 python3 - "${IP}" "${JSON}" "${COV}" "${LOG}" "${RPT}" <<'PY'
 import json, pathlib, sys, datetime
 ip, json_p, cov_p, log_p, rpt_p = sys.argv[1:6]
-d = json.loads(pathlib.Path(json_p).read_text())
+d = json.loads(pathlib.Path(json_p).read_text(encoding="utf-8", errors="replace"))
 cov = None
 if pathlib.Path(cov_p).exists():
-    try: cov = json.loads(pathlib.Path(cov_p).read_text())
+    try: cov = json.loads(pathlib.Path(cov_p).read_text(encoding="utf-8", errors="replace"))
     except Exception: cov = None
 date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -89,6 +89,6 @@ lines += [
   "- Test compression (chain compaction)",
   "",
 ]
-pathlib.Path(rpt_p).write_text("\n".join(lines))
+pathlib.Path(rpt_p).write_text("\n".join(lines), encoding="utf-8")
 print(f"[DFT] wrote {rpt_p}")
 PY

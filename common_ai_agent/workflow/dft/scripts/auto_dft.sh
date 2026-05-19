@@ -34,7 +34,7 @@ import sys, pathlib
 p = pathlib.Path(sys.argv[1])
 if not p.is_file(): print("false"); sys.exit(0)
 try:
-    import yaml; d = yaml.safe_load(p.read_text()) or {}
+    import yaml; d = yaml.safe_load(p.read_text(encoding="utf-8", errors="replace")) or {}
 except Exception:
     d = {}
 dft = d.get("dft", {}) or {}
@@ -53,7 +53,7 @@ obj = {
               "chains": 0, "max_length": 0, "min_length": 0,
               "scan_enable_port": None, "mode": "passthrough"},
 }
-pathlib.Path(out, "scan_chains.json").write_text(json.dumps(obj, indent=2))
+pathlib.Path(out, "scan_chains.json").write_text(json.dumps(obj, indent=2), encoding="utf-8")
 PY
   bash "${DIR}/write_report.sh" "${IP}" || true
   echo "[DFT DISABLED] passthrough — ${NETLIST} copied to ${OUT}/scan.v"
@@ -78,7 +78,7 @@ bash "${DIR}/parse_chains.sh"      "${IP}" || exit $?
 ATPG_ENABLED=$(python3 - "${SSOT}" <<'PY'
 import sys, pathlib
 try:
-    import yaml; d = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text()) or {}
+    import yaml; d = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")) or {}
 except Exception: d = {}
 atpg = ((d.get("dft") or {}).get("atpg") or {})
 print("true" if atpg.get("enabled", False) else "false")

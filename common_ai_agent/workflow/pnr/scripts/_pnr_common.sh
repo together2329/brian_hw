@@ -101,7 +101,7 @@ pnr_top_from_ssot () {
 import sys, pathlib
 ssot, ip = sys.argv[1:3]
 try:
-    import yaml; d = yaml.safe_load(pathlib.Path(ssot).read_text()) or {}
+    import yaml; d = yaml.safe_load(pathlib.Path(ssot).read_text(encoding="utf-8", errors="replace")) or {}
 except Exception: d = {}
 _t = d.get("top_module")
 if isinstance(_t, dict): _t = _t.get("name")

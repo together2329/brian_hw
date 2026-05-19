@@ -22,10 +22,10 @@ RPT="${OUT}/sta.report.md"
 python3 - "${IP}" "${JSON}" "${PRE_JSON}" "${RPT}" <<'PY'
 import json, pathlib, sys, datetime
 ip, post_p, pre_p, rpt_p = sys.argv[1:5]
-post = json.loads(pathlib.Path(post_p).read_text())
+post = json.loads(pathlib.Path(post_p).read_text(encoding="utf-8", errors="replace"))
 pre  = None
 if pathlib.Path(pre_p).exists():
-    try: pre = json.loads(pathlib.Path(pre_p).read_text())
+    try: pre = json.loads(pathlib.Path(pre_p).read_text(encoding="utf-8", errors="replace"))
     except Exception: pass
 
 date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -90,6 +90,6 @@ if "FAIL" in result:
       "",
     ]
 
-pathlib.Path(rpt_p).write_text("\n".join(lines))
+pathlib.Path(rpt_p).write_text("\n".join(lines), encoding="utf-8")
 print(f"[STA-POST] wrote {rpt_p}")
 PY

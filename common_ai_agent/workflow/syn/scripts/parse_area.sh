@@ -24,8 +24,8 @@ if [ ! -f "${NETLIST}" ]; then echo "[SYN] missing ${NETLIST}" >&2; exit 2; fi
 python3 - "${IP}" "${LOG}" "${NETLIST}" "${OUT}" <<'PY'
 import json, re, sys, pathlib
 ip, log_path, net_path, out_path = sys.argv[1:5]
-log = pathlib.Path(log_path).read_text(errors="replace")
-net = pathlib.Path(net_path).read_text(errors="replace")
+log = pathlib.Path(log_path).read_text(encoding="utf-8", errors="replace")
+net = pathlib.Path(net_path).read_text(encoding="utf-8", errors="replace")
 
 # Parse the FINAL `=== <top> ===` stat block (yosys appends one per stat call).
 blocks = re.findall(r"=== ([^=]+?) ===\s*\n([\s\S]+?)(?=\n===|\Z)", log)
@@ -76,6 +76,6 @@ obj = {
   },
   "by_cell": dict(sorted(by_cell.items(), key=lambda kv: -kv[1])[:32]),
 }
-pathlib.Path(out_path).write_text(json.dumps(obj, indent=2))
+pathlib.Path(out_path).write_text(json.dumps(obj, indent=2), encoding="utf-8")
 print(f"[SYN] area.json: total={total_cells} cells, seq={seq_cells}, comb={comb_cells}, area={total_area} um2 → {out_path}")
 PY

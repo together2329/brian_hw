@@ -354,7 +354,15 @@ def _verilator_lint(ip_name: str, top: str, ip_dir: Path) -> dict:
             "output": output + "\n",
             "passed": False,
         }
-    proc = subprocess.run(command, cwd=ip_dir, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    proc = subprocess.run(
+        command,
+        cwd=ip_dir,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
     output = proc.stdout or ""
     diag = _count_diagnostics(output)
     diagnostics = _parse_verilator_diagnostics(output)

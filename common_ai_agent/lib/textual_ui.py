@@ -843,17 +843,29 @@ def _clipboard_paste() -> str:
     import subprocess
     try:
         if sys.platform == "darwin":
-            return subprocess.run(["pbpaste"], capture_output=True, text=True).stdout
+            return subprocess.run(
+                ["pbpaste"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            ).stdout
         if _IS_WINDOWS:
             r = subprocess.run(
                 ["powershell", "-NoProfile", "-Command", "Get-Clipboard -Raw"],
-                capture_output=True, text=True,
+                capture_output=True, text=True, encoding="utf-8", errors="replace",
             )
             return r.stdout
         for cmd in [["xclip", "-selection", "clipboard", "-o"],
                     ["xsel", "--clipboard", "--output"]]:
             try:
-                return subprocess.run(cmd, capture_output=True, text=True).stdout
+                return subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                ).stdout
             except FileNotFoundError:
                 continue
     except Exception:
@@ -2056,7 +2068,7 @@ class AgentTUI(App):
                         import json as _json
                         _ws_json = _Path(__file__).parent.parent / "workflow" / _wf / "workspace.json"
                         if _ws_json.exists():
-                            _ws_data = _json.loads(_ws_json.read_text())
+                            _ws_data = _json.loads(_ws_json.read_text(encoding="utf-8", errors="replace"))
                             _forced = (_ws_data.get("skills") or {}).get("force_activate") or []
                             if _forced:
                                 skill = ", ".join(_forced[:2])
@@ -2097,7 +2109,7 @@ class AgentTUI(App):
                 _written = ctypes.c_ulong(0)
                 _kernel32.WriteConsoleA(_handle, _buf, len(_buf), ctypes.byref(_written), None)
             else:
-                with open("/dev/tty", "w") as _tty:
+                with open("/dev/tty", "w", encoding="utf-8", errors="replace") as _tty:
                     _tty.write(_ESC_RESET)
                     _tty.flush()
         except Exception:
@@ -3456,7 +3468,7 @@ class AgentTUI(App):
             path = Path(getattr(_cfg, "COST_FILE", "") or "")
             if not path.name or not path.exists():
                 return
-            data = _json.loads(path.read_text())
+            data = _json.loads(path.read_text(encoding="utf-8", errors="replace"))
             self._sess_in_tok    = int(data.get("in_tok", 0))
             self._sess_cache_tok = int(data.get("cache_tok", 0))
             self._sess_out_tok   = int(data.get("out_tok", 0))
@@ -3479,7 +3491,7 @@ class AgentTUI(App):
                 "out_tok":   self._sess_out_tok,
                 "sum_tok":   self._sess_sum_tok,
                 "updated_at": _time.time(),
-            }, indent=2))
+            }, indent=2), encoding="utf-8")
         except Exception:
             pass
 
@@ -3548,7 +3560,7 @@ class AgentTUI(App):
             import subprocess
             r = subprocess.run(
                 ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                capture_output=True, text=True, timeout=2
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=2
             )
             b = r.stdout.strip()
             return b if r.returncode == 0 and b and b != "HEAD" else ""

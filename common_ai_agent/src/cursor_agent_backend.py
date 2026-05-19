@@ -322,8 +322,15 @@ def cursor_agent_stream(
         "--print", "--output-format", "stream-json",
         "--stream-partial-output", "-p", serialize_messages(messages),
     ]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                            text=True, bufsize=1)
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        bufsize=1,
+    )
     try:
         for chunk in _iter_chunks(proc):
             text = _handle_chunk(chunk, _lc)
@@ -353,8 +360,15 @@ def cursor_agent_call(
         "--print", "--output-format", "stream-json",
         "--stream-partial-output", "-p", serialize_messages(messages),
     ]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                            text=True, bufsize=1)
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        bufsize=1,
+    )
     collected = []
     try:
         for chunk in _iter_chunks(proc):

@@ -26,7 +26,7 @@ python3 - "${IP}" "${LOG}" "${SETUP}" "${HOLD}" "${SKEW}" "${SDC}" "${JSON}" <<'
 import json, re, sys, pathlib, os
 
 ip, log_p, setup_p, hold_p, skew_p, sdc_p, out_p = sys.argv[1:8]
-def rd(p): return pathlib.Path(p).read_text(errors="replace") if pathlib.Path(p).exists() else ""
+def rd(p): return pathlib.Path(p).read_text(encoding="utf-8", errors="replace") if pathlib.Path(p).exists() else ""
 log, setup, hold, skew, sdc = rd(log_p), rd(setup_p), rd(hold_p), rd(skew_p), rd(sdc_p)
 
 clocks = [{"name": m.group(1), "period_ns": float(m.group(2))}
@@ -92,7 +92,7 @@ obj = {
     "worst_hold_path":  "",
   },
 }
-pathlib.Path(out_p).write_text(json.dumps(obj, indent=2))
+pathlib.Path(out_p).write_text(json.dumps(obj, indent=2), encoding="utf-8")
 print(f"[STA-POST] wrote {out_p}")
 for c in clock_objs:
     print(f"  {c['name']}@{c['period_ns']}ns: setup_wns={c['setup_wns_ns']} hold_wns={c['hold_wns_ns']} skew={c['max_skew_ps']}ps")

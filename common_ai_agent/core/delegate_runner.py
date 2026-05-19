@@ -262,7 +262,7 @@ class CursorAgentDelegate:
         try:
             proc = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                text=True, bufsize=1,
+                text=True, encoding="utf-8", errors="replace", bufsize=1,
             )
             collected = []
             for raw_line in proc.stdout:
@@ -311,7 +311,7 @@ class CodexDelegate:
         try:
             proc = subprocess.run(
                 ["codex", "--quiet", full_prompt],
-                capture_output=True, text=True, timeout=300,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300,
             )
             if proc.returncode != 0:
                 return f"[codex error] {proc.stderr.strip() or f'exit code {proc.returncode}'}"
@@ -341,7 +341,7 @@ class GeminiDelegate:
         try:
             proc = subprocess.run(
                 ["gemini", "-p", full_prompt],
-                capture_output=True, text=True, timeout=300,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300,
             )
             if proc.returncode != 0:
                 return f"[gemini error] {proc.stderr.strip() or f'exit code {proc.returncode}'}"

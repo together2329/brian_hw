@@ -341,7 +341,7 @@ class SlashCommandRegistry:
             counter_file = jobs_dir / '.counter'
             counter_str = ""
             if counter_file.exists():
-                counter_str = f' ← "{counter_file.read_text().strip()}"'
+                counter_str = f' ← "{counter_file.read_text(encoding="utf-8", errors="replace").strip()}"'
             lines.append(f"")
             lines.append(f"   jobs/")
             if counter_file.exists():
@@ -413,7 +413,7 @@ class SlashCommandRegistry:
             if jobs_dir.is_dir():
                 counter_file = jobs_dir / '.counter'
                 if counter_file.exists():
-                    val = counter_file.read_text().strip()
+                    val = counter_file.read_text(encoding="utf-8", errors="replace").strip()
                     items.append(('.counter', 'file', f'← "{val}"'))
                 job_dirs = sorted([d for d in jobs_dir.iterdir()
                                    if d.is_dir() and d.name.startswith('job')])
@@ -1651,7 +1651,7 @@ class SlashCommandRegistry:
 
         try:
             try:
-                with open(_config_path, 'r') as f:
+                with open(_config_path, 'r', encoding='utf-8', errors='replace') as f:
                     lines = f.readlines()
             except FileNotFoundError:
                 lines = []
@@ -1667,7 +1667,7 @@ class SlashCommandRegistry:
             if not updated:
                 lines.append(new_line)
 
-            with open(_config_path, 'w') as f:
+            with open(_config_path, 'w', encoding='utf-8') as f:
                 f.writelines(lines)
 
             status = "✅ enabled" if enabled else "❌ disabled"

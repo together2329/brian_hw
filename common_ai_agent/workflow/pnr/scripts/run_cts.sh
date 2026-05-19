@@ -29,7 +29,7 @@ pnr_check_stale "PLACE" "${PLACED}" "${DEF}" || exit $?
 BUFLIST=$(python3 - "${IP}/yaml/${IP}.ssot.yaml" <<'PY'
 import sys, pathlib
 try:
-    import yaml; d = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text()) or {}
+    import yaml; d = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")) or {}
 except Exception: d = {}
 bufs = (d.get("pnr") or {}).get("cts_buf_list") or "sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8"
 if isinstance(bufs, list):

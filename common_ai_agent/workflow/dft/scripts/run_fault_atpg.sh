@@ -29,7 +29,7 @@ read MODEL TOP TARGET < <(python3 - "${SSOT}" "${IP}" <<'PY'
 import sys, pathlib
 ssot, ip = sys.argv[1:3]
 try:
-    import yaml; d = yaml.safe_load(pathlib.Path(ssot).read_text()) or {}
+    import yaml; d = yaml.safe_load(pathlib.Path(ssot).read_text(encoding="utf-8", errors="replace")) or {}
 except Exception: d = {}
 _t = d.get("top_module")
 if isinstance(_t, dict): _t = _t.get("name")
@@ -52,7 +52,7 @@ RC=${PIPESTATUS[0]:-1}
 python3 - "${LOG}" "${TARGET}" "${COV}" <<'PY' || true
 import json, re, sys, pathlib
 log_p, tgt, out = sys.argv[1:4]
-text = pathlib.Path(log_p).read_text(errors="replace") if pathlib.Path(log_p).exists() else ""
+text = pathlib.Path(log_p).read_text(encoding="utf-8", errors="replace") if pathlib.Path(log_p).exists() else ""
 m = re.search(r"(?:fault\s+)?coverage[: ]\s*([\d.]+)\s*%", text, re.I)
 cov = float(m.group(1))/100.0 if m else None
 target = float(tgt)
@@ -61,7 +61,7 @@ obj = {
   "below_target": (cov is not None and cov < target),
   "patterns_path": None,
 }
-pathlib.Path(out).write_text(json.dumps(obj, indent=2))
+pathlib.Path(out).write_text(json.dumps(obj, indent=2), encoding="utf-8")
 if cov is not None and cov < target:
     print(f"[DFT COVERAGE LOW] {cov*100:.2f}% < target {target*100:.0f}% — investigate untested logic")
 PY

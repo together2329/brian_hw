@@ -50,7 +50,7 @@ def _read_project_config() -> dict:
     result = {}
     if not _PROJECT_CONFIG.exists():
         return result
-    for line in _PROJECT_CONFIG.read_text().splitlines():
+    for line in _PROJECT_CONFIG.read_text(encoding="utf-8", errors="replace").splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
@@ -93,7 +93,13 @@ def _mod_script(mod_dir: str) -> str:
 
 def _run(cmd: str, timeout: int = 10) -> str:
     result = subprocess.run(
-        cmd, shell=True, capture_output=True, text=True, timeout=timeout
+        cmd,
+        shell=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=timeout,
     )
     out = (result.stdout or "").strip()
     err = (result.stderr or "").strip()
@@ -106,7 +112,7 @@ def _mod_surface() -> str:
     """설정 파일에서 modifiable surface ref 읽기."""
     if _CONFIG_PATH.exists():
         try:
-            data = json.loads(_CONFIG_PATH.read_text())
+            data = json.loads(_CONFIG_PATH.read_text(encoding="utf-8", errors="replace"))
             return data.get("modifiable_surface", _MOD_SURFACE_DEFAULT)
         except Exception:
             pass
@@ -246,11 +252,11 @@ def cmux_set_surface(surface_ref: str) -> str:
     data = {}
     if _CONFIG_PATH.exists():
         try:
-            data = json.loads(_CONFIG_PATH.read_text())
+            data = json.loads(_CONFIG_PATH.read_text(encoding="utf-8", errors="replace"))
         except Exception:
             pass
     data["modifiable_surface"] = surface_ref
-    _CONFIG_PATH.write_text(json.dumps(data, indent=2))
+    _CONFIG_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     return f"modifiable surface set to: {surface_ref}"
 
 

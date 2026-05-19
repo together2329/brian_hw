@@ -429,14 +429,28 @@ def run(ip: str, root: Path) -> dict[str, Any]:
         f"list/{ip}.f",
         str(tb_path.relative_to(ip_dir)),
     ]
-    compile_proc = subprocess.run(command, cwd=ip_dir, text=True, capture_output=True)
+    compile_proc = subprocess.run(
+        command,
+        cwd=ip_dir,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+    )
     stdout = compile_proc.stdout or ""
     stderr = compile_proc.stderr or ""
     run_stdout = ""
     run_stderr = ""
     returncode = compile_proc.returncode
     if compile_proc.returncode == 0:
-        run_proc = subprocess.run(["vvp", str(out_path.relative_to(ip_dir))], cwd=ip_dir, text=True, capture_output=True)
+        run_proc = subprocess.run(
+            ["vvp", str(out_path.relative_to(ip_dir))],
+            cwd=ip_dir,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+        )
         run_stdout = run_proc.stdout or ""
         run_stderr = run_proc.stderr or ""
         returncode = run_proc.returncode

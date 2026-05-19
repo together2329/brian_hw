@@ -45,7 +45,11 @@ def register_git_routes(
             try:
                 r = _sp_git.run(
                     ["git", *args], cwd=cwd or str(project_root()),
-                    capture_output=True, text=True, timeout=30,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=30,
                 )
                 return r.returncode, r.stdout, r.stderr
             except _sp_git.TimeoutExpired:

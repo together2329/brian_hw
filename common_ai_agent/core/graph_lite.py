@@ -187,10 +187,10 @@ class GraphLite:
         self.memory_dir.mkdir(parents=True, exist_ok=True)
 
         if not self.nodes_file.exists():
-            self.nodes_file.write_text("{}")
+            self.nodes_file.write_text("{}", encoding="utf-8")
 
         if not self.edges_file.exists():
-            self.edges_file.write_text("[]")
+            self.edges_file.write_text("[]", encoding="utf-8")
 
     # ==================== Core Graph Operations ====================
 
@@ -1133,11 +1133,17 @@ Relations (JSON only):"""
                 node_id: node.to_dict()
                 for node_id, node in self.nodes.items()
             }
-            self.nodes_file.write_text(json.dumps(nodes_data, indent=2, ensure_ascii=False))
+            self.nodes_file.write_text(
+                json.dumps(nodes_data, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
 
             # Save edges
             edges_data = [edge.to_dict() for edge in self.edges]
-            self.edges_file.write_text(json.dumps(edges_data, indent=2, ensure_ascii=False))
+            self.edges_file.write_text(
+                json.dumps(edges_data, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
 
         except Exception as e:
             print(f"[Graph] Failed to save: {e}")
@@ -1146,14 +1152,14 @@ Relations (JSON only):"""
         """Load graph from JSON files."""
         try:
             # Load nodes
-            nodes_data = json.loads(self.nodes_file.read_text())
+            nodes_data = json.loads(self.nodes_file.read_text(encoding="utf-8", errors="replace"))
             self.nodes = {
                 node_id: Node.from_dict(node_dict)
                 for node_id, node_dict in nodes_data.items()
             }
 
             # Load edges
-            edges_data = json.loads(self.edges_file.read_text())
+            edges_data = json.loads(self.edges_file.read_text(encoding="utf-8", errors="replace"))
             self.edges = [Edge.from_dict(edge_dict) for edge_dict in edges_data]
 
         except Exception as e:

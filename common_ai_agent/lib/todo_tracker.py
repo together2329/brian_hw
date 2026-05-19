@@ -252,7 +252,7 @@ class TodoItem:
         try:
             r = _sp.run(
                 cmd, shell=True,
-                capture_output=True, text=True, timeout=5, env=env,
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=5, env=env,
             )
             if r.returncode != 0:
                 msg = (r.stderr or r.stdout or "Validator failed (non-zero exit)").strip()
@@ -576,7 +576,15 @@ class TodoTracker:
 
         if isinstance(cmd, str):
             try:
-                r = _sp.run(cmd, shell=True, capture_output=True, text=True, timeout=300)
+                r = _sp.run(
+                    cmd,
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=300,
+                )
                 full_output = (r.stdout + r.stderr).strip()
                 ok = r.returncode == 0
             except _sp.TimeoutExpired:
@@ -1401,7 +1409,7 @@ class TodoTracker:
             data = self.to_dict()
             data["stagnation_count"] = self.stagnation_count
             data["_last_completed_count"] = self._last_completed_count
-            self._persist_path.write_text(json.dumps(data, ensure_ascii=False, indent=2))
+            self._persist_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         except Exception:
             pass
 
@@ -1411,7 +1419,7 @@ class TodoTracker:
         path = persist_path or TODO_FILE
         if path.exists():
             try:
-                data = json.loads(path.read_text())
+                data = json.loads(path.read_text(encoding="utf-8", errors="replace"))
                 return cls.from_dict(data, persist_path=path)
             except Exception:
                 pass

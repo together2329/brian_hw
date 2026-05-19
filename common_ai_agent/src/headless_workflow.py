@@ -1340,6 +1340,8 @@ except BaseException as exc:
                         [sys.executable, "-c", child_code, str(req_path)],
                         cwd=str(SOURCE_ROOT),
                         text=True,
+                        encoding="utf-8",
+                        errors="replace",
                         capture_output=True,
                         timeout=self.timeout_s,
                     )
@@ -2208,6 +2210,8 @@ class HeadlessWorkflowRunner:
                 cmd,
                 cwd=str(self.root),
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 capture_output=True,
                 timeout=60,
             )
@@ -2272,6 +2276,8 @@ class HeadlessWorkflowRunner:
                 cmd,
                 cwd=str(SOURCE_ROOT),
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 capture_output=True,
                 timeout=60,
             )
@@ -2456,7 +2462,15 @@ class HeadlessWorkflowRunner:
 
     def _run_cmd(self, stage: str, cmd: list[str], *, timeout: int = 180) -> StageResult:
         try:
-            proc = subprocess.run(cmd, cwd=str(self.root), text=True, capture_output=True, timeout=timeout)
+            proc = subprocess.run(
+                cmd,
+                cwd=str(self.root),
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                capture_output=True,
+                timeout=timeout,
+            )
             status = "pass" if proc.returncode == 0 else "fail"
             msg = "\n".join(
                 x for x in [
@@ -2507,6 +2521,8 @@ class HeadlessWorkflowRunner:
             cmd,
             cwd=str(self.root),
             text=True,
+            encoding="utf-8",
+            errors="replace",
             capture_output=True,
             timeout=90,
         )

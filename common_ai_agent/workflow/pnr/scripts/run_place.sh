@@ -28,7 +28,7 @@ pnr_check_stale "FLOORPLAN" "${FP}" "${DEF}" || exit $?
 DENSITY=$(python3 - "${IP}/yaml/${IP}.ssot.yaml" <<'PY'
 import sys, pathlib
 try:
-    import yaml; d = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text()) or {}
+    import yaml; d = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")) or {}
 except Exception: d = {}
 print((d.get("pnr") or {}).get("global_density", 0.65))
 PY
@@ -64,10 +64,10 @@ fi
 # Record density for the report.
 python3 - "${LOG}" "${IP}/pnr/out/density.json" <<'PY' || true
 import re, json, sys, pathlib
-log = pathlib.Path(sys.argv[1]).read_text(errors="replace")
+log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
 m = re.search(r"design area\s+(\d+(?:\.\d+)?)\s+u\^2.*?(\d+)\s*%\s*utilization", log, re.S)
 obj = {"design_area_um2": float(m.group(1)) if m else None,
        "utilization_pct": int(m.group(2)) if m else None}
-pathlib.Path(sys.argv[2]).write_text(json.dumps(obj, indent=2))
+pathlib.Path(sys.argv[2]).write_text(json.dumps(obj, indent=2), encoding="utf-8")
 PY
 echo "[PNR-PLACE HANDOFF] ${DEF} ready — run /pnr-cts"

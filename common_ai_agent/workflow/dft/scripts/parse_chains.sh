@@ -18,9 +18,9 @@ python3 - "${IP}" "${LOG}" "${SCAN}" "${SSOT}" "${JSON}" <<'PY'
 import json, re, sys, pathlib
 
 ip, log_p, scan_p, ssot_p, out_p = sys.argv[1:6]
-log  = pathlib.Path(log_p).read_text(errors="replace")
-scan = pathlib.Path(scan_p).read_text(errors="replace")
-ssot = pathlib.Path(ssot_p).read_text(errors="replace") if pathlib.Path(ssot_p).exists() else ""
+log  = pathlib.Path(log_p).read_text(encoding="utf-8", errors="replace")
+scan = pathlib.Path(scan_p).read_text(encoding="utf-8", errors="replace")
+ssot = pathlib.Path(ssot_p).read_text(encoding="utf-8", errors="replace") if pathlib.Path(ssot_p).exists() else ""
 
 try:
     import yaml; cfg = yaml.safe_load(ssot) or {}
@@ -81,7 +81,7 @@ else:
     }
 
 obj = {"top": top, "tool": "openroad_internal", "scan_chains": chains, "summary": summary}
-pathlib.Path(out_p).write_text(json.dumps(obj, indent=2))
+pathlib.Path(out_p).write_text(json.dumps(obj, indent=2), encoding="utf-8")
 print(f"[DFT] scan_chains.json: chains={len(chains)} ffs_in_chains={summary['ffs_in_chains']} total_ffs={total_ffs} → {out_p}")
 
 # Sanity gate: 0 chains with dft.enabled=true is a fail.

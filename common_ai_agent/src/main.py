@@ -1972,7 +1972,13 @@ def chat_loop():
                         # Show git diff
                         try:
                             import subprocess
-                            proc = subprocess.run(["git", "diff"], capture_output=True, text=True)
+                            proc = subprocess.run(
+                                ["git", "diff"],
+                                capture_output=True,
+                                text=True,
+                                encoding="utf-8",
+                                errors="replace",
+                            )
                             if proc.stdout:
                                 print(f"\n{Color.CYAN}--- Git Diff ---{Color.RESET}")
                                 print(proc.stdout)
@@ -2131,7 +2137,11 @@ def chat_loop():
                         # 1. Find approved tag
                         _tag_pattern = f"todo_{_revert_n}_approved*"
                         _tag_list = _sp.run(
-                            ["git", "tag", "-l", _tag_pattern], capture_output=True, text=True
+                            ["git", "tag", "-l", _tag_pattern],
+                            capture_output=True,
+                            text=True,
+                            encoding="utf-8",
+                            errors="replace",
                         ).stdout.strip().splitlines()
 
                         if not _tag_list:
@@ -2144,13 +2154,19 @@ def chat_loop():
                         # 2. Show commits to be affected
                         _log_out = _sp.run(
                             ["git", "log", "--oneline", f"{_tag}..HEAD"],
-                            capture_output=True, text=True
+                            capture_output=True,
+                            text=True,
+                            encoding="utf-8",
+                            errors="replace",
                         ).stdout.strip()
 
                         # 3. Show diff stat
                         _stat_out = _sp.run(
                             ["git", "diff", "--stat", f"{_tag}..HEAD"],
-                            capture_output=True, text=True
+                            capture_output=True,
+                            text=True,
+                            encoding="utf-8",
+                            errors="replace",
                         ).stdout.strip()
 
                         # 4. Preview
@@ -2178,7 +2194,10 @@ def chat_loop():
                         else:
                             _rv = _sp.run(
                                 ["git", "revert", "--no-commit", f"{_tag}..HEAD"],
-                                capture_output=True, text=True
+                                capture_output=True,
+                                text=True,
+                                encoding="utf-8",
+                                errors="replace",
                             )
                             if _rv.returncode != 0:
                                 _sp.run(["git", "revert", "--abort"])

@@ -25,10 +25,10 @@ python3 - "${IP}" "${LOG}" "${SETUP}" "${HOLD}" "${SDC}" "${JSON}" <<'PY'
 import json, re, sys, pathlib, os
 
 ip, log_p, setup_p, hold_p, sdc_p, out_p = sys.argv[1:7]
-log   = pathlib.Path(log_p).read_text(errors="replace")
-setup = pathlib.Path(setup_p).read_text(errors="replace") if pathlib.Path(setup_p).exists() else ""
-hold  = pathlib.Path(hold_p).read_text(errors="replace")  if pathlib.Path(hold_p).exists()  else ""
-sdc   = pathlib.Path(sdc_p).read_text(errors="replace")   if pathlib.Path(sdc_p).exists()   else ""
+log   = pathlib.Path(log_p).read_text(encoding="utf-8", errors="replace")
+setup = pathlib.Path(setup_p).read_text(encoding="utf-8", errors="replace") if pathlib.Path(setup_p).exists() else ""
+hold  = pathlib.Path(hold_p).read_text(encoding="utf-8", errors="replace")  if pathlib.Path(hold_p).exists()  else ""
+sdc   = pathlib.Path(sdc_p).read_text(encoding="utf-8", errors="replace")   if pathlib.Path(sdc_p).exists()   else ""
 
 # Clocks from SDC: capture name + period.
 clocks = []
@@ -121,7 +121,7 @@ obj = {
     "worst_hold_path":  worst(hold),
   },
 }
-pathlib.Path(out_p).write_text(json.dumps(obj, indent=2))
+pathlib.Path(out_p).write_text(json.dumps(obj, indent=2), encoding="utf-8")
 print(f"[STA] wrote {out_p}")
 for c in clock_objs:
     s = c["setup_wns_ns"]; h = c["hold_wns_ns"]

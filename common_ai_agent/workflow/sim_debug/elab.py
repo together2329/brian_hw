@@ -71,7 +71,7 @@ def _cache_get(key: str) -> Optional[dict]:
     if not p.is_file():
         return None
     try:
-        return json.loads(p.read_text())
+        return json.loads(p.read_text(encoding="utf-8", errors="replace"))
     except Exception:
         return None
 
@@ -83,7 +83,7 @@ def _cache_put(key: str, data: dict) -> None:
     if data.get("error") and not data.get("tree"):
         return
     try:
-        (_cache_dir() / f"{key}.json").write_text(json.dumps(data))
+        (_cache_dir() / f"{key}.json").write_text(json.dumps(data), encoding="utf-8")
     except OSError:
         pass
 
@@ -305,7 +305,7 @@ class VerilatorElab(ElabBackend):
         ]
         try:
             subprocess.run(
-                cmd, capture_output=True, text=True, timeout=60,
+                cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,
                 cwd=str(_project_root()),
             )
         except (OSError, subprocess.TimeoutExpired):
@@ -313,7 +313,7 @@ class VerilatorElab(ElabBackend):
         if not out_json.is_file():
             return None
         try:
-            return json.loads(out_json.read_text())
+            return json.loads(out_json.read_text(encoding="utf-8", errors="replace"))
         except (OSError, json.JSONDecodeError):
             return None
 
@@ -476,7 +476,7 @@ class VerilatorElab(ElabBackend):
         meta_path = out_dir / f"V{top}.tree.meta.json"
         file_map = {}
         try:
-            meta = json.loads(meta_path.read_text())
+            meta = json.loads(meta_path.read_text(encoding="utf-8", errors="replace"))
             file_map = meta.get("files", {}) or {}
         except (OSError, json.JSONDecodeError):
             pass
@@ -517,7 +517,7 @@ class VerilatorElab(ElabBackend):
         meta_path = out_dir / f"V{top}.tree.meta.json"
         file_map = {}
         try:
-            file_map = (json.loads(meta_path.read_text()) or {}).get("files", {}) or {}
+            file_map = (json.loads(meta_path.read_text(encoding="utf-8", errors="replace")) or {}).get("files", {}) or {}
         except (OSError, json.JSONDecodeError):
             pass
 
@@ -586,7 +586,7 @@ class SlangElab(ElabBackend):
         ]
         try:
             subprocess.run(
-                cmd, capture_output=True, text=True, timeout=60,
+                cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,
                 cwd=str(_project_root()),
             )
         except (OSError, subprocess.TimeoutExpired):
@@ -594,7 +594,7 @@ class SlangElab(ElabBackend):
         if not out.is_file():
             return None
         try:
-            return json.loads(out.read_text())
+            return json.loads(out.read_text(encoding="utf-8", errors="replace"))
         except Exception:
             return None
 

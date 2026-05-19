@@ -952,6 +952,8 @@ def main() -> int:
         cwd=str(ip_root),
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         timeout=180,
     )
     output = (proc.stdout or "") + (proc.stderr or "")
