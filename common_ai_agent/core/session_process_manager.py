@@ -97,6 +97,7 @@ class SessionProcessManager:
         env["ATLAS_DEFAULT_SESSION_ID"] = owner
         env["ATLAS_ACTIVE_IP"] = ip_name
         env["ATLAS_DEFAULT_WORKFLOW"] = workflow
+        env["ACTIVE_WORKSPACE"] = workflow
         env["ATLAS_TRACE_ENABLE"] = "1"
         env["ATLAS_DB_PATH"] = effective_db
         env["ATLAS_TRACE_DB_PATH"] = effective_db

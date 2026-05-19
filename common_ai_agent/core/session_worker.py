@@ -5,10 +5,11 @@ subprocess-friendly worker mode. Instead of reading from stdin or emitting to a
 TUI/WebSocket bridge directly, all input and output flows through the
 ``session_queue`` table managed by :class:`core.atlas_db.AtlasDB`.
 
-The worker mirrors the callback wiring used by ``src/textual_main.py``: import
-``main`` as ``_agent``, assign the ``_textual_*`` callback globals, then call
-``_agent.chat_loop()``. A parent process can drive the worker by enqueueing
-``direction='in'`` messages and consuming ``direction='out'`` messages.
+The worker mirrors the callback wiring used by ``src/textual_main.py``: bind
+the session/workflow environment first, import ``main`` as ``_agent``, assign
+the ``_textual_*`` callback globals, then call ``_agent.chat_loop()``. A parent
+process can drive the worker by enqueueing ``direction='in'`` messages and
+consuming ``direction='out'`` messages.
 """
 
 from __future__ import annotations
@@ -39,7 +40,7 @@ sys.path.insert(0, _project_root)
 
 from core.atlas_db import AtlasDB  # noqa: E402
 
-_agent: Any = importlib.import_module("main")
+_agent: Any = None
 
 
 DEFAULT_DB_PATH = os.environ.get("ATLAS_DB_PATH") or "~/.common_ai_agent/atlas.db"
@@ -47,6 +48,15 @@ POLL_INTERVAL = 0.05
 ASK_USER_TIMEOUT = 900.0
 
 _shutdown_requested = False
+
+
+def _load_agent() -> Any:
+    """Import the main agent after the worker session/workflow env is bound."""
+
+    global _agent
+    if _agent is None:
+        _agent = importlib.import_module("main")
+    return _agent
 
 
 def _decode_payload(raw: Any) -> Any:
@@ -637,15 +647,25 @@ def run_worker(session_id: str, db_path: str) -> int:
     worker = SessionWorker(session_id=session_id, db_path=db_path)
     _install_signal_handlers()
 
-    _agent._textual_input_fn = worker.input
-    _agent._textual_emit_content_fn = worker.emit_content
-    _agent._textual_emit_reasoning_fn = worker.emit_reasoning
-    _agent._textual_emit_todo_fn = worker.emit_todo
-    _agent._textual_emit_flush_fn = worker.emit_flush
-    _agent._textual_emit_token_fn = worker.emit_token_usage
-    _agent._textual_esc_check_fn = worker.check_stop
-    _agent._textual_poll_human_input_fn = worker.poll_interrupt
-    _agent._textual_set_agent_running_fn = worker.set_agent_running
+    agent = _load_agent()
+    setup_session = getattr(agent, "_setup_session", None)
+    if callable(setup_session):
+        setup_session(session_id)
+        os.environ["ATLAS_SESSION_APPLIED"] = session_id
+    setup_workspace = getattr(agent, "_setup_workspace", None)
+    if callable(setup_workspace) and workflow and workflow != "default":
+        setup_workspace(workflow)
+        os.environ["ACTIVE_WORKSPACE"] = workflow
+
+    agent._textual_input_fn = worker.input
+    agent._textual_emit_content_fn = worker.emit_content
+    agent._textual_emit_reasoning_fn = worker.emit_reasoning
+    agent._textual_emit_todo_fn = worker.emit_todo
+    agent._textual_emit_flush_fn = worker.emit_flush
+    agent._textual_emit_token_fn = worker.emit_token_usage
+    agent._textual_esc_check_fn = worker.check_stop
+    agent._textual_poll_human_input_fn = worker.poll_interrupt
+    agent._textual_set_agent_running_fn = worker.set_agent_running
 
     try:
         from core import tools as _tools
@@ -659,7 +679,7 @@ def run_worker(session_id: str, db_path: str) -> int:
 
     try:
         worker.emit("worker_started", {"pid": os.getpid()})
-        _agent.chat_loop()
+        agent.chat_loop()
         return 0
     except KeyboardInterrupt:
         worker.emit("worker_stopped", {"reason": "signal"})

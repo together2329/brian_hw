@@ -141,6 +141,7 @@ def test_session_process_manager_spawns_worker_from_source_root(monkeypatch, tmp
     assert env["ATLAS_DEFAULT_SESSION_ID"] == "alice"
     assert env["ATLAS_ACTIVE_IP"] == "spi_core"
     assert env["ATLAS_DEFAULT_WORKFLOW"] == "rtl-gen"
+    assert env["ACTIVE_WORKSPACE"] == "rtl-gen"
     pythonpath = env["PYTHONPATH"].split(os.pathsep)
     assert str(Path(PROJECT_ROOT).resolve()) in pythonpath
     assert str((Path(PROJECT_ROOT) / "src").resolve()) in pythonpath
@@ -509,6 +510,65 @@ def test_worker_env_is_derived_from_session_key(tmp_path: Path, monkeypatch):
     assert env["ATLAS_DEFAULT_SESSION_ID"] == "alice"
     assert env["ATLAS_ACTIVE_IP"] == "dma"
     assert env["ATLAS_DEFAULT_WORKFLOW"] == "rtl-gen"
+    assert env["ACTIVE_WORKSPACE"] == "rtl-gen"
     assert env["ATLAS_TRACE_ENABLE"] == "1"
     assert env["ATLAS_TRACE_DB_PATH"] == db_path
     assert env["ATLAS_PROJECT_ROOT"] == str(tmp_path)
+
+
+def test_session_worker_bootstraps_session_and_workspace_before_chat_loop(
+    tmp_path: Path,
+    monkeypatch,
+):
+    from core import session_worker
+
+    calls = []
+
+    class FakeAgent:
+        def _setup_session(self, session_id):
+            calls.append(("session", session_id))
+
+        def _setup_workspace(self, workflow):
+            calls.append(("workspace", workflow))
+
+        def chat_loop(self):
+            calls.append((
+                "chat_loop",
+                os.environ.get("ATLAS_ACTIVE_SESSION"),
+                os.environ.get("ACTIVE_WORKSPACE"),
+            ))
+
+    fake_agent = FakeAgent()
+    real_import = session_worker.importlib.import_module
+
+    def fake_import(name, *args, **kwargs):
+        if name == "main":
+            return fake_agent
+        return real_import(name, *args, **kwargs)
+
+    for key in (
+        "ATLAS_ACTIVE_SESSION",
+        "ATLAS_DEFAULT_SESSION_ID",
+        "ATLAS_ACTIVE_IP",
+        "ATLAS_DEFAULT_WORKFLOW",
+        "ACTIVE_WORKSPACE",
+        "ATLAS_SESSION_APPLIED",
+    ):
+        monkeypatch.setenv(key, "")
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setattr(session_worker, "_agent", None)
+    monkeypatch.setattr(session_worker.importlib, "import_module", fake_import)
+    monkeypatch.setattr(session_worker, "_install_signal_handlers", lambda: None)
+
+    rc = session_worker.run_worker(
+        "alice/spi_core/orchestrator",
+        str(tmp_path / "atlas.db"),
+    )
+
+    assert rc == 0
+    assert calls[:3] == [
+        ("session", "alice/spi_core/orchestrator"),
+        ("workspace", "orchestrator"),
+        ("chat_loop", "alice/spi_core/orchestrator", "orchestrator"),
+    ]
+    assert os.environ["ATLAS_SESSION_APPLIED"] == "alice/spi_core/orchestrator"

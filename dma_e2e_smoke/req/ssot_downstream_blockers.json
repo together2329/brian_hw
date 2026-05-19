@@ -1,0 +1,6 @@
+{
+  "schema_version": "ssot_downstream_blockers.v1",
+  "ip": "dma_e2e_smoke",
+  "ssot": "dma_e2e_smoke/yaml/dma_e2e_smoke.ssot.yaml",
+  "issues": []
+}
