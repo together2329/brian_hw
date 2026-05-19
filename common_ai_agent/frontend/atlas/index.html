@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=atlas-20260519-dir-switcher-drop-row">
+<link rel="stylesheet" href="styles.css?v=atlas-20260519-font-row1">
 <style>
   html, body {
     margin: 0; padding: 0;
@@ -75,25 +75,35 @@
         b.appendChild(line);
         lines.push(label + ': ' + detail);
       }
+      function describeError(err, fallback) {
+        var message = '';
+        var stack = '';
+        try {
+          message = err && err.message ? String(err.message) : '';
+          stack = err && err.stack ? String(err.stack) : '';
+        } catch (_) {}
+        if (message && stack && stack.indexOf(message) === -1) return message + '\n' + stack;
+        return stack || message || fallback || 'unknown';
+      }
       window.addEventListener('error', function (ev) {
         // Script-tag load failure: ev.target is the failing element.
         if (ev.target && (ev.target.src || ev.target.href) && ev.target !== window) {
           append('script load failed', (ev.target.src || ev.target.href));
           return;
         }
-        var msg = (ev.error && (ev.error.stack || ev.error.message)) || ev.message || 'unknown';
+        var msg = describeError(ev.error, ev.message);
         append('uncaught', msg);
       }, true);
       window.addEventListener('unhandledrejection', function (ev) {
         var r = ev.reason;
-        append('unhandled promise', (r && (r.stack || r.message)) || String(r));
+        append('unhandled promise', describeError(r, String(r)));
       });
       // Mirror console.error so non-throwing failures still surface.
       var origErr = console.error.bind(console);
       console.error = function () {
         try {
           var parts = Array.prototype.map.call(arguments, function (a) {
-            if (a instanceof Error) return a.stack || a.message;
+            if (a instanceof Error) return describeError(a, a.message);
             if (typeof a === 'object') return JSON.stringify(a);
             return String(a);
           });

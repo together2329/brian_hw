@@ -298,12 +298,8 @@ html[data-theme="light"] {
    Shared primitives
    ────────────────────────────────────────────── */
 .app {
-  /* worker-10 dir-switcher drop-row: bumped from 30px (1 row) to 84px
-     (3 rows × 28px) because the dir-switcher now wraps into multiple
-     rows. `.app-main` derives its height from this var. The 28px per
-     row matches dir-btn height (22px) + .dir-switcher vertical padding
-     (3px top + 3px bottom). */
-  --atlas-topbar-h: 84px;
+  /* worker-12: 2 rows × 28px = 56px (FONT block back on row 1 with ZIP) */
+  --atlas-topbar-h: 56px;
   font-family: var(--mono);
   background: var(--bg);
   color: var(--fg);
@@ -453,13 +449,11 @@ html[data-theme="light"] {
   width: 6px !important;
   flex: 0 0 6px;
 }
-/* worker-10 dir-switcher drop-row: turn the 1st and 2nd spacer spans
-   into full-width flex line breaks so WORKSPACE/PIPELINE/ARCHITECT/
-   RUN/EXEC sit on their own row. `nth-of-type` counts only <span>
-   siblings, and the markup order is: 1st span = after `📦 .zip`
-   (before WORKSPACE), 2nd span = after EXEC (before FONT). */
-.dir-switcher > span:nth-of-type(1),
-.dir-switcher > span:nth-of-type(2) {
+/* worker-10 dir-switcher drop-row: 1st spacer (after .zip, before WORKSPACE)
+   is a full-width line-break so WORKSPACE/PIPELINE/ARCHITECT/RUN/EXEC sit
+   on row 2. `nth-of-type` counts only <span> siblings. */
+/* worker-12: removed nth-of-type(2) rule — FONT block flows back onto row 1 */
+.dir-switcher > span:nth-of-type(1) {
   flex: 0 0 100% !important;
   width: 100% !important;
   height: 0 !important;
