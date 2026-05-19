@@ -3389,11 +3389,27 @@ def register_jobs_routes(
         })
 
     def _extract_ip_from_orchestrator_message(message: str, fallback: str = "") -> str:
-        candidate = str(fallback or "").strip()
+        # Prefer an IP token spelled out in the message body over the dropdown
+        # fallback. Patterns: `for ip <ip>`, `for <ip>`, `ip=<ip>`, `on <ip>`.
+        # The handler downstream still validates the result against
+        # `^[A-Za-z][A-Za-z0-9_]*$`, so only tokens shaped that way are
+        # accepted here — otherwise we fall back to the dropdown ip.
+        candidate = ""
+        msg = str(message or "")
+        token_re = r"([A-Za-z][A-Za-z0-9_]*)"
+        patterns = (
+            rf"\bfor\s+ip\s+{token_re}\b",
+            rf"\bip\s*=\s*{token_re}\b",
+            rf"\bfor\s+{token_re}\b",
+            rf"\bon\s+{token_re}\b",
+        )
+        for pat in patterns:
+            m = re.search(pat, msg)
+            if m:
+                candidate = m.group(1).strip()
+                break
         if not candidate:
-            match = re.search(r"\b([A-Za-z][A-Za-z0-9_]*)\s*(?:ip|IP)\b", message)
-            if match:
-                candidate = match.group(1).strip()
+            candidate = str(fallback or "").strip()
         if candidate:
             candidate = re.sub(r"[^A-Za-z0-9_]", "_", candidate)
             if candidate and candidate[0].isdigit():
@@ -3973,14 +3989,8 @@ def register_jobs_routes(
         params = dict(request.query_params)
         ip = (params.get("ip") or "").strip()
 
-        # Workflows the orchestrator can dispatch. Order matters for UI.
-        workflows = [
-            "ssot-gen", "fl-model-gen", "rtl-gen", "lint", "tb-gen",
-            "sim", "coverage", "sim_debug", "goal-audit",
-        ]
-        extra = params.get("include_optional", "").strip()
-        if extra and extra not in ("0", "false", "no"):
-            workflows.extend(["syn", "sta", "pnr", "sta-post"])
+        # Workflows the orchestrator can dispatch. Order matches canonical pipeline.
+        workflows = list(_DEFAULT_WORKER_PORTS.keys())
 
         def _probe(url: str) -> dict[str, Any]:
             try:
