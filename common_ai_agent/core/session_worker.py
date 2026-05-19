@@ -42,17 +42,11 @@ from core.atlas_db import AtlasDB  # noqa: E402
 _agent: Any = importlib.import_module("main")
 
 
-DEFAULT_DB_PATH = "~/.common_ai_agent/atlas.db"
+DEFAULT_DB_PATH = os.environ.get("ATLAS_DB_PATH") or "~/.common_ai_agent/atlas.db"
 POLL_INTERVAL = 0.05
 ASK_USER_TIMEOUT = 900.0
 
 _shutdown_requested = False
-
-
-def _json_payload(payload: Any) -> str:
-    """Serialize queue payloads consistently for AtlasDB."""
-
-    return json.dumps(payload, ensure_ascii=False)
 
 
 def _decode_payload(raw: Any) -> Any:
@@ -347,7 +341,7 @@ class SessionWorker:
             self.session_id,
             "out",
             msg_type,
-            _json_payload({} if payload is None else payload),
+            {} if payload is None else payload,
         )
 
     def acknowledge(self, msg: dict[str, Any]) -> None:

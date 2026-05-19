@@ -42,6 +42,7 @@
   let liveQueue = [];
   let connectionState = 'connecting';
   let currentSessionId = '';
+  let wsEpoch = 0;
   // Outbound prompts awaiting an `agent_received` ack from the backend.
   // Map<msg_id, { msg, retries, timer }>. If the ack doesn't arrive
   // within ACK_TIMEOUT_MS we re-send the same payload once. The backend
@@ -79,13 +80,19 @@
       currentSessionId &&
       targetSessionId !== currentSessionId &&
       ws &&
-      (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)
+      (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.CLOSING)
     ) {
-      try { ws.onclose = null; ws.close(); } catch (_) {}
+      try { ws.onclose = null; ws.onerror = null; ws.onmessage = null; ws.onopen = null; ws.close(); } catch (_) {}
       ws = null;
     }
     currentSessionId = targetSessionId;
-    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+      if (ws.readyState === WebSocket.OPEN && connectionState !== 'open') {
+        connectionState = 'open';
+        emit('connection', { state: 'open' });
+      }
+      return;
+    }
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
     const url   = targetSessionId
         ? `${proto}//${location.host}/ws/agent?session_id=${encodeURIComponent(targetSessionId)}`
@@ -97,13 +104,19 @@
       scheduleReconnect();
       return;
     }
+    const socket = ws;
+    const epoch = ++wsEpoch;
     ws.onopen = () => {
+      if (socket !== ws || epoch !== wsEpoch) return;
       connectionState = 'open';
       _reconnectAttempts = 0;  // reset backoff on a successful open
       emit('connection', { state: 'open' });
-      while (liveQueue.length) ws.send(JSON.stringify(liveQueue.shift()));
+      while (liveQueue.length && socket === ws && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(liveQueue.shift()));
+      }
     };
     ws.onmessage = (ev) => {
+      if (socket !== ws || epoch !== wsEpoch) return;
       let msg;
       try { msg = JSON.parse(ev.data); } catch (_) { return; }
       if (!msg || !msg.type) return;
@@ -116,11 +129,14 @@
       emit(msg.type, msg);
     };
     ws.onclose = () => {
+      if (socket !== ws || epoch !== wsEpoch) return;
       connectionState = 'closed';
+      ws = null;
       emit('connection', { state: 'closed' });
       scheduleReconnect();
     };
     ws.onerror = (e) => {
+      if (socket !== ws || epoch !== wsEpoch) return;
       connectionState = 'error';
       emit('connection', { state: 'error', error: String(e) });
     };
@@ -151,7 +167,20 @@
   }
   function liveDisconnect() {
     clearTimeout(reconnectTimer);
-    if (ws) { try { ws.close(); } catch (_) {} ws = null; }
+    wsEpoch += 1;
+    const socket = ws;
+    ws = null;
+    if (socket) {
+      try {
+        socket.onclose = null;
+        socket.onerror = null;
+        socket.onmessage = null;
+        socket.onopen = null;
+        socket.close();
+      } catch (_) {}
+    }
+    connectionState = 'closed';
+    emit('connection', { state: 'closed' });
   }
 
   // ── public surface ─────────────────────────────────────────

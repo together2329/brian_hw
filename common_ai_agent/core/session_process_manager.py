@@ -49,15 +49,23 @@ class SessionProcessManager:
                 ``~/.common_ai_agent/atlas.db``.
         """
         self.db_path = db_path
+        self._source_root = Path(__file__).resolve().parents[1]
         self._processes: Dict[str, Dict[str, Any]] = {}
         self._lock = threading.RLock()
 
+    def _resolve_db_path(self, db_path: Optional[str] = None) -> str:
+        """Return the concrete DB path shared by UI and worker processes."""
+        raw = (
+            db_path
+            or self.db_path
+            or os.environ.get("ATLAS_DB_PATH")
+            or str(Path.home() / ".common_ai_agent" / "atlas.db")
+        )
+        return str(Path(os.path.expanduser(raw)).resolve())
+
     def _get_db(self) -> AtlasDB:
         """Return an initialized AtlasDB instance."""
-        if self.db_path is not None:
-            db = AtlasDB(self.db_path)
-        else:
-            db = AtlasDB()
+        db = AtlasDB(self._resolve_db_path())
         db.init_db()
         return db
 
@@ -84,15 +92,21 @@ class SessionProcessManager:
             ip_name = env.get("ATLAS_ACTIVE_IP") or "default"
             workflow = env.get("ATLAS_DEFAULT_WORKFLOW") or "default"
 
-        effective_db = db_path or self.db_path or env.get("ATLAS_TRACE_DB_PATH") or ""
+        effective_db = self._resolve_db_path(db_path)
         env["ATLAS_ACTIVE_SESSION"] = session_key
         env["ATLAS_DEFAULT_SESSION_ID"] = owner
         env["ATLAS_ACTIVE_IP"] = ip_name
         env["ATLAS_DEFAULT_WORKFLOW"] = workflow
         env["ATLAS_TRACE_ENABLE"] = "1"
-        if effective_db:
-            env["ATLAS_TRACE_DB_PATH"] = effective_db
+        env["ATLAS_DB_PATH"] = effective_db
+        env["ATLAS_TRACE_DB_PATH"] = effective_db
+        env.setdefault("ATLAS_SOURCE_ROOT", str(self._source_root))
         env.setdefault("ATLAS_PROJECT_ROOT", str(Path.cwd()))
+        python_paths = [str(self._source_root), str(self._source_root / "src")]
+        existing_pythonpath = env.get("PYTHONPATH", "")
+        if existing_pythonpath:
+            python_paths.append(existing_pythonpath)
+        env["PYTHONPATH"] = os.pathsep.join(python_paths)
         # Windows defaults to the active ANSI code page for redirected text
         # I/O unless UTF-8 mode is forced before Python starts. Worker output
         # is DB/file backed, so every child should agree on UTF-8 regardless
@@ -125,9 +139,8 @@ class SessionProcessManager:
                 "--session-id",
                 session_id,
             ]
-            effective_db = db_path or self.db_path
-            if effective_db:
-                cmd.extend(["--db-path", effective_db])
+            effective_db = self._resolve_db_path(db_path)
+            cmd.extend(["--db-path", effective_db])
 
             proc = subprocess.Popen(
                 cmd,
@@ -135,6 +148,7 @@ class SessionProcessManager:
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 env=self.build_worker_env(session_id, db_path=effective_db),
+                cwd=str(self._source_root),
                 # Detach from parent TTY so signals/shells don't propagate.
                 start_new_session=True,
             )
@@ -284,6 +298,23 @@ class SessionProcessManager:
         db = self._get_db()
         try:
             return db.poll_messages(session_id, "out", since_id, limit)
+        finally:
+            db.close()
+
+    def latest_output_id(self, session_id: str) -> Optional[str]:
+        """Return the newest output queue id for *session_id*, if any."""
+        db = self._get_db()
+        try:
+            row = db._fetchone(
+                """
+                SELECT id FROM session_queue
+                WHERE session_id = ? AND direction = 'out'
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (session_id,),
+            )
+            return str(row["id"]) if row is not None else None
         finally:
             db.close()
 

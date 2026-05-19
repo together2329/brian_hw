@@ -107,6 +107,104 @@ def dummy_worker_script():
         pass
 
 
+def test_session_process_manager_spawns_worker_from_source_root(monkeypatch, tmp_path):
+    db_path = tmp_path / "atlas-custom.db"
+    popen_calls = []
+
+    class FakeProc:
+        pid = 12345
+
+        def poll(self):
+            return None
+
+    def fake_popen(cmd, **kwargs):
+        popen_calls.append((cmd, kwargs))
+        return FakeProc()
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ATLAS_DB_PATH", str(db_path))
+    monkeypatch.delenv("PYTHONPATH", raising=False)
+    monkeypatch.setattr(subprocess, "Popen", fake_popen)
+
+    manager = SessionProcessManager()
+    assert manager.spawn("alice/spi_core/rtl-gen")
+
+    assert len(popen_calls) == 1
+    cmd, kwargs = popen_calls[0]
+    assert cmd[:3] == [sys.executable, "-m", "core.session_worker"]
+    assert cmd[cmd.index("--db-path") + 1] == str(db_path.resolve())
+    assert kwargs["cwd"] == str(Path(PROJECT_ROOT).resolve())
+    env = kwargs["env"]
+    assert env["ATLAS_DB_PATH"] == str(db_path.resolve())
+    assert env["ATLAS_TRACE_DB_PATH"] == str(db_path.resolve())
+    assert env["ATLAS_ACTIVE_SESSION"] == "alice/spi_core/rtl-gen"
+    assert env["ATLAS_DEFAULT_SESSION_ID"] == "alice"
+    assert env["ATLAS_ACTIVE_IP"] == "spi_core"
+    assert env["ATLAS_DEFAULT_WORKFLOW"] == "rtl-gen"
+    pythonpath = env["PYTHONPATH"].split(os.pathsep)
+    assert str(Path(PROJECT_ROOT).resolve()) in pythonpath
+    assert str((Path(PROJECT_ROOT) / "src").resolve()) in pythonpath
+
+
+def test_process_bridge_seeds_output_cursor_before_fresh_spawn():
+    class FakeManager:
+        def __init__(self):
+            self.spawned = []
+            self.sent = []
+
+        def is_alive(self, session_id):
+            return False
+
+        def latest_output_id(self, session_id):
+            assert session_id == "admin/spi_core/tb-gen"
+            return "old-output-row"
+
+        def spawn(self, session_id):
+            self.spawned.append(session_id)
+            return True
+
+        def send_input(self, session_id, msg_type, payload=None):
+            self.sent.append((session_id, msg_type, payload))
+            return "new-input-row"
+
+    bridge = _MultiUserBridge(single_user=False, use_processes=True)
+    fake = FakeManager()
+    bridge._process_manager = fake
+
+    bridge.submit_prompt_for_session("admin/spi_core/tb-gen", "hello")
+
+    assert bridge._process_output_cursors["admin/spi_core/tb-gen"] == "old-output-row"
+    assert fake.spawned == ["admin/spi_core/tb-gen"]
+    assert fake.sent == [("admin/spi_core/tb-gen", "prompt", {"text": "hello"})]
+
+
+def test_process_bridge_autostart_seeds_output_cursor():
+    class FakeManager:
+        def __init__(self):
+            self.spawned = []
+
+        def is_alive(self, session_id):
+            return False
+
+        def latest_output_id(self, session_id):
+            assert session_id == "admin/default/default"
+            return "old-default-output-row"
+
+        def spawn(self, session_id):
+            self.spawned.append(session_id)
+            return True
+
+    bridge = _MultiUserBridge(single_user=False, use_processes=True)
+    fake = FakeManager()
+    bridge._process_manager = fake
+    bridge.activate_session("admin/default/default")
+
+    bridge.ensure_agent_alive()
+
+    assert bridge._process_output_cursors["admin/default/default"] == "old-default-output-row"
+    assert fake.spawned == ["admin/default/default"]
+
+
 def test_spawn_multiple_sessions(dummy_worker_script):
     db_path = _temp_db()
     manager = DummyProcessManager(db_path=db_path, dummy_script_path=dummy_worker_script)

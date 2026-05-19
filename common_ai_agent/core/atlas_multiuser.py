@@ -489,6 +489,12 @@ class _MultiUserBridge:
     def ensure_agent_alive(self) -> None:
         if self._process_manager is not None:
             session = self._active_session()
+            if not self._process_manager.is_alive(session.session_id):
+                latest_output_id = self._process_manager.latest_output_id(session.session_id)
+                if latest_output_id:
+                    self._process_output_cursors[session.session_id] = latest_output_id
+                else:
+                    self._process_output_cursors.pop(session.session_id, None)
             self._process_manager.spawn(session.session_id)
             session.agent_alive = True
             return
@@ -535,6 +541,12 @@ class _MultiUserBridge:
             return False
         session = self._ensure_session(session_id)
         if spawn:
+            if not manager.is_alive(session.session_id):
+                latest_output_id = manager.latest_output_id(session.session_id)
+                if latest_output_id:
+                    self._process_output_cursors[session.session_id] = latest_output_id
+                else:
+                    self._process_output_cursors.pop(session.session_id, None)
             manager.spawn(session.session_id)
             session.agent_alive = True
             session.agent_running = True

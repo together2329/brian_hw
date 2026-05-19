@@ -1364,6 +1364,27 @@ def _ensure_stage_artifact_version_for_job(
     return artifact
 
 
+_DEFAULT_WORKER_PORTS: dict[str, int] = {
+    # Canonical port map (matches doc/wiki/atlas-browser-control-runbook.md).
+    # Used when no ATLAS_WORKER_URL_<SUFFIX> / WORKER_URL_<SUFFIX> env var is
+    # set so a freshly-launched atlas_ui.py can reach the per-workflow workers
+    # that the operator started on the documented ports without requiring a
+    # full env file. Env vars still win when present.
+    "ssot-gen":     5621,
+    "fl-model-gen": 5622,
+    "rtl-gen":      5623,
+    "lint":         5624,
+    "tb-gen":       5625,
+    "sim":          5626,
+    "coverage":     5627,
+    "sim_debug":    5628,
+    "syn":          5629,
+    "sta":          5630,
+    "pnr":          5631,
+    "sta-post":     5632,
+}
+
+
 def _resolve_worker_url(workflow: str) -> str:
     """Same precedence as core.delegate_runner.HTTPWorkerDelegate."""
     if workflow:
@@ -1376,6 +1397,9 @@ def _resolve_worker_url(workflow: str) -> str:
             url = os.environ.get(key)
             if url:
                 return url
+        port = _DEFAULT_WORKER_PORTS.get(str(workflow).strip())
+        if port:
+            return f"http://127.0.0.1:{port}"
     return os.environ.get("WORKER_URL_DEFAULT", "http://localhost:8001")
 
 

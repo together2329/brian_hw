@@ -25,11 +25,13 @@ import argparse
 import asyncio
 import collections
 import contextvars
+import faulthandler
 import hashlib
 import json
 import os
 import queue
 import re
+import signal
 import shlex
 import subprocess
 import sys
@@ -52,6 +54,21 @@ def _configure_utf8_process_io() -> None:
 
 
 _configure_utf8_process_io()
+
+
+def _install_stack_dump_signal() -> None:
+    """Allow `kill -USR1 <pid>` to dump stuck Atlas server stacks."""
+
+    sigusr1 = getattr(signal, "SIGUSR1", None)
+    if sigusr1 is None:
+        return
+    try:
+        faulthandler.register(sigusr1, all_threads=True)
+    except Exception:
+        pass
+
+
+_install_stack_dump_signal()
 
 
 # Self-bootstrap PYTHONPATH so `python3 src/atlas_ui.py` works without
@@ -3995,7 +4012,7 @@ def create_app():
     # POST /api/ssot/qa/answer registered via register_ssot_routes() (see atlas_api_ssot.py).
 
     @app.get("/api/soc")
-    async def api_soc():
+    def api_soc(scope: str = "", ip: str = ""):
         """Build a SoC-Architect-friendly view of the project's IPs.
 
         Two-tier source-of-truth model:
@@ -6245,6 +6262,63 @@ def create_app():
 
             project_name = PROJECT_ROOT.name or "project"
             soc_path = PROJECT_ROOT / "soc.ssot.yaml"
+            want_raw = str(ip or scope or "").strip().strip("/")
+            want_parts = [part for part in want_raw.split("/") if part]
+            want_ip = (
+                want_parts[-2]
+                if len(want_parts) >= 3
+                else want_parts[0]
+                if want_parts
+                else ""
+            )
+
+            def _scoped_leaf_paths(ip_name: str) -> list[Path]:
+                if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip_name or ""):
+                    return []
+                seen: set[Path] = set()
+                out: list[Path] = []
+                bases = [PROJECT_ROOT, SOURCE_ROOT, PROJECT_ROOT / "common_ai_agent"]
+                for base in bases:
+                    candidates = [
+                        base / ip_name / "yaml" / f"{ip_name}.ssot.yaml",
+                        *(base.glob(f"*/{ip_name}/yaml/{ip_name}.ssot.yaml") if base.is_dir() else []),
+                    ]
+                    for candidate in candidates:
+                        try:
+                            resolved = candidate.resolve()
+                            resolved.relative_to(PROJECT_ROOT)
+                        except Exception:
+                            try:
+                                resolved.relative_to(SOURCE_ROOT)
+                            except Exception:
+                                continue
+                        if resolved in seen or not resolved.is_file():
+                            continue
+                        if any(part in SKIP_DIRS or part.startswith(".") for part in resolved.parts):
+                            continue
+                        seen.add(resolved)
+                        out.append(resolved)
+                return out
+
+            if want_ip:
+                modules = [_build_module(p) for p in _scoped_leaf_paths(want_ip)]
+                modules.sort(key=lambda m: m["id"])
+                cluster = {
+                    "id": "ips", "name": "ips", "label": "Project IPs",
+                    "x": 60, "y": 80, "w": 1200, "h": 600,
+                    "status": _aggregate_status(modules),
+                    "modules": modules,
+                }
+                return JSONResponse({
+                    "name": project_name,
+                    "version": "live",
+                    "clusters": [cluster] if modules else [],
+                    "busses": [],
+                    "addrMap": [],
+                    "module_count": len(modules),
+                    "source": "scoped-dir-walk",
+                    "scope": want_ip,
+                })
 
             # ── Tier 1: SoC-level SSOT exists → use it as the spine ──
             if _yaml is not None and soc_path.is_file():
@@ -6492,7 +6566,7 @@ def create_app():
             return JSONResponse({"error": str(e), "clusters": []}, status_code=500)
 
     @app.get("/api/progress")
-    async def api_progress(scope: str = "", ip: str = ""):
+    def api_progress(scope: str = "", ip: str = ""):
         """Return SSOT-derived implementation progress for the Atlas sidebar.
 
         The heavy lifting already lives in /api/soc because the architect
@@ -6502,7 +6576,7 @@ def create_app():
         from the canonical leaf SSOT YAML and disk artifacts, not from fixed IP
         templates or assistant prose.
         """
-        resp = await api_soc()
+        resp = api_soc(scope=scope, ip=ip)
         try:
             data = json.loads(resp.body.decode("utf-8"))
         except Exception as e:
@@ -13248,7 +13322,11 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         threading.Thread(target=ctx.run, args=(_run_agent,), daemon=True).start()
 
     bridge.set_agent_starter(_start_agent_thread)
-    if os.environ.get("ATLAS_AGENT_AUTOSTART", "1").strip().lower() not in {"0", "false", "off", "no"}:
+    # Process-per-session mode is lazy by design: the selected worker
+    # should start when that workspace receives chat input, not as an
+    # unrelated default worker during shared backend boot.
+    _autostart_default = "0" if bridge._using_processes() else "1"
+    if os.environ.get("ATLAS_AGENT_AUTOSTART", _autostart_default).strip().lower() not in {"0", "false", "off", "no"}:
         bridge.ensure_agent_alive()
 
     # Surface the source-repo path to the agent so it can locate
@@ -13357,7 +13435,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     except Exception:
         pass
 
-    uvicorn.run(app, host=host, port=port, log_level="warning")
+    uvicorn.run(app, host=host, port=port, log_level="warning", loop="asyncio", http="h11")
 
 
 def main() -> None:
