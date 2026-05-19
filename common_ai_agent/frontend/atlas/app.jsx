@@ -1683,42 +1683,6 @@ const App = () => {
                   window.location.href = `/api/workspace/download.zip${sub}`;
                 }}>📦 .zip</button>
         <span style={{ width: 12 }} />
-        <button className={`dir-btn ${screen === 'workspace' ? 'active' : ''}`}
-                data-nav="screen"
-                title="Live agent · chat · sidebar (sim/lint/scope)"
-                onClick={() => setScreen('workspace')}>⌂ Workspace</button>
-        <button className={`dir-btn ${screen === 'pipeline' ? 'active' : ''}`}
-                data-nav="screen"
-                title="Live pipeline dispatcher · stage situation board"
-                onClick={() => setScreen('pipeline')}>◫ Pipeline</button>
-        <button className={`dir-btn ${screen === 'architect' ? 'active' : ''}`}
-                data-nav="screen"
-                title="SoC structure · per-module status grid · block diagram (rich progress view)"
-                onClick={() => setScreen('architect')}>◇ Architect</button>
-        <label className="dir-select-wrap run-policy" data-nav="screen" title="Run Mode controls evidence strictness, not IP size">
-          <span>run</span>
-          <select
-            className="dir-select policy"
-            value={runMode}
-            onChange={e => saveRunPolicy(e.currentTarget.value, execMode)}>
-            {ATLAS_RUN_MODE_OPTIONS.map(opt => (
-              <option key={opt.key} value={opt.key}>{opt.label}</option>
-            ))}
-          </select>
-        </label>
-        <label className="dir-select-wrap run-policy" data-nav="screen" title="Exec Mode chooses single-worker execution or orchestrator-managed workers">
-          <span>exec</span>
-          <select
-            className="dir-select exec"
-            value={execMode}
-            onChange={e => saveRunPolicy(runMode, e.currentTarget.value)}>
-            {ATLAS_EXEC_MODE_OPTIONS.map(opt => (
-              <option key={opt.key} value={opt.key}>{opt.label}</option>
-            ))}
-          </select>
-        </label>
-        <span data-nav="screen" style={{ display: 'contents' }}><PipelineRunningChip onClick={() => setScreen('pipeline')} /></span>
-        <span style={{ width: 12 }} />
         <label className="dir-select-wrap" title="Change UI font family">
           <span>font</span>
           <select
@@ -1789,6 +1753,39 @@ const App = () => {
                     window.location.reload();
                   }}>↩ {window.ATLAS_USER.username}</button>
         )}
+        <span data-row-break style={{flex:'0 0 100%',width:'100%',height:0,margin:0,padding:0,border:0}} />
+        <button className={`dir-btn ${screen === 'workspace' ? 'active' : ''}`}
+                title="Live agent · chat · sidebar (sim/lint/scope)"
+                onClick={() => setScreen('workspace')}>⌂ Workspace</button>
+        <button className={`dir-btn ${screen === 'pipeline' ? 'active' : ''}`}
+                title="Live pipeline dispatcher · stage situation board"
+                onClick={() => setScreen('pipeline')}>◫ Pipeline</button>
+        <button className={`dir-btn ${screen === 'architect' ? 'active' : ''}`}
+                title="SoC structure · per-module status grid · block diagram (rich progress view)"
+                onClick={() => setScreen('architect')}>◇ Architect</button>
+        <label className="dir-select-wrap run-policy" title="Run Mode controls evidence strictness, not IP size">
+          <span>run</span>
+          <select
+            className="dir-select policy"
+            value={runMode}
+            onChange={e => saveRunPolicy(e.currentTarget.value, execMode)}>
+            {ATLAS_RUN_MODE_OPTIONS.map(opt => (
+              <option key={opt.key} value={opt.key}>{opt.label}</option>
+            ))}
+          </select>
+        </label>
+        <label className="dir-select-wrap run-policy" title="Exec Mode chooses single-worker execution or orchestrator-managed workers">
+          <span>exec</span>
+          <select
+            className="dir-select exec"
+            value={execMode}
+            onChange={e => saveRunPolicy(runMode, e.currentTarget.value)}>
+            {ATLAS_EXEC_MODE_OPTIONS.map(opt => (
+              <option key={opt.key} value={opt.key}>{opt.label}</option>
+            ))}
+          </select>
+        </label>
+        <span style={{ display: 'contents' }}><PipelineRunningChip onClick={() => setScreen('pipeline')} /></span>
       </div>
       <OrchestratorStatusStrip activeIp={activeIp} />
       <div className="app-main">

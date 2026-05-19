@@ -442,20 +442,13 @@ html[data-theme="light"] {
   width: 6px !important;
   flex: 0 0 6px;
 }
-/* Force the 1st spacer span (after .zip, before WORKSPACE) to be a full-width
-   line-break so session/ip/workflow/zip/FONT/SIZE/... stay on row 1 and the
-   WORKSPACE-EXEC nav group wraps to row 2. */
-.dir-switcher > span:nth-of-type(1) {
+.dir-switcher > span[data-row-break] {
   flex: 0 0 100% !important;
   width: 100% !important;
   height: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
-}
-/* Push WORKSPACE/PIPELINE/ARCHITECT/RUN/EXEC visually after FONT group via flex order. */
-.dir-switcher [data-nav="screen"] {
-  order: 99;
 }
 
 /* ───────── orchestrator status strip ───────── */
