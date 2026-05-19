@@ -31,6 +31,7 @@ This section is additive; it does not replace the reading order below.
 | When to update wiki during development | [[wiki-curation-policy]] |
 | How agent autonomously implements a new IP end-to-end | [[agent-autonomous-ip-implementation-pattern]] |
 | Full orchestrator workflow bring-up history (system_prompt, multi-model worker spawn, trace, UI orchestra view) | [[orchestrator-workflow-bring-up-20260517]] |
+| pytest collection crash fix (pytest_pymtl3 stale hook) and canonical PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 invocation | [[atlas-pytest-hygiene]] |
 | Side-by-side LLM provider comparison on the same SSOT input | [[triple-llm-rv32i-experiment]] |
 
 Current practical rule: final product-flow claims should be validated through
