@@ -298,7 +298,12 @@ html[data-theme="light"] {
    Shared primitives
    ────────────────────────────────────────────── */
 .app {
-  --atlas-topbar-h: 30px;
+  /* worker-10 dir-switcher drop-row: bumped from 30px (1 row) to 84px
+     (3 rows × 28px) because the dir-switcher now wraps into multiple
+     rows. `.app-main` derives its height from this var. The 28px per
+     row matches dir-btn height (22px) + .dir-switcher vertical padding
+     (3px top + 3px bottom). */
+  --atlas-topbar-h: 84px;
   font-family: var(--mono);
   background: var(--bg);
   color: var(--fg);
@@ -415,6 +420,12 @@ html[data-theme="light"] {
 .statusbar .sb-spacer { flex: 1; }
 
 /* ───────── direction switcher ───────── */
+/* worker-10 dir-switcher drop-row: WORKSPACE/PIPELINE/ARCHITECT/RUN/EXEC
+   are moved to their own visual row below the identifier row
+   (session_id / ip_id / workflow / .zip). The remaining controls
+   (font/size/res/theme/lang/stop/exit) wrap onto a third row. We do
+   this CSS-only by switching the flex container to `wrap` and forcing
+   row breaks at two of the existing 12px spacer <span>s. */
 .dir-switcher {
   position: relative;
   top: auto;
@@ -422,11 +433,11 @@ html[data-theme="light"] {
   right: auto;
   z-index: 100;
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-start;
   gap: 3px;
-  height: var(--atlas-topbar-h);
+  min-height: var(--atlas-topbar-h);
   padding: 3px 4px;
   box-sizing: border-box;
   border-bottom: 1px solid var(--line);
@@ -434,13 +445,27 @@ html[data-theme="light"] {
   font-size: var(--ui-control-font-size);
   font-family: var(--mono);
   max-width: none;
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-y: hidden;
   white-space: nowrap;
 }
 .dir-switcher > span {
   width: 6px !important;
   flex: 0 0 6px;
+}
+/* worker-10 dir-switcher drop-row: turn the 1st and 2nd spacer spans
+   into full-width flex line breaks so WORKSPACE/PIPELINE/ARCHITECT/
+   RUN/EXEC sit on their own row. `nth-of-type` counts only <span>
+   siblings, and the markup order is: 1st span = after `📦 .zip`
+   (before WORKSPACE), 2nd span = after EXEC (before FONT). */
+.dir-switcher > span:nth-of-type(1),
+.dir-switcher > span:nth-of-type(2) {
+  flex: 0 0 100% !important;
+  width: 100% !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
 }
 .dir-btn {
   background: transparent;
