@@ -242,11 +242,19 @@ def _bind_orchestrator_tools(
                 "budget_state": budgets.snapshot(),
             }
             return result, f"budget exhausted: {err}"
+        # Propagate the chat seed (latest user message) so workers see the
+        # user's real requirement even when the LLM forgets to populate the
+        # ``prompt`` tool argument. The seed rides on payload.user_seed and is
+        # rendered into the worker boundary block by _make_job_record.
+        payload_in = dict(kw.get("payload") or {})
+        user_seed = getattr(ctx, "user_seed", "") or ""
+        if user_seed and not payload_in.get("user_seed"):
+            payload_in["user_seed"] = user_seed
         return orch_tools.dispatch_workflow(
             workflow=workflow,
             ip=kw.get("ip", ctx.ip_name),
             stages=stages or None,
-            payload=kw.get("payload") or {},
+            payload=payload_in,
             prompt=kw.get("prompt", ""),
             schedule=kw.get("schedule", "auto"),
             reason=kw.get("reason", ""),
@@ -666,6 +674,10 @@ class OrchestratorReactLoop:
         self.db = db
         self.ctx = ctx
         self._initial_user_message = initial_user_message
+        # Pin the chat seed on ctx so the dispatch bridge can propagate it to
+        # worker prompts even when the LLM omits the ``prompt`` tool argument.
+        if initial_user_message and hasattr(ctx, "user_seed") and not getattr(ctx, "user_seed", ""):
+            ctx.user_seed = initial_user_message
         self._llm_caller = llm_caller
 
     def _active_worker_job_ids(self) -> list[str]:

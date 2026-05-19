@@ -36,6 +36,7 @@ class OrchestratorContext:
     session_id: str = ""
     project_root: Optional[Path] = None
     runner: Any = None  # OrchestratorRunner — opt-in waker provider
+    user_seed: str = ""  # Latest user chat message — propagated to worker prompts.
 
 
 @dataclass
