@@ -2844,6 +2844,11 @@ if __name__ == "__main__":
                          help='HTTP server port (default: 8000, requires --serve)')
     _parser.add_argument('--verbose', action='store_true',
                          help='Print ReAct log to terminal in real-time (requires --serve)')
+    _parser.add_argument('--all-workflows', '--accept-any-workflow',
+                         dest='all_workflows', action='store_true',
+                         help='Workflow-agnostic worker (May-12 single-main-loop): '
+                              'one --serve process accepts /run for any workflow and '
+                              'switches workspace per dispatch via _setup_workspace().')
     _parser.add_argument('--coordinator', type=str, default='',
                          help='Coordinator URL to register with (e.g. http://localhost:8000)')
     _parser.add_argument('--worker-name', type=str, default='',
@@ -2978,6 +2983,7 @@ if __name__ == "__main__":
             worker_name=getattr(_args, 'worker_name', ''),
             session_name=_args.session or '',
             startup_workflow=getattr(_args, 'workspace', '') or '',
+            all_workflows=getattr(_args, 'all_workflows', False),
         )
         sys.exit(0)
 

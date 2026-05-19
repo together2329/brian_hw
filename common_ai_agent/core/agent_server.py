@@ -148,6 +148,7 @@ _START_TIME = time.time()
 # Per-worker state (set once in serve())
 _SERVER_PORT: int = 8000
 _SERVER_WORKFLOW: str = ""    # Workflow this worker was started with (--workflow). Empty = unrestricted.
+_SERVER_ACCEPT_ANY_WORKFLOW: bool = False  # When True (--all-workflows), each /run sets up the requested workflow's workspace before executing, matching the May-12 single-main-loop pattern.
 _worker_todo_tracker = None   # TodoTracker instance shared across all runs on this worker
 
 # Log directory for persistent audit trail
@@ -1712,6 +1713,8 @@ def create_app():
         }
         if _SERVER_WORKFLOW:
             body["workflow"] = _SERVER_WORKFLOW
+        if _SERVER_ACCEPT_ANY_WORKFLOW:
+            body["all_workflows"] = True
         # Best-effort model name — read from common env vars set at startup.
         model_name = (
             os.environ.get("LLM_MODEL_NAME", "")
@@ -1939,6 +1942,47 @@ def create_app():
                     f"request asked for '{workflow.strip()}'"
                 ),
             )
+        # May-12 single-main-loop pattern: when --all-workflows is on, each
+        # dispatch carries its own workflow; activate the workspace at the
+        # process level (env + workflow.loader) before _run_react_task so the
+        # same main loop transitions to the new workflow's context on the
+        # next iteration. The per-run workspace activation inside
+        # _run_react_task still runs and patches prompt/hooks for this task.
+        if _SERVER_ACCEPT_ANY_WORKFLOW and workflow.strip():
+            try:
+                _wf_norm = workflow.strip()
+                os.environ["ATLAS_WORKFLOW"] = _wf_norm
+                os.environ["ACTIVE_WORKSPACE"] = _wf_norm
+                try:
+                    import src.main as _main_mod
+                    _setup_ws = getattr(_main_mod, "_setup_workspace", None)
+                except Exception:
+                    _setup_ws = None
+                if _setup_ws is None:
+                    try:
+                        import main as _main_mod
+                        _setup_ws = getattr(_main_mod, "_setup_workspace", None)
+                    except Exception:
+                        _setup_ws = None
+                if callable(_setup_ws):
+                    _setup_ws(_wf_norm)
+            except SystemExit:
+                # _setup_workspace calls sys.exit() on unknown workflow;
+                # convert that into an HTTP 400 so the worker keeps running.
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"unknown workflow '{workflow.strip()}'",
+                )
+            except Exception as _ws_exc:
+                # Workspace activation is best-effort; _run_react_task will
+                # still attempt its own activation. Log to trace and continue.
+                try:
+                    from core.orchestrator_trace import record_trace
+                    record_trace(ip_for_trace, lens="result", actor=actor_self,
+                                 kind="workspace_setup_warn", corr=corr_eff,
+                                 workflow=workflow.strip(), detail=str(_ws_exc)[:200])
+                except Exception:
+                    pass
         template_ip = str(request.get("ip", "")).strip()
         project_root = str(request.get("project_root", "")).strip()
         rtl_version_id = str(request.get("rtl_version_id", "")).strip()
@@ -2131,7 +2175,8 @@ def create_app():
 
 def serve(port: int = 8000, host: str = "0.0.0.0", verbose: bool = False,
           coordinator: str = "", worker_name: str = "",
-          session_name: str = "", startup_workflow: str = ""):
+          session_name: str = "", startup_workflow: str = "",
+          all_workflows: bool = False):
     """
     Start the agent HTTP server.
 
@@ -2147,9 +2192,18 @@ def serve(port: int = 8000, host: str = "0.0.0.0", verbose: bool = False,
                           When set, /run requests whose `workflow` field does not
                           match are rejected with 403 to prevent cross-workflow
                           worker reuse (multi-user-worker-conflicts F3).
+        all_workflows:    When True (`--all-workflows`), the worker is workflow-
+                          agnostic: the 403 workflow-mismatch gate is bypassed
+                          and each /run dispatches into _setup_workspace(workflow)
+                          before running, restoring the May-12 single-main-loop
+                          pattern where one worker handles every workflow.
     """
-    global _VERBOSE, _VERBOSE_FILTER, _SERVER_PORT, _SERVER_WORKFLOW, _worker_todo_tracker
-    _SERVER_WORKFLOW = (startup_workflow or "").strip()
+    global _VERBOSE, _VERBOSE_FILTER, _SERVER_PORT, _SERVER_WORKFLOW
+    global _SERVER_ACCEPT_ANY_WORKFLOW, _worker_todo_tracker
+    _SERVER_ACCEPT_ANY_WORKFLOW = bool(all_workflows)
+    # --all-workflows is mutually exclusive with workflow binding: an
+    # any-workflow worker must not reject mismatched dispatches.
+    _SERVER_WORKFLOW = "" if _SERVER_ACCEPT_ANY_WORKFLOW else (startup_workflow or "").strip()
     _VERBOSE = verbose or os.getenv("AGENT_SERVER_VERBOSE", "").lower() in ("1", "true", "yes")
     _VERBOSE_FILTER = os.getenv("AGENT_SERVER_VERBOSE_FILTER", "")
     _SERVER_PORT = port
