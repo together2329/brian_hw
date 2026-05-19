@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=atlas-20260519-orch-chat-panel">
+<link rel="stylesheet" href="styles.css?v=atlas-20260519-typography-polish">
 <style>
   html, body {
     margin: 0; padding: 0;
@@ -113,34 +113,37 @@
     })();
   </script>
 
-  <!-- CDN libs. SRI integrity= and crossorigin= attributes were
-       removed because Windows corporate environments commonly run an
-       SSL-inspecting proxy that re-signs the response — the browser
-       then computes a different sha384 than the integrity= value and
-       refuses to execute the script ("script load failed" on unpkg
-       URLs). Without SRI the proxy-modified bytes execute normally.
+  <!-- CDN libs. SRI integrity= attributes were removed because Windows
+       corporate environments commonly run an SSL-inspecting proxy that
+       re-signs the response — the browser then computes a different
+       sha384 than the integrity= value and refuses to execute the
+       script ("script load failed" on unpkg URLs). Without SRI the
+       proxy-modified bytes execute normally. crossorigin="anonymous"
+       is kept (unpkg sends Access-Control-Allow-Origin: *) so runtime
+       exceptions surface real messages/stacks to the global error
+       handler instead of the sanitized "Script error." string.
        If unpkg itself is unreachable, vendor these locally under
        frontend/atlas/vendor/ and switch the src= paths. -->
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+  <script crossorigin="anonymous" src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+  <script crossorigin="anonymous" src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+  <script crossorigin="anonymous" src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
   <!-- Markdown renderer for agent replies (code fences, lists, links…). -->
-  <script src="https://unpkg.com/marked@9/marked.min.js"></script>
+  <script crossorigin="anonymous" src="https://unpkg.com/marked@9/marked.min.js"></script>
   <!-- FSM/state diagrams. workspace.jsx renders through mermaid.render()
        and falls back to an internal SVG when this CDN is unavailable. -->
-  <script src="https://unpkg.com/mermaid@11/dist/mermaid.min.js"></script>
+  <script crossorigin="anonymous" src="https://unpkg.com/mermaid@11/dist/mermaid.min.js"></script>
 
   <!-- DOMPurify — strips <script>, on*-handlers, javascript: URIs, etc.
        Without it, agent text containing raw HTML (relayed from a
        malicious file read, web fetch, or grep result) would inject via
        dangerouslySetInnerHTML and execute. -->
-  <script src="https://unpkg.com/dompurify@3.1.6/dist/purify.min.js"></script>
+  <script crossorigin="anonymous" src="https://unpkg.com/dompurify@3.1.6/dist/purify.min.js"></script>
 
   <!-- Syntax highlighting for the file preview pane (Prism core +
        autoloader → loads language grammars on demand from CDN). -->
   <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism-tomorrow.css">
-  <script src="https://unpkg.com/prismjs@1.29.0/components/prism-core.min.js"></script>
-  <script src="https://unpkg.com/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script crossorigin="anonymous" src="https://unpkg.com/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script crossorigin="anonymous" src="https://unpkg.com/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
   <script>
     // Map file extension → Prism language id. Covers what Atlas
     // actually opens (RTL/SV, YAML, Python, MD, JSON, shell, etc.).

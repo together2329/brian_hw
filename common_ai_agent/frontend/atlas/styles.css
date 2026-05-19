@@ -40,7 +40,7 @@
   --ui-code-font-size: 13px;
   --ui-line-height: 1.55;
   --ui-agent-line-height: 1.72;
-  --ui-text-weight: 400;
+  --ui-text-weight: 450;
   --ui-control-weight: 500;
   --ui-strong-weight: 700;
   --accent-fg: #081018;
@@ -290,7 +290,7 @@ html[data-theme="light"] {
   --ui-agent-font-size: 16px;
   --ui-code-font-size: 13.5px;
   --ui-agent-line-height: 1.82;
-  --ui-text-weight: 400;
+  --ui-text-weight: 450;
   --ui-control-weight: 600;
 }
 
@@ -309,7 +309,7 @@ html[data-theme="light"] {
   font-size: var(--ui-font-size);
   line-height: var(--ui-line-height);
   font-weight: var(--ui-text-weight);
-  letter-spacing: 0;
+  letter-spacing: 0.01em;
   font-feature-settings: "calt" 0, "liga" 0;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -5242,3 +5242,34 @@ body[data-resize-cursor="col"] {
 
 /* Bus bar last-passed worker tspan */
 .enh-orch-meta-ok { fill: var(--enh-ok, #76c893); font-weight: 700; }
+
+/* ── worker-7 typography polish ──────────────────────────────────────────
+   Windows ClearType renders sub-pixel text sharper with slight positive
+   letter-spacing and a weight above 400. Inter is a variable font so
+   weight 450 is valid and avoids the "bold-looking" jump to 500.
+   Mono code/log views get liga enabled for JetBrains Mono ligatures.
+   High-contrast text tokens ensure dark-mode body copy is legible on
+   #1a1d22 backgrounds (Windows LCD contrast is lower than macOS).      */
+
+/* Mono code/log areas: enable JetBrains Mono ligatures */
+.mono,
+pre, code,
+.code-block, .log-view, .trace-view,
+.pipe-trace-body, .orch-trace-body,
+[class*="code-"], [class*="-code"] {
+  font-feature-settings: "calt" 1, "liga" 1;
+}
+
+/* Dark-mode body text: ensure contrast on deep backgrounds */
+[data-theme="dark"] {
+  --enh-text: #ebedf0;
+}
+
+/* Light-mode body text: full-black for maximum contrast */
+[data-theme="light"] {
+  --enh-text: #1a1d22;
+}
+
+/* Stage rail labels: keep weight >= 500 for readability at small sizes */
+.pipe-stage-rail-name  { font-weight: max(500, var(--ui-control-weight, 500)); }
+.pipe-stage-rail-state { letter-spacing: 0.04em; }
