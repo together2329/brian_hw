@@ -2479,6 +2479,41 @@ def register_jobs_routes(
     def _pipeline_session_prefix(request: Request, ip: str, pipeline_id: str) -> str:
         return _pipeline_session_prefix_for_owner(_request_username(request), ip, pipeline_id)
 
+    def _assert_ip_access(db_user_id: str, ip: str) -> bool:
+        """Return True if db_user_id owns or has been granted access to ip.
+
+        Only enforced when multi-user mode is on and the request carries a real
+        user identity (not empty / local-admin). Returns True unconditionally in
+        single-user deployments so existing single-user workflows are unaffected.
+        """
+        if not _multi_user_enabled():
+            return True
+        if not db_user_id or db_user_id == "local-admin":
+            return True
+        pr = project_root()
+        try:
+            from core.atlas_db import AtlasDB
+            with AtlasDB(_atlas_job_db_path(pr)) as _db:
+                canonical = _canonical_user_id(_db, db_user_id) or db_user_id
+                rows = _db._fetchall(
+                    """
+                    SELECT i.id FROM ip_blocks i
+                      JOIN workspaces w ON w.id = i.workspace_id
+                     WHERE w.owner_user_id = ? AND i.ip_name = ?
+                    UNION ALL
+                    SELECT i.id FROM ip_permissions p
+                      JOIN ip_blocks i ON i.id = p.ip_id
+                     WHERE p.grantee_user_id = ?
+                       AND i.ip_name = ?
+                       AND (p.expires_at IS NULL OR p.expires_at > ?)
+                    LIMIT 1
+                    """,
+                    (canonical, ip, canonical, ip, __import__("time").time()),
+                )
+                return len(rows) > 0
+        except Exception:
+            return True
+
     def _active_tool_owner() -> str:
         session_name = normalize_session_name(os.environ.get("ATLAS_ACTIVE_SESSION", ""))
         if session_name and "/" in session_name:
@@ -2860,6 +2895,8 @@ def register_jobs_routes(
         scoped_user = request.scope.get("user") or {}
         user_id = str(scoped_user.get("username") or scoped_user.get("id") or "")
         db_user_id = _request_db_user_id(request) or user_id
+        if not _assert_ip_access(db_user_id, ip):
+            return JSONResponse({"error": "forbidden"}, status_code=403)
         scope_filter = {"user_id": user_id} if user_id else None
         cache_key = (ip, user_id)
 
@@ -3346,6 +3383,8 @@ def register_jobs_routes(
         owner_user_id    = _request_username(request)
         selected_stage_ids = [stage["id"] for stage in resolved]
         db_user_id = _request_db_user_id(request)
+        if ip and not _assert_ip_access(db_user_id, ip):
+            return JSONResponse({"error": "forbidden"}, status_code=403)
         _, _ = _refresh_tracked_jobs(project_root())
         conflicts = _active_job_conflicts(
             ip=ip,
@@ -4000,6 +4039,9 @@ def register_jobs_routes(
         ip = (params.get("ip") or "").strip()
         if not ip:
             return JSONResponse({"error": "ip query param required"}, status_code=400)
+        _trace_db_user = _request_db_user_id(request)
+        if not _assert_ip_access(_trace_db_user, ip):
+            return JSONResponse({"error": "forbidden"}, status_code=403)
         try:
             limit = int(params.get("limit") or "100")
         except Exception:
