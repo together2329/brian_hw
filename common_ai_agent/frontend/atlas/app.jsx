@@ -289,16 +289,18 @@ const App = () => {
     try {
       const url = new URL(window.location.href);
       const rawSession = normalizeSession(url.searchParams.get('session') || '');
-      const parsed = splitSessionNamespace(rawSession);
+      // splitSessionNamespace('') returns sentinel defaults, so only trust
+      // its ipId/workflow when an actual ?session= was provided. Otherwise
+      // the literal ?ip= / ?workflow= query params are authoritative for
+      // deep links like /?ip=cmux_p0_test.
+      const parsed = rawSession ? splitSessionNamespace(rawSession) : { sessionId: '', ipId: '', workflow: '' };
       const owner = normalizeSession(
         parsed.sessionId || url.searchParams.get('session_id') || window.ATLAS_USER_SESSION_ID || ''
       ) || 'default';
-      const ip = normalizeSession(
-        parsed.ipId || url.searchParams.get('ip') || url.searchParams.get('ip_id') || ''
-      );
-      const wf = normalizeSession(
-        parsed.workflow || url.searchParams.get('workflow') || url.searchParams.get('wf') || ''
-      );
+      const ipParam = normalizeSession(url.searchParams.get('ip') || url.searchParams.get('ip_id') || '');
+      const wfParam = normalizeSession(url.searchParams.get('workflow') || url.searchParams.get('wf') || '');
+      const ip = ipParam || normalizeSession(parsed.ipId || '');
+      const wf = wfParam || normalizeSession(parsed.workflow || '');
       if (!rawSession && !ip && !wf) return '';
       return `${owner}/${ip || WORKFLOW_DEFAULT}/${wf || WORKFLOW_DEFAULT}`;
     } catch (_) {
@@ -475,13 +477,17 @@ const App = () => {
           const username = normalizeSession(user.username) || user.username;
           const url = new URL(window.location.href);
           const urlSession = normalizeSession(url.searchParams.get('session') || '');
-          const urlParts = splitSessionNamespace(urlSession);
-          const requestedIp = normalizeSession(
-            urlParts.ipId || url.searchParams.get('ip') || url.searchParams.get('ip_id') || ''
-          );
-          const requestedWf = normalizeSession(
-            urlParts.workflow || url.searchParams.get('workflow') || url.searchParams.get('wf') || ''
-          );
+          // splitSessionNamespace('') yields {sessionId:'default', ipId:'default',
+          // workflow:'default'} — treating those as authoritative would
+          // overwrite a real ?ip= deep link with 'default'. Only consult the
+          // parsed namespace when ?session= was actually present.
+          const urlParts = urlSession
+            ? splitSessionNamespace(urlSession)
+            : { sessionId: '', ipId: '', workflow: '' };
+          const ipParam = normalizeSession(url.searchParams.get('ip') || url.searchParams.get('ip_id') || '');
+          const wfParam = normalizeSession(url.searchParams.get('workflow') || url.searchParams.get('wf') || '');
+          const requestedIp = ipParam || normalizeSession(urlParts.ipId || '');
+          const requestedWf = wfParam || normalizeSession(urlParts.workflow || '');
           const hasUrlContext = !!(urlSession || requestedIp || requestedWf);
           const currentNs = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
           const currentOwner = (currentNs.split('/').filter(Boolean)[0] || '');
@@ -494,9 +500,11 @@ const App = () => {
             const screenWf = savedScreen === 'pipeline'
               ? 'orchestrator'
               : savedScreen === 'architect' ? 'architect' : '';
-            const currentParts = splitSessionNamespace(currentNs);
+            const currentParts = currentNs
+              ? splitSessionNamespace(currentNs)
+              : { sessionId: '', ipId: '', workflow: '' };
             const nextIp = requestedIp || currentParts.ipId || WORKFLOW_DEFAULT;
-            const nextWf = requestedWf || screenWf || WORKFLOW_DEFAULT;
+            const nextWf = requestedWf || screenWf || currentParts.workflow || WORKFLOW_DEFAULT;
             const nextNs = `${username}/${nextIp}/${nextWf}`;
             window.ACTIVE_SESSION = nextNs;
             localStorage.setItem('atlasActiveSession', nextNs);
