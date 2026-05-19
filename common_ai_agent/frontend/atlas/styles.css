@@ -405,7 +405,7 @@
   flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-start;
-  gap: 4px;
+  gap: 3px;
   height: var(--atlas-topbar-h);
   padding: 3px 4px;
   box-sizing: border-box;
@@ -414,7 +414,8 @@
   font-size: var(--ui-control-font-size);
   font-family: var(--mono);
   max-width: none;
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
 }
 .dir-switcher > span {
@@ -429,7 +430,7 @@
      vertically on Windows (where native button + select default to
      different heights and made the topbar look ragged). */
   height: 22px;
-  padding: 0 8px;
+  padding: 0 5px;
   display: inline-flex;
   align-items: center;
   box-sizing: border-box;
@@ -439,6 +440,7 @@
   font-size: var(--ui-control-font-size);
   letter-spacing: 0.02em;
   text-transform: uppercase;
+  white-space: nowrap;
   flex: 0 0 auto;
 }
 .dir-btn:hover { color: var(--fg); border-color: var(--line-2); background: var(--hover-bg); }
@@ -549,12 +551,12 @@
   max-width: 76px;
 }
 .dir-select.policy {
-  min-width: 104px;
-  max-width: 122px;
+  min-width: 90px;
+  max-width: 110px;
 }
 .dir-select.exec {
-  min-width: 126px;
-  max-width: 146px;
+  min-width: 100px;
+  max-width: 120px;
 }
 .dir-select-wrap.run-policy {
   border-color: color-mix(in oklch, var(--accent) 38%, var(--line));
@@ -1227,6 +1229,20 @@
 .tool-card .md-tool-result {
   border: 0;
   border-radius: 3px;
+}
+
+/* Tool-call label bubble in orchestrator chat panel */
+.md-tool {
+  display: block;
+  padding: 4px 10px;
+  margin: 4px 0;
+  background: rgba(194, 120, 30, 0.10);
+  border-left: 2px solid var(--warn, #c87f1a);
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: var(--ui-code-font-size, 11px);
+  color: var(--warn, #c87f1a);
+  line-height: 1.5;
 }
 
 .md-preview {
