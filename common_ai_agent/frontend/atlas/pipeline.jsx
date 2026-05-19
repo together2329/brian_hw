@@ -2498,12 +2498,16 @@ function StageStatusRail({ activeIp, onSelectIp, state, simpleSummary, selectedS
 function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }) {
   const [messages, setMessages] = React.useState([]);
   const [since, setSince] = React.useState(0);
+  const [draft, setDraft] = React.useState('');
+  const [sending, setSending] = React.useState(false);
   const pollingRef = React.useRef(null);
+  const bodyRef = React.useRef(null);
 
   const isActive = !!(pipelineState && pipelineState.orchestrator && pipelineState.orchestrator.active);
+  const hasIp = !!(ip && ip !== 'default');
 
   React.useEffect(() => {
-    if (!ip || ip === 'default') {
+    if (!hasIp) {
       if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
       return;
     }
@@ -2531,6 +2535,30 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }) {
     return () => { dead = true; clearInterval(pollingRef.current); pollingRef.current = null; };
   }, [ip, isActive]);
 
+  React.useEffect(() => {
+    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+  }, [messages]);
+
+  const handleSend = async () => {
+    const text = draft.trim();
+    if (!text || !hasIp || sending) return;
+    setSending(true);
+    try {
+      await fetch('/api/pipeline/orchestrator/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, ip }),
+      });
+      setDraft('');
+    } catch (_) {} finally {
+      setSending(false);
+    }
+  };
+
+  const handleKeyDown = e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  };
+
   const roleClass = role => {
     if (role === 'assistant') return 'md-bubble md-agent';
     if (role === 'user') return 'md-bubble md-user md-agent';
@@ -2546,10 +2574,10 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }) {
           {isActive ? 'live' : 'idle'}
         </span>
       </div>
-      <div className="orch-chat-body">
+      <div className="orch-chat-body" ref={bodyRef}>
         {messages.length === 0 ? (
           <div className="orch-chat-empty mute">
-            {ip && ip !== 'default'
+            {hasIp
               ? `No orchestrator activity yet for ${ip}. Send a chat message or run a workflow to see logs here.`
               : 'Pick an IP to see orchestrator chat.'}
           </div>
@@ -2563,6 +2591,24 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }) {
             </span>
           </div>
         ))}
+      </div>
+      <div className="orch-chat-input-row">
+        <textarea
+          className="orch-chat-input"
+          placeholder={hasIp ? `Message orchestrator for ${ip}…` : 'Select an IP first'}
+          value={draft}
+          disabled={sending}
+          rows={2}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <button
+          className="orch-chat-send-btn"
+          disabled={!draft.trim() || !hasIp || sending}
+          onClick={handleSend}
+        >
+          {sending ? '…' : '▶'}
+        </button>
       </div>
     </div>
   );
