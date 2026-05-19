@@ -1684,15 +1684,18 @@ const App = () => {
                 }}>📦 .zip</button>
         <span style={{ width: 12 }} />
         <button className={`dir-btn ${screen === 'workspace' ? 'active' : ''}`}
+                data-nav="screen"
                 title="Live agent · chat · sidebar (sim/lint/scope)"
                 onClick={() => setScreen('workspace')}>⌂ Workspace</button>
         <button className={`dir-btn ${screen === 'pipeline' ? 'active' : ''}`}
+                data-nav="screen"
                 title="Live pipeline dispatcher · stage situation board"
                 onClick={() => setScreen('pipeline')}>◫ Pipeline</button>
         <button className={`dir-btn ${screen === 'architect' ? 'active' : ''}`}
+                data-nav="screen"
                 title="SoC structure · per-module status grid · block diagram (rich progress view)"
                 onClick={() => setScreen('architect')}>◇ Architect</button>
-        <label className="dir-select-wrap run-policy" title="Run Mode controls evidence strictness, not IP size">
+        <label className="dir-select-wrap run-policy" data-nav="screen" title="Run Mode controls evidence strictness, not IP size">
           <span>run</span>
           <select
             className="dir-select policy"
@@ -1703,7 +1706,7 @@ const App = () => {
             ))}
           </select>
         </label>
-        <label className="dir-select-wrap run-policy" title="Exec Mode chooses single-worker execution or orchestrator-managed workers">
+        <label className="dir-select-wrap run-policy" data-nav="screen" title="Exec Mode chooses single-worker execution or orchestrator-managed workers">
           <span>exec</span>
           <select
             className="dir-select exec"
@@ -1714,7 +1717,7 @@ const App = () => {
             ))}
           </select>
         </label>
-        <PipelineRunningChip onClick={() => setScreen('pipeline')} />
+        <span data-nav="screen" style={{ display: 'contents' }}><PipelineRunningChip onClick={() => setScreen('pipeline')} /></span>
         <span style={{ width: 12 }} />
         <label className="dir-select-wrap" title="Change UI font family">
           <span>font</span>

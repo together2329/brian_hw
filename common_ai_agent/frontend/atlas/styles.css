@@ -298,7 +298,7 @@ html[data-theme="light"] {
    Shared primitives
    ────────────────────────────────────────────── */
 .app {
-  --atlas-topbar-h: 56px; /* dir-switcher row (28px) + orch-status-strip row (28px) */
+  --atlas-topbar-h: 56px; /* dir-switcher row 1 (28px) + row 2 nav group (28px) */
   font-family: var(--mono);
   background: var(--bg);
   color: var(--fg);
@@ -422,11 +422,11 @@ html[data-theme="light"] {
   right: auto;
   z-index: 100;
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-start;
   gap: 3px;
-  height: var(--atlas-topbar-h);
+  min-height: var(--atlas-topbar-h);
   padding: 3px 4px;
   box-sizing: border-box;
   border-bottom: 1px solid var(--line);
@@ -434,13 +434,28 @@ html[data-theme="light"] {
   font-size: var(--ui-control-font-size);
   font-family: var(--mono);
   max-width: none;
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-y: hidden;
   white-space: nowrap;
 }
 .dir-switcher > span {
   width: 6px !important;
   flex: 0 0 6px;
+}
+/* Force the 1st spacer span (after .zip, before WORKSPACE) to be a full-width
+   line-break so session/ip/workflow/zip/FONT/SIZE/... stay on row 1 and the
+   WORKSPACE-EXEC nav group wraps to row 2. */
+.dir-switcher > span:nth-of-type(1) {
+  flex: 0 0 100% !important;
+  width: 100% !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+/* Push WORKSPACE/PIPELINE/ARCHITECT/RUN/EXEC visually after FONT group via flex order. */
+.dir-switcher [data-nav="screen"] {
+  order: 99;
 }
 
 /* ───────── orchestrator status strip ───────── */
