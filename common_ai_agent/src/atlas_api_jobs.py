@@ -3283,6 +3283,14 @@ def register_jobs_routes(
         model      = (body.get("model")  or "").strip()
         rtl_version_id = (body.get("rtl_version_id") or "").strip()
         user_prompt = (body.get("prompt") or "").strip()
+        # Direct-dispatch path (UI button, WS pipeline dispatch) was missing the
+        # seed propagation that the orchestrator-chat path got in f17e66c41. The
+        # caller may send the user's concrete requirement either as the
+        # dedicated ``user_seed`` field or — for legacy callers that only have
+        # ``prompt`` — as ``prompt``. Either way the worker must see it under
+        # ``[USER REQUIREMENT]`` so e.g. ssot-gen actually builds the FIFO the
+        # user asked for instead of a default CMUX.
+        user_seed_text = (body.get("user_seed") or user_prompt or "").strip()
         requested_schedule = (body.get("schedule") or "auto").strip().lower()
         run_mode = _normalize_run_mode(body.get("run_mode")) or _current_run_mode()
         exec_mode = _normalize_exec_mode(body.get("exec_mode")) or _current_exec_mode()
@@ -3352,8 +3360,13 @@ def register_jobs_routes(
                 f"- run_mode: {run_mode}\n"
                 f"- exec_mode: {exec_mode}\n"
             )
-            if user_prompt:
+            if user_prompt and user_prompt != user_seed_text:
                 stage_prompt += f"\n\n[User pipeline goal]\n{user_prompt}"
+            # Same propagation pattern as ``_dispatch_workflow_tool_bridge``:
+            # workers parse [USER REQUIREMENT] as the authoritative seed, so
+            # always emit this section when a seed is present.
+            if user_seed_text:
+                stage_prompt += f"\n\n[USER REQUIREMENT]\n{user_seed_text}"
             session = f"{_pipeline_session_prefix(request, ip, pipeline_id)}/{idx + 1:02d}-{workflow}"
             dep_stage_ids = _pipeline_stage_dependencies(
                 stage["id"], selected_stage_ids, schedule=schedule,
@@ -3749,6 +3762,7 @@ def register_jobs_routes(
                 run_mode=run_mode_resolved,
                 exec_mode=exec_mode_resolved,
                 user_id=owner_user_id,
+                db_user_id=owner_user_id,
                 trigger_source=trigger_source_resolved,
                 orchestrator_run_id=orchestrator_run_id_resolved,
             )
