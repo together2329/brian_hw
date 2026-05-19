@@ -134,12 +134,86 @@ task 2). `frontend/atlas/styles.css` for the matching CSS tokens.
   eliminate the risk regardless.
 - Native cmux baseline (1079×785, all four view×theme cells): **PASS**.
 
+## SSOT Design Preview pass (added post-font-bump 042ae7ac7)
+
+After font bump `042ae7ac7` ("style(ui): bump font sizes + weight for
+Windows readability") landed, an extra pass was run against the SSOT Design
+Preview pane (`SsotReviewPane` in `frontend/atlas/workspace.jsx:9583`,
+mounted when `mainTab='ssot'`). Surface was reloaded so the new
+`styles.css?v=atlas-20260519-windows-fonts` was picked up. IP=pl330,
+workflow=ssot-gen, file=`default/yaml/default.ssot.yaml`.
+
+### What was checked
+
+1. Pane renders content, not a blank / error state.
+2. Readability after font bump (`--ui-control-font-size: 12.5px`,
+   `--ui-text-weight: 500`).
+3. Dark and Light themes both OK.
+4. No content clipping at any viewport.
+
+### Cells
+
+| Viewport | Theme | Pane rendered | Error banner | Chat input visible | Screenshot |
+|---|---|---|---|---|---|
+| Native 1079×785 | Dark  | PASS | none | PASS | `/tmp/worker14_matrix/ssot_native_dark.png` |
+| Native 1079×785 | Light | PASS | none | PASS | `/tmp/worker14_matrix/ssot_native_light.png` |
+| 1280×720 sim    | Dark  | PASS | none | (sim FAIL — same root cause as base matrix; layout not reflowed) | `/tmp/worker14_matrix/ssot_1280x720_dark.png` |
+| 1280×720 sim    | Light | PASS | none | (sim FAIL — same root cause as base matrix) | `/tmp/worker14_matrix/ssot_1280x720_light.png` |
+| 1440×900 sim    | Dark  | PASS | none | PASS | `/tmp/worker14_matrix/ssot_1440x900_dark.png` |
+| 1440×900 sim    | Light | PASS | none | PASS | `/tmp/worker14_matrix/ssot_1440x900_light.png` |
+| 1920×1080 sim   | Dark  | PASS | none | PASS | `/tmp/worker14_matrix/ssot_1920x1080_dark.png` |
+| 1920×1080 sim   | Light | PASS | none | PASS | `/tmp/worker14_matrix/ssot_1920x1080_light.png` |
+
+Each cell rendered the SSOT pane with all expected blocks present:
+top header (`SSOT DESIGN PREVIEW`, file picker, tag count), left card list
+(`Brief`, `Architecture`, `Review Gaps`, `Raw YAML`), Top Module block,
+Review Coverage tag grid, plus the Architecture / Features / Interfaces /
+Registers · Dataflow sections.
+
+### Font bump (042ae7ac7) — what is and is not in effect
+
+CSS variables verified live via `getComputedStyle` on `<html>`:
+
+| Variable | Value at runtime |
+|---|---|
+| `--ui-control-font-size` | `12.5px` (post-bump default/large) |
+| `--ui-text-weight` | `500` (post-bump) |
+| `--ui-control-weight` | `600` |
+
+Body computed font-size = `16px` (browser default; pane text uses the
+explicit CSS variables, not body inheritance — confirmed by visual
+inspection of SSOT card text in the captured PNGs).
+
+**Caveat — separate from this matrix's PASS/FAIL but worth flagging:**
+the top-row `tab-chip` elements (`chat`/`ssot`/`Q&A`/`split view`/`full
+view`/`git`) are rendered with an **inline `style="font-size:11px"`**, not
+the `--ui-control-font-size` token. So the font bump did NOT reach the tab
+chips themselves; they remain at 11 px regardless of profile. If
+Windows-readability is the goal, the tab-chip inline `font-size` should be
+removed so it picks up `--ui-control-font-size` like other controls.
+Location: search `frontend/atlas/workspace.jsx` for `tab-chip` and replace
+hard-coded `fontSize: '11px'` with `var(--ui-control-font-size)` or omit it.
+
+### Verdict
+
+- 8 / 8 SSOT cells: **pane renders correctly, no error banner, no
+  content clipping, dark and light both OK**.
+- Chat-input visibility under SSOT view follows the same pattern as the
+  base 12-cell matrix: PASS at 1440×900 / 1920×1080 / native, simulated
+  FAIL at 1280×720 from the same layout-anchor root cause. Same single
+  shared fix proposed above applies.
+- Font bump 042ae7ac7 is **live for CSS-variable-driven controls** but
+  **silently bypassed** by hard-coded inline `font-size: 11px` on
+  `tab-chip`.
+
 ## Reproduction
 
 - Cookie file: `/tmp/atlas_cookies_v2.txt` (Netscape format, atlas_session
   cookie for `127.0.0.1`).
-- Driver: `/tmp/worker14_matrix/run.py` (CSS-scale simulated + native pass)
-- Per-cell probe + paths: `/tmp/worker14_matrix/results.json`
-- Screenshots: `/tmp/worker14_matrix/*.png` (16 PNGs).
+- Driver: `/tmp/worker14_matrix/run.py` (base matrix: CSS-scale simulated
+  + native pass) and `/tmp/worker14_matrix/run_ssot.py` (SSOT pane pass).
+- Per-cell probe + paths: `/tmp/worker14_matrix/results.json` (base),
+  `/tmp/worker14_matrix/results_ssot.json` (SSOT pane).
+- Screenshots: `/tmp/worker14_matrix/*.png` (16 base + 8 SSOT = 24 PNGs).
 - Backend: atlas_ui on `127.0.0.1:62196`, WS `127.0.0.1:8765`. Backend was
   NOT restarted by this verification (per handoff constraint).
