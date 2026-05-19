@@ -3378,7 +3378,7 @@ def register_jobs_routes(
         requested_schedule = (body.get("schedule") or "auto").strip().lower()
         run_mode = _normalize_run_mode(body.get("run_mode")) or _current_run_mode()
         exec_mode = _normalize_exec_mode(body.get("exec_mode")) or _current_exec_mode()
-        if ip and not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
+        if ip and (len(ip) > 64 or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip)):
             return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
         if requested_schedule not in {"auto", "dag", "serial"}:
             return JSONResponse({"error": "schedule must be 'auto', 'dag', or 'serial'"}, status_code=400)
@@ -3511,10 +3511,6 @@ def register_jobs_routes(
                 break
         if not candidate:
             candidate = str(fallback or "").strip()
-        if candidate:
-            candidate = re.sub(r"[^A-Za-z0-9_]", "_", candidate)
-            if candidate and candidate[0].isdigit():
-                candidate = f"ip_{candidate}"
         return candidate
 
     def _record_orchestrator_chat(
@@ -3576,7 +3572,7 @@ def register_jobs_routes(
         if not message:
             return JSONResponse({"error": "message required"}, status_code=400)
         ip = _extract_ip_from_orchestrator_message(message, str(body.get("ip") or ""))
-        if not ip or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
+        if not ip or len(ip) > 64 or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
             return JSONResponse({"error": "valid ip required"}, status_code=400)
 
         # Persist user chat first so the trace ledger has the message regardless
