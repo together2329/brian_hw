@@ -551,7 +551,7 @@ def _format_answer(ans: dict[str, Any], options: list[dict[str, Any]]) -> str:
 def create_app():
     try:
         from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
-        from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+        from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
         from fastapi.staticfiles import StaticFiles
         from starlette.routing import WebSocketRoute
     except ImportError:
@@ -849,6 +849,45 @@ def create_app():
         )
         return html.replace("</head>", script + "\n</head>", 1)
 
+    _asset_cache: dict[str, dict[str, Any]] = {}
+
+    def _cached_frontend_asset_response(rel_path: str) -> Response:
+        """Serve critical frontend assets from memory.
+
+        Starlette StaticFiles streams large files in chunks.  On the shared
+        ATLAS backend process that can make first paint hang on vendor Babel
+        long enough that the browser stays blank and the chat textarea never
+        mounts.  These vendor files are small enough to cache as bytes and
+        return in one response.
+        """
+        clean = rel_path.replace("\\", "/").lstrip("/")
+        if ".." in clean.split("/"):
+            return JSONResponse({"ok": False, "error": "invalid asset path"}, status_code=404)
+        path = (FRONTEND / clean).resolve()
+        try:
+            path.relative_to(FRONTEND.resolve())
+        except Exception:
+            return JSONResponse({"ok": False, "error": "invalid asset path"}, status_code=404)
+        if not path.is_file():
+            return JSONResponse({"ok": False, "error": "asset not found"}, status_code=404)
+
+        stat = path.stat()
+        stamp = (stat.st_mtime_ns, stat.st_size)
+        cached = _asset_cache.get(clean)
+        if not cached or cached.get("stamp") != stamp:
+            cached = {"stamp": stamp, "body": path.read_bytes()}
+            _asset_cache[clean] = cached
+
+        ext = path.suffix.lower()
+        media_type = _MIME_OVERRIDES.get(ext)
+        if not media_type:
+            media_type = _mimetypes.guess_type(str(path))[0] or "application/octet-stream"
+        return Response(
+            content=cached["body"],
+            media_type=media_type,
+            headers={"Cache-Control": "no-store, max-age=0"},
+        )
+
     @app.get("/")
     async def index():
         """Serve index.html with local JSX inlined.
@@ -860,6 +899,10 @@ def create_app():
         Cached by frontend mtime — see _inline_html_cached().
         """
         return HTMLResponse(_html_with_atlas_boot_config("index.html"))
+
+    @app.get("/vendor/{asset_path:path}")
+    async def vendor_asset(asset_path: str):
+        return _cached_frontend_asset_response(f"vendor/{asset_path}")
 
     @app.get("/lobby")
     async def lobby():
@@ -13468,6 +13511,59 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                          daemon=True).start()
     except Exception:
         pass
+
+    # ── Single-worker mode: spawn one main-loop worker on port 5601 ──────
+    _single_worker_proc: "subprocess.Popen[bytes] | None" = None
+    _single_worker_mode = (
+        os.environ.get("ATLAS_SINGLE_MAIN_LOOP", "").strip().lower() not in ("", "0", "false", "no", "off")
+        or os.environ.get("ATLAS_EXEC_MODE", "").strip().lower() == "single-worker"
+    )
+    if _single_worker_mode:
+        import urllib.request as _urllib_req
+        _sw_port = 5601
+        _sw_env = {**os.environ}
+        _sw_db = os.environ.get("ATLAS_DB_PATH", "")
+        if _sw_db:
+            _sw_env["ATLAS_DB_PATH"] = _sw_db
+        _main_py = str(SOURCE_ROOT / "main.py")
+        _single_worker_proc = subprocess.Popen(
+            [sys.executable, _main_py, "--serve", "--host", "127.0.0.1",
+             "--port", str(_sw_port), "--all-workflows"],
+            env=_sw_env,
+        )
+        print(f"[single-worker] spawned main-loop worker on port {_sw_port} (pid={_single_worker_proc.pid})")
+        # Health probe: wait up to 10 s for the worker to become ready.
+        _sw_ready = False
+        _sw_deadline = 10.0
+        _sw_start = __import__("time").monotonic()
+        while __import__("time").monotonic() - _sw_start < _sw_deadline:
+            try:
+                with _urllib_req.urlopen(f"http://127.0.0.1:{_sw_port}/health", timeout=1) as _r:
+                    if _r.status == 200:
+                        _sw_ready = True
+                        break
+            except Exception:
+                pass
+            __import__("time").sleep(0.5)
+        if _sw_ready:
+            print(f"[single-worker] worker on port {_sw_port} is healthy")
+        else:
+            print(f"[single-worker] WARNING: worker on port {_sw_port} did not respond within {_sw_deadline}s")
+
+        import atexit as _atexit
+
+        def _terminate_single_worker(_proc=_single_worker_proc) -> None:
+            if _proc and _proc.poll() is None:
+                print(f"[single-worker] sending SIGTERM to pid={_proc.pid}")
+                import signal as _signal
+                try:
+                    _proc.send_signal(_signal.SIGTERM)
+                except Exception:
+                    pass
+
+        _atexit.register(_terminate_single_worker)
+    else:
+        print("[orchestrator-mode] expecting external 12-worker fleet on 5621-5632")
 
     uvicorn.run(app, host=host, port=port, log_level="warning", loop="asyncio", http="h11")
 
