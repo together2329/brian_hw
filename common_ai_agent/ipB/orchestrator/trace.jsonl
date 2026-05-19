@@ -1,0 +1,3 @@
+{"ts": "2026-05-19T05:57:25.530Z", "step": 1, "lens": "interaction", "actor": "rtl-gen-worker", "kind": "http_recv", "corr": "corr_6c8514a9", "peer": "orchestrator", "requested_workflow": "rtl-gen", "task_preview": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: ipB\n- workflow: rtl-gen\n- stage_id: rtl", "sync": false, "has_todos": false}
+{"ts": "2026-05-19T05:57:25.538Z", "step": 2, "lens": "interaction", "actor": "rtl-gen-worker", "kind": "http_accepted", "corr": "corr_6c8514a9", "peer": "orchestrator", "status": 200, "run_id": "run_e5b6f56e"}
+{"ts": "2026-05-19T05:57:25.621Z", "step": 3, "lens": "result", "actor": "rtl-gen-worker", "kind": "run_completed", "corr": "corr_6c8514a9", "run_id": "run_e5b6f56e", "status": "error"}

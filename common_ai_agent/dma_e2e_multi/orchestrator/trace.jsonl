@@ -6,3 +6,4 @@
 {"ts": "2026-05-19T05:41:16.365Z", "step": 3, "lens": "result", "actor": "lint-worker", "kind": "run_completed", "corr": "corr_f5c7146a", "run_id": "run_6dc93250", "status": "error"}
 {"ts": "2026-05-19T05:41:16.371Z", "step": 2, "lens": "interaction", "actor": "tb-gen-worker", "kind": "http_accepted", "corr": "corr_6268d7e2", "peer": "orchestrator", "status": 200, "run_id": "run_4ec485cf"}
 {"ts": "2026-05-19T05:41:16.428Z", "step": 3, "lens": "result", "actor": "tb-gen-worker", "kind": "run_completed", "corr": "corr_6268d7e2", "run_id": "run_4ec485cf", "status": "error"}
+{"ts": "2026-05-19T05:44:10.548Z", "step": 3, "lens": "result", "actor": "ssot-gen-worker", "kind": "run_completed", "corr": "corr_3c41e6e1", "run_id": "run_c765d23f", "status": "completed"}

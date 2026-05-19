@@ -1,0 +1,3 @@
+{"ts": "2026-05-19T05:58:00.358Z", "step": 1, "lens": "interaction", "actor": "ssot-gen-worker", "kind": "http_recv", "corr": "corr_7bcf3318", "peer": "orchestrator", "requested_workflow": "ssot-gen", "task_preview": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: hardcore_smoke_20260519\n- workflow: sso", "sync": false, "has_todos": false, "template": "atlas-pipeline-ssot"}
+{"ts": "2026-05-19T05:58:00.365Z", "step": 2, "lens": "interaction", "actor": "ssot-gen-worker", "kind": "http_accepted", "corr": "corr_7bcf3318", "peer": "orchestrator", "status": 200, "run_id": "run_f946d6db"}
+{"ts": "2026-05-19T06:00:34.523Z", "step": 3, "lens": "result", "actor": "ssot-gen-worker", "kind": "run_completed", "corr": "corr_7bcf3318", "run_id": "run_f946d6db", "status": "completed"}

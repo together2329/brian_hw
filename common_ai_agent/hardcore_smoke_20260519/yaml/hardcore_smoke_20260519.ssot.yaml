@@ -1,0 +1,378 @@
+# =============================================================================
+# SSOT YAML — hardcore_smoke_20260519
+# Engineering draft bootstrapped from orchestrator goal.
+# =============================================================================
+
+ssot:
+  version: "1.0.0"
+  ip_name: hardcore_smoke_20260519
+  description: >
+    ATLAS pipeline smoke-test IP. A parameterizable pipeline register stage
+    with valid/ready handshake, parity checker, and config register.
+    Exercises full RTL → TB → sim → synth flow.
+  status: draft
+  created: "2025-05-19"
+  owner: ssot-gen
+
+# ---------------------------------------------------------------------------
+# Top module
+# ---------------------------------------------------------------------------
+top_module:
+  name: hardcore_smoke_20260519
+  file: rtl/hardcore_smoke_20260519.sv
+  version: "1.0.0"
+  type: synthesizable
+  description: >
+    Pipeline register stage with handshake, parity detect, and optional bypass.
+  target:
+    library: work
+    clock_domain: clk
+    reset: rst_n
+
+# ---------------------------------------------------------------------------
+# Parameters
+# ---------------------------------------------------------------------------
+parameters:
+  - name: DATA_WIDTH
+    type: integer
+    default: 8
+    min: 1
+    max: 512
+    description: Bit width of the data path
+  - name: PIPE_DEPTH
+    type: integer
+    default: 2
+    min: 1
+    max: 16
+    description: Number of internal pipeline stages
+  - name: PARITY_ENABLE
+    type: integer
+    default: 1
+    description: "1 = enable parity checker, 0 = disabled"
+
+# ---------------------------------------------------------------------------
+# IO list
+# ---------------------------------------------------------------------------
+io_list:
+  - name: clk
+    direction: input
+    width: 1
+    type: clock
+    description: System clock
+  - name: rst_n
+    direction: input
+    width: 1
+    type: reset_async_low
+    description: Active-low async reset
+  # -- sink side
+  - name: s_valid
+    direction: input
+    width: 1
+    protocol: valid-ready
+    role: sink
+    handshake: s_ready
+    description: Sink valid
+  - name: s_data
+    direction: input
+    width: "[DATA_WIDTH-1:0]"
+    description: Sink data
+  - name: s_ready
+    direction: output
+    width: 1
+    protocol: valid-ready
+    role: sink
+    handshake: s_valid
+    description: Sink ready (backpressure)
+  # -- source side
+  - name: m_valid
+    direction: output
+    width: 1
+    protocol: valid-ready
+    role: source
+    handshake: m_ready
+    description: Source valid
+  - name: m_data
+    direction: output
+    width: "[DATA_WIDTH-1:0]"
+    description: Source data (pipelined)
+  - name: m_ready
+    direction: input
+    width: 1
+    protocol: valid-ready
+    role: source
+    handshake: m_valid
+    description: Source ready (backpressure)
+  # -- status / control
+  - name: parity_err
+    direction: output
+    width: 1
+    description: Sticky parity error flag
+  - name: cfg_bypass
+    direction: input
+    width: 1
+    description: "1 = bypass pipeline (combinational pass-through)"
+  - name: pipe_fill
+    direction: output
+    width: "[PIPE_DEPTH-1:0]"
+    description: Per-stage occupancy flags
+
+# ---------------------------------------------------------------------------
+# Features
+# ---------------------------------------------------------------------------
+features:
+  - id: F001
+    name: valid_ready_handshake
+    description: Full valid/ready handshake on sink and source interfaces
+  - id: F002
+    name: param_pipe_depth
+    description: Configurable pipeline depth (1–16 stages)
+  - id: F003
+    name: parity_check
+    description: Even-parity checker on every transferred beat; sticky error flag
+  - id: F004
+    name: bypass_mode
+    description: Config register to bypass pipeline for latency-sensitive paths
+  - id: F005
+    name: occupancy_status
+    description: Per-stage fill flags for debug / monitor
+
+# ---------------------------------------------------------------------------
+# Sub-modules
+# ---------------------------------------------------------------------------
+sub_modules:
+  - name: pipe_stage
+    implements: F001
+    file: rtl/hardcore_smoke_20260519.sv
+    description: >
+      Single pipeline register with valid/ready handshake.
+      Instantiated PIPE_DEPTH times inside generate block.
+    function_model_refs: [T001]
+    cycle_model_refs: [C001]
+    dataflow_refs: [D001]
+  - name: parity_det
+    implements: F003
+    file: rtl/hardcore_smoke_20260519.sv
+    description: Even-parity detector; asserts parity_err on mismatch.
+    function_model_refs: [T002]
+  - name: bypass_mux
+    implements: F004
+    file: rtl/hardcore_smoke_20260519.sv
+    description: 2:1 mux selecting pipelined or bypass path.
+    function_model_refs: [T003]
+
+# ---------------------------------------------------------------------------
+# Dataflow
+# ---------------------------------------------------------------------------
+dataflow:
+  - id: D001
+    name: sink_to_source
+    description: Data flows from s_data through PIPE_DEPTH stages to m_data
+    source_port: s_data
+    sink_port: m_data
+    latency: PIPE_DEPTH
+    throughput: 1 beat/cycle when backpressure absent
+
+# ---------------------------------------------------------------------------
+# Function model  (machine-readable transactions)
+# ---------------------------------------------------------------------------
+function_model:
+  reset:
+    description: "Assert rst_n low → all pipe registers zero, parity_err=0, m_valid=0, s_ready=1"
+  transactions:
+    - id: T001
+      name: pipe_transfer
+      description: Normal pipeline transfer on rising clk
+      condition: "s_valid && s_ready"
+      output_rules:
+        - expr: "pipe_reg[0] <= s_data"
+          port: pipe_reg
+          width: DATA_WIDTH
+        - expr: "pipe_valid[0] <= 1'b1"
+          port: pipe_valid
+          width: 1
+        - expr: "pipe_reg[i] <= pipe_reg[i-1]"
+          port: pipe_reg
+          width: DATA_WIDTH
+          for: "i in 1..PIPE_DEPTH-1 when pipe_valid[i-1]"
+        - expr: "m_data <= pipe_reg[PIPE_DEPTH-1]"
+          port: m_data
+          width: DATA_WIDTH
+        - expr: "m_valid <= pipe_valid[PIPE_DEPTH-1] && !bypass"
+          port: m_valid
+          width: 1
+        - expr: "s_ready <= !pipe_valid[0] || (pipe_valid[0] && m_ready)"
+          port: s_ready
+          width: 1
+    - id: T002
+      name: parity_check
+      description: Detect odd number of 1s in transferred beat
+      condition: "PARITY_ENABLE && s_valid && s_ready"
+      state_updates:
+        - expr: "parity_err <= parity_err | (^s_data)"
+          state: parity_err
+          width: 1
+    - id: T003
+      name: bypass_transfer
+      description: When cfg_bypass=1, data passes combinationally
+      condition: "cfg_bypass"
+      output_rules:
+        - expr: "m_data <= s_data"
+          port: m_data
+          width: DATA_WIDTH
+        - expr: "m_valid <= s_valid"
+          port: m_valid
+          width: 1
+        - expr: "s_ready <= m_ready"
+          port: s_ready
+          width: 1
+
+# ---------------------------------------------------------------------------
+# Cycle model
+# ---------------------------------------------------------------------------
+cycle_model:
+  - id: C001
+    name: pipe_latency
+    description: "Latency = PIPE_DEPTH cycles in normal mode, 0 in bypass"
+    best_case_cycles: 0
+    worst_case_cycles: 16
+    formula: "cfg_bypass ? 0 : PIPE_DEPTH"
+
+# ---------------------------------------------------------------------------
+# Registers
+# ---------------------------------------------------------------------------
+registers:
+  - name: cfg_bypass
+    address: "0x0"
+    width: 1
+    access: rw
+    reset: 0
+    description: Bypass control
+    hw_read: true
+    hw_write: false
+  - name: parity_err
+    address: "0x4"
+    width: 1
+    access: ro
+    reset: 0
+    description: Sticky parity error (write-1-clear not modeled here)
+    hw_read: true
+    hw_write: true
+
+# ---------------------------------------------------------------------------
+# Interrupts
+# ---------------------------------------------------------------------------
+interrupts:
+  - name: irq_parity_err
+    source: parity_err
+    trigger: level
+    description: Asserted while parity_err is set
+
+# ---------------------------------------------------------------------------
+# FSM
+# ---------------------------------------------------------------------------
+fsm:
+  - name: pipe_fsm
+    file: rtl/hardcore_smoke_20260519.sv
+    description: >
+      Implicit FSM: each pipe stage is either EMPTY or VALID.
+      No explicit state enum required — occupancy encoded in pipe_valid[].
+    states:
+      - name: EMPTY
+        description: Pipe stage register holds don't-care, valid=0
+      - name: VALID
+        description: Pipe stage holds valid data awaiting downstream accept
+
+# ---------------------------------------------------------------------------
+# Custom / assumptions
+# ---------------------------------------------------------------------------
+custom:
+  assumptions:
+    - A001: "Clock and reset are provided externally; no PLL or reset controller inside IP."
+    - A002: "Even parity convention: (^data) == 0 means no error."
+    - A003: "cfg_bypass is treated as a synchronous config register; glitches during operation may cause data corruption."
+    - A004: "No clock-domain crossing inside IP; single clk domain assumed."
+    - A005: "This IP is a pipeline smoke test and does not model a real protocol endpoint."
+  tbd:
+    - "Exact timing constraints (max freq) deferred to synthesis stage."
+    - "AXI-Lite register access wrapper not in scope for smoke test."
+
+# ---------------------------------------------------------------------------
+# Test requirements
+# ---------------------------------------------------------------------------
+test_requirements:
+  - id: TR001
+    name: basic_pass_through
+    description: Single beat traverses full pipeline with default params
+    stimulus: "Drive s_valid=1, s_data=0xA5, wait PIPE_DEPTH cycles, assert m_valid=1 && m_data=0xA5"
+    expected:
+      - "m_data == 0xA5"
+      - "m_valid == 1"
+      - "parity_err == 0"
+    coverage:
+      - "pipe_fill toggles from all-zero to all-one during fill"
+  - id: TR002
+    name: backpressure
+    description: m_ready deasserted mid-transfer stalls pipeline
+    stimulus: "Drive s_valid with 4 beats; deassert m_ready after beat 2 for 3 cycles"
+    expected:
+      - "s_ready deasserts once pipeline is full"
+      - "No data loss"
+    coverage:
+      - "s_ready transitions 0→1 and 1→0"
+  - id: TR003
+    name: parity_error
+    description: Odd-parity word sets sticky error flag
+    stimulus: "PARITY_ENABLE=1, drive s_data=0x01 (odd ones)"
+    expected:
+      - "parity_err == 1"
+      - "irq_parity_err asserted"
+    coverage:
+      - "parity_err toggle coverage"
+  - id: TR004
+    name: bypass_mode
+    description: cfg_bypass=1 gives zero-latency combinational path
+    stimulus: "Set cfg_bypass=1, drive s_data=0xCC, s_valid=1, m_ready=1"
+    expected:
+      - "m_data == 0xCC on same cycle"
+      - "m_valid == 1 on same cycle"
+    coverage:
+      - "bypass mux select coverage"
+  - id: TR005
+    name: reset_clear
+    description: Asserting rst_n clears all state
+    stimulus: "Fill pipeline, assert rst_n low for 2 cycles, release"
+    expected:
+      - "m_valid == 0"
+      - "parity_err == 0"
+      - "pipe_fill == 0"
+
+# ---------------------------------------------------------------------------
+# Quality gates
+# ---------------------------------------------------------------------------
+quality_gates:
+  - gate: lint_clean
+    tool: spyglass
+    severity: error
+    description: Zero lint errors
+  - gate: sim_pass
+    tool: vcs
+    description: All TR001–TR005 pass in RTL simulation
+  - gate: coverage_90
+    description: "Line + toggle + FSM coverage >= 90%"
+  - gate: synth_no_errors
+    tool: dc
+    description: Synthesis completes without errors for default params
+
+# ---------------------------------------------------------------------------
+# Workflow todos (downstream)
+# ---------------------------------------------------------------------------
+workflow_todos:
+  - stage: rtl-gen
+    action: Implement hardcore_smoke_20260519.sv from this SSOT
+    status: pending
+  - stage: tb-gen
+    action: Generate UVM testbench covering TR001–TR005
+    status: pending
+  - stage: sim
+    action: Run regression for all test requirements
+    status: pending

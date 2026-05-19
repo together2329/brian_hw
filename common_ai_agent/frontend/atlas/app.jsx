@@ -253,13 +253,18 @@ const App = () => {
     }
   })());
 
-  const initialSplit = splitSessionNamespace(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
+  const initialStoredNamespace = (() => {
+    try { return normalizeSession(localStorage.getItem('atlasActiveSession') || ''); }
+    catch (_) { return ''; }
+  })();
+  const initialBootstrapNamespace = normalizeSession(initialUrlNamespaceRef.current || '')
+    || normalizeSession(window.ACTIVE_SESSION || initialStoredNamespace || '');
+  const initialSplit = splitSessionNamespace(initialBootstrapNamespace);
   const [activeSessionId, setActiveSessionId] = React.useState(
     normalizeSession(window.ATLAS_USER_SESSION_ID || initialSplit.sessionId) || 'default'
   );
   const [activeNamespace, setActiveNamespace] = React.useState(
-    normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession'))
-      || `${activeSessionId}/default/default`
+    initialBootstrapNamespace || `${activeSessionId}/default/default`
   );
   const [activeIp, setActiveIp] = React.useState(initialSplit.ipId || WORKFLOW_DEFAULT);
   const [sessionIdOptions, setSessionIdOptions] = React.useState([]);
@@ -273,6 +278,29 @@ const App = () => {
   const showNotice = React.useCallback((msg) => {
     setTopNotice(String(msg || ''));
     setTimeout(() => setTopNotice(''), 5000);
+  }, []);
+  React.useEffect(() => {
+    const urlNamespace = normalizeSession(initialUrlNamespaceRef.current || '');
+    if (!urlNamespace) return;
+    window.ACTIVE_SESSION = urlNamespace;
+    try { localStorage.setItem('atlasActiveSession', urlNamespace); } catch (_) {}
+  }, [normalizeSession]);
+  const makePromptMsgId = React.useCallback(() => {
+    try {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+      }
+    } catch (_) {}
+    try {
+      const b = new Uint8Array(16);
+      window.crypto.getRandomValues(b);
+      b[6] = (b[6] & 0x0f) | 0x40;
+      b[8] = (b[8] & 0x3f) | 0x80;
+      const h = Array.from(b, x => x.toString(16).padStart(2, '0'));
+      return `${h.slice(0, 4).join('')}-${h.slice(4, 6).join('')}-${h.slice(6, 8).join('')}-${h.slice(8, 10).join('')}-${h.slice(10, 16).join('')}`;
+    } catch (_) {
+      return `atlas-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
   }, []);
   React.useEffect(() => {
     if (!nameEntry) return undefined;
@@ -1082,14 +1110,24 @@ const App = () => {
         body: JSON.stringify({ session_id: me, ip, workflow: 'ssot-gen' }),
       });
     } catch (_) {}
+    if (window.backend && typeof window.backend.connect === 'function') {
+      try { window.backend.connect(namespace); } catch (_) {}
+    }
     if (window.backend && typeof window.backend.send === 'function') {
       try {
         window.backend.send({
-          type: 'prompt', text: `/new-ip ${ip}`, session: namespace,
+          type: 'prompt',
+          msg_id: makePromptMsgId(),
+          text: `/new-ip ${ip}`,
+          session: namespace,
           ui_lang: window.ATLAS_UI_LANG || uiLang,
         });
       } catch (_) {}
     }
+    setTimeout(() => {
+      try { window.atlasData && window.atlasData.refreshFileTree && window.atlasData.refreshFileTree(ip, { recursive: true }); } catch (_) {}
+      try { refreshTopTargets(); } catch (_) {}
+    }, 1500);
     return true;
   };
 
@@ -1700,7 +1738,7 @@ const App = () => {
             ? <ErrorBoundary label="Pipeline"><window.AtlasPipeline /></ErrorBoundary>
             : screen === 'architect' && window.SocArchitect
               ? <ErrorBoundary label="Architect"><window.SocArchitect /></ErrorBoundary>
-              : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} /></ErrorBoundary>}
+              : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} activeNamespace={activeNamespace} /></ErrorBoundary>}
         </div>
         {/* App-level StatusBar removed — model / tokens / iter / rate /
             SAFE chips were duplicated by the right-side AgentStatusPanel,

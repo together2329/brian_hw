@@ -1,0 +1,3 @@
+{"ts": "2026-05-19T05:58:03.086Z", "step": 1, "lens": "interaction", "actor": "lint-worker", "kind": "http_recv", "corr": "corr_2d692423", "peer": "orchestrator", "requested_workflow": "lint", "task_preview": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: hc_par_c\n- workflow: lint\n- stage_id: l", "sync": false, "has_todos": false, "template": "lint-fix"}
+{"ts": "2026-05-19T05:58:03.092Z", "step": 2, "lens": "interaction", "actor": "lint-worker", "kind": "http_accepted", "corr": "corr_2d692423", "peer": "orchestrator", "status": 200, "run_id": "run_4c6c4beb"}
+{"ts": "2026-05-19T05:58:03.128Z", "step": 3, "lens": "result", "actor": "lint-worker", "kind": "run_completed", "corr": "corr_2d692423", "run_id": "run_4c6c4beb", "status": "error"}

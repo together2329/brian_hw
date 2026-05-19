@@ -1120,7 +1120,7 @@ const SessionSwitcher = ({ currentSession, streaming, onSwitch }) => {
   );
 };
 
-const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
+const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
   // Two-axis mode model:
   //   intent: 'normal' | 'plan'   (top-level — shift+tab to swap)
   //   workflow: null | 'ssot' | 'rtl_gen' | 'lint' | 'tb_gen'
@@ -1180,7 +1180,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const [feed, setFeed] = React.useState(NORMAL_FEED);
   const [activeSession, setActiveSession] = React.useState(() => {
     try {
-      const sid = normalizeUiSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession')) || 'default';
+      const sid = normalizeUiSession(activeNamespace || window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession')) || 'default';
       window.ACTIVE_SESSION = sid;
       try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
       return sid;
@@ -1192,6 +1192,20 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
   const activeSessionRef = React.useRef(activeSession);
   const hydratedConversationSessionRef = React.useRef(activeSession);
   React.useEffect(() => { activeSessionRef.current = activeSession; }, [activeSession]);
+  React.useEffect(() => {
+    const sid = normalizeUiSession(activeNamespace || '');
+    if (!sid || sid === activeSessionRef.current) return;
+    window.ACTIVE_SESSION = sid;
+    activeSessionRef.current = sid;
+    setActiveSession(sid);
+    try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+    if (window.backend && typeof window.backend.connect === 'function') {
+      try { window.backend.connect(sid); } catch (_) {}
+    }
+    if (window.atlasData && window.atlasData.refreshSessionState) {
+      window.atlasData.refreshSessionState(sid, false);
+    }
+  }, [activeNamespace]);
 
   const refreshFeed = (newIntent /*, newWorkflow */) => {
     // Do not reset the conversation on mode/workflow switches. The
@@ -1219,6 +1233,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
     if (window.backend) {
       const session = resolveSession(
         sessionOverride,
+        activeNamespace,
         window.ACTIVE_SESSION,
         activeSessionRef.current,
         activeSession,
@@ -1245,7 +1260,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
         ui_lang: window.ATLAS_UI_LANG || uiLang,
       });
     }
-  }, [activeSession, resolveSession, uiLang]);
+  }, [activeNamespace, activeSession, resolveSession, uiLang]);
 
   const switchToDefaultSession = React.useCallback(() => {
     const sid = (window.atlasData && window.atlasData.sessionFor)

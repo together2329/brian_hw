@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "blocker": "ipB/yaml/ipB.ssot.yaml",
+  "created_at": "2026-05-19T05:57:25Z",
+  "headline": "[ssot-rtl] blocked: SSOT not found",
+  "ip": "ipB",
+  "message": "[ssot-rtl] blocked: SSOT not found at ipB/yaml/ipB.ssot.yaml\nRun /new-ip ipB, approve ipB, and /to-ssot ipB first.",
+  "metadata": {},
+  "returncode": 2,
+  "runs": [],
+  "stage": "ssot-rtl",
+  "status": "blocked",
+  "workflow": "rtl-gen"
+}
