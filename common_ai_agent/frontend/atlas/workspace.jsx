@@ -771,6 +771,31 @@ const normalizeUiSession = (session) => {
   catch (_) { return ''; }
 };
 
+// URL `?ip=` wins over localStorage on the READ direction so deep links
+// like /?ip=cmux_url_test pick up the requested IP even when a previous
+// session left `validator/default/default` in localStorage.
+function resolveActiveSession() {
+  try {
+    const url = new URLSearchParams(window.location.search);
+    const urlIp = String(url.get('ip') || url.get('ip_id') || '').trim();
+    const urlWf = String(url.get('workflow') || url.get('wf') || '').trim() || 'orchestrator';
+    const username = (window.ATLAS_USER && window.ATLAS_USER.username)
+      || window.ATLAS_USER_SESSION_ID
+      || 'validator';
+    if (urlIp && urlIp !== 'default') {
+      return normalizeUiSession(`${username}/${urlIp}/${urlWf}`) || `${username}/${urlIp}/${urlWf}`;
+    }
+    try {
+      const stored = localStorage.getItem('atlasActiveSession') || '';
+      if (stored) return normalizeUiSession(stored) || stored;
+    } catch (_) {}
+    return normalizeUiSession(`${username}/default/${urlWf}`) || `${username}/default/${urlWf}`;
+  } catch (_) {
+    return 'default';
+  }
+}
+try { window.atlasResolveActiveSession = resolveActiveSession; } catch (_) {}
+
 const ssotIpFromSession = (session) => {
   const parts = normalizeUiSession(session).split('/').filter(Boolean);
   const idx = parts.lastIndexOf('ssot-gen');
@@ -1180,7 +1205,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
   const [feed, setFeed] = React.useState(NORMAL_FEED);
   const [activeSession, setActiveSession] = React.useState(() => {
     try {
-      const sid = normalizeUiSession(activeNamespace || window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession')) || 'default';
+      // resolveActiveSession() prefers URL `?ip=` over the
+      // localStorage `atlasActiveSession` snapshot — without that
+      // precedence, a deep link like /?ip=cmux_url_test silently
+      // resolves to the previous session's IP because localStorage
+      // beat the URL.
+      const sid = normalizeUiSession(activeNamespace || window.ACTIVE_SESSION || resolveActiveSession()) || 'default';
       window.ACTIVE_SESSION = sid;
       try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
       return sid;
