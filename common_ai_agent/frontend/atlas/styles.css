@@ -298,7 +298,7 @@ html[data-theme="light"] {
    Shared primitives
    ────────────────────────────────────────────── */
 .app {
-  --atlas-topbar-h: 56px; /* dir-switcher row 1 (28px) + row 2 nav group (28px) */
+  --atlas-topbar-h: 50px; /* dir-switcher row 1 (25px) + row 2 nav group (25px) */
   font-family: var(--mono);
   background: var(--bg);
   color: var(--fg);
@@ -427,7 +427,7 @@ html[data-theme="light"] {
   justify-content: flex-start;
   gap: 3px;
   min-height: var(--atlas-topbar-h);
-  padding: 3px 4px;
+  padding: 2px 4px;
   box-sizing: border-box;
   border-bottom: 1px solid var(--line);
   background: var(--panel);
@@ -451,35 +451,28 @@ html[data-theme="light"] {
   border: 0 !important;
 }
 
-/* ───────── orchestrator status strip ───────── */
-.orch-status-strip {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 12px;
-  height: 28px;
-  box-sizing: border-box;
+/* ───────── orchestrator inline status (row 2, after EXEC) ───────── */
+.orch-inline {
   font: 11px/1.3 var(--mono);
-  background: var(--bg-2, var(--panel));
-  border-bottom: 1px solid var(--line);
-  overflow: hidden;
+  color: var(--fg-mute);
+  padding: 0 8px;
   white-space: nowrap;
-  flex-shrink: 0;
+  align-self: center;
 }
-.orch-status-strip .osk {
+.orch-inline .osk {
   color: var(--fg-dim);
 }
-.orch-status-strip .osv {
+.orch-inline .osv {
   color: var(--fg);
   font-weight: 500;
 }
-.orch-status-strip .osv.on {
+.orch-inline .osv.on {
   color: var(--green, #22c55e);
 }
-.orch-status-strip .osv.off {
+.orch-inline .osv.off {
   color: var(--fg-dim);
 }
-.orch-status-strip .os-sep {
+.orch-inline .os-sep {
   color: var(--line);
   user-select: none;
 }

@@ -115,7 +115,7 @@ const PipelineRunningChip = ({ onClick }) => {
   );
 };
 
-const OrchestratorStatusStrip = ({ activeIp }) => {
+const OrchInlineStatus = ({ activeIp }) => {
   const [status, setStatus] = React.useState(null);
 
   React.useEffect(() => {
@@ -151,23 +151,20 @@ const OrchestratorStatusStrip = ({ activeIp }) => {
     ? (status.lastEvent.kind || status.lastEvent.type || '') : '';
 
   return (
-    <div className="orch-status-strip">
-      <span className="osk">orch</span>
+    <span className="orch-inline">
+      <span className="osk">orch:</span>
       <span className={`osv ${isOrch ? 'on' : 'off'}`}>{isOrch ? 'on' : 'off'}</span>
-      <span className="os-sep">│</span>
-      <span className="osk">ip</span>
-      <span className="osv">{activeIp || '—'}</span>
-      <span className="os-sep">│</span>
-      <span className="osk">workers</span>
+      <span className="os-sep"> │ </span>
+      <span className="osk">workers:</span>
       <span className="osv">{workerCount}</span>
       {lastKind ? (
         <>
-          <span className="os-sep">│</span>
-          <span className="osk">last</span>
+          <span className="os-sep"> │ </span>
+          <span className="osk">last:</span>
           <span className="osv">{lastKind}</span>
         </>
       ) : null}
-    </div>
+    </span>
   );
 };
 
@@ -1786,8 +1783,8 @@ const App = () => {
           </select>
         </label>
         <span style={{ display: 'contents' }}><PipelineRunningChip onClick={() => setScreen('pipeline')} /></span>
+        <OrchInlineStatus activeIp={activeIp} />
       </div>
-      <OrchestratorStatusStrip activeIp={activeIp} />
       <div className="app-main">
         <TitleBar ip="" screen={screen} onScreen={setScreen} />
         <div style={{ flex: 1, overflow: 'hidden' }}>
