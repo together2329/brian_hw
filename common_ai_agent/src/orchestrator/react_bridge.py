@@ -521,6 +521,27 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
         finally:
             chat_writer.flush_assistant_turn("".join(content_buf))
             try:
+                tokens_input = int(getattr(llm_client, "last_input_tokens", 0) or 0)
+                tokens_output = int(getattr(llm_client, "last_output_tokens", 0) or 0)
+                cache_read = int(getattr(llm_client, "last_cache_read_tokens", 0) or 0)
+                cache_write = int(getattr(llm_client, "last_cache_creation_tokens", 0) or 0)
+                # Resolve per-call pricing so cost_usd lands in the DB row and
+                # the UI cost panel shows non-zero rates for the orchestrator's
+                # own (non-worker) LLM calls.
+                cost_usd = 0.0
+                try:
+                    from lib.model_pricing import get_pricing
+                    model_name = getattr(config, "MODEL_NAME", "") or ""
+                    price = get_pricing(model_name)
+                    if price is not None:
+                        billable_in = max(0, tokens_input - cache_read)
+                        cost_usd = (
+                            billable_in * float(price.input)
+                            + cache_read * float(price.cache)
+                            + tokens_output * float(price.output)
+                        ) / 1_000_000.0
+                except Exception:
+                    pass
                 db.record_llm_call(
                     session_id=ctx.session_id or "",
                     run_id=ctx.run_id,
@@ -529,10 +550,11 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
                     model=getattr(config, "MODEL_NAME", "") or "",
                     provider=getattr(config, "API_PROVIDER", "") or "",
                     call_role="orchestrator",
-                    tokens_input=int(getattr(llm_client, "last_input_tokens", 0) or 0),
-                    tokens_output=int(getattr(llm_client, "last_output_tokens", 0) or 0),
-                    cache_read_tokens=int(getattr(llm_client, "last_cache_read_tokens", 0) or 0),
-                    cache_write_tokens=int(getattr(llm_client, "last_cache_creation_tokens", 0) or 0),
+                    tokens_input=tokens_input,
+                    tokens_output=tokens_output,
+                    cache_read_tokens=cache_read,
+                    cache_write_tokens=cache_write,
+                    cost_usd=cost_usd,
                     latency_ms=(time.monotonic() - started) * 1000.0,
                     status="ok",
                 )
