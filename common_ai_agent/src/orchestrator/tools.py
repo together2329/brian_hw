@@ -13,6 +13,7 @@ import os
 import re
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from types import ModuleType
 from typing import Any, Callable, Dict, Optional, Tuple
@@ -53,6 +54,64 @@ def _is_relative_to(path: Path, root: Path) -> bool:
     except ValueError:
         return False
     return True
+
+
+def _mtime_iso(path: Path) -> str:
+    return (
+        datetime.fromtimestamp(path.stat().st_mtime, timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+
+
+def _rel_to_ip(path: Path, ip_dir: Path) -> str:
+    try:
+        return str(path.relative_to(ip_dir))
+    except ValueError:
+        return path.name
+
+
+def _annotate_freshness(entry: Dict[str, Any], path: Path, ip_dir: Path) -> None:
+    if not path.exists():
+        return
+    try:
+        entry["mtime"] = _mtime_iso(path)
+        entry["mtime_ns"] = path.stat().st_mtime_ns
+    except OSError:
+        return
+
+    rel = _rel_to_ip(path, ip_dir)
+    if rel not in {"sim/fl_rtl_compare.json", "sim/mismatch_classification.json"}:
+        return
+
+    # These are sim_debug outputs. If a newer sim or equivalence-goal artifact
+    # exists, the old classification must not drive owner routing.
+    deps = (
+        "sim/scoreboard_events.jsonl",
+        "sim/results.xml",
+        "verify/equivalence_goals.json",
+    )
+    stale_against = []
+    artifact_mtime = path.stat().st_mtime_ns
+    for dep in deps:
+        dep_path = ip_dir / dep
+        if not dep_path.exists():
+            continue
+        try:
+            dep_mtime = dep_path.stat().st_mtime_ns
+        except OSError:
+            continue
+        if artifact_mtime < dep_mtime:
+            stale_against.append(
+                {
+                    "rel": dep,
+                    "mtime": _mtime_iso(dep_path),
+                    "mtime_ns": dep_mtime,
+                }
+            )
+    if stale_against:
+        entry["freshness_status"] = "stale_artifact"
+        entry["stale_against"] = stale_against
 
 
 # ----------------------------------------------------------------------
@@ -231,8 +290,11 @@ def wait_job(job_id: str) -> ToolResult:
 def read_artifact(ip: str, stage: str, project_root: Optional[Path] = None) -> ToolResult:
     """Read canonical evidence for ``stage`` under ``<ip>/...``.
 
-    Resolves the canonical path map used by the pipeline state reader.
-    JSON files are parsed; other files return a head-of-file text slice.
+    Resolves the canonical path map used by the pipeline state reader. If
+    ``stage`` is a safe relative artifact path, reads that exact file or
+    directory; this lets the loop recover when it asks for
+    ``tb/cocotb/tb_blocked.json`` instead of canonical stage ``tb``. JSON files
+    are parsed; other files return a head-of-file text slice.
     """
     pr = Path(project_root) if project_root else Path(
         os.environ.get("ATLAS_PROJECT_ROOT") or "."
@@ -244,28 +306,83 @@ def read_artifact(ip: str, stage: str, project_root: Optional[Path] = None) -> T
         "cl-model": ("model/cl_model_check.json",),
         "equivalence": ("verify/equivalence_goals.json",),
         "rtl": (
+            "logs/stage_engine/ssot-rtl.json",
             "rtl/rtl_blocked.json",
             "rtl/rtl_blocked_resolved.json",
+            "rtl/rtl_contract.json",
             "rtl/rtl_compile.json",
             "lint/dut_lint.json",
             "rtl/rtl_todo_plan.json",
         ),
         "lint": ("lint/dut_lint.json",),
         "tb": ("tb/cocotb/",),
-        "sim": ("sim/results.xml", "sim/fl_rtl_compare.json"),
+        "sim": ("sim/results.xml", "sim/scoreboard_events.jsonl", "sim/fl_rtl_compare.json"),
         "coverage": ("cov/coverage.json",),
-        "sim-debug": ("sim/mismatch_classification.json",),
+        "sim-debug": ("sim/fl_rtl_compare.json", "sim/mismatch_classification.json"),
+        "sim_debug": ("sim/fl_rtl_compare.json", "sim/mismatch_classification.json"),
         "goal-audit": ("sim/fl_rtl_goal_audit.json",),
+        "goal_audit": ("sim/fl_rtl_goal_audit.json",),
         "syn": ("syn/out/",),
         "sta": ("sta/out/",),
         "pnr": ("pnr/out/",),
         "sta-post": ("sta-post/out/",),
     }
     relatives = artifact_map.get(stage, ())
+    if not relatives:
+        requested = Path(str(stage or ""))
+        if not requested.is_absolute() and ".." not in requested.parts and requested.parts:
+            candidate = ip_dir / requested
+            if _is_relative_to(candidate.resolve(), ip_dir.resolve()):
+                relatives = (str(requested),)
+    def _preview(entry: Dict[str, Any]) -> Dict[str, Any]:
+        preview: Dict[str, Any] = {
+            "rel": entry.get("rel"),
+            "exists": entry.get("exists"),
+        }
+        for key in ("mtime", "mtime_ns", "freshness_status", "stale_against"):
+            if key in entry:
+                preview[key] = entry.get(key)
+        data = entry.get("data")
+        if isinstance(data, dict):
+            for key in ("type", "status", "owner", "next_workflow", "reason"):
+                if key in data:
+                    preview[key] = data.get(key)
+            if isinstance(data.get("summary"), dict):
+                preview["summary"] = data.get("summary")
+            if isinstance(data.get("gate"), dict):
+                preview["gate"] = data.get("gate")
+            if isinstance(data.get("metadata"), dict):
+                metadata_preview: Dict[str, Any] = {}
+                rtl_todo_plan = data["metadata"].get("rtl_todo_plan")
+                if isinstance(rtl_todo_plan, dict) and isinstance(rtl_todo_plan.get("gate"), dict):
+                    metadata_preview["rtl_todo_gate"] = rtl_todo_plan.get("gate")
+                if metadata_preview:
+                    preview["metadata"] = metadata_preview
+            for key in ("headline", "returncode", "blocker"):
+                if key in data:
+                    preview[key] = data.get(key)
+            if isinstance(data.get("message"), str):
+                preview["message"] = data.get("message", "")[:1200]
+            classifications = data.get("classifications")
+            if isinstance(classifications, list):
+                preview["classifications"] = classifications[:3]
+            if isinstance(data.get("mismatch_classification"), dict):
+                preview["mismatch_classification"] = data.get("mismatch_classification")
+        elif isinstance(data, list):
+            preview["data"] = data[:3]
+        if "head" in entry:
+            preview["head"] = str(entry.get("head") or "")[:1200]
+        if "entries" in entry:
+            preview["entries"] = entry.get("entries")
+        if "error" in entry:
+            preview["error"] = entry.get("error")
+        return preview
+
     artifacts: list = []
     for rel in relatives:
         path = ip_dir / rel.format(ip=ip)
         entry: Dict[str, Any] = {"rel": rel, "path": str(path), "exists": path.exists()}
+        _annotate_freshness(entry, path, ip_dir)
         if path.is_file():
             try:
                 if path.suffix == ".json":
@@ -286,6 +403,7 @@ def read_artifact(ip: str, stage: str, project_root: Optional[Path] = None) -> T
             "stage": stage,
             "files": [a["rel"] for a in artifacts if a["exists"]],
             "missing": [a["rel"] for a in artifacts if not a["exists"]],
+            "previews": [_preview(a) for a in artifacts if a["exists"]],
         }
     )
     return result, summary

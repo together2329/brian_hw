@@ -6,10 +6,10 @@
     "dma_scratch_orch_live_20260519b/cov/fcov_plan.json"
   ],
   "blocker": "",
-  "created_at": "2026-05-18T21:29:17Z",
+  "created_at": "2026-05-18T22:18:59Z",
   "headline": "[ssot-fl-model] generic SSOT-driven FL model stage",
   "ip": "dma_scratch_orch_live_20260519b",
-  "message": "[ssot-fl-model] generic SSOT-driven FL model stage\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py\nmodule: dma_scratch_orch_live_20260519b\nsource: dma_scratch_orch_live_20260519b/yaml/dma_scratch_orch_live_20260519b.ssot.yaml\nexit: 0\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py dma_scratch_orch_live_20260519b --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/dma_scratch_orch_live_20260519b/model/functional_model.py\n[emit_fl_model] decomposition_units=6 fcov_bins=40 passed=True\n\nexpected artifacts:\n- dma_scratch_orch_live_20260519b/model/functional_model.py\n- dma_scratch_orch_live_20260519b/model/decomposition.json\n- dma_scratch_orch_live_20260519b/model/fl_model_check.json\n- dma_scratch_orch_live_20260519b/cov/fcov_plan.json",
+  "message": "[ssot-fl-model] generic SSOT-driven FL model stage\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py\nmodule: dma_scratch_orch_live_20260519b\nsource: dma_scratch_orch_live_20260519b/yaml/dma_scratch_orch_live_20260519b.ssot.yaml\nexit: 0\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py dma_scratch_orch_live_20260519b --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/dma_scratch_orch_live_20260519b/model/functional_model.py\n[emit_fl_model] decomposition_units=6 fcov_bins=42 passed=True\n\nexpected artifacts:\n- dma_scratch_orch_live_20260519b/model/functional_model.py\n- dma_scratch_orch_live_20260519b/model/decomposition.json\n- dma_scratch_orch_live_20260519b/model/fl_model_check.json\n- dma_scratch_orch_live_20260519b/cov/fcov_plan.json",
   "metadata": {},
   "returncode": 0,
   "runs": [
@@ -18,7 +18,7 @@
       "label": "emit_fl_model",
       "returncode": 0,
       "stderr": "",
-      "stdout": "[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/dma_scratch_orch_live_20260519b/model/functional_model.py\n[emit_fl_model] decomposition_units=6 fcov_bins=40 passed=True"
+      "stdout": "[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/dma_scratch_orch_live_20260519b/model/functional_model.py\n[emit_fl_model] decomposition_units=6 fcov_bins=42 passed=True"
     }
   ],
   "stage": "ssot-fl-model",

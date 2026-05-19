@@ -468,6 +468,14 @@ def _normalize_exec_mode(value: Any) -> str:
 
 
 def _current_exec_mode() -> str:
+    if os.environ.get("ATLAS_ORCHESTRATOR_MODE") is not None:
+        return "orchestrator" if _truthy_env("ATLAS_ORCHESTRATOR_MODE") else "single-worker"
+    explicit = _normalize_exec_mode(os.environ.get("ATLAS_EXEC_MODE"))
+    if explicit:
+        return explicit
+    explicit = _normalize_exec_mode(os.environ.get("ATLAS_DEFAULT_EXEC_MODE"))
+    if explicit:
+        return explicit
     return "orchestrator" if _orchestrator_mode_enabled() else "single-worker"
 
 
@@ -791,6 +799,8 @@ def _safe_git_commit(project_root: Path) -> str:
             ["git", "-C", str(project_root), "rev-parse", "HEAD"],
             check=False,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             timeout=2,
@@ -1733,6 +1743,14 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
 
 
 def _orchestrator_mode_enabled() -> bool:
+    if os.environ.get("ATLAS_ORCHESTRATOR_MODE") is not None:
+        return _truthy_env("ATLAS_ORCHESTRATOR_MODE")
+    explicit = _normalize_exec_mode(os.environ.get("ATLAS_EXEC_MODE"))
+    if explicit:
+        return explicit == "orchestrator"
+    explicit = _normalize_exec_mode(os.environ.get("ATLAS_DEFAULT_EXEC_MODE"))
+    if explicit:
+        return explicit == "orchestrator"
     if os.environ.get("ATLAS_ORCHESTRATOR_MODE") is None:
         return True
     return _truthy_env("ATLAS_ORCHESTRATOR_MODE")
@@ -1940,6 +1958,8 @@ def _job_artifact_recovery(
                 ["bash", str(checker), ip, "--mode", _current_run_mode()],
                 cwd=str(project_root),
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 timeout=30,
@@ -2037,6 +2057,80 @@ def _job_artifact_recovery(
     return False, ""
 
 
+def _rtl_gate_failure_reason(ip_dir: Path, ip: str) -> str:
+    """Return a concise RTL gate failure reason from stage/todo evidence."""
+
+    def _read_json(rel: str) -> tuple[dict[str, Any] | None, str]:
+        path = ip_dir / rel
+        if not path.is_file():
+            return None, ""
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return None, f"unparseable artifact: {ip}/{rel}"
+        return doc if isinstance(doc, dict) else {}, ""
+
+    def _gate_reason(rel: str, gate: Any, *, force: bool = False) -> str:
+        if not isinstance(gate, dict):
+            return ""
+        status = str(gate.get("status") or "").strip().lower()
+        try:
+            open_required = int(gate.get("open_required_todos") or gate.get("open_required_count") or 0)
+        except Exception:
+            open_required = 0
+        try:
+            static_missing = int(gate.get("static_missing") or gate.get("static_missing_count") or 0)
+        except Exception:
+            static_missing = 0
+        try:
+            blocking_questions = int(gate.get("blocking_questions") or 0)
+        except Exception:
+            blocking_questions = 0
+        all_required = gate.get("all_required_todos_pass")
+        failed = (
+            status in {"fail", "failed", "error", "blocked", "human_gate"}
+            or force
+            or (all_required is False and (open_required or static_missing or blocking_questions))
+        )
+        if not failed:
+            return ""
+        details = [f"gate status={status or 'fail'}"]
+        if open_required:
+            details.append(f"open_required_todos={open_required}")
+        if static_missing:
+            details.append(f"static_missing={static_missing}")
+        if blocking_questions:
+            details.append(f"blocking_questions={blocking_questions}")
+        return f"{ip}/{rel} " + " ".join(details)
+
+    stage_doc, error = _read_json("logs/stage_engine/ssot-rtl.json")
+    if error:
+        return error
+    if stage_doc is not None:
+        metadata = stage_doc.get("metadata") if isinstance(stage_doc.get("metadata"), dict) else {}
+        rtl_plan = metadata.get("rtl_todo_plan") if isinstance(metadata.get("rtl_todo_plan"), dict) else {}
+        gate = rtl_plan.get("gate") if isinstance(rtl_plan, dict) else None
+        reason = _gate_reason("logs/stage_engine/ssot-rtl.json", gate)
+        if reason:
+            return reason
+        status = str(stage_doc.get("status") or "").strip().lower()
+        if status in {"fail", "failed", "error", "blocked", "human_gate"}:
+            headline = str(stage_doc.get("headline") or stage_doc.get("message") or "").strip()
+            if headline:
+                headline = headline.splitlines()[0][:180]
+                return f"{ip}/logs/stage_engine/ssot-rtl.json status={status} {headline}"
+            return f"{ip}/logs/stage_engine/ssot-rtl.json status={status}"
+
+    todo_doc, error = _read_json("rtl/rtl_todo_plan.json")
+    if error:
+        return error
+    if todo_doc is not None:
+        reason = _gate_reason("rtl/rtl_todo_plan.json", todo_doc.get("gate"))
+        if reason:
+            return reason
+    return ""
+
+
 def _job_artifact_failure(
     job: dict[str, Any],
     project_root: Path,
@@ -2081,6 +2175,9 @@ def _job_artifact_failure(
             return False, ""
     if stage == "rtl" or workflow == "rtl-gen":
         rtl_dir = ip_dir / "rtl"
+        gate_reason = _rtl_gate_failure_reason(ip_dir, ip)
+        if gate_reason:
+            return True, gate_reason
         blocked_path = rtl_dir / "rtl_blocked.json"
         if blocked_path.is_file():
             try:
@@ -2120,6 +2217,8 @@ def _job_artifact_failure(
                     ["bash", str(checker), ip],
                     cwd=str(project_root),
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     timeout=45,
@@ -2292,6 +2391,7 @@ def register_jobs_routes(
     *,
     project_root: Callable[[], Path],
     normalize_session_name: Callable[[str], str],
+    persist_config_values: Callable[[dict[str, str]], None] | None = None,
 ) -> None:
     """Mount all /api/job* and /api/jobs* and /api/pipeline/* routes onto *app*.
 
@@ -2774,7 +2874,8 @@ def register_jobs_routes(
                         _ipb = _db.upsert_ip_block(_ws["id"], ip)
                         _runs = _db._fetchall(
                             """
-                            SELECT workflow, status, error_summary, started_at, ended_at
+                            SELECT workflow, status, error_summary, started_at, ended_at,
+                                   trigger_source, orchestrator_run_id
                             FROM workflow_runs
                             WHERE workspace_id = ? AND ip_id = ?
                             ORDER BY started_at DESC
@@ -3022,7 +3123,7 @@ def register_jobs_routes(
                 "cl-model": ["model/cl_model_check.json"],
                 "equivalence": ["verify/equivalence_goals.json"],
                 "rtl": ["rtl/rtl_compile.json", "lint/dut_lint.json",
-                        "rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json"],
+                        "rtl/rtl_contract.json", "rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json"],
                 "lint": ["lint/dut_lint.json"],
                 "tb": ["tb/cocotb/"],
                 "sim": ["sim/results.xml", "sim/fl_rtl_compare.json"],
@@ -3054,6 +3155,7 @@ def register_jobs_routes(
                 stage_workflow,
                 {"pending": 0, "claimed": 0, "done": 0, "review": 0, "latest": None},
             )
+            db_row = db_state_by_workflow.get(stage_workflow) or {}
             stages_out[sid] = {
                 "state": state,
                 "glyph": _GLYPHS.get(state, "◯"),
@@ -3075,6 +3177,11 @@ def register_jobs_routes(
                 "source": source,
                 "workflow": stage_workflow,
                 "handoffs": stage_handoffs,
+                # Phase 3 provenance — read by frontend StageCard `pipe-stage-orch-pill`
+                # (renders when trigger_source === 'orchestrator_chat') and any future
+                # cross-link from stage card to its orchestrator run detail.
+                "trigger_source": db_row.get("trigger_source") or None,
+                "orchestrator_run_id": db_row.get("orchestrator_run_id") or None,
             }
 
         payload = {
@@ -3644,7 +3751,7 @@ def register_jobs_routes(
             "fl-model": ["model/fl_model_check.json", "cov/fcov_plan.json"],
             "cl-model": ["model/cl_model_check.json"],
             "equivalence": ["verify/equivalence_goals.json"],
-            "rtl": ["rtl/rtl_compile.json", "lint/dut_lint.json", "rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json"],
+            "rtl": ["rtl/rtl_compile.json", "lint/dut_lint.json", "rtl/rtl_contract.json", "rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json"],
             "lint": ["lint/dut_lint.json"],
             "tb": ["tb/cocotb/"],
             "sim": ["sim/results.xml", "sim/fl_rtl_compare.json"],
@@ -3672,12 +3779,12 @@ def register_jobs_routes(
         for stage in _PIPELINE_STAGES:
             sid = stage["id"]
             fake_job = {"ip": ip_name, "stage_id": sid, "workflow": stage["workflow"]}
-            ok, _ = _job_artifact_recovery(fake_job, pr)
             bad, why = _job_artifact_failure(fake_job, pr)
-            if ok:
-                passed.add(sid)
-            elif bad:
+            ok, _ = _job_artifact_recovery(fake_job, pr)
+            if bad:
                 failed[sid] = why
+            elif ok:
+                passed.add(sid)
 
         stages_out: dict[str, Any] = {}
         for stage in _PIPELINE_STAGES:
@@ -3769,6 +3876,17 @@ def register_jobs_routes(
         if not isinstance(body["enabled"], bool):
             return JSONResponse({"error": "'enabled' must be a JSON bool"}, status_code=400)
         os.environ["ATLAS_ORCHESTRATOR_MODE"] = "1" if body["enabled"] else "0"
+        os.environ["ATLAS_EXEC_MODE"] = "orchestrator" if body["enabled"] else "single-worker"
+        os.environ["ATLAS_DEFAULT_EXEC_MODE"] = os.environ["ATLAS_EXEC_MODE"]
+        if persist_config_values is not None:
+            try:
+                persist_config_values({
+                    "ATLAS_EXEC_MODE": os.environ["ATLAS_EXEC_MODE"],
+                    "ATLAS_DEFAULT_EXEC_MODE": os.environ["ATLAS_DEFAULT_EXEC_MODE"],
+                    "ATLAS_ORCHESTRATOR_MODE": os.environ["ATLAS_ORCHESTRATOR_MODE"],
+                })
+            except Exception:
+                pass
         # Bust the /api/pipeline/state micro-cache for every (ip, user_id)
         # so each user's next poll reflects the new mode immediately
         # instead of waiting up to 2 s.
@@ -3964,12 +4082,28 @@ def register_jobs_routes(
             if not run_mode:
                 return JSONResponse({"error": "run_mode must be starter, engineering, or signoff"}, status_code=400)
             os.environ["ATLAS_RUN_MODE"] = run_mode
+            if persist_config_values is not None:
+                try:
+                    persist_config_values({"ATLAS_RUN_MODE": run_mode})
+                except Exception:
+                    pass
 
         if "exec_mode" in body:
             exec_mode = _normalize_exec_mode(body.get("exec_mode"))
             if not exec_mode:
                 return JSONResponse({"error": "exec_mode must be single-worker or orchestrator"}, status_code=400)
+            os.environ["ATLAS_EXEC_MODE"] = exec_mode
+            os.environ["ATLAS_DEFAULT_EXEC_MODE"] = exec_mode
             os.environ["ATLAS_ORCHESTRATOR_MODE"] = "1" if exec_mode == "orchestrator" else "0"
+            if persist_config_values is not None:
+                try:
+                    persist_config_values({
+                        "ATLAS_EXEC_MODE": exec_mode,
+                        "ATLAS_DEFAULT_EXEC_MODE": exec_mode,
+                        "ATLAS_ORCHESTRATOR_MODE": "1" if exec_mode == "orchestrator" else "0",
+                    })
+                except Exception:
+                    pass
 
         _state_cache.clear()
         return JSONResponse(_run_policy_payload())

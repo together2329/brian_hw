@@ -47,12 +47,20 @@ Always advance in this order unless an owner classification says otherwise.
 4. `<ip>/handoff/` — pending durable JSON handoffs waiting for a worker claim
 5. `<ip>/review/` — human-gated review decisions
 
+Freshness guard: `sim/fl_rtl_compare.json` and `sim/mismatch_classification.json`
+are `sim_debug` outputs. If either artifact is older than
+`sim/scoreboard_events.jsonl`, `sim/results.xml`, or
+`verify/equivalence_goals.json`, ignore its owner data and run `sim_debug`
+first. A stale compare/classification file is not a stale FL oracle.
+
 ## Routing Rules (mismatch owner → next workflow)
 
 | Owner classification | Next dispatch | Why |
 |---|---|---|
 | `rtl_bug` | `rtl-gen` (targeted re-author of failing module) | RTL semantics differ from FL oracle |
 | `tb_bug` | `tb-gen` (testbench / scoreboard repair) | Oracle observation gap, scoreboard alias missing |
+| `stale_oracle` / `owner=fl-model-gen` | `equivalence` stage (fl-model-gen worker) | Derived FL/equivalence/coverage oracle artifacts are older than current SSOT; do not blame RTL/TB yet |
+| stale `fl_rtl_compare.json` / stale `mismatch_classification.json` | `sim_debug` | Compare/classification artifact is older than fresh sim or equivalence evidence |
 | `frontier` | `human-review-escalation` | Real spec gap — SSOT clarification needed |
 | `coverage_gap` | `tb-gen` → `sim` → `coverage` loop | Bins missing, not a behavior bug |
 | `lint_violation` | `rtl-gen` (style/structural fix) | RTL hygiene |

@@ -22,12 +22,12 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
-- SSOT top IO contracts: 23
+- SSOT top IO contracts: 21
 
 ## Tasks
 

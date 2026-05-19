@@ -22,29 +22,29 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
 - Module slice: 9/15 section=error_handling task_limit=48
 - Slice rule: Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
-- SSOT top IO contracts: 23
+- SSOT top IO contracts: 21
 
 ## Tasks
 
-### RTL-0156: Implement error/fault item recovery_0
+### RTL-0166: Implement error/fault item recovery_0
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: error_handling.recovery
 - Source ref: error_handling.recovery.recovery_0
 - Detail: This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: error_handling.recovery.recovery_0.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: action=reset or software clear.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

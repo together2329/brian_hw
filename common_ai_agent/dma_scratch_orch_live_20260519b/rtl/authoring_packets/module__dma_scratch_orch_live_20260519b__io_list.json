@@ -12,7 +12,7 @@
       "enabled": true,
       "index": 2,
       "key": "io_list",
-      "module_task_count": 159,
+      "module_task_count": 170,
       "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "io_list",
       "section_chunk_count": 1,
@@ -66,254 +66,230 @@
       },
       {
         "aliases": [
-          "csr_apb_lite_paddr",
-          "paddr"
+          "csr_slave_csr_valid",
+          "csr_valid"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "paddr",
+        "name": "csr_valid",
         "source_ref": "io_list.interfaces[1].ports[0]",
-        "width": "ADDR_WIDTH"
+        "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_psel",
-          "psel"
+          "csr_ready",
+          "csr_slave_csr_ready"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "psel",
+        "direction": "output",
+        "name": "csr_ready",
         "source_ref": "io_list.interfaces[1].ports[1]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_penable",
-          "penable"
+          "csr_slave_csr_write",
+          "csr_write"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "penable",
+        "name": "csr_write",
         "source_ref": "io_list.interfaces[1].ports[2]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_pwrite",
-          "pwrite"
+          "csr_addr",
+          "csr_slave_csr_addr"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "pwrite",
+        "name": "csr_addr",
         "source_ref": "io_list.interfaces[1].ports[3]",
-        "width": "1"
+        "width": "ADDR_WIDTH"
       },
       {
         "aliases": [
-          "csr_apb_lite_pwdata",
-          "pwdata"
+          "csr_slave_csr_wdata",
+          "csr_wdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "pwdata",
+        "name": "csr_wdata",
         "source_ref": "io_list.interfaces[1].ports[4]",
         "width": "DATA_WIDTH"
       },
       {
         "aliases": [
-          "csr_apb_lite_prdata",
-          "prdata"
+          "csr_slave_csr_wstrb",
+          "csr_wstrb"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "output",
-        "name": "prdata",
+        "direction": "input",
+        "name": "csr_wstrb",
         "source_ref": "io_list.interfaces[1].ports[5]",
-        "width": "DATA_WIDTH"
+        "width": "DATA_WIDTH/8"
       },
       {
         "aliases": [
-          "csr_apb_lite_pready",
-          "pready"
+          "csr_rvalid",
+          "csr_slave_csr_rvalid"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "pready",
+        "name": "csr_rvalid",
         "source_ref": "io_list.interfaces[1].ports[6]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_pslverr",
-          "pslverr"
+          "csr_rdata",
+          "csr_slave_csr_rdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "pslverr",
+        "name": "csr_rdata",
         "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "csr_error",
+          "csr_slave_csr_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "csr_error",
+        "source_ref": "io_list.interfaces[1].ports[8]",
         "width": "1"
       },
       {
         "aliases": [
-          "dma_read_addr_rd_addr_valid",
-          "rd_addr_valid"
+          "mem_master_mem_req_valid",
+          "mem_req_valid"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "rd_addr_valid",
+        "direction": "output",
+        "name": "mem_req_valid",
         "source_ref": "io_list.interfaces[2].ports[0]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_addr_rd_addr_ready",
-          "rd_addr_ready"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "output",
-        "name": "rd_addr_ready",
-        "source_ref": "io_list.interfaces[2].ports[1]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_addr_rd_addr",
-          "rd_addr"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_addr",
-        "source_ref": "io_list.interfaces[2].ports[2]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data_valid",
-          "rd_data_valid"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_data_valid",
-        "source_ref": "io_list.interfaces[3].ports[0]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data_ready",
-          "rd_data_ready"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "output",
-        "name": "rd_data_ready",
-        "source_ref": "io_list.interfaces[3].ports[1]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data",
-          "rd_data"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_data",
-        "source_ref": "io_list.interfaces[3].ports[2]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_resp",
-          "rd_resp"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_resp",
-        "source_ref": "io_list.interfaces[3].ports[3]",
         "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data_valid",
-          "wr_data_valid"
+          "mem_master_mem_req_ready",
+          "mem_req_ready"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "wr_data_valid",
-        "source_ref": "io_list.interfaces[4].ports[0]",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_ready",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data_ready",
-          "wr_data_ready"
+          "mem_master_mem_req_write",
+          "mem_req_write"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "wr_data_ready",
-        "source_ref": "io_list.interfaces[4].ports[1]",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_write",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_addr",
-          "wr_addr"
+          "mem_master_mem_req_addr",
+          "mem_req_addr"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_addr",
-        "source_ref": "io_list.interfaces[4].ports[2]",
+        "direction": "output",
+        "name": "mem_req_addr",
+        "source_ref": "io_list.interfaces[2].ports[3]",
         "width": "ADDR_WIDTH"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data",
-          "wr_data"
+          "mem_master_mem_req_wdata",
+          "mem_req_wdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_data",
-        "source_ref": "io_list.interfaces[4].ports[3]",
+        "direction": "output",
+        "name": "mem_req_wdata",
+        "source_ref": "io_list.interfaces[2].ports[4]",
         "width": "DATA_WIDTH"
       },
       {
         "aliases": [
-          "dma_write_data_wr_strb",
-          "wr_strb"
+          "mem_master_mem_req_wstrb",
+          "mem_req_wstrb"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_strb",
-        "source_ref": "io_list.interfaces[4].ports[4]",
+        "direction": "output",
+        "name": "mem_req_wstrb",
+        "source_ref": "io_list.interfaces[2].ports[5]",
         "width": "DATA_WIDTH/8"
       },
       {
         "aliases": [
-          "irq",
-          "status_irq_irq"
+          "mem_master_mem_rsp_valid",
+          "mem_rsp_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_valid",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "mem_master_mem_rsp_rdata",
+          "mem_rsp_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_rdata",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "mem_master_mem_rsp_error",
+          "mem_rsp_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_error",
+        "source_ref": "io_list.interfaces[2].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_irq",
+          "irq"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
         "name": "irq",
-        "source_ref": "io_list.interfaces[5].ports[0]",
+        "source_ref": "io_list.interfaces[3].ports[0]",
         "width": "1"
       }
     ],
@@ -323,15 +299,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 25,
-    "open_required_count": 25,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -359,52 +335,51 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
-      "io_list.port": 25
+      "io_list.port": 23
     },
     "module_slice": {
       "count": 15,
       "enabled": true,
       "index": 2,
       "key": "io_list",
-      "module_task_count": 159,
+      "module_task_count": 170,
       "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "io_list",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 25,
-    "required_count": 25,
+    "open_required_count": 0,
+    "required_count": 23,
     "source_refs": [
       "io_list.clock_domains.clk.ports.clk",
       "io_list.resets.rst_n.ports.rst_n",
       "io_list.interfaces.clock_reset.ports.clk",
       "io_list.interfaces.clock_reset.ports.rst_n",
-      "io_list.interfaces.csr_apb_lite.ports.paddr",
-      "io_list.interfaces.csr_apb_lite.ports.psel",
-      "io_list.interfaces.csr_apb_lite.ports.penable",
-      "io_list.interfaces.csr_apb_lite.ports.pwrite",
-      "io_list.interfaces.csr_apb_lite.ports.pwdata",
-      "io_list.interfaces.csr_apb_lite.ports.prdata",
-      "io_list.interfaces.csr_apb_lite.ports.pready",
-      "io_list.interfaces.csr_apb_lite.ports.pslverr",
-      "io_list.interfaces.dma_read_addr.ports.rd_addr_valid",
-      "io_list.interfaces.dma_read_addr.ports.rd_addr_ready",
-      "io_list.interfaces.dma_read_addr.ports.rd_addr",
-      "io_list.interfaces.dma_read_data.ports.rd_data_valid",
-      "io_list.interfaces.dma_read_data.ports.rd_data_ready",
-      "io_list.interfaces.dma_read_data.ports.rd_data",
-      "io_list.interfaces.dma_read_data.ports.rd_resp",
-      "io_list.interfaces.dma_write_data.ports.wr_data_valid",
-      "io_list.interfaces.dma_write_data.ports.wr_data_ready",
-      "io_list.interfaces.dma_write_data.ports.wr_addr",
-      "io_list.interfaces.dma_write_data.ports.wr_data",
-      "io_list.interfaces.dma_write_data.ports.wr_strb"
+      "io_list.interfaces.csr_slave.ports.csr_valid",
+      "io_list.interfaces.csr_slave.ports.csr_ready",
+      "io_list.interfaces.csr_slave.ports.csr_write",
+      "io_list.interfaces.csr_slave.ports.csr_addr",
+      "io_list.interfaces.csr_slave.ports.csr_wdata",
+      "io_list.interfaces.csr_slave.ports.csr_wstrb",
+      "io_list.interfaces.csr_slave.ports.csr_rvalid",
+      "io_list.interfaces.csr_slave.ports.csr_rdata",
+      "io_list.interfaces.csr_slave.ports.csr_error",
+      "io_list.interfaces.mem_master.ports.mem_req_valid",
+      "io_list.interfaces.mem_master.ports.mem_req_ready",
+      "io_list.interfaces.mem_master.ports.mem_req_write",
+      "io_list.interfaces.mem_master.ports.mem_req_addr",
+      "io_list.interfaces.mem_master.ports.mem_req_wdata",
+      "io_list.interfaces.mem_master.ports.mem_req_wstrb",
+      "io_list.interfaces.mem_master.ports.mem_rsp_valid",
+      "io_list.interfaces.mem_master.ports.mem_rsp_rdata",
+      "io_list.interfaces.mem_master.ports.mem_rsp_error",
+      "io_list.interfaces.interrupt.ports.irq"
     ],
     "status_counts": {
-      "open": 25
+      "pass": 23
     },
-    "task_count": 25
+    "task_count": 23
   },
   "tasks": [
     {
@@ -421,7 +396,7 @@
       ],
       "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.clk.ports.clk.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=clk; width=1; direction=input.",
       "evidence_terms": [],
-      "id": "RTL-0054",
+      "id": "RTL-0055",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
@@ -447,9 +422,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -466,7 +441,7 @@
       ],
       "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.rst_n.ports.rst_n.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=rst_n; width=1; direction=input.",
       "evidence_terms": [],
-      "id": "RTL-0055",
+      "id": "RTL-0056",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
@@ -492,9 +467,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -511,7 +486,7 @@
       ],
       "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.clock_reset.ports.clk.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=clk; width=1; direction=input.",
       "evidence_terms": [],
-      "id": "RTL-0056",
+      "id": "RTL-0057",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
@@ -537,9 +512,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -556,7 +531,7 @@
       ],
       "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.clock_reset.ports.rst_n.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=rst_n; width=1; direction=input.",
       "evidence_terms": [],
-      "id": "RTL-0057",
+      "id": "RTL-0058",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
@@ -582,83 +557,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port paddr",
+      "content": "Implement and connect port csr_valid",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.paddr",
+        "Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_valid",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "paddr width matches SSOT value ADDR_WIDTH",
-        "paddr port direction remains input"
+        "csr_valid width matches SSOT value 1",
+        "csr_valid port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_apb_lite.ports.paddr.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=paddr; width=ADDR_WIDTH; direction=input.",
-      "evidence_terms": [],
-      "id": "RTL-0058",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "priority": "normal",
-      "required": true,
-      "source_ref": "io_list.interfaces.csr_apb_lite.ports.paddr",
-      "ssot_context": {
-        "direction": "input",
-        "name": "paddr",
-        "width": "ADDR_WIDTH"
-      },
-      "ssot_refs": [
-        "io_list.interfaces.csr_apb_lite.ports.paddr"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
-        "required": true,
-        "status": "open"
-      }
-    },
-    {
-      "category": "io_list.port",
-      "content": "Implement and connect port psel",
-      "criteria": [
-        "RTL declaration matches SSOT direction and width",
-        "Active input controls are consumed by behavior or explicitly justified",
-        "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.psel",
-        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "psel width matches SSOT value 1",
-        "psel port direction remains input"
-      ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_apb_lite.ports.psel.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=psel; width=1; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_slave.ports.csr_valid.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=csr_valid; width=1; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0059",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.csr_apb_lite.ports.psel",
+      "source_ref": "io_list.interfaces.csr_slave.ports.csr_valid",
       "ssot_context": {
         "direction": "input",
-        "name": "psel",
+        "name": "csr_valid",
         "width": "1"
       },
       "ssot_refs": [
-        "io_list.interfaces.csr_apb_lite.ports.psel"
+        "io_list.interfaces.csr_slave.ports.csr_valid"
       ],
       "static_evidence": {
         "required": false,
@@ -672,38 +602,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port penable",
+      "content": "Implement and connect port csr_ready",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.penable",
+        "Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_ready",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "penable width matches SSOT value 1",
-        "penable port direction remains input"
+        "csr_ready width matches SSOT value 1",
+        "csr_ready port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_apb_lite.ports.penable.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=penable; width=1; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_slave.ports.csr_ready.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=csr_ready; width=1; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0060",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.csr_apb_lite.ports.penable",
+      "source_ref": "io_list.interfaces.csr_slave.ports.csr_ready",
       "ssot_context": {
-        "direction": "input",
-        "name": "penable",
+        "direction": "output",
+        "name": "csr_ready",
         "width": "1"
       },
       "ssot_refs": [
-        "io_list.interfaces.csr_apb_lite.ports.penable"
+        "io_list.interfaces.csr_slave.ports.csr_ready"
       ],
       "static_evidence": {
         "required": false,
@@ -717,38 +647,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port pwrite",
+      "content": "Implement and connect port csr_write",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.pwrite",
+        "Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_write",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "pwrite width matches SSOT value 1",
-        "pwrite port direction remains input"
+        "csr_write width matches SSOT value 1",
+        "csr_write port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_apb_lite.ports.pwrite.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=pwrite; width=1; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_slave.ports.csr_write.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=csr_write; width=1; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0061",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.csr_apb_lite.ports.pwrite",
+      "source_ref": "io_list.interfaces.csr_slave.ports.csr_write",
       "ssot_context": {
         "direction": "input",
-        "name": "pwrite",
+        "name": "csr_write",
         "width": "1"
       },
       "ssot_refs": [
-        "io_list.interfaces.csr_apb_lite.ports.pwrite"
+        "io_list.interfaces.csr_slave.ports.csr_write"
       ],
       "static_evidence": {
         "required": false,
@@ -762,38 +692,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port pwdata",
+      "content": "Implement and connect port csr_addr",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.pwdata",
+        "Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_addr",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "pwdata width matches SSOT value DATA_WIDTH",
-        "pwdata port direction remains input"
+        "csr_addr width matches SSOT value ADDR_WIDTH",
+        "csr_addr port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_apb_lite.ports.pwdata.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=pwdata; width=DATA_WIDTH; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_slave.ports.csr_addr.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=csr_addr; width=ADDR_WIDTH; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0062",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.csr_apb_lite.ports.pwdata",
+      "source_ref": "io_list.interfaces.csr_slave.ports.csr_addr",
       "ssot_context": {
         "direction": "input",
-        "name": "pwdata",
-        "width": "DATA_WIDTH"
+        "name": "csr_addr",
+        "width": "ADDR_WIDTH"
       },
       "ssot_refs": [
-        "io_list.interfaces.csr_apb_lite.ports.pwdata"
+        "io_list.interfaces.csr_slave.ports.csr_addr"
       ],
       "static_evidence": {
         "required": false,
@@ -807,38 +737,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port prdata",
+      "content": "Implement and connect port csr_wdata",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.prdata",
+        "Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_wdata",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "prdata width matches SSOT value DATA_WIDTH",
-        "prdata port direction remains output"
+        "csr_wdata width matches SSOT value DATA_WIDTH",
+        "csr_wdata port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_apb_lite.ports.prdata.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=prdata; width=DATA_WIDTH; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_slave.ports.csr_wdata.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=csr_wdata; width=DATA_WIDTH; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0063",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.csr_apb_lite.ports.prdata",
+      "source_ref": "io_list.interfaces.csr_slave.ports.csr_wdata",
       "ssot_context": {
-        "direction": "output",
-        "name": "prdata",
+        "direction": "input",
+        "name": "csr_wdata",
         "width": "DATA_WIDTH"
       },
       "ssot_refs": [
-        "io_list.interfaces.csr_apb_lite.ports.prdata"
+        "io_list.interfaces.csr_slave.ports.csr_wdata"
       ],
       "static_evidence": {
         "required": false,
@@ -852,38 +782,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port pready",
+      "content": "Implement and connect port csr_wstrb",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.pready",
+        "Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_wstrb",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "pready width matches SSOT value 1",
-        "pready port direction remains output"
+        "csr_wstrb width matches SSOT value DATA_WIDTH/8",
+        "csr_wstrb port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_apb_lite.ports.pready.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=pready; width=1; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_slave.ports.csr_wstrb.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=csr_wstrb; width=DATA_WIDTH/8; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0064",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.csr_apb_lite.ports.pready",
+      "source_ref": "io_list.interfaces.csr_slave.ports.csr_wstrb",
       "ssot_context": {
-        "direction": "output",
-        "name": "pready",
-        "width": "1"
+        "direction": "input",
+        "name": "csr_wstrb",
+        "width": "DATA_WIDTH/8"
       },
       "ssot_refs": [
-        "io_list.interfaces.csr_apb_lite.ports.pready"
+        "io_list.interfaces.csr_slave.ports.csr_wstrb"
       ],
       "static_evidence": {
         "required": false,
@@ -897,38 +827,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port pslverr",
+      "content": "Implement and connect port csr_rvalid",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.pslverr",
+        "Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_rvalid",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "pslverr width matches SSOT value 1",
-        "pslverr port direction remains output"
+        "csr_rvalid width matches SSOT value 1",
+        "csr_rvalid port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_apb_lite.ports.pslverr.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=pslverr; width=1; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_slave.ports.csr_rvalid.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=csr_rvalid; width=1; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0065",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.csr_apb_lite.ports.pslverr",
+      "source_ref": "io_list.interfaces.csr_slave.ports.csr_rvalid",
       "ssot_context": {
         "direction": "output",
-        "name": "pslverr",
+        "name": "csr_rvalid",
         "width": "1"
       },
       "ssot_refs": [
-        "io_list.interfaces.csr_apb_lite.ports.pslverr"
+        "io_list.interfaces.csr_slave.ports.csr_rvalid"
       ],
       "static_evidence": {
         "required": false,
@@ -942,38 +872,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port rd_addr_valid",
+      "content": "Implement and connect port csr_rdata",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.dma_read_addr.ports.rd_addr_valid",
+        "Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_rdata",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "rd_addr_valid width matches SSOT value ADDR_WIDTH",
-        "rd_addr_valid port direction remains input"
+        "csr_rdata width matches SSOT value DATA_WIDTH",
+        "csr_rdata port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_read_addr.ports.rd_addr_valid.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=rd_addr_valid; width=ADDR_WIDTH; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_slave.ports.csr_rdata.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=csr_rdata; width=DATA_WIDTH; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0066",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.dma_read_addr.ports.rd_addr_valid",
+      "source_ref": "io_list.interfaces.csr_slave.ports.csr_rdata",
       "ssot_context": {
-        "direction": "input",
-        "name": "rd_addr_valid",
-        "width": "ADDR_WIDTH"
+        "direction": "output",
+        "name": "csr_rdata",
+        "width": "DATA_WIDTH"
       },
       "ssot_refs": [
-        "io_list.interfaces.dma_read_addr.ports.rd_addr_valid"
+        "io_list.interfaces.csr_slave.ports.csr_rdata"
       ],
       "static_evidence": {
         "required": false,
@@ -987,38 +917,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port rd_addr_ready",
+      "content": "Implement and connect port csr_error",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.dma_read_addr.ports.rd_addr_ready",
+        "Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_error",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "rd_addr_ready width matches SSOT value ADDR_WIDTH",
-        "rd_addr_ready port direction remains output"
+        "csr_error width matches SSOT value 1",
+        "csr_error port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_read_addr.ports.rd_addr_ready.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=rd_addr_ready; width=ADDR_WIDTH; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.csr_slave.ports.csr_error.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=csr_error; width=1; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0067",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.dma_read_addr.ports.rd_addr_ready",
+      "source_ref": "io_list.interfaces.csr_slave.ports.csr_error",
       "ssot_context": {
         "direction": "output",
-        "name": "rd_addr_ready",
-        "width": "ADDR_WIDTH"
+        "name": "csr_error",
+        "width": "1"
       },
       "ssot_refs": [
-        "io_list.interfaces.dma_read_addr.ports.rd_addr_ready"
+        "io_list.interfaces.csr_slave.ports.csr_error"
       ],
       "static_evidence": {
         "required": false,
@@ -1032,38 +962,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port rd_addr",
+      "content": "Implement and connect port mem_req_valid",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.dma_read_addr.ports.rd_addr",
+        "Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_req_valid",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "rd_addr width matches SSOT value ADDR_WIDTH",
-        "rd_addr port direction remains input"
+        "mem_req_valid width matches SSOT value 1",
+        "mem_req_valid port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_read_addr.ports.rd_addr.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=rd_addr; width=ADDR_WIDTH; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.mem_master.ports.mem_req_valid.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=mem_req_valid; width=1; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0068",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.dma_read_addr.ports.rd_addr",
+      "source_ref": "io_list.interfaces.mem_master.ports.mem_req_valid",
       "ssot_context": {
-        "direction": "input",
-        "name": "rd_addr",
-        "width": "ADDR_WIDTH"
+        "direction": "output",
+        "name": "mem_req_valid",
+        "width": "1"
       },
       "ssot_refs": [
-        "io_list.interfaces.dma_read_addr.ports.rd_addr"
+        "io_list.interfaces.mem_master.ports.mem_req_valid"
       ],
       "static_evidence": {
         "required": false,
@@ -1077,38 +1007,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port rd_data_valid",
+      "content": "Implement and connect port mem_req_ready",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.dma_read_data.ports.rd_data_valid",
+        "Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_req_ready",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "rd_data_valid width matches SSOT value DATA_WIDTH",
-        "rd_data_valid port direction remains input"
+        "mem_req_ready width matches SSOT value 1",
+        "mem_req_ready port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_read_data.ports.rd_data_valid.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=rd_data_valid; width=DATA_WIDTH; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.mem_master.ports.mem_req_ready.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=mem_req_ready; width=1; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0069",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.dma_read_data.ports.rd_data_valid",
+      "source_ref": "io_list.interfaces.mem_master.ports.mem_req_ready",
       "ssot_context": {
         "direction": "input",
-        "name": "rd_data_valid",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_ready",
+        "width": "1"
       },
       "ssot_refs": [
-        "io_list.interfaces.dma_read_data.ports.rd_data_valid"
+        "io_list.interfaces.mem_master.ports.mem_req_ready"
       ],
       "static_evidence": {
         "required": false,
@@ -1122,38 +1052,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port rd_data_ready",
+      "content": "Implement and connect port mem_req_write",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.dma_read_data.ports.rd_data_ready",
+        "Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_req_write",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "rd_data_ready width matches SSOT value DATA_WIDTH",
-        "rd_data_ready port direction remains output"
+        "mem_req_write width matches SSOT value 1",
+        "mem_req_write port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_read_data.ports.rd_data_ready.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=rd_data_ready; width=DATA_WIDTH; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.mem_master.ports.mem_req_write.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=mem_req_write; width=1; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0070",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.dma_read_data.ports.rd_data_ready",
+      "source_ref": "io_list.interfaces.mem_master.ports.mem_req_write",
       "ssot_context": {
         "direction": "output",
-        "name": "rd_data_ready",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_write",
+        "width": "1"
       },
       "ssot_refs": [
-        "io_list.interfaces.dma_read_data.ports.rd_data_ready"
+        "io_list.interfaces.mem_master.ports.mem_req_write"
       ],
       "static_evidence": {
         "required": false,
@@ -1167,38 +1097,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port rd_data",
+      "content": "Implement and connect port mem_req_addr",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.dma_read_data.ports.rd_data",
+        "Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_req_addr",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "rd_data width matches SSOT value DATA_WIDTH",
-        "rd_data port direction remains input"
+        "mem_req_addr width matches SSOT value ADDR_WIDTH",
+        "mem_req_addr port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_read_data.ports.rd_data.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=rd_data; width=DATA_WIDTH; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.mem_master.ports.mem_req_addr.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=mem_req_addr; width=ADDR_WIDTH; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0071",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.dma_read_data.ports.rd_data",
+      "source_ref": "io_list.interfaces.mem_master.ports.mem_req_addr",
       "ssot_context": {
-        "direction": "input",
-        "name": "rd_data",
-        "width": "DATA_WIDTH"
+        "direction": "output",
+        "name": "mem_req_addr",
+        "width": "ADDR_WIDTH"
       },
       "ssot_refs": [
-        "io_list.interfaces.dma_read_data.ports.rd_data"
+        "io_list.interfaces.mem_master.ports.mem_req_addr"
       ],
       "static_evidence": {
         "required": false,
@@ -1212,38 +1142,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port rd_resp",
+      "content": "Implement and connect port mem_req_wdata",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.dma_read_data.ports.rd_resp",
+        "Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_req_wdata",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "rd_resp width matches SSOT value 1",
-        "rd_resp port direction remains input"
+        "mem_req_wdata width matches SSOT value DATA_WIDTH",
+        "mem_req_wdata port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_read_data.ports.rd_resp.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=rd_resp; width=1; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.mem_master.ports.mem_req_wdata.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=mem_req_wdata; width=DATA_WIDTH; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0072",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.dma_read_data.ports.rd_resp",
+      "source_ref": "io_list.interfaces.mem_master.ports.mem_req_wdata",
       "ssot_context": {
-        "direction": "input",
-        "name": "rd_resp",
-        "width": "1"
+        "direction": "output",
+        "name": "mem_req_wdata",
+        "width": "DATA_WIDTH"
       },
       "ssot_refs": [
-        "io_list.interfaces.dma_read_data.ports.rd_resp"
+        "io_list.interfaces.mem_master.ports.mem_req_wdata"
       ],
       "static_evidence": {
         "required": false,
@@ -1257,38 +1187,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port wr_data_valid",
+      "content": "Implement and connect port mem_req_wstrb",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.dma_write_data.ports.wr_data_valid",
+        "Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_req_wstrb",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "wr_data_valid width matches SSOT value DATA_WIDTH",
-        "wr_data_valid port direction remains input"
+        "mem_req_wstrb width matches SSOT value DATA_WIDTH/8",
+        "mem_req_wstrb port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_write_data.ports.wr_data_valid.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=wr_data_valid; width=DATA_WIDTH; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.mem_master.ports.mem_req_wstrb.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=mem_req_wstrb; width=DATA_WIDTH/8; direction=output.",
       "evidence_terms": [],
       "id": "RTL-0073",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.dma_write_data.ports.wr_data_valid",
+      "source_ref": "io_list.interfaces.mem_master.ports.mem_req_wstrb",
       "ssot_context": {
-        "direction": "input",
-        "name": "wr_data_valid",
-        "width": "DATA_WIDTH"
+        "direction": "output",
+        "name": "mem_req_wstrb",
+        "width": "DATA_WIDTH/8"
       },
       "ssot_refs": [
-        "io_list.interfaces.dma_write_data.ports.wr_data_valid"
+        "io_list.interfaces.mem_master.ports.mem_req_wstrb"
       ],
       "static_evidence": {
         "required": false,
@@ -1302,38 +1232,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port wr_data_ready",
+      "content": "Implement and connect port mem_rsp_valid",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.dma_write_data.ports.wr_data_ready",
+        "Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_rsp_valid",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "wr_data_ready width matches SSOT value DATA_WIDTH",
-        "wr_data_ready port direction remains output"
+        "mem_rsp_valid width matches SSOT value 1",
+        "mem_rsp_valid port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_write_data.ports.wr_data_ready.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=wr_data_ready; width=DATA_WIDTH; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.mem_master.ports.mem_rsp_valid.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=mem_rsp_valid; width=1; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0074",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.dma_write_data.ports.wr_data_ready",
+      "source_ref": "io_list.interfaces.mem_master.ports.mem_rsp_valid",
       "ssot_context": {
-        "direction": "output",
-        "name": "wr_data_ready",
-        "width": "DATA_WIDTH"
+        "direction": "input",
+        "name": "mem_rsp_valid",
+        "width": "1"
       },
       "ssot_refs": [
-        "io_list.interfaces.dma_write_data.ports.wr_data_ready"
+        "io_list.interfaces.mem_master.ports.mem_rsp_valid"
       ],
       "static_evidence": {
         "required": false,
@@ -1347,38 +1277,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port wr_addr",
+      "content": "Implement and connect port mem_rsp_rdata",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.dma_write_data.ports.wr_addr",
+        "Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_rsp_rdata",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "wr_addr width matches SSOT value ADDR_WIDTH",
-        "wr_addr port direction remains input"
+        "mem_rsp_rdata width matches SSOT value DATA_WIDTH",
+        "mem_rsp_rdata port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_write_data.ports.wr_addr.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=wr_addr; width=ADDR_WIDTH; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.mem_master.ports.mem_rsp_rdata.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=mem_rsp_rdata; width=DATA_WIDTH; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0075",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.dma_write_data.ports.wr_addr",
+      "source_ref": "io_list.interfaces.mem_master.ports.mem_rsp_rdata",
       "ssot_context": {
         "direction": "input",
-        "name": "wr_addr",
-        "width": "ADDR_WIDTH"
+        "name": "mem_rsp_rdata",
+        "width": "DATA_WIDTH"
       },
       "ssot_refs": [
-        "io_list.interfaces.dma_write_data.ports.wr_addr"
+        "io_list.interfaces.mem_master.ports.mem_rsp_rdata"
       ],
       "static_evidence": {
         "required": false,
@@ -1392,38 +1322,38 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "io_list.port",
-      "content": "Implement and connect port wr_data",
+      "content": "Implement and connect port mem_rsp_error",
       "criteria": [
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.dma_write_data.ports.wr_data",
+        "Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_rsp_error",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "wr_data width matches SSOT value DATA_WIDTH",
-        "wr_data port direction remains input"
+        "mem_rsp_error width matches SSOT value 1",
+        "mem_rsp_error port direction remains input"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_write_data.ports.wr_data.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=wr_data; width=DATA_WIDTH; direction=input.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.mem_master.ports.mem_rsp_error.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=mem_rsp_error; width=1; direction=input.",
       "evidence_terms": [],
       "id": "RTL-0076",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.dma_write_data.ports.wr_data",
+      "source_ref": "io_list.interfaces.mem_master.ports.mem_rsp_error",
       "ssot_context": {
         "direction": "input",
-        "name": "wr_data",
-        "width": "DATA_WIDTH"
+        "name": "mem_rsp_error",
+        "width": "1"
       },
       "ssot_refs": [
-        "io_list.interfaces.dma_write_data.ports.wr_data"
+        "io_list.interfaces.mem_master.ports.mem_rsp_error"
       ],
       "static_evidence": {
         "required": false,
@@ -1437,54 +1367,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
-      }
-    },
-    {
-      "category": "io_list.port",
-      "content": "Implement and connect port wr_strb",
-      "criteria": [
-        "RTL declaration matches SSOT direction and width",
-        "Active input controls are consumed by behavior or explicitly justified",
-        "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.dma_write_data.ports.wr_strb",
-        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "wr_strb width matches SSOT value DATA_WIDTH/8",
-        "wr_strb port direction remains input"
-      ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.dma_write_data.ports.wr_strb.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=wr_strb; width=DATA_WIDTH/8; direction=input.",
-      "evidence_terms": [],
-      "id": "RTL-0077",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "priority": "normal",
-      "required": true,
-      "source_ref": "io_list.interfaces.dma_write_data.ports.wr_strb",
-      "ssot_context": {
-        "direction": "input",
-        "name": "wr_strb",
-        "width": "DATA_WIDTH/8"
-      },
-      "ssot_refs": [
-        "io_list.interfaces.dma_write_data.ports.wr_strb"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 7,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
-        "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1494,26 +1379,26 @@
         "RTL declaration matches SSOT direction and width",
         "Active input controls are consumed by behavior or explicitly justified",
         "Active outputs are driven by implemented logic, not placeholder constants",
-        "Traceability keeps source_ref io_list.interfaces.status_irq.ports.irq",
+        "Traceability keeps source_ref io_list.interfaces.interrupt.ports.irq",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "irq width matches SSOT value 1",
         "irq port direction remains output"
       ],
-      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.status_irq.ports.irq.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=irq; width=1; direction=output.",
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.interrupt.ports.irq.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.\nSSOT item context: name=irq; width=1; direction=output.",
       "evidence_terms": [],
-      "id": "RTL-0078",
+      "id": "RTL-0077",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "io_list.interfaces.status_irq.ports.irq",
+      "source_ref": "io_list.interfaces.interrupt.ports.irq",
       "ssot_context": {
         "direction": "output",
         "name": "irq",
         "width": "1"
       },
       "ssot_refs": [
-        "io_list.interfaces.status_irq.ports.irq"
+        "io_list.interfaces.interrupt.ports.irq"
       ],
       "static_evidence": {
         "required": false,
@@ -1527,13 +1412,13 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "171b5fe388155b7b1edfb3840233a511c24450973133c88e18bd9bf69445d6c6",
+  "todo_plan_sha256": "528ba0df873e04e970994cc7f47e379270bb2f047df8f859defc125f041665a8",
   "top": "dma_scratch_orch_live_20260519b",
   "type": "rtl_authoring_packet"
 }

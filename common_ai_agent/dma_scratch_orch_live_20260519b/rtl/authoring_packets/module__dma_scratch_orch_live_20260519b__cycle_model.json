@@ -12,7 +12,7 @@
       "enabled": true,
       "index": 6,
       "key": "cycle_model",
-      "module_task_count": 159,
+      "module_task_count": 170,
       "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "cycle_model",
       "section_chunk_count": 1,
@@ -66,254 +66,230 @@
       },
       {
         "aliases": [
-          "csr_apb_lite_paddr",
-          "paddr"
+          "csr_slave_csr_valid",
+          "csr_valid"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "paddr",
+        "name": "csr_valid",
         "source_ref": "io_list.interfaces[1].ports[0]",
-        "width": "ADDR_WIDTH"
+        "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_psel",
-          "psel"
+          "csr_ready",
+          "csr_slave_csr_ready"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "psel",
+        "direction": "output",
+        "name": "csr_ready",
         "source_ref": "io_list.interfaces[1].ports[1]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_penable",
-          "penable"
+          "csr_slave_csr_write",
+          "csr_write"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "penable",
+        "name": "csr_write",
         "source_ref": "io_list.interfaces[1].ports[2]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_pwrite",
-          "pwrite"
+          "csr_addr",
+          "csr_slave_csr_addr"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "pwrite",
+        "name": "csr_addr",
         "source_ref": "io_list.interfaces[1].ports[3]",
-        "width": "1"
+        "width": "ADDR_WIDTH"
       },
       {
         "aliases": [
-          "csr_apb_lite_pwdata",
-          "pwdata"
+          "csr_slave_csr_wdata",
+          "csr_wdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "pwdata",
+        "name": "csr_wdata",
         "source_ref": "io_list.interfaces[1].ports[4]",
         "width": "DATA_WIDTH"
       },
       {
         "aliases": [
-          "csr_apb_lite_prdata",
-          "prdata"
+          "csr_slave_csr_wstrb",
+          "csr_wstrb"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "output",
-        "name": "prdata",
+        "direction": "input",
+        "name": "csr_wstrb",
         "source_ref": "io_list.interfaces[1].ports[5]",
-        "width": "DATA_WIDTH"
+        "width": "DATA_WIDTH/8"
       },
       {
         "aliases": [
-          "csr_apb_lite_pready",
-          "pready"
+          "csr_rvalid",
+          "csr_slave_csr_rvalid"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "pready",
+        "name": "csr_rvalid",
         "source_ref": "io_list.interfaces[1].ports[6]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_pslverr",
-          "pslverr"
+          "csr_rdata",
+          "csr_slave_csr_rdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "pslverr",
+        "name": "csr_rdata",
         "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "csr_error",
+          "csr_slave_csr_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "csr_error",
+        "source_ref": "io_list.interfaces[1].ports[8]",
         "width": "1"
       },
       {
         "aliases": [
-          "dma_read_addr_rd_addr_valid",
-          "rd_addr_valid"
+          "mem_master_mem_req_valid",
+          "mem_req_valid"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "rd_addr_valid",
+        "direction": "output",
+        "name": "mem_req_valid",
         "source_ref": "io_list.interfaces[2].ports[0]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_addr_rd_addr_ready",
-          "rd_addr_ready"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "output",
-        "name": "rd_addr_ready",
-        "source_ref": "io_list.interfaces[2].ports[1]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_addr_rd_addr",
-          "rd_addr"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_addr",
-        "source_ref": "io_list.interfaces[2].ports[2]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data_valid",
-          "rd_data_valid"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_data_valid",
-        "source_ref": "io_list.interfaces[3].ports[0]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data_ready",
-          "rd_data_ready"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "output",
-        "name": "rd_data_ready",
-        "source_ref": "io_list.interfaces[3].ports[1]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data",
-          "rd_data"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_data",
-        "source_ref": "io_list.interfaces[3].ports[2]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_resp",
-          "rd_resp"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_resp",
-        "source_ref": "io_list.interfaces[3].ports[3]",
         "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data_valid",
-          "wr_data_valid"
+          "mem_master_mem_req_ready",
+          "mem_req_ready"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "wr_data_valid",
-        "source_ref": "io_list.interfaces[4].ports[0]",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_ready",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data_ready",
-          "wr_data_ready"
+          "mem_master_mem_req_write",
+          "mem_req_write"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "wr_data_ready",
-        "source_ref": "io_list.interfaces[4].ports[1]",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_write",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_addr",
-          "wr_addr"
+          "mem_master_mem_req_addr",
+          "mem_req_addr"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_addr",
-        "source_ref": "io_list.interfaces[4].ports[2]",
+        "direction": "output",
+        "name": "mem_req_addr",
+        "source_ref": "io_list.interfaces[2].ports[3]",
         "width": "ADDR_WIDTH"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data",
-          "wr_data"
+          "mem_master_mem_req_wdata",
+          "mem_req_wdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_data",
-        "source_ref": "io_list.interfaces[4].ports[3]",
+        "direction": "output",
+        "name": "mem_req_wdata",
+        "source_ref": "io_list.interfaces[2].ports[4]",
         "width": "DATA_WIDTH"
       },
       {
         "aliases": [
-          "dma_write_data_wr_strb",
-          "wr_strb"
+          "mem_master_mem_req_wstrb",
+          "mem_req_wstrb"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_strb",
-        "source_ref": "io_list.interfaces[4].ports[4]",
+        "direction": "output",
+        "name": "mem_req_wstrb",
+        "source_ref": "io_list.interfaces[2].ports[5]",
         "width": "DATA_WIDTH/8"
       },
       {
         "aliases": [
-          "irq",
-          "status_irq_irq"
+          "mem_master_mem_rsp_valid",
+          "mem_rsp_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_valid",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "mem_master_mem_rsp_rdata",
+          "mem_rsp_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_rdata",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "mem_master_mem_rsp_error",
+          "mem_rsp_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_error",
+        "source_ref": "io_list.interfaces[2].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_irq",
+          "irq"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
         "name": "irq",
-        "source_ref": "io_list.interfaces[5].ports[0]",
+        "source_ref": "io_list.interfaces[3].ports[0]",
         "width": "1"
       }
     ],
@@ -323,15 +299,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 15,
-    "open_required_count": 15,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -361,7 +337,7 @@
     "categories": {
       "cycle_model.backpressure": 1,
       "cycle_model.clock": 1,
-      "cycle_model.handshake_rules": 3,
+      "cycle_model.handshake_rules": 2,
       "cycle_model.latency": 1,
       "cycle_model.observability": 1,
       "cycle_model.ordering": 4,
@@ -373,22 +349,21 @@
       "enabled": true,
       "index": 6,
       "key": "cycle_model",
-      "module_task_count": 159,
+      "module_task_count": 170,
       "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "cycle_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 15,
-    "required_count": 15,
+    "open_required_count": 0,
+    "required_count": 14,
     "source_refs": [
       "cycle_model.clock",
       "cycle_model.reset",
       "cycle_model.latency",
-      "cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready",
-      "cycle_model.handshake_rules.rd_data_valid_rd_data_ready",
-      "cycle_model.handshake_rules.wr_data_valid_wr_data_ready",
+      "cycle_model.handshake_rules.csr_valid_csr_ready",
+      "cycle_model.handshake_rules.mem_req_valid_mem_req_ready",
       "cycle_model.pipeline.S0_ACCEPT",
       "cycle_model.pipeline.S1_EVALUATE",
       "cycle_model.pipeline.S2_OBSERVE",
@@ -400,9 +375,9 @@
       "cycle_model.observability.observability_signal_0"
     ],
     "status_counts": {
-      "open": 15
+      "pass": 14
     },
-    "task_count": 15
+    "task_count": 14
   },
   "tasks": [
     {
@@ -418,7 +393,7 @@
       ],
       "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: value=clk.",
       "evidence_terms": [],
-      "id": "RTL-0114",
+      "id": "RTL-0122",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -442,9 +417,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -463,7 +438,7 @@
         "rst",
         "rst_n"
       ],
-      "id": "RTL-0115",
+      "id": "RTL-0123",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -476,8 +451,11 @@
         "cycle_model.reset"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -486,7 +464,7 @@
           "rst_n"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -496,9 +474,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -514,7 +492,7 @@
       ],
       "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.",
       "evidence_terms": [],
-      "id": "RTL-0116",
+      "id": "RTL-0124",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -536,59 +514,63 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: rd_addr_valid/rd_addr_ready",
+      "content": "Implement handshake rule: csr_valid/csr_ready",
       "criteria": [
         "RTL contains the control/state/handshake logic for this cycle rule",
         "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
         "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready",
+        "Traceability keeps source_ref cycle_model.handshake_rules.csr_valid_csr_ready",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+        "cycle_model.handshake_rules.csr_valid_csr_ready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: signal=rd_addr_valid/rd_addr_ready.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.csr_valid_csr_ready.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: signal=csr_valid/csr_ready.",
       "evidence_terms": [
-        "addr",
-        "rd",
-        "rd_addr_ready",
-        "rd_addr_valid",
+        "csr",
+        "csr_ready",
+        "csr_valid",
         "ready",
         "valid"
       ],
-      "id": "RTL-0117",
+      "id": "RTL-0125",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready",
+      "source_ref": "cycle_model.handshake_rules.csr_valid_csr_ready",
       "ssot_context": {
-        "signal": "rd_addr_valid/rd_addr_ready"
+        "signal": "csr_valid/csr_ready"
       },
       "ssot_refs": [
-        "cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready"
+        "cycle_model.handshake_rules.csr_valid_csr_ready"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "csr",
+          "csr_ready",
+          "csr_valid",
+          "ready",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
-          "addr",
-          "rd",
-          "rd_addr_ready",
-          "rd_addr_valid",
+          "csr",
+          "csr_ready",
+          "csr_valid",
           "ready",
           "valid"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -598,59 +580,66 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: rd_data_valid/rd_data_ready",
+      "content": "Implement handshake rule: mem_req_valid/mem_req_ready",
       "criteria": [
         "RTL contains the control/state/handshake logic for this cycle rule",
         "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
         "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.rd_data_valid_rd_data_ready",
+        "Traceability keeps source_ref cycle_model.handshake_rules.mem_req_valid_mem_req_ready",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "cycle_model.handshake_rules.rd_data_valid_rd_data_ready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+        "cycle_model.handshake_rules.mem_req_valid_mem_req_ready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.rd_data_valid_rd_data_ready.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: signal=rd_data_valid/rd_data_ready.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.mem_req_valid_mem_req_ready.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: signal=mem_req_valid/mem_req_ready.",
       "evidence_terms": [
-        "data",
-        "rd",
-        "rd_data_ready",
-        "rd_data_valid",
+        "mem",
+        "mem_req_ready",
+        "mem_req_valid",
         "ready",
+        "req",
         "valid"
       ],
-      "id": "RTL-0118",
+      "id": "RTL-0126",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "cycle_model.handshake_rules.rd_data_valid_rd_data_ready",
+      "source_ref": "cycle_model.handshake_rules.mem_req_valid_mem_req_ready",
       "ssot_context": {
-        "signal": "rd_data_valid/rd_data_ready"
+        "signal": "mem_req_valid/mem_req_ready"
       },
       "ssot_refs": [
-        "cycle_model.handshake_rules.rd_data_valid_rd_data_ready"
+        "cycle_model.handshake_rules.mem_req_valid_mem_req_ready"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "mem",
+          "mem_req_ready",
+          "mem_req_valid",
+          "ready",
+          "req",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
         "required_terms": [
-          "data",
-          "rd",
-          "rd_data_ready",
-          "rd_data_valid",
+          "mem",
+          "mem_req_ready",
+          "mem_req_valid",
           "ready",
+          "req",
           "valid"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -660,71 +649,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
-      }
-    },
-    {
-      "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: wr_data_valid/wr_data_ready",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.wr_data_valid_wr_data_ready",
-        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "cycle_model.handshake_rules.wr_data_valid_wr_data_ready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.wr_data_valid_wr_data_ready.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: signal=wr_data_valid/wr_data_ready.",
-      "evidence_terms": [
-        "data",
-        "ready",
-        "valid",
-        "wr",
-        "wr_data_ready",
-        "wr_data_valid"
-      ],
-      "id": "RTL-0119",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.handshake_rules.wr_data_valid_wr_data_ready",
-      "ssot_context": {
-        "signal": "wr_data_valid/wr_data_ready"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules.wr_data_valid_wr_data_ready"
-      ],
-      "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "data",
-          "ready",
-          "valid",
-          "wr",
-          "wr_data_ready",
-          "wr_data_valid"
-        ],
-        "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
-        "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -741,7 +668,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S0_ACCEPT.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: stage=S0_ACCEPT; action=Accept legal request/command/packet/control work under declared handshake rules.; cycle=0..N.",
       "evidence_terms": [],
-      "id": "RTL-0120",
+      "id": "RTL-0127",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -767,9 +694,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -786,7 +713,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S1_EVALUATE.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: stage=S1_EVALUATE; action=Evaluate function_model transaction and update only declared state.; cycle=N..M.",
       "evidence_terms": [],
-      "id": "RTL-0121",
+      "id": "RTL-0128",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -812,9 +739,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -831,7 +758,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.S2_OBSERVE.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: stage=S2_OBSERVE; action=Publish response/status/output/debug event and hold it stable until accepted.; cycle=M..K.",
       "evidence_terms": [],
-      "id": "RTL-0122",
+      "id": "RTL-0129",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -857,9 +784,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -875,7 +802,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: value=Accepted requests update architectural state only on clock edges..",
       "evidence_terms": [],
-      "id": "RTL-0123",
+      "id": "RTL-0130",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -899,9 +826,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -917,7 +844,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: value=Completion/status/interrupt updates occur after the operation reaches its terminal FSM state..",
       "evidence_terms": [],
-      "id": "RTL-0124",
+      "id": "RTL-0131",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -941,9 +868,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -959,7 +886,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: value=Backpressure stalls the active handshake stage without corrupting stored state..",
       "evidence_terms": [],
-      "id": "RTL-0125",
+      "id": "RTL-0132",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -983,9 +910,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1001,7 +928,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_3.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: value=Read/dataflow stages must precede dependent write/output stages where declared in dataflow..",
       "evidence_terms": [],
-      "id": "RTL-0126",
+      "id": "RTL-0133",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -1025,9 +952,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1043,7 +970,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: value=Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable..",
       "evidence_terms": [],
-      "id": "RTL-0127",
+      "id": "RTL-0134",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -1067,9 +994,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1085,7 +1012,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..",
       "evidence_terms": [],
-      "id": "RTL-0128",
+      "id": "RTL-0135",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -1109,13 +1036,13 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "171b5fe388155b7b1edfb3840233a511c24450973133c88e18bd9bf69445d6c6",
+  "todo_plan_sha256": "528ba0df873e04e970994cc7f47e379270bb2f047df8f859defc125f041665a8",
   "top": "dma_scratch_orch_live_20260519b",
   "type": "rtl_authoring_packet"
 }

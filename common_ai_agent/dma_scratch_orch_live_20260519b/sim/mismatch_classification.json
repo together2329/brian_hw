@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "type": "mismatch_classification",
+  "ip": "dma_scratch_orch_live_20260519b",
+  "generated_at": "2026-05-18T23:42:30Z",
+  "status": "pass",
+  "classifications": []
+}

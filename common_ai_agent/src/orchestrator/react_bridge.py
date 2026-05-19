@@ -238,13 +238,23 @@ def _bind_orchestrator_tools(
         )
 
     def _mark_downstream_stale(**kw):
-        return orch_tools.mark_downstream_stale(
+        result, summary = orch_tools.mark_downstream_stale(
             db=db,
             ip_id=ctx.ip_id,
             from_stage=kw.get("from_stage", ""),
             run_id=ctx.run_id,
             session_id=ctx.session_id,
         )
+        if isinstance(result, dict) and result.get("ok"):
+            for stale_stage in result.get("stale") or []:
+                stage = str(stale_stage)
+                budgets.reset(stage)
+                budgets.reset(stage.replace("-", "_"))
+                if stage == "tb":
+                    budgets.reset("tb-gen")
+                elif stage == "sim-debug":
+                    budgets.reset("sim_debug")
+        return result, summary
 
     def _import_document(**kw):
         return orch_tools.import_document(

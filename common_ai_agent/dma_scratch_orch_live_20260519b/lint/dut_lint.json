@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "type": "dut_lint",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "pyslang+verilator",
+  "command": "pyslang rtl/dma_scratch_orch_live_20260519b.sv && verilator --lint-only -Wall -Irtl -f list/dma_scratch_orch_live_20260519b.f --top-module dma_scratch_orch_live_20260519b",
+  "cwd": "dma_scratch_orch_live_20260519b",
+  "top": "dma_scratch_orch_live_20260519b",
+  "filelist": "dma_scratch_orch_live_20260519b/list/dma_scratch_orch_live_20260519b.f",
+  "rtl_files": [
+    "rtl/dma_scratch_orch_live_20260519b.sv"
+  ],
+  "timestamp": "2026-05-19T00:14:46.895308+00:00",
+  "returncode": 0,
+  "errors": 0,
+  "warnings": 0,
+  "waived_warnings": 0,
+  "tool_results": [
+    {
+      "tool": "pyslang",
+      "available": true,
+      "command": "pyslang rtl/dma_scratch_orch_live_20260519b.sv",
+      "returncode": 0,
+      "errors": 0,
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "tool": "verilator",
+      "available": true,
+      "command": "verilator --lint-only -Wall -Irtl -f list/dma_scratch_orch_live_20260519b.f --top-module dma_scratch_orch_live_20260519b",
+      "returncode": 0,
+      "errors": 0,
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
+    }
+  ],
+  "suppression_violation_count": 0,
+  "suppression_violations": [],
+  "style_violation_count": 0,
+  "style_violations": [],
+  "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
+  "passed": true
+}

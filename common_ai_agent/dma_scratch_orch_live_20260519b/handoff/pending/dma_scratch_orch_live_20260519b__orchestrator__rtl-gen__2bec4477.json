@@ -1,0 +1,47 @@
+{
+  "created_at": "2026-05-18T22:50:28Z",
+  "from_workflow": "orchestrator",
+  "handoff_id": "dma_scratch_orch_live_20260519b__orchestrator__rtl-gen__2bec4477",
+  "ip": "dma_scratch_orch_live_20260519b",
+  "orchestrator_run_id": "2bec4477105f4084bb7ac73a9cc15109",
+  "payload": {
+    "classification": {
+      "confidence": "high",
+      "next_workflow": "rtl-gen",
+      "owner": "compile_error",
+      "reason": "RTL artifact/filelist is incomplete; rerun rtl-gen after preserving evidence"
+    },
+    "evidence": {
+      "dut_lint_returncode": 0,
+      "headline": "[RTL RESULT] FAIL - LLM-authored RTL needs rtl-gen repair",
+      "rtl_compile_returncode": 0,
+      "rtl_todo_gate": {
+        "all_required_todos_pass": false,
+        "audit_rtl": true,
+        "blocking_questions": 0,
+        "open_required_todos": 4,
+        "orphan_tasks": 0,
+        "static_missing": 1,
+        "status": "fail"
+      },
+      "rtl_todo_plan": "rtl/rtl_todo_plan.json",
+      "ssot_rtl": "logs/stage_engine/ssot-rtl.json"
+    },
+    "failed_jobs": [
+      "59b8a99a0389",
+      "dc6c1c74791a",
+      "781ae4eecb38",
+      "2752b03c16b9"
+    ],
+    "reason": "Repeated rtl-gen jobs failed on unchanged RTL TODO gate; durable handoff for rtl-gen owner to inspect and close remaining gate items.",
+    "user_instruction": "open_required_todos must route to rtl-gen, not human review; continue repair loop through rtl-gen, then lint/tb/sim/sim_debug."
+  },
+  "reason": "Retry budget reached for live rtl-gen dispatches; queue durable rtl-gen handoff instead of silently retrying further.",
+  "schema": "workflow_handoff.v1",
+  "scope": {
+    "pipeline_run_id": "2bec4477105f4084bb7ac73a9cc15109",
+    "session_id": "brian",
+    "user_id": "2a8beaa95732489bb84da2473719b6bd"
+  },
+  "to_workflow": "rtl-gen"
+}

@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: dma_scratch_orch_live_20260519b
 - Owner file: rtl/dma_scratch_orch_live_20260519b.sv
-- Task count: 15
-- Required tasks: 15
+- Task count: 14
+- Required tasks: 14
 
 ## Rules
 
@@ -22,29 +22,29 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 15
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
 - Module slice: 6/15 section=cycle_model task_limit=48
 - Slice rule: Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
-- SSOT top IO contracts: 23
+- SSOT top IO contracts: 21
 
 ## Tasks
 
-### RTL-0114: Implement cycle-model clock
+### RTL-0122: Implement cycle-model clock
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.clock
 - Source ref: cycle_model.clock
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.clock.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: value=clk.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -54,18 +54,18 @@ SSOT item context: value=clk.
   - cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.clock
 
-### RTL-0115: Implement cycle-model reset
+### RTL-0123: Implement cycle-model reset
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.reset
 - Source ref: cycle_model.reset
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.reset.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: signal=rst_n.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -75,17 +75,17 @@ SSOT item context: signal=rst_n.
   - cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.reset
 
-### RTL-0116: Implement cycle-model latency
+### RTL-0124: Implement cycle-model latency
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.latency
 - Source ref: cycle_model.latency
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.latency.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -95,81 +95,60 @@ Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv
   - cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.latency
 
-### RTL-0117: Implement handshake rule: rd_addr_valid/rd_addr_ready
+### RTL-0125: Implement handshake rule: csr_valid/csr_ready
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
-- Source ref: cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready
+- Source ref: cycle_model.handshake_rules.csr_valid_csr_ready
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready.
+SSOT ref: cycle_model.handshake_rules.csr_valid_csr_ready.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
-SSOT item context: signal=rd_addr_valid/rd_addr_ready.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: signal=csr_valid/csr_ready.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
   - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready
+  - Traceability keeps source_ref cycle_model.handshake_rules.csr_valid_csr_ready
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready
+  - cycle_model.handshake_rules.csr_valid_csr_ready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
+- SSOT refs: cycle_model.handshake_rules.csr_valid_csr_ready
 
-### RTL-0118: Implement handshake rule: rd_data_valid/rd_data_ready
+### RTL-0126: Implement handshake rule: mem_req_valid/mem_req_ready
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.handshake_rules
-- Source ref: cycle_model.handshake_rules.rd_data_valid_rd_data_ready
+- Source ref: cycle_model.handshake_rules.mem_req_valid_mem_req_ready
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.handshake_rules.rd_data_valid_rd_data_ready.
+SSOT ref: cycle_model.handshake_rules.mem_req_valid_mem_req_ready.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
-SSOT item context: signal=rd_data_valid/rd_data_ready.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: signal=mem_req_valid/mem_req_ready.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
   - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.handshake_rules.rd_data_valid_rd_data_ready
+  - Traceability keeps source_ref cycle_model.handshake_rules.mem_req_valid_mem_req_ready
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - cycle_model.handshake_rules.rd_data_valid_rd_data_ready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.handshake_rules.rd_data_valid_rd_data_ready
+  - cycle_model.handshake_rules.mem_req_valid_mem_req_ready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
+- SSOT refs: cycle_model.handshake_rules.mem_req_valid_mem_req_ready
 
-### RTL-0119: Implement handshake rule: wr_data_valid/wr_data_ready
+### RTL-0127: Implement pipeline stage: S0_ACCEPT
 
 - Priority: high
 - Required: True
-- Status: open
-- Category: cycle_model.handshake_rules
-- Source ref: cycle_model.handshake_rules.wr_data_valid_wr_data_ready
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.handshake_rules.wr_data_valid_wr_data_ready.
-Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
-SSOT item context: signal=wr_data_valid/wr_data_ready.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.handshake_rules.wr_data_valid_wr_data_ready
-  - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - cycle_model.handshake_rules.wr_data_valid_wr_data_ready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.handshake_rules.wr_data_valid_wr_data_ready
-
-### RTL-0120: Implement pipeline stage: S0_ACCEPT
-
-- Priority: high
-- Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S0_ACCEPT
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S0_ACCEPT.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: stage=S0_ACCEPT; action=Accept legal request/command/packet/control work under declared handshake rules.; cycle=0..N.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -180,18 +159,18 @@ SSOT item context: stage=S0_ACCEPT; action=Accept legal request/command/packet/c
   - cycle_model.pipeline.S0_ACCEPT appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.pipeline.S0_ACCEPT
 
-### RTL-0121: Implement pipeline stage: S1_EVALUATE
+### RTL-0128: Implement pipeline stage: S1_EVALUATE
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S1_EVALUATE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S1_EVALUATE.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: stage=S1_EVALUATE; action=Evaluate function_model transaction and update only declared state.; cycle=N..M.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -202,18 +181,18 @@ SSOT item context: stage=S1_EVALUATE; action=Evaluate function_model transaction
   - cycle_model.pipeline.S1_EVALUATE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.pipeline.S1_EVALUATE
 
-### RTL-0122: Implement pipeline stage: S2_OBSERVE
+### RTL-0129: Implement pipeline stage: S2_OBSERVE
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.pipeline
 - Source ref: cycle_model.pipeline.S2_OBSERVE
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.pipeline.S2_OBSERVE.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: stage=S2_OBSERVE; action=Publish response/status/output/debug event and hold it stable until accepted.; cycle=M..K.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -224,18 +203,18 @@ SSOT item context: stage=S2_OBSERVE; action=Publish response/status/output/debug
   - cycle_model.pipeline.S2_OBSERVE appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.pipeline.S2_OBSERVE
 
-### RTL-0123: Implement ordering rule: ordering_rule_0
+### RTL-0130: Implement ordering rule: ordering_rule_0
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_0.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: value=Accepted requests update architectural state only on clock edges..
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -245,18 +224,18 @@ SSOT item context: value=Accepted requests update architectural state only on cl
   - cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.ordering.ordering_rule_0
 
-### RTL-0124: Implement ordering rule: ordering_rule_1
+### RTL-0131: Implement ordering rule: ordering_rule_1
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_1
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_1.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: value=Completion/status/interrupt updates occur after the operation reaches its terminal FSM state..
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -266,18 +245,18 @@ SSOT item context: value=Completion/status/interrupt updates occur after the ope
   - cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.ordering.ordering_rule_1
 
-### RTL-0125: Implement ordering rule: ordering_rule_2
+### RTL-0132: Implement ordering rule: ordering_rule_2
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_2
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_2.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: value=Backpressure stalls the active handshake stage without corrupting stored state..
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -287,18 +266,18 @@ SSOT item context: value=Backpressure stalls the active handshake stage without 
   - cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.ordering.ordering_rule_2
 
-### RTL-0126: Implement ordering rule: ordering_rule_3
+### RTL-0133: Implement ordering rule: ordering_rule_3
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.ordering
 - Source ref: cycle_model.ordering.ordering_rule_3
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.ordering.ordering_rule_3.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: value=Read/dataflow stages must precede dependent write/output stages where declared in dataflow..
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -308,18 +287,18 @@ SSOT item context: value=Read/dataflow stages must precede dependent write/outpu
   - cycle_model.ordering.ordering_rule_3 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.ordering.ordering_rule_3
 
-### RTL-0127: Implement backpressure rule: backpressure_rule_0
+### RTL-0134: Implement backpressure rule: backpressure_rule_0
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.backpressure
 - Source ref: cycle_model.backpressure.backpressure_rule_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.backpressure.backpressure_rule_0.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: value=Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable..
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -329,18 +308,18 @@ SSOT item context: value=Ready/valid deassertion stalls only the affected interf
   - cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.backpressure.backpressure_rule_0
 
-### RTL-0128: Implement observability signal: observability_signal_0
+### RTL-0135: Implement observability signal: observability_signal_0
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: cycle_model.observability
 - Source ref: cycle_model.observability.observability_signal_0
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.observability.observability_signal_0.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior

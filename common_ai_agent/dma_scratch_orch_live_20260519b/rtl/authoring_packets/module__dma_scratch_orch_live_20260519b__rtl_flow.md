@@ -22,14 +22,14 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
 - Module slice: 1/15 section=rtl_flow task_limit=48
 - Slice rule: Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
-- SSOT top IO contracts: 23
+- SSOT top IO contracts: 21
 
 ## Tasks
 
@@ -56,14 +56,14 @@ Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_flow.top
 - Source ref: io_list
 - Detail: The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.
 SSOT ref: io_list.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via top_module.
 SSOT item context: value=dma_scratch_orch_live_20260519b.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Top module name matches SSOT top_module
   - Every SSOT top-level port appears with matching direction and width

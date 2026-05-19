@@ -58,7 +58,7 @@ def _strip_markdown_fences(text: str) -> str:
     """
     # Patterns that indicate a code fence contains tool-call examples
     _TOOL_CALL_INDICATORS = re.compile(
-        r'(?:Action|tool_call)\s*:\s*\w+\s*\(|'           # Action: tool(
+        r'(?:Action|tool_call)\s*:\s*[\w.]+\s*\(|'        # Action: tool(
         r'<\s*/?\s*(?:tool_call|invoke|tool_use|tool|parameter|tool_calls)[>\s]|'  # XML/DSML tags
         r'\{\s*"name"\s*:\s*"[^"]+"\s*,\s*"arguments"',  # bare JSON tool call
         re.IGNORECASE,
@@ -413,6 +413,7 @@ _TOOL_NAME_ALIASES: Dict[str, str] = {
     "bash_command":     "run_command",
     "run_shell":        "run_command",
     "execute_bash":     "run_command",
+    "exec_command":     "run_command",
     "read":             "read_file",
     "open_file":        "read_file",
     "list_directory":   "list_dir",
@@ -1076,6 +1077,98 @@ def _extract_annotation_ranges(text: str) -> List[Tuple[int, int, str]]:
     return hint_ranges
 
 
+def _convert_multi_tool_use_parallel_actions(text: str) -> str:
+    """Convert Codex `multi_tool_use.parallel(...)` text into local actions.
+
+    Some external-model workers copy the Codex wrapper syntax into their ReAct
+    output. The local worker runtime cannot execute that wrapper directly, but
+    the payload contains ordinary tool calls. Expand each item so the existing
+    parser/executor path can handle it.
+    """
+
+    pattern = re.compile(r'(?:Action|tool_call)\s*:\s*multi_tool_use\.parallel\s*\(', re.IGNORECASE)
+    out: List[str] = []
+    pos = 0
+
+    def _render_action(raw_name: Any, params: Any) -> Optional[str]:
+        name = str(raw_name or "").strip()
+        if not name:
+            return None
+        if "." in name:
+            name = name.rsplit(".", 1)[-1]
+        name = _resolve_tool_name(name)
+        if name == "run_command" and isinstance(params, dict) and "cmd" in params and "command" not in params:
+            params = dict(params)
+            params["command"] = params.pop("cmd")
+        if not isinstance(params, dict):
+            return f"Action: {name}(command={json.dumps(str(params), ensure_ascii=False)})"
+        args = ", ".join(
+            f"{key}={json.dumps(value, ensure_ascii=False)}"
+            for key, value in params.items()
+        )
+        return f"Action: {name}({args})" if args else f"Action: {name}()"
+
+    while True:
+        match = pattern.search(text, pos)
+        if not match:
+            out.append(text[pos:])
+            break
+
+        out.append(text[pos:match.start()])
+        payload_start = match.end()
+        i = payload_start
+        paren_count = 1
+        in_single_quote = False
+        in_double_quote = False
+
+        while i < len(text) and paren_count > 0:
+            char = text[i]
+            if char == "\\":
+                i += 2
+                continue
+            if char == '"' and not in_single_quote:
+                in_double_quote = not in_double_quote
+            elif char == "'" and not in_double_quote:
+                in_single_quote = not in_single_quote
+            elif not (in_single_quote or in_double_quote):
+                if char == "(":
+                    paren_count += 1
+                elif char == ")":
+                    paren_count -= 1
+            i += 1
+
+        if paren_count != 0:
+            out.append(text[match.start():])
+            break
+
+        payload = text[payload_start:i - 1].strip()
+        try:
+            data = json.loads(payload)
+        except Exception:
+            out.append(text[match.start():i])
+            pos = i
+            continue
+
+        actions: List[str] = []
+        for tool_use in data.get("tool_uses", []) if isinstance(data, dict) else []:
+            if not isinstance(tool_use, dict):
+                continue
+            action = _render_action(
+                tool_use.get("recipient_name") or tool_use.get("name"),
+                tool_use.get("parameters", {}),
+            )
+            if action:
+                actions.append(action)
+
+        if actions:
+            out.append("\n" + "\n".join(actions) + "\n")
+        else:
+            out.append(text[match.start():i])
+        pos = i
+
+    return "".join(out)
+
+
 # ---------------------------------------------------------------------------
 # parse_all_actions
 # ---------------------------------------------------------------------------
@@ -1097,6 +1190,7 @@ def parse_all_actions(
     # Convert XML-style tool calls (<tool_use>, <tool_call>, etc.) before parsing
     text = _strip_native_tool_tokens(text)
     text = sanitize_action_text(text)
+    text = _convert_multi_tool_use_parallel_actions(text)
     hint_ranges = _extract_annotation_ranges(text)
 
     if debug and hint_ranges:

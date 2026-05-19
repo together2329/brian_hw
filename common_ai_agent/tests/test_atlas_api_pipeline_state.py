@@ -27,6 +27,7 @@ def _make_client(tmp_path: Path, monkeypatch) -> TestClient:
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
     monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
     client = TestClient(atlas_ui.create_app())
@@ -157,13 +158,31 @@ def test_pipeline_state_passed_when_ssot_present(tmp_path: Path, monkeypatch) ->
     ip = "smoke_ssot_ip"
     yaml_dir = tmp_path / ip / "yaml"
     yaml_dir.mkdir(parents=True)
+    monkeypatch.setenv("ATLAS_RUN_MODE", "starter")
 
-    # write a minimal ssot with 34 sections
-    sections = "\n".join(
-        f"  - name: section_{i}\n    description: desc_{i}" for i in range(34)
-    )
-    ssot_text = f"ip: {ip}\nsections:\n{sections}\n"
+    ssot_text = f"""
+top_module:
+  name: {ip}
+io_list:
+  interfaces:
+    - name: native
+      ports:
+        - {{name: clk, direction: input, width: 1}}
+        - {{name: rst_n, direction: input, width: 1}}
+        - {{name: busy, direction: output, width: 1}}
+function_model:
+  transactions:
+    - id: smoke
+      output_rules:
+        - {{name: busy, port: busy, expr: 0, width: 1}}
+sections:
+{chr(10).join(f"  - name: section_{idx}" for idx in range(34))}
+""".strip() + "\n"
     (yaml_dir / f"{ip}.ssot.yaml").write_text(ssot_text, encoding="utf-8")
+    checker = tmp_path / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
+    checker.parent.mkdir(parents=True)
+    checker.write_text("#!/usr/bin/env bash\nexit 0\n", encoding="utf-8")
+    checker.chmod(0o755)
 
     client = _make_client(tmp_path, monkeypatch)
     resp = client.get(f"/api/pipeline/state?ip={ip}")
@@ -180,6 +199,47 @@ def test_pipeline_state_passed_when_ssot_present(tmp_path: Path, monkeypatch) ->
     assert "ssot" in first_dot["evidence_path"]
     assert ssot_stage["top"] != ""
     assert ssot_stage["source"] == "fs"  # came from filesystem (no DB row)
+
+
+def test_pipeline_state_marks_rtl_failed_when_stage_gate_fails(tmp_path: Path, monkeypatch) -> None:
+    ip = "rtl_gate_fail_ip"
+    ip_dir = tmp_path / ip
+    rtl_dir = ip_dir / "rtl"
+    list_dir = ip_dir / "list"
+    log_dir = ip_dir / "logs" / "stage_engine"
+    rtl_dir.mkdir(parents=True)
+    list_dir.mkdir(parents=True)
+    log_dir.mkdir(parents=True)
+    (rtl_dir / f"{ip}.sv").write_text(f"module {ip}(input logic clk); endmodule\n", encoding="utf-8")
+    (list_dir / f"{ip}.f").write_text(f"../rtl/{ip}.sv\n", encoding="utf-8")
+    (log_dir / "ssot-rtl.json").write_text(
+        json.dumps(
+            {
+                "status": "fail",
+                "headline": "[RTL RESULT] FAIL - LLM-authored RTL needs rtl-gen repair",
+                "metadata": {
+                    "rtl_todo_plan": {
+                        "gate": {
+                            "status": "fail",
+                            "open_required_todos": 4,
+                            "static_missing": 1,
+                            "all_required_todos_pass": False,
+                        }
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    client = _make_client(tmp_path, monkeypatch)
+    resp = client.get(f"/api/pipeline/state?ip={ip}")
+    assert resp.status_code == 200, resp.text
+
+    rtl_stage = resp.json()["stages"]["rtl"]
+    assert rtl_stage["state"] == "failed"
+    assert "open_required_todos=4" in rtl_stage["error_summary"]
+    assert "static_missing=1" in rtl_stage["error_summary"]
 
 
 def test_pipeline_state_db_row_overrides_filesystem(tmp_path: Path, monkeypatch) -> None:
@@ -662,7 +722,13 @@ def test_pipeline_run_policy_get_post_and_state_payload(tmp_path: Path, monkeypa
     assert r.json()["run_mode"] == "starter"
     assert r.json()["exec_mode"] == "orchestrator"
     assert os.environ.get("ATLAS_RUN_MODE") == "starter"
+    assert os.environ.get("ATLAS_EXEC_MODE") == "orchestrator"
+    assert os.environ.get("ATLAS_DEFAULT_EXEC_MODE") == "orchestrator"
     assert os.environ.get("ATLAS_ORCHESTRATOR_MODE") == "1"
+    saved_config = (tmp_path / ".config").read_text(encoding="utf-8")
+    assert "ATLAS_RUN_MODE=starter" in saved_config
+    assert "ATLAS_EXEC_MODE=orchestrator" in saved_config
+    assert "ATLAS_DEFAULT_EXEC_MODE=orchestrator" in saved_config
 
     state = client.get(f"/api/pipeline/state?ip={ip}").json()
     assert state["run_mode"] == "starter"

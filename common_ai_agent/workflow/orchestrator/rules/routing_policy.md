@@ -8,6 +8,8 @@ Authoritative routing table. The orchestrator agent consults this file before ev
 |---|---|---|
 | `rtl_bug` | `rtl-gen` | `{scope: [failing_modules], reason: "owner=rtl_bug", goal_ids: [...]}` |
 | `tb_bug` | `tb-gen` | `{scope: ["scoreboard"], reason: "owner=tb_bug · observable missing", goal_ids: [...]}` |
+| `stale_oracle` / `owner=fl-model-gen` | `equivalence` stage (fl-model-gen worker) | Regenerate derived FL/equivalence/coverage oracle artifacts from current SSOT before RTL/TB repair |
+| stale `fl_rtl_compare.json` or stale `mismatch_classification.json` | `sim_debug` | Refresh compare/classification first; do not route from an artifact older than fresh sim/equivalence evidence |
 | `frontier` | escalate to human | Write `<ip>/review/frontier_<n>.json` — do not auto-dispatch |
 | `coverage_gap` | `tb-gen` → `sim` → `coverage` | Loop; budget 2 |
 | `lint_violation` | `rtl-gen` | `{scope: ["style"], lint_rules: [...]}` |

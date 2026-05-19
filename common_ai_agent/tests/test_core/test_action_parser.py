@@ -276,6 +276,20 @@ class TestParseAllActions(unittest.TestCase):
         self.assertEqual(actions[0][0], "read_file")
         self.assertEqual(actions[1][0], "list_dir")
 
+    def test_codex_parallel_wrapper_expands_to_local_actions(self):
+        text = (
+            'Action: multi_tool_use.parallel({"tool_uses":['
+            '{"recipient_name":"functions.read_file","parameters":{"path":"a.py"}},'
+            '{"recipient_name":"functions.exec_command","parameters":{"cmd":"make test"}}'
+            ']})'
+        )
+        actions = parse_all_actions(text)
+        self.assertEqual(len(actions), 2)
+        self.assertEqual(actions[0][0], "read_file")
+        self.assertIn('path="a.py"', actions[0][1])
+        self.assertEqual(actions[1][0], "run_command")
+        self.assertIn('command="make test"', actions[1][1])
+
     def test_deduplication(self):
         text = 'Action: read_file(path="a.py")\nAction: read_file(path="a.py")'
         actions = parse_all_actions(text)

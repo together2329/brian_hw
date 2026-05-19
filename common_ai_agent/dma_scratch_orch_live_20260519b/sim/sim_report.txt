@@ -1,0 +1,6 @@
+TESTS=1 PASS=1 FAIL=0
+results=dma_scratch_orch_live_20260519b/sim/results.xml
+scoreboard=dma_scratch_orch_live_20260519b/sim/scoreboard_events.jsonl
+coverage_functional=dma_scratch_orch_live_20260519b/cov/coverage_functional.json
+waveforms=dma_scratch_orch_live_20260519b/sim/dma_scratch_orch_live_20260519b.vcd
+0 errors, 0 warnings

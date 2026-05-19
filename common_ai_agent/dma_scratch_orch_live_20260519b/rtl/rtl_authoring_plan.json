@@ -5,101 +5,9 @@
       "Add tests, vectors, assertions, reports, and repair RTL under LLM-editable surfaces.",
       "Leave unresolved locked-truth decisions as human_gate/change-request records instead of changing SSOT authority."
     ],
-    "blocked_by_llm_work": [
-      {
-        "gate_kind": "static_rtl_evidence",
-        "owner_module": "dma_scratch_orch_live_20260519b",
-        "reason": "75 static-evidence-required task(s) still lack DUT RTL evidence.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
-        "status": "open",
-        "task_id": "RTL-0007"
-      },
-      {
-        "gate_kind": "rtl_placeholder_free_evidence",
-        "owner_module": "dma_scratch_orch_live_20260519b",
-        "reason": "1 RTL placeholder/policy issue(s) remain. None:None: None (No listed RTL source files were readable, so placeholder-free evidence cannot be checked)",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
-        "status": "open",
-        "task_id": "RTL-0009"
-      },
-      {
-        "gate_kind": "top_io_contract_evidence",
-        "owner_module": "dma_scratch_orch_live_20260519b",
-        "reason": "1 top IO contract issue(s) remain. dma_scratch_orch_live_20260519b: SSOT top module is not declared in listed RTL sources",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
-        "status": "open",
-        "task_id": "RTL-0010"
-      },
-      {
-        "gate_kind": "top_output_drive_evidence",
-        "owner_module": "dma_scratch_orch_live_20260519b",
-        "reason": "1 top output drive issue(s) remain. dma_scratch_orch_live_20260519b: SSOT top module is not declared, so output drive evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
-        "status": "open",
-        "task_id": "RTL-0011"
-      },
-      {
-        "gate_kind": "top_input_consumption_evidence",
-        "owner_module": "dma_scratch_orch_live_20260519b",
-        "reason": "1 top input consumption issue(s) remain. dma_scratch_orch_live_20260519b: SSOT top module is not declared, so input consumption evidence cannot be checked",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
-        "status": "open",
-        "task_id": "RTL-0012"
-      },
-      {
-        "gate_kind": "manifest_hierarchy_integration",
-        "owner_module": "dma_scratch_orch_live_20260519b",
-        "reason": "1 manifest hierarchy integration issue(s) remain. dma_scratch_orch_live_20260519b: SSOT top module is not declared in listed RTL sources",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
-        "status": "open",
-        "task_id": "RTL-0013"
-      }
-    ],
+    "blocked_by_llm_work": [],
     "blocked_by_locked_truth": [],
-    "blocked_by_tool_evidence": [
-      {
-        "gate_kind": "common_ai_agent_authoring",
-        "owner_module": "dma_scratch_orch_live_20260519b",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
-        "gate_kind": "dut_compile",
-        "owner_module": "dma_scratch_orch_live_20260519b",
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "gate_kind": "dut_lint",
-        "owner_module": "dma_scratch_orch_live_20260519b",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
-        "gate_kind": "dynamic_todo_closure",
-        "owner_module": "dma_scratch_orch_live_20260519b",
-        "reason": "167 required non-closure TODO(s) remain open.",
-        "source": "gate_todo",
-        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "status": "open",
-        "task_id": "RTL-0019"
-      }
-    ],
+    "blocked_by_tool_evidence": [],
     "connection_contract_gap": {
       "machine_readable_contract_count": 0,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
@@ -117,112 +25,19 @@
         "suggested_rows": 0
       }
     },
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
-    "gate_status": "fail",
+    "gate_status": "pass",
     "hard_blockers": [],
-    "open_required_todos": 168,
-    "pass_allowed": false,
+    "open_required_todos": 0,
+    "pass_allowed": true,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
       "Do not edit SSOT/FL/coverage/interface/performance authority artifacts without human approval.",
       "Do not claim rtl-gen PASS while pass_allowed is false.",
       "Do not sign off top integration while required connection contracts are missing."
     ],
-    "tool_evidence_plan": [
-      {
-        "artifact": "rtl/rtl_authoring_provenance.json",
-        "artifacts": [
-          "dma_scratch_orch_live_20260519b/rtl/rtl_authoring_provenance.json",
-          "dma_scratch_orch_live_20260519b/rtl/rtl_todo_plan.json"
-        ],
-        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-        "commands": [
-          "python3 src/headless_workflow.py --root . --ip dma_scratch_orch_live_20260519b --stages rtl-gen",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_scratch_orch_live_20260519b --root . --audit-rtl"
-        ],
-        "gate_kind": "common_ai_agent_authoring",
-        "prerequisites": [
-          "An LLM authoring pass emitted or repaired DUT RTL files."
-        ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "stage_sequence": [
-          "ssot-rtl"
-        ],
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
-        "artifact": "rtl/rtl_compile.json",
-        "artifacts": [
-          "dma_scratch_orch_live_20260519b/rtl/rtl_compile.json",
-          "dma_scratch_orch_live_20260519b/rtl/rtl_compile.log"
-        ],
-        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py dma_scratch_orch_live_20260519b --top dma_scratch_orch_live_20260519b --project-root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_scratch_orch_live_20260519b --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_compile",
-        "prerequisites": [
-          "dma_scratch_orch_live_20260519b/list/dma_scratch_orch_live_20260519b.f covers the current DUT RTL sources."
-        ],
-        "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "stage_sequence": [
-          "ssot-rtl",
-          "dut_compile"
-        ],
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "artifact": "lint/dut_lint.json",
-        "artifacts": [
-          "dma_scratch_orch_live_20260519b/lint/dut_lint.json"
-        ],
-        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-        "commands": [
-          "python3 workflow/lint/scripts/dut_lint_report.py dma_scratch_orch_live_20260519b --top dma_scratch_orch_live_20260519b",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_scratch_orch_live_20260519b --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_lint",
-        "prerequisites": [
-          "dma_scratch_orch_live_20260519b/list/dma_scratch_orch_live_20260519b.f covers the current DUT RTL/header sources."
-        ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "stage_sequence": [
-          "lint",
-          "dut_lint"
-        ],
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
-        "artifact": "rtl/rtl_todo_plan.json",
-        "artifacts": [
-          "dma_scratch_orch_live_20260519b/rtl/rtl_todo_plan.json",
-          "dma_scratch_orch_live_20260519b/rtl/rtl_authoring_status.md"
-        ],
-        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_scratch_orch_live_20260519b --root . --audit-rtl"
-        ],
-        "gate_kind": "dynamic_todo_closure",
-        "prerequisites": [
-          "All non-closure required TODOs have pass status."
-        ],
-        "reason": "167 required non-closure TODO(s) remain open.",
-        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "stage_sequence": [
-          "audit-rtl"
-        ],
-        "status": "open",
-        "task_id": "RTL-0019"
-      }
-    ]
+    "tool_evidence_plan": []
   },
   "ip": "dma_scratch_orch_live_20260519b",
   "packet_dir": "rtl/authoring_packets",
@@ -232,261 +47,15 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
+        "deferred_human_qa_allowed": false,
         "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 35,
-        "open_required_count": 35,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__function_model.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__function_model.md",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "packet_id": "module__dma_scratch_orch_live_20260519b__function_model",
-      "summary": {
-        "categories": {
-          "function_model.error_case": 3,
-          "function_model.input": 3,
-          "function_model.invariant": 4,
-          "function_model.output": 7,
-          "function_model.output_rule": 1,
-          "function_model.precondition": 3,
-          "function_model.side_effect": 3,
-          "function_model.state_update": 3,
-          "function_model.state_variable": 5,
-          "function_model.transaction": 3
-        },
-        "module_slice": {
-          "count": 15,
-          "enabled": true,
-          "index": 5,
-          "key": "function_model",
-          "module_task_count": 159,
-          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "function_model",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 35,
-        "required_count": 35,
-        "source_refs": [
-          "function_model.state_variables.state",
-          "function_model.state_variables.error",
-          "function_model.state_variables.fm1_observed",
-          "function_model.state_variables.fm2_observed",
-          "function_model.state_variables.fm3_observed",
-          "function_model.transactions.FM1",
-          "function_model.transactions.FM1.preconditions.precondition_0",
-          "function_model.transactions.FM1.inputs.input_0",
-          "function_model.transactions.FM1.outputs.output_0",
-          "function_model.transactions.FM1.outputs.pslverr",
-          "function_model.transactions.FM1.outputs.fm1_observed",
-          "function_model.transactions.FM1.output_rules.pslverr",
-          "function_model.transactions.FM1.state_updates.fm1_observed",
-          "function_model.transactions.FM1.side_effects.side_effect_0",
-          "function_model.transactions.FM1.error_cases.error_case_0",
-          "function_model.transactions.FM2",
-          "function_model.transactions.FM2.preconditions.precondition_0",
-          "function_model.transactions.FM2.inputs.input_0",
-          "function_model.transactions.FM2.outputs.output_0",
-          "function_model.transactions.FM2.outputs.fm2_observed",
-          "function_model.transactions.FM2.state_updates.fm2_observed",
-          "function_model.transactions.FM2.side_effects.side_effect_0",
-          "function_model.transactions.FM2.error_cases.error_case_0",
-          "function_model.transactions.FM3"
-        ],
-        "status_counts": {
-          "open": 35
-        },
-        "task_count": 35
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 30,
-        "open_required_count": 30,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__workflow_todo.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__workflow_todo.md",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "packet_id": "module__dma_scratch_orch_live_20260519b__workflow_todo",
-      "summary": {
-        "categories": {
-          "workflow_todo.rtl_gen": 30
-        },
-        "module_slice": {
-          "count": 15,
-          "enabled": true,
-          "index": 14,
-          "key": "workflow_todo",
-          "module_task_count": 159,
-          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "workflow_todo",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 30,
-        "required_count": 30,
-        "source_refs": [
-          "workflow_todos.rtl-gen[0]",
-          "workflow_todos.rtl-gen[1]",
-          "workflow_todos.rtl-gen[2]",
-          "workflow_todos.rtl-gen[3]",
-          "workflow_todos.rtl-gen[4]",
-          "workflow_todos.rtl-gen[5]",
-          "workflow_todos.rtl-gen[6]",
-          "workflow_todos.rtl-gen[7]",
-          "workflow_todos.rtl-gen[8]",
-          "workflow_todos.rtl-gen[9]",
-          "workflow_todos.rtl-gen[10]",
-          "workflow_todos.rtl-gen[11]",
-          "workflow_todos.rtl-gen[12]",
-          "workflow_todos.rtl-gen[13]",
-          "workflow_todos.rtl-gen[14]",
-          "workflow_todos.rtl-gen[15]",
-          "workflow_todos.rtl-gen[16]",
-          "workflow_todos.rtl-gen[17]",
-          "workflow_todos.rtl-gen[18]",
-          "workflow_todos.rtl-gen[19]",
-          "workflow_todos.rtl-gen[20]",
-          "workflow_todos.rtl-gen[29]",
-          "workflow_todos.rtl-gen[21]",
-          "workflow_todos.rtl-gen[22]"
-        ],
-        "status_counts": {
-          "open": 30
-        },
-        "task_count": 30
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 25,
-        "open_required_count": 25,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__io_list.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__io_list.md",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "packet_id": "module__dma_scratch_orch_live_20260519b__io_list",
-      "summary": {
-        "categories": {
-          "io_list.port": 25
-        },
-        "module_slice": {
-          "count": 15,
-          "enabled": true,
-          "index": 2,
-          "key": "io_list",
-          "module_task_count": 159,
-          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "io_list",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 25,
-        "required_count": 25,
-        "source_refs": [
-          "io_list.clock_domains.clk.ports.clk",
-          "io_list.resets.rst_n.ports.rst_n",
-          "io_list.interfaces.clock_reset.ports.clk",
-          "io_list.interfaces.clock_reset.ports.rst_n",
-          "io_list.interfaces.csr_apb_lite.ports.paddr",
-          "io_list.interfaces.csr_apb_lite.ports.psel",
-          "io_list.interfaces.csr_apb_lite.ports.penable",
-          "io_list.interfaces.csr_apb_lite.ports.pwrite",
-          "io_list.interfaces.csr_apb_lite.ports.pwdata",
-          "io_list.interfaces.csr_apb_lite.ports.prdata",
-          "io_list.interfaces.csr_apb_lite.ports.pready",
-          "io_list.interfaces.csr_apb_lite.ports.pslverr",
-          "io_list.interfaces.dma_read_addr.ports.rd_addr_valid",
-          "io_list.interfaces.dma_read_addr.ports.rd_addr_ready",
-          "io_list.interfaces.dma_read_addr.ports.rd_addr",
-          "io_list.interfaces.dma_read_data.ports.rd_data_valid",
-          "io_list.interfaces.dma_read_data.ports.rd_data_ready",
-          "io_list.interfaces.dma_read_data.ports.rd_data",
-          "io_list.interfaces.dma_read_data.ports.rd_resp",
-          "io_list.interfaces.dma_write_data.ports.wr_data_valid",
-          "io_list.interfaces.dma_write_data.ports.wr_data_ready",
-          "io_list.interfaces.dma_write_data.ports.wr_addr",
-          "io_list.interfaces.dma_write_data.ports.wr_data",
-          "io_list.interfaces.dma_write_data.ports.wr_strb"
-        ],
-        "status_counts": {
-          "open": 25
-        },
-        "task_count": 25
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 15,
-        "open_required_count": 15,
-        "pass_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -506,7 +75,7 @@
         "categories": {
           "cycle_model.backpressure": 1,
           "cycle_model.clock": 1,
-          "cycle_model.handshake_rules": 3,
+          "cycle_model.handshake_rules": 2,
           "cycle_model.latency": 1,
           "cycle_model.observability": 1,
           "cycle_model.ordering": 4,
@@ -518,22 +87,21 @@
           "enabled": true,
           "index": 6,
           "key": "cycle_model",
-          "module_task_count": 159,
+          "module_task_count": 170,
           "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "cycle_model",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 15,
-        "required_count": 15,
+        "open_required_count": 0,
+        "required_count": 14,
         "source_refs": [
           "cycle_model.clock",
           "cycle_model.reset",
           "cycle_model.latency",
-          "cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready",
-          "cycle_model.handshake_rules.rd_data_valid_rd_data_ready",
-          "cycle_model.handshake_rules.wr_data_valid_wr_data_ready",
+          "cycle_model.handshake_rules.csr_valid_csr_ready",
+          "cycle_model.handshake_rules.mem_req_valid_mem_req_ready",
           "cycle_model.pipeline.S0_ACCEPT",
           "cycle_model.pipeline.S1_EVALUATE",
           "cycle_model.pipeline.S2_OBSERVE",
@@ -545,9 +113,9 @@
           "cycle_model.observability.observability_signal_0"
         ],
         "status_counts": {
-          "open": 15
+          "pass": 14
         },
-        "task_count": 15
+        "task_count": 14
       }
     },
     {
@@ -555,86 +123,15 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
+        "deferred_human_qa_allowed": false,
         "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 15,
-        "open_required_count": 15,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__fsm.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__fsm.md",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "packet_id": "module__dma_scratch_orch_live_20260519b__fsm",
-      "summary": {
-        "categories": {
-          "fsm.state": 7,
-          "fsm.transition": 8
-        },
-        "module_slice": {
-          "count": 15,
-          "enabled": true,
-          "index": 7,
-          "key": "fsm",
-          "module_task_count": 159,
-          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "fsm",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 15,
-        "required_count": 15,
-        "source_refs": [
-          "fsm.control.states.state_0",
-          "fsm.control.states.state_1",
-          "fsm.control.states.state_2",
-          "fsm.control.states.state_3",
-          "fsm.control.states.state_4",
-          "fsm.control.states.state_5",
-          "fsm.control.states.state_6",
-          "fsm.control.transitions.transition_0",
-          "fsm.control.transitions.transition_1",
-          "fsm.control.transitions.transition_2",
-          "fsm.control.transitions.transition_3",
-          "fsm.control.transitions.transition_4",
-          "fsm.control.transitions.transition_5",
-          "fsm.control.transitions.transition_6",
-          "fsm.control.transitions.transition_7"
-        ],
-        "status_counts": {
-          "open": 15
-        },
-        "task_count": 15
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 9,
-        "open_required_count": 9,
-        "pass_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -662,14 +159,14 @@
           "enabled": true,
           "index": 15,
           "key": "dataflow",
-          "module_task_count": 159,
+          "module_task_count": 170,
           "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "dataflow",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 9,
+        "open_required_count": 0,
         "required_count": 9,
         "source_refs": [
           "dataflow.source.source_0",
@@ -683,7 +180,7 @@
           "dataflow.ordering.ordering_0"
         ],
         "status_counts": {
-          "open": 9
+          "pass": 9
         },
         "task_count": 9
       }
@@ -693,372 +190,15 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
+        "deferred_human_qa_allowed": false,
         "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 8,
-        "open_required_count": 8,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__test_requirements.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__test_requirements.md",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "packet_id": "module__dma_scratch_orch_live_20260519b__test_requirements",
-      "summary": {
-        "categories": {
-          "test_requirements.scenario": 8
-        },
-        "module_slice": {
-          "count": 15,
-          "enabled": true,
-          "index": 12,
-          "key": "test_requirements",
-          "module_task_count": 159,
-          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "test_requirements",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 8,
-        "required_count": 8,
-        "source_refs": [
-          "test_requirements.scenarios.SC01",
-          "test_requirements.scenarios.SC02",
-          "test_requirements.scenarios.SC03",
-          "test_requirements.scenarios.SC04",
-          "test_requirements.scenarios.SC05",
-          "test_requirements.scenarios.SC06",
-          "test_requirements.scenarios.SC07",
-          "test_requirements.scenarios.SC08"
-        ],
-        "status_counts": {
-          "open": 8
-        },
-        "task_count": 8
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 6,
-        "open_required_count": 6,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__synthesis.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__synthesis.md",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "packet_id": "module__dma_scratch_orch_live_20260519b__synthesis",
-      "summary": {
-        "categories": {
-          "synthesis.constraints": 3,
-          "synthesis.ppa_targets": 3
-        },
-        "module_slice": {
-          "count": 15,
-          "enabled": true,
-          "index": 11,
-          "key": "synthesis",
-          "module_task_count": 159,
-          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "synthesis",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 6,
-        "required_count": 6,
-        "source_refs": [
-          "synthesis.constraints.constraint_0",
-          "synthesis.constraints.constraint_1",
-          "synthesis.constraints.constraint_2",
-          "synthesis.ppa_targets.area_um2_max",
-          "synthesis.ppa_targets.power_mw_max",
-          "synthesis.ppa_targets.frequency_mhz_min"
-        ],
-        "status_counts": {
-          "open": 6
-        },
-        "task_count": 6
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 4,
-        "open_required_count": 4,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__parameters.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__parameters.md",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "packet_id": "module__dma_scratch_orch_live_20260519b__parameters",
-      "summary": {
-        "categories": {
-          "parameters.item": 4
-        },
-        "module_slice": {
-          "count": 15,
-          "enabled": true,
-          "index": 3,
-          "key": "parameters",
-          "module_task_count": 159,
-          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "parameters",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 4,
-        "required_count": 4,
-        "source_refs": [
-          "parameters.ADDR_WIDTH",
-          "parameters.DATA_WIDTH",
-          "parameters.COUNT_WIDTH",
-          "parameters.FIFO_DEPTH"
-        ],
-        "status_counts": {
-          "open": 4
-        },
-        "task_count": 4
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 3,
-        "open_required_count": 3,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__features.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__features.md",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "packet_id": "module__dma_scratch_orch_live_20260519b__features",
-      "summary": {
-        "categories": {
-          "features.item": 3
-        },
-        "module_slice": {
-          "count": 15,
-          "enabled": true,
-          "index": 8,
-          "key": "features",
-          "module_task_count": 159,
-          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "features",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 3,
-        "required_count": 3,
-        "source_refs": [
-          "features.dma_mem_to_mem",
-          "features.csr_programming",
-          "features.deterministic_safe_defaults"
-        ],
-        "status_counts": {
-          "open": 3
-        },
-        "task_count": 3
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 3,
-        "open_required_count": 3,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__integration.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__integration.md",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "packet_id": "module__dma_scratch_orch_live_20260519b__integration",
-      "summary": {
-        "categories": {
-          "integration.dependencies": 3
-        },
-        "module_slice": {
-          "count": 15,
-          "enabled": true,
-          "index": 4,
-          "key": "integration",
-          "module_task_count": 159,
-          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "integration",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 3,
-        "required_count": 3,
-        "source_refs": [
-          "integration.dependencies.external_modules",
-          "integration.dependencies.external_clocks",
-          "integration.dependencies.external_resets"
-        ],
-        "status_counts": {
-          "open": 3
-        },
-        "task_count": 3
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 2,
-        "open_required_count": 2,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__security.json",
-      "kind": "module",
-      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__security.md",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "packet_id": "module__dma_scratch_orch_live_20260519b__security",
-      "summary": {
-        "categories": {
-          "security.assets": 2
-        },
-        "module_slice": {
-          "count": 15,
-          "enabled": true,
-          "index": 10,
-          "key": "security",
-          "module_task_count": 159,
-          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
-          "section": "security",
-          "section_chunk_count": 1,
-          "section_chunk_index": 1,
-          "task_limit": 48
-        },
-        "open_required_count": 2,
-        "required_count": 2,
-        "source_refs": [
-          "security.assets.configuration_state",
-          "security.assets.data_integrity"
-        ],
-        "status_counts": {
-          "open": 2
-        },
-        "task_count": 2
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": true,
-        "evidence_closure_allowed": false,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -1083,20 +223,20 @@
           "enabled": true,
           "index": 13,
           "key": "equivalence",
-          "module_task_count": 159,
+          "module_task_count": 170,
           "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "equivalence",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 1,
+        "open_required_count": 0,
         "required_count": 1,
         "source_refs": [
           "sub_modules.dma_scratch_orch_live_20260519b.module_equivalence"
         ],
         "status_counts": {
-          "open": 1
+          "pass": 1
         },
         "task_count": 1
       }
@@ -1106,15 +246,15 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
+        "deferred_human_qa_allowed": false,
         "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -1139,20 +279,20 @@
           "enabled": true,
           "index": 9,
           "key": "error_handling",
-          "module_task_count": 159,
+          "module_task_count": 170,
           "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "error_handling",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 1,
+        "open_required_count": 0,
         "required_count": 1,
         "source_refs": [
           "error_handling.recovery.recovery_0"
         ],
         "status_counts": {
-          "open": 1
+          "pass": 1
         },
         "task_count": 1
       }
@@ -1162,15 +302,429 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
+        "deferred_human_qa_allowed": false,
         "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 1,
-        "open_required_count": 1,
-        "pass_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__features.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__features.md",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "packet_id": "module__dma_scratch_orch_live_20260519b__features",
+      "summary": {
+        "categories": {
+          "features.item": 4
+        },
+        "module_slice": {
+          "count": 15,
+          "enabled": true,
+          "index": 8,
+          "key": "features",
+          "module_task_count": 170,
+          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "features",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 4,
+        "source_refs": [
+          "features.csr_programming",
+          "features.dma_copy",
+          "features.completion_irq",
+          "features.error_latch"
+        ],
+        "status_counts": {
+          "pass": 4
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__fsm.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__fsm.md",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "packet_id": "module__dma_scratch_orch_live_20260519b__fsm",
+      "summary": {
+        "categories": {
+          "fsm.state": 8,
+          "fsm.transition": 9
+        },
+        "module_slice": {
+          "count": 15,
+          "enabled": true,
+          "index": 7,
+          "key": "fsm",
+          "module_task_count": 170,
+          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "fsm",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 17,
+        "source_refs": [
+          "fsm.control.states.state_0",
+          "fsm.control.states.state_1",
+          "fsm.control.states.state_2",
+          "fsm.control.states.state_3",
+          "fsm.control.states.state_4",
+          "fsm.control.states.state_5",
+          "fsm.control.states.state_6",
+          "fsm.control.states.state_7",
+          "fsm.control.transitions.transition_0",
+          "fsm.control.transitions.transition_1",
+          "fsm.control.transitions.transition_2",
+          "fsm.control.transitions.transition_3",
+          "fsm.control.transitions.transition_4",
+          "fsm.control.transitions.transition_5",
+          "fsm.control.transitions.transition_6",
+          "fsm.control.transitions.transition_7",
+          "fsm.control.transitions.transition_8"
+        ],
+        "status_counts": {
+          "pass": 17
+        },
+        "task_count": 17
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__function_model.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__function_model.md",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "packet_id": "module__dma_scratch_orch_live_20260519b__function_model",
+      "summary": {
+        "categories": {
+          "function_model.error_case": 4,
+          "function_model.input": 4,
+          "function_model.invariant": 4,
+          "function_model.output": 9,
+          "function_model.output_rule": 1,
+          "function_model.precondition": 4,
+          "function_model.side_effect": 4,
+          "function_model.state_update": 4,
+          "function_model.state_variable": 6,
+          "function_model.transaction": 4
+        },
+        "module_slice": {
+          "count": 15,
+          "enabled": true,
+          "index": 5,
+          "key": "function_model",
+          "module_task_count": 170,
+          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "function_model",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 44,
+        "source_refs": [
+          "function_model.state_variables.state",
+          "function_model.state_variables.error",
+          "function_model.state_variables.fm1_observed",
+          "function_model.state_variables.fm2_observed",
+          "function_model.state_variables.fm3_observed",
+          "function_model.state_variables.fm4_observed",
+          "function_model.transactions.FM1",
+          "function_model.transactions.FM1.preconditions.precondition_0",
+          "function_model.transactions.FM1.inputs.input_0",
+          "function_model.transactions.FM1.outputs.output_0",
+          "function_model.transactions.FM1.outputs.irq",
+          "function_model.transactions.FM1.outputs.fm1_observed",
+          "function_model.transactions.FM1.output_rules.irq",
+          "function_model.transactions.FM1.state_updates.fm1_observed",
+          "function_model.transactions.FM1.side_effects.side_effect_0",
+          "function_model.transactions.FM1.error_cases.error_case_0",
+          "function_model.transactions.FM2",
+          "function_model.transactions.FM2.preconditions.precondition_0",
+          "function_model.transactions.FM2.inputs.input_0",
+          "function_model.transactions.FM2.outputs.output_0",
+          "function_model.transactions.FM2.outputs.fm2_observed",
+          "function_model.transactions.FM2.state_updates.fm2_observed",
+          "function_model.transactions.FM2.side_effects.side_effect_0",
+          "function_model.transactions.FM2.error_cases.error_case_0"
+        ],
+        "status_counts": {
+          "pass": 44
+        },
+        "task_count": 44
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__integration.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__integration.md",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "packet_id": "module__dma_scratch_orch_live_20260519b__integration",
+      "summary": {
+        "categories": {
+          "integration.dependencies": 3
+        },
+        "module_slice": {
+          "count": 15,
+          "enabled": true,
+          "index": 4,
+          "key": "integration",
+          "module_task_count": 170,
+          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "integration",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 3,
+        "source_refs": [
+          "integration.dependencies.external_modules",
+          "integration.dependencies.external_clocks",
+          "integration.dependencies.external_resets"
+        ],
+        "status_counts": {
+          "pass": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__io_list.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__io_list.md",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "packet_id": "module__dma_scratch_orch_live_20260519b__io_list",
+      "summary": {
+        "categories": {
+          "io_list.port": 23
+        },
+        "module_slice": {
+          "count": 15,
+          "enabled": true,
+          "index": 2,
+          "key": "io_list",
+          "module_task_count": 170,
+          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "io_list",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 23,
+        "source_refs": [
+          "io_list.clock_domains.clk.ports.clk",
+          "io_list.resets.rst_n.ports.rst_n",
+          "io_list.interfaces.clock_reset.ports.clk",
+          "io_list.interfaces.clock_reset.ports.rst_n",
+          "io_list.interfaces.csr_slave.ports.csr_valid",
+          "io_list.interfaces.csr_slave.ports.csr_ready",
+          "io_list.interfaces.csr_slave.ports.csr_write",
+          "io_list.interfaces.csr_slave.ports.csr_addr",
+          "io_list.interfaces.csr_slave.ports.csr_wdata",
+          "io_list.interfaces.csr_slave.ports.csr_wstrb",
+          "io_list.interfaces.csr_slave.ports.csr_rvalid",
+          "io_list.interfaces.csr_slave.ports.csr_rdata",
+          "io_list.interfaces.csr_slave.ports.csr_error",
+          "io_list.interfaces.mem_master.ports.mem_req_valid",
+          "io_list.interfaces.mem_master.ports.mem_req_ready",
+          "io_list.interfaces.mem_master.ports.mem_req_write",
+          "io_list.interfaces.mem_master.ports.mem_req_addr",
+          "io_list.interfaces.mem_master.ports.mem_req_wdata",
+          "io_list.interfaces.mem_master.ports.mem_req_wstrb",
+          "io_list.interfaces.mem_master.ports.mem_rsp_valid",
+          "io_list.interfaces.mem_master.ports.mem_rsp_rdata",
+          "io_list.interfaces.mem_master.ports.mem_rsp_error",
+          "io_list.interfaces.interrupt.ports.irq"
+        ],
+        "status_counts": {
+          "pass": 23
+        },
+        "task_count": 23
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__parameters.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__parameters.md",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "packet_id": "module__dma_scratch_orch_live_20260519b__parameters",
+      "summary": {
+        "categories": {
+          "parameters.item": 3
+        },
+        "module_slice": {
+          "count": 15,
+          "enabled": true,
+          "index": 3,
+          "key": "parameters",
+          "module_task_count": 170,
+          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "parameters",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 3,
+        "source_refs": [
+          "parameters.ADDR_WIDTH",
+          "parameters.DATA_WIDTH",
+          "parameters.LEN_WIDTH"
+        ],
+        "status_counts": {
+          "pass": 3
+        },
+        "task_count": 3
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -1196,22 +750,21 @@
           "enabled": true,
           "index": 1,
           "key": "rtl_flow",
-          "module_task_count": 159,
+          "module_task_count": 170,
           "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
           "section": "rtl_flow",
           "section_chunk_count": 1,
           "section_chunk_index": 1,
           "task_limit": 48
         },
-        "open_required_count": 1,
+        "open_required_count": 0,
         "required_count": 2,
         "source_refs": [
           "top_module",
           "io_list"
         ],
         "status_counts": {
-          "open": 1,
-          "pass": 1
+          "pass": 2
         },
         "task_count": 2
       }
@@ -1221,15 +774,277 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__security.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__security.md",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "packet_id": "module__dma_scratch_orch_live_20260519b__security",
+      "summary": {
+        "categories": {
+          "security.assets": 2
+        },
+        "module_slice": {
+          "count": 15,
+          "enabled": true,
+          "index": 10,
+          "key": "security",
+          "module_task_count": 170,
+          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "security",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 2,
+        "source_refs": [
+          "security.assets.configuration_state",
+          "security.assets.data_integrity"
+        ],
+        "status_counts": {
+          "pass": 2
+        },
+        "task_count": 2
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__synthesis.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__synthesis.md",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "packet_id": "module__dma_scratch_orch_live_20260519b__synthesis",
+      "summary": {
+        "categories": {
+          "synthesis.constraints": 3,
+          "synthesis.ppa_targets": 3
+        },
+        "module_slice": {
+          "count": 15,
+          "enabled": true,
+          "index": 11,
+          "key": "synthesis",
+          "module_task_count": 170,
+          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "synthesis",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 6,
+        "source_refs": [
+          "synthesis.constraints.constraint_0",
+          "synthesis.constraints.constraint_1",
+          "synthesis.constraints.constraint_2",
+          "synthesis.ppa_targets.area_um2_max",
+          "synthesis.ppa_targets.power_mw_max",
+          "synthesis.ppa_targets.frequency_mhz_min"
+        ],
+        "status_counts": {
+          "pass": 6
+        },
+        "task_count": 6
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__test_requirements.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__test_requirements.md",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "packet_id": "module__dma_scratch_orch_live_20260519b__test_requirements",
+      "summary": {
+        "categories": {
+          "test_requirements.scenario": 9
+        },
+        "module_slice": {
+          "count": 15,
+          "enabled": true,
+          "index": 12,
+          "key": "test_requirements",
+          "module_task_count": 170,
+          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "test_requirements",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 9,
+        "source_refs": [
+          "test_requirements.scenarios.SC01",
+          "test_requirements.scenarios.SC02",
+          "test_requirements.scenarios.SC03",
+          "test_requirements.scenarios.SC04",
+          "test_requirements.scenarios.SC05",
+          "test_requirements.scenarios.SC06",
+          "test_requirements.scenarios.SC07",
+          "test_requirements.scenarios.SC08",
+          "test_requirements.scenarios.SC09"
+        ],
+        "status_counts": {
+          "pass": 9
+        },
+        "task_count": 9
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": true,
+        "evidence_closure_allowed": false,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__workflow_todo.json",
+      "kind": "module",
+      "markdown": "rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__workflow_todo.md",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "packet_id": "module__dma_scratch_orch_live_20260519b__workflow_todo",
+      "summary": {
+        "categories": {
+          "workflow_todo.rtl_gen": 32
+        },
+        "module_slice": {
+          "count": 15,
+          "enabled": true,
+          "index": 14,
+          "key": "workflow_todo",
+          "module_task_count": 170,
+          "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+          "section": "workflow_todo",
+          "section_chunk_count": 1,
+          "section_chunk_index": 1,
+          "task_limit": 48
+        },
+        "open_required_count": 0,
+        "required_count": 32,
+        "source_refs": [
+          "workflow_todos.rtl-gen[0]",
+          "workflow_todos.rtl-gen[1]",
+          "workflow_todos.rtl-gen[2]",
+          "workflow_todos.rtl-gen[3]",
+          "workflow_todos.rtl-gen[4]",
+          "workflow_todos.rtl-gen[5]",
+          "workflow_todos.rtl-gen[6]",
+          "workflow_todos.rtl-gen[7]",
+          "workflow_todos.rtl-gen[8]",
+          "workflow_todos.rtl-gen[9]",
+          "workflow_todos.rtl-gen[10]",
+          "workflow_todos.rtl-gen[11]",
+          "workflow_todos.rtl-gen[12]",
+          "workflow_todos.rtl-gen[13]",
+          "workflow_todos.rtl-gen[14]",
+          "workflow_todos.rtl-gen[15]",
+          "workflow_todos.rtl-gen[16]",
+          "workflow_todos.rtl-gen[17]",
+          "workflow_todos.rtl-gen[18]",
+          "workflow_todos.rtl-gen[19]",
+          "workflow_todos.rtl-gen[20]",
+          "workflow_todos.rtl-gen[21]",
+          "workflow_todos.rtl-gen[31]",
+          "workflow_todos.rtl-gen[22]"
+        ],
+        "status_counts": {
+          "pass": 32
+        },
+        "task_count": 32
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
         "draft_allowed": false,
         "evidence_closure_allowed": true,
         "human_locked_open_count": 0,
         "integration_signoff_allowed": true,
-        "llm_actionable": true,
-        "llm_actionable_open_count": 6,
-        "open_required_count": 6,
-        "pass_allowed": false,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -1250,7 +1065,7 @@
           "rtl_gate.rtl_gen": 9
         },
         "module_slice": {},
-        "open_required_count": 6,
+        "open_required_count": 0,
         "required_count": 9,
         "source_refs": [
           "quality_gates.rtl_gen.static_rtl_evidence",
@@ -1264,8 +1079,7 @@
           "quality_gates.rtl_gen.manifest_signal_flow_evidence"
         ],
         "status_counts": {
-          "open": 6,
-          "pass": 3
+          "pass": 9
         },
         "task_count": 9
       }
@@ -1273,187 +1087,9 @@
     {
       "execution_policy": {
         "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [
-          {
-            "gate_kind": "common_ai_agent_authoring",
-            "owner_module": "dma_scratch_orch_live_20260519b",
-            "reason": "Missing common_ai_agent RTL authoring provenance.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "status": "open",
-            "task_id": "RTL-0006"
-          },
-          {
-            "gate_kind": "dut_compile",
-            "owner_module": "dma_scratch_orch_live_20260519b",
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
-          {
-            "gate_kind": "dut_lint",
-            "owner_module": "dma_scratch_orch_live_20260519b",
-            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "status": "open",
-            "task_id": "RTL-0018"
-          },
-          {
-            "gate_kind": "dynamic_todo_closure",
-            "owner_module": "dma_scratch_orch_live_20260519b",
-            "reason": "167 required non-closure TODO(s) remain open.",
-            "source": "packet_task",
-            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-            "status": "open",
-            "task_id": "RTL-0019"
-          }
-        ],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
-        "draft_allowed": false,
-        "evidence_closure_allowed": true,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": false,
-        "llm_actionable_open_count": 0,
-        "open_required_count": 4,
-        "pass_allowed": false,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 4,
-        "tool_evidence_plan": [
-          {
-            "artifact": "rtl/rtl_authoring_provenance.json",
-            "artifacts": [
-              "dma_scratch_orch_live_20260519b/rtl/rtl_authoring_provenance.json",
-              "dma_scratch_orch_live_20260519b/rtl/rtl_todo_plan.json"
-            ],
-            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-            "commands": [
-              "python3 src/headless_workflow.py --root . --ip dma_scratch_orch_live_20260519b --stages rtl-gen",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_scratch_orch_live_20260519b --root . --audit-rtl"
-            ],
-            "gate_kind": "common_ai_agent_authoring",
-            "prerequisites": [
-              "An LLM authoring pass emitted or repaired DUT RTL files."
-            ],
-            "reason": "Missing common_ai_agent RTL authoring provenance.",
-            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-            "stage_sequence": [
-              "ssot-rtl"
-            ],
-            "status": "open",
-            "task_id": "RTL-0006"
-          },
-          {
-            "artifact": "rtl/rtl_compile.json",
-            "artifacts": [
-              "dma_scratch_orch_live_20260519b/rtl/rtl_compile.json",
-              "dma_scratch_orch_live_20260519b/rtl/rtl_compile.log"
-            ],
-            "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-            "commands": [
-              "python3 workflow/rtl-gen/scripts/rtl_compile_report.py dma_scratch_orch_live_20260519b --top dma_scratch_orch_live_20260519b --project-root .",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_scratch_orch_live_20260519b --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_compile",
-            "prerequisites": [
-              "dma_scratch_orch_live_20260519b/list/dma_scratch_orch_live_20260519b.f covers the current DUT RTL sources."
-            ],
-            "reason": "Missing canonical DUT compile artifact: rtl/rtl_compile.json.",
-            "source_ref": "quality_gates.rtl_gen.dut_compile",
-            "stage_sequence": [
-              "ssot-rtl",
-              "dut_compile"
-            ],
-            "status": "open",
-            "task_id": "RTL-0017"
-          },
-          {
-            "artifact": "lint/dut_lint.json",
-            "artifacts": [
-              "dma_scratch_orch_live_20260519b/lint/dut_lint.json"
-            ],
-            "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-            "commands": [
-              "python3 workflow/lint/scripts/dut_lint_report.py dma_scratch_orch_live_20260519b --top dma_scratch_orch_live_20260519b",
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_scratch_orch_live_20260519b --root . --audit-rtl"
-            ],
-            "gate_kind": "dut_lint",
-            "prerequisites": [
-              "dma_scratch_orch_live_20260519b/list/dma_scratch_orch_live_20260519b.f covers the current DUT RTL/header sources."
-            ],
-            "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-            "source_ref": "quality_gates.rtl_gen.dut_lint",
-            "stage_sequence": [
-              "lint",
-              "dut_lint"
-            ],
-            "status": "open",
-            "task_id": "RTL-0018"
-          },
-          {
-            "artifact": "rtl/rtl_todo_plan.json",
-            "artifacts": [
-              "dma_scratch_orch_live_20260519b/rtl/rtl_todo_plan.json",
-              "dma_scratch_orch_live_20260519b/rtl/rtl_authoring_status.md"
-            ],
-            "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
-            "commands": [
-              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py dma_scratch_orch_live_20260519b --root . --audit-rtl"
-            ],
-            "gate_kind": "dynamic_todo_closure",
-            "prerequisites": [
-              "All non-closure required TODOs have pass status."
-            ],
-            "reason": "167 required non-closure TODO(s) remain open.",
-            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-            "stage_sequence": [
-              "audit-rtl"
-            ],
-            "status": "open",
-            "task_id": "RTL-0019"
-          }
-        ],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
-      "kind": "gate",
-      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "packet_id": "rtl_gate_tool_evidence",
-      "summary": {
-        "categories": {
-          "rtl_gate.rtl_gen": 4
-        },
-        "module_slice": {},
-        "open_required_count": 4,
-        "required_count": 4,
-        "source_refs": [
-          "quality_gates.rtl_gen.common_ai_agent_authoring",
-          "quality_gates.rtl_gen.dut_compile",
-          "quality_gates.rtl_gen.dut_lint",
-          "quality_gates.rtl_gen.dynamic_todo_closure"
-        ],
-        "status_counts": {
-          "open": 4
-        },
-        "task_count": 4
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": true,
+        "deferred_human_qa_allowed": false,
         "draft_allowed": false,
         "evidence_closure_allowed": true,
         "human_locked_open_count": 0,
@@ -1461,7 +1097,7 @@
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
         "open_required_count": 0,
-        "pass_allowed": false,
+        "pass_allowed": true,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -1489,6 +1125,54 @@
           "quality_gates.rtl_gen.workflow_todo_contract",
           "quality_gates.rtl_gen.owner_traceability",
           "quality_gates.rtl_gen.manifest_connection_contract_evidence"
+        ],
+        "status_counts": {
+          "pass": 4
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": false,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 0,
+        "pass_allowed": true,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 0,
+        "tool_evidence_plan": [],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "packet_id": "rtl_gate_tool_evidence",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 4
+        },
+        "module_slice": {},
+        "open_required_count": 0,
+        "required_count": 4,
+        "source_refs": [
+          "quality_gates.rtl_gen.common_ai_agent_authoring",
+          "quality_gates.rtl_gen.dut_compile",
+          "quality_gates.rtl_gen.dut_lint",
+          "quality_gates.rtl_gen.dynamic_todo_closure"
         ],
         "status_counts": {
           "pass": 4
@@ -1528,41 +1212,32 @@
   "status_markdown": "rtl/rtl_authoring_status.md",
   "summary": {
     "connection_contract_suggestions_present": false,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "gate_packets": 3,
     "human_locked_packets": 0,
     "human_locked_tasks": 0,
-    "llm_actionable_packets": 16,
-    "llm_actionable_tasks": 164,
-    "max_packet_required_tasks": 35,
+    "llm_actionable_packets": 0,
+    "llm_actionable_tasks": 0,
+    "max_packet_required_tasks": 44,
     "module_packets": 15,
-    "next_llm_packets": [
-      "module__dma_scratch_orch_live_20260519b__function_model",
-      "module__dma_scratch_orch_live_20260519b__workflow_todo",
-      "module__dma_scratch_orch_live_20260519b__io_list",
-      "module__dma_scratch_orch_live_20260519b__cycle_model",
-      "module__dma_scratch_orch_live_20260519b__fsm",
-      "module__dma_scratch_orch_live_20260519b__dataflow",
-      "module__dma_scratch_orch_live_20260519b__test_requirements",
-      "module__dma_scratch_orch_live_20260519b__synthesis"
-    ],
+    "next_llm_packets": [],
     "packet_task_limit": 48,
     "packets": 18,
-    "pass_allowed": false,
+    "pass_allowed": true,
     "pending_connection_contract_suggestions": 0,
     "recommended_packet_batch_limit": 4,
     "reference_profile_present": false,
     "reference_scale_gap_present": false,
-    "required_tasks": 176,
+    "required_tasks": 187,
     "sliced_module_packets": 15,
     "target_scale_present": false,
-    "tool_evidence_packets": 1,
-    "tool_evidence_tasks": 4,
-    "total_tasks": 176,
+    "tool_evidence_packets": 0,
+    "tool_evidence_tasks": 0,
+    "total_tasks": 187,
     "unowned_packets": 0
   },
   "target_scale": {},
-  "todo_plan_sha256": "171b5fe388155b7b1edfb3840233a511c24450973133c88e18bd9bf69445d6c6",
+  "todo_plan_sha256": "528ba0df873e04e970994cc7f47e379270bb2f047df8f859defc125f041665a8",
   "top": "dma_scratch_orch_live_20260519b",
   "type": "rtl_authoring_plan"
 }

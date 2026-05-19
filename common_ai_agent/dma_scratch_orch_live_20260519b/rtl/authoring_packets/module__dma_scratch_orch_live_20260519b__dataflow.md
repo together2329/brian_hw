@@ -22,29 +22,29 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 9
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
 - Module slice: 15/15 section=dataflow task_limit=48
 - Slice rule: Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
-- SSOT top IO contracts: 23
+- SSOT top IO contracts: 21
 
 ## Tasks
 
-### RTL-0147: Implement dataflow source: source_0
+### RTL-0157: Implement dataflow source: source_0
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.source
 - Source ref: dataflow.source.source_0
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.source.source_0.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via dataflow.
 SSOT item context: value=declared io_list request/control interfaces.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -53,18 +53,18 @@ SSOT item context: value=declared io_list request/control interfaces.
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: dataflow.source.source_0
 
-### RTL-0148: Implement dataflow sequence: sequence_0
+### RTL-0158: Implement dataflow sequence: sequence_0
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sequence
 - Source ref: dataflow.sequence.sequence_0
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_0.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via dataflow.
 SSOT item context: value=accept legal work under cycle_model handshake or command rules.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -73,18 +73,18 @@ SSOT item context: value=accept legal work under cycle_model handshake or comman
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: dataflow.sequence.sequence_0
 
-### RTL-0149: Implement dataflow sequence: sequence_1
+### RTL-0159: Implement dataflow sequence: sequence_1
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sequence
 - Source ref: dataflow.sequence.sequence_1
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_1.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via dataflow.
 SSOT item context: value=evaluate function_model transaction and declared feature behavior.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -93,18 +93,18 @@ SSOT item context: value=evaluate function_model transaction and declared featur
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: dataflow.sequence.sequence_1
 
-### RTL-0150: Implement dataflow sequence: sequence_2
+### RTL-0160: Implement dataflow sequence: sequence_2
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sequence
 - Source ref: dataflow.sequence.sequence_2
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_2.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via dataflow.
 SSOT item context: value=update only declared architectural state/status/events.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -113,18 +113,18 @@ SSOT item context: value=update only declared architectural state/status/events.
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: dataflow.sequence.sequence_2
 
-### RTL-0151: Implement dataflow sequence: sequence_3
+### RTL-0161: Implement dataflow sequence: sequence_3
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sequence
 - Source ref: dataflow.sequence.sequence_3
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sequence.sequence_3.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via dataflow.
 SSOT item context: value=publish response, output, interrupt, or debug observability event.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -133,18 +133,18 @@ SSOT item context: value=publish response, output, interrupt, or debug observabi
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: dataflow.sequence.sequence_3
 
-### RTL-0152: Implement dataflow sinks: sinks_0
+### RTL-0162: Implement dataflow sinks: sinks_0
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sinks
 - Source ref: dataflow.sinks.sinks_0
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sinks.sinks_0.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via dataflow.
 SSOT item context: value=declared outputs.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -153,18 +153,18 @@ SSOT item context: value=declared outputs.
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: dataflow.sinks.sinks_0
 
-### RTL-0153: Implement dataflow sinks: sinks_1
+### RTL-0163: Implement dataflow sinks: sinks_1
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sinks
 - Source ref: dataflow.sinks.sinks_1
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sinks.sinks_1.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via dataflow.
 SSOT item context: value=status/debug observability.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -173,18 +173,18 @@ SSOT item context: value=status/debug observability.
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: dataflow.sinks.sinks_1
 
-### RTL-0154: Implement dataflow sinks: sinks_2
+### RTL-0164: Implement dataflow sinks: sinks_2
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.sinks
 - Source ref: dataflow.sinks.sinks_2
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.sinks.sinks_2.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via dataflow.
 SSOT item context: value=register reads if registers exist.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model
@@ -193,18 +193,18 @@ SSOT item context: value=register reads if registers exist.
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: dataflow.sinks.sinks_2
 
-### RTL-0155: Implement dataflow ordering: ordering_0
+### RTL-0165: Implement dataflow ordering: ordering_0
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: dataflow.ordering
 - Source ref: dataflow.ordering.ordering_0
 - Detail: Dataflow steps must be reflected in real datapath/control/storage logic.
 SSOT ref: dataflow.ordering.ordering_0.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via dataflow.
 SSOT item context: value=Externally visible ordering follows cycle_model.ordering unless the SSOT explicitly approves reordering..
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL data/control path implements the described step
   - Ordering/backpressure is consistent with cycle_model

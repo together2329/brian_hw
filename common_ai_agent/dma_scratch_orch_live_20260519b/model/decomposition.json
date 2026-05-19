@@ -25,9 +25,8 @@
       "ssot_refs": [
         "cycle_model.backpressure.backpressure_0",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready",
-        "cycle_model.handshake_rules.rd_data_valid_rd_data_ready",
-        "cycle_model.handshake_rules.wr_data_valid_wr_data_ready",
+        "cycle_model.handshake_rules.csr_valid_csr_ready",
+        "cycle_model.handshake_rules.mem_req_valid_mem_req_ready",
         "cycle_model.latency",
         "cycle_model.observability.observability_0",
         "cycle_model.ordering.ordering_0",
@@ -40,9 +39,10 @@
         "cycle_model.reset",
         "dataflow",
         "decomposition",
+        "features.completion_irq",
         "features.csr_programming",
-        "features.deterministic_safe_defaults",
-        "features.dma_mem_to_mem",
+        "features.dma_copy",
+        "features.error_latch",
         "function_model.invariants.invariant_0",
         "function_model.invariants.invariant_1",
         "function_model.invariants.invariant_2",
@@ -51,14 +51,15 @@
         "function_model.state_variables.fm1_observed",
         "function_model.state_variables.fm2_observed",
         "function_model.state_variables.fm3_observed",
+        "function_model.state_variables.fm4_observed",
         "function_model.state_variables.state",
         "function_model.transactions.fm1",
         "function_model.transactions.fm1.error_cases.error_case_0",
         "function_model.transactions.fm1.inputs.input_0",
-        "function_model.transactions.fm1.output_rules.pslverr",
+        "function_model.transactions.fm1.output_rules.irq",
         "function_model.transactions.fm1.outputs.fm1_observed",
+        "function_model.transactions.fm1.outputs.irq",
         "function_model.transactions.fm1.outputs.output_0",
-        "function_model.transactions.fm1.outputs.pslverr",
         "function_model.transactions.fm1.preconditions.precondition_0",
         "function_model.transactions.fm1.side_effects.side_effect_0",
         "function_model.transactions.fm1.state_updates.fm1_observed",
@@ -78,12 +79,19 @@
         "function_model.transactions.fm3.preconditions.precondition_0",
         "function_model.transactions.fm3.side_effects.side_effect_0",
         "function_model.transactions.fm3.state_updates.fm3_observed",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.error_cases.error_case_0",
+        "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.outputs.fm4_observed",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm4.state_updates.fm4_observed",
         "integration",
         "io_list",
         "parameters.addr_width",
-        "parameters.count_width",
         "parameters.data_width",
-        "parameters.fifo_depth",
+        "parameters.len_width",
         "top_module"
       ],
       "function_model_refs": [
@@ -95,14 +103,15 @@
         "function_model.state_variables.fm1_observed",
         "function_model.state_variables.fm2_observed",
         "function_model.state_variables.fm3_observed",
+        "function_model.state_variables.fm4_observed",
         "function_model.state_variables.state",
         "function_model.transactions.fm1",
         "function_model.transactions.fm1.error_cases.error_case_0",
         "function_model.transactions.fm1.inputs.input_0",
-        "function_model.transactions.fm1.output_rules.pslverr",
+        "function_model.transactions.fm1.output_rules.irq",
         "function_model.transactions.fm1.outputs.fm1_observed",
+        "function_model.transactions.fm1.outputs.irq",
         "function_model.transactions.fm1.outputs.output_0",
-        "function_model.transactions.fm1.outputs.pslverr",
         "function_model.transactions.fm1.preconditions.precondition_0",
         "function_model.transactions.fm1.side_effects.side_effect_0",
         "function_model.transactions.fm1.state_updates.fm1_observed",
@@ -121,14 +130,21 @@
         "function_model.transactions.fm3.outputs.output_0",
         "function_model.transactions.fm3.preconditions.precondition_0",
         "function_model.transactions.fm3.side_effects.side_effect_0",
-        "function_model.transactions.fm3.state_updates.fm3_observed"
+        "function_model.transactions.fm3.state_updates.fm3_observed",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.error_cases.error_case_0",
+        "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.outputs.fm4_observed",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm4.state_updates.fm4_observed"
       ],
       "cycle_model_refs": [
         "cycle_model.backpressure.backpressure_0",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready",
-        "cycle_model.handshake_rules.rd_data_valid_rd_data_ready",
-        "cycle_model.handshake_rules.wr_data_valid_wr_data_ready",
+        "cycle_model.handshake_rules.csr_valid_csr_ready",
+        "cycle_model.handshake_rules.mem_req_valid_mem_req_ready",
         "cycle_model.latency",
         "cycle_model.observability.observability_0",
         "cycle_model.ordering.ordering_0",
@@ -141,15 +157,15 @@
         "cycle_model.reset"
       ],
       "structural_refs": [
+        "features.completion_irq",
         "features.csr_programming",
-        "features.deterministic_safe_defaults",
-        "features.dma_mem_to_mem",
+        "features.dma_copy",
+        "features.error_latch",
         "integration",
         "io_list",
         "parameters.addr_width",
-        "parameters.count_width",
         "parameters.data_width",
-        "parameters.fifo_depth",
+        "parameters.len_width",
         "top_module"
       ],
       "verification_impact": [
@@ -261,9 +277,8 @@
       "ssot_refs": [
         "cycle_model.backpressure.backpressure_0",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready",
-        "cycle_model.handshake_rules.rd_data_valid_rd_data_ready",
-        "cycle_model.handshake_rules.wr_data_valid_wr_data_ready",
+        "cycle_model.handshake_rules.csr_valid_csr_ready",
+        "cycle_model.handshake_rules.mem_req_valid_mem_req_ready",
         "cycle_model.latency",
         "cycle_model.observability.observability_0",
         "cycle_model.ordering.ordering_0",
@@ -276,9 +291,10 @@
         "cycle_model.reset",
         "dataflow",
         "decomposition",
+        "features.completion_irq",
         "features.csr_programming",
-        "features.deterministic_safe_defaults",
-        "features.dma_mem_to_mem",
+        "features.dma_copy",
+        "features.error_latch",
         "function_model.invariants.invariant_0",
         "function_model.invariants.invariant_1",
         "function_model.invariants.invariant_2",
@@ -287,14 +303,15 @@
         "function_model.state_variables.fm1_observed",
         "function_model.state_variables.fm2_observed",
         "function_model.state_variables.fm3_observed",
+        "function_model.state_variables.fm4_observed",
         "function_model.state_variables.state",
         "function_model.transactions.fm1",
         "function_model.transactions.fm1.error_cases.error_case_0",
         "function_model.transactions.fm1.inputs.input_0",
-        "function_model.transactions.fm1.output_rules.pslverr",
+        "function_model.transactions.fm1.output_rules.irq",
         "function_model.transactions.fm1.outputs.fm1_observed",
+        "function_model.transactions.fm1.outputs.irq",
         "function_model.transactions.fm1.outputs.output_0",
-        "function_model.transactions.fm1.outputs.pslverr",
         "function_model.transactions.fm1.preconditions.precondition_0",
         "function_model.transactions.fm1.side_effects.side_effect_0",
         "function_model.transactions.fm1.state_updates.fm1_observed",
@@ -314,12 +331,19 @@
         "function_model.transactions.fm3.preconditions.precondition_0",
         "function_model.transactions.fm3.side_effects.side_effect_0",
         "function_model.transactions.fm3.state_updates.fm3_observed",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.error_cases.error_case_0",
+        "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.outputs.fm4_observed",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm4.state_updates.fm4_observed",
         "integration",
         "io_list",
         "parameters.addr_width",
-        "parameters.count_width",
         "parameters.data_width",
-        "parameters.fifo_depth",
+        "parameters.len_width",
         "top_module"
       ],
       "function_model_refs": [
@@ -331,14 +355,15 @@
         "function_model.state_variables.fm1_observed",
         "function_model.state_variables.fm2_observed",
         "function_model.state_variables.fm3_observed",
+        "function_model.state_variables.fm4_observed",
         "function_model.state_variables.state",
         "function_model.transactions.fm1",
         "function_model.transactions.fm1.error_cases.error_case_0",
         "function_model.transactions.fm1.inputs.input_0",
-        "function_model.transactions.fm1.output_rules.pslverr",
+        "function_model.transactions.fm1.output_rules.irq",
         "function_model.transactions.fm1.outputs.fm1_observed",
+        "function_model.transactions.fm1.outputs.irq",
         "function_model.transactions.fm1.outputs.output_0",
-        "function_model.transactions.fm1.outputs.pslverr",
         "function_model.transactions.fm1.preconditions.precondition_0",
         "function_model.transactions.fm1.side_effects.side_effect_0",
         "function_model.transactions.fm1.state_updates.fm1_observed",
@@ -357,14 +382,21 @@
         "function_model.transactions.fm3.outputs.output_0",
         "function_model.transactions.fm3.preconditions.precondition_0",
         "function_model.transactions.fm3.side_effects.side_effect_0",
-        "function_model.transactions.fm3.state_updates.fm3_observed"
+        "function_model.transactions.fm3.state_updates.fm3_observed",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.error_cases.error_case_0",
+        "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.outputs.fm4_observed",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm4.state_updates.fm4_observed"
       ],
       "cycle_model_refs": [
         "cycle_model.backpressure.backpressure_0",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready",
-        "cycle_model.handshake_rules.rd_data_valid_rd_data_ready",
-        "cycle_model.handshake_rules.wr_data_valid_wr_data_ready",
+        "cycle_model.handshake_rules.csr_valid_csr_ready",
+        "cycle_model.handshake_rules.mem_req_valid_mem_req_ready",
         "cycle_model.latency",
         "cycle_model.observability.observability_0",
         "cycle_model.ordering.ordering_0",
@@ -377,15 +409,15 @@
         "cycle_model.reset"
       ],
       "structural_refs": [
+        "features.completion_irq",
         "features.csr_programming",
-        "features.deterministic_safe_defaults",
-        "features.dma_mem_to_mem",
+        "features.dma_copy",
+        "features.error_latch",
         "integration",
         "io_list",
         "parameters.addr_width",
-        "parameters.count_width",
         "parameters.data_width",
-        "parameters.fifo_depth",
+        "parameters.len_width",
         "top_module"
       ],
       "owner_matches": [
@@ -410,6 +442,10 @@
           "matched_ref": "single_owner"
         },
         {
+          "ref": "function_model.state_variables.fm4_observed",
+          "matched_ref": "single_owner"
+        },
+        {
           "ref": "function_model.transactions.fm1",
           "matched_ref": "single_owner"
         },
@@ -426,7 +462,7 @@
           "matched_ref": "single_owner"
         },
         {
-          "ref": "function_model.transactions.fm1.outputs.pslverr",
+          "ref": "function_model.transactions.fm1.outputs.irq",
           "matched_ref": "single_owner"
         },
         {
@@ -434,7 +470,7 @@
           "matched_ref": "single_owner"
         },
         {
-          "ref": "function_model.transactions.fm1.output_rules.pslverr",
+          "ref": "function_model.transactions.fm1.output_rules.irq",
           "matched_ref": "single_owner"
         },
         {
@@ -514,6 +550,38 @@
           "matched_ref": "single_owner"
         },
         {
+          "ref": "function_model.transactions.fm4",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm4.preconditions.precondition_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm4.inputs.input_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm4.outputs.output_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm4.outputs.fm4_observed",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm4.state_updates.fm4_observed",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm4.side_effects.side_effect_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm4.error_cases.error_case_0",
+          "matched_ref": "single_owner"
+        },
+        {
           "ref": "function_model.invariants.invariant_0",
           "matched_ref": "single_owner"
         },
@@ -542,15 +610,11 @@
           "matched_ref": "single_owner"
         },
         {
-          "ref": "cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready",
+          "ref": "cycle_model.handshake_rules.csr_valid_csr_ready",
           "matched_ref": "single_owner"
         },
         {
-          "ref": "cycle_model.handshake_rules.rd_data_valid_rd_data_ready",
-          "matched_ref": "single_owner"
-        },
-        {
-          "ref": "cycle_model.handshake_rules.wr_data_valid_wr_data_ready",
+          "ref": "cycle_model.handshake_rules.mem_req_valid_mem_req_ready",
           "matched_ref": "single_owner"
         },
         {
@@ -600,15 +664,7 @@
           "matched_ref": "single_owner"
         },
         {
-          "ref": "parameters.count_width",
-          "matched_ref": "single_owner"
-        },
-        {
-          "ref": "parameters.fifo_depth",
-          "matched_ref": "single_owner"
-        },
-        {
-          "ref": "features.dma_mem_to_mem",
+          "ref": "parameters.len_width",
           "matched_ref": "single_owner"
         },
         {
@@ -616,7 +672,15 @@
           "matched_ref": "single_owner"
         },
         {
-          "ref": "features.deterministic_safe_defaults",
+          "ref": "features.dma_copy",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.completion_irq",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.error_latch",
           "matched_ref": "single_owner"
         }
       ],
@@ -627,7 +691,7 @@
     }
   ],
   "orphan_function_cycle_refs": [],
-  "function_cycle_ref_count": 50,
+  "function_cycle_ref_count": 58,
   "authority_contract": {
     "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
     "general_evaluation_criteria": [

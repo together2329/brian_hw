@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -149,6 +150,40 @@ class TestReadArtifact:
         assert rtl_blocker_entry["data"]["questions"][0]["id"] == "RTL_DYNAMIC_TODO_OWNERSHIP"
         assert "rtl/rtl_blocked.json" in summary
 
+    def test_rtl_summary_includes_stage_log_gate_preview(self, tmp_path):
+        ip = "ipA"
+        log_path = tmp_path / ip / "logs" / "stage_engine" / "ssot-rtl.json"
+        log_path.parent.mkdir(parents=True)
+        log_path.write_text(
+            json.dumps(
+                {
+                    "headline": "[RTL RESULT] FAIL - LLM-authored RTL needs rtl-gen repair",
+                    "status": "fail",
+                    "metadata": {
+                        "rtl_todo_plan": {
+                            "gate": {
+                                "status": "fail",
+                                "open_required_todos": 4,
+                                "static_missing": 1,
+                            }
+                        }
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        result, summary = orch_tools.read_artifact(
+            ip=ip, stage="rtl", project_root=tmp_path
+        )
+
+        log_entry = next(
+            a for a in result["artifacts"] if a["rel"].endswith("ssot-rtl.json")
+        )
+        assert log_entry["exists"]
+        assert "open_required_todos" in summary
+        assert "rtl_todo_gate" in summary
+
     def test_reports_missing_files(self, tmp_path):
         result, summary = orch_tools.read_artifact(
             ip="ipA", stage="sim", project_root=tmp_path
@@ -156,6 +191,94 @@ class TestReadArtifact:
         for art in result["artifacts"]:
             assert art["exists"] is False
         assert "missing" in summary
+
+    def test_reads_safe_relative_artifact_path(self, tmp_path):
+        ip = "ipA"
+        blocked = tmp_path / ip / "tb" / "cocotb" / "tb_blocked.json"
+        blocked.parent.mkdir(parents=True)
+        blocked.write_text(json.dumps({"reason": "missing rtl contract"}), encoding="utf-8")
+
+        result, summary = orch_tools.read_artifact(
+            ip=ip, stage="tb/cocotb/tb_blocked.json", project_root=tmp_path
+        )
+
+        assert result["artifacts"][0]["exists"] is True
+        assert result["artifacts"][0]["data"]["reason"] == "missing rtl contract"
+        assert "tb/cocotb/tb_blocked.json" in summary
+
+    def test_summary_includes_json_status_and_classification_preview(self, tmp_path):
+        ip = "ipA"
+        classify = tmp_path / ip / "sim" / "mismatch_classification.json"
+        classify.parent.mkdir(parents=True)
+        classify.write_text(
+            json.dumps(
+                {
+                    "type": "mismatch_classification",
+                    "status": "action_required",
+                    "classifications": [
+                        {
+                            "classification": "stale_oracle",
+                            "owner": "fl-model-gen",
+                            "reason": "verify/equivalence_goals.json older than current SSOT",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        result, summary = orch_tools.read_artifact(
+            ip=ip, stage="sim/mismatch_classification.json", project_root=tmp_path
+        )
+
+        assert result["artifacts"][0]["data"]["status"] == "action_required"
+        assert "stale_oracle" in summary
+        assert "fl-model-gen" in summary
+
+    def test_reads_sim_debug_underscore_alias(self, tmp_path):
+        ip = "ipA"
+        classify = tmp_path / ip / "sim" / "mismatch_classification.json"
+        classify.parent.mkdir(parents=True)
+        classify.write_text(
+            json.dumps(
+                {
+                    "type": "mismatch_classification",
+                    "status": "action_required",
+                    "classifications": [{"classification": "rtl_bug", "owner": "rtl-gen"}],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        result, summary = orch_tools.read_artifact(
+            ip=ip, stage="sim_debug", project_root=tmp_path
+        )
+
+        assert any(a["rel"] == "sim/mismatch_classification.json" for a in result["artifacts"])
+        assert "rtl_bug" in summary
+
+    def test_summary_marks_stale_sim_debug_artifact(self, tmp_path):
+        ip = "ipA"
+        sim_dir = tmp_path / ip / "sim"
+        sim_dir.mkdir(parents=True)
+        compare = sim_dir / "fl_rtl_compare.json"
+        scoreboard = sim_dir / "scoreboard_events.jsonl"
+        compare.write_text(
+            json.dumps({"type": "fl_rtl_compare", "status": "stale"}),
+            encoding="utf-8",
+        )
+        scoreboard.write_text('{"goal_id":"EQ1"}\n', encoding="utf-8")
+        os.utime(compare, (1000, 1000))
+        os.utime(scoreboard, (2000, 2000))
+
+        result, summary = orch_tools.read_artifact(
+            ip=ip, stage="sim/fl_rtl_compare.json", project_root=tmp_path
+        )
+
+        entry = result["artifacts"][0]
+        assert entry["freshness_status"] == "stale_artifact"
+        assert entry["stale_against"][0]["rel"] == "sim/scoreboard_events.jsonl"
+        assert "stale_artifact" in summary
 
 
 class TestClassifyFailureTool:

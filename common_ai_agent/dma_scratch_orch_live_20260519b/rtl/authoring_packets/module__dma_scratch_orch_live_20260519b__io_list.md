@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: dma_scratch_orch_live_20260519b
 - Owner file: rtl/dma_scratch_orch_live_20260519b.sv
-- Task count: 25
-- Required tasks: 25
+- Task count: 23
+- Required tasks: 23
 
 ## Rules
 
@@ -22,29 +22,29 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 25
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
 - Module slice: 2/15 section=io_list task_limit=48
 - Slice rule: Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
-- SSOT top IO contracts: 23
+- SSOT top IO contracts: 21
 
 ## Tasks
 
-### RTL-0054: Implement and connect port clk
+### RTL-0055: Implement and connect port clk
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.clock_domains.clk.ports.clk
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.clock_domains.clk.ports.clk.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
 SSOT item context: name=clk; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -55,18 +55,18 @@ SSOT item context: name=clk; width=1; direction=input.
   - clk port direction remains input
 - SSOT refs: io_list.clock_domains.clk.ports.clk
 
-### RTL-0055: Implement and connect port rst_n
+### RTL-0056: Implement and connect port rst_n
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.resets.rst_n.ports.rst_n
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.resets.rst_n.ports.rst_n.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
 SSOT item context: name=rst_n; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -77,18 +77,18 @@ SSOT item context: name=rst_n; width=1; direction=input.
   - rst_n port direction remains input
 - SSOT refs: io_list.resets.rst_n.ports.rst_n
 
-### RTL-0056: Implement and connect port clk
+### RTL-0057: Implement and connect port clk
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.clock_reset.ports.clk
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.clock_reset.ports.clk.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
 SSOT item context: name=clk; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -99,18 +99,18 @@ SSOT item context: name=clk; width=1; direction=input.
   - clk port direction remains input
 - SSOT refs: io_list.interfaces.clock_reset.ports.clk
 
-### RTL-0057: Implement and connect port rst_n
+### RTL-0058: Implement and connect port rst_n
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
 - Source ref: io_list.interfaces.clock_reset.ports.rst_n
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.clock_reset.ports.rst_n.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
 SSOT item context: name=rst_n; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -121,464 +121,420 @@ SSOT item context: name=rst_n; width=1; direction=input.
   - rst_n port direction remains input
 - SSOT refs: io_list.interfaces.clock_reset.ports.rst_n
 
-### RTL-0058: Implement and connect port paddr
+### RTL-0059: Implement and connect port csr_valid
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.csr_apb_lite.ports.paddr
+- Source ref: io_list.interfaces.csr_slave.ports.csr_valid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.csr_apb_lite.ports.paddr.
+SSOT ref: io_list.interfaces.csr_slave.ports.csr_valid.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=paddr; width=ADDR_WIDTH; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=csr_valid; width=1; direction=input.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.paddr
+  - Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_valid
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - paddr width matches SSOT value ADDR_WIDTH
-  - paddr port direction remains input
-- SSOT refs: io_list.interfaces.csr_apb_lite.ports.paddr
+  - csr_valid width matches SSOT value 1
+  - csr_valid port direction remains input
+- SSOT refs: io_list.interfaces.csr_slave.ports.csr_valid
 
-### RTL-0059: Implement and connect port psel
+### RTL-0060: Implement and connect port csr_ready
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.csr_apb_lite.ports.psel
+- Source ref: io_list.interfaces.csr_slave.ports.csr_ready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.csr_apb_lite.ports.psel.
+SSOT ref: io_list.interfaces.csr_slave.ports.csr_ready.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=psel; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=csr_ready; width=1; direction=output.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.psel
+  - Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_ready
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - psel width matches SSOT value 1
-  - psel port direction remains input
-- SSOT refs: io_list.interfaces.csr_apb_lite.ports.psel
+  - csr_ready width matches SSOT value 1
+  - csr_ready port direction remains output
+- SSOT refs: io_list.interfaces.csr_slave.ports.csr_ready
 
-### RTL-0060: Implement and connect port penable
+### RTL-0061: Implement and connect port csr_write
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.csr_apb_lite.ports.penable
+- Source ref: io_list.interfaces.csr_slave.ports.csr_write
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.csr_apb_lite.ports.penable.
+SSOT ref: io_list.interfaces.csr_slave.ports.csr_write.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=penable; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=csr_write; width=1; direction=input.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.penable
+  - Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_write
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - penable width matches SSOT value 1
-  - penable port direction remains input
-- SSOT refs: io_list.interfaces.csr_apb_lite.ports.penable
+  - csr_write width matches SSOT value 1
+  - csr_write port direction remains input
+- SSOT refs: io_list.interfaces.csr_slave.ports.csr_write
 
-### RTL-0061: Implement and connect port pwrite
+### RTL-0062: Implement and connect port csr_addr
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.csr_apb_lite.ports.pwrite
+- Source ref: io_list.interfaces.csr_slave.ports.csr_addr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.csr_apb_lite.ports.pwrite.
+SSOT ref: io_list.interfaces.csr_slave.ports.csr_addr.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=pwrite; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=csr_addr; width=ADDR_WIDTH; direction=input.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.pwrite
+  - Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_addr
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - pwrite width matches SSOT value 1
-  - pwrite port direction remains input
-- SSOT refs: io_list.interfaces.csr_apb_lite.ports.pwrite
+  - csr_addr width matches SSOT value ADDR_WIDTH
+  - csr_addr port direction remains input
+- SSOT refs: io_list.interfaces.csr_slave.ports.csr_addr
 
-### RTL-0062: Implement and connect port pwdata
+### RTL-0063: Implement and connect port csr_wdata
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.csr_apb_lite.ports.pwdata
+- Source ref: io_list.interfaces.csr_slave.ports.csr_wdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.csr_apb_lite.ports.pwdata.
+SSOT ref: io_list.interfaces.csr_slave.ports.csr_wdata.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=pwdata; width=DATA_WIDTH; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=csr_wdata; width=DATA_WIDTH; direction=input.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.pwdata
+  - Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_wdata
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - pwdata width matches SSOT value DATA_WIDTH
-  - pwdata port direction remains input
-- SSOT refs: io_list.interfaces.csr_apb_lite.ports.pwdata
+  - csr_wdata width matches SSOT value DATA_WIDTH
+  - csr_wdata port direction remains input
+- SSOT refs: io_list.interfaces.csr_slave.ports.csr_wdata
 
-### RTL-0063: Implement and connect port prdata
+### RTL-0064: Implement and connect port csr_wstrb
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.csr_apb_lite.ports.prdata
+- Source ref: io_list.interfaces.csr_slave.ports.csr_wstrb
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.csr_apb_lite.ports.prdata.
+SSOT ref: io_list.interfaces.csr_slave.ports.csr_wstrb.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=prdata; width=DATA_WIDTH; direction=output.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=csr_wstrb; width=DATA_WIDTH/8; direction=input.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.prdata
+  - Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_wstrb
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - prdata width matches SSOT value DATA_WIDTH
-  - prdata port direction remains output
-- SSOT refs: io_list.interfaces.csr_apb_lite.ports.prdata
+  - csr_wstrb width matches SSOT value DATA_WIDTH/8
+  - csr_wstrb port direction remains input
+- SSOT refs: io_list.interfaces.csr_slave.ports.csr_wstrb
 
-### RTL-0064: Implement and connect port pready
+### RTL-0065: Implement and connect port csr_rvalid
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.csr_apb_lite.ports.pready
+- Source ref: io_list.interfaces.csr_slave.ports.csr_rvalid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.csr_apb_lite.ports.pready.
+SSOT ref: io_list.interfaces.csr_slave.ports.csr_rvalid.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=pready; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=csr_rvalid; width=1; direction=output.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.pready
+  - Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_rvalid
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - pready width matches SSOT value 1
-  - pready port direction remains output
-- SSOT refs: io_list.interfaces.csr_apb_lite.ports.pready
+  - csr_rvalid width matches SSOT value 1
+  - csr_rvalid port direction remains output
+- SSOT refs: io_list.interfaces.csr_slave.ports.csr_rvalid
 
-### RTL-0065: Implement and connect port pslverr
+### RTL-0066: Implement and connect port csr_rdata
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.csr_apb_lite.ports.pslverr
+- Source ref: io_list.interfaces.csr_slave.ports.csr_rdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.csr_apb_lite.ports.pslverr.
+SSOT ref: io_list.interfaces.csr_slave.ports.csr_rdata.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=pslverr; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=csr_rdata; width=DATA_WIDTH; direction=output.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.csr_apb_lite.ports.pslverr
+  - Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_rdata
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - pslverr width matches SSOT value 1
-  - pslverr port direction remains output
-- SSOT refs: io_list.interfaces.csr_apb_lite.ports.pslverr
+  - csr_rdata width matches SSOT value DATA_WIDTH
+  - csr_rdata port direction remains output
+- SSOT refs: io_list.interfaces.csr_slave.ports.csr_rdata
 
-### RTL-0066: Implement and connect port rd_addr_valid
+### RTL-0067: Implement and connect port csr_error
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.dma_read_addr.ports.rd_addr_valid
+- Source ref: io_list.interfaces.csr_slave.ports.csr_error
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.dma_read_addr.ports.rd_addr_valid.
+SSOT ref: io_list.interfaces.csr_slave.ports.csr_error.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=rd_addr_valid; width=ADDR_WIDTH; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=csr_error; width=1; direction=output.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.dma_read_addr.ports.rd_addr_valid
+  - Traceability keeps source_ref io_list.interfaces.csr_slave.ports.csr_error
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - rd_addr_valid width matches SSOT value ADDR_WIDTH
-  - rd_addr_valid port direction remains input
-- SSOT refs: io_list.interfaces.dma_read_addr.ports.rd_addr_valid
+  - csr_error width matches SSOT value 1
+  - csr_error port direction remains output
+- SSOT refs: io_list.interfaces.csr_slave.ports.csr_error
 
-### RTL-0067: Implement and connect port rd_addr_ready
+### RTL-0068: Implement and connect port mem_req_valid
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.dma_read_addr.ports.rd_addr_ready
+- Source ref: io_list.interfaces.mem_master.ports.mem_req_valid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.dma_read_addr.ports.rd_addr_ready.
+SSOT ref: io_list.interfaces.mem_master.ports.mem_req_valid.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=rd_addr_ready; width=ADDR_WIDTH; direction=output.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=mem_req_valid; width=1; direction=output.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.dma_read_addr.ports.rd_addr_ready
+  - Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_req_valid
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - rd_addr_ready width matches SSOT value ADDR_WIDTH
-  - rd_addr_ready port direction remains output
-- SSOT refs: io_list.interfaces.dma_read_addr.ports.rd_addr_ready
+  - mem_req_valid width matches SSOT value 1
+  - mem_req_valid port direction remains output
+- SSOT refs: io_list.interfaces.mem_master.ports.mem_req_valid
 
-### RTL-0068: Implement and connect port rd_addr
+### RTL-0069: Implement and connect port mem_req_ready
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.dma_read_addr.ports.rd_addr
+- Source ref: io_list.interfaces.mem_master.ports.mem_req_ready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.dma_read_addr.ports.rd_addr.
+SSOT ref: io_list.interfaces.mem_master.ports.mem_req_ready.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=rd_addr; width=ADDR_WIDTH; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=mem_req_ready; width=1; direction=input.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.dma_read_addr.ports.rd_addr
+  - Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_req_ready
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - rd_addr width matches SSOT value ADDR_WIDTH
-  - rd_addr port direction remains input
-- SSOT refs: io_list.interfaces.dma_read_addr.ports.rd_addr
+  - mem_req_ready width matches SSOT value 1
+  - mem_req_ready port direction remains input
+- SSOT refs: io_list.interfaces.mem_master.ports.mem_req_ready
 
-### RTL-0069: Implement and connect port rd_data_valid
+### RTL-0070: Implement and connect port mem_req_write
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.dma_read_data.ports.rd_data_valid
+- Source ref: io_list.interfaces.mem_master.ports.mem_req_write
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.dma_read_data.ports.rd_data_valid.
+SSOT ref: io_list.interfaces.mem_master.ports.mem_req_write.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=rd_data_valid; width=DATA_WIDTH; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=mem_req_write; width=1; direction=output.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.dma_read_data.ports.rd_data_valid
+  - Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_req_write
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - rd_data_valid width matches SSOT value DATA_WIDTH
-  - rd_data_valid port direction remains input
-- SSOT refs: io_list.interfaces.dma_read_data.ports.rd_data_valid
+  - mem_req_write width matches SSOT value 1
+  - mem_req_write port direction remains output
+- SSOT refs: io_list.interfaces.mem_master.ports.mem_req_write
 
-### RTL-0070: Implement and connect port rd_data_ready
+### RTL-0071: Implement and connect port mem_req_addr
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.dma_read_data.ports.rd_data_ready
+- Source ref: io_list.interfaces.mem_master.ports.mem_req_addr
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.dma_read_data.ports.rd_data_ready.
+SSOT ref: io_list.interfaces.mem_master.ports.mem_req_addr.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=rd_data_ready; width=DATA_WIDTH; direction=output.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=mem_req_addr; width=ADDR_WIDTH; direction=output.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.dma_read_data.ports.rd_data_ready
+  - Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_req_addr
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - rd_data_ready width matches SSOT value DATA_WIDTH
-  - rd_data_ready port direction remains output
-- SSOT refs: io_list.interfaces.dma_read_data.ports.rd_data_ready
+  - mem_req_addr width matches SSOT value ADDR_WIDTH
+  - mem_req_addr port direction remains output
+- SSOT refs: io_list.interfaces.mem_master.ports.mem_req_addr
 
-### RTL-0071: Implement and connect port rd_data
+### RTL-0072: Implement and connect port mem_req_wdata
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.dma_read_data.ports.rd_data
+- Source ref: io_list.interfaces.mem_master.ports.mem_req_wdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.dma_read_data.ports.rd_data.
+SSOT ref: io_list.interfaces.mem_master.ports.mem_req_wdata.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=rd_data; width=DATA_WIDTH; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=mem_req_wdata; width=DATA_WIDTH; direction=output.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.dma_read_data.ports.rd_data
+  - Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_req_wdata
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - rd_data width matches SSOT value DATA_WIDTH
-  - rd_data port direction remains input
-- SSOT refs: io_list.interfaces.dma_read_data.ports.rd_data
+  - mem_req_wdata width matches SSOT value DATA_WIDTH
+  - mem_req_wdata port direction remains output
+- SSOT refs: io_list.interfaces.mem_master.ports.mem_req_wdata
 
-### RTL-0072: Implement and connect port rd_resp
+### RTL-0073: Implement and connect port mem_req_wstrb
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.dma_read_data.ports.rd_resp
+- Source ref: io_list.interfaces.mem_master.ports.mem_req_wstrb
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.dma_read_data.ports.rd_resp.
+SSOT ref: io_list.interfaces.mem_master.ports.mem_req_wstrb.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=rd_resp; width=1; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=mem_req_wstrb; width=DATA_WIDTH/8; direction=output.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.dma_read_data.ports.rd_resp
+  - Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_req_wstrb
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - rd_resp width matches SSOT value 1
-  - rd_resp port direction remains input
-- SSOT refs: io_list.interfaces.dma_read_data.ports.rd_resp
+  - mem_req_wstrb width matches SSOT value DATA_WIDTH/8
+  - mem_req_wstrb port direction remains output
+- SSOT refs: io_list.interfaces.mem_master.ports.mem_req_wstrb
 
-### RTL-0073: Implement and connect port wr_data_valid
+### RTL-0074: Implement and connect port mem_rsp_valid
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.dma_write_data.ports.wr_data_valid
+- Source ref: io_list.interfaces.mem_master.ports.mem_rsp_valid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.dma_write_data.ports.wr_data_valid.
+SSOT ref: io_list.interfaces.mem_master.ports.mem_rsp_valid.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=wr_data_valid; width=DATA_WIDTH; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=mem_rsp_valid; width=1; direction=input.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.dma_write_data.ports.wr_data_valid
+  - Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_rsp_valid
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - wr_data_valid width matches SSOT value DATA_WIDTH
-  - wr_data_valid port direction remains input
-- SSOT refs: io_list.interfaces.dma_write_data.ports.wr_data_valid
+  - mem_rsp_valid width matches SSOT value 1
+  - mem_rsp_valid port direction remains input
+- SSOT refs: io_list.interfaces.mem_master.ports.mem_rsp_valid
 
-### RTL-0074: Implement and connect port wr_data_ready
+### RTL-0075: Implement and connect port mem_rsp_rdata
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.dma_write_data.ports.wr_data_ready
+- Source ref: io_list.interfaces.mem_master.ports.mem_rsp_rdata
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.dma_write_data.ports.wr_data_ready.
+SSOT ref: io_list.interfaces.mem_master.ports.mem_rsp_rdata.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=wr_data_ready; width=DATA_WIDTH; direction=output.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=mem_rsp_rdata; width=DATA_WIDTH; direction=input.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.dma_write_data.ports.wr_data_ready
+  - Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_rsp_rdata
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - wr_data_ready width matches SSOT value DATA_WIDTH
-  - wr_data_ready port direction remains output
-- SSOT refs: io_list.interfaces.dma_write_data.ports.wr_data_ready
+  - mem_rsp_rdata width matches SSOT value DATA_WIDTH
+  - mem_rsp_rdata port direction remains input
+- SSOT refs: io_list.interfaces.mem_master.ports.mem_rsp_rdata
 
-### RTL-0075: Implement and connect port wr_addr
+### RTL-0076: Implement and connect port mem_rsp_error
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.dma_write_data.ports.wr_addr
+- Source ref: io_list.interfaces.mem_master.ports.mem_rsp_error
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.dma_write_data.ports.wr_addr.
+SSOT ref: io_list.interfaces.mem_master.ports.mem_rsp_error.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=wr_addr; width=ADDR_WIDTH; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=mem_rsp_error; width=1; direction=input.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.dma_write_data.ports.wr_addr
+  - Traceability keeps source_ref io_list.interfaces.mem_master.ports.mem_rsp_error
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - wr_addr width matches SSOT value ADDR_WIDTH
-  - wr_addr port direction remains input
-- SSOT refs: io_list.interfaces.dma_write_data.ports.wr_addr
+  - mem_rsp_error width matches SSOT value 1
+  - mem_rsp_error port direction remains input
+- SSOT refs: io_list.interfaces.mem_master.ports.mem_rsp_error
 
-### RTL-0076: Implement and connect port wr_data
+### RTL-0077: Implement and connect port irq
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: io_list.port
-- Source ref: io_list.interfaces.dma_write_data.ports.wr_data
+- Source ref: io_list.interfaces.interrupt.ports.irq
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.dma_write_data.ports.wr_data.
-Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=wr_data; width=DATA_WIDTH; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
-- Criteria:
-  - RTL declaration matches SSOT direction and width
-  - Active input controls are consumed by behavior or explicitly justified
-  - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.dma_write_data.ports.wr_data
-  - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - wr_data width matches SSOT value DATA_WIDTH
-  - wr_data port direction remains input
-- SSOT refs: io_list.interfaces.dma_write_data.ports.wr_data
-
-### RTL-0077: Implement and connect port wr_strb
-
-- Priority: normal
-- Required: True
-- Status: open
-- Category: io_list.port
-- Source ref: io_list.interfaces.dma_write_data.ports.wr_strb
-- Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.dma_write_data.ports.wr_strb.
-Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
-SSOT item context: name=wr_strb; width=DATA_WIDTH/8; direction=input.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
-- Criteria:
-  - RTL declaration matches SSOT direction and width
-  - Active input controls are consumed by behavior or explicitly justified
-  - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.dma_write_data.ports.wr_strb
-  - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-  - wr_strb width matches SSOT value DATA_WIDTH/8
-  - wr_strb port direction remains input
-- SSOT refs: io_list.interfaces.dma_write_data.ports.wr_strb
-
-### RTL-0078: Implement and connect port irq
-
-- Priority: normal
-- Required: True
-- Status: open
-- Category: io_list.port
-- Source ref: io_list.interfaces.status_irq.ports.irq
-- Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
-SSOT ref: io_list.interfaces.status_irq.ports.irq.
+SSOT ref: io_list.interfaces.interrupt.ports.irq.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via io_list.
 SSOT item context: name=irq; width=1; direction=output.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
   - Active outputs are driven by implemented logic, not placeholder constants
-  - Traceability keeps source_ref io_list.interfaces.status_irq.ports.irq
+  - Traceability keeps source_ref io_list.interfaces.interrupt.ports.irq
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
   - irq width matches SSOT value 1
   - irq port direction remains output
-- SSOT refs: io_list.interfaces.status_irq.ports.irq
+- SSOT refs: io_list.interfaces.interrupt.ports.irq

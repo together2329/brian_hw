@@ -6,9 +6,9 @@
   "passed": true,
   "self_check": {
     "passed": true,
-    "checks": 4,
+    "checks": 5,
     "failed": 0,
-    "transactions": 3,
+    "transactions": 4,
     "transaction_results": [
       {
         "id": "FM1",
@@ -20,7 +20,7 @@
           "transaction_id": "FM1",
           "transaction_name": "feature_1",
           "sample_accepted": 1,
-          "pslverr": 0,
+          "irq": 0,
           "state_updates": {
             "fm1_observed": 1
           }
@@ -55,11 +55,26 @@
             "fm3_observed": 1
           }
         }
+      },
+      {
+        "id": "FM4",
+        "name": "feature_4",
+        "kind": "FM4",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM4",
+          "transaction_name": "feature_4",
+          "sample_accepted": 1,
+          "state_updates": {
+            "fm4_observed": 1
+          }
+        }
       }
     ],
     "unsupported_transaction_check": true,
-    "trace_entries": 4,
-    "coverage_bins": 40,
+    "trace_entries": 5,
+    "coverage_bins": 42,
     "invariants_total": 4,
     "invariants_evaluated": 0,
     "invariants_failed": [],
@@ -87,11 +102,11 @@
     ],
     "reset_consistency": true,
     "reset_diff": {},
-    "error_cases_total": 3,
-    "error_cases_planned": 3
+    "error_cases_total": 4,
+    "error_cases_planned": 4
   },
   "decomposition_units": 6,
-  "fcov_bins": 40,
+  "fcov_bins": 42,
   "authority_contract": {
     "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
     "general_evaluation_criteria": [

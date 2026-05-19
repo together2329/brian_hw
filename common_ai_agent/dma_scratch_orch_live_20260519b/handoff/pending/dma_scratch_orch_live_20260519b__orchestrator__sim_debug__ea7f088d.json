@@ -1,0 +1,16 @@
+{
+  "created_at": "2026-05-18T22:12:07Z",
+  "from_workflow": "orchestrator",
+  "handoff_id": "dma_scratch_orch_live_20260519b__orchestrator__sim_debug__ea7f088d",
+  "ip": "dma_scratch_orch_live_20260519b",
+  "orchestrator_run_id": "ea7f088d684c468db54e17ab69f321f8",
+  "payload": {},
+  "reason": "Durable handoff after requested ORCHESTRATOR-only continuation. Evidence: rtl-gen rerun job e8303c0da7f9 ended error but read_artifact stage=rtl listed rtl/rtl_contract.json and exact read_artifact stage=rtl/rtl_contract.json reported files=[rtl/rtl_contract.json], missing=[]. mark_downstream_stale from_stage=tb marked sim, sim-debug, coverage stale. tb-gen job f522aadae1fd completed; read_artifact stage=tb reported files=[tb/cocotb/], missing=[]. sim job 0070cc7d45b1 ended error; read_artifact stage=sim reported files=[sim/results.xml, sim/fl_rtl_compare.json], missing=[]; exact reads for sim/results.xml and sim/fl_rtl_compare.json both reported present. classify_failure(stage=sim) -> owner=tb_bug, next_workflow=sim_debug. sim_debug job 4cba754f8c58 completed and read_artifact stage=sim-debug reported sim/mismatch_classification.json present. Fresh sim rerun job ed4475e13922 ended error; wait_job status=error. read_pipeline_state nevertheless lists sim as passed, and read_artifact confirms sim/results.xml and sim/fl_rtl_compare.json exist, but artifact API did not expose fl_rtl_compare.json contents, so PASS could not be verified. Second classify_failure(stage=sim) again returned owner=tb_bug next_workflow=sim_debug. Requested terminal condition (sim/results.xml exists AND sim/fl_rtl_compare.json is PASS) is not provable due sim job error and inaccessible PASS content; needs sim_debug/backend inspection of sim/fl_rtl_compare.json and validator logs.",
+  "schema": "workflow_handoff.v1",
+  "scope": {
+    "pipeline_run_id": "ea7f088d684c468db54e17ab69f321f8",
+    "session_id": "brian",
+    "user_id": "2a8beaa95732489bb84da2473719b6bd"
+  },
+  "to_workflow": "sim_debug"
+}

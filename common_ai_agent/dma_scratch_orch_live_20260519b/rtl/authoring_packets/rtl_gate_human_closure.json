@@ -54,254 +54,230 @@
       },
       {
         "aliases": [
-          "csr_apb_lite_paddr",
-          "paddr"
+          "csr_slave_csr_valid",
+          "csr_valid"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "paddr",
+        "name": "csr_valid",
         "source_ref": "io_list.interfaces[1].ports[0]",
-        "width": "ADDR_WIDTH"
+        "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_psel",
-          "psel"
+          "csr_ready",
+          "csr_slave_csr_ready"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "psel",
+        "direction": "output",
+        "name": "csr_ready",
         "source_ref": "io_list.interfaces[1].ports[1]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_penable",
-          "penable"
+          "csr_slave_csr_write",
+          "csr_write"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "penable",
+        "name": "csr_write",
         "source_ref": "io_list.interfaces[1].ports[2]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_pwrite",
-          "pwrite"
+          "csr_addr",
+          "csr_slave_csr_addr"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "pwrite",
+        "name": "csr_addr",
         "source_ref": "io_list.interfaces[1].ports[3]",
-        "width": "1"
+        "width": "ADDR_WIDTH"
       },
       {
         "aliases": [
-          "csr_apb_lite_pwdata",
-          "pwdata"
+          "csr_slave_csr_wdata",
+          "csr_wdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "pwdata",
+        "name": "csr_wdata",
         "source_ref": "io_list.interfaces[1].ports[4]",
         "width": "DATA_WIDTH"
       },
       {
         "aliases": [
-          "csr_apb_lite_prdata",
-          "prdata"
+          "csr_slave_csr_wstrb",
+          "csr_wstrb"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "output",
-        "name": "prdata",
+        "direction": "input",
+        "name": "csr_wstrb",
         "source_ref": "io_list.interfaces[1].ports[5]",
-        "width": "DATA_WIDTH"
+        "width": "DATA_WIDTH/8"
       },
       {
         "aliases": [
-          "csr_apb_lite_pready",
-          "pready"
+          "csr_rvalid",
+          "csr_slave_csr_rvalid"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "pready",
+        "name": "csr_rvalid",
         "source_ref": "io_list.interfaces[1].ports[6]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_pslverr",
-          "pslverr"
+          "csr_rdata",
+          "csr_slave_csr_rdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "pslverr",
+        "name": "csr_rdata",
         "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "csr_error",
+          "csr_slave_csr_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "csr_error",
+        "source_ref": "io_list.interfaces[1].ports[8]",
         "width": "1"
       },
       {
         "aliases": [
-          "dma_read_addr_rd_addr_valid",
-          "rd_addr_valid"
+          "mem_master_mem_req_valid",
+          "mem_req_valid"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "rd_addr_valid",
+        "direction": "output",
+        "name": "mem_req_valid",
         "source_ref": "io_list.interfaces[2].ports[0]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_addr_rd_addr_ready",
-          "rd_addr_ready"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "output",
-        "name": "rd_addr_ready",
-        "source_ref": "io_list.interfaces[2].ports[1]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_addr_rd_addr",
-          "rd_addr"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_addr",
-        "source_ref": "io_list.interfaces[2].ports[2]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data_valid",
-          "rd_data_valid"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_data_valid",
-        "source_ref": "io_list.interfaces[3].ports[0]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data_ready",
-          "rd_data_ready"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "output",
-        "name": "rd_data_ready",
-        "source_ref": "io_list.interfaces[3].ports[1]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data",
-          "rd_data"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_data",
-        "source_ref": "io_list.interfaces[3].ports[2]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_resp",
-          "rd_resp"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_resp",
-        "source_ref": "io_list.interfaces[3].ports[3]",
         "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data_valid",
-          "wr_data_valid"
+          "mem_master_mem_req_ready",
+          "mem_req_ready"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "wr_data_valid",
-        "source_ref": "io_list.interfaces[4].ports[0]",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_ready",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data_ready",
-          "wr_data_ready"
+          "mem_master_mem_req_write",
+          "mem_req_write"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "wr_data_ready",
-        "source_ref": "io_list.interfaces[4].ports[1]",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_write",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_addr",
-          "wr_addr"
+          "mem_master_mem_req_addr",
+          "mem_req_addr"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_addr",
-        "source_ref": "io_list.interfaces[4].ports[2]",
+        "direction": "output",
+        "name": "mem_req_addr",
+        "source_ref": "io_list.interfaces[2].ports[3]",
         "width": "ADDR_WIDTH"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data",
-          "wr_data"
+          "mem_master_mem_req_wdata",
+          "mem_req_wdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_data",
-        "source_ref": "io_list.interfaces[4].ports[3]",
+        "direction": "output",
+        "name": "mem_req_wdata",
+        "source_ref": "io_list.interfaces[2].ports[4]",
         "width": "DATA_WIDTH"
       },
       {
         "aliases": [
-          "dma_write_data_wr_strb",
-          "wr_strb"
+          "mem_master_mem_req_wstrb",
+          "mem_req_wstrb"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_strb",
-        "source_ref": "io_list.interfaces[4].ports[4]",
+        "direction": "output",
+        "name": "mem_req_wstrb",
+        "source_ref": "io_list.interfaces[2].ports[5]",
         "width": "DATA_WIDTH/8"
       },
       {
         "aliases": [
-          "irq",
-          "status_irq_irq"
+          "mem_master_mem_rsp_valid",
+          "mem_rsp_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_valid",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "mem_master_mem_rsp_rdata",
+          "mem_rsp_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_rdata",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "mem_master_mem_rsp_error",
+          "mem_rsp_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_error",
+        "source_ref": "io_list.interfaces[2].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_irq",
+          "irq"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
         "name": "irq",
-        "source_ref": "io_list.interfaces[5].ports[0]",
+        "source_ref": "io_list.interfaces[3].ports[0]",
         "width": "1"
       }
     ],
@@ -311,7 +287,7 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": false,
     "evidence_closure_allowed": true,
     "human_locked_open_count": 0,
@@ -319,7 +295,7 @@
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
     "open_required_count": 0,
-    "pass_allowed": false,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -546,7 +522,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "171b5fe388155b7b1edfb3840233a511c24450973133c88e18bd9bf69445d6c6",
+  "todo_plan_sha256": "528ba0df873e04e970994cc7f47e379270bb2f047df8f859defc125f041665a8",
   "top": "dma_scratch_orch_live_20260519b",
   "type": "rtl_authoring_packet"
 }

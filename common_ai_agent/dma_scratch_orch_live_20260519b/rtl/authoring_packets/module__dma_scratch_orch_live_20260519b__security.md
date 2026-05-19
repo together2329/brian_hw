@@ -22,29 +22,29 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 2
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
 - Module slice: 10/15 section=security task_limit=48
 - Slice rule: Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
-- SSOT top IO contracts: 23
+- SSOT top IO contracts: 21
 
 ## Tasks
 
-### RTL-0157: Implement security item configuration_state
+### RTL-0167: Implement security item configuration_state
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.configuration_state
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.configuration_state.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: name=configuration_state.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -53,18 +53,18 @@ SSOT item context: name=configuration_state.
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: security.assets.configuration_state
 
-### RTL-0158: Implement security item data_integrity
+### RTL-0168: Implement security item data_integrity
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.data_integrity
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.data_integrity.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: name=data_integrity.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

@@ -268,8 +268,8 @@
     }
   },
   "summary": {
-    "total": 34,
-    "required": 34,
+    "total": 36,
+    "required": 36,
     "optional": 0,
     "blocked": 0,
     "unverified": 0,
@@ -314,9 +314,9 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "Architectural output matches feature definition",
-          "{'name': 'pslverr', 'port': 'pslverr', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
+          "{'name': 'irq', 'port': 'irq', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
           "{'state': 'fm1_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
-          "pslverr"
+          "irq"
         ],
         "latency": "cycle_model latency/ordering must hold when applicable",
         "state_updates": [
@@ -431,7 +431,7 @@
         "SC08_executed",
         "function_feature_3",
         "fsm_control_exec_feature_2_to_exec_feature_3_3",
-        "fsm_control_exec_feature_3_to_complete_4"
+        "fsm_control_exec_feature_3_to_exec_feature_4_4"
       ],
       "stimulus_contract": {
         "transaction_type": "feature_3",
@@ -452,6 +452,71 @@
         "state_updates": [
           "Architectural state updates according to FSM/control policy",
           "fm3_observed"
+        ],
+        "error_policy": "{'condition': 'Downstream protocol response is non-OKAY or invalid', 'result': 'Set error status and block signoff until handled'}"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM4",
+      "title": "Transaction feature_4 matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[3]"
+      ],
+      "decomposition_refs": [
+        "dma_scratch_orch_live_20260519b_protocol_model",
+        "dma_scratch_orch_live_20260519b_datapath_model",
+        "dma_scratch_orch_live_20260519b_fsm_model",
+        "dma_scratch_orch_live_20260519b_error_model"
+      ],
+      "coverage_refs": [
+        "SC09_executed",
+        "function_feature_4",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "feature_4",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "Feature trigger is asserted under legal configuration"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Architectural output matches feature definition",
+          "{'state': 'fm4_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "Architectural state updates according to FSM/control policy",
+          "fm4_observed"
         ],
         "error_policy": "{'condition': 'Downstream protocol response is non-OKAY or invalid', 'result': 'Set error status and block signoff until handled'}"
       },
@@ -575,9 +640,9 @@
         "observables": [
           "Externally observable result/status/side effects match the function_model primary transaction.",
           "Architectural output matches feature definition",
-          "{'name': 'pslverr', 'port': 'pslverr', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
+          "{'name': 'irq', 'port': 'irq', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
           "{'state': 'fm1_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
-          "pslverr"
+          "irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [
@@ -644,9 +709,9 @@
         "observables": [
           "Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.",
           "Architectural output matches feature definition",
-          "{'name': 'pslverr', 'port': 'pslverr', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
+          "{'name': 'irq', 'port': 'irq', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
           "{'state': 'fm1_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
-          "pslverr"
+          "irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [
@@ -775,9 +840,9 @@
         "observables": [
           "Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.",
           "Architectural output matches feature definition",
-          "{'name': 'pslverr', 'port': 'pslverr', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
+          "{'name': 'irq', 'port': 'irq', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
           "{'state': 'fm1_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
-          "pslverr"
+          "irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [
@@ -844,9 +909,9 @@
         "observables": [
           "Outputs and side effects match `FM1` exactly.",
           "Architectural output matches feature definition",
-          "{'name': 'pslverr', 'port': 'pslverr', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
+          "{'name': 'irq', 'port': 'irq', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
           "{'state': 'fm1_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
-          "pslverr"
+          "irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [
@@ -1011,6 +1076,73 @@
       "unverified": false
     },
     {
+      "goal_id": "EQ_SCENARIO_SC09",
+      "title": "Scenario SC09: function_model transaction FM4",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[8]"
+      ],
+      "decomposition_refs": [
+        "dma_scratch_orch_live_20260519b",
+        "dma_scratch_orch_live_20260519b_protocol_model",
+        "dma_scratch_orch_live_20260519b_datapath_model",
+        "dma_scratch_orch_live_20260519b_fsm_model",
+        "dma_scratch_orch_live_20260519b_error_model",
+        "dma_scratch_orch_live_20260519b_security_model"
+      ],
+      "coverage_refs": [
+        "SC09_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "feature_4",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM4`.",
+          "Feature trigger is asserted under legal configuration"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM4` exactly.",
+          "Architectural output matches feature definition",
+          "{'state': 'fm4_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "Architectural state updates according to FSM/control policy",
+          "fm4_observed"
+        ],
+        "error_policy": "{'condition': 'Downstream protocol response is non-OKAY or invalid', 'result': 'Set error status and block signoff until handled'}"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
       "title": "Cycle/handshake rule handshake_0",
       "kind": "protocol",
@@ -1028,7 +1160,6 @@
         "SC03_executed",
         "cycle_handshake_0",
         "cycle_handshake_1",
-        "cycle_handshake_2",
         "cycle_latency_control_or_request_accept",
         "cycle_pipeline_s0_accept",
         "cycle_ordering_2",
@@ -1041,7 +1172,7 @@
           "observed_signals"
         ],
         "constraints": [
-          "{'signal': 'rd_addr_valid/rd_addr_ready', 'rule': 'rd_addr_valid payload remains stable until rd_addr_ready is sampled asserted on dma_read_addr.'}"
+          "{'signal': 'csr_valid/csr_ready', 'rule': 'csr_valid payload remains stable until csr_ready is sampled asserted on csr_slave.'}"
         ]
       },
       "expected_contract": {
@@ -1091,7 +1222,6 @@
         "SC03_executed",
         "cycle_handshake_0",
         "cycle_handshake_1",
-        "cycle_handshake_2",
         "cycle_latency_control_or_request_accept",
         "cycle_pipeline_s0_accept",
         "cycle_ordering_2",
@@ -1104,70 +1234,7 @@
           "observed_signals"
         ],
         "constraints": [
-          "{'signal': 'rd_data_valid/rd_data_ready', 'rule': 'rd_data_valid payload remains stable until rd_data_ready is sampled asserted on dma_read_data.'}"
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "ready/valid/control observables named by SSOT and DUT ports"
-        ],
-        "latency": "{'control_or_request_accept': {'min_cycles': 0, 'max_cycles': None, 'description': 'Bounded by declared valid/ready or protocol acceptance rules'}, 'primary_operation': {'min_cycles': 1, 'max_cycles': None, 'description': 'Runs on clk at nominal 100 MHz; max depends on declared backpressure and implementation state'}, 'response_or_observable_result': {'min_cycles': 0, 'max_cycles': None, 'description': 'Held stable until the declared response/output acceptance condition'}}",
-        "state_updates": [],
-        "error_policy": ""
-      },
-      "pass_criteria": [
-        "RTL holds payload/control stability according to cycle_model",
-        "Handshake completion timing matches cycle_model latency/ordering",
-        "Protocol coverage bin is hit"
-      ],
-      "owner_on_fail": {
-        "default": "rtl",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "rtl",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false
-    },
-    {
-      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
-      "title": "Cycle/handshake rule handshake_2",
-      "kind": "protocol",
-      "scope": {
-        "level": "top"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules[2]"
-      ],
-      "decomposition_refs": [
-        "dma_scratch_orch_live_20260519b_protocol_model",
-        "dma_scratch_orch_live_20260519b_fsm_model"
-      ],
-      "coverage_refs": [
-        "SC03_executed",
-        "cycle_handshake_0",
-        "cycle_handshake_1",
-        "cycle_handshake_2",
-        "cycle_latency_control_or_request_accept",
-        "cycle_pipeline_s0_accept",
-        "cycle_ordering_2",
-        "error_error_0"
-      ],
-      "stimulus_contract": {
-        "transaction_type": "handshake_2",
-        "required_fields": [
-          "cycle",
-          "observed_signals"
-        ],
-        "constraints": [
-          "{'signal': 'wr_data_valid/wr_data_ready', 'rule': 'wr_data_valid payload remains stable until wr_data_ready is sampled asserted on dma_write_data.'}"
+          "{'signal': 'mem_req_valid/mem_req_ready', 'rule': 'mem_req_valid payload remains stable until mem_req_ready is sampled asserted on mem_master.'}"
         ]
       },
       "expected_contract": {
@@ -1454,8 +1521,8 @@
         "cycle_latency_control_or_request_accept",
         "cycle_latency_primary_operation",
         "cycle_latency_response_or_observable_result",
-        "fsm_control_from_to_error_6",
-        "fsm_control_error_to_idle_7",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8",
         "error_error_0"
       ],
       "stimulus_contract": {
@@ -1525,10 +1592,11 @@
         "fsm_control_accept_to_exec_feature_1_1",
         "fsm_control_exec_feature_1_to_exec_feature_2_2",
         "fsm_control_exec_feature_2_to_exec_feature_3_3",
-        "fsm_control_exec_feature_3_to_complete_4",
-        "fsm_control_complete_to_idle_5",
-        "fsm_control_from_to_error_6",
-        "fsm_control_error_to_idle_7"
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
       ],
       "stimulus_contract": {
         "transaction_type": "control_IDLE_to_ACCEPT_0",
@@ -1597,10 +1665,11 @@
         "fsm_control_accept_to_exec_feature_1_1",
         "fsm_control_exec_feature_1_to_exec_feature_2_2",
         "fsm_control_exec_feature_2_to_exec_feature_3_3",
-        "fsm_control_exec_feature_3_to_complete_4",
-        "fsm_control_complete_to_idle_5",
-        "fsm_control_from_to_error_6",
-        "fsm_control_error_to_idle_7"
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
       ],
       "stimulus_contract": {
         "transaction_type": "control_ACCEPT_to_EXEC_FEATURE_1_1",
@@ -1664,10 +1733,11 @@
         "fsm_control_accept_to_exec_feature_1_1",
         "fsm_control_exec_feature_1_to_exec_feature_2_2",
         "fsm_control_exec_feature_2_to_exec_feature_3_3",
-        "fsm_control_exec_feature_3_to_complete_4",
-        "fsm_control_complete_to_idle_5",
-        "fsm_control_from_to_error_6",
-        "fsm_control_error_to_idle_7"
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
       ],
       "stimulus_contract": {
         "transaction_type": "control_EXEC_FEATURE_1_to_EXEC_FEATURE_2_2",
@@ -1731,10 +1801,11 @@
         "fsm_control_accept_to_exec_feature_1_1",
         "fsm_control_exec_feature_1_to_exec_feature_2_2",
         "fsm_control_exec_feature_2_to_exec_feature_3_3",
-        "fsm_control_exec_feature_3_to_complete_4",
-        "fsm_control_complete_to_idle_5",
-        "fsm_control_from_to_error_6",
-        "fsm_control_error_to_idle_7"
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
       ],
       "stimulus_contract": {
         "transaction_type": "control_EXEC_FEATURE_2_to_EXEC_FEATURE_3_3",
@@ -1778,8 +1849,8 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_STATE_CONTROL_EXEC_FEATURE_3_TO_COMPLETE_4",
-      "title": "FSM transition control: EXEC_FEATURE_3 -> COMPLETE",
+      "goal_id": "EQ_STATE_CONTROL_EXEC_FEATURE_3_TO_EXEC_FEATURE_4_4",
+      "title": "FSM transition control: EXEC_FEATURE_3 -> EXEC_FEATURE_4",
       "kind": "state",
       "scope": {
         "level": "top"
@@ -1798,13 +1869,14 @@
         "fsm_control_accept_to_exec_feature_1_1",
         "fsm_control_exec_feature_1_to_exec_feature_2_2",
         "fsm_control_exec_feature_2_to_exec_feature_3_3",
-        "fsm_control_exec_feature_3_to_complete_4",
-        "fsm_control_complete_to_idle_5",
-        "fsm_control_from_to_error_6",
-        "fsm_control_error_to_idle_7"
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
       ],
       "stimulus_contract": {
-        "transaction_type": "control_EXEC_FEATURE_3_to_COMPLETE_4",
+        "transaction_type": "control_EXEC_FEATURE_3_to_EXEC_FEATURE_4_4",
         "required_fields": [
           "pre_state",
           "stimulus"
@@ -1845,8 +1917,8 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_STATE_CONTROL_COMPLETE_TO_IDLE_5",
-      "title": "FSM transition control: COMPLETE -> IDLE",
+      "goal_id": "EQ_STATE_CONTROL_EXEC_FEATURE_4_TO_COMPLETE_5",
+      "title": "FSM transition control: EXEC_FEATURE_4 -> COMPLETE",
       "kind": "state",
       "scope": {
         "level": "top"
@@ -1865,13 +1937,14 @@
         "fsm_control_accept_to_exec_feature_1_1",
         "fsm_control_exec_feature_1_to_exec_feature_2_2",
         "fsm_control_exec_feature_2_to_exec_feature_3_3",
-        "fsm_control_exec_feature_3_to_complete_4",
-        "fsm_control_complete_to_idle_5",
-        "fsm_control_from_to_error_6",
-        "fsm_control_error_to_idle_7"
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
       ],
       "stimulus_contract": {
-        "transaction_type": "control_COMPLETE_to_IDLE_5",
+        "transaction_type": "control_EXEC_FEATURE_4_to_COMPLETE_5",
         "required_fields": [
           "pre_state",
           "stimulus"
@@ -1912,8 +1985,8 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_STATE_CONTROL_TO_ERROR_6",
-      "title": "FSM transition control: * -> ERROR",
+      "goal_id": "EQ_STATE_CONTROL_COMPLETE_TO_IDLE_6",
+      "title": "FSM transition control: COMPLETE -> IDLE",
       "kind": "state",
       "scope": {
         "level": "top"
@@ -1925,7 +1998,6 @@
         "dma_scratch_orch_live_20260519b_fsm_model"
       ],
       "coverage_refs": [
-        "SC04_executed",
         "cycle_latency_control_or_request_accept",
         "cycle_pipeline_s0_accept",
         "cycle_backpressure_0",
@@ -1933,14 +2005,14 @@
         "fsm_control_accept_to_exec_feature_1_1",
         "fsm_control_exec_feature_1_to_exec_feature_2_2",
         "fsm_control_exec_feature_2_to_exec_feature_3_3",
-        "fsm_control_exec_feature_3_to_complete_4",
-        "fsm_control_complete_to_idle_5",
-        "fsm_control_from_to_error_6",
-        "fsm_control_error_to_idle_7",
-        "error_error_0"
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
       ],
       "stimulus_contract": {
-        "transaction_type": "control_*_to_ERROR_6",
+        "transaction_type": "control_COMPLETE_to_IDLE_6",
         "required_fields": [
           "pre_state",
           "stimulus"
@@ -1981,8 +2053,8 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_STATE_CONTROL_ERROR_TO_IDLE_7",
-      "title": "FSM transition control: ERROR -> IDLE",
+      "goal_id": "EQ_STATE_CONTROL_TO_ERROR_7",
+      "title": "FSM transition control: * -> ERROR",
       "kind": "state",
       "scope": {
         "level": "top"
@@ -2002,14 +2074,85 @@
         "fsm_control_accept_to_exec_feature_1_1",
         "fsm_control_exec_feature_1_to_exec_feature_2_2",
         "fsm_control_exec_feature_2_to_exec_feature_3_3",
-        "fsm_control_exec_feature_3_to_complete_4",
-        "fsm_control_complete_to_idle_5",
-        "fsm_control_from_to_error_6",
-        "fsm_control_error_to_idle_7",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8",
         "error_error_0"
       ],
       "stimulus_contract": {
-        "transaction_type": "control_ERROR_to_IDLE_7",
+        "transaction_type": "control_*_to_ERROR_7",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          ""
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "control state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_ERROR_TO_IDLE_8",
+      "title": "FSM transition control: ERROR -> IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.control.transitions[8]"
+      ],
+      "decomposition_refs": [
+        "dma_scratch_orch_live_20260519b_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC04_executed",
+        "cycle_latency_control_or_request_accept",
+        "cycle_pipeline_s0_accept",
+        "cycle_backpressure_0",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_exec_feature_1_1",
+        "fsm_control_exec_feature_1_to_exec_feature_2_2",
+        "fsm_control_exec_feature_2_to_exec_feature_3_3",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8",
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "control_ERROR_to_IDLE_8",
         "required_fields": [
           "pre_state",
           "stimulus"
@@ -2124,9 +2267,8 @@
       "ssot_refs": [
         "cycle_model.backpressure.backpressure_0",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.rd_addr_valid_rd_addr_ready",
-        "cycle_model.handshake_rules.rd_data_valid_rd_data_ready",
-        "cycle_model.handshake_rules.wr_data_valid_wr_data_ready",
+        "cycle_model.handshake_rules.csr_valid_csr_ready",
+        "cycle_model.handshake_rules.mem_req_valid_mem_req_ready",
         "cycle_model.latency",
         "cycle_model.observability.observability_0",
         "cycle_model.ordering.ordering_0",
@@ -2139,9 +2281,10 @@
         "cycle_model.reset",
         "dataflow",
         "decomposition",
+        "features.completion_irq",
         "features.csr_programming",
-        "features.deterministic_safe_defaults",
-        "features.dma_mem_to_mem",
+        "features.dma_copy",
+        "features.error_latch",
         "function_model.invariants.invariant_0",
         "function_model.invariants.invariant_1",
         "function_model.invariants.invariant_2",
@@ -2150,14 +2293,15 @@
         "function_model.state_variables.fm1_observed",
         "function_model.state_variables.fm2_observed",
         "function_model.state_variables.fm3_observed",
+        "function_model.state_variables.fm4_observed",
         "function_model.state_variables.state",
         "function_model.transactions.fm1",
         "function_model.transactions.fm1.error_cases.error_case_0",
         "function_model.transactions.fm1.inputs.input_0",
-        "function_model.transactions.fm1.output_rules.pslverr",
+        "function_model.transactions.fm1.output_rules.irq",
         "function_model.transactions.fm1.outputs.fm1_observed",
+        "function_model.transactions.fm1.outputs.irq",
         "function_model.transactions.fm1.outputs.output_0",
-        "function_model.transactions.fm1.outputs.pslverr",
         "function_model.transactions.fm1.preconditions.precondition_0",
         "function_model.transactions.fm1.side_effects.side_effect_0",
         "function_model.transactions.fm1.state_updates.fm1_observed",
@@ -2177,12 +2321,19 @@
         "function_model.transactions.fm3.preconditions.precondition_0",
         "function_model.transactions.fm3.side_effects.side_effect_0",
         "function_model.transactions.fm3.state_updates.fm3_observed",
+        "function_model.transactions.fm4",
+        "function_model.transactions.fm4.error_cases.error_case_0",
+        "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.outputs.fm4_observed",
+        "function_model.transactions.fm4.outputs.output_0",
+        "function_model.transactions.fm4.preconditions.precondition_0",
+        "function_model.transactions.fm4.side_effects.side_effect_0",
+        "function_model.transactions.fm4.state_updates.fm4_observed",
         "integration",
         "io_list",
         "parameters.addr_width",
-        "parameters.count_width",
         "parameters.data_width",
-        "parameters.fifo_depth",
+        "parameters.len_width",
         "top_module"
       ],
       "decomposition_refs": [
@@ -2203,9 +2354,9 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "Architectural output matches feature definition",
-          "{'name': 'pslverr', 'port': 'pslverr', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
+          "{'name': 'irq', 'port': 'irq', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
           "{'state': 'fm1_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
-          "pslverr"
+          "irq"
         ],
         "latency": "cycle_model latency/ordering must hold at the module boundary",
         "state_updates": [
@@ -2270,9 +2421,9 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "Architectural output matches feature definition",
-          "{'name': 'pslverr', 'port': 'pslverr', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
+          "{'name': 'irq', 'port': 'irq', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
           "{'state': 'fm1_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
-          "pslverr"
+          "irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2335,9 +2486,9 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "Architectural output matches feature definition",
-          "{'name': 'pslverr', 'port': 'pslverr', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
+          "{'name': 'irq', 'port': 'irq', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
           "{'state': 'fm1_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
-          "pslverr"
+          "irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2400,9 +2551,9 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "Architectural output matches feature definition",
-          "{'name': 'pslverr', 'port': 'pslverr', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
+          "{'name': 'irq', 'port': 'irq', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
           "{'state': 'fm1_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
-          "pslverr"
+          "irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2465,9 +2616,9 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "Architectural output matches feature definition",
-          "{'name': 'pslverr', 'port': 'pslverr', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
+          "{'name': 'irq', 'port': 'irq', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
           "{'state': 'fm1_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
-          "pslverr"
+          "irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2530,9 +2681,9 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "Architectural output matches feature definition",
-          "{'name': 'pslverr', 'port': 'pslverr', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
+          "{'name': 'irq', 'port': 'irq', 'expr': '0', 'description': 'Auto-injected benign observable rule so the function_model has at least one scoreboard-visible output equation; replace with IP-specific output behavior before signoff.'}",
           "{'state': 'fm1_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
-          "pslverr"
+          "irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [

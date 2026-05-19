@@ -670,7 +670,17 @@ def _lower_rule_expr(
 
 
 def _cast_rule_expr(width: int, expr: str, *, readable: bool = False) -> str:
-    return str(expr or "0").strip() if readable else _sv_cast(width, expr)
+    text = str(expr or "0").strip() or "0"
+    if readable:
+        return text
+    width = max(int(width or 1), 1)
+    if width == 1:
+        return _rtl_bool(text)
+    if re.fullmatch(rf"{width}'[hHdDbB][0-9a-fA-F_xXzZ]+", text):
+        return text
+    if re.fullmatch(r"[0-9]+'\(.+\)", text):
+        return text
+    return f"{width}'({text})"
 
 
 def _generic_rule_contract(
@@ -1774,6 +1784,19 @@ def _module_declared_refs(sm: dict) -> list[str]:
     return out
 
 
+def _module_behavior_owner_refs(sm: dict) -> list[str]:
+    refs: list[str] = []
+    for key in ("implements", "function_model_refs", "decomposition_refs"):
+        refs.extend(_contract_ref_values(sm.get(key)))
+    seen: set[str] = set()
+    out: list[str] = []
+    for ref in refs:
+        if ref and ref not in seen:
+            seen.add(ref)
+            out.append(ref)
+    return out
+
+
 def _source_sections_from_refs(refs: list[str]) -> set[str]:
     sections: set[str] = set()
     for ref in refs:
@@ -2100,7 +2123,7 @@ def _behavior_owner_modules(doc: dict, top: str) -> list[dict]:
             "tieoff",
             "tie_off",
         }
-        declared_refs = _module_declared_refs(sm)
+        declared_refs = _module_behavior_owner_refs(sm)
         owns_behavior = any(
             ref == "function_model"
             or ref.startswith("function_model.")
@@ -2119,7 +2142,7 @@ def _module_owned_behavior_refs(doc: dict, top: str) -> dict[str, list[str]]:
     for sm in _behavior_owner_modules(doc, top):
         owned["function_model_refs"].extend(_contract_ref_values(sm.get("function_model_refs")))
         owned["decomposition_refs"].extend(_contract_ref_values(sm.get("decomposition_refs")))
-        for ref in _module_declared_refs(sm):
+        for ref in _module_behavior_owner_refs(sm):
             if ref == "function_model" or ref.startswith("function_model."):
                 owned["function_model_refs"].append(ref)
             if ref in {"decomposition", "functional_decomposition"} or ref.startswith(("decomposition.", "functional_decomposition.")):
@@ -2142,7 +2165,7 @@ def _module_owned_behavior_refs(doc: dict, top: str) -> dict[str, list[str]]:
         if not wiring_only and name not in {top, f"{top}_top", "top", "wrapper"} and path_stem not in {top, f"{top}_top", "top", "wrapper"}:
             continue
         owned["decomposition_refs"].extend(_contract_ref_values(sm.get("decomposition_refs")))
-        for ref in _module_declared_refs(sm):
+        for ref in _module_behavior_owner_refs(sm):
             if ref in {"decomposition", "functional_decomposition"} or ref.startswith(("decomposition.", "functional_decomposition.")):
                 owned["decomposition_refs"].append(ref)
     return {
@@ -3059,6 +3082,84 @@ def _generic_rule_rtl_source(ip: str, top: str, ports: list[dict], contract: dic
     return "\n".join(lines)
 
 
+def _generic_rule_rtl(top: str, ports: list[dict], contract: dict) -> str:
+    """Legacy Verilog helper kept for unit-level contract checks."""
+
+    by_name = {p["name"]: p for p in ports}
+    output_ports = {p["name"] for p in ports if str(p.get("direction") or "").lower() == "output"}
+    clock = _ident(contract.get("clock") or "clk")
+    reset = _ident(contract.get("reset") or "rst_n")
+    reset_active = str(contract.get("reset_active") or "low").lower()
+    reset_edge = "negedge" if reset_active == "low" else "posedge"
+    reset_test = f"!{reset}" if reset_active == "low" else reset
+    reset_inactive = f"!(!{reset})" if reset_active == "low" else f"!({reset})"
+    sample_condition = str(contract.get("sample_condition") or "1'b1").strip() or "1'b1"
+    state_vars = contract.get("state_vars") if isinstance(contract.get("state_vars"), dict) else {}
+    state_updates = [item for item in contract.get("state_updates") or [] if isinstance(item, dict)]
+    output_rules = [item for item in contract.get("outputs") or [] if isinstance(item, dict)]
+    updated_names = {_ident(item.get("name") or "") for item in state_updates if _ident(item.get("name") or "")}
+    apb_default = {"psel", "penable", "pready"}.issubset(set(by_name))
+
+    def _legacy_port_decl(port: dict) -> str:
+        direction = str(port.get("direction") or "input").lower()
+        name = str(port["name"])
+        rng = _sv_range(_port_width(port)).strip()
+        prefix = f"{direction} "
+        if direction == "output":
+            prefix += "reg "
+        return (prefix + (rng + " " if rng else "") + name).strip()
+
+    lines = [f"module {top} ("]
+    for idx, port in enumerate(ports):
+        suffix = "," if idx < len(ports) - 1 else ""
+        lines.append(f"    {_legacy_port_decl(port)}{suffix}")
+    lines += [");", ""]
+
+    for name, spec in sorted(state_vars.items()):
+        state_name = _ident(name)
+        if state_name in output_ports or state_name not in updated_names:
+            continue
+        width = max(_int_value((spec or {}).get("width"), 32) if isinstance(spec, dict) else 32, 1)
+        lines.append(f"    reg {_sv_range(width)}{state_name};")
+    if len(lines) > 3 and lines[-1].startswith("    reg "):
+        lines.append("")
+
+    lines.append(f"    always @(posedge {clock} or {reset_edge} {reset}) begin")
+    lines.append(f"        if ({reset_test}) begin")
+    reset_targets = sorted(output_ports | (updated_names - output_ports))
+    for name in reset_targets:
+        spec = state_vars.get(name) if isinstance(state_vars, dict) else {}
+        width = _port_width(by_name.get(name, {"width": (spec or {}).get("width", 32) if isinstance(spec, dict) else 32}))
+        reset_value = (spec or {}).get("reset", 0) if isinstance(spec, dict) else 0
+        lines.append(f"            {name} <= {_sv_int_literal(width, reset_value)};")
+    lines.append("        end else begin")
+    lines.append(f"            if ({reset_inactive}) begin")
+    if apb_default:
+        if "pready" in output_ports:
+            lines.append(f"                pready = {sample_condition};")
+        for port in ("pslverr", "prdata"):
+            if port in output_ports:
+                lines.append(f"                {port} = {_sv_zero(_port_width(by_name[port]))};")
+    for item in output_rules:
+        port = _ident(item.get("port") or item.get("name") or "")
+        if not port:
+            continue
+        width = _port_width(by_name.get(port, {"width": item.get("width", 1)}))
+        lines.append(f"                {port} <= {_sv_width_cast(width, str(item.get('expr') or '0'))};")
+    if state_updates:
+        lines.append(f"                if ({_rtl_bool(sample_condition)}) begin")
+        for item in state_updates:
+            name = _ident(item.get("name") or "")
+            if not name:
+                continue
+            spec = state_vars.get(name) if isinstance(state_vars, dict) else {}
+            width = _port_width(by_name.get(name, {"width": (spec or {}).get("width", item.get("width", 32)) if isinstance(spec, dict) else item.get("width", 32)}))
+            lines.append(f"                    {name} <= {_sv_width_cast(width, str(item.get('expr') or '0'))};")
+        lines.append("                end")
+    lines += ["            end", "        end", "    end", "endmodule", ""]
+    return "\n".join(lines)
+
+
 def _write_generic_rule_artifacts(ip_dir: Path, ip: str, top: str, ports: list[dict], contract: dict, doc: dict) -> None:
     rtl_dir = ip_dir / "rtl"
     list_dir = ip_dir / "list"
@@ -3069,15 +3170,7 @@ def _write_generic_rule_artifacts(ip_dir: Path, ip: str, top: str, ports: list[d
     rtl_path.write_text(_generic_rule_rtl_source(ip, top, ports, contract, doc), encoding="utf-8")
     (list_dir / f"{ip}.f").write_text(f"{rtl_rel}\n", encoding="utf-8")
 
-    contract_doc = {
-        "schema_version": 1,
-        "type": "generic_ssot_rule_rtl_contract",
-        "ip": ip,
-        "top": top,
-        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "contract": contract,
-    }
-    (rtl_dir / "rtl_contract.json").write_text(json.dumps(contract_doc, indent=2) + "\n", encoding="utf-8")
+    _write_generic_rule_contract_artifact(ip_dir, ip, top, contract)
 
     traceability = {
         "schema_version": 1,
@@ -3111,6 +3204,20 @@ def _write_generic_rule_artifacts(ip_dir: Path, ip: str, top: str, ports: list[d
         "authoring_packets": ["generic_ssot_rule_seed"],
     }
     (rtl_dir / "rtl_authoring_provenance.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+
+
+def _write_generic_rule_contract_artifact(ip_dir: Path, ip: str, top: str, contract: dict) -> None:
+    rtl_dir = ip_dir / "rtl"
+    rtl_dir.mkdir(parents=True, exist_ok=True)
+    contract_doc = {
+        "schema_version": 1,
+        "type": "generic_ssot_rule_rtl_contract",
+        "ip": ip,
+        "top": top,
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "contract": contract,
+    }
+    (rtl_dir / "rtl_contract.json").write_text(json.dumps(contract_doc, indent=2) + "\n", encoding="utf-8")
 
 
 def _write_starter_llm_handoff_artifacts(
@@ -3426,6 +3533,8 @@ def generate(ip: str, root: Path, mode: str = "signoff") -> None:
         for q in merged_questions:
             print(f"- {q['id']}: {q['decision_needed']}")
         raise SystemExit(2)
+    if not generic_questions:
+        _write_generic_rule_contract_artifact(ip_dir, ip, top, _generic_contract)
 
     expected = _expected_rtl_files(doc, top)
     if _generic_rule_seed_allowed(ip_dir, top, _generic_contract, expected):

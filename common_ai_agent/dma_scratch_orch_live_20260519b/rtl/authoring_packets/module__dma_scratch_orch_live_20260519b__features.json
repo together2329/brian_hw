@@ -12,7 +12,7 @@
       "enabled": true,
       "index": 8,
       "key": "features",
-      "module_task_count": 159,
+      "module_task_count": 170,
       "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "features",
       "section_chunk_count": 1,
@@ -66,254 +66,230 @@
       },
       {
         "aliases": [
-          "csr_apb_lite_paddr",
-          "paddr"
+          "csr_slave_csr_valid",
+          "csr_valid"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "paddr",
+        "name": "csr_valid",
         "source_ref": "io_list.interfaces[1].ports[0]",
-        "width": "ADDR_WIDTH"
+        "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_psel",
-          "psel"
+          "csr_ready",
+          "csr_slave_csr_ready"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "psel",
+        "direction": "output",
+        "name": "csr_ready",
         "source_ref": "io_list.interfaces[1].ports[1]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_penable",
-          "penable"
+          "csr_slave_csr_write",
+          "csr_write"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "penable",
+        "name": "csr_write",
         "source_ref": "io_list.interfaces[1].ports[2]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_pwrite",
-          "pwrite"
+          "csr_addr",
+          "csr_slave_csr_addr"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "pwrite",
+        "name": "csr_addr",
         "source_ref": "io_list.interfaces[1].ports[3]",
-        "width": "1"
+        "width": "ADDR_WIDTH"
       },
       {
         "aliases": [
-          "csr_apb_lite_pwdata",
-          "pwdata"
+          "csr_slave_csr_wdata",
+          "csr_wdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "pwdata",
+        "name": "csr_wdata",
         "source_ref": "io_list.interfaces[1].ports[4]",
         "width": "DATA_WIDTH"
       },
       {
         "aliases": [
-          "csr_apb_lite_prdata",
-          "prdata"
+          "csr_slave_csr_wstrb",
+          "csr_wstrb"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "output",
-        "name": "prdata",
+        "direction": "input",
+        "name": "csr_wstrb",
         "source_ref": "io_list.interfaces[1].ports[5]",
-        "width": "DATA_WIDTH"
+        "width": "DATA_WIDTH/8"
       },
       {
         "aliases": [
-          "csr_apb_lite_pready",
-          "pready"
+          "csr_rvalid",
+          "csr_slave_csr_rvalid"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "pready",
+        "name": "csr_rvalid",
         "source_ref": "io_list.interfaces[1].ports[6]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_pslverr",
-          "pslverr"
+          "csr_rdata",
+          "csr_slave_csr_rdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "pslverr",
+        "name": "csr_rdata",
         "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "csr_error",
+          "csr_slave_csr_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "csr_error",
+        "source_ref": "io_list.interfaces[1].ports[8]",
         "width": "1"
       },
       {
         "aliases": [
-          "dma_read_addr_rd_addr_valid",
-          "rd_addr_valid"
+          "mem_master_mem_req_valid",
+          "mem_req_valid"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "rd_addr_valid",
+        "direction": "output",
+        "name": "mem_req_valid",
         "source_ref": "io_list.interfaces[2].ports[0]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_addr_rd_addr_ready",
-          "rd_addr_ready"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "output",
-        "name": "rd_addr_ready",
-        "source_ref": "io_list.interfaces[2].ports[1]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_addr_rd_addr",
-          "rd_addr"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_addr",
-        "source_ref": "io_list.interfaces[2].ports[2]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data_valid",
-          "rd_data_valid"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_data_valid",
-        "source_ref": "io_list.interfaces[3].ports[0]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data_ready",
-          "rd_data_ready"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "output",
-        "name": "rd_data_ready",
-        "source_ref": "io_list.interfaces[3].ports[1]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data",
-          "rd_data"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_data",
-        "source_ref": "io_list.interfaces[3].ports[2]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_resp",
-          "rd_resp"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_resp",
-        "source_ref": "io_list.interfaces[3].ports[3]",
         "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data_valid",
-          "wr_data_valid"
+          "mem_master_mem_req_ready",
+          "mem_req_ready"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "wr_data_valid",
-        "source_ref": "io_list.interfaces[4].ports[0]",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_ready",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data_ready",
-          "wr_data_ready"
+          "mem_master_mem_req_write",
+          "mem_req_write"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "wr_data_ready",
-        "source_ref": "io_list.interfaces[4].ports[1]",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_write",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_addr",
-          "wr_addr"
+          "mem_master_mem_req_addr",
+          "mem_req_addr"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_addr",
-        "source_ref": "io_list.interfaces[4].ports[2]",
+        "direction": "output",
+        "name": "mem_req_addr",
+        "source_ref": "io_list.interfaces[2].ports[3]",
         "width": "ADDR_WIDTH"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data",
-          "wr_data"
+          "mem_master_mem_req_wdata",
+          "mem_req_wdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_data",
-        "source_ref": "io_list.interfaces[4].ports[3]",
+        "direction": "output",
+        "name": "mem_req_wdata",
+        "source_ref": "io_list.interfaces[2].ports[4]",
         "width": "DATA_WIDTH"
       },
       {
         "aliases": [
-          "dma_write_data_wr_strb",
-          "wr_strb"
+          "mem_master_mem_req_wstrb",
+          "mem_req_wstrb"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_strb",
-        "source_ref": "io_list.interfaces[4].ports[4]",
+        "direction": "output",
+        "name": "mem_req_wstrb",
+        "source_ref": "io_list.interfaces[2].ports[5]",
         "width": "DATA_WIDTH/8"
       },
       {
         "aliases": [
-          "irq",
-          "status_irq_irq"
+          "mem_master_mem_rsp_valid",
+          "mem_rsp_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_valid",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "mem_master_mem_rsp_rdata",
+          "mem_rsp_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_rdata",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "mem_master_mem_rsp_error",
+          "mem_rsp_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_error",
+        "source_ref": "io_list.interfaces[2].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_irq",
+          "irq"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
         "name": "irq",
-        "source_ref": "io_list.interfaces[5].ports[0]",
+        "source_ref": "io_list.interfaces[3].ports[0]",
         "width": "1"
       }
     ],
@@ -323,15 +299,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 3,
-    "open_required_count": 3,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -359,74 +335,34 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
-      "features.item": 3
+      "features.item": 4
     },
     "module_slice": {
       "count": 15,
       "enabled": true,
       "index": 8,
       "key": "features",
-      "module_task_count": 159,
+      "module_task_count": 170,
       "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "features",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 3,
-    "required_count": 3,
+    "open_required_count": 0,
+    "required_count": 4,
     "source_refs": [
-      "features.dma_mem_to_mem",
       "features.csr_programming",
-      "features.deterministic_safe_defaults"
+      "features.dma_copy",
+      "features.completion_irq",
+      "features.error_latch"
     ],
     "status_counts": {
-      "open": 3
+      "pass": 4
     },
-    "task_count": 3
+    "task_count": 4
   },
   "tasks": [
-    {
-      "category": "features.item",
-      "content": "Implement feature dma_mem_to_mem",
-      "criteria": [
-        "Feature trigger/control/data behavior has RTL owner logic",
-        "Feature observability and error behavior match SSOT",
-        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
-        "Traceability keeps source_ref features.dma_mem_to_mem",
-        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv"
-      ],
-      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.dma_mem_to_mem.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=dma_mem_to_mem.",
-      "evidence_terms": [],
-      "id": "RTL-0144",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "priority": "high",
-      "required": true,
-      "source_ref": "features.dma_mem_to_mem",
-      "ssot_context": {
-        "id": "dma_mem_to_mem"
-      },
-      "ssot_refs": [
-        "features.dma_mem_to_mem"
-      ],
-      "static_evidence": {
-        "required": false,
-        "status": "not_required"
-      },
-      "todo_completion": {
-        "criteria_total": 5,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
-        "required": true,
-        "status": "open"
-      }
-    },
     {
       "category": "features.item",
       "content": "Implement feature csr_programming",
@@ -439,7 +375,7 @@
       ],
       "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.csr_programming.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=csr_programming.",
       "evidence_terms": [],
-      "id": "RTL-0145",
+      "id": "RTL-0153",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -463,34 +399,34 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "features.item",
-      "content": "Implement feature deterministic_safe_defaults",
+      "content": "Implement feature dma_copy",
       "criteria": [
         "Feature trigger/control/data behavior has RTL owner logic",
         "Feature observability and error behavior match SSOT",
         "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
-        "Traceability keeps source_ref features.deterministic_safe_defaults",
+        "Traceability keeps source_ref features.dma_copy",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv"
       ],
-      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.deterministic_safe_defaults.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=deterministic_safe_defaults.",
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.dma_copy.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=dma_copy.",
       "evidence_terms": [],
-      "id": "RTL-0146",
+      "id": "RTL-0154",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "features.deterministic_safe_defaults",
+      "source_ref": "features.dma_copy",
       "ssot_context": {
-        "id": "deterministic_safe_defaults"
+        "id": "dma_copy"
       },
       "ssot_refs": [
-        "features.deterministic_safe_defaults"
+        "features.dma_copy"
       ],
       "static_evidence": {
         "required": false,
@@ -504,13 +440,95 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature completion_irq",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.completion_irq",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.completion_irq.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=completion_irq.",
+      "evidence_terms": [],
+      "id": "RTL-0155",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.completion_irq",
+      "ssot_context": {
+        "id": "completion_irq"
+      },
+      "ssot_refs": [
+        "features.completion_irq"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature error_latch",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.error_latch",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.error_latch.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=error_latch.",
+      "evidence_terms": [],
+      "id": "RTL-0156",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.error_latch",
+      "ssot_context": {
+        "id": "error_latch"
+      },
+      "ssot_refs": [
+        "features.error_latch"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "171b5fe388155b7b1edfb3840233a511c24450973133c88e18bd9bf69445d6c6",
+  "todo_plan_sha256": "528ba0df873e04e970994cc7f47e379270bb2f047df8f859defc125f041665a8",
   "top": "dma_scratch_orch_live_20260519b",
   "type": "rtl_authoring_packet"
 }

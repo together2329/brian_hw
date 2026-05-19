@@ -1,0 +1,515 @@
+{
+  "schema_version": 1,
+  "type": "fl_rtl_compare",
+  "ip": "dma_scratch_orch_live_20260519b",
+  "generated_at": "2026-05-18T23:42:30Z",
+  "status": "pass",
+  "sources": {
+    "equivalence_goals": "dma_scratch_orch_live_20260519b/verify/equivalence_goals.json",
+    "scoreboard_events": "dma_scratch_orch_live_20260519b/sim/scoreboard_events.jsonl",
+    "results_xml": "dma_scratch_orch_live_20260519b/sim/results.xml",
+    "coverage": "dma_scratch_orch_live_20260519b/cov/coverage.json",
+    "fl_model_check": "dma_scratch_orch_live_20260519b/model/fl_model_check.json"
+  },
+  "summary": {
+    "total": 36,
+    "goals_checked": 36,
+    "goals_passed": 36,
+    "goals_failed": 0,
+    "goals_blocked": 0,
+    "goals_untested": 0,
+    "scoreboard_events": 36,
+    "orphan_scoreboard_events": 0,
+    "missing_evidence": [],
+    "stale_evidence": [],
+    "stale_oracle_evidence": [],
+    "sim_results": {
+      "exists": true,
+      "total": 1,
+      "fail": 0,
+      "errors": 0,
+      "source": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/dma_scratch_orch_live_20260519b/sim/results.xml",
+      "failures": 0
+    }
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM1",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC06_executed",
+        "function_feature_1",
+        "fsm_control_accept_to_exec_feature_1_1",
+        "fsm_control_exec_feature_1_to_exec_feature_2_2"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM2",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC07_executed",
+        "function_feature_2",
+        "fsm_control_exec_feature_1_to_exec_feature_2_2",
+        "fsm_control_exec_feature_2_to_exec_feature_3_3"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM3",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC08_executed",
+        "function_feature_3",
+        "fsm_control_exec_feature_2_to_exec_feature_3_3",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM4",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC09_executed",
+        "function_feature_4",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC01",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC01_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC02",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC02_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC03",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC03_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC04",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC04_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC05",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC05_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC06",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC06_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC07",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC07_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC08",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC08_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC09",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC09_executed"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC03_executed",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_latency_control_or_request_accept",
+        "cycle_pipeline_s0_accept",
+        "cycle_ordering_2",
+        "error_error_0"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC03_executed",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_latency_control_or_request_accept",
+        "cycle_pipeline_s0_accept",
+        "cycle_ordering_2",
+        "error_error_0"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_3",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC04_executed",
+        "cycle_latency_control_or_request_accept",
+        "cycle_latency_primary_operation",
+        "cycle_latency_response_or_observable_result",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8",
+        "error_error_0"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_IDLE_TO_ACCEPT_0",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_latency_control_or_request_accept",
+        "cycle_latency_response_or_observable_result",
+        "cycle_pipeline_s0_accept",
+        "cycle_pipeline_s2_observe",
+        "cycle_ordering_0",
+        "cycle_backpressure_0",
+        "cycle_perf_outstanding",
+        "cycle_perf_depth",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_exec_feature_1_1",
+        "fsm_control_exec_feature_1_to_exec_feature_2_2",
+        "fsm_control_exec_feature_2_to_exec_feature_3_3",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_ACCEPT_TO_EXEC_FEATURE_1_1",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_latency_control_or_request_accept",
+        "cycle_latency_response_or_observable_result",
+        "cycle_pipeline_s0_accept",
+        "cycle_pipeline_s2_observe",
+        "cycle_ordering_0",
+        "cycle_backpressure_0",
+        "cycle_perf_outstanding",
+        "cycle_perf_depth",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_exec_feature_1_1",
+        "fsm_control_exec_feature_1_to_exec_feature_2_2",
+        "fsm_control_exec_feature_2_to_exec_feature_3_3",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_EXEC_FEATURE_1_TO_EXEC_FEATURE_2_2",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_latency_control_or_request_accept",
+        "cycle_pipeline_s0_accept",
+        "cycle_backpressure_0",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_exec_feature_1_1",
+        "fsm_control_exec_feature_1_to_exec_feature_2_2",
+        "fsm_control_exec_feature_2_to_exec_feature_3_3",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_EXEC_FEATURE_2_TO_EXEC_FEATURE_3_3",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_latency_control_or_request_accept",
+        "cycle_pipeline_s0_accept",
+        "cycle_backpressure_0",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_exec_feature_1_1",
+        "fsm_control_exec_feature_1_to_exec_feature_2_2",
+        "fsm_control_exec_feature_2_to_exec_feature_3_3",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_EXEC_FEATURE_3_TO_EXEC_FEATURE_4_4",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_latency_control_or_request_accept",
+        "cycle_pipeline_s0_accept",
+        "cycle_backpressure_0",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_exec_feature_1_1",
+        "fsm_control_exec_feature_1_to_exec_feature_2_2",
+        "fsm_control_exec_feature_2_to_exec_feature_3_3",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_EXEC_FEATURE_4_TO_COMPLETE_5",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_latency_control_or_request_accept",
+        "cycle_pipeline_s0_accept",
+        "cycle_backpressure_0",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_exec_feature_1_1",
+        "fsm_control_exec_feature_1_to_exec_feature_2_2",
+        "fsm_control_exec_feature_2_to_exec_feature_3_3",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_COMPLETE_TO_IDLE_6",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_latency_control_or_request_accept",
+        "cycle_pipeline_s0_accept",
+        "cycle_backpressure_0",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_exec_feature_1_1",
+        "fsm_control_exec_feature_1_to_exec_feature_2_2",
+        "fsm_control_exec_feature_2_to_exec_feature_3_3",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_TO_ERROR_7",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC04_executed",
+        "cycle_latency_control_or_request_accept",
+        "cycle_pipeline_s0_accept",
+        "cycle_backpressure_0",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_exec_feature_1_1",
+        "fsm_control_exec_feature_1_to_exec_feature_2_2",
+        "fsm_control_exec_feature_2_to_exec_feature_3_3",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8",
+        "error_error_0"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_STATE_CONTROL_ERROR_TO_IDLE_8",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC04_executed",
+        "cycle_latency_control_or_request_accept",
+        "cycle_pipeline_s0_accept",
+        "cycle_backpressure_0",
+        "fsm_control_idle_to_accept_0",
+        "fsm_control_accept_to_exec_feature_1_1",
+        "fsm_control_exec_feature_1_to_exec_feature_2_2",
+        "fsm_control_exec_feature_2_to_exec_feature_3_3",
+        "fsm_control_exec_feature_3_to_exec_feature_4_4",
+        "fsm_control_exec_feature_4_to_complete_5",
+        "fsm_control_complete_to_idle_6",
+        "fsm_control_from_to_error_7",
+        "fsm_control_error_to_idle_8",
+        "error_error_0"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "SC05_executed",
+        "cycle_pipeline_s2_observe"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_MODULE_DMA_SCRATCH_ORCH_LIVE_20260519B",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [],
+      "coverage_hit": null
+    },
+    {
+      "goal_id": "EQ_COVERAGE_FCOV_PRIMARY_TRANSACTION",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "fcov_primary_transaction"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_PRIMARY_CYCLE_RULE",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "ccov_primary_cycle_rule"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_EVALUATE",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_pipeline_s1_evaluate"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "coverage_hit": true
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "status": "pass",
+      "events": 1,
+      "coverage_refs": [
+        "cycle_perf_throughput"
+      ],
+      "coverage_hit": true
+    }
+  ]
+}

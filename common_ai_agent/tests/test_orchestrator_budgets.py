@@ -168,3 +168,36 @@ class TestBridgeIntegration:
             )
         # __final__ is not a real workflow; budgets snapshot should be empty.
         assert bridge.budgets.snapshot() == {}
+
+    def test_mark_downstream_stale_resets_downstream_budget(self, db, ctx, monkeypatch):
+        monkeypatch.setattr(
+            orch_tools, "_dispatch_workflow_bridge",
+            lambda: lambda **kw: {"ok": True, "pipeline_run_id": "pr", "jobs": []},
+        )
+        monkeypatch.setattr(
+            orch_tools,
+            "_pipeline_stage_deps",
+            lambda: {
+                "sim": ("tb",),
+                "sim-debug": ("sim",),
+                "coverage": ("sim",),
+            },
+        )
+        bridge = build_orchestrator_deps(ctx=ctx, runner=ctx.runner, db=db)
+
+        # Exhaust sim_debug in this orchestrator run.
+        for _ in range(default_budget_for("sim_debug") + 1):
+            obs = bridge.available_tools["dispatch_workflow"](
+                pre_parsed_kwargs={"workflow": "sim_debug", "ip": "ipA"}
+            )
+        assert "exhausted" in obs.lower()
+
+        # A new sim artifact makes sim_debug/coverage fresh downstream work.
+        bridge.available_tools["mark_downstream_stale"](
+            pre_parsed_kwargs={"from_stage": "sim"}
+        )
+        obs = bridge.available_tools["dispatch_workflow"](
+            pre_parsed_kwargs={"workflow": "sim_debug", "ip": "ipA"}
+        )
+        assert "exhausted" not in obs.lower()
+        assert bridge.budgets.snapshot().get("sim_debug") == 1

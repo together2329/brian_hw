@@ -49,18 +49,28 @@
     sim: 'sim',
     coverage: 'coverage',
     'sim-debug': 'sim_debug',
-    'goal-audit': 'sim_debug',
     syn: 'syn',
     sta: 'sta',
     pnr: 'pnr',
     'sta-post': 'sta-post',
+    'goal-audit': 'goal-audit',
   };
-  window.PIPELINE_WORKSPACE_WORKFLOWS = new Set(['ssot-gen', 'rtl-gen', 'tb-gen']);
   window.PIPELINE_WORKFLOW_PRIMARY_STAGE = {
     'ssot-gen': 'ssot',
+    'fl-model-gen': 'fl-model',
     'rtl-gen': 'rtl',
+    lint: 'lint',
     'tb-gen': 'tb',
+    sim: 'sim',
+    coverage: 'coverage',
+    sim_debug: 'sim-debug',
+    syn: 'syn',
+    sta: 'sta',
+    pnr: 'pnr',
+    'sta-post': 'sta-post',
+    'goal-audit': 'goal-audit',
   };
+  window.PIPELINE_WORKSPACE_WORKFLOWS = new Set(Object.keys(window.PIPELINE_WORKFLOW_PRIMARY_STAGE));
   window.pipelineWorkflowForStage = function pipelineWorkflowForStage(stageId) {
     return (window.PIPELINE_STAGE_WORKFLOW || {})[stageId] || stageId || '';
   };
@@ -71,8 +81,18 @@
     if (paths.length && paths[0] !== `${ip}/tb/cocotb/`) return paths[0];
     if (!ip) return '';
     if (wf === 'ssot-gen' || id === 'ssot') return `${ip}/yaml/${ip}.ssot.yaml`;
+    if (wf === 'fl-model-gen' || id === 'fl-model' || id === 'cl-model' || id === 'equivalence') return `${ip}/model/functional_model.py`;
     if (wf === 'rtl-gen' || id === 'rtl') return `${ip}/rtl/rtl_authoring_status.md`;
+    if (wf === 'lint' || id === 'lint') return `${ip}/lint/lint_report.txt`;
     if (wf === 'tb-gen' || id === 'tb') return `${ip}/tb/cocotb/test_${ip}.py`;
+    if (wf === 'sim' || id === 'sim') return `${ip}/sim/sim_summary.json`;
+    if (wf === 'coverage' || id === 'coverage') return `${ip}/sim/coverage_report.md`;
+    if (wf === 'sim_debug' || id === 'sim-debug') return `${ip}/sim/sim_debug_report.md`;
+    if (wf === 'syn' || id === 'syn') return `${ip}/syn/syn_report.md`;
+    if (wf === 'sta' || id === 'sta') return `${ip}/sta/sta_report.md`;
+    if (wf === 'pnr' || id === 'pnr') return `${ip}/pnr/pnr_report.md`;
+    if (wf === 'sta-post' || id === 'sta-post') return `${ip}/sta/sta_post_report.md`;
+    if (wf === 'goal-audit' || id === 'goal-audit') return `${ip}/sim/fl_rtl_goal_audit.json`;
     return paths[0] || '';
   };
   window.openPipelineWorkflowWorkspace = function openPipelineWorkflowWorkspace({ ip, workflow, stageId, path } = {}) {
@@ -575,6 +595,7 @@ const ENH_STAGE_LAYOUT = {
   sta:          { lane: 5, row: 3 },
   pnr:          { lane: 5, row: 4 },
   coverage:     { lane: 6, row: 2 },
+  'goal-audit': { lane: 6, row: 3 },
   'sta-post':   { lane: 6, row: 4 },
 };
 const ENH_PILL_LABEL = { passed: 'passed', running: 'running', locked: 'locked', ready: 'ready', failed: 'failed', blocked: 'blocked', stale: 'stale' };
@@ -2662,6 +2683,7 @@ window.AtlasPipeline = function AtlasPipeline() {
         session_id: ownerId,
         ip: ip || 'default',
         workflow: 'orchestrator',
+        preserve_running: window.ATLAS_EXEC_MODE === 'orchestrator',
       }),
     })
       .then(r => r.ok ? r.json().catch(() => ({})) : null)
@@ -3049,6 +3071,7 @@ window.AtlasPipeline = function AtlasPipeline() {
                   session_id: ownerId,
                   ip: ip || 'default',
                   workflow: wf || 'orchestrator',
+                  preserve_running: window.ATLAS_EXEC_MODE === 'orchestrator',
                 }),
               }).catch(() => {});
             }} />

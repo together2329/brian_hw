@@ -201,6 +201,44 @@ class TestAgentServerUnit(unittest.TestCase):
         self.assertIsNone(entry.result)
         self.assertIn("LLM_RTL_IMPLEMENTATION_REQUIRED", output)
 
+    def test_direct_ssot_rtl_repair_gate_continues_react_loop(self):
+        from core.slash_commands import get_registry
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "demo_ip").mkdir()
+            registry = get_registry()
+            previous = registry.commands.get("ssot-rtl")
+
+            def repair_cmd(args: str) -> str:
+                return (
+                    "[RTL RESULT] FAIL - LLM-authored RTL needs rtl-gen repair\n"
+                    "open_required_todos=4\n"
+                    "static_missing=1\n"
+                    "next: queued rtl-gen repair with compile/lint diagnostics as evidence."
+                )
+
+            registry.register("ssot-rtl", repair_cmd, "unit repair command")
+            entry = self.server_mod._create_run("run /ssot-rtl demo_ip")
+            entry.status = "running"
+            try:
+                closed_run, output = self.server_mod._execute_direct_slash_commands(
+                    entry,
+                    ["/ssot-rtl demo_ip"],
+                    project_root=str(root),
+                    ip="demo_ip",
+                )
+            finally:
+                if previous is not None:
+                    registry.commands["ssot-rtl"] = previous
+                else:
+                    registry.unregister("ssot-rtl")
+
+        self.assertFalse(closed_run)
+        self.assertEqual(entry.status, "running")
+        self.assertIsNone(entry.result)
+        self.assertIn("LLM-authored RTL needs rtl-gen repair", output)
+
     def test_direct_slash_command_path_records_modified_files(self):
         from core.slash_commands import get_registry
 

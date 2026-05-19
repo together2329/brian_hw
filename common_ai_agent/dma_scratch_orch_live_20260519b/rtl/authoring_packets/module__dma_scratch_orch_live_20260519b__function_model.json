@@ -12,7 +12,7 @@
       "enabled": true,
       "index": 5,
       "key": "function_model",
-      "module_task_count": 159,
+      "module_task_count": 170,
       "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "function_model",
       "section_chunk_count": 1,
@@ -66,254 +66,230 @@
       },
       {
         "aliases": [
-          "csr_apb_lite_paddr",
-          "paddr"
+          "csr_slave_csr_valid",
+          "csr_valid"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "paddr",
+        "name": "csr_valid",
         "source_ref": "io_list.interfaces[1].ports[0]",
-        "width": "ADDR_WIDTH"
+        "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_psel",
-          "psel"
+          "csr_ready",
+          "csr_slave_csr_ready"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "psel",
+        "direction": "output",
+        "name": "csr_ready",
         "source_ref": "io_list.interfaces[1].ports[1]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_penable",
-          "penable"
+          "csr_slave_csr_write",
+          "csr_write"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "penable",
+        "name": "csr_write",
         "source_ref": "io_list.interfaces[1].ports[2]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_pwrite",
-          "pwrite"
+          "csr_addr",
+          "csr_slave_csr_addr"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "pwrite",
+        "name": "csr_addr",
         "source_ref": "io_list.interfaces[1].ports[3]",
-        "width": "1"
+        "width": "ADDR_WIDTH"
       },
       {
         "aliases": [
-          "csr_apb_lite_pwdata",
-          "pwdata"
+          "csr_slave_csr_wdata",
+          "csr_wdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "pwdata",
+        "name": "csr_wdata",
         "source_ref": "io_list.interfaces[1].ports[4]",
         "width": "DATA_WIDTH"
       },
       {
         "aliases": [
-          "csr_apb_lite_prdata",
-          "prdata"
+          "csr_slave_csr_wstrb",
+          "csr_wstrb"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "output",
-        "name": "prdata",
+        "direction": "input",
+        "name": "csr_wstrb",
         "source_ref": "io_list.interfaces[1].ports[5]",
-        "width": "DATA_WIDTH"
+        "width": "DATA_WIDTH/8"
       },
       {
         "aliases": [
-          "csr_apb_lite_pready",
-          "pready"
+          "csr_rvalid",
+          "csr_slave_csr_rvalid"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "pready",
+        "name": "csr_rvalid",
         "source_ref": "io_list.interfaces[1].ports[6]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_pslverr",
-          "pslverr"
+          "csr_rdata",
+          "csr_slave_csr_rdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "pslverr",
+        "name": "csr_rdata",
         "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "csr_error",
+          "csr_slave_csr_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "csr_error",
+        "source_ref": "io_list.interfaces[1].ports[8]",
         "width": "1"
       },
       {
         "aliases": [
-          "dma_read_addr_rd_addr_valid",
-          "rd_addr_valid"
+          "mem_master_mem_req_valid",
+          "mem_req_valid"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "rd_addr_valid",
+        "direction": "output",
+        "name": "mem_req_valid",
         "source_ref": "io_list.interfaces[2].ports[0]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_addr_rd_addr_ready",
-          "rd_addr_ready"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "output",
-        "name": "rd_addr_ready",
-        "source_ref": "io_list.interfaces[2].ports[1]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_addr_rd_addr",
-          "rd_addr"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_addr",
-        "source_ref": "io_list.interfaces[2].ports[2]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data_valid",
-          "rd_data_valid"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_data_valid",
-        "source_ref": "io_list.interfaces[3].ports[0]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data_ready",
-          "rd_data_ready"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "output",
-        "name": "rd_data_ready",
-        "source_ref": "io_list.interfaces[3].ports[1]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data",
-          "rd_data"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_data",
-        "source_ref": "io_list.interfaces[3].ports[2]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_resp",
-          "rd_resp"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_resp",
-        "source_ref": "io_list.interfaces[3].ports[3]",
         "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data_valid",
-          "wr_data_valid"
+          "mem_master_mem_req_ready",
+          "mem_req_ready"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "wr_data_valid",
-        "source_ref": "io_list.interfaces[4].ports[0]",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_ready",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data_ready",
-          "wr_data_ready"
+          "mem_master_mem_req_write",
+          "mem_req_write"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "wr_data_ready",
-        "source_ref": "io_list.interfaces[4].ports[1]",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_write",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_addr",
-          "wr_addr"
+          "mem_master_mem_req_addr",
+          "mem_req_addr"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_addr",
-        "source_ref": "io_list.interfaces[4].ports[2]",
+        "direction": "output",
+        "name": "mem_req_addr",
+        "source_ref": "io_list.interfaces[2].ports[3]",
         "width": "ADDR_WIDTH"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data",
-          "wr_data"
+          "mem_master_mem_req_wdata",
+          "mem_req_wdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_data",
-        "source_ref": "io_list.interfaces[4].ports[3]",
+        "direction": "output",
+        "name": "mem_req_wdata",
+        "source_ref": "io_list.interfaces[2].ports[4]",
         "width": "DATA_WIDTH"
       },
       {
         "aliases": [
-          "dma_write_data_wr_strb",
-          "wr_strb"
+          "mem_master_mem_req_wstrb",
+          "mem_req_wstrb"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_strb",
-        "source_ref": "io_list.interfaces[4].ports[4]",
+        "direction": "output",
+        "name": "mem_req_wstrb",
+        "source_ref": "io_list.interfaces[2].ports[5]",
         "width": "DATA_WIDTH/8"
       },
       {
         "aliases": [
-          "irq",
-          "status_irq_irq"
+          "mem_master_mem_rsp_valid",
+          "mem_rsp_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_valid",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "mem_master_mem_rsp_rdata",
+          "mem_rsp_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_rdata",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "mem_master_mem_rsp_error",
+          "mem_rsp_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_error",
+        "source_ref": "io_list.interfaces[2].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_irq",
+          "irq"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
         "name": "irq",
-        "source_ref": "io_list.interfaces[5].ports[0]",
+        "source_ref": "io_list.interfaces[3].ports[0]",
         "width": "1"
       }
     ],
@@ -323,15 +299,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 35,
-    "open_required_count": 35,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -359,44 +335,45 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
-      "function_model.error_case": 3,
-      "function_model.input": 3,
+      "function_model.error_case": 4,
+      "function_model.input": 4,
       "function_model.invariant": 4,
-      "function_model.output": 7,
+      "function_model.output": 9,
       "function_model.output_rule": 1,
-      "function_model.precondition": 3,
-      "function_model.side_effect": 3,
-      "function_model.state_update": 3,
-      "function_model.state_variable": 5,
-      "function_model.transaction": 3
+      "function_model.precondition": 4,
+      "function_model.side_effect": 4,
+      "function_model.state_update": 4,
+      "function_model.state_variable": 6,
+      "function_model.transaction": 4
     },
     "module_slice": {
       "count": 15,
       "enabled": true,
       "index": 5,
       "key": "function_model",
-      "module_task_count": 159,
+      "module_task_count": 170,
       "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "function_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 35,
-    "required_count": 35,
+    "open_required_count": 0,
+    "required_count": 44,
     "source_refs": [
       "function_model.state_variables.state",
       "function_model.state_variables.error",
       "function_model.state_variables.fm1_observed",
       "function_model.state_variables.fm2_observed",
       "function_model.state_variables.fm3_observed",
+      "function_model.state_variables.fm4_observed",
       "function_model.transactions.FM1",
       "function_model.transactions.FM1.preconditions.precondition_0",
       "function_model.transactions.FM1.inputs.input_0",
       "function_model.transactions.FM1.outputs.output_0",
-      "function_model.transactions.FM1.outputs.pslverr",
+      "function_model.transactions.FM1.outputs.irq",
       "function_model.transactions.FM1.outputs.fm1_observed",
-      "function_model.transactions.FM1.output_rules.pslverr",
+      "function_model.transactions.FM1.output_rules.irq",
       "function_model.transactions.FM1.state_updates.fm1_observed",
       "function_model.transactions.FM1.side_effects.side_effect_0",
       "function_model.transactions.FM1.error_cases.error_case_0",
@@ -407,13 +384,12 @@
       "function_model.transactions.FM2.outputs.fm2_observed",
       "function_model.transactions.FM2.state_updates.fm2_observed",
       "function_model.transactions.FM2.side_effects.side_effect_0",
-      "function_model.transactions.FM2.error_cases.error_case_0",
-      "function_model.transactions.FM3"
+      "function_model.transactions.FM2.error_cases.error_case_0"
     ],
     "status_counts": {
-      "open": 35
+      "pass": 44
     },
-    "task_count": 35
+    "task_count": 44
   },
   "tasks": [
     {
@@ -429,7 +405,7 @@
       ],
       "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.state.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: name=state; reset=IDLE.",
       "evidence_terms": [],
-      "id": "RTL-0079",
+      "id": "RTL-0078",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -454,9 +430,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -472,7 +448,7 @@
       ],
       "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.error.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: name=error; reset=0.",
       "evidence_terms": [],
-      "id": "RTL-0080",
+      "id": "RTL-0079",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -497,9 +473,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -520,7 +496,7 @@
         "fm1_observed",
         "observed"
       ],
-      "id": "RTL-0081",
+      "id": "RTL-0080",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -535,8 +511,12 @@
         "function_model.state_variables.fm1_observed"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm1",
+          "fm1_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -546,7 +526,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -556,9 +536,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -579,7 +559,7 @@
         "fm2_observed",
         "observed"
       ],
-      "id": "RTL-0082",
+      "id": "RTL-0081",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -594,8 +574,12 @@
         "function_model.state_variables.fm2_observed"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -605,7 +589,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -615,9 +599,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -638,7 +622,7 @@
         "fm3_observed",
         "observed"
       ],
-      "id": "RTL-0083",
+      "id": "RTL-0082",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
@@ -653,8 +637,12 @@
         "function_model.state_variables.fm3_observed"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -664,7 +652,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -674,9 +662,72 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state fm4_observed",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.fm4_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
+        "fm4_observed width matches SSOT value 1",
+        "fm4_observed reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.fm4_observed.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: name=fm4_observed; width=1; reset=0.",
+      "evidence_terms": [
+        "fm4",
+        "fm4_observed",
+        "observed"
+      ],
+      "id": "RTL-0083",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.fm4_observed",
+      "ssot_context": {
+        "name": "fm4_observed",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.fm4_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
       }
     },
     {
@@ -716,9 +767,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -757,9 +808,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -771,17 +822,17 @@
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM1.inputs.input_0",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "DUT port [\"pslverr\"] is the implementation/observation point for feature_1"
+        "DUT port [\"irq\"] is the implementation/observation point for feature_1"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.inputs.input_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"pslverr\"]; signal=[\"Inputs described by io_list and dataflow\"]; state=[\"fm1_observed\"].",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.inputs.input_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"irq\"]; signal=[\"Inputs described by io_list and dataflow\"]; state=[\"fm1_observed\"].",
       "evidence_terms": [
         "fm1",
         "fm1_observed",
         "io",
         "io_list",
+        "irq",
         "list",
-        "observed",
-        "pslverr"
+        "observed"
       ],
       "id": "RTL-0086",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
@@ -792,7 +843,7 @@
       "ssot_context": {
         "id": "FM1",
         "name": "feature_1",
-        "port": "[\"pslverr\"]",
+        "port": "[\"irq\"]",
         "signal": "[\"Inputs described by io_list and dataflow\"]",
         "state": "[\"fm1_observed\"]"
       },
@@ -800,8 +851,16 @@
         "function_model.transactions.FM1.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "fm1",
+          "fm1_observed",
+          "io",
+          "io_list",
+          "irq",
+          "list",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -810,12 +869,12 @@
           "fm1_observed",
           "io",
           "io_list",
+          "irq",
           "list",
-          "observed",
-          "pslverr"
+          "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -825,9 +884,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -839,15 +898,15 @@
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM1.outputs.output_0",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "DUT port [\"pslverr\"] is the implementation/observation point for feature_1"
+        "DUT port [\"irq\"] is the implementation/observation point for feature_1"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.outputs.output_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"pslverr\"]; signal=[\"Architectural output matches feature definition\"]; state=[\"fm1_observed\"].",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.outputs.output_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"irq\"]; signal=[\"Architectural output matches feature definition\"]; state=[\"fm1_observed\"].",
       "evidence_terms": [
         "Architectural",
         "fm1",
         "fm1_observed",
-        "observed",
-        "pslverr"
+        "irq",
+        "observed"
       ],
       "id": "RTL-0087",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
@@ -858,7 +917,7 @@
       "ssot_context": {
         "id": "FM1",
         "name": "feature_1",
-        "port": "[\"pslverr\"]",
+        "port": "[\"irq\"]",
         "signal": "[\"Architectural output matches feature definition\"]",
         "state": "[\"fm1_observed\"]"
       },
@@ -866,8 +925,13 @@
         "function_model.transactions.FM1.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "fm1",
+          "fm1_observed",
+          "irq",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -875,11 +939,11 @@
           "Architectural",
           "fm1",
           "fm1_observed",
-          "observed",
-          "pslverr"
+          "irq",
+          "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -889,50 +953,55 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "function_model.output",
-      "content": "Implement output for FM1: pslverr",
+      "content": "Implement output for FM1: irq",
       "criteria": [
         "RTL owner logic is identifiable for this SSOT leaf",
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
-        "Traceability keeps source_ref function_model.transactions.FM1.outputs.pslverr",
+        "Traceability keeps source_ref function_model.transactions.FM1.outputs.irq",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "DUT port [\"pslverr\"] is the implementation/observation point for feature_1"
+        "DUT port [\"irq\"] is the implementation/observation point for feature_1"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.outputs.pslverr.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"pslverr\"]; signal=[{\"description\": \"Auto-injected benign observable rule so the function_model has at least one scoreboard-visible outp...; state=[\"fm1_observed\"].",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.outputs.irq.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"irq\"]; signal=[{\"description\": \"Auto-injected benign observable rule so the function_model has at least one scoreboard-visible outp...; state=[\"fm1_observed\"].",
       "evidence_terms": [
         "Auto",
         "IP",
         "fm1",
         "fm1_observed",
-        "observed",
-        "pslverr"
+        "irq",
+        "observed"
       ],
       "id": "RTL-0088",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "function_model.transactions.FM1.outputs.pslverr",
+      "source_ref": "function_model.transactions.FM1.outputs.irq",
       "ssot_context": {
         "id": "FM1",
         "name": "feature_1",
-        "port": "[\"pslverr\"]",
+        "port": "[\"irq\"]",
         "signal": "[{\"description\": \"Auto-injected benign observable rule so the function_model has at least one scoreboard-visible outp...",
         "state": "[\"fm1_observed\"]"
       },
       "ssot_refs": [
-        "function_model.transactions.FM1.outputs.pslverr"
+        "function_model.transactions.FM1.outputs.irq"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "fm1",
+          "fm1_observed",
+          "irq",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -941,11 +1010,11 @@
           "IP",
           "fm1",
           "fm1_observed",
-          "observed",
-          "pslverr"
+          "irq",
+          "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -955,9 +1024,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -969,16 +1038,16 @@
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM1.outputs.fm1_observed",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "DUT port [\"pslverr\"] is the implementation/observation point for feature_1"
+        "DUT port [\"irq\"] is the implementation/observation point for feature_1"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.outputs.fm1_observed.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"pslverr\"]; signal=[{\"description\": \"Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific a...; state=[\"fm1_observed\"].",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.outputs.fm1_observed.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"irq\"]; signal=[{\"description\": \"Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific a...; state=[\"fm1_observed\"].",
       "evidence_terms": [
         "IP",
         "Repair",
         "fm1",
         "fm1_observed",
-        "observed",
-        "pslverr"
+        "irq",
+        "observed"
       ],
       "id": "RTL-0089",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
@@ -989,7 +1058,7 @@
       "ssot_context": {
         "id": "FM1",
         "name": "feature_1",
-        "port": "[\"pslverr\"]",
+        "port": "[\"irq\"]",
         "signal": "[{\"description\": \"Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific a...",
         "state": "[\"fm1_observed\"]"
       },
@@ -997,8 +1066,13 @@
         "function_model.transactions.FM1.outputs.fm1_observed"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "fm1",
+          "fm1_observed",
+          "irq",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1007,11 +1081,11 @@
           "Repair",
           "fm1",
           "fm1_observed",
-          "observed",
-          "pslverr"
+          "irq",
+          "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1021,55 +1095,57 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
       "category": "function_model.output_rule",
-      "content": "Implement output rule for FM1: pslverr",
+      "content": "Implement output rule for FM1: irq",
       "criteria": [
         "RTL owner logic is identifiable for this SSOT leaf",
         "Reset/enable/error behavior is consistent with the parent transaction",
         "Downstream equivalence/coverage can observe this behavior",
-        "Traceability keeps source_ref function_model.transactions.FM1.output_rules.pslverr",
+        "Traceability keeps source_ref function_model.transactions.FM1.output_rules.irq",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "pslverr width matches SSOT value 1",
-        "pslverr RTL expression implements SSOT expression 0",
-        "DUT port pslverr is the implementation/observation point for pslverr",
-        "pslverr is not implemented only in FunctionalModel or scoreboard code"
+        "irq width matches SSOT value 1",
+        "irq RTL expression implements SSOT expression 0",
+        "DUT port irq is the implementation/observation point for irq",
+        "irq is not implemented only in FunctionalModel or scoreboard code"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.output_rules.pslverr.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: name=pslverr; port=pslverr; expr=0; width=1.",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.output_rules.irq.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: name=irq; port=irq; expr=0; width=1.",
       "evidence_terms": [
-        "pslverr"
+        "irq"
       ],
       "id": "RTL-0090",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "function_model.transactions.FM1.output_rules.pslverr",
+      "source_ref": "function_model.transactions.FM1.output_rules.irq",
       "ssot_context": {
         "expr": "0",
-        "name": "pslverr",
-        "port": "pslverr",
+        "name": "irq",
+        "port": "irq",
         "width": "1"
       },
       "ssot_refs": [
-        "function_model.transactions.FM1.output_rules.pslverr"
+        "function_model.transactions.FM1.output_rules.irq"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "irq"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
         "required_terms": [
-          "pslverr"
+          "irq"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1079,9 +1155,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1118,8 +1194,12 @@
         "function_model.transactions.FM1.state_updates.fm1_observed"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm1",
+          "fm1_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1129,7 +1209,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1139,9 +1219,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1153,15 +1233,15 @@
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM1.side_effects.side_effect_0",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "DUT port [\"pslverr\"] is the implementation/observation point for feature_1"
+        "DUT port [\"irq\"] is the implementation/observation point for feature_1"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.side_effects.side_effect_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"pslverr\"]; signal=[\"Architectural state updates according to FSM/control policy\"]; state=[\"fm1_observed\"].",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.side_effects.side_effect_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"irq\"]; signal=[\"Architectural state updates according to FSM/control policy\"]; state=[\"fm1_observed\"].",
       "evidence_terms": [
         "Architectural",
         "fm1",
         "fm1_observed",
-        "observed",
-        "pslverr"
+        "irq",
+        "observed"
       ],
       "id": "RTL-0092",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
@@ -1172,7 +1252,7 @@
       "ssot_context": {
         "id": "FM1",
         "name": "feature_1",
-        "port": "[\"pslverr\"]",
+        "port": "[\"irq\"]",
         "signal": "[\"Architectural state updates according to FSM/control policy\"]",
         "state": "[\"fm1_observed\"]"
       },
@@ -1180,8 +1260,13 @@
         "function_model.transactions.FM1.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "fm1",
+          "fm1_observed",
+          "irq",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1189,11 +1274,11 @@
           "Architectural",
           "fm1",
           "fm1_observed",
-          "observed",
-          "pslverr"
+          "irq",
+          "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1203,9 +1288,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1217,17 +1302,17 @@
         "Downstream equivalence/coverage can observe this behavior",
         "Traceability keeps source_ref function_model.transactions.FM1.error_cases.error_case_0",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "DUT port [\"pslverr\"] is the implementation/observation point for feature_1"
+        "DUT port [\"irq\"] is the implementation/observation point for feature_1"
       ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.error_cases.error_case_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"pslverr\"]; signal=[{\"condition\": \"Downstream protocol response is non-OKAY or invalid\", \"result\": \"Set error status and block signoff u...; state=[\"fm1_observed\"].",
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM1.error_cases.error_case_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM1; name=feature_1; port=[\"irq\"]; signal=[{\"condition\": \"Downstream protocol response is non-OKAY or invalid\", \"result\": \"Set error status and block signoff u...; state=[\"fm1_observed\"].",
       "evidence_terms": [
         "Downstream",
         "OKAY",
         "Set",
         "fm1",
         "fm1_observed",
-        "observed",
-        "pslverr"
+        "irq",
+        "observed"
       ],
       "id": "RTL-0093",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
@@ -1238,7 +1323,7 @@
       "ssot_context": {
         "id": "FM1",
         "name": "feature_1",
-        "port": "[\"pslverr\"]",
+        "port": "[\"irq\"]",
         "signal": "[{\"condition\": \"Downstream protocol response is non-OKAY or invalid\", \"result\": \"Set error status and block signoff u...",
         "state": "[\"fm1_observed\"]"
       },
@@ -1246,8 +1331,13 @@
         "function_model.transactions.FM1.error_cases.error_case_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "fm1",
+          "fm1_observed",
+          "irq",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1257,11 +1347,11 @@
           "Set",
           "fm1",
           "fm1_observed",
-          "observed",
-          "pslverr"
+          "irq",
+          "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1271,9 +1361,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1313,9 +1403,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1354,9 +1444,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1394,8 +1484,15 @@
         "function_model.transactions.FM2.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "io",
+          "io_list",
+          "list",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1408,7 +1505,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1418,9 +1515,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1456,8 +1553,12 @@
         "function_model.transactions.FM2.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1468,7 +1569,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1478,9 +1579,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1517,8 +1618,12 @@
         "function_model.transactions.FM2.outputs.fm2_observed"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1530,7 +1635,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1540,9 +1645,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1579,8 +1684,12 @@
         "function_model.transactions.FM2.state_updates.fm2_observed"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1590,7 +1699,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1600,9 +1709,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1638,8 +1747,12 @@
         "function_model.transactions.FM2.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1650,7 +1763,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1660,9 +1773,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1700,8 +1813,12 @@
         "function_model.transactions.FM2.error_cases.error_case_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm2",
+          "fm2_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1714,7 +1831,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1724,9 +1841,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1766,9 +1883,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1807,9 +1924,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1847,8 +1964,15 @@
         "function_model.transactions.FM3.inputs.input_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "io",
+          "io_list",
+          "list",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1861,7 +1985,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1871,9 +1995,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1909,8 +2033,12 @@
         "function_model.transactions.FM3.outputs.output_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1921,7 +2049,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1931,9 +2059,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1970,8 +2098,12 @@
         "function_model.transactions.FM3.outputs.fm3_observed"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1983,7 +2115,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1993,9 +2125,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2032,8 +2164,12 @@
         "function_model.transactions.FM3.state_updates.fm3_observed"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2043,7 +2179,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2053,9 +2189,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2091,8 +2227,12 @@
         "function_model.transactions.FM3.side_effects.side_effect_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2103,7 +2243,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2113,9 +2253,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2153,8 +2293,12 @@
         "function_model.transactions.FM3.error_cases.error_case_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "fm3",
+          "fm3_observed",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2167,7 +2311,7 @@
           "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2177,9 +2321,489 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM4",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM4",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM4.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM4; name=feature_4.",
+      "evidence_terms": [],
+      "id": "RTL-0110",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4",
+      "ssot_context": {
+        "id": "FM4",
+        "name": "feature_4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM4: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.preconditions.precondition_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: value=Feature trigger is asserted under legal configuration.",
+      "evidence_terms": [],
+      "id": "RTL-0111",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "Feature trigger is asserted under legal configuration"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM4: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.inputs.input_0",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.inputs.input_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM4; name=feature_4; signal=[\"Inputs described by io_list and dataflow\"]; state=[\"fm4_observed\"].",
+      "evidence_terms": [
+        "fm4",
+        "fm4_observed",
+        "io",
+        "io_list",
+        "list",
+        "observed"
+      ],
+      "id": "RTL-0112",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.inputs.input_0",
+      "ssot_context": {
+        "id": "FM4",
+        "name": "feature_4",
+        "signal": "[\"Inputs described by io_list and dataflow\"]",
+        "state": "[\"fm4_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.inputs.input_0"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "io",
+          "io_list",
+          "list",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm4",
+          "fm4_observed",
+          "io",
+          "io_list",
+          "list",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM4: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.outputs.output_0",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.outputs.output_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM4; name=feature_4; signal=[\"Architectural output matches feature definition\"]; state=[\"fm4_observed\"].",
+      "evidence_terms": [
+        "Architectural",
+        "fm4",
+        "fm4_observed",
+        "observed"
+      ],
+      "id": "RTL-0113",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.outputs.output_0",
+      "ssot_context": {
+        "id": "FM4",
+        "name": "feature_4",
+        "signal": "[\"Architectural output matches feature definition\"]",
+        "state": "[\"fm4_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Architectural",
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM4: fm4_observed",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.outputs.fm4_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.outputs.fm4_observed.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM4; name=feature_4; signal=[{\"description\": \"Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific a...; state=[\"fm4_observed\"].",
+      "evidence_terms": [
+        "IP",
+        "Repair",
+        "fm4",
+        "fm4_observed",
+        "observed"
+      ],
+      "id": "RTL-0114",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.outputs.fm4_observed",
+      "ssot_context": {
+        "id": "FM4",
+        "name": "feature_4",
+        "signal": "[{\"description\": \"Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific a...",
+        "state": "[\"fm4_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.outputs.fm4_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IP",
+          "Repair",
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM4: fm4_observed",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.state_updates.fm4_observed",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
+        "fm4_observed width matches SSOT value 1",
+        "fm4_observed RTL expression implements SSOT expression 1",
+        "fm4_observed updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.state_updates.fm4_observed.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: name=fm4_observed; expr=1; width=1.",
+      "evidence_terms": [
+        "fm4",
+        "fm4_observed",
+        "observed"
+      ],
+      "id": "RTL-0115",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.state_updates.fm4_observed",
+      "ssot_context": {
+        "expr": "1",
+        "name": "fm4_observed",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.state_updates.fm4_observed"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM4: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.side_effects.side_effect_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM4; name=feature_4; signal=[\"Architectural state updates according to FSM/control policy\"]; state=[\"fm4_observed\"].",
+      "evidence_terms": [
+        "Architectural",
+        "fm4",
+        "fm4_observed",
+        "observed"
+      ],
+      "id": "RTL-0116",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM4",
+        "name": "feature_4",
+        "signal": "[\"Architectural state updates according to FSM/control policy\"]",
+        "state": "[\"fm4_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Architectural",
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.error_case",
+      "content": "Implement error case for FM4: error_case_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM4.error_cases.error_case_0",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM4.error_cases.error_case_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: id=FM4; name=feature_4; signal=[{\"condition\": \"Downstream protocol response is non-OKAY or invalid\", \"result\": \"Set error status and block signoff u...; state=[\"fm4_observed\"].",
+      "evidence_terms": [
+        "Downstream",
+        "OKAY",
+        "Set",
+        "fm4",
+        "fm4_observed",
+        "observed"
+      ],
+      "id": "RTL-0117",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM4.error_cases.error_case_0",
+      "ssot_context": {
+        "id": "FM4",
+        "name": "feature_4",
+        "signal": "[{\"condition\": \"Downstream protocol response is non-OKAY or invalid\", \"result\": \"Set error status and block signoff u...",
+        "state": "[\"fm4_observed\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4.error_cases.error_case_0"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Downstream",
+          "OKAY",
+          "Set",
+          "fm4",
+          "fm4_observed",
+          "observed"
+        ],
+        "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
       }
     },
     {
@@ -2191,9 +2815,9 @@
         "Coverage/equivalence references this invariant when observable",
         "Traceability keeps source_ref function_model.invariants.invariant_0",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "DUT port [\"pslverr\"] is the implementation/observation point for [\"pslverr\"]"
+        "DUT port [\"irq\"] is the implementation/observation point for [\"irq\"]"
       ],
-      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: port=[\"pslverr\"]; signal=No externally visible output changes except through declared interfaces, registers, interrupts, or debug signals.; state=[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\"].",
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: port=[\"irq\"]; signal=No externally visible output changes except through declared interfaces, registers, interrupts, or debug signals.; state=[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\", \"fm4_observed\"].",
       "evidence_terms": [
         "fm1",
         "fm1_observed",
@@ -2201,26 +2825,39 @@
         "fm2_observed",
         "fm3",
         "fm3_observed",
-        "observed",
-        "pslverr"
+        "fm4",
+        "fm4_observed",
+        "irq",
+        "observed"
       ],
-      "id": "RTL-0110",
+      "id": "RTL-0118",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
       "source_ref": "function_model.invariants.invariant_0",
       "ssot_context": {
-        "port": "[\"pslverr\"]",
+        "port": "[\"irq\"]",
         "signal": "No externally visible output changes except through declared interfaces, registers, interrupts, or debug signals.",
-        "state": "[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\"]"
+        "state": "[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\", \"fm4_observed\"]"
       },
       "ssot_refs": [
         "function_model.invariants.invariant_0"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 10,
+        "matched_terms": [
+          "fm1",
+          "fm1_observed",
+          "fm2",
+          "fm2_observed",
+          "fm3",
+          "fm3_observed",
+          "fm4",
+          "fm4_observed",
+          "irq",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2231,11 +2868,13 @@
           "fm2_observed",
           "fm3",
           "fm3_observed",
-          "observed",
-          "pslverr"
+          "fm4",
+          "fm4_observed",
+          "irq",
+          "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -2245,9 +2884,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2259,9 +2898,9 @@
         "Coverage/equivalence references this invariant when observable",
         "Traceability keeps source_ref function_model.invariants.invariant_1",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "DUT port [\"pslverr\"] is the implementation/observation point for [\"pslverr\"]"
+        "DUT port [\"irq\"] is the implementation/observation point for [\"irq\"]"
       ],
-      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: port=[\"pslverr\"]; signal=All state updates are synchronous to the declared clock and return to reset values under the declared reset policy.; state=[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\"].",
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: port=[\"irq\"]; signal=All state updates are synchronous to the declared clock and return to reset values under the declared reset policy.; state=[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\", \"fm4_observed\"].",
       "evidence_terms": [
         "fm1",
         "fm1_observed",
@@ -2269,26 +2908,39 @@
         "fm2_observed",
         "fm3",
         "fm3_observed",
-        "observed",
-        "pslverr"
+        "fm4",
+        "fm4_observed",
+        "irq",
+        "observed"
       ],
-      "id": "RTL-0111",
+      "id": "RTL-0119",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
       "source_ref": "function_model.invariants.invariant_1",
       "ssot_context": {
-        "port": "[\"pslverr\"]",
+        "port": "[\"irq\"]",
         "signal": "All state updates are synchronous to the declared clock and return to reset values under the declared reset policy.",
-        "state": "[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\"]"
+        "state": "[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\", \"fm4_observed\"]"
       },
       "ssot_refs": [
         "function_model.invariants.invariant_1"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 10,
+        "matched_terms": [
+          "fm1",
+          "fm1_observed",
+          "fm2",
+          "fm2_observed",
+          "fm3",
+          "fm3_observed",
+          "fm4",
+          "fm4_observed",
+          "irq",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2299,11 +2951,13 @@
           "fm2_observed",
           "fm3",
           "fm3_observed",
-          "observed",
-          "pslverr"
+          "fm4",
+          "fm4_observed",
+          "irq",
+          "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -2313,9 +2967,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2327,20 +2981,20 @@
         "Coverage/equivalence references this invariant when observable",
         "Traceability keeps source_ref function_model.invariants.invariant_2",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "DUT port [\"pslverr\"] is the implementation/observation point for [\"pslverr\"]"
+        "DUT port [\"irq\"] is the implementation/observation point for [\"irq\"]"
       ],
-      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: port=[\"pslverr\"]; signal=Every declared error source has a defined architectural effect and recovery path.; state=[\"state\", \"error\"].",
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: port=[\"irq\"]; signal=Every declared error source has a defined architectural effect and recovery path.; state=[\"state\", \"error\"].",
       "evidence_terms": [
-        "pslverr"
+        "irq"
       ],
-      "id": "RTL-0112",
+      "id": "RTL-0120",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
       "source_ref": "function_model.invariants.invariant_2",
       "ssot_context": {
-        "port": "[\"pslverr\"]",
+        "port": "[\"irq\"]",
         "signal": "Every declared error source has a defined architectural effect and recovery path.",
         "state": "[\"state\", \"error\"]"
       },
@@ -2348,16 +3002,18 @@
         "function_model.invariants.invariant_2"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "irq"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
         "required_terms": [
-          "pslverr"
+          "irq"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -2367,9 +3023,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2381,9 +3037,9 @@
         "Coverage/equivalence references this invariant when observable",
         "Traceability keeps source_ref function_model.invariants.invariant_3",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "DUT port [\"pslverr\"] is the implementation/observation point for [\"pslverr\"]"
+        "DUT port [\"irq\"] is the implementation/observation point for [\"irq\"]"
       ],
-      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: port=[\"pslverr\"]; signal=Data movement and ordering follow the dataflow section without bypassing declared buffers or counters.; state=[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\"].",
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.\nSSOT item context: port=[\"irq\"]; signal=Data movement and ordering follow the dataflow section without bypassing declared buffers or counters.; state=[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\", \"fm4_observed\"].",
       "evidence_terms": [
         "Data",
         "fm1",
@@ -2392,26 +3048,40 @@
         "fm2_observed",
         "fm3",
         "fm3_observed",
-        "observed",
-        "pslverr"
+        "fm4",
+        "fm4_observed",
+        "irq",
+        "observed"
       ],
-      "id": "RTL-0113",
+      "id": "RTL-0121",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
       "source_ref": "function_model.invariants.invariant_3",
       "ssot_context": {
-        "port": "[\"pslverr\"]",
+        "port": "[\"irq\"]",
         "signal": "Data movement and ordering follow the dataflow section without bypassing declared buffers or counters.",
-        "state": "[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\"]"
+        "state": "[\"fm1_observed\", \"fm2_observed\", \"fm3_observed\", \"fm4_observed\"]"
       },
       "ssot_refs": [
         "function_model.invariants.invariant_3"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 11,
+        "matched_terms": [
+          "Data",
+          "fm1",
+          "fm1_observed",
+          "fm2",
+          "fm2_observed",
+          "fm3",
+          "fm3_observed",
+          "fm4",
+          "fm4_observed",
+          "irq",
+          "observed"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2423,11 +3093,13 @@
           "fm2_observed",
           "fm3",
           "fm3_observed",
-          "observed",
-          "pslverr"
+          "fm4",
+          "fm4_observed",
+          "irq",
+          "observed"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -2437,13 +3109,13 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "171b5fe388155b7b1edfb3840233a511c24450973133c88e18bd9bf69445d6c6",
+  "todo_plan_sha256": "528ba0df873e04e970994cc7f47e379270bb2f047df8f859defc125f041665a8",
   "top": "dma_scratch_orch_live_20260519b",
   "type": "rtl_authoring_packet"
 }

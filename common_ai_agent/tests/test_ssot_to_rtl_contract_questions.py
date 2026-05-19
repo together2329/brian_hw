@@ -884,3 +884,75 @@ function_model:
     assert gates["mode"] == "starter"
     assert any(item["id"] == "STARTER_CYCLE_MODEL_DEFERRED" for item in gates["soft_gates"])
     assert any(item["id"] == "STARTER_LLM_RTL_AUTHORING_REQUIRED" for item in gates["soft_gates"])
+
+
+def test_signoff_preflight_preserves_generic_rtl_contract_for_tb(tmp_path: Path):
+    rtl_gen = _load_rtl_gen()
+    ip = "tiny_signoff_and"
+    ip_dir = tmp_path / ip
+    (ip_dir / "yaml").mkdir(parents=True)
+    (ip_dir / "rtl").mkdir()
+    (ip_dir / "list").mkdir()
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        """
+top_module:
+  name: tiny_signoff_and
+  file: rtl/tiny_signoff_and.sv
+io_list:
+  clock_domains:
+    - ports:
+        - {name: clk, direction: input, width: 1}
+  resets:
+    - ports:
+        - {name: rst_n, direction: input, width: 1}
+  interfaces:
+    - name: pins
+      ports:
+        - {name: a_i, direction: input, width: 1}
+        - {name: b_i, direction: input, width: 1}
+        - {name: y_o, direction: output, width: 1}
+rtl_contract:
+  clock: clk
+  reset: rst_n
+  reset_active: low
+  sample_condition: "1"
+function_model:
+  transactions:
+    - id: FM_PRIMARY
+      output_rules:
+        - {name: y_o, port: y_o, expr: "a_i and b_i", width: 1}
+custom:
+  optional_behavior_policy:
+    resolution: No optional behavior exists for this minimal combinational IP.
+    rule: Optional behavior is disabled.
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(
+        "module tiny_signoff_and(input logic clk, input logic rst_n, input logic a_i, input logic b_i, output logic y_o); assign y_o = a_i & b_i; endmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+    (ip_dir / "rtl" / "rtl_todo_plan.json").write_text("{}", encoding="utf-8")
+    todo_hash = rtl_gen._stable_json_sha256(ip_dir / "rtl" / "rtl_todo_plan.json")
+    (ip_dir / "rtl" / "rtl_authoring_provenance.json").write_text(
+        json.dumps(
+            {
+                "type": "rtl_authoring_provenance",
+                "agent": "common_ai_agent",
+                "workflow": "rtl-gen",
+                "surface": "atlas_ui",
+                "todo_plan_sha256": todo_hash,
+                "rtl_files": [f"rtl/{ip}.sv"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    rtl_gen.generate(ip, tmp_path, mode="signoff")
+
+    contract_doc = json.loads((ip_dir / "rtl" / "rtl_contract.json").read_text(encoding="utf-8"))
+    assert contract_doc["type"] == "generic_ssot_rule_rtl_contract"
+    assert contract_doc["top"] == ip
+    assert contract_doc["contract"]["outputs"][0]["port"] == "y_o"

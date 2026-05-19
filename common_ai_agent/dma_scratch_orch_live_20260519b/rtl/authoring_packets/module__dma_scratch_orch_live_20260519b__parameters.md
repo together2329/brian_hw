@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: dma_scratch_orch_live_20260519b
 - Owner file: rtl/dma_scratch_orch_live_20260519b.sv
-- Task count: 4
-- Required tasks: 4
+- Task count: 3
+- Required tasks: 3
 
 ## Rules
 
@@ -22,29 +22,29 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 4
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
 - Module slice: 3/15 section=parameters task_limit=48
 - Slice rule: Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
-- SSOT top IO contracts: 23
+- SSOT top IO contracts: 21
 
 ## Tasks
 
-### RTL-0050: Implement parameter ADDR_WIDTH
+### RTL-0052: Implement parameter ADDR_WIDTH
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.ADDR_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.ADDR_WIDTH.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: name=ADDR_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -53,18 +53,18 @@ SSOT item context: name=ADDR_WIDTH.
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: parameters.ADDR_WIDTH
 
-### RTL-0051: Implement parameter DATA_WIDTH
+### RTL-0053: Implement parameter DATA_WIDTH
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.DATA_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.DATA_WIDTH.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: name=DATA_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
@@ -73,42 +73,22 @@ SSOT item context: name=DATA_WIDTH.
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: parameters.DATA_WIDTH
 
-### RTL-0052: Implement parameter COUNT_WIDTH
+### RTL-0054: Implement parameter LEN_WIDTH
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
-- Source ref: parameters.COUNT_WIDTH
+- Source ref: parameters.LEN_WIDTH
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
-SSOT ref: parameters.COUNT_WIDTH.
+SSOT ref: parameters.LEN_WIDTH.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
-SSOT item context: name=COUNT_WIDTH.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: name=LEN_WIDTH.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects
   - Compile/lint evidence covers the parameterized form
-  - Traceability keeps source_ref parameters.COUNT_WIDTH
+  - Traceability keeps source_ref parameters.LEN_WIDTH
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-- SSOT refs: parameters.COUNT_WIDTH
-
-### RTL-0053: Implement parameter FIFO_DEPTH
-
-- Priority: normal
-- Required: True
-- Status: open
-- Category: parameters.item
-- Source ref: parameters.FIFO_DEPTH
-- Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
-SSOT ref: parameters.FIFO_DEPTH.
-Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
-SSOT item context: name=FIFO_DEPTH.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
-- Criteria:
-  - Parameter default/value matches SSOT
-  - Parameter-derived widths are implemented outside procedural part-selects
-  - Compile/lint evidence covers the parameterized form
-  - Traceability keeps source_ref parameters.FIFO_DEPTH
-  - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-- SSOT refs: parameters.FIFO_DEPTH
+- SSOT refs: parameters.LEN_WIDTH

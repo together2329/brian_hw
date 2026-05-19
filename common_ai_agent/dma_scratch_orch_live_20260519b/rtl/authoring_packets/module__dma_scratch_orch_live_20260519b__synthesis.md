@@ -22,29 +22,29 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 6
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
 - Module slice: 11/15 section=synthesis task_limit=48
 - Slice rule: Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
-- SSOT top IO contracts: 23
+- SSOT top IO contracts: 21
 
 ## Tasks
 
-### RTL-0162: Implement synthesis item constraint_0
+### RTL-0172: Implement synthesis item constraint_0
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_0
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_0.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: value=No inferred latches.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -53,18 +53,18 @@ SSOT item context: value=No inferred latches.
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: synthesis.constraints.constraint_0
 
-### RTL-0163: Implement synthesis item constraint_1
+### RTL-0173: Implement synthesis item constraint_1
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_1
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_1.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: value=No unresolved black boxes.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -73,18 +73,18 @@ SSOT item context: value=No unresolved black boxes.
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: synthesis.constraints.constraint_1
 
-### RTL-0164: Implement synthesis item constraint_2
+### RTL-0174: Implement synthesis item constraint_2
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.constraints
 - Source ref: synthesis.constraints.constraint_2
 - Detail: This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.constraints.constraint_2.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: value=All sequential state reset or intentionally initialized.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -93,18 +93,18 @@ SSOT item context: value=All sequential state reset or intentionally initialized
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: synthesis.constraints.constraint_2
 
-### RTL-0165: Implement synthesis item area_um2_max
+### RTL-0175: Implement synthesis item area_um2_max
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.area_um2_max
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.area_um2_max.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: name=area_um2_max.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -113,18 +113,18 @@ SSOT item context: name=area_um2_max.
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: synthesis.ppa_targets.area_um2_max
 
-### RTL-0166: Implement synthesis item power_mw_max
+### RTL-0176: Implement synthesis item power_mw_max
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.power_mw_max
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.power_mw_max.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: name=power_mw_max.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -133,18 +133,18 @@ SSOT item context: name=power_mw_max.
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: synthesis.ppa_targets.power_mw_max
 
-### RTL-0167: Implement synthesis item frequency_mhz_min
+### RTL-0177: Implement synthesis item frequency_mhz_min
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: synthesis.ppa_targets
 - Source ref: synthesis.ppa_targets.frequency_mhz_min
 - Detail: This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: synthesis.ppa_targets.frequency_mhz_min.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: name=frequency_mhz_min; value=100.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

@@ -4,29 +4,14 @@
 
 - Top: dma_scratch_orch_live_20260519b
 - Packets: 18
-- LLM-actionable tasks: 164
+- LLM-actionable tasks: 0
 - Human-locked tasks: 0
-- Tool-evidence tasks: 4
-- Deferred human QA allowed: True
-- PASS allowed: False
+- Tool-evidence tasks: 0
+- Deferred human QA allowed: False
+- PASS allowed: True
 - Target scale locked: False
 - Pending connection-contract suggestions: 0
 - Recommended packet batch limit: 4
-
-## Next LLM Packets
-
-- module__dma_scratch_orch_live_20260519b__function_model: rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__function_model.json (llm_open=35, human_locked=0)
-- module__dma_scratch_orch_live_20260519b__workflow_todo: rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__workflow_todo.json (llm_open=30, human_locked=0)
-- module__dma_scratch_orch_live_20260519b__io_list: rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__io_list.json (llm_open=25, human_locked=0)
-- module__dma_scratch_orch_live_20260519b__cycle_model: rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__cycle_model.json (llm_open=15, human_locked=0)
-- module__dma_scratch_orch_live_20260519b__fsm: rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__fsm.json (llm_open=15, human_locked=0)
-- module__dma_scratch_orch_live_20260519b__dataflow: rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__dataflow.json (llm_open=9, human_locked=0)
-- module__dma_scratch_orch_live_20260519b__test_requirements: rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__test_requirements.json (llm_open=8, human_locked=0)
-- module__dma_scratch_orch_live_20260519b__synthesis: rtl/authoring_packets/module__dma_scratch_orch_live_20260519b__synthesis.json (llm_open=6, human_locked=0)
-
-## Tool Evidence Queue
-
-- rtl_gate_tool_evidence: tool_evidence=4, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Rules
 

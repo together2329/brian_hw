@@ -1,0 +1,62 @@
+{
+  "created_at": "2026-05-18T21:59:01Z",
+  "from_workflow": "orchestrator",
+  "handoff_id": "dma_scratch_orch_live_20260519b__orchestrator__tb-gen__4529101d",
+  "ip": "dma_scratch_orch_live_20260519b",
+  "orchestrator_run_id": "4529101d42494a0cb5e461abc87e4962",
+  "payload": {
+    "attempted_actions": [
+      {
+        "action": "mark_downstream_stale",
+        "from_stage": "tb",
+        "stale": [
+          "sim",
+          "sim-debug",
+          "coverage"
+        ]
+      },
+      {
+        "action": "dispatch_workflow",
+        "job_id": "d41c540859b8",
+        "result": "error",
+        "workflow": "tb-gen"
+      }
+    ],
+    "classification": {
+      "sim_missing_results": {
+        "confidence": "medium",
+        "next_workflow": "sim_debug",
+        "owner": "tb_bug",
+        "reason": "sim failed; sim_debug must classify mismatches before repair"
+      },
+      "tb_gen_error": {
+        "confidence": "low",
+        "next_workflow": "human-review-escalation",
+        "owner": "frontier",
+        "reason": "no deterministic rule for stage=tb; escalate to human"
+      }
+    },
+    "missing_evidence": [
+      "Executable cocotb/icarus runner evidence under tb/cocotb (e.g. valid Makefile/runner/test module accepted by tb-gen validator).",
+      "Concrete SSOT/RTL contract fields sufficient for generic cocotb scoreboard generation (transaction/observable semantics, expected behavior/scoreboard mapping, reset/clock/handshake timing as required by generator).",
+      "sim/results.xml from running the repaired testbench.",
+      "Passing sim/fl_rtl_compare.json after rerun."
+    ],
+    "observed_evidence": {
+      "sim_fl_rtl_compare": "sim/fl_rtl_compare.json exists per sim artifact read.",
+      "sim_mismatch_classification": "sim/mismatch_classification.json exists per sim-debug artifact read.",
+      "sim_results_xml": "MISSING: sim/results.xml.",
+      "tb_blocked": "tb/cocotb/tb_blocked.json was reported modified by tb-gen; canonical tb read still only lists tb/cocotb/. Worker summary: /ssot-tb-cocotb BLOCKED - SSOT/RTL contract needs repair; blocker: SSOT/RTL contract is not concrete enough for generic cocotb scoreboard generation."
+    },
+    "recommended_next_step": "Repair SSOT/RTL contract or tb-gen generator input so tb-gen can emit an executable cocotb/icarus testbench and runner; then mark downstream stale from tb and rerun sim.",
+    "user_request": "Continue through TB/SIM. Override/extend sim_debug retry budget. If sim/results.xml missing because testbench runner incomplete, classify to tb-gen and dispatch tb-gen. Rerun sim until sim/results.xml exists and fl_rtl_compare passes, or create durable handoff with exact missing evidence."
+  },
+  "reason": "tb-gen cannot currently create executable cocotb/icarus runner because SSOT/RTL contract is insufficiently concrete; exact missing evidence blocks requested sim rerun.",
+  "schema": "workflow_handoff.v1",
+  "scope": {
+    "pipeline_run_id": "4529101d42494a0cb5e461abc87e4962",
+    "session_id": "brian",
+    "user_id": "2a8beaa95732489bb84da2473719b6bd"
+  },
+  "to_workflow": "tb-gen"
+}

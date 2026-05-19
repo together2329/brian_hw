@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: dma_scratch_orch_live_20260519b
 - Owner file: rtl/dma_scratch_orch_live_20260519b.sv
-- Task count: 3
-- Required tasks: 3
+- Task count: 4
+- Required tasks: 4
 
 ## Rules
 
@@ -22,49 +22,29 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: dataflow, decomposition, integration, io_list, top_module
 - Module slice: 8/15 section=features task_limit=48
 - Slice rule: Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
-- SSOT top IO contracts: 23
+- SSOT top IO contracts: 21
 
 ## Tasks
 
-### RTL-0144: Implement feature dma_mem_to_mem
+### RTL-0153: Implement feature csr_programming
 
 - Priority: high
 - Required: True
-- Status: open
-- Category: features.item
-- Source ref: features.dma_mem_to_mem
-- Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
-SSOT ref: features.dma_mem_to_mem.
-Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
-SSOT item context: id=dma_mem_to_mem.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
-- Criteria:
-  - Feature trigger/control/data behavior has RTL owner logic
-  - Feature observability and error behavior match SSOT
-  - Feature is covered by function/cycle/coverage tasks or explicitly blocked
-  - Traceability keeps source_ref features.dma_mem_to_mem
-  - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-- SSOT refs: features.dma_mem_to_mem
-
-### RTL-0145: Implement feature csr_programming
-
-- Priority: high
-- Required: True
-- Status: open
+- Status: pass
 - Category: features.item
 - Source ref: features.csr_programming
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.csr_programming.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
 SSOT item context: id=csr_programming.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -73,22 +53,62 @@ SSOT item context: id=csr_programming.
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
 - SSOT refs: features.csr_programming
 
-### RTL-0146: Implement feature deterministic_safe_defaults
+### RTL-0154: Implement feature dma_copy
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: features.item
-- Source ref: features.deterministic_safe_defaults
+- Source ref: features.dma_copy
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
-SSOT ref: features.deterministic_safe_defaults.
+SSOT ref: features.dma_copy.
 Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
-SSOT item context: id=deterministic_safe_defaults.
-- Current reason: Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.
+SSOT item context: id=dma_copy.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
   - Feature is covered by function/cycle/coverage tasks or explicitly blocked
-  - Traceability keeps source_ref features.deterministic_safe_defaults
+  - Traceability keeps source_ref features.dma_copy
   - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
-- SSOT refs: features.deterministic_safe_defaults
+- SSOT refs: features.dma_copy
+
+### RTL-0155: Implement feature completion_irq
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: features.item
+- Source ref: features.completion_irq
+- Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
+SSOT ref: features.completion_irq.
+Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
+SSOT item context: id=completion_irq.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - Feature trigger/control/data behavior has RTL owner logic
+  - Feature observability and error behavior match SSOT
+  - Feature is covered by function/cycle/coverage tasks or explicitly blocked
+  - Traceability keeps source_ref features.completion_irq
+  - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
+- SSOT refs: features.completion_irq
+
+### RTL-0156: Implement feature error_latch
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: features.item
+- Source ref: features.error_latch
+- Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
+SSOT ref: features.error_latch.
+Owner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via single_owner.
+SSOT item context: id=error_latch.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - Feature trigger/control/data behavior has RTL owner logic
+  - Feature observability and error behavior match SSOT
+  - Feature is covered by function/cycle/coverage tasks or explicitly blocked
+  - Traceability keeps source_ref features.error_latch
+  - Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv
+- SSOT refs: features.error_latch

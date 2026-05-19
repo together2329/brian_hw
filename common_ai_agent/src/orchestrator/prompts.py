@@ -14,6 +14,17 @@ Hard rules:
 - Never claim a stage passed without fresh artifact evidence (use read_artifact).
 - Never silently retry past the budget; call ask_user or finalize as blocked.
 - Never invent owner classifications — call classify_failure to map failures.
+- If sim_debug reports `classification=stale_oracle` or
+  `owner=fl-model-gen`, route to the `equivalence` stage before blaming RTL
+  or TB; that stage runs the fl-model-gen worker's `/ssot-equiv-goals` path.
+- `sim/fl_rtl_compare.json` and `sim/mismatch_classification.json` are
+  sim_debug outputs. If read_artifact reports `freshness_status=stale_artifact`
+  for either file, or shows it older than `sim/scoreboard_events.jsonl`,
+  `sim/results.xml`, or `verify/equivalence_goals.json`, do not route from
+  that stale owner data. Dispatch `sim_debug` first to refresh compare and
+  classification evidence.
+- After every new `sim` run that reports scoreboard mismatches or
+  PASS_OR_ESCALATE evidence, dispatch `sim_debug` before owner repair routing.
 - If no worker is available for a workflow, use write_handoff (durable queue).
 - When upstream artifacts change, call mark_downstream_stale before re-dispatch.
 - If any worker job is still pending/running, do not terminate with a text-only
@@ -141,7 +152,7 @@ def tool_schemas() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "read_artifact",
-                "description": "Read canonical evidence files for a stage.",
+                "description": "Read canonical evidence files for a stage, or a safe relative artifact path under the IP.",
                 "parameters": {
                     "type": "object",
                     "properties": {

@@ -33,6 +33,114 @@ class TestExplicitOwner:
         assert result["owner"] == "tb_bug"
         assert result["next_workflow"] == "tb-gen"
 
+    def test_stale_oracle_classification_routes_to_fl_model_gen(self):
+        result = classify_failure(
+            "sim",
+            evidence={
+                "mismatch_classification": {
+                    "classifications": [
+                        {
+                            "classification": "stale_oracle",
+                            "owner": "fl-model-gen",
+                            "reason": "derived FL/equivalence oracle artifacts are older than the current SSOT",
+                        }
+                    ]
+                }
+            },
+        )
+        assert result["owner"] == "fl-model-gen"
+        assert result["next_workflow"] == "equivalence"
+        assert result["confidence"] == "high"
+
+    def test_stale_oracle_read_artifact_payload_routes_to_fl_model_gen(self):
+        result = classify_failure(
+            "sim",
+            evidence={
+                "artifacts": [
+                    {
+                        "data": {
+                            "status": "action_required",
+                            "classifications": [
+                                {
+                                    "classification": "stale_oracle",
+                                    "owner": "fl-model-gen",
+                                }
+                            ],
+                        }
+                    }
+                ]
+            },
+        )
+        assert result["owner"] == "fl-model-gen"
+        assert result["next_workflow"] == "equivalence"
+
+    def test_stale_compare_artifact_overrides_embedded_stale_oracle(self):
+        result = classify_failure(
+            "sim",
+            evidence={
+                "artifacts": [
+                    {
+                        "rel": "sim/fl_rtl_compare.json",
+                        "freshness_status": "stale_artifact",
+                        "stale_against": [{"rel": "sim/scoreboard_events.jsonl"}],
+                        "data": {
+                            "status": "stale",
+                            "classifications": [
+                                {
+                                    "classification": "stale_oracle",
+                                    "owner": "fl-model-gen",
+                                }
+                            ],
+                        },
+                    }
+                ]
+            },
+        )
+        assert result["owner"] == "sim-debug"
+        assert result["next_workflow"] == "sim_debug"
+
+    def test_nested_sim_debug_artifacts_route_to_rtl_gen(self):
+        result = classify_failure(
+            "sim_debug",
+            evidence={
+                "sim_debug_artifacts": {
+                    "fl_rtl_compare": {
+                        "status": "fail",
+                        "summary": {"stale_oracle_evidence": []},
+                    },
+                    "mismatch_classification": {
+                        "status": "action_required",
+                        "classifications": [
+                            {
+                                "classification": "rtl_bug",
+                                "owner": "rtl-gen",
+                            }
+                        ],
+                    },
+                }
+            },
+        )
+        assert result["owner"] == "rtl-gen"
+        assert result["next_workflow"] == "rtl-gen"
+
+    def test_classification_without_owner_routes_to_rtl_gen(self):
+        result = classify_failure(
+            "sim-debug",
+            evidence={
+                "mismatch_classification": {
+                    "status": "action_required",
+                    "classifications": [
+                        {
+                            "classification": "rtl_bug",
+                            "reason": "RTL observed 0 when oracle expected 1",
+                        }
+                    ],
+                }
+            },
+        )
+        assert result["owner"] == "rtl_bug"
+        assert result["next_workflow"] == "rtl-gen"
+
 
 class TestStageRules:
     def test_rtl_compile_error_routes_to_rtl_gen(self):
@@ -62,6 +170,31 @@ class TestStageRules:
                 "demo/rtl/rtl_blocked.json LLM-authored RTL evidence is missing or stale.; "
                 "questions=LLM_RTL_IMPLEMENTATION_REQUIRED; missing RTL files: rtl/demo.sv"
             ),
+        )
+        assert result["owner"] == "compile_error"
+        assert result["next_workflow"] == "rtl-gen"
+        assert result["confidence"] == "high"
+
+    def test_rtl_stage_log_evidence_routes_to_rtl_gen(self):
+        result = classify_failure(
+            "rtl",
+            evidence={
+                "rtl_artifacts_read": {
+                    "previews": [
+                        {
+                            "rel": "logs/stage_engine/ssot-rtl.json",
+                            "headline": "[RTL RESULT] FAIL - LLM-authored RTL needs rtl-gen repair",
+                            "metadata": {
+                                "rtl_todo_gate": {
+                                    "status": "fail",
+                                    "open_required_todos": 4,
+                                    "static_missing": 1,
+                                }
+                            },
+                        }
+                    ]
+                }
+            },
         )
         assert result["owner"] == "compile_error"
         assert result["next_workflow"] == "rtl-gen"
@@ -102,6 +235,35 @@ class TestStageRules:
         assert result["next_workflow"] == "sim_debug"
         assert result["owner"] == "tb_bug"
 
+    def test_sim_stale_oracle_text_routes_to_fl_model_gen(self):
+        result = classify_failure(
+            "sim",
+            error_text=(
+                "fl_rtl_compare.json status is stale; stale_oracle_evidence "
+                "shows model/functional_model.py older than the current SSOT"
+            ),
+        )
+        assert result["owner"] == "fl-model-gen"
+        assert result["next_workflow"] == "equivalence"
+        assert result["confidence"] == "high"
+
+    def test_sim_stale_compare_text_routes_to_sim_debug(self):
+        result = classify_failure(
+            "sim",
+            error_text="fl_rtl_compare.json older than sim/scoreboard_events.jsonl",
+        )
+        assert result["owner"] == "sim-debug"
+        assert result["next_workflow"] == "sim_debug"
+        assert result["confidence"] == "high"
+
+    def test_empty_stale_oracle_evidence_key_does_not_route_to_equivalence(self):
+        result = classify_failure(
+            "sim_debug",
+            error_text='fl_rtl_compare status=fail "stale_oracle_evidence": []',
+        )
+        assert result["owner"] == "frontier"
+        assert result["next_workflow"] == HUMAN_ESCALATION
+
     def test_coverage_gap(self):
         result = classify_failure("coverage")
         assert result["owner"] == "coverage_gap"
@@ -111,6 +273,20 @@ class TestStageRules:
         result = classify_failure(
             "sta",
             error_text="WNS -0.123 ns on path hclk@10ns",
+        )
+        assert result["owner"] == "timing_setup"
+        assert result["next_workflow"] == HUMAN_ESCALATION
+
+    def test_sta_setup_failure_wins_over_hold_clean_context(self):
+        result = classify_failure(
+            "sta",
+            evidence={
+                "sta_out_wns": {
+                    "clock": "clk",
+                    "setup": {"wns": -1.29, "violations": 5},
+                    "hold": {"wns": 0.14, "violations": 0},
+                }
+            },
         )
         assert result["owner"] == "timing_setup"
         assert result["next_workflow"] == HUMAN_ESCALATION

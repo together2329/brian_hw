@@ -84,6 +84,10 @@ const normalizeAtlasExecMode = (value) => {
   if (v === 'orch' || v === 'multi-worker') return 'orchestrator';
   return ATLAS_EXEC_MODE_OPTIONS.some(o => o.key === v) ? v : DEFAULT_ATLAS_EXEC_MODE;
 };
+const atlasBootConfig = () => {
+  try { return window.ATLAS_BOOT_CONFIG || {}; }
+  catch (_) { return {}; }
+};
 
 // ── PipelineRunningChip ───────────────────────────────────────────
 // Top-bar "[▶ N running]" chip. Reads window.ATLAS_PIPELINE_RUNNING
@@ -142,11 +146,11 @@ const App = () => {
     } catch (_) { return DEFAULT_ATLAS_RESOLUTION; }
   });
   const [runMode, setRunMode] = React.useState(() => {
-    try { return normalizeAtlasRunMode(localStorage.getItem('atlasRunMode')); }
+    try { return normalizeAtlasRunMode(atlasBootConfig().run_mode || localStorage.getItem('atlasRunMode')); }
     catch (_) { return 'engineering'; }
   });
   const [execMode, setExecMode] = React.useState(() => {
-    try { return normalizeAtlasExecMode(localStorage.getItem('atlasExecMode')); }
+    try { return normalizeAtlasExecMode(atlasBootConfig().exec_mode || localStorage.getItem('atlasExecMode')); }
     catch (_) { return DEFAULT_ATLAS_EXEC_MODE; }
   });
   React.useEffect(() => {
@@ -631,22 +635,23 @@ const App = () => {
     } catch (_) {}
   }, [normalizeSession]);
 
-  const activateNamespace = React.useCallback((sessionId, ipId, workflow, syncWorkflow = true) => {
+  const activateNamespace = React.useCallback((sessionId, ipId, workflow, syncWorkflow = true, opts = {}) => {
     const owner = normalizeSession(sessionId) || 'default';
     const ip = normalizeSession(ipId || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
     const wf = normalizeSession(workflow || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
+    const preserveRunning = !!(opts && opts.preserveRunning);
     const namespace = namespaceFor(owner, ip, wf);
     const prev = window.ACTIVE_SESSION || '';
     const prevParts = splitSessionNamespace(prev || '');
     const prevWf = prevParts.workflow || WORKFLOW_DEFAULT;
     const workflowChanged = !!(prev && prev !== namespace && prevWf !== wf);
     if (workflowChanged) {
-      setWfSwitching({ from: prevWf, to: wf, ip });
+      setWfSwitching({ from: prevWf, to: wf, ip, preserveRunning });
     }
     // Stop only when the UI knows an agent is actually running. Stopped
     // workflow changes should load directly without manufacturing a stale
     // "end of loop" state.
-    if (prev && prev !== namespace && agentRunningRef.current) {
+    if (prev && prev !== namespace && agentRunningRef.current && !preserveRunning) {
       try {
         setAgentRunningState(false);
         fetch('/api/control/stop', { method: 'POST' }).catch(() => {});
@@ -696,13 +701,14 @@ const App = () => {
             session_id: owner || 'default',
             ip: ip || 'default',
             workflow: wf || 'default',
+            preserve_running: preserveRunning,
           }),
         });
         activated = !!(res && res.ok);
       } catch (_) {}
       if (syncWorkflow && !activated) activateBackendWorkflow(wf, namespace);
       if (workflowChanged) {
-        setAgentRunningState(false);
+        if (!preserveRunning) setAgentRunningState(false);
         const delay = Math.max(0, 450 - (Date.now() - loadStartedAt));
         setTimeout(() => {
           setWfSwitching(cur => (
@@ -984,10 +990,11 @@ const App = () => {
   const selectWorkflow = (rawWf) => {
     const wf = normalizeSession(rawWf) || WORKFLOW_DEFAULT;
     if (wf === (currentWorkflow() || WORKFLOW_DEFAULT)) return;
-    const ok = confirmStopForWorkflowSwitch(wf);
+    const preserveRunning = execMode === 'orchestrator';
+    const ok = preserveRunning || confirmStopForWorkflowSwitch(wf);
     if (!ok) return;
     const ip = activeIp || WORKFLOW_DEFAULT;
-    activateNamespace(activeSessionId, ip, wf, true);
+    activateNamespace(activeSessionId, ip, wf, true, { preserveRunning });
   };
 
   const beginNameEntry = (kind) => {
@@ -1139,7 +1146,6 @@ const App = () => {
       const detail = ev?.detail || {};
       const workflow = normalizeSession(detail.workflow || '');
       if (!workflow) return;
-      if (!confirmStopForWorkflowSwitch(workflow)) return;
       const parsed = splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace || '');
       const owner = normalizeSession(
         detail.sessionId ||
@@ -1157,9 +1163,18 @@ const App = () => {
         WORKFLOW_DEFAULT
       ) || WORKFLOW_DEFAULT;
       const path = String(detail.path || '').trim();
+      const activeWorkflow = normalizeSession(parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
+      // In orchestrator + multi-worker mode, pipeline worker cards are
+      // workspace switches, not single-worker stop/restart boundaries.
+      const preserveRunning = (
+        detail.source === 'pipeline'
+        && workflow !== activeWorkflow
+        && (activeWorkflow === 'orchestrator' || execMode === 'orchestrator')
+      );
 
       workflowWorkspaceOpenRef.current = true;
-      activateNamespace(owner, ip, workflow, true);
+      if (!preserveRunning && !confirmStopForWorkflowSwitch(workflow)) return;
+      activateNamespace(owner, ip, workflow, true, { preserveRunning });
       setScreen('workspace');
       if (path) {
         try { localStorage.setItem('atlasPreviewPath', path); } catch (_) {}
@@ -1180,6 +1195,8 @@ const App = () => {
     activeSessionId,
     activateNamespace,
     confirmStopForWorkflowSwitch,
+    currentWorkflow,
+    execMode,
     normalizeSession,
     splitSessionNamespace,
   ]);
@@ -1208,11 +1225,16 @@ const App = () => {
       // architect agent for SoC-level design conversations.
       const targetWorkflow = screen === 'pipeline' ? 'orchestrator' : 'architect';
       if (!optOut) {
-        activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, targetWorkflow, true);
+        activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, targetWorkflow, true, {
+          preserveRunning: execMode === 'orchestrator' && targetWorkflow === 'orchestrator',
+        });
       }
     } else if (prev === 'architect' || prev === 'pipeline') {
       if (workflowWorkspaceOpenRef.current) {
         workflowWorkspaceOpenRef.current = false;
+        return;
+      }
+      if (prev === 'pipeline' && execMode === 'orchestrator') {
         return;
       }
       // Leaving pipeline/architect → fall back to default (could be
@@ -1221,10 +1243,12 @@ const App = () => {
       const optOut = (() => { try { return localStorage.getItem('atlasArchAutoSwitch') === 'off'; }
                               catch (_) { return false; } })();
       if (!optOut) {
-        activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, WORKFLOW_DEFAULT, true);
+        activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, WORKFLOW_DEFAULT, true, {
+          preserveRunning: execMode === 'orchestrator' && prev === 'pipeline',
+        });
       }
     }
-  }, [activateNamespace, activeIp, activeSessionId, screen, uiLang]);
+  }, [activateNamespace, activeIp, activeSessionId, execMode, screen, uiLang]);
 
   React.useEffect(() => {
     document.documentElement.setAttribute('data-dir', dir);
@@ -1375,7 +1399,9 @@ const App = () => {
             <strong>Workflow Loading ...</strong>{' '}
             <code>{wfSwitching.from || 'default'}</code> → <code>{wfSwitching.to}</code>
             {wfSwitching.ip ? <> · ip=<code>{wfSwitching.ip}</code></> : null}
-            <span style={{ marginLeft: 8, opacity: 0.7 }}>(agent stopped while loading)</span>
+            <span style={{ marginLeft: 8, opacity: 0.7 }}>
+              {wfSwitching.preserveRunning ? '(previous worker kept running)' : '(agent stopped while loading)'}
+            </span>
           </span>
           <style>{`@keyframes atlas-spin{to{transform:rotate(360deg)}}`}</style>
         </div>

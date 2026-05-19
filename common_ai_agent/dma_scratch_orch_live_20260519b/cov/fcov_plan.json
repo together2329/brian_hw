@@ -124,6 +124,13 @@
       "description": "function_model transaction FM3"
     },
     {
+      "id": "SC09_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC09",
+      "description": "function_model transaction FM4"
+    },
+    {
       "id": "fcov_primary_transaction",
       "class": "transaction",
       "coverage_domain": "function",
@@ -164,12 +171,20 @@
       "description": "feature_3"
     },
     {
+      "id": "function_feature_4",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[3]",
+      "source_ref": "function_model.transactions.fm4",
+      "description": "feature_4"
+    },
+    {
       "id": "cycle_handshake_0",
       "class": "protocol",
       "coverage_domain": "cycle",
       "source": "cycle_model.handshake_rules[0]",
       "source_ref": "cycle_model.handshake_rules[0]",
-      "description": "{'signal': 'rd_addr_valid/rd_addr_ready', 'rule': 'rd_addr_valid payload remains stable until rd_addr_ready is sampled asserted on dma_read_addr.'}"
+      "description": "{'signal': 'csr_valid/csr_ready', 'rule': 'csr_valid payload remains stable until csr_ready is sampled asserted on csr_slave.'}"
     },
     {
       "id": "cycle_handshake_1",
@@ -177,15 +192,7 @@
       "coverage_domain": "cycle",
       "source": "cycle_model.handshake_rules[1]",
       "source_ref": "cycle_model.handshake_rules[1]",
-      "description": "{'signal': 'rd_data_valid/rd_data_ready', 'rule': 'rd_data_valid payload remains stable until rd_data_ready is sampled asserted on dma_read_data.'}"
-    },
-    {
-      "id": "cycle_handshake_2",
-      "class": "protocol",
-      "coverage_domain": "cycle",
-      "source": "cycle_model.handshake_rules[2]",
-      "source_ref": "cycle_model.handshake_rules[2]",
-      "description": "{'signal': 'wr_data_valid/wr_data_ready', 'rule': 'wr_data_valid payload remains stable until wr_data_ready is sampled asserted on dma_write_data.'}"
+      "description": "{'signal': 'mem_req_valid/mem_req_ready', 'rule': 'mem_req_valid payload remains stable until mem_req_ready is sampled asserted on mem_master.'}"
     },
     {
       "id": "cycle_latency_control_or_request_accept",
@@ -340,35 +347,43 @@
       "description": "{'from': 'EXEC_FEATURE_2', 'to': 'EXEC_FEATURE_3', 'when': 'The current SSOT-owned behavior slice completes'}"
     },
     {
-      "id": "fsm_control_exec_feature_3_to_complete_4",
+      "id": "fsm_control_exec_feature_3_to_exec_feature_4_4",
       "class": "state_transition",
       "coverage_domain": "cycle",
       "source": "fsm.control.transitions[4]",
       "source_ref": "fsm.control.transitions[4]",
-      "description": "{'from': 'EXEC_FEATURE_3', 'to': 'COMPLETE', 'when': 'The current SSOT-owned behavior slice completes'}"
+      "description": "{'from': 'EXEC_FEATURE_3', 'to': 'EXEC_FEATURE_4', 'when': 'The current SSOT-owned behavior slice completes'}"
     },
     {
-      "id": "fsm_control_complete_to_idle_5",
+      "id": "fsm_control_exec_feature_4_to_complete_5",
       "class": "state_transition",
       "coverage_domain": "cycle",
       "source": "fsm.control.transitions[5]",
       "source_ref": "fsm.control.transitions[5]",
-      "description": "{'from': 'COMPLETE', 'to': 'IDLE', 'when': 'Observable result/status handoff completes'}"
+      "description": "{'from': 'EXEC_FEATURE_4', 'to': 'COMPLETE', 'when': 'The current SSOT-owned behavior slice completes'}"
     },
     {
-      "id": "fsm_control_from_to_error_6",
+      "id": "fsm_control_complete_to_idle_6",
       "class": "state_transition",
       "coverage_domain": "cycle",
       "source": "fsm.control.transitions[6]",
       "source_ref": "fsm.control.transitions[6]",
-      "description": "{'from': '*', 'to': 'ERROR', 'when': 'error_handling.error_sources condition is detected'}"
+      "description": "{'from': 'COMPLETE', 'to': 'IDLE', 'when': 'Observable result/status handoff completes'}"
     },
     {
-      "id": "fsm_control_error_to_idle_7",
+      "id": "fsm_control_from_to_error_7",
       "class": "state_transition",
       "coverage_domain": "cycle",
       "source": "fsm.control.transitions[7]",
       "source_ref": "fsm.control.transitions[7]",
+      "description": "{'from': '*', 'to': 'ERROR', 'when': 'error_handling.error_sources condition is detected'}"
+    },
+    {
+      "id": "fsm_control_error_to_idle_8",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[8]",
+      "source_ref": "fsm.control.transitions[8]",
       "description": "{'from': 'ERROR', 'to': 'IDLE', 'when': 'Reset or approved recovery action clears the error'}"
     },
     {
@@ -381,11 +396,11 @@
     }
   ],
   "summary": {
-    "total_bins": 40,
-    "scenario_bins": 8,
-    "transaction_bins": 3,
-    "protocol_bins": 3,
-    "state_transition_bins": 8,
+    "total_bins": 42,
+    "scenario_bins": 9,
+    "transaction_bins": 4,
+    "protocol_bins": 2,
+    "state_transition_bins": 9,
     "error_bins": 1
   }
 }

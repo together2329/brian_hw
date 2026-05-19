@@ -12,7 +12,7 @@
       "enabled": true,
       "index": 14,
       "key": "workflow_todo",
-      "module_task_count": 159,
+      "module_task_count": 170,
       "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "workflow_todo",
       "section_chunk_count": 1,
@@ -66,254 +66,230 @@
       },
       {
         "aliases": [
-          "csr_apb_lite_paddr",
-          "paddr"
+          "csr_slave_csr_valid",
+          "csr_valid"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "paddr",
+        "name": "csr_valid",
         "source_ref": "io_list.interfaces[1].ports[0]",
-        "width": "ADDR_WIDTH"
+        "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_psel",
-          "psel"
+          "csr_ready",
+          "csr_slave_csr_ready"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "psel",
+        "direction": "output",
+        "name": "csr_ready",
         "source_ref": "io_list.interfaces[1].ports[1]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_penable",
-          "penable"
+          "csr_slave_csr_write",
+          "csr_write"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "penable",
+        "name": "csr_write",
         "source_ref": "io_list.interfaces[1].ports[2]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_pwrite",
-          "pwrite"
+          "csr_addr",
+          "csr_slave_csr_addr"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "pwrite",
+        "name": "csr_addr",
         "source_ref": "io_list.interfaces[1].ports[3]",
-        "width": "1"
+        "width": "ADDR_WIDTH"
       },
       {
         "aliases": [
-          "csr_apb_lite_pwdata",
-          "pwdata"
+          "csr_slave_csr_wdata",
+          "csr_wdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "pwdata",
+        "name": "csr_wdata",
         "source_ref": "io_list.interfaces[1].ports[4]",
         "width": "DATA_WIDTH"
       },
       {
         "aliases": [
-          "csr_apb_lite_prdata",
-          "prdata"
+          "csr_slave_csr_wstrb",
+          "csr_wstrb"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "output",
-        "name": "prdata",
+        "direction": "input",
+        "name": "csr_wstrb",
         "source_ref": "io_list.interfaces[1].ports[5]",
-        "width": "DATA_WIDTH"
+        "width": "DATA_WIDTH/8"
       },
       {
         "aliases": [
-          "csr_apb_lite_pready",
-          "pready"
+          "csr_rvalid",
+          "csr_slave_csr_rvalid"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "pready",
+        "name": "csr_rvalid",
         "source_ref": "io_list.interfaces[1].ports[6]",
         "width": "1"
       },
       {
         "aliases": [
-          "csr_apb_lite_pslverr",
-          "pslverr"
+          "csr_rdata",
+          "csr_slave_csr_rdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "pslverr",
+        "name": "csr_rdata",
         "source_ref": "io_list.interfaces[1].ports[7]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "csr_error",
+          "csr_slave_csr_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "csr_error",
+        "source_ref": "io_list.interfaces[1].ports[8]",
         "width": "1"
       },
       {
         "aliases": [
-          "dma_read_addr_rd_addr_valid",
-          "rd_addr_valid"
+          "mem_master_mem_req_valid",
+          "mem_req_valid"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "rd_addr_valid",
+        "direction": "output",
+        "name": "mem_req_valid",
         "source_ref": "io_list.interfaces[2].ports[0]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_addr_rd_addr_ready",
-          "rd_addr_ready"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "output",
-        "name": "rd_addr_ready",
-        "source_ref": "io_list.interfaces[2].ports[1]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_addr_rd_addr",
-          "rd_addr"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_addr",
-        "source_ref": "io_list.interfaces[2].ports[2]",
-        "width": "ADDR_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data_valid",
-          "rd_data_valid"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_data_valid",
-        "source_ref": "io_list.interfaces[3].ports[0]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data_ready",
-          "rd_data_ready"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "output",
-        "name": "rd_data_ready",
-        "source_ref": "io_list.interfaces[3].ports[1]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_data",
-          "rd_data"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_data",
-        "source_ref": "io_list.interfaces[3].ports[2]",
-        "width": "DATA_WIDTH"
-      },
-      {
-        "aliases": [
-          "dma_read_data_rd_resp",
-          "rd_resp"
-        ],
-        "allow_constant": false,
-        "allow_unused": false,
-        "direction": "input",
-        "name": "rd_resp",
-        "source_ref": "io_list.interfaces[3].ports[3]",
         "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data_valid",
-          "wr_data_valid"
+          "mem_master_mem_req_ready",
+          "mem_req_ready"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "input",
-        "name": "wr_data_valid",
-        "source_ref": "io_list.interfaces[4].ports[0]",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_ready",
+        "source_ref": "io_list.interfaces[2].ports[1]",
+        "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data_ready",
-          "wr_data_ready"
+          "mem_master_mem_req_write",
+          "mem_req_write"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
-        "name": "wr_data_ready",
-        "source_ref": "io_list.interfaces[4].ports[1]",
-        "width": "DATA_WIDTH"
+        "name": "mem_req_write",
+        "source_ref": "io_list.interfaces[2].ports[2]",
+        "width": "1"
       },
       {
         "aliases": [
-          "dma_write_data_wr_addr",
-          "wr_addr"
+          "mem_master_mem_req_addr",
+          "mem_req_addr"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_addr",
-        "source_ref": "io_list.interfaces[4].ports[2]",
+        "direction": "output",
+        "name": "mem_req_addr",
+        "source_ref": "io_list.interfaces[2].ports[3]",
         "width": "ADDR_WIDTH"
       },
       {
         "aliases": [
-          "dma_write_data_wr_data",
-          "wr_data"
+          "mem_master_mem_req_wdata",
+          "mem_req_wdata"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_data",
-        "source_ref": "io_list.interfaces[4].ports[3]",
+        "direction": "output",
+        "name": "mem_req_wdata",
+        "source_ref": "io_list.interfaces[2].ports[4]",
         "width": "DATA_WIDTH"
       },
       {
         "aliases": [
-          "dma_write_data_wr_strb",
-          "wr_strb"
+          "mem_master_mem_req_wstrb",
+          "mem_req_wstrb"
         ],
         "allow_constant": false,
         "allow_unused": false,
-        "direction": "input",
-        "name": "wr_strb",
-        "source_ref": "io_list.interfaces[4].ports[4]",
+        "direction": "output",
+        "name": "mem_req_wstrb",
+        "source_ref": "io_list.interfaces[2].ports[5]",
         "width": "DATA_WIDTH/8"
       },
       {
         "aliases": [
-          "irq",
-          "status_irq_irq"
+          "mem_master_mem_rsp_valid",
+          "mem_rsp_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_valid",
+        "source_ref": "io_list.interfaces[2].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "mem_master_mem_rsp_rdata",
+          "mem_rsp_rdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_rdata",
+        "source_ref": "io_list.interfaces[2].ports[7]",
+        "width": "DATA_WIDTH"
+      },
+      {
+        "aliases": [
+          "mem_master_mem_rsp_error",
+          "mem_rsp_error"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "mem_rsp_error",
+        "source_ref": "io_list.interfaces[2].ports[8]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_irq",
+          "irq"
         ],
         "allow_constant": false,
         "allow_unused": false,
         "direction": "output",
         "name": "irq",
-        "source_ref": "io_list.interfaces[5].ports[0]",
+        "source_ref": "io_list.interfaces[3].ports[0]",
         "width": "1"
       }
     ],
@@ -323,15 +299,15 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 30,
-    "open_required_count": 30,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -359,22 +335,22 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
-      "workflow_todo.rtl_gen": 30
+      "workflow_todo.rtl_gen": 32
     },
     "module_slice": {
       "count": 15,
       "enabled": true,
       "index": 14,
       "key": "workflow_todo",
-      "module_task_count": 159,
+      "module_task_count": 170,
       "rule": "Owner module dma_scratch_orch_live_20260519b is split into 15 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "workflow_todo",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 30,
-    "required_count": 30,
+    "open_required_count": 0,
+    "required_count": 32,
     "source_refs": [
       "workflow_todos.rtl-gen[0]",
       "workflow_todos.rtl-gen[1]",
@@ -397,14 +373,14 @@
       "workflow_todos.rtl-gen[18]",
       "workflow_todos.rtl-gen[19]",
       "workflow_todos.rtl-gen[20]",
-      "workflow_todos.rtl-gen[29]",
       "workflow_todos.rtl-gen[21]",
+      "workflow_todos.rtl-gen[31]",
       "workflow_todos.rtl-gen[22]"
     ],
     "status_counts": {
-      "open": 30
+      "pass": 32
     },
-    "task_count": 30
+    "task_count": 32
   },
   "tasks": [
     {
@@ -456,8 +432,15 @@
         "workflow_todos.rtl-gen[0]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -479,7 +462,7 @@
           "top_module"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -489,9 +472,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_IMPLEMENT_SSOT_CONTRACT",
@@ -517,7 +500,7 @@
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
         "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "Semantic source_refs covered: cycle_model, dataflow, decomposition, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM1, function_model.transactions.FM2, function_model.transactions.FM3, test_requirements"
+        "Semantic source_refs covered: cycle_model, dataflow, decomposition, features, fsm, function_model, function_model.state_variables, function_model.transactions.FM1, function_model.transactions.FM2, function_model.transactions.FM3, function_model.transactions.FM4, test_requirements"
       ],
       "detail": "Conceptual owner for SSOT function-model behavior implemented by the generated RTL.\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_MODULE_DMA_SCRATCH_ORCH_LIVE_20260519B_BEHAVIOR_CONTRACT.",
       "evidence_terms": [
@@ -555,12 +538,25 @@
         "function_model.transactions.FM1",
         "function_model.transactions.FM2",
         "function_model.transactions.FM3",
+        "function_model.transactions.FM4",
         "test_requirements",
         "workflow_todos.rtl-gen[1]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 11,
+        "matched_terms": [
+          "20260519B",
+          "20260519b",
+          "DMA",
+          "LIVE",
+          "ORCH",
+          "SCRATCH",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -580,7 +576,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -590,9 +586,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_MODULE_DMA_SCRATCH_ORCH_LIVE_20260519B_BEHAVIOR_CONTRACT",
@@ -607,6 +603,7 @@
           "function_model.transactions.FM1",
           "function_model.transactions.FM2",
           "function_model.transactions.FM3",
+          "function_model.transactions.FM4",
           "test_requirements"
         ],
         "stage": "rtl-gen",
@@ -663,8 +660,23 @@
         "workflow_todos.rtl-gen[2]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 14,
+        "matched_terms": [
+          "20260519B",
+          "20260519b",
+          "DMA",
+          "LIVE",
+          "ORCH",
+          "SCRATCH",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "io",
+          "io_list",
+          "list",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -687,7 +699,7 @@
           "top"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -697,9 +709,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_MODULE_DMA_SCRATCH_ORCH_LIVE_20260519B",
@@ -727,7 +739,7 @@
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: function_model.transactions.FM1, function_model.transactions[0]"
       ],
-      "detail": "Preconditions: Feature trigger is asserted under legal configuration. Outputs: Architectural output matches feature definition; name=pslverr; description=Auto-injected benign observable rule so the function_model has at least one scoreboard-visible...; description=Repair marker making this transaction machine-checkable; ssot-gen should r.... Side effects: Architectural state updates according to FSM/control policy. Error cases: condition=Downstream protocol response is non-OKAY or invalid.\nSSOT ref: workflow_todos.rtl-gen[3].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_FM_TX_FM1.",
+      "detail": "Preconditions: Feature trigger is asserted under legal configuration. Outputs: Architectural output matches feature definition; name=irq; description=Auto-injected benign observable rule so the function_model has at least one scoreboard-visible out...; description=Repair marker making this transaction machine-checkable; ssot-gen should r.... Side effects: Architectural state updates according to FSM/control policy. Error cases: condition=Downstream protocol response is non-OKAY or invalid.\nSSOT ref: workflow_todos.rtl-gen[3].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_FM_TX_FM1.",
       "evidence_terms": [
         "20260519b",
         "FM",
@@ -755,8 +767,16 @@
         "workflow_todos.rtl-gen[3]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519b",
+          "FM1",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -773,7 +793,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -783,9 +803,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_FM_TX_FM1",
@@ -799,9 +819,9 @@
     },
     {
       "category": "workflow_todo.rtl_gen",
-      "content": "Drive output rule `pslverr` from FunctionalModel expression",
+      "content": "Drive output rule `irq` from FunctionalModel expression",
       "criteria": [
-        "RTL output `pslverr` follows the SSOT expression",
+        "RTL output `irq` follows the SSOT expression",
         "Expression inputs are mapped through rtl_contract.input_map or declared ports",
         "FL-vs-RTL scoreboard can compare this observable without changing SSOT",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
@@ -810,11 +830,11 @@
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: function_model.transactions[0].output_rules[0]"
       ],
-      "detail": "Expression: 0\nSSOT ref: workflow_todos.rtl-gen[4].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_OUTPUT_RULE_PSLVERR.",
+      "detail": "Expression: 0\nSSOT ref: workflow_todos.rtl-gen[4].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_OUTPUT_RULE_IRQ.",
       "evidence_terms": [
         "20260519b",
-        "PSLVERR",
-        "RTL_OUTPUT_RULE_PSLVERR",
+        "IRQ",
+        "RTL_OUTPUT_RULE_IRQ",
         "dma",
         "dma_scratch_orch_live_20260519b",
         "live",
@@ -828,22 +848,30 @@
       "required": true,
       "source_ref": "workflow_todos.rtl-gen[4]",
       "ssot_context": {
-        "id": "RTL_OUTPUT_RULE_PSLVERR"
+        "id": "RTL_OUTPUT_RULE_IRQ"
       },
       "ssot_refs": [
         "function_model.transactions[0].output_rules[0]",
         "workflow_todos.rtl-gen[4]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519b",
+          "IRQ",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
         "required_terms": [
           "20260519b",
-          "PSLVERR",
-          "RTL_OUTPUT_RULE_PSLVERR",
+          "IRQ",
+          "RTL_OUTPUT_RULE_IRQ",
           "dma",
           "dma_scratch_orch_live_20260519b",
           "live",
@@ -851,7 +879,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -861,12 +889,12 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
-        "id": "RTL_OUTPUT_RULE_PSLVERR",
+        "id": "RTL_OUTPUT_RULE_IRQ",
         "source_refs": [
           "function_model.transactions[0].output_rules[0]"
         ],
@@ -914,8 +942,17 @@
         "workflow_todos.rtl-gen[5]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "20260519b",
+          "FM1",
+          "OBSERVED",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -932,7 +969,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -942,9 +979,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_STATE_UPDATE_FM1_OBSERVED",
@@ -996,8 +1033,16 @@
         "workflow_todos.rtl-gen[6]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519b",
+          "FM2",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -1014,7 +1059,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1024,9 +1069,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_FM_TX_FM2",
@@ -1078,8 +1123,17 @@
         "workflow_todos.rtl-gen[7]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "20260519b",
+          "FM2",
+          "OBSERVED",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -1096,7 +1150,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1106,9 +1160,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_STATE_UPDATE_FM2_OBSERVED",
@@ -1160,8 +1214,16 @@
         "workflow_todos.rtl-gen[8]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519b",
+          "FM3",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -1178,7 +1240,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1188,9 +1250,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_FM_TX_FM3",
@@ -1242,8 +1304,17 @@
         "workflow_todos.rtl-gen[9]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "20260519b",
+          "FM3",
+          "OBSERVED",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -1260,7 +1331,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1270,14 +1341,195 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_STATE_UPDATE_FM3_OBSERVED",
         "source_refs": [
           "function_model.transactions[2].state_updates[0]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement FunctionalModel transaction `FM4` in RTL",
+      "criteria": [
+        "RTL samples the transaction only under the approved preconditions",
+        "All listed outputs are driven with machine-checkable behavior or SSOT-approved status/error mapping",
+        "All side effects and error cases have observable state, status, or handoff evidence",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[10]",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
+        "Semantic source_refs covered: function_model.transactions.FM4, function_model.transactions[3]"
+      ],
+      "detail": "Preconditions: Feature trigger is asserted under legal configuration. Outputs: Architectural output matches feature definition; description=Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectu.... Side effects: Architectural state updates according to FSM/control policy. Error cases: condition=Downstream protocol response is non-OKAY or invalid.\nSSOT ref: workflow_todos.rtl-gen[10].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_FM_TX_FM4.",
+      "evidence_terms": [
+        "20260519b",
+        "FM",
+        "FM4",
+        "RTL_FM_TX_FM4",
+        "TX",
+        "dma",
+        "dma_scratch_orch_live_20260519b",
+        "live",
+        "orch",
+        "scratch"
+      ],
+      "id": "RTL-0030",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[10]",
+      "ssot_context": {
+        "id": "RTL_FM_TX_FM4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM4",
+        "function_model.transactions[3]",
+        "workflow_todos.rtl-gen[10]"
+      ],
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519b",
+          "FM4",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519b",
+          "FM",
+          "FM4",
+          "RTL_FM_TX_FM4",
+          "TX",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
+        "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_FM_TX_FM4",
+        "source_refs": [
+          "function_model.transactions.FM4",
+          "function_model.transactions[3]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement state update `fm4_observed` from FunctionalModel expression",
+      "criteria": [
+        "RTL updates the state only on the approved sample condition",
+        "Reset value and width match function_model.state_variables",
+        "Debug/status visibility remains consistent with SSOT traceability",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[11]",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
+        "Semantic source_refs covered: function_model.transactions[3].state_updates[0]"
+      ],
+      "detail": "Expression: 1\nSSOT ref: workflow_todos.rtl-gen[11].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_STATE_UPDATE_FM4_OBSERVED.",
+      "evidence_terms": [
+        "20260519b",
+        "FM4",
+        "OBSERVED",
+        "RTL_STATE_UPDATE_FM4_OBSERVED",
+        "UPDATE",
+        "dma",
+        "dma_scratch_orch_live_20260519b",
+        "live",
+        "orch",
+        "scratch"
+      ],
+      "id": "RTL-0031",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[11]",
+      "ssot_context": {
+        "id": "RTL_STATE_UPDATE_FM4_OBSERVED"
+      },
+      "ssot_refs": [
+        "function_model.transactions[3].state_updates[0]",
+        "workflow_todos.rtl-gen[11]"
+      ],
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "20260519b",
+          "FM4",
+          "OBSERVED",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519b",
+          "FM4",
+          "OBSERVED",
+          "RTL_STATE_UPDATE_FM4_OBSERVED",
+          "UPDATE",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
+        "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_STATE_UPDATE_FM4_OBSERVED",
+        "source_refs": [
+          "function_model.transactions[3].state_updates[0]"
         ],
         "stage": "rtl-gen",
         "user_category": ""
@@ -1292,11 +1544,11 @@
         "The behavior is visible to waveform/sim-debug or scoreboard checks",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[10]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[12]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: cycle_model.handshake_rules[0]"
       ],
-      "detail": "rule=rd_addr_valid payload remains stable until rd_addr_ready is sampled asserted on dma_read_addr.\nSSOT ref: workflow_todos.rtl-gen[10].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_ITEM_0.",
+      "detail": "rule=csr_valid payload remains stable until csr_ready is sampled asserted on csr_slave.\nSSOT ref: workflow_todos.rtl-gen[12].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_ITEM_0.",
       "evidence_terms": [
         "20260519b",
         "ITEM",
@@ -1309,22 +1561,30 @@
         "rules",
         "scratch"
       ],
-      "id": "RTL-0030",
+      "id": "RTL-0032",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[10]",
+      "source_ref": "workflow_todos.rtl-gen[12]",
       "ssot_context": {
         "id": "RTL_CYCLE_handshake_rules_ITEM_0"
       },
       "ssot_refs": [
         "cycle_model.handshake_rules[0]",
-        "workflow_todos.rtl-gen[10]"
+        "workflow_todos.rtl-gen[12]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "handshake",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -1341,7 +1601,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1351,9 +1611,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_CYCLE_handshake_rules_ITEM_0",
@@ -1373,11 +1633,11 @@
         "The behavior is visible to waveform/sim-debug or scoreboard checks",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[11]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[13]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: cycle_model.handshake_rules[1]"
       ],
-      "detail": "rule=rd_data_valid payload remains stable until rd_data_ready is sampled asserted on dma_read_data.\nSSOT ref: workflow_todos.rtl-gen[11].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_1.",
+      "detail": "rule=mem_req_valid payload remains stable until mem_req_ready is sampled asserted on mem_master.\nSSOT ref: workflow_todos.rtl-gen[13].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_1.",
       "evidence_terms": [
         "20260519b",
         "RTL_CYCLE_handshake_rules_1",
@@ -1389,22 +1649,30 @@
         "rules",
         "scratch"
       ],
-      "id": "RTL-0031",
+      "id": "RTL-0033",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[11]",
+      "source_ref": "workflow_todos.rtl-gen[13]",
       "ssot_context": {
         "id": "RTL_CYCLE_handshake_rules_1"
       },
       "ssot_refs": [
         "cycle_model.handshake_rules[1]",
-        "workflow_todos.rtl-gen[11]"
+        "workflow_todos.rtl-gen[13]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "handshake",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -1420,7 +1688,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1430,93 +1698,14 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_CYCLE_handshake_rules_1",
         "source_refs": [
           "cycle_model.handshake_rules[1]"
-        ],
-        "stage": "rtl-gen",
-        "user_category": ""
-      }
-    },
-    {
-      "category": "workflow_todo.rtl_gen",
-      "content": "Implement cycle_model handshake rule 2",
-      "criteria": [
-        "RTL timing/handshake behavior follows this cycle_model entry",
-        "Signals remain stable or advance only under the approved protocol phase",
-        "The behavior is visible to waveform/sim-debug or scoreboard checks",
-        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
-        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[12]",
-        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
-        "Semantic source_refs covered: cycle_model.handshake_rules[2]"
-      ],
-      "detail": "rule=wr_data_valid payload remains stable until wr_data_ready is sampled asserted on dma_write_data.\nSSOT ref: workflow_todos.rtl-gen[12].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_handshake_rules_2.",
-      "evidence_terms": [
-        "20260519b",
-        "RTL_CYCLE_handshake_rules_2",
-        "dma",
-        "dma_scratch_orch_live_20260519b",
-        "handshake",
-        "live",
-        "orch",
-        "rules",
-        "scratch"
-      ],
-      "id": "RTL-0032",
-      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
-      "owner_module": "dma_scratch_orch_live_20260519b",
-      "priority": "high",
-      "required": true,
-      "source_ref": "workflow_todos.rtl-gen[12]",
-      "ssot_context": {
-        "id": "RTL_CYCLE_handshake_rules_2"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules[2]",
-        "workflow_todos.rtl-gen[12]"
-      ],
-      "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 3,
-        "required_terms": [
-          "20260519b",
-          "RTL_CYCLE_handshake_rules_2",
-          "dma",
-          "dma_scratch_orch_live_20260519b",
-          "handshake",
-          "live",
-          "orch",
-          "rules",
-          "scratch"
-        ],
-        "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
-      },
-      "todo_completion": {
-        "criteria_total": 8,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
-        "required": true,
-        "status": "open"
-      },
-      "workflow_todo": {
-        "id": "RTL_CYCLE_handshake_rules_2",
-        "source_refs": [
-          "cycle_model.handshake_rules[2]"
         ],
         "stage": "rtl-gen",
         "user_category": ""
@@ -1531,11 +1720,11 @@
         "The behavior is visible to waveform/sim-debug or scoreboard checks",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[13]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[14]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: cycle_model.pipeline[0]"
       ],
-      "detail": "action=Accept legal request/command/packet/control work under declared handshake rules.\nSSOT ref: workflow_todos.rtl-gen[13].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_pipeline_ITEM_0.",
+      "detail": "action=Accept legal request/command/packet/control work under declared handshake rules.\nSSOT ref: workflow_todos.rtl-gen[14].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_pipeline_ITEM_0.",
       "evidence_terms": [
         "20260519b",
         "ITEM",
@@ -1546,22 +1735,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0033",
+      "id": "RTL-0034",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[13]",
+      "source_ref": "workflow_todos.rtl-gen[14]",
       "ssot_context": {
         "id": "RTL_CYCLE_pipeline_ITEM_0"
       },
       "ssot_refs": [
         "cycle_model.pipeline[0]",
-        "workflow_todos.rtl-gen[13]"
+        "workflow_todos.rtl-gen[14]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -1576,7 +1772,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1586,9 +1782,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_CYCLE_pipeline_ITEM_0",
@@ -1608,11 +1804,11 @@
         "The behavior is visible to waveform/sim-debug or scoreboard checks",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[14]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[15]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: cycle_model.pipeline[1]"
       ],
-      "detail": "action=Evaluate function_model transaction and update only declared state.\nSSOT ref: workflow_todos.rtl-gen[14].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_pipeline_1.",
+      "detail": "action=Evaluate function_model transaction and update only declared state.\nSSOT ref: workflow_todos.rtl-gen[15].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_pipeline_1.",
       "evidence_terms": [
         "20260519b",
         "RTL_CYCLE_pipeline_1",
@@ -1622,22 +1818,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0034",
+      "id": "RTL-0035",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[14]",
+      "source_ref": "workflow_todos.rtl-gen[15]",
       "ssot_context": {
         "id": "RTL_CYCLE_pipeline_1"
       },
       "ssot_refs": [
         "cycle_model.pipeline[1]",
-        "workflow_todos.rtl-gen[14]"
+        "workflow_todos.rtl-gen[15]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -1651,7 +1854,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1661,9 +1864,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_CYCLE_pipeline_1",
@@ -1683,11 +1886,11 @@
         "The behavior is visible to waveform/sim-debug or scoreboard checks",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[15]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[16]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: cycle_model.pipeline[2]"
       ],
-      "detail": "action=Publish response/status/output/debug event and hold it stable until accepted.\nSSOT ref: workflow_todos.rtl-gen[15].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_pipeline_2.",
+      "detail": "action=Publish response/status/output/debug event and hold it stable until accepted.\nSSOT ref: workflow_todos.rtl-gen[16].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_pipeline_2.",
       "evidence_terms": [
         "20260519b",
         "RTL_CYCLE_pipeline_2",
@@ -1697,22 +1900,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0035",
+      "id": "RTL-0036",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[15]",
+      "source_ref": "workflow_todos.rtl-gen[16]",
       "ssot_context": {
         "id": "RTL_CYCLE_pipeline_2"
       },
       "ssot_refs": [
         "cycle_model.pipeline[2]",
-        "workflow_todos.rtl-gen[15]"
+        "workflow_todos.rtl-gen[16]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -1726,7 +1936,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1736,9 +1946,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_CYCLE_pipeline_2",
@@ -1758,11 +1968,11 @@
         "The behavior is visible to waveform/sim-debug or scoreboard checks",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[16]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[17]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: cycle_model.ordering[0]"
       ],
-      "detail": "Accepted requests update architectural state only on clock edges.\nSSOT ref: workflow_todos.rtl-gen[16].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_ordering_ITEM_0.",
+      "detail": "Accepted requests update architectural state only on clock edges.\nSSOT ref: workflow_todos.rtl-gen[17].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_ordering_ITEM_0.",
       "evidence_terms": [
         "20260519b",
         "ITEM",
@@ -1773,22 +1983,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0036",
+      "id": "RTL-0037",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[16]",
+      "source_ref": "workflow_todos.rtl-gen[17]",
       "ssot_context": {
         "id": "RTL_CYCLE_ordering_ITEM_0"
       },
       "ssot_refs": [
         "cycle_model.ordering[0]",
-        "workflow_todos.rtl-gen[16]"
+        "workflow_todos.rtl-gen[17]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -1803,7 +2020,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1813,9 +2030,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_CYCLE_ordering_ITEM_0",
@@ -1835,11 +2052,11 @@
         "The behavior is visible to waveform/sim-debug or scoreboard checks",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[17]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[18]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: cycle_model.ordering[1]"
       ],
-      "detail": "Completion/status/interrupt updates occur after the operation reaches its terminal FSM state.\nSSOT ref: workflow_todos.rtl-gen[17].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_ordering_1.",
+      "detail": "Completion/status/interrupt updates occur after the operation reaches its terminal FSM state.\nSSOT ref: workflow_todos.rtl-gen[18].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_ordering_1.",
       "evidence_terms": [
         "20260519b",
         "RTL_CYCLE_ordering_1",
@@ -1849,22 +2066,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0037",
+      "id": "RTL-0038",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[17]",
+      "source_ref": "workflow_todos.rtl-gen[18]",
       "ssot_context": {
         "id": "RTL_CYCLE_ordering_1"
       },
       "ssot_refs": [
         "cycle_model.ordering[1]",
-        "workflow_todos.rtl-gen[17]"
+        "workflow_todos.rtl-gen[18]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -1878,7 +2102,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1888,9 +2112,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_CYCLE_ordering_1",
@@ -1910,11 +2134,11 @@
         "The behavior is visible to waveform/sim-debug or scoreboard checks",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[18]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[19]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: cycle_model.ordering[2]"
       ],
-      "detail": "Backpressure stalls the active handshake stage without corrupting stored state.\nSSOT ref: workflow_todos.rtl-gen[18].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_ordering_2.",
+      "detail": "Backpressure stalls the active handshake stage without corrupting stored state.\nSSOT ref: workflow_todos.rtl-gen[19].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_ordering_2.",
       "evidence_terms": [
         "20260519b",
         "RTL_CYCLE_ordering_2",
@@ -1924,22 +2148,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0038",
+      "id": "RTL-0039",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[18]",
+      "source_ref": "workflow_todos.rtl-gen[19]",
       "ssot_context": {
         "id": "RTL_CYCLE_ordering_2"
       },
       "ssot_refs": [
         "cycle_model.ordering[2]",
-        "workflow_todos.rtl-gen[18]"
+        "workflow_todos.rtl-gen[19]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -1953,7 +2184,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1963,9 +2194,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_CYCLE_ordering_2",
@@ -1985,11 +2216,11 @@
         "The behavior is visible to waveform/sim-debug or scoreboard checks",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[19]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[20]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: cycle_model.ordering[3]"
       ],
-      "detail": "Read/dataflow stages must precede dependent write/output stages where declared in dataflow.\nSSOT ref: workflow_todos.rtl-gen[19].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_ordering_3.",
+      "detail": "Read/dataflow stages must precede dependent write/output stages where declared in dataflow.\nSSOT ref: workflow_todos.rtl-gen[20].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_ordering_3.",
       "evidence_terms": [
         "20260519b",
         "RTL_CYCLE_ordering_3",
@@ -1999,22 +2230,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0039",
+      "id": "RTL-0040",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[19]",
+      "source_ref": "workflow_todos.rtl-gen[20]",
       "ssot_context": {
         "id": "RTL_CYCLE_ordering_3"
       },
       "ssot_refs": [
         "cycle_model.ordering[3]",
-        "workflow_todos.rtl-gen[19]"
+        "workflow_todos.rtl-gen[20]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2028,7 +2266,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2038,9 +2276,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_CYCLE_ordering_3",
@@ -2060,11 +2298,11 @@
         "The behavior is visible to waveform/sim-debug or scoreboard checks",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[20]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[21]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: cycle_model.backpressure[0]"
       ],
-      "detail": "Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable.\nSSOT ref: workflow_todos.rtl-gen[20].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_backpressure_ITEM_0.",
+      "detail": "Ready/valid deassertion stalls only the affected interface stage; payload and route/control state remain stable.\nSSOT ref: workflow_todos.rtl-gen[21].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CYCLE_backpressure_ITEM_0.",
       "evidence_terms": [
         "20260519b",
         "ITEM",
@@ -2075,22 +2313,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0040",
+      "id": "RTL-0041",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[20]",
+      "source_ref": "workflow_todos.rtl-gen[21]",
       "ssot_context": {
         "id": "RTL_CYCLE_backpressure_ITEM_0"
       },
       "ssot_refs": [
         "cycle_model.backpressure[0]",
-        "workflow_todos.rtl-gen[20]"
+        "workflow_todos.rtl-gen[21]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2105,7 +2350,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2115,9 +2360,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_CYCLE_backpressure_ITEM_0",
@@ -2137,11 +2382,11 @@
         "open_required_todos is zero",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[29]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[31]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: generation_flow, quality_gates.rtl, quality_gates.rtl_gen, workflow_todos.rtl-gen"
       ],
-      "detail": "Run dynamic TODO audit, DUT compile, DUT-only lint, and static traceability checks after the final RTL edit. The gate TODOs are pass/fail work items, not summary prose.\nSSOT ref: workflow_todos.rtl-gen[29].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CLOSE_GATE_TODOS.",
+      "detail": "Run dynamic TODO audit, DUT compile, DUT-only lint, and static traceability checks after the final RTL edit. The gate TODOs are pass/fail work items, not summary prose.\nSSOT ref: workflow_todos.rtl-gen[31].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_CLOSE_GATE_TODOS.",
       "evidence_terms": [
         "20260519b",
         "CLOSE",
@@ -2160,12 +2405,12 @@
         "quality_gates",
         "rtl_gen"
       ],
-      "id": "RTL-0049",
+      "id": "RTL-0051",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "high",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[29]",
+      "source_ref": "workflow_todos.rtl-gen[31]",
       "ssot_context": {
         "id": "RTL_CLOSE_GATE_TODOS"
       },
@@ -2174,11 +2419,17 @@
         "quality_gates.rtl",
         "quality_gates.rtl_gen",
         "workflow_todos.rtl-gen",
-        "workflow_todos.rtl-gen[29]"
+        "workflow_todos.rtl-gen[31]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2201,7 +2452,7 @@
           "rtl_gen"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2211,9 +2462,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_CLOSE_GATE_TODOS",
@@ -2236,11 +2487,11 @@
         "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[21]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[22]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: test_requirements.scenarios[0]"
       ],
-      "detail": "Stimulus: Assert and release the declared reset while all external interfaces remain idle.. Expected: Architectural state, status, outputs, and debug observability match function_model reset outputs..\nSSOT ref: workflow_todos.rtl-gen[21].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC01.",
+      "detail": "Stimulus: Assert and release the declared reset while all external interfaces remain idle.. Expected: Architectural state, status, outputs, and debug observability match function_model reset outputs..\nSSOT ref: workflow_todos.rtl-gen[22].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC01.",
       "evidence_terms": [
         "20260519b",
         "RTL_SCENARIO_SUPPORT_SC01",
@@ -2253,22 +2504,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0041",
+      "id": "RTL-0042",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[21]",
+      "source_ref": "workflow_todos.rtl-gen[22]",
       "ssot_context": {
         "id": "RTL_SCENARIO_SUPPORT_SC01"
       },
       "ssot_refs": [
         "test_requirements.scenarios[0]",
-        "workflow_todos.rtl-gen[21]"
+        "workflow_todos.rtl-gen[22]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2285,7 +2543,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2295,9 +2553,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_SCENARIO_SUPPORT_SC01",
@@ -2317,11 +2575,11 @@
         "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[22]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[23]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: test_requirements.scenarios[1]"
       ],
-      "detail": "Stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.. Expected: Externally observable result/status/side effects match the function_model primary transaction..\nSSOT ref: workflow_todos.rtl-gen[22].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC02.",
+      "detail": "Stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.. Expected: Externally observable result/status/side effects match the function_model primary transaction..\nSSOT ref: workflow_todos.rtl-gen[23].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC02.",
       "evidence_terms": [
         "20260519b",
         "RTL_SCENARIO_SUPPORT_SC02",
@@ -2334,22 +2592,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0042",
+      "id": "RTL-0043",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[22]",
+      "source_ref": "workflow_todos.rtl-gen[23]",
       "ssot_context": {
         "id": "RTL_SCENARIO_SUPPORT_SC02"
       },
       "ssot_refs": [
         "test_requirements.scenarios[1]",
-        "workflow_todos.rtl-gen[22]"
+        "workflow_todos.rtl-gen[23]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2366,7 +2631,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2376,9 +2641,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_SCENARIO_SUPPORT_SC02",
@@ -2398,11 +2663,11 @@
         "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[23]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[24]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: test_requirements.scenarios[2]"
       ],
-      "detail": "Stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.. Expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules..\nSSOT ref: workflow_todos.rtl-gen[23].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC03.",
+      "detail": "Stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.. Expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules..\nSSOT ref: workflow_todos.rtl-gen[24].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC03.",
       "evidence_terms": [
         "20260519b",
         "RTL_SCENARIO_SUPPORT_SC03",
@@ -2415,22 +2680,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0043",
+      "id": "RTL-0044",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[23]",
+      "source_ref": "workflow_todos.rtl-gen[24]",
       "ssot_context": {
         "id": "RTL_SCENARIO_SUPPORT_SC03"
       },
       "ssot_refs": [
         "test_requirements.scenarios[2]",
-        "workflow_todos.rtl-gen[23]"
+        "workflow_todos.rtl-gen[24]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2447,7 +2719,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2457,9 +2729,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_SCENARIO_SUPPORT_SC03",
@@ -2479,11 +2751,11 @@
         "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[24]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[25]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: test_requirements.scenarios[3]"
       ],
-      "detail": "Stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.. Expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state..\nSSOT ref: workflow_todos.rtl-gen[24].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC04.",
+      "detail": "Stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.. Expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state..\nSSOT ref: workflow_todos.rtl-gen[25].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC04.",
       "evidence_terms": [
         "20260519b",
         "RTL_SCENARIO_SUPPORT_SC04",
@@ -2496,22 +2768,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0044",
+      "id": "RTL-0045",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[24]",
+      "source_ref": "workflow_todos.rtl-gen[25]",
       "ssot_context": {
         "id": "RTL_SCENARIO_SUPPORT_SC04"
       },
       "ssot_refs": [
         "test_requirements.scenarios[3]",
-        "workflow_todos.rtl-gen[24]"
+        "workflow_todos.rtl-gen[25]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2528,7 +2807,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2538,9 +2817,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_SCENARIO_SUPPORT_SC04",
@@ -2560,11 +2839,11 @@
         "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[25]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[26]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: test_requirements.scenarios[4]"
       ],
-      "detail": "Stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.. Expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior..\nSSOT ref: workflow_todos.rtl-gen[25].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC05.",
+      "detail": "Stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.. Expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior..\nSSOT ref: workflow_todos.rtl-gen[26].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC05.",
       "evidence_terms": [
         "20260519b",
         "RTL_SCENARIO_SUPPORT_SC05",
@@ -2577,22 +2856,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0045",
+      "id": "RTL-0046",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[25]",
+      "source_ref": "workflow_todos.rtl-gen[26]",
       "ssot_context": {
         "id": "RTL_SCENARIO_SUPPORT_SC05"
       },
       "ssot_refs": [
         "test_requirements.scenarios[4]",
-        "workflow_todos.rtl-gen[25]"
+        "workflow_todos.rtl-gen[26]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2609,7 +2895,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2619,9 +2905,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_SCENARIO_SUPPORT_SC05",
@@ -2641,11 +2927,11 @@
         "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[26]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[27]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: test_requirements.scenarios[5]"
       ],
-      "detail": "Stimulus: Drive preconditions for function_model transaction `FM1`.. Expected: Outputs and side effects match `FM1` exactly..\nSSOT ref: workflow_todos.rtl-gen[26].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC06.",
+      "detail": "Stimulus: Drive preconditions for function_model transaction `FM1`.. Expected: Outputs and side effects match `FM1` exactly..\nSSOT ref: workflow_todos.rtl-gen[27].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC06.",
       "evidence_terms": [
         "20260519b",
         "RTL_SCENARIO_SUPPORT_SC06",
@@ -2658,22 +2944,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0046",
+      "id": "RTL-0047",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[26]",
+      "source_ref": "workflow_todos.rtl-gen[27]",
       "ssot_context": {
         "id": "RTL_SCENARIO_SUPPORT_SC06"
       },
       "ssot_refs": [
         "test_requirements.scenarios[5]",
-        "workflow_todos.rtl-gen[26]"
+        "workflow_todos.rtl-gen[27]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2690,7 +2983,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2700,9 +2993,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_SCENARIO_SUPPORT_SC06",
@@ -2722,11 +3015,11 @@
         "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[27]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[28]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: test_requirements.scenarios[6]"
       ],
-      "detail": "Stimulus: Drive preconditions for function_model transaction `FM2`.. Expected: Outputs and side effects match `FM2` exactly..\nSSOT ref: workflow_todos.rtl-gen[27].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC07.",
+      "detail": "Stimulus: Drive preconditions for function_model transaction `FM2`.. Expected: Outputs and side effects match `FM2` exactly..\nSSOT ref: workflow_todos.rtl-gen[28].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC07.",
       "evidence_terms": [
         "20260519b",
         "RTL_SCENARIO_SUPPORT_SC07",
@@ -2739,22 +3032,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0047",
+      "id": "RTL-0048",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[27]",
+      "source_ref": "workflow_todos.rtl-gen[28]",
       "ssot_context": {
         "id": "RTL_SCENARIO_SUPPORT_SC07"
       },
       "ssot_refs": [
         "test_requirements.scenarios[6]",
-        "workflow_todos.rtl-gen[27]"
+        "workflow_todos.rtl-gen[28]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2771,7 +3071,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2781,9 +3081,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_SCENARIO_SUPPORT_SC07",
@@ -2803,11 +3103,11 @@
         "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
         "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
         "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
-        "Traceability keeps source_ref workflow_todos.rtl-gen[28]",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[29]",
         "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
         "Semantic source_refs covered: test_requirements.scenarios[7]"
       ],
-      "detail": "Stimulus: Drive preconditions for function_model transaction `FM3`.. Expected: Outputs and side effects match `FM3` exactly..\nSSOT ref: workflow_todos.rtl-gen[28].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC08.",
+      "detail": "Stimulus: Drive preconditions for function_model transaction `FM3`.. Expected: Outputs and side effects match `FM3` exactly..\nSSOT ref: workflow_todos.rtl-gen[29].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC08.",
       "evidence_terms": [
         "20260519b",
         "RTL_SCENARIO_SUPPORT_SC08",
@@ -2820,22 +3120,29 @@
         "orch",
         "scratch"
       ],
-      "id": "RTL-0048",
+      "id": "RTL-0049",
       "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
       "owner_module": "dma_scratch_orch_live_20260519b",
       "priority": "normal",
       "required": true,
-      "source_ref": "workflow_todos.rtl-gen[28]",
+      "source_ref": "workflow_todos.rtl-gen[29]",
       "ssot_context": {
         "id": "RTL_SCENARIO_SUPPORT_SC08"
       },
       "ssot_refs": [
         "test_requirements.scenarios[7]",
-        "workflow_todos.rtl-gen[28]"
+        "workflow_todos.rtl-gen[29]"
       ],
       "static_evidence": {
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 3,
@@ -2852,7 +3159,7 @@
           "scratch"
         ],
         "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2862,9 +3169,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/dma_scratch_orch_live_20260519b.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       },
       "workflow_todo": {
         "id": "RTL_SCENARIO_SUPPORT_SC08",
@@ -2874,9 +3181,97 @@
         "stage": "rtl-gen",
         "user_category": ""
       }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Expose RTL behavior needed by SSOT scenario `SC09`",
+      "criteria": [
+        "RTL has observable behavior for the scenario checker without weakening expected results",
+        "Scenario coverage can be closed by tb-gen using function_model/cycle_model",
+        "If behavior is unsupported, rtl-gen emits a precise SSOT question instead of a fake pass",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[30]",
+        "Primary implementation evidence is in rtl/dma_scratch_orch_live_20260519b.sv",
+        "Semantic source_refs covered: test_requirements.scenarios[8]"
+      ],
+      "detail": "Stimulus: Drive preconditions for function_model transaction `FM4`.. Expected: Outputs and side effects match `FM4` exactly..\nSSOT ref: workflow_todos.rtl-gen[30].\nOwner: dma_scratch_orch_live_20260519b in rtl/dma_scratch_orch_live_20260519b.sv via workflow_todos.owner.\nSSOT item context: id=RTL_SCENARIO_SUPPORT_SC09.",
+      "evidence_terms": [
+        "20260519b",
+        "RTL_SCENARIO_SUPPORT_SC09",
+        "SC09",
+        "SCENARIO",
+        "SUPPORT",
+        "dma",
+        "dma_scratch_orch_live_20260519b",
+        "live",
+        "orch",
+        "scratch"
+      ],
+      "id": "RTL-0050",
+      "owner_file": "rtl/dma_scratch_orch_live_20260519b.sv",
+      "owner_module": "dma_scratch_orch_live_20260519b",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[30]",
+      "ssot_context": {
+        "id": "RTL_SCENARIO_SUPPORT_SC09"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[8]",
+        "workflow_todos.rtl-gen[30]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "20260519b",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "20260519b",
+          "RTL_SCENARIO_SUPPORT_SC09",
+          "SC09",
+          "SCENARIO",
+          "SUPPORT",
+          "dma",
+          "dma_scratch_orch_live_20260519b",
+          "live",
+          "orch",
+          "scratch"
+        ],
+        "source_scope": "rtl/dma_scratch_orch_live_20260519b.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_SCENARIO_SUPPORT_SC09",
+        "source_refs": [
+          "test_requirements.scenarios[8]"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
     }
   ],
-  "todo_plan_sha256": "171b5fe388155b7b1edfb3840233a511c24450973133c88e18bd9bf69445d6c6",
+  "todo_plan_sha256": "528ba0df873e04e970994cc7f47e379270bb2f047df8f859defc125f041665a8",
   "top": "dma_scratch_orch_live_20260519b",
   "type": "rtl_authoring_packet"
 }
