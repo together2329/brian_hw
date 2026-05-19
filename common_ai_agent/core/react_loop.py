@@ -1090,6 +1090,59 @@ def run_react_agent_impl(
         if deps.emit_token_fn and (_in_tok > 0 or _out_tok > 0):
             deps.emit_token_fn(_in_tok, _cr, _out_tok)
 
+        # Persist worker LLM call to atlas.db so the UI cost panel / dashboards
+        # see the same rows that headless_workflow.py and react_bridge.py write
+        # for non-worker paths. ssot-gen / rtl-gen / tb-gen workers run this
+        # loop directly (via session_worker → main.py react agent) and were
+        # otherwise leaving llm_calls empty even though token_usage WS frames
+        # were already being emitted.
+        if (_in_tok > 0 or _out_tok > 0):
+            try:
+                from lib.model_pricing import get_pricing
+                _model_name = getattr(cfg, "MODEL_NAME", "") or ""
+                _price = get_pricing(_model_name) if _model_name else None
+                _cost_usd = 0.0
+                if _price is not None:
+                    _billable_in = max(0, _in_tok - _cr)
+                    _cost_usd = (
+                        _billable_in * float(_price.input)
+                        + _cr * float(_price.cache)
+                        + _out_tok * float(_price.output)
+                    ) / 1_000_000.0
+                from core.atlas_db import AtlasDB
+                from pathlib import Path as _Path
+                _db_path = (
+                    os.environ.get("ATLAS_DB_PATH")
+                    or str(_Path.home() / ".common_ai_agent" / "atlas.db")
+                )
+                _workflow = (
+                    os.environ.get("ATLAS_WORKFLOW", "")
+                    or os.environ.get("ATLAS_WORKER_NAME", "")
+                    or os.environ.get("ACTIVE_WORKSPACE", "")
+                    or os.environ.get("ATLAS_DEFAULT_WORKFLOW", "")
+                    or ""
+                )
+                with AtlasDB(_db_path) as _db:
+                    _db.record_llm_call(
+                        session_id=os.environ.get("ATLAS_SESSION_ID", "")
+                            or os.environ.get("ATLAS_ACTIVE_SESSION", ""),
+                        ip_id=os.environ.get("ATLAS_IP_ID", "")
+                            or os.environ.get("ATLAS_ACTIVE_IP", ""),
+                        workflow=_workflow,
+                        model=_model_name,
+                        provider=os.environ.get("ATLAS_PROVIDER", "")
+                            or getattr(cfg, "API_PROVIDER", "") or "",
+                        call_role="worker",
+                        tokens_input=int(_in_tok),
+                        tokens_output=int(_out_tok),
+                        cache_read_tokens=int(_cr),
+                        cost_usd=_cost_usd,
+                        latency_ms=round(llm_elapsed * 1000.0, 1),
+                        status="ok",
+                    )
+            except Exception:
+                pass
+
         # Context panel mirrors cost on a per-iteration basis. Without this
         # the cost meter updates after every LLM call but the "Context"
         # token gauge stayed at 0 until the user typed /compact or /clear.
