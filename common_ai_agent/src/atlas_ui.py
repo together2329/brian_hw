@@ -27,6 +27,7 @@ import collections
 import contextvars
 import faulthandler
 import hashlib
+import html as html_lib
 import json
 import os
 import queue
@@ -817,7 +818,9 @@ def create_app():
             if not path.is_file():
                 return match.group(0)
             code = path.read_text(encoding="utf-8")
-            return f'<script type="text/babel" {attrs}>{code}</script>'
+            if "data-filename" not in attrs:
+                attrs = f'data-filename="{html_lib.escape(src, quote=True)}" {attrs}'
+            return f'<script type="text/babel" {attrs}>{code.rstrip()}\n//# sourceURL={src}</script>'
         html = _INLINE_INDEX_RE.sub(_inline_script, html)
         _inline_cache[template_name] = {"html": html, "stamp": latest}
         return html
@@ -12416,7 +12419,9 @@ def create_app():
             if not path.is_file():
                 return match.group(0)
             code = path.read_text(encoding="utf-8")
-            return f'<script type="text/babel" {attrs}>{code}</script>'
+            if "data-filename" not in attrs:
+                attrs = f'data-filename="{html_lib.escape(src, quote=True)}" {attrs}'
+            return f'<script type="text/babel" {attrs}>{code.rstrip()}\n//# sourceURL={src}</script>'
 
         html = re.sub(
             r'<script\s+type="text/babel"\s+(?P<attrs>[^>]*?)src="(?P<src>[^"]+)"[^>]*>\s*</script>',
