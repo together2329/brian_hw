@@ -232,7 +232,7 @@ def _atlas_job_db_path(project_root: Path) -> str:
     return (
         os.environ.get("ATLAS_TRACE_DB_PATH")
         or os.environ.get("ATLAS_DB_PATH")
-        or str(project_root / "atlas.db")
+        or str(Path.home() / ".common_ai_agent" / "atlas.db")
     )
 
 
@@ -2873,7 +2873,7 @@ def register_jobs_routes(
         db_state_by_workflow: dict[str, dict[str, Any]] = {}
         try:
             import os as _os
-            db_path = _os.environ.get("ATLAS_DB_PATH", str(pr / "atlas.db"))
+            db_path = _os.environ.get("ATLAS_DB_PATH") or str(Path.home() / ".common_ai_agent" / "atlas.db")
             from core.atlas_db import AtlasDB
             with AtlasDB(db_path) as _db:
                 versions = _db.list_rtl_versions()

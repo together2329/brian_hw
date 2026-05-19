@@ -1916,6 +1916,40 @@ class HeadlessWorkflowRunner:
             elapsed_sec=round(llm_elapsed, 3),
             error=response.error,
         )
+        try:
+            _usage = response.usage if isinstance(response.usage, dict) else {}
+            _cost_block = _usage.get("cost") if isinstance(_usage.get("cost"), dict) else {}
+            _cost_usd = float(_cost_block.get("usd", 0) or 0)
+            _in_tok = int(_usage.get("input", 0) or 0)
+            _out_tok = int(_usage.get("output", 0) or 0)
+            _cache_tok = int(_usage.get("cache_read", 0) or 0)
+            from core.atlas_db import AtlasDB
+            from pathlib import Path as _Path
+            _db_path = (
+                os.environ.get("ATLAS_DB_PATH")
+                or str(_Path.home() / ".common_ai_agent" / "atlas.db")
+            )
+            with AtlasDB(_db_path) as _db:
+                _db.record_llm_call(
+                    session_id=os.environ.get("ATLAS_SESSION_ID", ""),
+                    ip_id=os.environ.get("ATLAS_IP_ID", "") or ip,
+                    workflow=(
+                        os.environ.get("ATLAS_WORKFLOW", "")
+                        or os.environ.get("ATLAS_WORKER_NAME", "")
+                        or stage
+                    ),
+                    model=self.model,
+                    provider=os.environ.get("ATLAS_PROVIDER", ""),
+                    call_role="worker",
+                    tokens_input=_in_tok,
+                    tokens_output=_out_tok,
+                    cache_read_tokens=_cache_tok,
+                    cost_usd=_cost_usd,
+                    latency_ms=round(llm_elapsed * 1000, 1),
+                    status="ok" if not response.error else "error",
+                )
+        except Exception:
+            pass
         return response
 
     def _write_llm_log(
