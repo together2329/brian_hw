@@ -31,6 +31,64 @@ from src.orchestrator import tools as orch_tools
 from src.orchestrator.budgets import BudgetTracker
 from src.orchestrator.classify import classify_failure
 from src.orchestrator.prompts import SYSTEM_PROMPT, build_system_prompt, tool_schemas
+from src.orchestrator.ui_formatter import format_tool_call
+
+
+# ----------------------------------------------------------------------
+# Chat persister — writes assistant turns + tool labels to chat_messages.
+# ----------------------------------------------------------------------
+
+
+class _ChatPersister:
+    """Writes assistant turns and tool-call status lines to ``chat_messages``
+    so the chat panel can render them alongside the human's posts.
+
+    One row per assistant turn (accumulated across stream chunks), one row
+    per tool call (rendered via :func:`ui_formatter.format_tool_call`).
+    Insertion is best-effort: a DB failure must not break the LLM stream or
+    the tool dispatch, since chat is observability, not control flow."""
+
+    def __init__(self, db: Any, ctx: Any) -> None:
+        self._db = db
+        self._ip_id = getattr(ctx, "ip_id", "") or ""
+        self._user_id = getattr(ctx, "user_id", "") or ""
+        self._display_name = "orchestrator"
+        self._lock = threading.Lock()
+
+    def flush_assistant_turn(self, content: str) -> None:
+        text = (content or "").strip()
+        if not text:
+            return
+        try:
+            with self._lock:
+                self._db.record_chat_message(
+                    ip_id=self._ip_id,
+                    user_id=self._user_id,
+                    content=text,
+                    display_name=self._display_name,
+                    role="assistant",
+                )
+        except Exception:
+            pass
+
+    def record_tool_call(self, tool_name: str, args: Dict[str, Any]) -> None:
+        try:
+            line = format_tool_call(tool_name, args)
+        except Exception:
+            line = str(tool_name or "tool")
+        if not line:
+            return
+        try:
+            with self._lock:
+                self._db.record_chat_message(
+                    ip_id=self._ip_id,
+                    user_id=self._user_id,
+                    content=line,
+                    display_name=self._display_name,
+                    role="tool",
+                )
+        except Exception:
+            pass
 
 
 # ----------------------------------------------------------------------
@@ -394,6 +452,7 @@ class OrchestratorReactBridge:
     yield_run_handler: Callable
     collector: _OrderedStepCollector
     budgets: BudgetTracker
+    chat_writer: _ChatPersister
 
 
 def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorReactBridge:
@@ -420,6 +479,7 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
     yield_run_handler = _make_yield_run_handler(
         ctx=ctx, runner=runner, db=db, collector=collector
     )
+    chat_writer = _ChatPersister(db=db, ctx=ctx)
 
     # execute_tool_fn — intercept yield_run before falling through to the
     # production dispatcher. The dispatcher only ever sees the 8 orchestrator
@@ -431,8 +491,9 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
         *,
         pre_parsed_kwargs: Any = None,
     ) -> str:
+        args = _coerce_args(args_str, pre_parsed_kwargs)
+        chat_writer.record_tool_call(tool_name, args)
         if tool_name == "yield_run":
-            args = _coerce_args(args_str, pre_parsed_kwargs)
             return yield_run_handler(args)
         return tool_dispatcher.dispatch_tool(
             tool_name,
@@ -449,12 +510,16 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
     def _llm_call(messages, stop=None, **_):
         started = time.monotonic()
         schemas = tool_schemas() if getattr(config, "ENABLE_NATIVE_TOOL_CALLS", False) else None
+        content_buf: list[str] = []
         try:
             for chunk in llm_client.chat_completion_stream(
                 messages=messages, stop=stop, tools=schemas,
             ):
+                if isinstance(chunk, str):
+                    content_buf.append(chunk)
                 yield chunk
         finally:
+            chat_writer.flush_assistant_turn("".join(content_buf))
             try:
                 db.record_llm_call(
                     session_id=ctx.session_id or "",
@@ -547,6 +612,7 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
         yield_run_handler=yield_run_handler,
         collector=collector,
         budgets=budgets,
+        chat_writer=chat_writer,
     )
 
 
@@ -605,7 +671,7 @@ class OrchestratorReactLoop:
         return ids
 
     @staticmethod
-    def _translate_caller_to_stream(caller, error_sink: list):
+    def _translate_caller_to_stream(caller, error_sink: list, chat_writer=None):
         """Convert ``caller(messages, tools) -> dict`` into a streaming
         ``llm_call_fn(messages, stop=None) -> generator`` so legacy test
         scripts that script dict responses can drive ``run_react_agent_impl``
@@ -615,6 +681,9 @@ class OrchestratorReactLoop:
         silently breaks the iteration. To surface them as run errors at the
         orchestrator layer, we record raises into ``error_sink`` so the
         outer ``run()`` can promote them to ``RunOutcome(status="error")``.
+
+        ``chat_writer`` (optional) receives the assistant turn's text so
+        tests exercise the same chat-persistence path as production.
         """
 
         def stream(messages, stop=None, **_):
@@ -646,6 +715,8 @@ class OrchestratorReactLoop:
                 content = reply
             if content:
                 yield content
+            if chat_writer is not None:
+                chat_writer.flush_assistant_turn(content)
             yield ("finish_reason", "stop")
 
         return stream
@@ -693,7 +764,7 @@ class OrchestratorReactLoop:
         error_sink: list = []
         if self._llm_caller is not None:
             bridge.deps.llm_call_fn = self._translate_caller_to_stream(
-                self._llm_caller, error_sink
+                self._llm_caller, error_sink, chat_writer=bridge.chat_writer
             )
 
         tracker = IterationTracker(max_iterations=max_steps)

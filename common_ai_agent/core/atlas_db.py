@@ -2840,11 +2840,22 @@ class AtlasDB:
         content: str,
         display_name: str = "",
         workspace_id: str = "",
+        role: str = "user",
     ) -> Dict[str, Any]:
-        """Append a human chat post for either an IP room (ip_id set) or the
-        global room (ip_id is None / falsy)."""
+        """Append a chat post for either an IP room (ip_id set) or the
+        global room (ip_id is None / falsy).
+
+        ``role`` distinguishes posters on the same chat_message timeline:
+        - ``"user"`` (default): human-authored — preserves prior behavior.
+        - ``"assistant"``: orchestrator LLM natural-language reply.
+        - ``"tool"``: rendered tool-call status line.
+        Stored in the payload so existing readers ignoring it still work."""
         ip_value = ip_id or ""
-        payload = {"content": content, "display_name": display_name or ""}
+        payload = {
+            "content": content,
+            "display_name": display_name or "",
+            "role": role or "user",
+        }
         return self.record_trace_event(
             event_type="chat_message",
             payload=payload,

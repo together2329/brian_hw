@@ -65,6 +65,7 @@ def _chat_row_to_message(row: dict) -> dict:
         "user_id": row.get("actor_user_id"),
         "display_name": payload.get("display_name") or "",
         "content": payload.get("content") or "",
+        "role": payload.get("role") or "user",
         "created_at": row.get("created_at"),
     }
 
