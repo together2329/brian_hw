@@ -15,3 +15,10 @@ PyYAML
 markdown
 pygments
 jinja2
+
+# /api/ssot/import/upload multi-format conversion (pptx/docx/pdf -> markdown + images).
+# Python 3.9-compatible; markitdown requires >=3.10 so we use the individual libraries.
+python-pptx
+python-docx
+pymupdf4llm
+PyMuPDF

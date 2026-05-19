@@ -6837,7 +6837,9 @@ def create_app():
         ".md", ".txt", ".rst", ".yaml", ".yml", ".json", ".sv", ".svh",
         ".v", ".vh", ".py", ".csv", ".tsv", ".xml", ".f", ".sdc",
         ".tcl", ".rpt", ".log", ".h", ".c", ".cpp",
+        ".pdf", ".pptx", ".docx", ".doc",
     }
+    _SSOT_IMPORT_CONVERT_EXTENSIONS = {".pdf", ".pptx", ".docx", ".doc"}
     _SSOT_IMPORT_SKIP_DIRS = {
         ".git", ".session", ".omx", "__pycache__", "node_modules",
         ".pytest_cache", ".mypy_cache", ".ruff_cache",
@@ -9519,6 +9521,131 @@ def create_app():
             safe = "import.txt"
         return safe[:120]
 
+    def _convert_upload_to_markdown(
+        original_path: Path,
+        suffix: str,
+        dest_dir: Path,
+        images_dir: Path,
+        stamp: int,
+        idx: int,
+        basename: str,
+    ) -> tuple[Optional[Path], list[Path], Optional[str]]:
+        """Convert an uploaded document to Markdown plus extracted images.
+
+        Returns (md_path, image_paths, error). On failure, md_path is None and
+        error carries a short reason; callers should still keep the original.
+        Pass-through formats (.md/.txt/.rst) decode bytes as UTF-8 and write a
+        single .md file with no image extraction.
+        """
+        md_target = dest_dir / f"{stamp}_{idx}_{basename}.md"
+        image_paths: list[Path] = []
+
+        def _write_image(blob: bytes, ext: str, n: int) -> None:
+            ext = (ext or "png").lower().lstrip(".") or "png"
+            img_path = images_dir / f"{stamp}_{idx}_{n}.{ext}"
+            img_path.write_bytes(blob)
+            image_paths.append(img_path)
+
+        try:
+            if suffix in (".md", ".txt", ".rst"):
+                text = original_path.read_bytes().decode("utf-8", errors="replace")
+                md_target.write_text(text, encoding="utf-8")
+                return md_target, image_paths, None
+
+            if suffix == ".pdf":
+                import pymupdf4llm  # type: ignore
+                import fitz  # type: ignore
+
+                md_text = pymupdf4llm.to_markdown(str(original_path))
+                md_target.write_text(md_text, encoding="utf-8")
+                try:
+                    doc = fitz.open(str(original_path))
+                    n = 0
+                    for page in doc:
+                        for img in page.get_images(full=True):
+                            xref = img[0]
+                            extracted = doc.extract_image(xref)
+                            if not extracted or not extracted.get("image"):
+                                continue
+                            n += 1
+                            _write_image(extracted["image"], extracted.get("ext") or "png", n)
+                    doc.close()
+                except Exception:
+                    pass
+                return md_target, image_paths, None
+
+            if suffix == ".pptx":
+                from pptx import Presentation  # type: ignore
+                from pptx.enum.shapes import MSO_SHAPE_TYPE  # type: ignore
+
+                prs = Presentation(str(original_path))
+                md_lines: list[str] = []
+                n = 0
+                for slide_idx, slide in enumerate(prs.slides, 1):
+                    md_lines.append(f"## Slide {slide_idx}")
+                    for shape in slide.shapes:
+                        if getattr(shape, "has_text_frame", False):
+                            for para in shape.text_frame.paragraphs:
+                                line = (para.text or "").strip()
+                                if line:
+                                    md_lines.append(line)
+                        if shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
+                            try:
+                                image = shape.image
+                                n += 1
+                                _write_image(image.blob, image.ext or "png", n)
+                            except Exception:
+                                continue
+                    md_lines.append("")
+                md_target.write_text("\n".join(md_lines), encoding="utf-8")
+                return md_target, image_paths, None
+
+            if suffix == ".docx":
+                from docx import Document  # type: ignore
+
+                doc = Document(str(original_path))
+                md_lines = []
+                for para in doc.paragraphs:
+                    style_name = (getattr(para.style, "name", "") or "").strip()
+                    text = (para.text or "").strip()
+                    if not text:
+                        md_lines.append("")
+                        continue
+                    if style_name.startswith("Heading 1"):
+                        md_lines.append(f"# {text}")
+                    elif style_name.startswith("Heading 2"):
+                        md_lines.append(f"## {text}")
+                    elif style_name.startswith("Heading 3"):
+                        md_lines.append(f"### {text}")
+                    else:
+                        md_lines.append(text)
+                n = 0
+                try:
+                    for rel in doc.part.rels.values():
+                        if "image" in (rel.reltype or ""):
+                            target = rel.target_part
+                            blob = getattr(target, "blob", None)
+                            if not blob:
+                                continue
+                            content_type = getattr(target, "content_type", "") or ""
+                            ext = content_type.split("/")[-1] or "png"
+                            n += 1
+                            _write_image(blob, ext, n)
+                except Exception:
+                    pass
+                md_target.write_text("\n".join(md_lines), encoding="utf-8")
+                return md_target, image_paths, None
+
+            if suffix == ".doc":
+                return None, [], "legacy .doc not supported (save as .docx)"
+
+            # Fallback for any other allowed text-ish extension: write bytes as text.
+            text = original_path.read_bytes().decode("utf-8", errors="replace")
+            md_target.write_text(text, encoding="utf-8")
+            return md_target, image_paths, None
+        except Exception as exc:  # one bad file must not kill the upload batch
+            return None, image_paths, f"convert failed: {exc}"
+
     @app.post("/api/ssot/import/upload")
     async def api_ssot_import_upload(request: Request):
         """Upload requirement/source evidence into <ip>/req/imports/.
@@ -9581,14 +9708,18 @@ def create_app():
             return JSONResponse({"error": "missing file upload"}, status_code=400)
 
         dest_dir = PROJECT_ROOT / ip / "req" / "imports"
+        originals_dir = dest_dir / "originals"
+        images_dir = dest_dir / "images"
         try:
             dest_dir.mkdir(parents=True, exist_ok=True)
+            originals_dir.mkdir(parents=True, exist_ok=True)
+            images_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
             return JSONResponse({"error": f"cannot create import dir: {exc}"}, status_code=500)
 
         saved: list[dict[str, Any]] = []
         errors: list[str] = []
-        max_bytes = 12 * 1024 * 1024
+        max_bytes = 32 * 1024 * 1024
         for idx, (raw_name, raw) in enumerate(upload_entries[:16]):
             filename = _safe_import_upload_name(raw_name or f"import_{idx}.txt")
             suffix = Path(filename).suffix.lower()
@@ -9599,13 +9730,32 @@ def create_app():
                 errors.append(f"{filename}: file too large ({len(raw)} bytes > {max_bytes})")
                 continue
             stamp = int(time.time() * 1000)
-            target = dest_dir / f"{stamp}_{idx}_{filename}"
+            basename = Path(filename).stem or f"import_{idx}"
+            original_target = originals_dir / f"{stamp}_{idx}_{filename}"
             try:
-                target.write_bytes(bytes(raw))
-                rel = target.relative_to(PROJECT_ROOT).as_posix()
-                saved.append({"path": rel, "name": filename, "bytes": len(raw)})
+                original_target.write_bytes(bytes(raw))
             except OSError as exc:
                 errors.append(f"{filename}: write failed: {exc}")
+                continue
+
+            md_path, image_paths, conv_err = _convert_upload_to_markdown(
+                original_target, suffix, dest_dir, images_dir, stamp, idx, basename,
+            )
+            entry: dict[str, Any] = {
+                "name": filename,
+                "bytes": len(raw),
+                "original_path": original_target.relative_to(PROJECT_ROOT).as_posix(),
+                "md_path": md_path.relative_to(PROJECT_ROOT).as_posix() if md_path else None,
+                "image_paths": [p.relative_to(PROJECT_ROOT).as_posix() for p in image_paths],
+            }
+            if conv_err:
+                entry["convert_error"] = conv_err
+                errors.append(f"{filename}: {conv_err}")
+            # Back-compat: keep "path" pointing to the file that downstream
+            # `/import` should ingest. Prefer the converted markdown; if
+            # conversion failed, fall back to the original.
+            entry["path"] = entry["md_path"] or entry["original_path"]
+            saved.append(entry)
 
         if not saved:
             return JSONResponse({"error": "no files saved", "errors": errors}, status_code=400)
