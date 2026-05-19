@@ -6837,9 +6837,12 @@ def create_app():
         ".md", ".txt", ".rst", ".yaml", ".yml", ".json", ".sv", ".svh",
         ".v", ".vh", ".py", ".csv", ".tsv", ".xml", ".f", ".sdc",
         ".tcl", ".rpt", ".log", ".h", ".c", ".cpp",
-        ".pdf", ".pptx", ".docx", ".doc",
+        ".pdf", ".pptx", ".docx", ".html", ".htm",
     }
-    _SSOT_IMPORT_CONVERT_EXTENSIONS = {".pdf", ".pptx", ".docx", ".doc"}
+    # Suffixes treated as plain text (no markitdown invocation).
+    _SSOT_IMPORT_PASSTHROUGH = {".md", ".txt", ".rst"}
+    # External Python 3.10 used to run markitdown (atlas_ui itself is on 3.9).
+    _SSOT_MARKITDOWN_PY = "/opt/homebrew/bin/python3.10"
     _SSOT_IMPORT_SKIP_DIRS = {
         ".git", ".session", ".omx", "__pycache__", "node_modules",
         ".pytest_cache", ".mypy_cache", ".ruff_cache",
@@ -9521,6 +9524,58 @@ def create_app():
             safe = "import.txt"
         return safe[:120]
 
+    def _markitdown_convert(src_path: Path) -> tuple[str, str]:
+        """Run markitdown on src_path under Python 3.10. Returns (md_text, error).
+
+        markitdown >=0.1 needs Python 3.10+, but atlas_ui itself runs on 3.9
+        on this host, so we shell out. An empty error string means success.
+        """
+        import shutil as _shutil
+        import subprocess as _subprocess
+
+        py310 = _SSOT_MARKITDOWN_PY
+        if not Path(py310).exists():
+            found = _shutil.which("python3.10")
+            if not found:
+                return "", f"python3.10 not found at {py310}; markitdown needs Python 3.10+"
+            py310 = found
+        try:
+            result = _subprocess.run(
+                [py310, "-m", "markitdown", str(src_path)],
+                capture_output=True, text=True, timeout=60,
+            )
+        except _subprocess.TimeoutExpired:
+            return "", "markitdown timed out (60s)"
+        except Exception as exc:
+            return "", f"markitdown error: {exc}"
+        if result.returncode != 0:
+            return "", f"markitdown failed (rc={result.returncode}): {result.stderr[:300]}"
+        return result.stdout, ""
+
+    def _describe_image(img: Path) -> str:
+        """Run cursor-agent (sonnet-4) over an extracted image and return a short
+        description. Empty string on any failure (timeout, missing CLI, non-zero
+        exit, parse error). The caller appends this under '## Extracted Images'.
+        """
+        cursor_bin = "/Users/brian/.local/bin/cursor-agent"
+        if not Path(cursor_bin).exists():
+            return ""
+        try:
+            r = subprocess.run(
+                [
+                    cursor_bin,
+                    "-p", "--output-format", "text", "--model", "sonnet-4",
+                    f"Describe the content of @{img} in 2-3 sentences. "
+                    "Include visible text, diagrams, charts, key data.",
+                ],
+                capture_output=True, text=True, timeout=30,
+            )
+            if r.returncode == 0:
+                return (r.stdout or "").strip()
+        except Exception:
+            pass
+        return ""
+
     def _convert_upload_to_markdown(
         original_path: Path,
         suffix: str,
@@ -9529,13 +9584,18 @@ def create_app():
         stamp: int,
         idx: int,
         basename: str,
-    ) -> tuple[Optional[Path], list[Path], Optional[str]]:
+    ) -> tuple[Optional[Path], list[Path], str]:
         """Convert an uploaded document to Markdown plus extracted images.
 
-        Returns (md_path, image_paths, error). On failure, md_path is None and
-        error carries a short reason; callers should still keep the original.
-        Pass-through formats (.md/.txt/.rst) decode bytes as UTF-8 and write a
-        single .md file with no image extraction.
+        Strategy: try markitdown via subprocess (Python 3.10) first for the
+        text rendering; on failure fall back to the per-format extractor
+        (pymupdf4llm / python-pptx / python-docx). Image extraction always
+        runs the per-format path (PyMuPDF / python-pptx / python-docx) since
+        markitdown does not emit clean image files. Image descriptions are
+        appended at the bottom of the Markdown under '## Extracted Images'.
+
+        Returns (md_path, image_paths, error). md_path is None when conversion
+        fails; the caller keeps the saved original regardless.
         """
         md_target = dest_dir / f"{stamp}_{idx}_{basename}.md"
         image_paths: list[Path] = []
@@ -9547,18 +9607,35 @@ def create_app():
             image_paths.append(img_path)
 
         try:
-            if suffix in (".md", ".txt", ".rst"):
+            if suffix in _SSOT_IMPORT_PASSTHROUGH:
                 text = original_path.read_bytes().decode("utf-8", errors="replace")
                 md_target.write_text(text, encoding="utf-8")
-                return md_target, image_paths, None
+                return md_target, image_paths, ""
+
+            if suffix == ".doc":
+                return None, [], "legacy .doc not supported (save as .docx)"
+
+            md_written = False
+            md_text, mk_err = _markitdown_convert(original_path)
+            if not mk_err and md_text:
+                md_target.write_text(md_text, encoding="utf-8")
+                md_written = True
 
             if suffix == ".pdf":
-                import pymupdf4llm  # type: ignore
-                import fitz  # type: ignore
-
-                md_text = pymupdf4llm.to_markdown(str(original_path))
-                md_target.write_text(md_text, encoding="utf-8")
+                if not md_written:
+                    try:
+                        import pymupdf4llm  # type: ignore
+                        md_target.write_text(
+                            pymupdf4llm.to_markdown(str(original_path)),
+                            encoding="utf-8",
+                        )
+                        md_written = True
+                    except Exception as exc:
+                        if mk_err:
+                            return None, image_paths, f"{mk_err}; pdf fallback: {exc}"
+                        return None, image_paths, f"pdf convert failed: {exc}"
                 try:
+                    import fitz  # type: ignore
                     doc = fitz.open(str(original_path))
                     n = 0
                     for page in doc:
@@ -9572,23 +9649,28 @@ def create_app():
                     doc.close()
                 except Exception:
                     pass
-                return md_target, image_paths, None
 
-            if suffix == ".pptx":
+            elif suffix == ".pptx":
                 from pptx import Presentation  # type: ignore
                 from pptx.enum.shapes import MSO_SHAPE_TYPE  # type: ignore
 
                 prs = Presentation(str(original_path))
-                md_lines: list[str] = []
+                if not md_written:
+                    md_lines: list[str] = []
+                    for slide_idx, slide in enumerate(prs.slides, 1):
+                        md_lines.append(f"## Slide {slide_idx}")
+                        for shape in slide.shapes:
+                            if getattr(shape, "has_text_frame", False):
+                                for para in shape.text_frame.paragraphs:
+                                    line = (para.text or "").strip()
+                                    if line:
+                                        md_lines.append(line)
+                        md_lines.append("")
+                    md_target.write_text("\n".join(md_lines), encoding="utf-8")
+                    md_written = True
                 n = 0
-                for slide_idx, slide in enumerate(prs.slides, 1):
-                    md_lines.append(f"## Slide {slide_idx}")
+                for slide in prs.slides:
                     for shape in slide.shapes:
-                        if getattr(shape, "has_text_frame", False):
-                            for para in shape.text_frame.paragraphs:
-                                line = (para.text or "").strip()
-                                if line:
-                                    md_lines.append(line)
                         if shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
                             try:
                                 image = shape.image
@@ -9596,29 +9678,29 @@ def create_app():
                                 _write_image(image.blob, image.ext or "png", n)
                             except Exception:
                                 continue
-                    md_lines.append("")
-                md_target.write_text("\n".join(md_lines), encoding="utf-8")
-                return md_target, image_paths, None
 
-            if suffix == ".docx":
+            elif suffix == ".docx":
                 from docx import Document  # type: ignore
 
                 doc = Document(str(original_path))
-                md_lines = []
-                for para in doc.paragraphs:
-                    style_name = (getattr(para.style, "name", "") or "").strip()
-                    text = (para.text or "").strip()
-                    if not text:
-                        md_lines.append("")
-                        continue
-                    if style_name.startswith("Heading 1"):
-                        md_lines.append(f"# {text}")
-                    elif style_name.startswith("Heading 2"):
-                        md_lines.append(f"## {text}")
-                    elif style_name.startswith("Heading 3"):
-                        md_lines.append(f"### {text}")
-                    else:
-                        md_lines.append(text)
+                if not md_written:
+                    md_lines = []
+                    for para in doc.paragraphs:
+                        style_name = (getattr(para.style, "name", "") or "").strip()
+                        text = (para.text or "").strip()
+                        if not text:
+                            md_lines.append("")
+                            continue
+                        if style_name.startswith("Heading 1"):
+                            md_lines.append(f"# {text}")
+                        elif style_name.startswith("Heading 2"):
+                            md_lines.append(f"## {text}")
+                        elif style_name.startswith("Heading 3"):
+                            md_lines.append(f"### {text}")
+                        else:
+                            md_lines.append(text)
+                    md_target.write_text("\n".join(md_lines), encoding="utf-8")
+                    md_written = True
                 n = 0
                 try:
                     for rel in doc.part.rels.values():
@@ -9633,17 +9715,29 @@ def create_app():
                             _write_image(blob, ext, n)
                 except Exception:
                     pass
-                md_target.write_text("\n".join(md_lines), encoding="utf-8")
-                return md_target, image_paths, None
 
-            if suffix == ".doc":
-                return None, [], "legacy .doc not supported (save as .docx)"
+            else:
+                if not md_written:
+                    text = original_path.read_bytes().decode("utf-8", errors="replace")
+                    md_target.write_text(text, encoding="utf-8")
+                    md_written = True
 
-            # Fallback for any other allowed text-ish extension: write bytes as text.
-            text = original_path.read_bytes().decode("utf-8", errors="replace")
-            md_target.write_text(text, encoding="utf-8")
-            return md_target, image_paths, None
-        except Exception as exc:  # one bad file must not kill the upload batch
+            if image_paths:
+                desc_lines = ["", "", "## Extracted Images", ""]
+                for img_path in image_paths:
+                    try:
+                        rel = img_path.relative_to(PROJECT_ROOT).as_posix()
+                    except ValueError:
+                        rel = img_path.as_posix()
+                    desc = _describe_image(img_path)
+                    desc_lines.append(f"### `{rel}`")
+                    desc_lines.append(desc if desc else "_(no description)_")
+                    desc_lines.append("")
+                with open(md_target, "a", encoding="utf-8") as fh:
+                    fh.write("\n".join(desc_lines))
+
+            return md_target, image_paths, ""
+        except Exception as exc:
             return None, image_paths, f"convert failed: {exc}"
 
     @app.post("/api/ssot/import/upload")
@@ -9746,14 +9840,13 @@ def create_app():
                 "bytes": len(raw),
                 "original_path": original_target.relative_to(PROJECT_ROOT).as_posix(),
                 "md_path": md_path.relative_to(PROJECT_ROOT).as_posix() if md_path else None,
-                "image_paths": [p.relative_to(PROJECT_ROOT).as_posix() for p in image_paths],
+                "image_paths": [
+                    p.relative_to(PROJECT_ROOT).as_posix() for p in image_paths
+                ],
             }
             if conv_err:
                 entry["convert_error"] = conv_err
                 errors.append(f"{filename}: {conv_err}")
-            # Back-compat: keep "path" pointing to the file that downstream
-            # `/import` should ingest. Prefer the converted markdown; if
-            # conversion failed, fall back to the original.
             entry["path"] = entry["md_path"] or entry["original_path"]
             saved.append(entry)
 

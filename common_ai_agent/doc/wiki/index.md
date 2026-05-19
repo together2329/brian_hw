@@ -41,6 +41,7 @@ This section is additive; it does not replace the reading order below.
 | atlas.db FK integrity audit 2026-05-19 (5 FK checks across home + PWD DBs — all PASS; Q4 apparent orphans in llm_calls.run_id are polymorphic refs to orchestrator_runs, zero truly dangling rows) | [[db-fk-audit-20260519]] |
 | Single main-loop restoration verify 2026-05-19 (ATLAS_SINGLE_MAIN_LOOP=1 → atlas_ui auto-spawns one --all-workflows worker on 5601; ssot+rtl sequential dispatch handled by same PID; spawn-path bug `SOURCE_ROOT/main.py` → `HERE/main.py` fixed mid-verify) | [[single-main-loop-restore-20260519]] |
 | Auth cookie expiry + multi-session policy 2026-05-19 (Max-Age=90 days, HttpOnly, Secure absent on localhost, logout is client-side only — no server-side revocation, deterministic HMAC token means all logins share same cookie value) | [[auth-cookie-expiry-20260519]] |
+| SSOT import multi-format converter 2026-05-19 (`/api/ssot/import/upload` now accepts pptx/docx/pdf/html; markitdown via subprocess on /opt/homebrew/bin/python3.10 because atlas_ui is on 3.9; emits `originals/<file>` + `<base>.md`; corrupt files keep original and continue batch) | [[ssot-import-multi-format-20260519]] |
 
 Current practical rule: final product-flow claims should be validated through
 the same ATLAS UI/API/worker path users run, not only through headless runs.

@@ -16,9 +16,15 @@ markdown
 pygments
 jinja2
 
-# /api/ssot/import/upload multi-format conversion (pptx/docx/pdf -> markdown + images).
-# Python 3.9-compatible; markitdown requires >=3.10 so we use the individual libraries.
-python-pptx
-python-docx
+# /api/ssot/import/upload multi-format conversion.
+# Text rendering: markitdown invoked via subprocess from Python 3.10+; install with:
+#   /opt/homebrew/bin/python3.10 -m pip install --user 'markitdown[all]'
+# (path configurable via _SSOT_MARKITDOWN_PY in src/atlas_ui.py)
+markitdown ; python_version >= "3.10"
+# Per-format image extraction (always runs on atlas_ui's 3.9 interpreter):
 pymupdf4llm
 PyMuPDF
+python-pptx
+python-docx
+# Image vision descriptions via cursor-agent CLI at /Users/brian/.local/bin/cursor-agent
+# (model sonnet-4). Install separately; not a Python dep.
