@@ -183,6 +183,8 @@ def test_dispatch_workflow_bridge_seed_lands_in_worker_prompt(tmp_path, monkeypa
     # doesn't actually try to POST to a worker URL.
     import src.atlas_api_jobs as api_jobs
 
+    # Clear the module-level job registry — see no-seed test for rationale.
+    api_jobs._jobs.clear()
     monkeypatch.setattr(api_jobs, "_dispatch_job_to_worker", lambda job: None)
     monkeypatch.setattr(api_jobs, "_record_job_db_start", lambda job: None)
 
@@ -268,6 +270,10 @@ def test_dispatch_workflow_bridge_no_seed_does_not_emit_section(tmp_path, monkey
 
     import src.atlas_api_jobs as api_jobs
 
+    # api_jobs._jobs is a module-level registry; jobs from a previous test in
+    # this file would otherwise trigger _active_job_conflicts and short-circuit
+    # the dispatch path (returning the stale job instead of building a new one).
+    api_jobs._jobs.clear()
     monkeypatch.setattr(api_jobs, "_dispatch_job_to_worker", lambda job: None)
     monkeypatch.setattr(api_jobs, "_record_job_db_start", lambda job: None)
 
