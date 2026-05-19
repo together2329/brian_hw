@@ -9585,6 +9585,48 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
   const [selected, setSelected] = React.useState('');
   const [activeKey, setActiveKey] = React.useState('');
   const lastInitialPath = React.useRef('');
+  const importDocRef = React.useRef(null);
+  const [importDocBusy, setImportDocBusy] = React.useState(false);
+  const [importDocStatus, setImportDocStatus] = React.useState('');
+
+  const handleImportDocFiles = async (fileList) => {
+    const fileArr = Array.from(fileList || []);
+    if (!fileArr.length) return;
+    const ip = (String(window.ACTIVE_IP || '').trim()) ||
+      (() => {
+        const parts = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+        return parts.length >= 2 ? parts[1] : parts[0] || '';
+      })();
+    setImportDocBusy(true);
+    setImportDocStatus('');
+    try {
+      const payloadFiles = await Promise.all(fileArr.map(file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const raw = String(reader.result || '');
+          resolve({ name: file.name, content_b64: raw.includes(',') ? raw.split(',').pop() : raw });
+        };
+        reader.onerror = () => reject(reader.error || new Error('read failed'));
+        reader.readAsDataURL(file);
+      })));
+      const res = await fetch('/api/ssot/import/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip, session: String(window.ACTIVE_SESSION || ''), files: payloadFiles }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || !payload?.ok) throw new Error(payload?.error || `upload failed (${res.status})`);
+      const count = (payload.paths || []).length;
+      setImportDocStatus(uiLang === 'en'
+        ? `${count} file(s) imported. Chat "run ssot for ${ip}" to generate SSOT.`
+        : `${count}개 파일 임포트 완료. "${ip} ssot 실행"을 채팅하세요.`);
+    } catch (err) {
+      setImportDocStatus(String(err?.message || err || 'upload failed'));
+    } finally {
+      setImportDocBusy(false);
+      if (importDocRef.current) importDocRef.current.value = '';
+    }
+  };
 
   const t = uiLang === 'en'
     ? {
@@ -9597,6 +9639,8 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
         approved: 'approved',
         raw: 'Raw YAML section',
         reload: 'refresh',
+        importDoc: '📄 Import Doc',
+        importing: 'importing…',
       }
     : {
         title: 'SSOT 설계 프리뷰',
@@ -9608,6 +9652,8 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
         approved: '승인',
         raw: '원본 YAML 섹션',
         reload: '새로고침',
+        importDoc: '📄 Import Doc',
+        importing: '임포트 중…',
       };
 
   const ssotFilePaths = files.map(ssotPathOf).filter(Boolean);
@@ -9726,9 +9772,32 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
             onClick={() => reloadSsot(true)}
             style={{ fontSize: 10 }}
           >{t.reload}</button>
+          <input
+            ref={importDocRef}
+            type="file"
+            multiple
+            style={{ display: 'none' }}
+            onChange={e => handleImportDocFiles(e.target.files)}
+          />
+          <button
+            type="button"
+            className="btn"
+            disabled={importDocBusy}
+            onClick={() => importDocRef.current?.click()}
+            title="Upload requirement docs, notes, RTL, YAML, or logs into SSOT import evidence"
+            style={{ fontSize: 10 }}
+          >{importDocBusy ? t.importing : t.importDoc}</button>
           <button type="button" className="btn" onClick={onBack} style={{ fontSize: 10 }}>chat</button>
         </div>
       </div>
+
+      {importDocStatus ? (
+        <div style={{
+          padding: '4px 14px', fontSize: 11,
+          color: importDocStatus.toLowerCase().includes('fail') ? 'var(--warn)' : 'var(--fg-mute)',
+          borderBottom: '1px solid var(--line)', background: 'var(--bg-2)',
+        }}>{importDocStatus}</div>
+      ) : null}
 
       <div style={{
         flex: 1, minHeight: 0, display: 'grid',
