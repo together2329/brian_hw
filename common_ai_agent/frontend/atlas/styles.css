@@ -27,20 +27,20 @@
      match the layout the inline pixel widths were designed for. */
   --mono: var(--sans);
   --code-font: var(--mono-base);
-  --ui-font-size: 13px;
-  --ui-control-font-size: 11px;
-  --ui-small-font-size: 10px;
+  --ui-font-size: 14.5px;
+  --ui-control-font-size: 12.5px;
+  --ui-small-font-size: 11.5px;
   --atlas-canvas-w: 1920px;
   --atlas-canvas-h: 1080px;
   /* main reading surface (chat / agent reply markdown) gets a small
      readability bump; the chrome (--ui-font-size / control / small)
      stays pinned to the original 1920x1080 layout so chips, dropdowns
      and headers don't overflow their fixed-pixel boxes. */
-  --ui-agent-font-size: 15px;
-  --ui-code-font-size: 13px;
-  --ui-line-height: 1.55;
-  --ui-agent-line-height: 1.72;
-  --ui-text-weight: 450;
+  --ui-agent-font-size: 15.5px;
+  --ui-code-font-size: 13.5px;
+  --ui-line-height: 1.58;
+  --ui-agent-line-height: 1.74;
+  --ui-text-weight: 500;
   --ui-control-weight: 500;
   --ui-strong-weight: 700;
   --accent-fg: #081018;
@@ -104,38 +104,38 @@ html[data-theme="light"] {
   --mono: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 [data-font-scale="compact"] {
-  --ui-font-size: 12px;
-  --ui-control-font-size: 10.5px;
-  --ui-small-font-size: 9.5px;
-  --ui-agent-font-size: 13px;
-  --ui-code-font-size: 12px;
-  --ui-line-height: 1.45;
-  --ui-agent-line-height: 1.62;
+  --ui-font-size: 13px;
+  --ui-control-font-size: 11.5px;
+  --ui-small-font-size: 10.5px;
+  --ui-agent-font-size: 14px;
+  --ui-code-font-size: 12.5px;
+  --ui-line-height: 1.48;
+  --ui-agent-line-height: 1.66;
 }
 [data-font-scale="normal"] {
-  --ui-font-size: 13px;
-  --ui-control-font-size: 11px;
-  --ui-small-font-size: 10px;
+  --ui-font-size: 14px;
+  --ui-control-font-size: 12px;
+  --ui-small-font-size: 11px;
   --ui-agent-font-size: 15px;
   --ui-code-font-size: 13px;
   --ui-line-height: 1.55;
   --ui-agent-line-height: 1.72;
 }
 [data-font-scale="large"] {
-  --ui-font-size: 14px;
-  --ui-control-font-size: 12px;
-  --ui-small-font-size: 11px;
-  --ui-agent-font-size: 15px;
-  --ui-code-font-size: 13px;
+  --ui-font-size: 14.5px;
+  --ui-control-font-size: 12.5px;
+  --ui-small-font-size: 11.5px;
+  --ui-agent-font-size: 15.5px;
+  --ui-code-font-size: 13.5px;
   --ui-line-height: 1.58;
   --ui-agent-line-height: 1.76;
 }
 [data-font-scale="xl"] {
-  --ui-font-size: 15px;
-  --ui-control-font-size: 13px;
-  --ui-small-font-size: 12px;
-  --ui-agent-font-size: 16px;
-  --ui-code-font-size: 14px;
+  --ui-font-size: 16px;
+  --ui-control-font-size: 14px;
+  --ui-small-font-size: 13px;
+  --ui-agent-font-size: 16.5px;
+  --ui-code-font-size: 14.5px;
   --ui-line-height: 1.64;
   --ui-agent-line-height: 1.82;
 }
