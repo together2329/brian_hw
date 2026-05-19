@@ -1,0 +1,17 @@
+# ATLAS Python deps. Install via: pip3 install -r common_ai_agent/requirements.txt
+#
+# Captures dependencies that aren't part of stdlib and that the project relies on
+# at runtime. Pin loosely; add specifics only when known-incompatible.
+
+fastapi
+uvicorn[standard]
+python-multipart   # required by /api/ssot/import/upload (multipart/form-data parsing)
+starlette
+pydantic
+aiohttp
+httpx
+requests
+PyYAML
+markdown
+pygments
+jinja2
