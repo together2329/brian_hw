@@ -2029,7 +2029,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
       return;
     }
     if (workflow === 'ssot-gen') {
-      setMainTab('qa');
+      setMainTab('checklist');
       return;
     }
     if (WORKFLOW_REPORT_TABS[workflow]) {
@@ -9617,9 +9617,18 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
       const payload = await res.json().catch(() => ({}));
       if (!res.ok || !payload?.ok) throw new Error(payload?.error || `upload failed (${res.status})`);
       const count = (payload.paths || []).length;
+      if (payload.command && window.backend && typeof window.backend.send === 'function') {
+        window.backend.send({
+          type: 'prompt',
+          msg_id: `ssot-import-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          text: payload.command,
+          session: String(window.ACTIVE_SESSION || ''),
+          ui_lang: window.ATLAS_UI_LANG || uiLang,
+        });
+      }
       setImportDocStatus(uiLang === 'en'
-        ? `${count} file(s) imported. Chat "run ssot for ${ip}" to generate SSOT.`
-        : `${count}개 파일 임포트 완료. "${ip} ssot 실행"을 채팅하세요.`);
+        ? `${count} file(s) imported. /import started for ${ip}.`
+        : `${count}개 파일 임포트 완료. ${ip} /import를 실행했습니다.`);
     } catch (err) {
       setImportDocStatus(String(err?.message || err || 'upload failed'));
     } finally {

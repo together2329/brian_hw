@@ -1,0 +1,17 @@
+{
+  "agent": "common_ai_agent",
+  "authoring_packets": [],
+  "contract_files": [],
+  "generation_note": "Headless common engine recorded LLM-authored RTL artifacts from rtl_authoring_plan packets.",
+  "ip": "cmux_flow_beta",
+  "model": "glm-5.1",
+  "rtl_files": [
+    "rtl/cmux_flow_beta.sv"
+  ],
+  "schema_version": 1,
+  "surface": "headless_common_engine",
+  "todo_plan_sha256": null,
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-05-19T09:29:24Z",
+  "workflow": "rtl-gen"
+}

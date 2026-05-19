@@ -1134,8 +1134,13 @@ const App = () => {
     // `/new-ip` is the single source of truth for IP scaffolding. Do not
     // pre-create <PROJECT_ROOT>/<ip>/ here; doing both paths can produce
     // duplicated scope prefixes such as gpio/gpio/...
-    const me = activeSessionId
-      || normalizeSession(window.ATLAS_USER_SESSION_ID || '')
+    const authedOwner = normalizeSession(
+      (window.ATLAS_USER && window.ATLAS_USER.username)
+      || window.ATLAS_USER_SESSION_ID
+      || ''
+    );
+    const me = authedOwner
+      || activeSessionId
       || 'default';
     const namespace = `${me}/${ip}/ssot-gen`;
     // Local state first so the dropdown and scope reflect the new IP
@@ -1144,6 +1149,7 @@ const App = () => {
     setActiveIp(ip);
     setActiveSessionId(me);
     setActiveNamespace(namespace);
+    try { setScreen('workspace'); localStorage.atlasScreen = 'workspace'; } catch (_) {}
     window.ACTIVE_SESSION = namespace;
     try { localStorage.setItem('atlasActiveSession', namespace); } catch (_) {}
     syncNamespaceUrl(namespace, me, ip, 'ssot-gen');
