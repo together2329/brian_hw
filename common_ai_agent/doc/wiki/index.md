@@ -34,6 +34,7 @@ This section is additive; it does not replace the reading order below.
 | pytest collection crash fix (pytest_pymtl3 stale hook) and canonical PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 invocation | [[atlas-pytest-hygiene]] |
 | Side-by-side LLM provider comparison on the same SSOT input | [[triple-llm-rv32i-experiment]] |
 | Orchestrator chat UX overhaul 2026-05-19 (backend persist, endpoint contract bug, frontend hydrate regression) | [[orchestrator-chat-ux]] |
+| UI resolution + theme matrix verify 2026-05-19 (12 cells across viewports/views/themes, WKWebView viewport-set limitation, single-fix proposal) | [[ui-resolution-matrix-20260519]] |
 
 Current practical rule: final product-flow claims should be validated through
 the same ATLAS UI/API/worker path users run, not only through headless runs.
