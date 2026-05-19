@@ -3987,8 +3987,15 @@ def register_jobs_routes(
             from core.atlas_db import AtlasDB
             pr = project_root()
             db_path = _atlas_job_db_path(pr)
+            db_user_id = user_id
             with AtlasDB(db_path) as db:
-                rows = db.list_chat_messages(ip_id=ip, limit=limit, since=since)
+                workspace = db.upsert_workspace(
+                    pr.name or "default",
+                    owner_user_id=db_user_id,
+                    local_path=str(pr),
+                )
+                ip_row = db.upsert_ip_block(workspace["id"], ip)
+                rows = db.list_chat_messages(ip_id=ip_row["id"], limit=limit, since=since)
         except Exception as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
         # rows are newest-first; reverse for chronological order
