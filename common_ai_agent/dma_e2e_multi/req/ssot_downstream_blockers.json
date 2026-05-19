@@ -1,0 +1,6 @@
+{
+  "schema_version": "ssot_downstream_blockers.v1",
+  "ip": "dma_e2e_multi",
+  "ssot": "dma_e2e_multi/yaml/dma_e2e_multi.ssot.yaml",
+  "issues": []
+}
