@@ -9618,6 +9618,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
   const importDocRef = React.useRef(null);
   const [importDocBusy, setImportDocBusy] = React.useState(false);
   const [importDocStatus, setImportDocStatus] = React.useState('');
+  const [exportFormat, setExportFormat] = React.useState('');
 
   const handleImportDocFiles = async (fileList) => {
     const fileArr = Array.from(fileList || []);
@@ -9826,6 +9827,37 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
             title="Upload requirement docs, notes, RTL, YAML, or logs into SSOT import evidence"
             style={{ fontSize: 10 }}
           >{importDocBusy ? t.importing : t.importDoc}</button>
+          <select
+            value={exportFormat}
+            onChange={e => {
+              const fmt = e.target.value;
+              if (!fmt) return;
+              const ip = (String(window.ACTIVE_IP || '').trim()) ||
+                (() => {
+                  const parts = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+                  return parts.length >= 2 ? parts[1] : parts[0] || '';
+                })();
+              if (!ip) {
+                setExportFormat('');
+                return;
+              }
+              const url = `/api/ssot/export?ip=${encodeURIComponent(ip)}&format=${encodeURIComponent(fmt)}`;
+              window.location.href = url;
+              setExportFormat('');
+            }}
+            title="Download the canonical ssot yaml as Markdown, Word, or HTML"
+            style={{
+              background: 'var(--bg)', color: 'var(--fg)',
+              border: '1px solid var(--line)', borderRadius: 2,
+              fontFamily: 'var(--mono)', fontSize: 10, padding: '4px 6px',
+              minWidth: 100,
+            }}
+          >
+            <option value="">📥 Export</option>
+            <option value="md">Markdown (.md)</option>
+            <option value="docx">Word (.docx)</option>
+            <option value="html">HTML (.html)</option>
+          </select>
           <button type="button" className="btn" onClick={onBack} style={{ fontSize: 10 }}>chat</button>
         </div>
       </div>

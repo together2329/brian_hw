@@ -42,6 +42,8 @@ This section is additive; it does not replace the reading order below.
 | Single main-loop restoration verify 2026-05-19 (ATLAS_SINGLE_MAIN_LOOP=1 → atlas_ui auto-spawns one --all-workflows worker on 5601; ssot+rtl sequential dispatch handled by same PID; spawn-path bug `SOURCE_ROOT/main.py` → `HERE/main.py` fixed mid-verify) | [[single-main-loop-restore-20260519]] |
 | Auth cookie expiry + multi-session policy 2026-05-19 (Max-Age=90 days, HttpOnly, Secure absent on localhost, logout is client-side only — no server-side revocation, deterministic HMAC token means all logins share same cookie value) | [[auth-cookie-expiry-20260519]] |
 | SSOT import multi-format converter 2026-05-19 (`/api/ssot/import/upload` now accepts pptx/docx/pdf/html; markitdown via subprocess on /opt/homebrew/bin/python3.10 because atlas_ui is on 3.9; emits `originals/<file>` + `<base>.md`; corrupt files keep original and continue batch) | [[ssot-import-multi-format-20260519]] |
+| End-to-end SSOT conversion flow 2026-05-19 (upload → /import → /grill-me → /to-ssot → check_ssot_disk.sh; why each stage is split for human audit; file index + chaining diagram in Atlas UI) | [[ssot-conversion-flow-20260519]] |
+| SSOT export reverse direction 2026-05-19 (`/api/ssot/export?ip=&format=md|docx|html` renders `<ip>/yaml/<ip>.ssot.yaml` → `<ip>/doc/<ip>_ssot.<ext>` deterministically; md via yaml walker, html via python-`markdown`, docx via python-docx; pdf deferred — see [[ssot-conversion-flow-20260519]] `## Export (reverse direction)`) | [[ssot-conversion-flow-20260519]] |
 
 Current practical rule: final product-flow claims should be validated through
 the same ATLAS UI/API/worker path users run, not only through headless runs.

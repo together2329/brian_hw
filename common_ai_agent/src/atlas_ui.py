@@ -547,6 +547,688 @@ def _format_answer(ans: dict[str, Any], options: list[dict[str, Any]]) -> str:
     return " · ".join(parts)
 
 
+# ── SSOT export helpers (module scope) ─────────────────────────────
+# Reverse direction of the /import flow: take <ip>/yaml/<ip>.ssot.yaml
+# and render md / docx / html for human review and sign-off. Walked
+# deterministically (no LLM, no subprocess). Exposed at module scope so
+# the DoD smoke test and tests/test_ssot_export.py can call them
+# directly without going through create_app(). The HTTP endpoint
+# `api_ssot_export` (inside create_app) is a thin wrapper around these.
+
+_SSOT_EXPORT_SECTION_ORDER: list[tuple[str, str]] = [
+    ("top_module", "Top Module"),
+    ("sub_modules", "Sub-Modules"),
+    ("decomposition", "Decomposition"),
+    ("parameters", "Parameters"),
+    ("io_list", "I/O List"),
+    ("features", "Features"),
+    ("dataflow", "Dataflow"),
+    ("function_model", "Function Model"),
+    ("cycle_model", "Cycle Model"),
+    ("clock_reset_domains", "Clock / Reset Domains"),
+    ("cdc_requirements", "CDC Requirements"),
+    ("rdc_requirements", "RDC Requirements"),
+    ("registers", "Registers"),
+    ("memory", "Memory"),
+    ("interrupts", "Interrupts"),
+    ("fsm", "FSM"),
+    ("rtl_contract", "RTL Contract"),
+    ("timing", "Timing"),
+    ("power", "Power"),
+    ("security", "Security"),
+    ("error_handling", "Error Handling"),
+    ("debug_observability", "Debug / Observability"),
+    ("integration", "Integration"),
+    ("dft", "DFT"),
+    ("synthesis", "Synthesis"),
+    ("pnr", "PnR"),
+    ("coding_rules", "Coding Rules"),
+    ("reuse_modules", "Reuse Modules"),
+    ("custom", "Custom"),
+    ("dir_structure", "Directory Structure"),
+    ("filelist", "Filelist"),
+    ("test_requirements", "Test Requirements"),
+    ("quality_gates", "Quality Gates"),
+    ("traceability", "Traceability"),
+    ("workflow_todos", "Workflow Todos"),
+    ("generation_flow", "Generation Flow"),
+]
+
+_SSOT_EXPORT_IP_NAME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
+
+
+def _ssot_export_valid_ip(name: str) -> bool:
+    return bool(_SSOT_EXPORT_IP_NAME_RE.match(name or ""))
+
+
+def _ssot_yaml_path(ip: str) -> Path:
+    if not _ssot_export_valid_ip(ip):
+        raise ValueError(f"invalid ip name {ip!r}")
+    return PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
+
+
+def _load_ssot_yaml(ip: str) -> dict:
+    import yaml as _yaml  # type: ignore
+
+    path = _ssot_yaml_path(ip)
+    if not path.is_file():
+        raise FileNotFoundError(str(path))
+    try:
+        text = path.read_text(encoding="utf-8")
+        data = _yaml.safe_load(text)
+    except Exception as exc:
+        raise ValueError(f"invalid yaml: {exc}") from exc
+    if data is None:
+        return {}
+    if not isinstance(data, dict):
+        raise ValueError("invalid yaml: top-level must be a mapping")
+    return data
+
+
+def _ssot_md_escape_cell(value: Any) -> str:
+    """Markdown table cells must not contain raw pipes or newlines."""
+    text = "" if value is None else str(value)
+    text = text.replace("|", "&#124;")
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = text.replace("\n", "<br/>")
+    return text
+
+
+def _ssot_md_scalar(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return str(value)
+    return str(value)
+
+
+def _ssot_md_is_short_scalar(value: Any) -> bool:
+    if value is None or isinstance(value, bool) or isinstance(value, (int, float)):
+        return True
+    if isinstance(value, str):
+        return len(value) <= 80 and "\n" not in value
+    return False
+
+
+def _ssot_md_yaml_block(value: Any) -> str:
+    import yaml as _yaml  # type: ignore
+
+    try:
+        dumped = _yaml.safe_dump(value, allow_unicode=True, sort_keys=False).rstrip()
+    except Exception as exc:
+        dumped = f"(unable to render: {exc})"
+    return "```yaml\n" + dumped + "\n```"
+
+
+def _ssot_md_dict_table(rows: list, columns: list) -> str:
+    """Render list[dict] as a markdown table with the given columns."""
+    if not rows:
+        return ""
+    header = "| " + " | ".join(label for _, label in columns) + " |"
+    sep = "| " + " | ".join("---" for _ in columns) + " |"
+    lines = [header, sep]
+    for row in rows:
+        if not isinstance(row, dict):
+            cells = [_ssot_md_escape_cell(row)] + [""] * (len(columns) - 1)
+        else:
+            cells = []
+            for key, _label in columns:
+                raw = row.get(key)
+                if isinstance(raw, (list, dict)):
+                    import yaml as _yaml  # type: ignore
+
+                    cells.append(_ssot_md_escape_cell(
+                        _yaml.safe_dump(raw, allow_unicode=True, sort_keys=False).strip()
+                    ))
+                else:
+                    cells.append(_ssot_md_escape_cell(_ssot_md_scalar(raw)))
+        lines.append("| " + " | ".join(cells) + " |")
+    return "\n".join(lines)
+
+
+def _ssot_md_auto_table(rows: list) -> str:
+    """Render list-of-dicts using all observed keys as columns."""
+    if not rows or not all(isinstance(r, dict) for r in rows):
+        return ""
+    keys: list[str] = []
+    seen: set[str] = set()
+    for row in rows:
+        for key in row.keys():
+            if key not in seen:
+                seen.add(key)
+                keys.append(str(key))
+    columns = [(k, k.replace("_", " ").title()) for k in keys]
+    return _ssot_md_dict_table(rows, columns)
+
+
+def _ssot_md_definition_list(data: dict) -> str:
+    """Dict → markdown bulleted definition list with paragraph fallback."""
+    if not isinstance(data, dict) or not data:
+        return ""
+    lines: list[str] = []
+    paragraphs: list[str] = []
+    for key, value in data.items():
+        label = str(key).replace("_", " ")
+        if _ssot_md_is_short_scalar(value):
+            lines.append(f"- **{label}:** {_ssot_md_scalar(value)}")
+        elif isinstance(value, str):
+            paragraphs.append(f"**{label}:**\n\n{value}")
+        elif isinstance(value, list) and value and all(isinstance(v, dict) for v in value):
+            table = _ssot_md_auto_table(value)
+            if table:
+                paragraphs.append(f"**{label}:**\n\n{table}")
+            else:
+                paragraphs.append(f"**{label}:**\n\n" + _ssot_md_yaml_block(value))
+        elif isinstance(value, list) and value and all(_ssot_md_is_short_scalar(v) for v in value):
+            bullets = "\n".join(f"  - {_ssot_md_scalar(v)}" for v in value)
+            lines.append(f"- **{label}:**\n{bullets}")
+        elif isinstance(value, dict):
+            inner = _ssot_md_definition_list(value)
+            if inner:
+                paragraphs.append(f"**{label}:**\n\n{inner}")
+            else:
+                paragraphs.append(f"**{label}:**\n\n" + _ssot_md_yaml_block(value))
+        else:
+            paragraphs.append(f"**{label}:**\n\n" + _ssot_md_yaml_block(value))
+    out = "\n".join(lines)
+    if paragraphs:
+        if out:
+            out += "\n\n"
+        out += "\n\n".join(paragraphs)
+    return out
+
+
+def _ssot_md_section_top_module(data: Any) -> str:
+    if not isinstance(data, dict):
+        return _ssot_md_yaml_block(data)
+    desc = data.get("description")
+    rest = {k: v for k, v in data.items() if k != "description"}
+    out = _ssot_md_definition_list(rest)
+    if desc:
+        out = (out + "\n\n" if out else "") + f"_{desc}_"
+    return out
+
+
+def _ssot_md_section_sub_modules(data: Any) -> str:
+    if isinstance(data, list) and all(isinstance(r, dict) for r in data):
+        cols = [
+            ("name", "Name"),
+            ("file", "File"),
+            ("ownership", "Ownership"),
+            ("description", "Description"),
+        ]
+        return _ssot_md_dict_table(data, cols)
+    return _ssot_md_yaml_block(data)
+
+
+def _ssot_md_section_parameters(data: Any) -> str:
+    if isinstance(data, list) and all(isinstance(r, dict) for r in data):
+        cols = [
+            ("name", "Name"),
+            ("default", "Default"),
+            ("type", "Type"),
+            ("description", "Description"),
+        ]
+        return _ssot_md_dict_table(data, cols)
+    return _ssot_md_yaml_block(data)
+
+
+def _ssot_md_section_io_list(data: Any) -> str:
+    if not isinstance(data, dict):
+        return _ssot_md_yaml_block(data)
+    parts: list[str] = []
+    cd = data.get("clock_domains")
+    if cd:
+        parts.append("### Clock Domains")
+        parts.append(_ssot_md_auto_table(cd) if isinstance(cd, list) else _ssot_md_yaml_block(cd))
+    rst = data.get("resets")
+    if rst:
+        parts.append("### Resets")
+        parts.append(_ssot_md_auto_table(rst) if isinstance(rst, list) else _ssot_md_yaml_block(rst))
+    ifs = data.get("interfaces")
+    if isinstance(ifs, list):
+        parts.append("### Interfaces")
+        for iface in ifs:
+            if not isinstance(iface, dict):
+                parts.append(_ssot_md_yaml_block(iface))
+                continue
+            name = iface.get("name") or "(unnamed)"
+            parts.append(f"#### {name}")
+            meta = {k: v for k, v in iface.items() if k != "ports"}
+            inner = _ssot_md_definition_list(meta)
+            if inner:
+                parts.append(inner)
+            ports = iface.get("ports")
+            if isinstance(ports, list) and ports:
+                cols = [
+                    ("name", "Name"),
+                    ("width", "Width"),
+                    ("direction", "Direction"),
+                    ("description", "Description"),
+                ]
+                parts.append(_ssot_md_dict_table(ports, cols))
+    leftover = {k: v for k, v in data.items()
+                if k not in ("clock_domains", "resets", "interfaces")}
+    if leftover:
+        parts.append(_ssot_md_definition_list(leftover))
+    return "\n\n".join(p for p in parts if p)
+
+
+def _ssot_md_section_features(data: Any) -> str:
+    if not isinstance(data, list):
+        return _ssot_md_yaml_block(data)
+    parts: list[str] = []
+    for feat in data:
+        if not isinstance(feat, dict):
+            parts.append(_ssot_md_yaml_block(feat))
+            continue
+        name = feat.get("name") or "(unnamed feature)"
+        parts.append(f"### {name}")
+        rest = {k: v for k, v in feat.items() if k != "name"}
+        inner = _ssot_md_definition_list(rest)
+        if inner:
+            parts.append(inner)
+    return "\n\n".join(parts)
+
+
+def _ssot_md_section_registers(data: Any) -> str:
+    if not isinstance(data, dict):
+        return _ssot_md_yaml_block(data)
+    parts: list[str] = []
+    cfg = data.get("config")
+    if isinstance(cfg, dict) and cfg:
+        parts.append("### Config")
+        parts.append(_ssot_md_definition_list(cfg))
+    reg_list = data.get("register_list")
+    if isinstance(reg_list, list) and reg_list:
+        parts.append("### Register List")
+        cols = [
+            ("name", "Name"),
+            ("offset", "Offset"),
+            ("access", "Access"),
+            ("reset", "Reset"),
+            ("description", "Description"),
+        ]
+        parts.append(_ssot_md_dict_table(reg_list, cols))
+        for reg in reg_list:
+            if not isinstance(reg, dict):
+                continue
+            fields = reg.get("fields")
+            if isinstance(fields, list) and fields:
+                parts.append(f"#### {reg.get('name') or '(unnamed reg)'} — fields")
+                parts.append(_ssot_md_auto_table(fields))
+    leftover = {k: v for k, v in data.items() if k not in ("config", "register_list")}
+    if leftover:
+        parts.append(_ssot_md_definition_list(leftover))
+    return "\n\n".join(p for p in parts if p)
+
+
+def _ssot_md_section_generic(data: Any) -> str:
+    """Fallback renderer for arbitrary nested structures."""
+    if data is None:
+        return ""
+    if isinstance(data, dict):
+        inner = _ssot_md_definition_list(data)
+        return inner or _ssot_md_yaml_block(data)
+    if isinstance(data, list):
+        if not data:
+            return ""
+        if all(isinstance(r, dict) for r in data):
+            table = _ssot_md_auto_table(data)
+            if table:
+                return table
+        if all(_ssot_md_is_short_scalar(r) for r in data):
+            return "\n".join(f"- {_ssot_md_scalar(r)}" for r in data)
+        return _ssot_md_yaml_block(data)
+    if _ssot_md_is_short_scalar(data):
+        return _ssot_md_scalar(data)
+    return _ssot_md_yaml_block(data)
+
+
+_SSOT_MD_SECTION_RENDERERS: dict = {
+    "top_module": _ssot_md_section_top_module,
+    "sub_modules": _ssot_md_section_sub_modules,
+    "parameters": _ssot_md_section_parameters,
+    "io_list": _ssot_md_section_io_list,
+    "features": _ssot_md_section_features,
+    "registers": _ssot_md_section_registers,
+}
+
+
+def _ssot_section_is_empty(value: Any) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, (list, dict, str)) and not value:
+        return True
+    return False
+
+
+def _ssot_to_markdown(data: dict, ip: str) -> str:
+    from datetime import datetime, timezone
+
+    top = data.get("top_module") if isinstance(data, dict) else None
+    version = ""
+    if isinstance(top, dict):
+        version = str(top.get("version") or "").strip()
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    lines: list[str] = []
+    lines.append(f"# {ip}")
+    lines.append("")
+    lines.append(f"> SSOT specification — generated from `{ip}/yaml/{ip}.ssot.yaml`")
+    lines.append(f"> Export timestamp: {ts}")
+    lines.append(f"> Source SSOT version: {version or 'unspecified'}")
+    lines.append("")
+
+    if not isinstance(data, dict):
+        lines.append(_ssot_md_yaml_block(data))
+        return "\n".join(lines)
+
+    for key, label in _SSOT_EXPORT_SECTION_ORDER:
+        if key not in data:
+            continue
+        value = data.get(key)
+        if _ssot_section_is_empty(value):
+            continue
+        lines.append(f"## {label}")
+        lines.append("")
+        renderer = _SSOT_MD_SECTION_RENDERERS.get(key, _ssot_md_section_generic)
+        try:
+            body = renderer(value)
+        except Exception as exc:
+            body = f"_(render error: {exc})_\n\n" + _ssot_md_yaml_block(value)
+        if body:
+            lines.append(body)
+        lines.append("")
+
+    known = {key for key, _ in _SSOT_EXPORT_SECTION_ORDER}
+    extras = [k for k in data.keys() if k not in known]
+    if extras:
+        lines.append("## Other Sections")
+        lines.append("")
+        for key in extras:
+            value = data.get(key)
+            if _ssot_section_is_empty(value):
+                continue
+            lines.append(f"### {key}")
+            lines.append("")
+            lines.append(_ssot_md_section_generic(value))
+            lines.append("")
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _ssot_to_html(md_text: str, ip: str) -> str:
+    import markdown as _mod  # type: ignore
+
+    html_body = _mod.markdown(
+        md_text,
+        extensions=["tables", "fenced_code", "toc"],
+    )
+    css = (
+        "body { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", "
+        "system-ui, sans-serif; max-width: 980px; margin: 2em auto; "
+        "padding: 0 1em; line-height: 1.55; color: #222; } "
+        "h1, h2, h3 { border-bottom: 1px solid #eee; padding-bottom: .2em; } "
+        "table { border-collapse: collapse; margin: .8em 0; } "
+        "th, td { border: 1px solid #ddd; padding: .35em .6em; "
+        "text-align: left; vertical-align: top; } "
+        "th { background: #f7f7f7; } "
+        "code, pre { font-family: \"SF Mono\", Menlo, Consolas, monospace; "
+        "font-size: .92em; } "
+        "pre { background: #f6f8fa; padding: .8em; border-radius: 4px; "
+        "overflow-x: auto; } "
+        "blockquote { border-left: 3px solid #ccc; margin: 1em 0; "
+        "padding: .3em .8em; color: #555; background: #fafafa; }"
+    )
+    safe_ip = str(ip).replace("<", "&lt;").replace(">", "&gt;")
+    return (
+        "<!DOCTYPE html>\n"
+        "<html><head><meta charset=\"utf-8\">"
+        f"<title>{safe_ip} — SSOT</title>"
+        f"<style>{css}</style></head><body>"
+        f"{html_body}"
+        "</body></html>"
+    )
+
+
+def _ssot_docx_set_mono(run: Any) -> None:
+    try:
+        run.font.name = "Consolas"
+    except Exception:
+        pass
+
+
+def _ssot_docx_add_kv(doc: Any, key: str, value: Any) -> None:
+    para = doc.add_paragraph()
+    bold = para.add_run(f"{str(key).replace('_', ' ')}: ")
+    bold.bold = True
+    para.add_run(_ssot_md_scalar(value))
+
+
+def _ssot_docx_yaml_block(doc: Any, value: Any) -> None:
+    import yaml as _yaml  # type: ignore
+
+    try:
+        dumped = _yaml.safe_dump(value, allow_unicode=True, sort_keys=False).rstrip()
+    except Exception as exc:
+        dumped = f"(unable to render: {exc})"
+    para = doc.add_paragraph()
+    run = para.add_run(dumped)
+    _ssot_docx_set_mono(run)
+
+
+def _ssot_docx_list_of_dicts(doc: Any, rows: list) -> None:
+    if not rows:
+        return
+    keys: list[str] = []
+    seen: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        for key in row.keys():
+            if key not in seen:
+                seen.add(key)
+                keys.append(str(key))
+    if not keys:
+        _ssot_docx_yaml_block(doc, rows)
+        return
+    table = doc.add_table(rows=1 + len(rows), cols=len(keys))
+    try:
+        table.style = "Light Grid Accent 1"
+    except Exception:
+        pass
+    for col_idx, key in enumerate(keys):
+        cell = table.rows[0].cells[col_idx]
+        cell.text = key.replace("_", " ")
+        for run in cell.paragraphs[0].runs:
+            run.bold = True
+    for row_idx, row in enumerate(rows, start=1):
+        for col_idx, key in enumerate(keys):
+            raw = row.get(key) if isinstance(row, dict) else ""
+            if isinstance(raw, (list, dict)):
+                import yaml as _yaml  # type: ignore
+
+                text = _yaml.safe_dump(raw, allow_unicode=True, sort_keys=False).strip()
+            else:
+                text = _ssot_md_scalar(raw)
+            table.rows[row_idx].cells[col_idx].text = text
+
+
+def _ssot_docx_dict_block(doc: Any, data: dict) -> None:
+    if not isinstance(data, dict) or not data:
+        return
+    for key, value in data.items():
+        if _ssot_md_is_short_scalar(value):
+            _ssot_docx_add_kv(doc, str(key), value)
+        elif isinstance(value, str):
+            para = doc.add_paragraph()
+            bold = para.add_run(f"{str(key).replace('_', ' ')}:")
+            bold.bold = True
+            doc.add_paragraph(value)
+        elif isinstance(value, list) and value and all(isinstance(v, dict) for v in value):
+            para = doc.add_paragraph()
+            bold = para.add_run(f"{str(key).replace('_', ' ')}:")
+            bold.bold = True
+            _ssot_docx_list_of_dicts(doc, value)
+        elif isinstance(value, list) and all(_ssot_md_is_short_scalar(v) for v in value):
+            para = doc.add_paragraph()
+            bold = para.add_run(f"{str(key).replace('_', ' ')}: ")
+            bold.bold = True
+            para.add_run(", ".join(_ssot_md_scalar(v) for v in value))
+        elif isinstance(value, dict):
+            para = doc.add_paragraph()
+            bold = para.add_run(f"{str(key).replace('_', ' ')}:")
+            bold.bold = True
+            _ssot_docx_dict_block(doc, value)
+        else:
+            _ssot_docx_yaml_block(doc, value)
+
+
+def _ssot_docx_render_section(doc: Any, key: str, value: Any) -> None:
+    if key == "io_list" and isinstance(value, dict):
+        cd = value.get("clock_domains")
+        if cd:
+            doc.add_heading("Clock Domains", level=2)
+            if isinstance(cd, list) and cd and all(isinstance(r, dict) for r in cd):
+                _ssot_docx_list_of_dicts(doc, cd)
+            else:
+                _ssot_docx_yaml_block(doc, cd)
+        rst = value.get("resets")
+        if rst:
+            doc.add_heading("Resets", level=2)
+            if isinstance(rst, list) and rst and all(isinstance(r, dict) for r in rst):
+                _ssot_docx_list_of_dicts(doc, rst)
+            else:
+                _ssot_docx_yaml_block(doc, rst)
+        ifs = value.get("interfaces")
+        if isinstance(ifs, list):
+            doc.add_heading("Interfaces", level=2)
+            for iface in ifs:
+                if not isinstance(iface, dict):
+                    _ssot_docx_yaml_block(doc, iface)
+                    continue
+                doc.add_heading(str(iface.get("name") or "(unnamed)"), level=3)
+                meta = {k: v for k, v in iface.items() if k != "ports"}
+                _ssot_docx_dict_block(doc, meta)
+                ports = iface.get("ports")
+                if isinstance(ports, list) and ports:
+                    _ssot_docx_list_of_dicts(doc, ports)
+        leftover = {k: v for k, v in value.items()
+                    if k not in ("clock_domains", "resets", "interfaces")}
+        if leftover:
+            _ssot_docx_dict_block(doc, leftover)
+        return
+
+    if key == "registers" and isinstance(value, dict):
+        cfg = value.get("config")
+        if isinstance(cfg, dict) and cfg:
+            doc.add_heading("Config", level=2)
+            _ssot_docx_dict_block(doc, cfg)
+        reg_list = value.get("register_list")
+        if isinstance(reg_list, list) and reg_list:
+            doc.add_heading("Register List", level=2)
+            _ssot_docx_list_of_dicts(doc, reg_list)
+            for reg in reg_list:
+                if not isinstance(reg, dict):
+                    continue
+                fields = reg.get("fields")
+                if isinstance(fields, list) and fields:
+                    doc.add_heading(
+                        f"{reg.get('name') or '(unnamed reg)'} — fields",
+                        level=3,
+                    )
+                    _ssot_docx_list_of_dicts(doc, fields)
+        leftover = {k: v for k, v in value.items() if k not in ("config", "register_list")}
+        if leftover:
+            _ssot_docx_dict_block(doc, leftover)
+        return
+
+    if key == "features" and isinstance(value, list):
+        for feat in value:
+            if not isinstance(feat, dict):
+                _ssot_docx_yaml_block(doc, feat)
+                continue
+            doc.add_heading(str(feat.get("name") or "(unnamed feature)"), level=2)
+            rest = {k: v for k, v in feat.items() if k != "name"}
+            _ssot_docx_dict_block(doc, rest)
+        return
+
+    if isinstance(value, dict):
+        _ssot_docx_dict_block(doc, value)
+        return
+    if isinstance(value, list):
+        if value and all(isinstance(r, dict) for r in value):
+            _ssot_docx_list_of_dicts(doc, value)
+            return
+        if value and all(_ssot_md_is_short_scalar(r) for r in value):
+            for item in value:
+                doc.add_paragraph(_ssot_md_scalar(item), style="List Bullet")
+            return
+        _ssot_docx_yaml_block(doc, value)
+        return
+    if _ssot_md_is_short_scalar(value):
+        doc.add_paragraph(_ssot_md_scalar(value))
+        return
+    _ssot_docx_yaml_block(doc, value)
+
+
+def _ssot_to_docx(data: dict, ip: str, out_path: Path) -> None:
+    from datetime import datetime, timezone
+    from docx import Document  # type: ignore
+
+    doc = Document()
+    doc.add_heading(ip, level=0)
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    version = ""
+    if isinstance(data, dict):
+        top = data.get("top_module")
+        if isinstance(top, dict):
+            version = str(top.get("version") or "").strip()
+    intro = doc.add_paragraph()
+    intro.add_run(
+        f"SSOT specification — generated from {ip}/yaml/{ip}.ssot.yaml"
+    ).italic = True
+    meta = doc.add_paragraph()
+    meta.add_run(f"Export timestamp: {ts}\n").italic = True
+    meta.add_run(f"Source SSOT version: {version or 'unspecified'}").italic = True
+
+    if not isinstance(data, dict):
+        _ssot_docx_yaml_block(doc, data)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        doc.save(str(out_path))
+        return
+
+    for key, label in _SSOT_EXPORT_SECTION_ORDER:
+        if key not in data:
+            continue
+        value = data.get(key)
+        if _ssot_section_is_empty(value):
+            continue
+        doc.add_heading(label, level=1)
+        try:
+            _ssot_docx_render_section(doc, key, value)
+        except Exception as exc:
+            err = doc.add_paragraph()
+            err.add_run(f"(render error: {exc})").italic = True
+            _ssot_docx_yaml_block(doc, value)
+
+    known = {key for key, _ in _SSOT_EXPORT_SECTION_ORDER}
+    extras = [k for k in data.keys() if k not in known]
+    if extras:
+        doc.add_heading("Other Sections", level=1)
+        for key in extras:
+            value = data.get(key)
+            if _ssot_section_is_empty(value):
+                continue
+            doc.add_heading(str(key), level=2)
+            _ssot_docx_render_section(doc, key, value)
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    doc.save(str(out_path))
+
+
 # ── App factory ────────────────────────────────────────────────────
 def create_app():
     try:
@@ -9862,6 +10544,70 @@ def create_app():
             "errors": errors,
             "command": command,
         })
+
+    @app.get("/api/ssot/export")
+    async def api_ssot_export(ip: str, format: str = "md"):
+        """Export the canonical ssot yaml as md/docx/html for human review.
+
+        Reverse direction of /api/ssot/import/upload. Writes
+        <ip>/doc/<ip>_ssot.<ext> deterministically (yaml-walker, no LLM)
+        and streams it back via FileResponse with the right Content-Type
+        and a download filename.
+        """
+        fmt = (format or "md").strip().lower()
+        if fmt not in {"md", "docx", "html"}:
+            return JSONResponse({"error": f"invalid format {format!r}"}, status_code=400)
+        if not _valid_ip_name(ip):
+            return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
+        try:
+            data = _load_ssot_yaml(ip)
+        except FileNotFoundError:
+            return JSONResponse(
+                {"error": f"ssot yaml not found for ip {ip!r}"},
+                status_code=404,
+            )
+        except ValueError as exc:
+            return JSONResponse({"error": str(exc)}, status_code=400)
+
+        out_dir = PROJECT_ROOT / ip / "doc"
+        try:
+            out_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            return JSONResponse(
+                {"error": f"cannot create doc dir: {exc}"},
+                status_code=500,
+            )
+        out_path = out_dir / f"{ip}_ssot.{fmt}"
+
+        try:
+            if fmt == "md":
+                md_text = _ssot_to_markdown(data, ip)
+                out_path.write_text(md_text, encoding="utf-8")
+                media = "text/markdown; charset=utf-8"
+            elif fmt == "html":
+                md_text = _ssot_to_markdown(data, ip)
+                html_text = _ssot_to_html(md_text, ip)
+                out_path.write_text(html_text, encoding="utf-8")
+                media = "text/html; charset=utf-8"
+            else:
+                _ssot_to_docx(data, ip, out_path)
+                media = (
+                    "application/vnd.openxmlformats-officedocument."
+                    "wordprocessingml.document"
+                )
+        except Exception as exc:
+            return JSONResponse(
+                {"error": f"render failed: {exc}"},
+                status_code=500,
+            )
+
+        filename = f"{ip}_ssot.{fmt}"
+        return FileResponse(
+            str(out_path),
+            media_type=media,
+            filename=filename,
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
 
     def _handle_grill_me_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
