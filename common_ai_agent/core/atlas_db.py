@@ -546,6 +546,10 @@ class AtlasDB:
                 check_same_thread=False,
             )
             self._conn.row_factory = sqlite3.Row
+            # WAL mode allows concurrent reads + single queued writer (no reader/writer blocking).
+            # busy_timeout queues writers for up to 5 s instead of raising "database is locked".
+            self._conn.execute("PRAGMA journal_mode=WAL")
+            self._conn.execute("PRAGMA busy_timeout=5000")
         return self._conn
 
     def _execute(self, sql: str, parameters: tuple = ()) -> sqlite3.Cursor:
