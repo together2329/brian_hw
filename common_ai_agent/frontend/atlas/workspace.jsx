@@ -12391,7 +12391,25 @@ const DiffPanel = () => (
 // preview alongside (well, replacing) the chat feed via the main tab
 // strip. Same /api/file backend; Prism.js handles language detection
 // per the PRISM_LANG_MAP set up in index.html.
-const DeferredMarkdownPreview = ({ body }) => {
+const DocxFallbackPane = ({ path, ext }) => {
+  const sibling = (path || '').replace(/\.(docx|pptx|xlsx)$/i, '.md');
+  return (
+    <div style={{ padding: 24, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 12, lineHeight: 1.6 }}>
+      <div style={{ color: 'var(--fg)', fontSize: 14, fontWeight: 700, marginBottom: 8 }}>
+        .{(ext || '').toLowerCase()} preview not supported in-browser
+      </div>
+      <div>Office documents are stored byte-exact under <code>req/imports/originals/</code>. The SSOT importer auto-generates a <code>.md</code> sibling for previewing the text content.</div>
+      <div style={{ marginTop: 10 }}>
+        <a href={`/api/file/raw?path=${encodeURIComponent(path)}`} style={{ color: 'var(--accent)' }}>📥 download original</a>
+        {sibling !== path ? (
+          <> · try the auto-converted markdown: <code>{sibling}</code></>
+        ) : null}
+      </div>
+    </div>
+  );
+};
+
+const DeferredMarkdownPreview = ({ body, sourcePath = '' }) => {
   const nodeRef = React.useRef(null);
   const [html, setHtml] = React.useState('');
   const text = String(body || '');
@@ -12411,8 +12429,25 @@ const DeferredMarkdownPreview = ({ body }) => {
   }, [text]);
 
   React.useEffect(() => {
-    if (html && nodeRef.current) _postProcessMarkdownNode(nodeRef.current);
-  }, [html]);
+    if (!html || !nodeRef.current) return;
+    _postProcessMarkdownNode(nodeRef.current);
+    // Rewrite <img src="relative/path.png"> → /api/file/raw?path=<resolved>
+    // so embedded images from SSOT imports actually render in the preview
+    // pane (the raw src is a project-relative path the browser cannot
+    // fetch directly).
+    if (sourcePath) {
+      const baseDir = sourcePath.replace(/\/[^/]*$/, '');
+      nodeRef.current.querySelectorAll('img[src]').forEach(img => {
+        const src = img.getAttribute('src') || '';
+        if (!src || /^(https?:|data:|blob:|\/api\/)/.test(src)) return;
+        const rel = src.replace(/^\.\//, '');
+        const resolved = rel.startsWith('/') ? rel.slice(1)
+          : (baseDir ? `${baseDir}/${rel}` : rel);
+        img.setAttribute('src', `/api/file/raw?path=${encodeURIComponent(resolved)}`);
+        img.style.maxWidth = '100%';
+      });
+    }
+  }, [html, sourcePath]);
 
   if (!text.trim()) return <div className="md-preview-empty">empty markdown file</div>;
   if (!html) {
@@ -13405,8 +13440,15 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
   const ext = (path ? (path.split('.').pop() || '') : '').toLowerCase();
   const lang = (window.PRISM_LANG_MAP && window.PRISM_LANG_MAP[ext]) || 'none';
   const isMarkdown = ['md', 'markdown', 'mdown', 'mkdn'].includes(ext);
+  const isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg', 'tif', 'tiff', 'ico'].includes(ext);
+  const isPdf = ext === 'pdf';
+  const isDocxLike = ['docx', 'pptx', 'xlsx'].includes(ext);
+  const isBinary = isImage || isPdf || isDocxLike;
   const hasGlobPath = !!path && /[*?[\]{}]/.test(path);
-  const [resource, reloadPreview] = useAtlasAsyncResource('file', hasGlobPath ? '' : path);
+  // For binary files (images, pdf, docx) skip the text /api/file fetch —
+  // the body would just be garbled mojibake. The render branch below uses
+  // /api/file/raw directly.
+  const [resource, reloadPreview] = useAtlasAsyncResource('file', (hasGlobPath || isBinary) ? '' : path);
 
   // Auto-reload when the backend emits file_changed for THIS path.
   React.useEffect(() => {
@@ -13528,8 +13570,28 @@ const PreviewPane = ({ path, onClose, focusLine = 0 }) => {
           <div style={{ padding: 16, color: 'var(--fg-mute)', fontFamily: 'var(--code-font, var(--mono))', fontSize: 12 }}>
             loading {path}…
           </div>
+        ) : isImage ? (
+          <div style={{
+            padding: 16, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+            background: 'var(--bg-2)',
+          }}>
+            <img
+              src={`/api/file/raw?path=${encodeURIComponent(path)}&v=${resource.mtime || ''}`}
+              alt={path}
+              style={{ maxWidth: '100%', maxHeight: '90vh', background: '#fff', border: '1px solid var(--line)', borderRadius: 2 }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
+        ) : isPdf ? (
+          <iframe
+            src={`/api/file/raw?path=${encodeURIComponent(path)}#view=FitH`}
+            title={path}
+            style={{ width: '100%', height: '100%', border: 0, background: '#fff' }}
+          />
+        ) : isDocxLike ? (
+          <DocxFallbackPane path={path} ext={ext} />
         ) : isMarkdown ? (
-          <DeferredMarkdownPreview body={body} />
+          <DeferredMarkdownPreview body={body} sourcePath={path} />
         ) : hasBody ? (
           /* Foldable view: per-line gutter + nested <details> wraps
              from /api/fold-symbols. Verilog/SV and YAML get an AST

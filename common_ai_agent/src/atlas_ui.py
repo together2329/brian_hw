@@ -2145,6 +2145,35 @@ def create_app():
             "truncated": truncated, "content": content,
         })
 
+    @app.get("/api/file/raw")
+    async def api_file_raw(path: str):
+        """Serve a file's raw bytes with a guessed content-type.
+
+        Used by the PreviewPane and inline-markdown rendering to display
+        images (.png/.jpg/...) and other binary previews. Text files also
+        flow through here when the caller wants the un-decoded bytes.
+        """
+        target = _safe(path)
+        if target is None or not target.is_file():
+            return JSONResponse({"error": "not found"}, status_code=404)
+        ext = target.suffix.lower().lstrip(".")
+        mime = {
+            "png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
+            "gif": "image/gif", "webp": "image/webp", "bmp": "image/bmp",
+            "svg": "image/svg+xml", "tif": "image/tiff", "tiff": "image/tiff",
+            "ico": "image/x-icon", "pdf": "application/pdf",
+            "md": "text/markdown; charset=utf-8",
+            "txt": "text/plain; charset=utf-8",
+            "html": "text/html; charset=utf-8", "htm": "text/html; charset=utf-8",
+            "json": "application/json",
+            "yaml": "application/x-yaml", "yml": "application/x-yaml",
+        }.get(ext, "application/octet-stream")
+        try:
+            from fastapi.responses import FileResponse as _FR
+            return _FR(target, media_type=mime, filename=target.name)
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
     def _lint_ip_candidates(ip: str) -> list[Path]:
         clean = str(ip or "").strip().strip("/")
         if not clean:
