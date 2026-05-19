@@ -1126,7 +1126,9 @@ window.ModuleProgressPanel = function ModuleProgressPanel({ module }) {
 // the renderers expect. Falls back to the bundled mock if the
 // endpoint is unavailable or returns no clusters.
 function _fetchLiveSoc() {
-  return fetch('/api/soc').then(r => {
+  const scoped = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
+  const url = scoped ? `/api/soc?scope=${encodeURIComponent(scoped)}` : '/api/soc';
+  return fetch(url).then(r => {
     if (!r.ok) throw new Error('soc fetch failed');
     return r.json();
   }).then(d => {

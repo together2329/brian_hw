@@ -12970,12 +12970,13 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
   React.useEffect(() => {
     let alive = true;
     const refresh = () => {
-      fetch('/api/soc')
+      const scoped = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
+      const url = scoped ? `/api/soc?scope=${encodeURIComponent(scoped)}` : '/api/soc';
+      fetch(url)
         .then(r => r.ok ? r.json() : null)
         .then(d => {
           if (!alive || !d) return;
           const mods = (d.clusters || []).flatMap(c => Array.isArray(c.modules) ? c.modules : []);
-          const scoped = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
           const preferred = mods.find(m => scoped && (m.id === scoped || m.ip_dir === scoped)) || mods[0];
           setLiveStageStatus((preferred && preferred.status) || null);
         })
