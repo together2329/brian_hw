@@ -1384,6 +1384,8 @@ def _ensure_stage_artifact_version_for_job(
     return artifact
 
 
+_DEFAULT_SINGLE_MAIN_LOOP_PORT = 5601
+
 _DEFAULT_WORKER_PORTS: dict[str, int] = {
     # Canonical port map (matches doc/wiki/atlas-browser-control-runbook.md).
     # Used when no ATLAS_WORKER_URL_<SUFFIX> / WORKER_URL_<SUFFIX> env var is
@@ -1407,6 +1409,8 @@ _DEFAULT_WORKER_PORTS: dict[str, int] = {
 
 def _resolve_worker_url(workflow: str) -> str:
     """Same precedence as core.delegate_runner.HTTPWorkerDelegate."""
+    if os.environ.get("ATLAS_SINGLE_MAIN_LOOP") or _current_exec_mode() == "single-worker":
+        return f"http://127.0.0.1:{_DEFAULT_SINGLE_MAIN_LOOP_PORT}"
     if workflow:
         suffix = _workflow_env_suffix(workflow)
         for key in (
