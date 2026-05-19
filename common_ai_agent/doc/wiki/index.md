@@ -36,6 +36,7 @@ This section is additive; it does not replace the reading order below.
 | Orchestrator chat UX overhaul 2026-05-19 (backend persist, endpoint contract bug, frontend hydrate regression) | [[orchestrator-chat-ux]] |
 | UI resolution + theme matrix verify 2026-05-19 (12 cells across viewports/views/themes, WKWebView viewport-set limitation, single-fix proposal) | [[ui-resolution-matrix-20260519]] |
 | Flow fixes live verification 2026-05-19 (5 landed fixes — seed/workspace/cost/import/db-path — 0/5 PASS, evidence + follow-ups) | [[flow-fixes-verify-20260519]] |
+| Flow fixes R2 cross-workspace verification 2026-05-19 (5 follow-up fixes across 3 IPs — 2/5 PASS, frontend URL+chat-mount regress, backend seed/cost partial) | [[flow-fixes-r2-verify-20260519]] |
 
 Current practical rule: final product-flow claims should be validated through
 the same ATLAS UI/API/worker path users run, not only through headless runs.
