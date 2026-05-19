@@ -1120,7 +1120,7 @@ def run_react_agent_impl(
                     or os.environ.get("ATLAS_WORKER_NAME", "")
                     or os.environ.get("ACTIVE_WORKSPACE", "")
                     or os.environ.get("ATLAS_DEFAULT_WORKFLOW", "")
-                    or ""
+                    or "orchestrator"
                 )
                 with AtlasDB(_db_path) as _db:
                     _db.record_llm_call(

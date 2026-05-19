@@ -2953,6 +2953,7 @@ if __name__ == "__main__":
 
     if _args.workspace:
         _setup_workspace(_args.workspace)
+        os.environ['ATLAS_WORKFLOW'] = _args.workspace
 
     if getattr(config, 'GIT_VERSION_CONTROL_ENABLE', True):
         _ensure_git_repo()
