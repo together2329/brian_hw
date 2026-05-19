@@ -1,0 +1,25 @@
+# Runtime SQLite databases — never commit
+atlas.db
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Runtime artifacts
+.session/
+.omc/state/
+conversation_history.json
+**/orchestrator/trace.jsonl
