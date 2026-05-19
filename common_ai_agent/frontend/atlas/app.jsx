@@ -1218,6 +1218,11 @@ const App = () => {
   // that no longer exists.
   const [screen, setScreen] = React.useState(() => {
     try {
+      const params = new URLSearchParams(window.location.search || '');
+      const urlView = (params.get('view') || '').trim().toLowerCase();
+      if (urlView === 'pipeline' || urlView === 'architect') return urlView;
+      const urlIp = (params.get('ip') || params.get('ip_id') || '').trim();
+      if (urlIp && urlIp !== 'default') return 'pipeline';
       const saved = localStorage.atlasScreen;
       if (saved === 'pipeline' || saved === 'architect') return saved;
       return 'workspace';
