@@ -1031,7 +1031,7 @@ def _job_db_workspace_and_ip(
     if workspace is None:
         workspace = db.upsert_workspace(
             project_root.name or "default",
-            owner_user_id=str(job.get("db_user_id") or ""),
+            owner_user_id=str(job.get("db_user_id") or "") or "local-admin",
             local_path=str(project_root),
         )
         job["db_workspace_id"] = workspace["id"]
@@ -3624,6 +3624,10 @@ def register_jobs_routes(
             body.get("trigger_source") or "orchestrator_chat"
         ).strip()
         orchestrator_run_id_resolved = str(body.get("orchestrator_run_id") or "").strip()
+        # Chat seed = latest user message from the orchestrator chat. Plumbed
+        # through payload.user_seed by react_bridge so workers always see the
+        # user's concrete requirement, even when the LLM omits ``prompt``.
+        user_seed_text = str(body.get("user_seed") or "").strip()
 
         resolved = []
         for item in requested:
@@ -3706,6 +3710,13 @@ def register_jobs_routes(
                 stage_prompt += f"\n\n[Orchestrator chat context]\n{chat_context}"
             if prompt_text and prompt_text not in stage_prompt:
                 stage_prompt += f"\n\n[Orchestrator payload goal]\n{prompt_text}"
+            # Always inject the user's chat seed when present. This is the
+            # last-resort propagation path: even if the LLM forgets to pass
+            # ``prompt`` to dispatch_workflow, the worker still sees the
+            # concrete requirement (e.g. "8-entry async FIFO, top=beta_fifo")
+            # the user typed into the orchestrator chat.
+            if user_seed_text and user_seed_text not in stage_prompt:
+                stage_prompt += f"\n\n[USER REQUIREMENT]\n{user_seed_text}"
             stage_prompt += (
                 "\n\n[ATLAS RUN POLICY]\n"
                 f"- run_mode: {run_mode_resolved}\n"
