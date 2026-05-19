@@ -22,4 +22,7 @@ __pycache__/
 .session/
 .omc/state/
 conversation_history.json
+full_conversation.json
+**/conversation.json
+**/full_conversation.json
 **/orchestrator/trace.jsonl
