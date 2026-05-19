@@ -73,6 +73,26 @@
   --enh-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+/* ── Enhancement tokens — Light-mode overrides ───────────────────────────
+   Swap dark bg/fg/line tokens; keep accent/status colors identical so
+   pipeline stage badges (amber/green/cyan/red) stay visually consistent.  */
+html[data-theme="light"] {
+  --enh-bg:       #fafbfc;
+  --enh-bg-2:     #f0f2f5;
+  --enh-bg-3:     #e8ecf0;
+  --enh-fg:       #1a1d22;
+  --enh-fg-mute:  #5a6272;
+  --enh-fg-dim:   #8892a4;
+  --enh-line:     rgba(0,0,0,0.10);
+  --enh-line-2:   rgba(0,0,0,0.16);
+  --enh-ok:       #2e9e58;
+  --enh-err:      #d63b3b;
+  --enh-warn:     #c48c00;
+  --enh-cyan:     #1a7fa0;
+  --enh-accent:   #c48c00;
+  --enh-mag:      #8b4fbf;
+}
+
 [data-font="mono"] {
   /* Opt-in to the old all-monospace EDA-workstation look */
   --mono: var(--mono-base);
