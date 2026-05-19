@@ -12770,12 +12770,26 @@ def create_app():
     # Static assets — jsx, css, js, fonts (registered LAST so it doesn't
     # shadow the explicit routes above). Disable client-side caching so
     # a normal page refresh always picks up new JSX/CSS.
+    import mimetypes as _mimetypes
+    _JS_CONTENT_TYPE = "application/javascript; charset=utf-8"
+    _MIME_OVERRIDES: dict[str, str] = {
+        ".js": _JS_CONTENT_TYPE,
+        ".jsx": _JS_CONTENT_TYPE,
+        ".mjs": _JS_CONTENT_TYPE,
+    }
+
     class _NoCacheStatic(StaticFiles):
         async def get_response(self, path, scope):
             resp = await super().get_response(path, scope)
             resp.headers["Cache-Control"] = "no-store, max-age=0"
-            if str(path).endswith(".js"):
-                resp.headers["Content-Type"] = "application/javascript; charset=utf-8"
+            p = str(path)
+            ext = p[p.rfind("."):] if "." in p else ""
+            if ext in _MIME_OVERRIDES:
+                resp.headers["Content-Type"] = _MIME_OVERRIDES[ext]
+            else:
+                guessed = _mimetypes.guess_type(p)[0]
+                if guessed and resp.headers.get("Content-Type", "").startswith("text/plain"):
+                    resp.headers["Content-Type"] = guessed
             return resp
 
     app.mount("/", _NoCacheStatic(directory=str(FRONTEND), html=False),
