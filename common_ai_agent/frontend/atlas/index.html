@@ -124,9 +124,13 @@
        handler instead of the sanitized "Script error." string.
        If unpkg itself is unreachable, vendor these locally under
        frontend/atlas/vendor/ and switch the src= paths. -->
-  <script crossorigin="anonymous" src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
-  <script crossorigin="anonymous" src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
-  <script crossorigin="anonymous" src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+  <!-- Vendored locally (frontend/atlas/vendor/) — unpkg.com was unreachable
+       from Windows corporate networks, breaking the entire React app with
+       a sanitized "Script error." in the global error banner. Local copies
+       guarantee the JSX runtime always loads. -->
+  <script src="vendor/react.development.js?v=18.3.1"></script>
+  <script src="vendor/react-dom.development.js?v=18.3.1"></script>
+  <script src="vendor/babel.min.js?v=7.29.0"></script>
   <!-- Markdown renderer for agent replies (code fences, lists, links…). -->
   <script crossorigin="anonymous" src="https://unpkg.com/marked@9/marked.min.js"></script>
   <!-- FSM/state diagrams. workspace.jsx renders through mermaid.render()
@@ -137,13 +141,13 @@
        Without it, agent text containing raw HTML (relayed from a
        malicious file read, web fetch, or grep result) would inject via
        dangerouslySetInnerHTML and execute. -->
-  <script crossorigin="anonymous" src="https://unpkg.com/dompurify@3.1.6/dist/purify.min.js"></script>
+  <script src="vendor/purify.min.js?v=3.1.6"></script>
 
   <!-- Syntax highlighting for the file preview pane (Prism core +
        autoloader → loads language grammars on demand from CDN). -->
-  <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism-tomorrow.css">
-  <script crossorigin="anonymous" src="https://unpkg.com/prismjs@1.29.0/components/prism-core.min.js"></script>
-  <script crossorigin="anonymous" src="https://unpkg.com/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <link rel="stylesheet" href="vendor/prism-tomorrow.css?v=1.29.0">
+  <script src="vendor/prism-core.min.js?v=1.29.0"></script>
+  <script src="vendor/prism-autoloader.min.js?v=1.29.0"></script>
   <script>
     // Map file extension → Prism language id. Covers what Atlas
     // actually opens (RTL/SV, YAML, Python, MD, JSON, shell, etc.).
