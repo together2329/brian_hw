@@ -2480,11 +2480,16 @@ def register_jobs_routes(
         return _pipeline_session_prefix_for_owner(_request_username(request), ip, pipeline_id)
 
     def _assert_ip_access(db_user_id: str, ip: str) -> bool:
-        """Return True if db_user_id owns or has been granted access to ip.
+        """Return True if db_user_id may access ip.
+
+        An IP is owned by the user whose workspace holds the earliest
+        workflow_run for that IP name. If no workflow_run exists yet the IP
+        is unclaimed and any authenticated user may claim it. If workflow_runs
+        exist, the requesting user must be the owner of the workspace that
+        holds those runs, or have an explicit ip_permissions grant.
 
         Only enforced when multi-user mode is on and the request carries a real
-        user identity (not empty / local-admin). Returns True unconditionally in
-        single-user deployments so existing single-user workflows are unaffected.
+        user identity (not empty / local-admin).
         """
         if not _multi_user_enabled():
             return True
@@ -2495,22 +2500,40 @@ def register_jobs_routes(
             from core.atlas_db import AtlasDB
             with AtlasDB(_atlas_job_db_path(pr)) as _db:
                 canonical = _canonical_user_id(_db, db_user_id) or db_user_id
-                rows = _db._fetchall(
+                # Check explicit permission grant first (covers shared IPs)
+                grant = _db._fetchone(
                     """
-                    SELECT i.id FROM ip_blocks i
-                      JOIN workspaces w ON w.id = i.workspace_id
-                     WHERE w.owner_user_id = ? AND i.ip_name = ?
-                    UNION ALL
-                    SELECT i.id FROM ip_permissions p
+                    SELECT p.id FROM ip_permissions p
                       JOIN ip_blocks i ON i.id = p.ip_id
                      WHERE p.grantee_user_id = ?
                        AND i.ip_name = ?
                        AND (p.expires_at IS NULL OR p.expires_at > ?)
                     LIMIT 1
                     """,
-                    (canonical, ip, canonical, ip, __import__("time").time()),
+                    (canonical, ip, __import__("time").time()),
                 )
-                return len(rows) > 0
+                if grant is not None:
+                    return True
+                # Find the workspace that owns the earliest workflow_run for
+                # this IP. That workspace's owner is the de-facto IP owner.
+                first_run = _db._fetchone(
+                    """
+                    SELECT w.owner_user_id
+                      FROM workflow_runs wr
+                      JOIN ip_blocks i ON i.id = wr.ip_id
+                      JOIN workspaces w ON w.id = wr.workspace_id
+                     WHERE i.ip_name = ?
+                       AND w.owner_user_id != ''
+                     ORDER BY wr.started_at ASC
+                     LIMIT 1
+                    """,
+                    (ip,),
+                )
+                if first_run is None:
+                    # No workflow_run yet — IP is unclaimed, allow access
+                    return True
+                ip_owner = str(first_run["owner_user_id"] or "")
+                return ip_owner == canonical
         except Exception:
             return True
 
