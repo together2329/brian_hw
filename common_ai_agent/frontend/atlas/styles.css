@@ -298,7 +298,7 @@ html[data-theme="light"] {
    Shared primitives
    ────────────────────────────────────────────── */
 .app {
-  --atlas-topbar-h: 50px; /* dir-switcher row 1 (25px) + row 2 nav group (25px) */
+  --atlas-topbar-h: 44px; /* dir-switcher 2 rows × 22px, tight to free vertical space for chat input */
   font-family: var(--mono);
   background: var(--bg);
   color: var(--fg);
@@ -426,8 +426,9 @@ html[data-theme="light"] {
   align-items: center;
   justify-content: flex-start;
   gap: 3px;
+  align-content: flex-start;
   min-height: var(--atlas-topbar-h);
-  padding: 2px 4px;
+  padding: 1px 4px;
   box-sizing: border-box;
   border-bottom: 1px solid var(--line);
   background: var(--panel);
