@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "blocker": "db_identity_ip/yaml/db_identity_ip.ssot.yaml",
+  "created_at": "2026-05-19T10:50:08Z",
+  "headline": "[ssot-rtl] blocked: SSOT not found",
+  "ip": "db_identity_ip",
+  "message": "[ssot-rtl] blocked: SSOT not found at db_identity_ip/yaml/db_identity_ip.ssot.yaml\nRun /new-ip db_identity_ip, approve db_identity_ip, and /to-ssot db_identity_ip first.",
+  "metadata": {},
+  "returncode": 2,
+  "runs": [],
+  "stage": "ssot-rtl",
+  "status": "blocked",
+  "workflow": "rtl-gen"
+}

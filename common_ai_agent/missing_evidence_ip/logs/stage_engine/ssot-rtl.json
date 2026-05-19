@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "blocker": "missing_evidence_ip/yaml/missing_evidence_ip.ssot.yaml",
+  "created_at": "2026-05-19T10:50:14Z",
+  "headline": "[ssot-rtl] blocked: SSOT not found",
+  "ip": "missing_evidence_ip",
+  "message": "[ssot-rtl] blocked: SSOT not found at missing_evidence_ip/yaml/missing_evidence_ip.ssot.yaml\nRun /new-ip missing_evidence_ip, approve missing_evidence_ip, and /to-ssot missing_evidence_ip first.",
+  "metadata": {},
+  "returncode": 2,
+  "runs": [],
+  "stage": "ssot-rtl",
+  "status": "blocked",
+  "workflow": "rtl-gen"
+}

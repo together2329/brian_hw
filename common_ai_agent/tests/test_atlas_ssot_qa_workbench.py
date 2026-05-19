@@ -117,3 +117,60 @@ def test_ssot_import_upload_saves_attachment_and_returns_import_command(tmp_path
     saved = tmp_path / payload["paths"][0]
     assert saved.is_file()
     assert "AXI slave" in saved.read_text(encoding="utf-8")
+
+
+def test_ssot_qa_sessions_list_does_not_parse_ssot_yaml(tmp_path, monkeypatch):
+    import yaml
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    ip = "first_access_heavy"
+    session_dir = tmp_path / ".session" / "default" / ip / "ssot-gen"
+    session_dir.mkdir(parents=True)
+    (session_dir / "state.json").write_text(
+        json.dumps(
+            {
+                "ip": ip,
+                "status": "draft",
+                "approved": False,
+                "updated_at": 1,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (session_dir / "qa.json").write_text(
+        json.dumps(
+            {
+                "items": [
+                    {"decision_key": "purpose", "status": "approved", "answer": "DMA engine."},
+                    {"decision_key": "register_map", "status": "pending", "answer": ""},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.parent.mkdir(parents=True)
+    ssot_path.write_text("custom:\n  atlas_decisions:\n    purpose: should not be parsed\n", encoding="utf-8")
+
+    class ParseForbidden(BaseException):
+        pass
+
+    def forbid_yaml_parse(*_args, **_kwargs):
+        raise ParseForbidden("sessions list parsed the SSOT YAML")
+
+    client = TestClient(atlas_ui.create_app())
+    _register(client)
+    monkeypatch.setattr(yaml, "safe_load", forbid_yaml_parse)
+
+    response = client.get("/api/ssot/qa/sessions")
+
+    assert response.status_code == 200, response.text
+    row = next(item for item in response.json()["sessions"] if item["ip"] == ip)
+    assert row["summary"] == {"total": 2, "approved": 1, "pending": 1}
+    assert row["status"] == "draft"

@@ -701,6 +701,8 @@ def create_app():
                 msg = str(cur).lower()
                 if "disconnect" in msg or "websocket is not connected" in msg:
                     return True
+            if cls_name == "AttributeError" and "transfer_data_task" in str(cur):
+                return True
             cur = getattr(cur, "__cause__", None) or getattr(cur, "__context__", None)
         return False
 
@@ -7471,22 +7473,33 @@ def create_app():
                     state = {}
             if not state:
                 state = _load_ssot_state(ip)
-            view = _ssot_qa_view(ip, session=session)
-            summary = view.get("summary") if isinstance(view.get("summary"), dict) else {}
+            # Keep the sessions list cheap: it is polled during first page
+            # load and should never parse every IP's SSOT YAML. Some generated
+            # drafts can be very large or malformed enough for PyYAML to hold
+            # the single uvicorn event loop for seconds. The detailed SSOT
+            # pane still calls _ssot_qa_view() for one selected IP.
+            qa_items = _load_ssot_qa_items(ip, session)
+            approved = sum(
+                1 for item in qa_items
+                if _status_group(str(item.get("status") or "")) == "approved"
+                or str(item.get("answer") or "").strip()
+            )
+            pending = max(0, len(qa_items) - approved)
+            qa_path = _ssot_qa_path(ip, session)
             sessions.append({
                 "session": session,
                 "owner": "/".join(parts[:-2]),
                 "ip": ip,
                 "workflow": "ssot-gen",
-                "status": state.get("status") or view.get("state_status") or "draft",
-                "approved": bool(state.get("approved") or view.get("approved")),
+                "status": state.get("status") or "draft",
+                "approved": bool(state.get("approved")),
                 "summary": {
-                    "total": int(summary.get("total") or 0),
-                    "approved": int(summary.get("approved") or 0),
-                    "pending": int(summary.get("pending") or 0),
+                    "total": approved + pending,
+                    "approved": approved,
+                    "pending": pending,
                 },
                 "updated_at": max(mtimes) if mtimes else float(state.get("updated_at") or 0),
-                "qa_path": view.get("path") or "",
+                "qa_path": str(qa_path.relative_to(PROJECT_ROOT)) if qa_path.exists() else "",
             })
         sessions.sort(key=lambda row: float(row.get("updated_at") or 0), reverse=True)
         return {"sessions": sessions, "count": len(sessions)}
