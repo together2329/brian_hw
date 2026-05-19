@@ -131,7 +131,7 @@ const CovStatsWidget = ({ summary, dut, onRefresh, lastRefresh }) => {
         <span
           onClick={onRefresh}
           title="reload coverage.info"
-          style={{ marginLeft: 8, cursor: 'pointer', fontSize: 11, color: 'var(--accent)' }}
+          style={{ marginLeft: 8, cursor: 'pointer', fontSize: 'var(--ui-control-font-size)', color: 'var(--accent)' }}
         >↻ refresh</span>
       </div>
       <div style={{ padding: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
@@ -140,7 +140,7 @@ const CovStatsWidget = ({ summary, dut, onRefresh, lastRefresh }) => {
           <div style={{ fontSize: 22, fontWeight: 600, fontFamily: 'var(--mono)', marginTop: 2 }}>
             {t ? fmt(t.lines.pct) : '—'}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--fg-mute)', marginTop: 2 }}>
+          <div style={{ fontSize: 'var(--ui-control-font-size)', color: 'var(--fg-mute)', marginTop: 2 }}>
             {t ? `${t.lines.hit} / ${t.lines.total}` : 'no data'}
           </div>
           <div style={{ marginTop: 6 }}>
@@ -152,7 +152,7 @@ const CovStatsWidget = ({ summary, dut, onRefresh, lastRefresh }) => {
           <div style={{ fontSize: 22, fontWeight: 600, fontFamily: 'var(--mono)', marginTop: 2 }}>
             {t ? fmt(t.branches.pct) : '—'}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--fg-mute)', marginTop: 2 }}>
+          <div style={{ fontSize: 'var(--ui-control-font-size)', color: 'var(--fg-mute)', marginTop: 2 }}>
             {t ? `${t.branches.hit} / ${t.branches.total}` : 'no data'}
           </div>
           <div style={{ marginTop: 6 }}>
@@ -192,7 +192,7 @@ const CovModelWidget = ({ snapshot }) => {
         <div style={{ fontSize: 22, fontWeight: 600, fontFamily: 'var(--mono)', marginTop: 2 }}>
           {data ? fmtPct(data.pct) : '—'}
         </div>
-        <div style={{ fontSize: 11, color: 'var(--fg-mute)', marginTop: 2 }}>
+        <div style={{ fontSize: 'var(--ui-control-font-size)', color: 'var(--fg-mute)', marginTop: 2 }}>
           {data ? `${data.hit || 0} / ${data.total || 0}` : 'no SSOT model bins'}
         </div>
         <div style={{ marginTop: 6, height: 6, background: 'var(--bg-2)', borderRadius: 2, overflow: 'hidden' }}>
@@ -287,7 +287,7 @@ const CovFileList = ({ summary, activeFile, onSelect, onCollapse }) => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{short}</span>
                 <span style={{
-                  fontSize: 11,
+                  fontSize: 'var(--ui-control-font-size)',
                   color: pct >= 80 ? '#3fb950' : pct >= 50 ? '#d4a72c' : '#f85149',
                   marginLeft: 8,
                 }}>{pct.toFixed(1)}%</span>
@@ -405,7 +405,7 @@ const CovGapNav = ({ annotated, activePath, onJump, onCollapse }) => {
             onClick={() => onJump(u.ln)}
             style={{
               padding: '4px 12px', cursor: 'pointer',
-              fontSize: 11, fontFamily: 'var(--mono)',
+              fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)',
               borderBottom: '1px solid var(--line)',
             }}
             onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-2)'}
@@ -454,7 +454,7 @@ const CovToggleWidget = ({ toggle }) => {
           <div style={{ fontSize: 22, fontWeight: 600, fontFamily: 'var(--mono)', marginTop: 2 }}>
             {toggle.pct.toFixed(2)}%
           </div>
-          <div style={{ fontSize: 11, color: 'var(--fg-mute)', marginTop: 2 }}>
+          <div style={{ fontSize: 'var(--ui-control-font-size)', color: 'var(--fg-mute)', marginTop: 2 }}>
             {toggle.toggled_bits} / {toggle.total_bits}
           </div>
         </div>
@@ -472,7 +472,7 @@ const CovToggleWidget = ({ toggle }) => {
           {top.map((s) => (
             <div key={s.scope} style={{
               display: 'grid', gridTemplateColumns: '50px 1fr',
-              padding: '4px 12px', fontSize: 11, fontFamily: 'var(--mono)',
+              padding: '4px 12px', fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)',
             }}>
               <span style={{
                 textAlign: 'right', paddingRight: 6,
@@ -774,7 +774,7 @@ window.Coverage = () => {
             rel="noopener noreferrer"
             title="open genhtml report in a new tab"
             style={{
-              position: 'absolute', top: 8, right: 12, fontSize: 11,
+              position: 'absolute', top: 8, right: 12, fontSize: 'var(--ui-control-font-size)',
               color: 'var(--accent)', fontFamily: 'var(--mono)',
               textDecoration: 'none',
             }}
@@ -833,7 +833,7 @@ window.Coverage = () => {
           position: 'absolute', bottom: 16, right: 16, zIndex: 50,
           background: 'rgba(248,81,73,0.15)', border: '1px solid #f85149',
           color: '#f85149', padding: '8px 12px', borderRadius: 4,
-          fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 400,
+          fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 400,
         }}>
           ⚠ {error}
           <span

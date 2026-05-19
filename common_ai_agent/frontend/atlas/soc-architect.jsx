@@ -2777,7 +2777,7 @@ window.SocArchitect = function SocArchitect() {
               );
             })}
             {treeQuery && treeMatches.length === 0 && (
-              <div style={{ padding: '12px 14px', fontSize: 11,
+              <div style={{ padding: '12px 14px', fontSize: 'var(--ui-control-font-size)',
                             color: 'var(--fg-mute)', fontStyle: 'italic' }}>
                 no IPs match "{treeQuery}"
               </div>
@@ -3802,7 +3802,7 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
 
       <div ref={feedRef} style={{ flex: 1, overflow: 'auto', padding: 14, fontSize: 12.5 }}>
         {feed.length === 0 && (
-          <div style={{ color: 'var(--fg-mute)', fontSize: 11, fontStyle: 'italic', lineHeight: 1.6 }}>
+          <div style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', fontStyle: 'italic', lineHeight: 1.6 }}>
             {isPipelineChat
               ? 'Orchestrator ready. Ask for status, run to green, retry a stage, or create an IP.'
               : 'architect commands: /move cortexa15_0 left, /connect cortexa15_0/M_ACE cci550/S0_ACE ACE, /add counter, /delete counter, /layout.'}

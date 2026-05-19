@@ -38,7 +38,7 @@ const CocotbTreeView = ({ data, ipName, onOpenFile }) => {
   if (!data) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                     color: 'var(--fg-mute)', fontSize: 11, fontStyle: 'italic' }}>
+                     color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', fontStyle: 'italic' }}>
         loading cocotb env…
       </div>
     );
@@ -76,7 +76,7 @@ const CocotbTreeView = ({ data, ipName, onOpenFile }) => {
             onClick={() => onOpenFile && onOpenFile(f.path, 0)}
             style={{
               padding: '1px 4px 1px 22px', cursor: 'pointer',
-              color: 'var(--fg)', fontSize: 11,
+              color: 'var(--fg)', fontSize: 'var(--ui-control-font-size)',
             }}
             title={f.path}
             onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-2)'}
@@ -234,7 +234,7 @@ const SimSummaryPanel = ({ ipName, data, loading, error, cocotbData, onOpenFile,
           <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
             Sim Summary
           </div>
-          <div style={{ color: 'var(--fg-mute)', fontSize: 11, marginTop: 2, fontFamily: 'var(--mono)' }}>
+          <div style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', marginTop: 2, fontFamily: 'var(--mono)' }}>
             {ipName || '(no IP selected)'} · TC pass/fail
           </div>
         </div>
@@ -254,7 +254,7 @@ const SimSummaryPanel = ({ ipName, data, loading, error, cocotbData, onOpenFile,
         <div style={{
           padding: '8px 14px', borderBottom: '1px solid var(--err)',
           background: 'color-mix(in oklch, var(--err) 10%, transparent)',
-          color: 'var(--err)', fontFamily: 'var(--mono)', fontSize: 11,
+          color: 'var(--err)', fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)',
         }}>{error}</div>
       )}
 
@@ -268,7 +268,7 @@ const SimSummaryPanel = ({ ipName, data, loading, error, cocotbData, onOpenFile,
             style={{ padding: '2px 8px', fontSize: 10, fontFamily: 'var(--mono)' }}
           >{p.split('/').slice(-2).join('/')}</button>
         )) : (
-          <span style={{ color: 'var(--fg-mute)', fontSize: 11, fontFamily: 'var(--mono)' }}>no sim evidence files resolved</span>
+          <span style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)' }}>no sim evidence files resolved</span>
         )}
       </div>
 
@@ -292,7 +292,7 @@ const SimSummaryPanel = ({ ipName, data, loading, error, cocotbData, onOpenFile,
                   gap: 0, padding: '8px 10px', borderBottom: i === rows.length - 1 ? 'none' : '1px solid var(--line)',
                   background: i % 2 ? 'var(--bg)' : 'transparent',
                   cursor: r.file ? 'pointer' : 'default', alignItems: 'center',
-                  fontSize: 11,
+                  fontSize: 'var(--ui-control-font-size)',
                 }}
                 title={r.file ? `${r.file}:${r.line || 0}` : ''}
               >
@@ -340,7 +340,7 @@ const TBHierarchyView = ({ h, onOpenFile }) => {
             onClick={() => onOpenFile && x.file && onOpenFile(x.file, x.line || 0)}
             style={{
               padding: '1px 4px 1px 12px', cursor: 'pointer',
-              fontSize: 11, color: color || 'var(--fg)',
+              fontSize: 'var(--ui-control-font-size)', color: color || 'var(--fg)',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}
             title={`${x.file}:${x.line}` + (x.bases?.length ? ` extends ${x.bases.join(', ')}` : '')}
@@ -503,7 +503,7 @@ const SourceViewer = ({ lines, cursor, path }) => {
   if (!lines || lines.length === 0) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                     color: 'var(--fg-mute)', fontSize: 11, fontStyle: 'italic' }}>
+                     color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', fontStyle: 'italic' }}>
         no source loaded — click a hierarchy module or a wave signal
       </div>
     );
@@ -511,7 +511,7 @@ const SourceViewer = ({ lines, cursor, path }) => {
   return (
     <div ref={ref} className="src-viewer" style={{
       flex: 1, overflow: 'auto', padding: '6px 0',
-      fontFamily: 'var(--mono)', fontSize: 11, lineHeight: 1.45,
+      fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)', lineHeight: 1.45,
       background: 'var(--panel)',
     }}>
       {lineHTMLs.map((html, i) => {
@@ -1375,7 +1375,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
         background: expand === id ? 'var(--accent)' : 'transparent',
         color: expand === id ? 'var(--bg)' : 'var(--fg-mute)',
         border: '1px solid var(--line)', borderRadius: 3,
-        padding: '1px 6px', fontSize: 11, cursor: 'pointer',
+        padding: '1px 6px', fontSize: 'var(--ui-control-font-size)', cursor: 'pointer',
         fontFamily: 'var(--mono)', marginLeft: 4,
       }}
     >{glyph}</button>
@@ -1456,7 +1456,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '6px 14px', borderBottom: '1px solid var(--line)',
-        background: 'var(--bg-2)', fontSize: 11, flexShrink: 0,
+        background: 'var(--bg-2)', fontSize: 'var(--ui-control-font-size)', flexShrink: 0,
       }}>
         <span style={{ color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>MODE</span>
         {summaryOnly ? (
@@ -1485,7 +1485,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
           onChange={e => setVcdActive(e.target.value)}
           style={{
             background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--line)',
-            padding: '3px 6px', fontSize: 11, fontFamily: 'var(--mono)', minWidth: 280,
+            padding: '3px 6px', fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', minWidth: 280,
           }}
         >
           {!vcdFiles.length && <option value="">(no VCD found — run /sim)</option>}
@@ -1762,9 +1762,9 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
                   vcdData={vcdData}
                   setViewRange={setViewRange}
                 />
-                <button className="btn" style={{ padding: '1px 8px', fontSize: 11, marginRight: 2, fontWeight: 700 }}
+                <button className="btn" style={{ padding: '1px 8px', fontSize: 'var(--ui-control-font-size)', marginRight: 2, fontWeight: 700 }}
                         onClick={zoomIn}    title="zoom in  (shortcut: + or =)">+</button>
-                <button className="btn" style={{ padding: '1px 8px', fontSize: 11, marginRight: 2, fontWeight: 700 }}
+                <button className="btn" style={{ padding: '1px 8px', fontSize: 'var(--ui-control-font-size)', marginRight: 2, fontWeight: 700 }}
                         onClick={zoomOut}   title="zoom out (shortcut: − or _)">−</button>
                 <button className="btn" style={{ padding: '1px 6px', fontSize: 10, marginRight: 2 }}
                         onClick={() => panBy(-0.25)} title="pan left  (shortcut: ←)">◀</button>
@@ -1947,7 +1947,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
             {/* Feed */}
             <div ref={_chatScrollRef} style={{
               flex: 1, overflow: 'auto', padding: '8px 10px',
-              fontSize: 11, lineHeight: 1.5,
+              fontSize: 'var(--ui-control-font-size)', lineHeight: 1.5,
             }}>
               {chatFeed.length === 0 && (
                 <div style={{ color: 'var(--fg-mute)', fontSize: 10, marginBottom: 8 }}>

@@ -23,11 +23,11 @@ class ErrorBoundary extends React.Component {
         <div style={{ color: 'var(--err)', fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
           ✗ {this.props.label || 'Component'} crashed
         </div>
-        <div style={{ color: 'var(--fg-mute)', fontSize: 11, marginBottom: 12, lineHeight: 1.6 }}>
+        <div style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', marginBottom: 12, lineHeight: 1.6 }}>
           The shell stays alive — pick a different screen, or hit Reset to try mounting again.
         </div>
         <pre style={{ background: 'var(--bg-2)', border: '1px solid var(--line)',
-                      padding: 12, fontSize: 11, color: 'var(--err)',
+                      padding: 12, fontSize: 'var(--ui-control-font-size)', color: 'var(--err)',
                       maxHeight: 200, overflow: 'auto', whiteSpace: 'pre-wrap' }}>
           {String(this.state.error && this.state.error.message || this.state.error)}
         </pre>

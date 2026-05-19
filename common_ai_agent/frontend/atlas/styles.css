@@ -73,6 +73,18 @@
   --enh-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+html[data-platform="windows"] {
+  /* Windows ClearType renders Inter/JetBrains thin at Atlas' dense UI sizes.
+     Prefer native Windows UI/code faces and bump each scale slightly so the
+     1920px canvas remains dense but readable on common 100-125% DPI setups. */
+  --sans: 'Segoe UI Variable Text', 'Segoe UI', 'Malgun Gothic', 'Noto Sans KR', 'IBM Plex Sans', Arial, 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  --mono-base: 'Cascadia Mono', 'Cascadia Code', Consolas, 'D2Coding', 'JetBrains Mono', 'IBM Plex Mono', 'Courier New', 'Segoe UI Emoji', 'Segoe UI Symbol', monospace;
+  --mono: var(--sans);
+  --code-font: var(--mono-base);
+  --enh-sans: 'Segoe UI Variable Text', 'Segoe UI', 'Malgun Gothic', sans-serif;
+  --enh-mono: 'Cascadia Mono', 'Cascadia Code', Consolas, monospace;
+}
+
 /* ── Enhancement tokens — Light-mode overrides ───────────────────────────
    Swap dark bg/fg/line tokens; keep accent/status colors identical so
    pipeline stage badges (amber/green/cyan/red) stay visually consistent.  */
@@ -294,6 +306,35 @@ html[data-theme="light"] {
   --ui-control-weight: 600;
 }
 
+html[data-platform="windows"][data-font-scale="compact"] {
+  --ui-font-size: 13.75px;
+  --ui-control-font-size: 12.25px;
+  --ui-small-font-size: 11.25px;
+  --ui-agent-font-size: 14.75px;
+  --ui-code-font-size: 13.25px;
+}
+html[data-platform="windows"][data-font-scale="normal"] {
+  --ui-font-size: 14.75px;
+  --ui-control-font-size: 12.75px;
+  --ui-small-font-size: 11.75px;
+  --ui-agent-font-size: 15.75px;
+  --ui-code-font-size: 13.75px;
+}
+html[data-platform="windows"][data-font-scale="large"] {
+  --ui-font-size: 15.25px;
+  --ui-control-font-size: 13.25px;
+  --ui-small-font-size: 12.25px;
+  --ui-agent-font-size: 16.25px;
+  --ui-code-font-size: 14.25px;
+}
+html[data-platform="windows"][data-font-scale="xl"] {
+  --ui-font-size: 16.75px;
+  --ui-control-font-size: 14.75px;
+  --ui-small-font-size: 13.75px;
+  --ui-agent-font-size: 17.25px;
+  --ui-code-font-size: 15.25px;
+}
+
 /* ──────────────────────────────────────────────
    Shared primitives
    ────────────────────────────────────────────── */
@@ -347,6 +388,13 @@ html[data-theme="light"] {
 .app[data-dir="B"][data-theme="light"] {
   -webkit-font-smoothing: auto;
   -moz-osx-font-smoothing: auto;
+}
+
+html[data-platform="windows"] .app {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  letter-spacing: 0;
 }
 
 .mono { font-family: var(--code-font); }

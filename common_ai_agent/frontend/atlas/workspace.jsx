@@ -1033,7 +1033,7 @@ const SessionSwitcher = ({ currentSession, streaming, onSwitch }) => {
             background: 'transparent',
             border: '1px solid var(--line)',
             color: 'var(--fg-mute)',
-            fontSize: 11,
+            fontSize: 'var(--ui-control-font-size)',
             fontFamily: 'var(--mono)',
             padding: '2px 8px',
             borderRadius: 2,
@@ -1058,17 +1058,17 @@ const SessionSwitcher = ({ currentSession, streaming, onSwitch }) => {
               Switch session
             </div>
             {loading && (
-              <div style={{ padding: '8px 10px', fontSize: 11, color: 'var(--fg-mute)' }}>Loading…</div>
+              <div style={{ padding: '8px 10px', fontSize: 'var(--ui-control-font-size)', color: 'var(--fg-mute)' }}>Loading…</div>
             )}
             {!loading && options.length === 0 && (
-              <div style={{ padding: '8px 10px', fontSize: 11, color: 'var(--fg-mute)' }}>No sessions</div>
+              <div style={{ padding: '8px 10px', fontSize: 'var(--ui-control-font-size)', color: 'var(--fg-mute)' }}>No sessions</div>
             )}
             {options.map(s => (
               <div
                 key={s.id}
                 onClick={() => handleSelect(s.id)}
                 style={{
-                  padding: '6px 10px', fontSize: 11, cursor: 'pointer',
+                  padding: '6px 10px', fontSize: 'var(--ui-control-font-size)', cursor: 'pointer',
                   color: s.id === currentLabel ? 'var(--accent)' : 'var(--fg)',
                   background: s.id === currentLabel ? 'color-mix(in oklch, var(--accent) 10%, transparent)' : 'transparent',
                   borderBottom: '1px solid var(--line-2)',
@@ -1108,7 +1108,7 @@ const SessionSwitcher = ({ currentSession, streaming, onSwitch }) => {
               <button
                 className="btn" type="button"
                 onClick={() => { const id = confirmId; setConfirmId(null); onSwitch(id); }}
-                style={{ fontSize: 11, background: 'var(--warn)', color: 'var(--bg)', borderColor: 'var(--warn)' }}
+                style={{ fontSize: 'var(--ui-control-font-size)', background: 'var(--warn)', color: 'var(--bg)', borderColor: 'var(--warn)' }}
               >
                 Switch
               </button>
@@ -3364,7 +3364,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
             <div
               onClick={() => switchIntent('normal')}
               style={{
-                padding: '8px 10px', textAlign: 'center', cursor: 'pointer', fontSize: 11,
+                padding: '8px 10px', textAlign: 'center', cursor: 'pointer', fontSize: 'var(--ui-control-font-size)',
                 letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
                 color: intent === 'normal' ? 'var(--bg)' : 'var(--fg-mute)',
                 background: intent === 'normal' ? 'var(--cyan)' : 'transparent',
@@ -3374,7 +3374,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
             <div
               onClick={() => switchIntent('plan')}
               style={{
-                padding: '8px 10px', textAlign: 'center', cursor: 'pointer', fontSize: 11,
+                padding: '8px 10px', textAlign: 'center', cursor: 'pointer', fontSize: 'var(--ui-control-font-size)',
                 letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
                 color: intent === 'plan' ? 'var(--bg)' : 'var(--fg-mute)',
                 background: intent === 'plan' ? 'var(--warn)' : 'transparent',
@@ -3417,7 +3417,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
           <div className="box-h">
             <span>▸ ip</span>
             <span style={{ flex: 1 }} />
-            <span className="acc" style={{ textTransform: 'none', fontSize: 11, letterSpacing: 0 }}>
+            <span className="acc" style={{ textTransform: 'none', fontSize: 'var(--ui-control-font-size)', letterSpacing: 0 }}>
               {(window.SCOPE_PATH || '').split('/').pop() || 'project root'}
             </span>
           </div>
@@ -3443,7 +3443,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               }}
               style={{
                 cursor: 'pointer',
-                fontSize: 11,
+                fontSize: 'var(--ui-control-font-size)',
                 padding: '1px 6px',
                 borderRadius: 2,
                 userSelect: 'none',
@@ -3591,7 +3591,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
           <div style={{
             padding: '6px 14px', border: '1px solid var(--warn)',
             background: 'color-mix(in oklch, var(--warn) 12%, transparent)',
-            color: 'var(--warn)', fontSize: 11, letterSpacing: '0.06em',
+            color: 'var(--warn)', fontSize: 'var(--ui-control-font-size)', letterSpacing: '0.06em',
             display: 'flex', alignItems: 'center', gap: 10, borderRadius: 2,
           }}>
             <span style={{ fontWeight: 700, textTransform: 'uppercase' }}>◐ Plan mode</span>
@@ -3618,7 +3618,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                   color: mainTab === 'sim_summary' ? 'var(--accent)' : 'var(--fg-mute)',
                   background: mainTab === 'sim_summary' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
                   border: '1px solid ' + (mainTab === 'sim_summary' ? 'var(--accent)' : 'transparent'),
-                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
                 }}
               >sim summary</span>
             )}
@@ -3633,7 +3633,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                   color: mainTab === 'debug' ? 'var(--accent)' : 'var(--fg-mute)',
                   background: mainTab === 'debug' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
                   border: '1px solid ' + (mainTab === 'debug' ? 'var(--accent)' : 'transparent'),
-                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
                 }}
               >debug</span>
             )}
@@ -3648,7 +3648,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                   color: mainTab === 'coverage' ? 'var(--accent)' : 'var(--fg-mute)',
                   background: mainTab === 'coverage' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
                   border: '1px solid ' + (mainTab === 'coverage' ? 'var(--accent)' : 'transparent'),
-                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
                 }}
               >coverage</span>
             )}
@@ -3663,7 +3663,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                   color: mainTab === 'workflow_report' ? 'var(--accent)' : 'var(--fg-mute)',
                   background: mainTab === 'workflow_report' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
                   border: '1px solid ' + (mainTab === 'workflow_report' ? 'var(--accent)' : 'transparent'),
-                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
                 }}
               >{workflowReportMeta.label}</span>
             )}
@@ -3679,7 +3679,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                   color: mainTab === 'qa' ? 'var(--warn)' : (pendingQcard ? 'var(--warn)' : 'var(--fg-mute)'),
                   background: mainTab === 'qa' ? 'color-mix(in oklch, var(--warn) 14%, transparent)' : 'transparent',
                   border: '1px solid ' + (mainTab === 'qa' ? 'var(--warn)' : 'transparent'),
-                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
                 }}
               >
                 Q&amp;A Session
@@ -3704,7 +3704,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                   color: mainTab === 'checklist' ? 'var(--cyan)' : 'var(--fg-mute)',
                   background: mainTab === 'checklist' ? 'color-mix(in oklch, var(--cyan) 14%, transparent)' : 'transparent',
                   border: '1px solid ' + (mainTab === 'checklist' ? 'var(--cyan)' : 'transparent'),
-                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
                 }}
               >Check List</span>
             )}
@@ -3717,7 +3717,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                 color: mainTab === 'chat' ? 'var(--accent)' : 'var(--fg-mute)',
                 background: mainTab === 'chat' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
                 border: '1px solid ' + (mainTab === 'chat' ? 'var(--accent)' : 'transparent'),
-                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
               }}
             >chat</span>
             {showSsotTab && (
@@ -3731,7 +3731,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                   color: mainTab === 'ssot' ? 'var(--magenta)' : 'var(--fg-mute)',
                   background: mainTab === 'ssot' ? 'color-mix(in oklch, var(--magenta) 14%, transparent)' : 'transparent',
                   border: '1px solid ' + (mainTab === 'ssot' ? 'var(--magenta)' : 'transparent'),
-                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
                 }}
               >ssot</span>
             )}
@@ -3747,7 +3747,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                   color: mainTab === 'qa' ? 'var(--warn)' : (pendingQcard ? 'var(--warn)' : 'var(--fg-mute)'),
                   background: mainTab === 'qa' ? 'color-mix(in oklch, var(--warn) 14%, transparent)' : 'transparent',
                   border: '1px solid ' + (mainTab === 'qa' ? 'var(--warn)' : 'transparent'),
-                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
                 }}
               >
                 Q&amp;A
@@ -3771,7 +3771,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                 color: mainTab === 'split' ? 'var(--accent)' : 'var(--fg-mute)',
                 background: mainTab === 'split' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
                 border: '1px solid ' + (mainTab === 'split' ? 'var(--accent)' : 'transparent'),
-                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
               }}
             >split view</span>
             <span
@@ -3784,7 +3784,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                 color: mainTab === 'preview' ? 'var(--accent)' : 'var(--fg-mute)',
                 background: mainTab === 'preview' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
                 border: '1px solid ' + (mainTab === 'preview' ? 'var(--accent)' : 'transparent'),
-                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
               }}
             >full view</span>
             <span
@@ -3797,7 +3797,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                 color: mainTab === 'git' ? 'var(--accent)' : 'var(--fg-mute)',
                 background: mainTab === 'git' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
                 border: '1px solid ' + (mainTab === 'git' ? 'var(--accent)' : 'transparent'),
-                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11,
+                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
               }}
             >git</span>
             <span className="mute" style={{ margin: '0 6px' }}>·</span>
@@ -3808,36 +3808,36 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               // WORKFLOW dropdowns) and the left-rail mode toggle.
               null
             ) : mainTab === 'split' ? (
-              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}
+              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}
                     title={previewPath || ''}>
                 chat + {isSsotYamlPath(previewPath) ? 'ssot' : 'preview'} · {previewPath || '(no file selected)'}
               </span>
             ) : mainTab === 'ssot' ? (
-              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
+              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 SSOT section review
               </span>
             ) : mainTab === 'checklist' ? (
-              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
+              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 SSOT checklist · import · missing items · RTL readiness
               </span>
             ) : mainTab === 'sim_summary' ? (
-              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
+              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 sim_debug summary · scenarios · scoreboard
               </span>
             ) : mainTab === 'debug' ? (
-              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
+              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 sim_debug hierarchy · source · wave
               </span>
             ) : mainTab === 'coverage' ? (
-              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
+              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 coverage workflow · SSOT goals · gaps
               </span>
             ) : mainTab === 'workflow_report' ? (
-              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}>
+              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 {workflowReportMeta ? workflowReportMeta.title : 'workflow report'} · {activeIp || 'no IP'}
               </span>
             ) : (
-              <span className="mute trunc" style={{ fontSize: 11, fontFamily: 'var(--mono)', maxWidth: 380 }}
+              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}
                     title={previewPath || ''}>
                 {previewPath || '(no file selected)'}
               </span>
@@ -4129,7 +4129,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                 <span><Kbd>↑↓</Kbd> nav · <Kbd>↵</Kbd> select · <Kbd>Esc</Kbd> close</span>
               </div>
               {fileMatches.length === 0 ? (
-                <div style={{ padding: '10px 12px', fontSize: 11, color: 'var(--fg-mute)', fontStyle: 'italic' }}>
+                <div style={{ padding: '10px 12px', fontSize: 'var(--ui-control-font-size)', color: 'var(--fg-mute)', fontStyle: 'italic' }}>
                   {atDirEntries.length === 0 ? 'loading…' : `no entries match "${atQuery.filter}"`}
                 </div>
               ) : fileMatches.map((f, i) => (
@@ -4194,7 +4194,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '4px 12px', marginBottom: 4,
-                fontSize: 11, fontFamily: 'var(--mono)',
+                fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)',
                 color: s.color, background: s.bg,
                 border: `1px solid ${s.color}`, borderRadius: 2,
                 letterSpacing: '0.04em',
@@ -4297,7 +4297,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
 
 const RightTab = ({ id, cur, onTab, children }) => (
   <span onClick={() => onTab(id)} style={{
-    cursor: 'pointer', padding: '10px 14px', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase',
+    cursor: 'pointer', padding: '10px 14px', fontSize: 'var(--ui-control-font-size)', letterSpacing: '0.06em', textTransform: 'uppercase',
     color: cur === id ? 'var(--fg)' : 'var(--fg-mute)',
     borderBottom: cur === id ? `2px solid var(--accent)` : '2px solid transparent',
     background: cur === id ? 'var(--bg-2)' : 'transparent',
@@ -4572,7 +4572,7 @@ const LiveAgentPreview = React.memo(({ text }) => {
   return (
     <div className="feed-entry feed-entry-agent feed-entry-live has-hover-affordance" style={{ padding: '8px 0 12px', marginBottom: 4, position: 'relative' }}>
       <span className="feed-entry-label ok" style={{ fontWeight: 600, marginRight: 8,
-        fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
+        fontSize: 'var(--ui-control-font-size)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
       <span className="ts-pill">streaming</span>
       <div
         className="md-agent"
@@ -4598,7 +4598,7 @@ const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summ
     const userHtml = _markdownHtml(userText);
     return (
       <div className="feed-entry feed-entry-user" style={{ padding: '10px 14px', marginBottom: 12, borderLeft: '2px solid var(--accent)', background: 'var(--bg-2)', borderRadius: 2 }}>
-        <span className="feed-entry-label acc" style={{ fontWeight: 600, marginRight: 8, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>You</span>
+        <span className="feed-entry-label acc" style={{ fontWeight: 600, marginRight: 8, fontSize: 'var(--ui-control-font-size)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>You</span>
         <div
           className="md-user md-agent"
           style={{ fontFamily: 'var(--mono)', fontSize: 'var(--ui-font-size)', display: 'inline-block', verticalAlign: 'top' }}
@@ -4613,7 +4613,7 @@ const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summ
     return (
       <div className="feed-entry feed-entry-agent has-hover-affordance" style={{ padding: '8px 0 12px', marginBottom: 4, position: 'relative' }}>
         <span className="feed-entry-label ok" style={{ fontWeight: 600, marginRight: 8,
-          fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
+          fontSize: 'var(--ui-control-font-size)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
         {entry.createdAt ? (
           <span className="ts-pill">{_relTime(entry.createdAt)}</span>
         ) : null}
@@ -4703,7 +4703,7 @@ const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summ
           <pre style={{
             margin: '4px 0 0', maxHeight: 280, overflow: 'auto',
             background: 'var(--bg-3)', padding: '6px 10px',
-            borderRadius: 4, fontSize: 11, lineHeight: 1.45,
+            borderRadius: 4, fontSize: 'var(--ui-control-font-size)', lineHeight: 1.45,
             whiteSpace: 'pre', wordBreak: 'normal',
           }}>
             {looksLikeDiff
@@ -4867,7 +4867,7 @@ const SsotApprovalCard = ({ payload }) => {
         gridTemplateColumns: 'minmax(92px, 0.28fr) minmax(0, 1fr)',
         gap: '4px 10px',
         marginBottom: 10,
-        fontSize: 11,
+        fontSize: 'var(--ui-control-font-size)',
       }}>
         {rows.map(([key, label]) => (
           <React.Fragment key={key}>
@@ -4961,7 +4961,7 @@ const AskUserQuestionBlock = ({
           )}
           {blockQuestion}
           {blockSubtitle && (
-            <div className="mute" style={{ fontSize: 11, fontWeight: 400, marginTop: 2 }}>
+            <div className="mute" style={{ fontSize: 'var(--ui-control-font-size)', fontWeight: 400, marginTop: 2 }}>
               {blockSubtitle}
             </div>
           )}
@@ -5027,7 +5027,7 @@ const AskUserQuestionBlock = ({
                   {o.label}
                   {o.locked && <span className="mute" style={{ marginLeft: 8, fontSize: 11 }}>(required)</span>}
                 </span>
-                <div className="mute" style={{ fontSize: 11, fontFamily: 'var(--mono)', marginTop: 1 }}>
+                <div className="mute" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', marginTop: 1 }}>
                   {o.detail}
                 </div>
               </div>
@@ -5516,7 +5516,7 @@ const SsotQaBoard = ({
           {kind === 'multi' ? t.selectMany : (kind === 'single' ? t.selectOne : t.typedAnswer)}
         </div>
         {!draft.opts.length ? (
-          <div style={{ color: 'var(--fg-mute)', fontSize: 11, marginBottom: 6 }}>{t.noOptions}</div>
+          <div style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', marginBottom: 6 }}>{t.noOptions}</div>
         ) : null}
         <AskUserQuestionBlock
           index={0}
@@ -5645,7 +5645,7 @@ const SsotQaBoard = ({
           {item.question || item.decision_label || 'Untitled question'}
         </div>
         {item.subtitle ? (
-          <div style={{ color: 'var(--fg-mute)', fontSize: 11, marginTop: 3 }}>
+          <div style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', marginTop: 3 }}>
             {item.subtitle}
           </div>
         ) : null}
@@ -5724,7 +5724,7 @@ const SsotQaBoard = ({
             background: 'color-mix(in oklch, var(--bg-2) 72%, transparent)',
             padding: 10,
           }}>
-            <div style={{ color: 'var(--fg-mute)', fontSize: 11, marginBottom: 6 }}>{t.rtlReadiness}</div>
+            <div style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', marginBottom: 6 }}>{t.rtlReadiness}</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
               <div style={{ color: readyForRtl ? 'var(--ok)' : (requirementMissing ? 'var(--warn)' : 'var(--cyan)'), fontSize: 34, fontWeight: 800, lineHeight: 1 }}>
                 {requirementPct}%
@@ -5761,18 +5761,18 @@ const SsotQaBoard = ({
             background: 'color-mix(in oklch, var(--bg-2) 52%, transparent)',
             padding: 10,
           }}>
-            <div style={{ color: 'var(--fg-mute)', fontSize: 11, marginBottom: 6 }}>{t.nextAction}</div>
+            <div style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', marginBottom: 6 }}>{t.nextAction}</div>
             <div style={{ color: 'var(--fg)', fontSize: 13, lineHeight: 1.5 }}>{nextActionText}</div>
             <div style={{ marginTop: 12, color: 'var(--fg-mute)', fontSize: 11 }}>{t.feedTitle}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8, marginTop: 7 }}>
               <div style={{ borderTop: '2px solid var(--cyan)', paddingTop: 7 }}>
                 <div style={{ color: 'var(--fg)', fontSize: 12, fontWeight: 700 }}>{t.actionChatTitle}</div>
-                <div style={{ color: 'var(--fg-mute)', fontSize: 11, lineHeight: 1.4, marginTop: 3 }}>{t.actionChatDetail}</div>
+                <div style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', lineHeight: 1.4, marginTop: 3 }}>{t.actionChatDetail}</div>
                 <button className="mini-btn" type="button" onClick={onBack} style={{ marginTop: 7 }}>{t.openChat}</button>
               </div>
               <div style={{ borderTop: '2px solid var(--accent)', paddingTop: 7 }}>
                 <div style={{ color: 'var(--fg)', fontSize: 12, fontWeight: 700 }}>{t.actionImportTitle}</div>
-                <div style={{ color: 'var(--fg-mute)', fontSize: 11, lineHeight: 1.4, marginTop: 3 }}>{t.actionImportDetail}</div>
+                <div style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', lineHeight: 1.4, marginTop: 3 }}>{t.actionImportDetail}</div>
                 <button
                   className="mini-btn"
                   type="button"
@@ -5786,7 +5786,7 @@ const SsotQaBoard = ({
               </div>
               <div style={{ borderTop: '2px solid var(--warn)', paddingTop: 7 }}>
                 <div style={{ color: 'var(--fg)', fontSize: 12, fontWeight: 700 }}>{t.actionInterviewTitle}</div>
-                <div style={{ color: 'var(--fg-mute)', fontSize: 11, lineHeight: 1.4, marginTop: 3 }}>{t.actionInterviewDetail}</div>
+                <div style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', lineHeight: 1.4, marginTop: 3 }}>{t.actionInterviewDetail}</div>
                 <button
                   className="mini-btn"
                   type="button"
@@ -5799,7 +5799,7 @@ const SsotQaBoard = ({
               </div>
               <div style={{ borderTop: '2px solid var(--ok)', paddingTop: 7 }}>
                 <div style={{ color: 'var(--fg)', fontSize: 12, fontWeight: 700 }}>{t.actionToSsotTitle}</div>
-                <div style={{ color: 'var(--fg-mute)', fontSize: 11, lineHeight: 1.4, marginTop: 3 }}>{t.actionToSsotDetail}</div>
+                <div style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', lineHeight: 1.4, marginTop: 3 }}>{t.actionToSsotDetail}</div>
                 <button
                   className="mini-btn"
                   type="button"
@@ -5846,7 +5846,7 @@ const SsotQaBoard = ({
                           {row.label}
                         </span>
                       </div>
-                      <div style={{ marginTop: 5, color: 'var(--fg-mute)', fontSize: 11, lineHeight: 1.4 }}>
+                      <div style={{ marginTop: 5, color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', lineHeight: 1.4 }}>
                         {row.help}
                       </div>
                     </div>
@@ -5868,7 +5868,7 @@ const SsotQaBoard = ({
                       }}
                     >
                       <div style={{ color: 'var(--warn)', fontSize: 12, fontWeight: 800 }}>{row.label}</div>
-                      <div style={{ marginTop: 4, color: 'var(--fg-mute)', fontSize: 11, lineHeight: 1.4 }}>{row.help}</div>
+                      <div style={{ marginTop: 4, color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', lineHeight: 1.4 }}>{row.help}</div>
                     </div>
                   ))}
                 </div>
@@ -5914,7 +5914,7 @@ const SsotQaBoard = ({
         background: 'color-mix(in oklch, var(--bg-1) 75%, transparent)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <div style={{ fontSize: 11, color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <div style={{ fontSize: 'var(--ui-control-font-size)', color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             {t.sessions}
           </div>
           <span style={{ flex: 1 }} />
@@ -6009,7 +6009,7 @@ const SsotQaBoard = ({
               overflowY: 'auto',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <div style={{ fontSize: 11, color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <div style={{ fontSize: 'var(--ui-control-font-size)', color: 'var(--fg-mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   {t.toc}
                 </div>
                 <span style={{ flex: 1 }} />
@@ -6062,7 +6062,7 @@ const SsotQaBoard = ({
                       marginBottom: 4,
                     }}
                   >
-                    <div style={{ fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: 'var(--ui-control-font-size)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {section.title}
                     </div>
                     <div style={{ fontSize: 10, color: 'var(--fg-mute)', marginTop: 3 }}>
@@ -6228,7 +6228,7 @@ const QaHistoryPanel = ({ history, onClear }) => {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8,
         paddingBottom: 6, borderBottom: '1px dashed var(--line)',
-        fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase',
+        fontSize: 'var(--ui-control-font-size)', letterSpacing: '0.06em', textTransform: 'uppercase',
         color: 'var(--fg-mute)', fontFamily: 'var(--mono)',
       }}>
         <span className="acc" style={{ fontWeight: 700 }}>▸ Q&amp;A history</span>
@@ -6466,7 +6466,7 @@ const AskUserPrompt = ({ flowId, state, sel, intent, fullHeight = false, onToggl
       {/* header — mimics the screenshot: "▸ ask_user · ✓ Submit" */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
-        fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase',
+        fontSize: 'var(--ui-control-font-size)', letterSpacing: '0.06em', textTransform: 'uppercase',
       }}>
         <span className="acc" style={{ fontWeight: 700 }}>▸ ask_user</span>
         <span className="mute">·</span>
@@ -6543,7 +6543,7 @@ const AskUserPrompt = ({ flowId, state, sel, intent, fullHeight = false, onToggl
       {/* hint footer — terminal-style */}
       <div className="mute" style={{
         marginTop: 8, paddingTop: 6, borderTop: '1px dashed var(--line)',
-        fontSize: 11, display: 'flex', gap: 14, flexWrap: 'wrap',
+        fontSize: 'var(--ui-control-font-size)', display: 'flex', gap: 14, flexWrap: 'wrap',
       }}>
         <span><Kbd>↵</Kbd> {isBatched ? 'select & next' : 'select & submit'}</span>
         <span><Kbd>↑↓</Kbd>/<Kbd>j k</Kbd> navigate</span>
@@ -7286,14 +7286,14 @@ const YamlSectionCard = ({ section, statusByKey }) => {
         <span style={{ flex: 1 }} />
         {summary ? (
           <span className="mute trunc" style={{
-            fontSize: 11, color: 'var(--fg)', opacity: 0.78, maxWidth: '50%',
+            fontSize: 'var(--ui-control-font-size)', color: 'var(--fg)', opacity: 0.78, maxWidth: '50%',
           }}>
             {summary}
           </span>
         ) : (
           <span className="mute" style={{ fontSize: 10 }}>{countSuffix}</span>
         )}
-        <span style={{ color: 'var(--fg-mute)', fontSize: 11, fontFamily: 'var(--mono)' }}>
+        <span style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)' }}>
           {open ? '▾' : '▸'}
         </span>
       </div>
@@ -7420,7 +7420,7 @@ const GatesPanel = ({ ip }) => {
         <button onClick={fetchGates} disabled={loading} style={{
           background: 'transparent', border: '1px solid var(--line)',
           color: 'var(--fg)', padding: '2px 10px', cursor: 'pointer',
-          fontFamily: 'var(--mono)', fontSize: 11,
+          fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)',
         }}>{loading ? '…' : 'refresh'}</button>
       </div>
       <DigestCard title={`SSOT Quality (${q.items.length} dims)`} meta={`${q.passed}/${q.total} pass`}>
@@ -7915,7 +7915,7 @@ const FsmTransitionTable = ({ graph }) => {
             gap: 8,
             alignItems: 'baseline',
             fontFamily: 'var(--mono)',
-            fontSize: 11,
+            fontSize: 'var(--ui-control-font-size)',
             borderTop: idx ? '1px solid var(--line)' : 'none',
             paddingTop: idx ? 5 : 0,
           }}
@@ -8039,7 +8039,7 @@ const FeatureCard = ({ index, feature }) => {
       }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
         <span style={{
-          fontFamily: 'var(--mono)', fontSize: 11,
+          fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)',
           color: 'var(--fg-mute)', minWidth: 28,
         }}>F{index}.</span>
         <span style={{
@@ -8066,7 +8066,7 @@ const FeatureCard = ({ index, feature }) => {
                        color="var(--green, #22c55e)" />
         </div>
       ) : (
-        <div className="mute" style={{ fontSize: 11, fontFamily: 'var(--mono)' }}>
+        <div className="mute" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)' }}>
           — no datapath / control / output captured yet —
         </div>
       )}
@@ -8431,7 +8431,7 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
             flex: 1, textAlign: 'right',
             paddingRight: 6,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-            fontSize: 11,
+            fontSize: 'var(--ui-control-font-size)',
           }}>
             <span style={{ color: 'var(--fg)', fontWeight: 600 }}>{iface.name || iface.type}</span>
             <span style={{ color: 'var(--fg-mute)' }}> · {typeStr} {role}</span>
@@ -8574,7 +8574,7 @@ const BlockDiagram = ({ topName, modules, contractByModule = {}, interfaces = []
     <div style={{
       padding: '14px 12px 18px',
       fontFamily: 'var(--mono)',
-      fontSize: 11,
+      fontSize: 'var(--ui-control-font-size)',
     }}>
       {/* Detail toggle + depth selector. The depth chip group only
           appears when the SSOT declares any nesting (maxDepth > 1) —
@@ -8808,7 +8808,7 @@ const DigestSourceSections = ({ view, sections, statusByKey, t }) => {
     }}>
       <summary style={{
         cursor: 'pointer', padding: '8px 12px',
-        color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 11,
+        color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)',
       }}>{t.sourceSections}</summary>
       <div style={{ borderTop: '1px solid var(--line)', padding: '10px 12px', display: 'grid', gap: 10 }}>
         {source.map(section => {
@@ -9282,7 +9282,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                           borderRadius: 3,
                           padding: '3px 7px',
                           fontFamily: 'var(--mono)',
-                          fontSize: 11,
+                          fontSize: 'var(--ui-control-font-size)',
                           color: state.reset ? 'var(--accent)' : 'var(--fg)',
                           background: state.reset
                             ? 'color-mix(in oklch, var(--accent) 14%, transparent)'
@@ -9339,7 +9339,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
             <div className="mute" style={{ marginBottom: 8 }}>{iface.description}</div>
             <div style={{ display: 'grid', gap: 4 }}>
               {iface.ports.map(port => (
-                <div key={port.name} style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 0.7fr) 56px minmax(70px, max-content) minmax(0, 1.4fr)', gap: 10, fontFamily: 'var(--mono)', fontSize: 11, alignItems: 'baseline' }}>
+                <div key={port.name} style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 0.7fr) 56px minmax(70px, max-content) minmax(0, 1.4fr)', gap: 10, fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)', alignItems: 'baseline' }}>
                   <span style={{ color: 'var(--fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{port.name}</span>
                   <span className="mute">{port.direction}</span>
                   <span className="mute" style={{ whiteSpace: 'nowrap' }}>{_formatWidth(port.width) || '[0]'}</span>
@@ -9454,7 +9454,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                   gap: 8, alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: 5,
                 }}>
                   <AtlasStatusBadge status={row.status} label={row.label} compact soft />
-                  <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 11, minWidth: 0, wordBreak: 'break-word' }}>
+                  <span style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)', minWidth: 0, wordBreak: 'break-word' }}>
                     {row.detail || '-'}
                   </span>
                 </div>
@@ -9703,7 +9703,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
             color: 'var(--magenta)', fontWeight: 800, fontSize: 12,
             letterSpacing: '0.08em', textTransform: 'uppercase',
           }}>{t.title}</div>
-          <div className="mute trunc" style={{ marginTop: 3, fontSize: 11, fontFamily: 'var(--mono)' }}>
+          <div className="mute trunc" style={{ marginTop: 3, fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)' }}>
             {selected || t.file} · {loading ? (ssotHasContent ? 'refreshing' : 'loading') : `${sections.length} ${t.sections}`} · {approvedCount} {t.approved} · {flagCount} {t.flags}
           </div>
         </div>
@@ -9715,7 +9715,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
             style={{
               maxWidth: 340, minWidth: 180, background: 'var(--bg)', color: 'var(--fg)',
               border: '1px solid var(--line)', borderRadius: 2,
-              fontFamily: 'var(--mono)', fontSize: 11, padding: '4px 6px',
+              fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)', padding: '4px 6px',
             }}
           >
             {filePaths.map(path => <option key={path} value={path}>{path}</option>)}
@@ -10049,7 +10049,7 @@ const ProgressPanel = () => {
               color: 'var(--fg)',
               border: '1px solid var(--line)',
               borderRadius: 2,
-              fontFamily: 'var(--mono)', fontSize: 11,
+              fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               cursor: 'default', userSelect: 'none',
             }}
@@ -10593,7 +10593,7 @@ const TodoPanel = () => {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <div style={{
         padding: '8px 12px', borderBottom: '1px solid var(--line)',
-        display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, flexWrap: 'wrap',
+        display: 'flex', alignItems: 'center', gap: 6, fontSize: 'var(--ui-control-font-size)', flexWrap: 'wrap',
       }}>
         <span className="mute" style={{ fontFamily: 'var(--mono)' }}>{done}/{todos.length}</span>
         {/* color-coded count chips per state */}
@@ -10728,7 +10728,7 @@ const TodoPanel = () => {
                               <TodoNotes todo={t} />
                               <TodoReason todo={t} />
                               {t.deps && t.deps.length > 0 && (
-                                <div style={{ marginTop: 6, fontSize: 11, lineHeight: 1.5 }}>
+                                <div style={{ marginTop: 6, fontSize: 'var(--ui-control-font-size)', lineHeight: 1.5 }}>
                                   <span className="mute">deps:</span>{' '}
                                   {t.deps.map(d => <span key={d} className="acc">§{d} </span>)}
                                 </div>
@@ -10884,7 +10884,7 @@ const TodoGraph = ({ todos, openId, setOpenId }) => {
       {openId && (
         <div className="fade-in" style={{
           marginTop: 12, padding: '8px 10px', borderLeft: '2px solid var(--accent)',
-          background: 'var(--bg-2)', fontFamily: 'var(--mono)', fontSize: 11, lineHeight: 1.5,
+          background: 'var(--bg-2)', fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)', lineHeight: 1.5,
         }}>
           {(() => {
             const t = todos.find(x => x.id === openId);
@@ -11067,7 +11067,7 @@ const OrchestratorChatPanel = ({ activeIp: activeIpProp = '' } = {}) => {
                   padding: '8px 10px', gap: 8 }}>
       {/* Room switcher */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontSize: 11, color: 'var(--fg-mute)' }}>Room:</span>
+        <span style={{ fontSize: 'var(--ui-control-font-size)', color: 'var(--fg-mute)' }}>Room:</span>
         <select
           value={room}
           onChange={(e) => setRoom(e.target.value)}
@@ -11083,14 +11083,14 @@ const OrchestratorChatPanel = ({ activeIp: activeIpProp = '' } = {}) => {
         </select>
         <button onClick={() => { fetchRooms(); fetchContext(room); fetchMessages(room); }}
                 title="refresh"
-                style={{ fontSize: 11, padding: '2px 6px' }}>⟳</button>
+                style={{ fontSize: 'var(--ui-control-font-size)', padding: '2px 6px' }}>⟳</button>
       </div>
 
       {/* Context card */}
       {context && (
         <div className="orchestrator-card"
              style={{ border: '1px solid var(--border)', borderRadius: 4,
-                      padding: 6, fontSize: 11, background: 'var(--bg-soft)' }}>
+                      padding: 6, fontSize: 'var(--ui-control-font-size)', background: 'var(--bg-soft)' }}>
           <div onClick={() => setContextOpen((v) => !v)}
                style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}>
             <strong>Orchestrator · {room}</strong>
@@ -11360,7 +11360,7 @@ const GitPanel = ({ activeIp: activeIpProp = '' } = {}) => {
                 padding: '3px 10px',
                 cursor: 'pointer',
                 fontFamily: 'var(--mono)',
-                fontSize: 11,
+                fontSize: 'var(--ui-control-font-size)',
                 borderLeft: '2px solid transparent',
               }}
               onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-3)'}
@@ -11418,7 +11418,7 @@ const GitPanel = ({ activeIp: activeIpProp = '' } = {}) => {
         )}
         {selected && (
           <pre className="code" style={{
-            margin: 0, padding: '8px 10px', fontSize: 11, lineHeight: 1.5,
+            margin: 0, padding: '8px 10px', fontSize: 'var(--ui-control-font-size)', lineHeight: 1.5,
             whiteSpace: 'pre', fontFamily: 'var(--mono)',
           }}>
             {diffLoading ? 'loading…' :
@@ -11902,7 +11902,7 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
   return (
     <div className={`foldable-pane ${lang === 'yaml' || lang === 'yml' ? 'yaml-pane' : ''}`} ref={paneRef}>
       {skipped && (
-        <div style={{ padding: '6px 14px', color: 'var(--warn)', fontSize: 11, fontFamily: 'var(--mono)' }}>
+        <div style={{ padding: '6px 14px', color: 'var(--warn)', fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)' }}>
           fold disabled — {skipped}
         </div>
       )}
@@ -12509,7 +12509,7 @@ const WorkflowReportPane = ({ workflow, activeIp }) => {
                   background: active ? 'var(--select)' : 'transparent',
                   color: active ? 'var(--accent)' : 'var(--fg)',
                   borderLeft: '2px solid ' + (active ? 'var(--accent)' : 'transparent'),
-                  fontFamily: 'var(--mono)', fontSize: 11,
+                  fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)',
                 }}
               >
                 <span style={{ color: 'var(--fg-mute)' }}>{i + 1}</span>
@@ -12766,7 +12766,7 @@ const GitDiffPane = ({ sha, ip, subject, onClose }) => {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <div style={{
         padding: '6px 14px', borderBottom: '1px solid var(--line)',
-        display: 'flex', alignItems: 'center', gap: 10, fontSize: 11,
+        display: 'flex', alignItems: 'center', gap: 10, fontSize: 'var(--ui-control-font-size)',
         color: 'var(--fg-mute)', fontFamily: 'var(--mono)',
         background: 'var(--bg-2)',
       }}>
@@ -12787,14 +12787,14 @@ const GitDiffPane = ({ sha, ip, subject, onClose }) => {
       {err && (
         <div style={{
           padding: '6px 14px', color: 'var(--err)', fontFamily: 'var(--mono)',
-          fontSize: 11, borderBottom: '1px solid var(--err)',
+          fontSize: 'var(--ui-control-font-size)', borderBottom: '1px solid var(--err)',
         }}>{err}</div>
       )}
       <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg-3)' }}>
         {header && (
           <pre style={{
             margin: 0, padding: '10px 14px',
-            fontFamily: 'var(--code-font, var(--mono))', fontSize: 11, lineHeight: 1.55,
+            fontFamily: 'var(--code-font, var(--mono))', fontSize: 'var(--ui-control-font-size)', lineHeight: 1.55,
             color: 'var(--fg-mute)',
             whiteSpace: 'pre-wrap',
             borderBottom: patch ? '1px solid var(--line)' : 'none',
@@ -12804,7 +12804,7 @@ const GitDiffPane = ({ sha, ip, subject, onClose }) => {
         {patch ? (
           <pre className="tool-output-pre tool-output-diff language-none" style={{
             margin: 0, padding: '8px 0',
-            fontFamily: 'var(--code-font, var(--mono))', fontSize: 11, lineHeight: 1.55,
+            fontFamily: 'var(--code-font, var(--mono))', fontSize: 'var(--ui-control-font-size)', lineHeight: 1.55,
             background: 'transparent',
           }}>
             {patch.split('\n').map((line, i) => {
@@ -13084,7 +13084,7 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
           >›</span>
         )}
       </div>
-      <div style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'var(--mono)' }}>
+      <div style={{ padding: '10px 14px', fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)' }}>
         {/* Mode line */}
         <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 8 }}>
           <span className="mute">Mode</span>
@@ -13187,7 +13187,7 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
                   </span>
                 )}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr 70px', gap: 4, fontSize: 11, lineHeight: 1.55 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr 70px', gap: 4, fontSize: 'var(--ui-control-font-size)', lineHeight: 1.55 }}>
                 <span className="mute">Input</span>
                 <span style={{ color: 'var(--fg)', textAlign: 'right' }}>{fmt(ti)}</span>
                 <span style={{ color: 'var(--fg)', textAlign: 'right' }}>{usd(cIn)}</span>
