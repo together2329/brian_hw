@@ -1,5 +1,9 @@
 # Wiki Log
 
+## 2026-05-19
+
+- [[atlas-e2e-validation-20260519]] E2E validation: single-worker dispatch PARTIAL (LLM slow), parallel dispatch PARTIAL PASS (65ms simultaneous launch), orchestrator chat PASS (trigger_source + orchestrator_run_id linkage verified). All three executed live via http://127.0.0.1:62196 with glm-5.1 orchestrator + deepseek-v4-pro / kimi-k2-thinking per-workflow workers.
+
 ## 2026-05-18
 
 - [[atlas-pipeline-screen]] Pipeline Image redesign phase 1 landed (2026-05-18).
