@@ -115,6 +115,62 @@ const PipelineRunningChip = ({ onClick }) => {
   );
 };
 
+const OrchestratorStatusStrip = ({ activeIp }) => {
+  const [status, setStatus] = React.useState(null);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const poll = async () => {
+      if (!activeIp || activeIp === 'default') { setStatus(null); return; }
+      try {
+        const [runRes, traceRes] = await Promise.all([
+          fetch(`/api/orchestrator/active_run?ip=${encodeURIComponent(activeIp)}`),
+          fetch(`/api/orchestrator/trace?ip=${encodeURIComponent(activeIp)}&limit=1`),
+        ]);
+        if (cancelled) return;
+        const runData = runRes.ok ? await runRes.json() : null;
+        const traceData = traceRes.ok ? await traceRes.json() : null;
+        if (cancelled) return;
+        const lastEvent = traceData && Array.isArray(traceData.events) && traceData.events.length
+          ? traceData.events[0] : null;
+        setStatus({ run: runData, lastEvent });
+      } catch (_) {
+        if (!cancelled) setStatus(null);
+      }
+    };
+    poll();
+    const id = setInterval(poll, 1500);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [activeIp]);
+
+  const execMode = window.ATLAS_EXEC_MODE || window.ATLAS_DEFAULT_EXEC_MODE || 'single';
+  const isOrch = execMode === 'orchestrator';
+  const workerCount = status && status.run && typeof status.run.running_count === 'number'
+    ? status.run.running_count : 0;
+  const lastKind = status && status.lastEvent
+    ? (status.lastEvent.kind || status.lastEvent.type || '') : '';
+
+  return (
+    <div className="orch-status-strip">
+      <span className="osk">orch</span>
+      <span className={`osv ${isOrch ? 'on' : 'off'}`}>{isOrch ? 'on' : 'off'}</span>
+      <span className="os-sep">│</span>
+      <span className="osk">ip</span>
+      <span className="osv">{activeIp || '—'}</span>
+      <span className="os-sep">│</span>
+      <span className="osk">workers</span>
+      <span className="osv">{workerCount}</span>
+      {lastKind ? (
+        <>
+          <span className="os-sep">│</span>
+          <span className="osk">last</span>
+          <span className="osv">{lastKind}</span>
+        </>
+      ) : null}
+    </div>
+  );
+};
+
 const App = () => {
   const dir = 'B';     // Workbench is the only visible Atlas shell mode.
   const [theme, setTheme] = React.useState('dark');
@@ -1731,6 +1787,7 @@ const App = () => {
                   }}>↩ {window.ATLAS_USER.username}</button>
         )}
       </div>
+      <OrchestratorStatusStrip activeIp={activeIp} />
       <div className="app-main">
         <TitleBar ip="" screen={screen} onScreen={setScreen} />
         <div style={{ flex: 1, overflow: 'hidden' }}>
