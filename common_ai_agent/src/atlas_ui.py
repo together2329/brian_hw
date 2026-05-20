@@ -1438,32 +1438,89 @@ def _ssot_docx_page_break(doc: Any) -> None:
     run.add_break(WD_BREAK.PAGE)
 
 
-def _ssot_docx_add_toc(doc: Any) -> None:
-    """Insert a Word TOC field. Word/LibreOffice auto-populates on open."""
+def _ssot_docx_add_word_index(doc: Any, heading: str, instr_text: str, placeholder: str = "") -> None:
+    """Emit a Word field-based index block (TOC / List of Tables / List of Figures)."""
     from docx.oxml.ns import qn  # type: ignore
     from docx.oxml import OxmlElement  # type: ignore
 
-    doc.add_heading("Table of Contents", level=1)
+    doc.add_heading(heading, level=1)
     para = doc.add_paragraph()
     run = para.add_run()
     fld_begin = OxmlElement("w:fldChar")
     fld_begin.set(qn("w:fldCharType"), "begin")
     instr = OxmlElement("w:instrText")
     instr.set(qn("xml:space"), "preserve")
-    instr.text = r' TOC \o "1-3" \h \z \u '
+    instr.text = instr_text
     fld_sep = OxmlElement("w:fldChar")
     fld_sep.set(qn("w:fldCharType"), "separate")
-    placeholder = OxmlElement("w:t")
-    placeholder.text = "Right-click and choose 'Update Field' to populate the table of contents."
+    placeholder_el = OxmlElement("w:t")
+    placeholder_el.text = placeholder or "Right-click → Update Field to populate."
     fld_end = OxmlElement("w:fldChar")
     fld_end.set(qn("w:fldCharType"), "end")
     r = run._r
     r.append(fld_begin)
     r.append(instr)
     r.append(fld_sep)
-    r.append(placeholder)
+    r.append(placeholder_el)
     r.append(fld_end)
     _ssot_docx_page_break(doc)
+
+
+def _ssot_docx_add_toc(doc: Any) -> None:
+    _ssot_docx_add_word_index(
+        doc, "Table of Contents",
+        r' TOC \o "1-3" \h \z \u ',
+        "Right-click and choose 'Update Field' to populate the table of contents.",
+    )
+
+
+def _ssot_docx_add_list_of_tables(doc: Any) -> None:
+    _ssot_docx_add_word_index(
+        doc, "List of Tables",
+        r' TOC \h \z \c "Table" ',
+        "(Empty until you add a 'Table N: …' caption to each table and refresh fields.)",
+    )
+
+
+def _ssot_docx_add_list_of_figures(doc: Any) -> None:
+    _ssot_docx_add_word_index(
+        doc, "List of Figures",
+        r' TOC \h \z \c "Figure" ',
+        "(Empty until you add a 'Figure N: …' caption to each figure and refresh fields.)",
+    )
+
+
+def _ssot_docx_caption(doc: Any, kind: str, text: str) -> None:
+    """Emit a 'Table N: text' or 'Figure N: text' caption using a SEQ counter."""
+    from docx.oxml.ns import qn  # type: ignore
+    from docx.oxml import OxmlElement  # type: ignore
+    from docx.enum.text import WD_ALIGN_PARAGRAPH  # type: ignore
+    from docx.shared import Pt  # type: ignore
+
+    para = doc.add_paragraph(style="Caption" if "Caption" in [s.name for s in doc.styles] else None)
+    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    label_run = para.add_run(f"{kind} ")
+    label_run.italic = True
+    label_run.font.size = Pt(9)
+    seq_run = para.add_run()
+    seq_run.font.size = Pt(9)
+    seq_run.italic = True
+    fld_begin = OxmlElement("w:fldChar")
+    fld_begin.set(qn("w:fldCharType"), "begin")
+    instr = OxmlElement("w:instrText")
+    instr.set(qn("xml:space"), "preserve")
+    instr.text = f' SEQ {kind} \\* ARABIC '
+    fld_sep = OxmlElement("w:fldChar")
+    fld_sep.set(qn("w:fldCharType"), "separate")
+    placeholder_el = OxmlElement("w:t")
+    placeholder_el.text = "1"
+    fld_end = OxmlElement("w:fldChar")
+    fld_end.set(qn("w:fldCharType"), "end")
+    sr = seq_run._r
+    sr.append(fld_begin); sr.append(instr); sr.append(fld_sep); sr.append(placeholder_el); sr.append(fld_end)
+    tail_run = para.add_run(f"  {text}")
+    tail_run.italic = True
+    tail_run.font.size = Pt(9)
 
 
 def _ssot_docx_table_from_rows(
@@ -1562,6 +1619,7 @@ def _ssot_docx_render_parameters(doc: Any, params: Any) -> None:
         )
         desc = _ssot_md_scalar(r.get("description") or r.get("desc") or r.get("notes") or "")
         rows.append([name, default, typ, desc])
+    _ssot_docx_caption(doc, "Table", "Hardware configuration parameters")
     _ssot_docx_table_from_rows(doc, ["Parameter", "Default", "Type / Range", "Description"], rows)
 
 
@@ -1725,6 +1783,7 @@ def _ssot_docx_render_io_list(doc: Any, value: Any) -> None:
                 _ssot_md_scalar(entry.get("description") or ""),
             ])
         if rows:
+            _ssot_docx_caption(doc, "Table", "Clock domains")
             _ssot_docx_table_from_rows(doc, ["Domain", "Frequency (MHz)", "Source", "Description"], rows)
 
     rst = value.get("resets")
@@ -1742,6 +1801,7 @@ def _ssot_docx_render_io_list(doc: Any, value: Any) -> None:
                 _ssot_md_scalar(entry.get("description") or ""),
             ])
         if rows:
+            _ssot_docx_caption(doc, "Table", "Reset sources")
             _ssot_docx_table_from_rows(doc, ["Reset", "Polarity", "Sync / Async", "Source", "Description"], rows)
 
     ifs = value.get("interfaces")
@@ -1775,6 +1835,7 @@ def _ssot_docx_render_io_list(doc: Any, value: Any) -> None:
             ports = iface.get("ports")
             if isinstance(ports, list) and ports:
                 bucketed = _ssot_docx_port_rows(ports)
+                _ssot_docx_caption(doc, "Table", f"Signal description — {iname}")
                 _ssot_docx_render_port_buckets(doc, bucketed)
 
     flat_ports = value.get("ports")
@@ -2212,11 +2273,7 @@ def _ssot_docx_render_block_diagram(doc: Any, data: dict) -> None:
     if fig_buf is not None:
         doc.add_picture(fig_buf, width=Inches(6.4))
         doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        caption = doc.add_paragraph()
-        caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        cap_run = caption.add_run("Figure 1.2  Block diagram")
-        cap_run.italic = True
-        cap_run.font.size = Pt(9)
+        _ssot_docx_caption(doc, "Figure", "Block diagram")
 
     top = data.get("top_module") if isinstance(data.get("top_module"), dict) else {}
     top_name = str(top.get("name") or "TOP").strip() or "TOP"
@@ -2356,6 +2413,7 @@ def _ssot_docx_render_programming_model(doc: Any, registers: Any) -> None:
         _ssot_docx_yaml_block(doc, registers)
         return
     doc.add_heading("Summary of Registers", level=2)
+    _ssot_docx_caption(doc, "Table", "Summary of registers")
     summary_rows = []
     for reg in reg_list:
         summary_rows.append([
@@ -2468,6 +2526,8 @@ def _ssot_to_docx(data: dict, ip: str, out_path: Path) -> None:
     _ssot_docx_cover_page(doc, ip, safe_data)
     _ssot_docx_render_revision_history(doc, safe_data)
     _ssot_docx_add_toc(doc)
+    _ssot_docx_add_list_of_tables(doc)
+    _ssot_docx_add_list_of_figures(doc)
 
     if not isinstance(data, dict):
         doc.add_heading("Raw Document", level=1)
