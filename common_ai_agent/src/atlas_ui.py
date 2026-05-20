@@ -11590,13 +11590,13 @@ def create_app():
             return True
         _set_active_ssot_ip(ip)
         state = _load_ssot_state(ip) or {}
-        # Per user instruction: /to-ssot does NOT
-        #   - auto-import (`_import_defaults_if_available` removed)
-        #   - flip state["approved"] to True
-        #   - block on a "missing decisions" gate
-        #   - run the deterministic bridge / template
-        # It only renders the spec snapshot (Web Q&A + import context)
-        # and points at the SSOT yaml path. Author the YAML yourself.
+        # /to-ssot does NOT auto-import, does NOT flip an approve flag,
+        # does NOT block on missing decisions, and does NOT use the
+        # deterministic bridge or the 33-section template.
+        # It queues a Normal-mode LLM turn that reads the import
+        # manifest + imports + wiki + Q&A and writes the SSOT yaml
+        # directly with write_file / replace_in_file. Structure is
+        # derived from the imports — no canned template stamping.
         spec = _render_approved_ssot_spec(ip, state) if state else f"[to-ssot] {ip}: no SSOT state yet."
         session = _canonical_session_string(ip)
         _append_session_message(session, "user", text)
@@ -11606,16 +11606,50 @@ def create_app():
         _append_active_history("user", text)
         ssot_path = PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
         ready_msg = (
-            f"[to-ssot] {ip} — spec emitted; nothing written automatically.\n"
-            f"SSOT path: {ssot_path}\n"
-            f"Sources to draw from: `{ip}/req/import_manifest.json`, "
-            f"`{ip}/req/imports/`, `{ip}/wiki/`.\n"
-            "Author / edit the YAML yourself."
+            f"[to-ssot] {ip} — queueing LLM SSOT write.\n"
+            f"Target: {ssot_path}\n"
+            f"Sources: `{ip}/req/import_manifest.json`, `{ip}/req/imports/`, `{ip}/wiki/`."
         )
         _append_session_message(session, "assistant", ready_msg)
         _append_workflow_history("ssot-gen", "assistant", ready_msg)
         _append_active_history("assistant", "```\n" + ready_msg + "\n```")
         _emit_workflow_result(ready_msg, "to-ssot")
+        # Queue the actual LLM write turn. Normal mode + ssot-gen
+        # workspace + cleared chat so the agent starts from a clean
+        # slate with the import/wiki context inline.
+        _queue_prompt_for_session(client_session, "/mode normal")
+        _queue_prompt_for_session(client_session, "/wf ssot-gen")
+        _queue_prompt_for_session(client_session, "/clear")
+        _queue_prompt_for_session(client_session,
+            f"Write the canonical SSOT YAML for IP `{ip}` at the path\n"
+            f"  `{ssot_path}`\n\n"
+            "Workspace boundary (do not search or read outside these roots):\n"
+            f"  - PROJECT_ROOT: `{PROJECT_ROOT}`\n"
+            f"  - IP_ROOT:      `{PROJECT_ROOT / ip}`\n"
+            f"  - COMMON_AI_AGENT_HOME (read-only): `{SOURCE_ROOT}`\n\n"
+            "Source-of-truth inputs (READ these first):\n"
+            f"  1. `{ip}/req/import_manifest.json`  — every imported doc.\n"
+            f"  2. `{ip}/req/imports/`               — converted markdown bodies.\n"
+            f"  3. `{ip}/wiki/index.md`, `_graph.json`, `import-evidence.md`, "
+            "`log.md`, `notes.md`  — accumulated wiki evidence.\n"
+            "  4. Web Q&A snapshot (already inline above in the [SSOT SPEC] block).\n\n"
+            "Rules for the write:\n"
+            "  - Derive structure from the imports themselves. Do NOT stamp a "
+            "33-section template; do NOT invent sections the imports don't "
+            "support; do NOT use placeholder strings like '(TBD)' as a "
+            "shortcut — if a fact isn't in the imports or Q&A, omit the "
+            "field or leave a single-line comment explaining the gap.\n"
+            "  - Quote register addresses, signal names, encodings, and "
+            "interface widths verbatim from the imports.\n"
+            "  - Cite the source path inline (e.g. "
+            f"`# source: {ip}/req/imports/<file>.md L<lineno>`) whenever "
+            "you transcribe a number, table row, or normative requirement.\n\n"
+            "Execution requirement: this is a single Normal-mode write turn. "
+            "Use write_file (or replace_in_file on an existing draft) to "
+            "produce the yaml; do not call todo_write (Plan Mode only). "
+            "Emit `[SSOT HANDOFF]` once the yaml is on disk."
+        )
+        bridge.emit("agent_state", running=True)
         return True
 
     def _handle_repair_ssot_command(text: str, client_session: Any | None = None) -> bool:
