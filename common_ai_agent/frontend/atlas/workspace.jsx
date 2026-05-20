@@ -56,7 +56,6 @@ const WORKFLOW_RESULT_TOOLS = new Set([
   'grill-me',
   'approve',
   'to-ssot',
-  'resolve-rtl-blockers',
   'sim-debug',
   'repair-ssot',
   'repair-rtl',
@@ -225,6 +224,66 @@ const normalizeAtlasStatus = (status) => {
 const atlasStatusMeta = (status) => {
   const key = normalizeAtlasStatus(status);
   return ATLAS_STATUS_META[key] || { glyph: '·', color: 'var(--fg-mute)', label: String(status || 'unknown') };
+};
+
+const formatWorkspaceTelemetryNumber = (value) => {
+  const n = Number(value || 0);
+  if (!Number.isFinite(n) || n <= 0) return '0';
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n >= 10_000_000 ? 1 : 2)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(n >= 100_000 ? 0 : 1)}K`;
+  return String(Math.round(n));
+};
+
+const formatWorkspaceUsd = (value) => {
+  const n = Number(value || 0);
+  if (!Number.isFinite(n) || n <= 0) return '$0.0000';
+  if (n >= 10) return `$${n.toFixed(2)}`;
+  if (n >= 1) return `$${n.toFixed(3)}`;
+  return `$${n.toFixed(4)}`;
+};
+
+const workspaceMessageText = (content) => {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content.map(c => {
+      if (typeof c === 'string') return c;
+      if (!c || typeof c !== 'object') return '';
+      return c.text || c.content || c.value || '';
+    }).join('');
+  }
+  return '';
+};
+
+const workspaceTelemetryFromMessages = (messages) => {
+  const out = { count: 0, last: '', status: '', result: '' };
+  for (const m of (Array.isArray(messages) ? messages : [])) {
+    const role = m && m.role;
+    if (role === 'assistant') {
+      if (Array.isArray(m.tool_calls)) {
+        for (const tc of m.tool_calls) {
+          const name = (tc && tc.function && tc.function.name) || (tc && tc.name) || '';
+          out.count += 1;
+          out.last = name || out.last || 'tool';
+          out.status = 'running';
+        }
+      }
+      const text = workspaceMessageText(m.content);
+      const matches = text.matchAll(/^▶\s*(\S+)/gm);
+      for (const match of matches) {
+        out.count += 1;
+        out.last = match[1] || out.last || 'tool';
+        out.status = 'running';
+      }
+    } else if (role === 'tool') {
+      const text = workspaceMessageText(m.content);
+      const firstLine = text.split('\n').find(line => line.trim()) || '';
+      const failed = /\b(error|traceback|exception|failed|fatal|exit code [1-9])\b/i.test(text);
+      out.last = m.name || out.last || 'tool';
+      out.status = failed ? 'error' : 'ok';
+      out.result = firstLine;
+    }
+  }
+  return out;
 };
 
 const AtlasStatusBadge = ({ status, label, count, compact = false, soft = false, title }) => {
@@ -545,6 +604,8 @@ const _postProcessMarkdownNode = (node) => {
   _processBlockquoteKinds(node);
 };
 
+const _DIFF_RESULT_TOOL_RE = /^(replace_in_file|replace_lines|replace_file_content|write_file|write_to_file|edit|patch|update_file)/i;
+
 const _toolOutputLanguage = (tool, text) => {
   const raw = String(text || '');
   const t = raw.trim();
@@ -610,7 +671,7 @@ const _highlightInlineCode = (code, lang) => {
   }
 };
 
-const DiffOutputPre = ({ text, tool, truncated }) => {
+const DiffOutputPre = ({ text, tool, truncated, hintText = '' }) => {
   const body = String(text || '') + (truncated ? '\n…[truncated]' : '');
   // Unified row format from format_diff_snippet:
   //   context  : "{num}  {content}"        (num + 2 spaces + content)
@@ -625,7 +686,7 @@ const DiffOutputPre = ({ text, tool, truncated }) => {
     const m = line.match(ROW_RE);
     return m ? m[3] : line;
   }).join('\n');
-  const lang = _toolOutputLanguage(tool, codeOnly);
+  const lang = _toolOutputLanguage(tool, `${hintText || ''}\n${codeOnly}`);
   const [, forceRerender] = React.useState(0);
 
   React.useEffect(() => {
@@ -1470,10 +1531,64 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
       }));
     } catch (_) {}
   }, [streaming]);
+  React.useEffect(() => {
+    let cancelled = false;
+    const poll = () => {
+      fetch('/healthz', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(j => {
+          if (cancelled || !j) return;
+          setWorkspaceTelemetry(prev => ({
+            ...prev,
+            tokensIn: j.tokens_in != null ? Number(j.tokens_in || 0) : Number(prev.tokensIn || 0),
+            tokensCache: j.tokens_cache != null ? Number(j.tokens_cache || 0) : Number(prev.tokensCache || 0),
+            tokensOut: j.tokens_out != null ? Number(j.tokens_out || 0) : Number(prev.tokensOut || 0),
+            costUsd: j.cost_usd != null ? Number(j.cost_usd || 0) : Number(prev.costUsd || 0),
+            model: j.model || j.base_model || prev.model || '',
+          }));
+        })
+        .catch(() => {});
+    };
+    poll();
+    const id = setInterval(poll, 2500);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
   const [backendState, setBackendState] = React.useState(() => {
     if (!window.backend) return 'missing';
     return window.backend.getConnectionState ? window.backend.getConnectionState() : 'connecting';
   });
+  const [workspaceTelemetry, setWorkspaceTelemetry] = React.useState({
+    toolCount: 0,
+    lastTool: '',
+    lastToolStatus: '',
+    lastToolResult: '',
+    tokensIn: 0,
+    tokensCache: 0,
+    tokensOut: 0,
+    costUsd: 0,
+    lastCostDelta: 0,
+    model: '',
+  });
+  React.useEffect(() => {
+    const syncContextUsage = () => {
+      const ctx = window.CONTEXT || {};
+      setWorkspaceTelemetry(prev => ({
+        ...prev,
+        tokensIn: ctx.tokensIn != null ? Number(ctx.tokensIn || 0) : Number(prev.tokensIn || 0),
+        tokensCache: ctx.tokensCache != null ? Number(ctx.tokensCache || 0) : Number(prev.tokensCache || 0),
+        tokensOut: ctx.tokensOut != null ? Number(ctx.tokensOut || 0) : Number(prev.tokensOut || 0),
+        costUsd: ctx.costUsd != null ? Number(ctx.costUsd || 0) : Number(prev.costUsd || 0),
+        model: ctx.model || prev.model || '',
+      }));
+    };
+    window.addEventListener('atlas-data-changed', syncContextUsage);
+    window.addEventListener('atlas-session-loaded', syncContextUsage);
+    syncContextUsage();
+    return () => {
+      window.removeEventListener('atlas-data-changed', syncContextUsage);
+      window.removeEventListener('atlas-session-loaded', syncContextUsage);
+    };
+  }, []);
   const [peerCount, setPeerCount] = React.useState(1);
   const [streamText, setStreamText] = React.useState('');
   const [openFile, setOpenFile] = React.useState(null);
@@ -1908,6 +2023,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
     const onConvLoaded = (ev) => {
       const msgs = (ev.detail && ev.detail.messages) || [];
       const session = normalizeUiSession(ev.detail && ev.detail.session || '');
+      const telemetry = workspaceTelemetryFromMessages(msgs);
+      if (telemetry.count || telemetry.result) {
+        setWorkspaceTelemetry(prev => ({
+          ...prev,
+          toolCount: Math.max(Number(prev.toolCount || 0), Number(telemetry.count || 0)),
+          lastTool: telemetry.last || prev.lastTool,
+          lastToolStatus: telemetry.status || prev.lastToolStatus,
+          lastToolResult: telemetry.result || prev.lastToolResult,
+        }));
+      }
       if (session) setActiveSession(session);
       if (streamingRef.current || (streamBufferRef.current || '').trim()) {
         return;
@@ -2633,6 +2758,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
       const am = t.match(/^▶\s*(\S+)\s*(.*)$/);
       const toolName = am ? am[1] : '';
       const argsText = am ? (am[2] || '').trim() : '';
+      setWorkspaceTelemetry(prev => ({
+        ...prev,
+        toolCount: Number(prev.toolCount || 0) + 1,
+        lastTool: toolName || prev.lastTool || 'tool',
+        lastToolStatus: 'running',
+        lastToolResult: argsText || prev.lastToolResult || '',
+      }));
       setFeed(l => [...l, {
         kind: 'action',
         text: t,
@@ -2645,6 +2777,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
     subs.push(window.backend.subscribe('tool_result', (m) => {
       const t = (m.text || '').trim();
       if (!t) return;
+      const statusText = t.toLowerCase();
+      const failed = /\b(error|traceback|exception|failed|fatal|exit code [1-9])\b/.test(statusText);
+      setWorkspaceTelemetry(prev => ({
+        ...prev,
+        lastTool: m.tool || prev.lastTool || 'tool',
+        lastToolStatus: failed ? 'error' : 'ok',
+        lastToolResult: t.split('\n').find(line => line.trim()) || t,
+      }));
       if (_isWorkflowResultTool(m.tool || '')) return;
       setFeed(l => [...l, {
         kind: 'obs',
@@ -2653,6 +2793,34 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
         truncated: !!m.truncated,
         createdAt: Date.now(),
       }]);
+    }));
+    subs.push(window.backend.subscribe('cost', (m) => {
+      const input = Number(m?.input || 0);
+      const cached = Number(m?.cached || 0);
+      const output = Number(m?.output || 0);
+      const delta = Number(m?.cost_usd_delta || 0);
+      setWorkspaceTelemetry(prev => ({
+        ...prev,
+        ...(() => {
+          const pricing = m?.pricing || null;
+          const tokensIn = Number(prev.tokensIn || 0) + input;
+          const tokensCache = Number(prev.tokensCache || 0) + cached;
+          const tokensOut = Number(prev.tokensOut || 0) + output;
+          const computed = pricing
+            ? ((Math.max(0, tokensIn - tokensCache) * Number(pricing.input || 0))
+              + (tokensCache * Number(pricing.cache || 0))
+              + (tokensOut * Number(pricing.output || 0))) / 1_000_000
+            : Number(prev.costUsd || 0);
+          return {
+            tokensIn,
+            tokensCache,
+            tokensOut,
+            costUsd: delta > 0 ? Number(prev.costUsd || 0) + delta : computed,
+            lastCostDelta: delta,
+            model: m?.model || prev.model || '',
+          };
+        })(),
+      }));
     }));
     // Park the in-progress streaming buffer into the feed without
     // touching the streaming flag — flush fires AFTER EACH iteration,
@@ -4269,6 +4437,38 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
           {/* Status strip directly above the input — at-a-glance state
               the user doesn't have to look up at the chat header for. */}
           {(() => {
+            const tokenTotal = Number(workspaceTelemetry.tokensIn || 0) + Number(workspaceTelemetry.tokensOut || 0);
+            const resultPreview = String(workspaceTelemetry.lastToolResult || '').replace(/\s+/g, ' ').trim();
+            const resultText = resultPreview
+              ? (resultPreview.length > 150 ? `${resultPreview.slice(0, 150)}...` : resultPreview)
+              : 'no result yet';
+            const status = workspaceTelemetry.lastToolStatus || 'idle';
+            const statusColor = status === 'error' ? 'var(--err)' : status === 'running' ? 'var(--warn)' : status === 'ok' ? 'var(--ok)' : 'var(--fg-mute)';
+            return (
+              <div className="workspace-telemetry-strip">
+                <span className="workspace-telemetry-chip" data-role="tool-count">
+                  tool <b>{workspaceTelemetry.toolCount || 0}</b>
+                  {workspaceTelemetry.lastTool ? <span className="workspace-telemetry-dim"> · {workspaceTelemetry.lastTool}</span> : null}
+                </span>
+                <span className="workspace-telemetry-chip" style={{ color: statusColor }}>
+                  result <b>{status}</b>
+                  <span className="workspace-telemetry-result" title={workspaceTelemetry.lastToolResult || ''}>{resultText}</span>
+                </span>
+                <span className="workspace-telemetry-spacer" />
+                <span className="workspace-telemetry-chip" data-role="token-count">
+                  tok <b>{formatWorkspaceTelemetryNumber(tokenTotal)}</b>
+                </span>
+                <span className="workspace-telemetry-chip" data-role="cost">
+                  cost <b>{formatWorkspaceUsd(workspaceTelemetry.costUsd)}</b>
+                  {workspaceTelemetry.lastCostDelta > 0 ? <span className="workspace-telemetry-dim"> +{formatWorkspaceUsd(workspaceTelemetry.lastCostDelta)}</span> : null}
+                </span>
+                {workspaceTelemetry.model ? (
+                  <span className="workspace-telemetry-model" title={workspaceTelemetry.model}>{workspaceTelemetry.model}</span>
+                ) : null}
+              </div>
+            );
+          })()}
+          {(() => {
             const backendDown = !window.backend || backendState === 'missing' ||
               backendState === 'closed' || backendState === 'error';
             const s = backendDown
@@ -4449,11 +4649,12 @@ const CollapsibleThought = ({ text, summaryMode = true }) => {
 // Optional `embedded` prop: when true, render WITHOUT the outer
 // react-block wrapper (used by ToolCard which provides its own
 // outer container).
-const ObsCard = ({ entry, embedded, summaryMode = true }) => {
+const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '' }) => {
   // Replace/edit tools default to OPEN even in summary mode so the user
   // can see the actual diff without an extra click. Other tools stay
   // collapsed in summary mode.
-  const isReplaceTool = entry?.tool && /^(replace_in_file|replace_lines|write_file|edit|patch|update_file)/i.test(entry.tool);
+  const displayFormat = String(entry?.display_format || entry?.syntax || '').toLowerCase();
+  const isReplaceTool = entry?.tool && _DIFF_RESULT_TOOL_RE.test(entry.tool);
   const [open, setOpen] = React.useState(!summaryMode || isReplaceTool);
   React.useEffect(() => {
     setOpen(!summaryMode || isReplaceTool);
@@ -4470,8 +4671,9 @@ const ObsCard = ({ entry, embedded, summaryMode = true }) => {
   const lineCount = lines.length;
 
   // Diff coloring — opt in by tool name or "Added N, removed M" header.
-  const looksLikeDiff = /(^|\n)\s*⎿?\s*Added \d+ lines?,? removed \d+ lines?/.test(txt)
-                     || (entry.tool && /^(replace_in_file|write_file|edit|patch)/i.test(entry.tool));
+  const looksLikeDiff = displayFormat === 'diff'
+                     || /(^|\n)\s*⎿?\s*Added \d+ lines?,? removed \d+ lines?/.test(txt)
+                     || (entry.tool && _DIFF_RESULT_TOOL_RE.test(entry.tool));
 
   const renderMarkdownBody = () => (
     <div
@@ -4534,7 +4736,12 @@ const ObsCard = ({ entry, embedded, summaryMode = true }) => {
       {(embedded || open) && (
         looksLikeDiff || !useMarkdownResult ? (
           looksLikeDiff ? (
-            <DiffOutputPre text={txt} tool={entry.tool} truncated={entry.truncated} />
+            <DiffOutputPre
+              text={txt}
+              tool={entry.tool}
+              truncated={entry.truncated}
+              hintText={hintText || entry.hintText || entry.path || entry.file || ''}
+            />
           ) : (
             <ToolOutputPre text={txt} tool={entry.tool} truncated={entry.truncated} />
           )
@@ -4562,7 +4769,8 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   const obsText = obsTextRaw.replace(/\x1b\[[\d;]*m/g, '');
   const status = obs ? _obsStatus(obsText) : 'neutral';
   const borderColor = status === 'err' ? '#f85149' : theme.color;
-  let argsText = action && action.text ? action.text.replace(/^▶\s*/, '').replace(new RegExp('^' + tool + '\\s*'), '') : '';
+  const rawArgsText = action && action.text ? action.text.replace(/^▶\s*/, '').replace(new RegExp('^' + tool + '\\s*'), '') : '';
+  let argsText = rawArgsText;
   // Replace/write/edit tools dump the new file content into args, which
   // produces a noisy single-line preview next to the tool name (just
   // the first 80 chars of a 500-line `===========\n//comment...` blob).
@@ -4570,16 +4778,17 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   // the file path. Heuristics: pull `path="..."` / `path: '...'`
   // / first .sv|.v|.svh|.yaml|.json|.md path-like token, fall back to
   // empty string when nothing recognizable shows up.
-  if (tool && /^(replace_in_file|replace_lines|write_file|edit|patch|update_file)/i.test(tool)) {
+  if (tool && _DIFF_RESULT_TOOL_RE.test(tool)) {
     const pathMatch = argsText.match(/path\s*[:=]\s*["']([^"']+)["']/i)
       || argsText.match(/^\s*["']([^"']+\.(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl))["']/i)
       || argsText.match(/^\s*([^\s"',{}\[\]]+\.(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl))/i);
     argsText = pathMatch ? pathMatch[1] : '';
   }
   const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
-  // Replace/edit tools default to OPEN so the diff is visible without an
-  // extra click. Other tools default to closed in summary mode.
-  const isReplaceTool = tool && /^(replace_in_file|replace_lines|write_file|edit|patch|update_file)/i.test(tool);
+  // Tool results default to OPEN. The user needs to see the result/cost
+  // trail without hunting through collapsed cards; large bodies remain
+  // bounded by .tool-output-pre max-height.
+  const isReplaceTool = tool && _DIFF_RESULT_TOOL_RE.test(tool);
   const showFullArgsByDefault = !!tool && /^(run_command|todo_update)$/i.test(tool);
   const obsLines = obs ? obsText.split('\n') : [];
   const obsIsMulti = obsLines.length > 1;
@@ -4587,10 +4796,10 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   // their arguments by default while keeping the result body collapsible.
   // Threshold: > 100 chars or contains a newline.
   const argsIsLong = !!argsText && (argsText.length > 100 || /\n/.test(argsText));
-  const [obsOpen, setObsOpen] = React.useState(!summaryMode || isReplaceTool);
+  const [obsOpen, setObsOpen] = React.useState(!!obs || !summaryMode || isReplaceTool);
   React.useEffect(() => {
-    setObsOpen(!summaryMode || isReplaceTool);
-  }, [summaryMode, isReplaceTool]);
+    setObsOpen(!!obs || !summaryMode || isReplaceTool);
+  }, [obs, summaryMode, isReplaceTool]);
   const showArgsExpanded = obsOpen || showFullArgsByDefault;
   const headClickable = (!!obs && obsIsMulti) || argsIsLong;
   const toggleObs = () => { if (headClickable) setObsOpen(v => !v); };
@@ -4645,9 +4854,10 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
       {obs && obsOpen && <div className="tool-card-sep" />}
       {obs && obsOpen && (
         <ObsCard
-          entry={{ ...obs, text: obsText }}
+          entry={{ ...obs, tool: obs?.tool || tool, text: obsText }}
           embedded={true}
           summaryMode={summaryMode}
+          hintText={[tool, rawArgsText, argsText].filter(Boolean).join('\n')}
           forceOpen
           hideHeader
         />
@@ -5499,6 +5709,37 @@ const SsotQaBoard = ({
   const [validationBusy, setValidationBusy] = React.useState(false);
   const [validationResult, setValidationResult] = React.useState(null);
   const importStorageKey = `atlas:ssot-imported-files:${activeSessionNorm || 'session'}:${data?.ip || 'ip'}`;
+  const importStem = React.useCallback((item) => {
+    const raw = (item && (item.name || item.md_path || item.original_path)) || '';
+    const base = String(raw).split('/').pop() || '';
+    return base.replace(/^\d+_\d+_/, '').replace(/\.(md|pdf)$/i, '').toLowerCase();
+  }, []);
+  const collapseImportRows = React.useCallback((rows) => {
+    const merged = [];
+    const stemIdx = new Map();
+    for (const item of rows) {
+      if (!item) continue;
+      const stem = importStem(item);
+      const key = stem || item.md_path || item.original_path || item.name;
+      if (!key) continue;
+      if (stemIdx.has(key)) {
+        const target = merged[stemIdx.get(key)];
+        if (!target.md_path && item.md_path) target.md_path = item.md_path;
+        if (!target.original_path && item.original_path) target.original_path = item.original_path;
+        if (!target.image_count && item.image_count) target.image_count = item.image_count;
+        if (item.bytes && (!target.bytes || item.bytes > target.bytes)) target.bytes = item.bytes;
+        if (target.pending && !item.pending) {
+          target.pending = false;
+          target.error = item.error || target.error;
+        }
+        if (!target.error && item.error) target.error = item.error;
+      } else {
+        stemIdx.set(key, merged.length);
+        merged.push({ ...item });
+      }
+    }
+    return merged;
+  }, [importStem]);
   const readStoredImportedFiles = React.useCallback(() => {
     try {
       const raw = window.localStorage.getItem(importStorageKey);
@@ -5536,18 +5777,8 @@ const SsotQaBoard = ({
       error: !!item.convert_error,
       ts: item.updated_at || item.mtime || idx,
     })).filter(item => item.name || item.md_path || item.original_path);
-    setImportedFiles(prev => {
-      const merged = [];
-      const seen = new Set();
-      for (const item of [...normalized, ...prev]) {
-        const key = item.md_path || item.original_path || item.name;
-        if (!key || seen.has(key)) continue;
-        seen.add(key);
-        merged.push(item);
-      }
-      return merged.slice(0, 20);
-    });
-  }, [data?.imports, readStoredImportedFiles, setImportedFiles]);
+    setImportedFiles(prev => collapseImportRows([...normalized, ...prev]).slice(0, 20));
+  }, [data?.imports, readStoredImportedFiles, setImportedFiles, collapseImportRows]);
   const runSsotCommand = (cmd) => {
     const text = String(cmd || '').trim();
     if (!text || !onRunCommand) return;
@@ -5604,7 +5835,7 @@ const SsotQaBoard = ({
         : (Array.isArray(payload.paths) ? payload.paths.map(path => ({ name: String(path || '').split('/').pop(), original_path: path })) : []);
       if (saved.length) {
         setImportedFiles(prev => {
-          const next = saved.map(s => ({
+          const next = collapseImportRows(saved.map(s => ({
             name: s.name || '',
             bytes: s.bytes || 0,
             md_path: s.md_path || '',
@@ -5612,10 +5843,13 @@ const SsotQaBoard = ({
             image_count: Array.isArray(s.image_paths) ? s.image_paths.length : 0,
             pending: false,
             ts: Date.now(),
-          }));
-          const savedNames = new Set(next.map(f => f.name));
-          const previous = prev.filter(f => !(f.pending && savedNames.has(f.name || '') && Number(f.ts || 0) >= uploadStartedAt && Number(f.ts || 0) < uploadStartedAt + files.length + 1));
-          return [...next, ...previous].slice(0, 20);
+          })));
+          const nextStems = new Set(next.map(f => importStem(f)).filter(Boolean));
+          const previous = prev.filter(f => {
+            if (f.pending && Number(f.ts || 0) >= uploadStartedAt && Number(f.ts || 0) < uploadStartedAt + files.length + 1) return false;
+            return !nextStems.has(importStem(f));
+          });
+          return collapseImportRows([...next, ...previous]).slice(0, 20);
         });
       }
       if (payload.command) runSsotCommand(payload.command);
@@ -5707,7 +5941,7 @@ const SsotQaBoard = ({
       {importedFiles.length ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {importedFiles.map((f, i) => (
-            <div key={`${f.name}-${f.ts || i}`} style={{ display: 'grid', gridTemplateColumns: '14px minmax(0, 1fr) auto', alignItems: 'center', gap: 6, padding: '4px 5px', color: 'var(--fg)', background: 'var(--bg-1)', borderRadius: 2 }}>
+            <div key={`${f.md_path || f.original_path || f.name}-${f.ts || i}`} style={{ display: 'grid', gridTemplateColumns: '14px minmax(0, 1fr) auto', alignItems: 'center', gap: 6, padding: '4px 5px', color: 'var(--fg)', background: 'var(--bg-1)', borderRadius: 2 }}>
               <span style={{ color: f.error ? 'var(--err)' : f.pending ? 'var(--warn)' : 'var(--ok)', fontWeight: 700 }}>
                 {f.error ? '✕' : f.pending ? '⟳' : '✓'}
               </span>
@@ -6390,7 +6624,7 @@ const SsotQaBoard = ({
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       {importedFiles.map((f, i) => (
-                        <div key={`${f.name}-${f.ts || i}`} style={{ display: 'grid', gridTemplateColumns: '14px minmax(0, 1fr) auto', alignItems: 'center', gap: 6, padding: '3px 4px', color: 'var(--fg)' }}>
+                        <div key={`${f.md_path || f.original_path || f.name}-${f.ts || i}`} style={{ display: 'grid', gridTemplateColumns: '14px minmax(0, 1fr) auto', alignItems: 'center', gap: 6, padding: '3px 4px', color: 'var(--fg)' }}>
                           <span style={{ color: f.error ? 'var(--err)' : f.pending ? 'var(--warn)' : 'var(--ok)', fontWeight: 700 }}>
                             {f.error ? '✕' : f.pending ? '⟳' : '✓'}
                           </span>
@@ -7306,8 +7540,241 @@ const SSOT_REVIEW_FOCUS = {
   decomposition: ['Blocks, ownership, dependencies, and generation order are clear.', 'Interfaces between generated units are reviewable.'],
 };
 
+// ── Multi-cycle scenarios ────────────────────────────────────────
+// Pull named scenarios from cycle_model.scenarios / function_model.scenarios.
+// Each scenario is { name, summary, steps:[{cycle, action, fl_state, cl_state, signals:{key:value}}] }.
+// When the SSOT lacks explicit scenarios, synthesize one from
+// function_model.transactions + cycle_model.pipeline so the user still
+// gets a "what does this IP do, cycle by cycle" view.
+const _scenarioStepsFromBlocks = (blocks) => blocks.map((b, idx) => {
+  const cycle = Number(blockField(b, 'cycle') || blockField(b, 't') || idx);
+  const signals = {};
+  const sigBlocks = listBlocksFromText(b.text, 'signals');
+  for (const s of sigBlocks) {
+    const name = blockField(s, 'name');
+    const value = blockField(s, 'value');
+    if (name) signals[name] = value;
+  }
+  // Inline "signals: { ... }" mapping fallback
+  const sigMap = fieldFromText(b.text, 'signals', 1200);
+  if (sigMap && !sigBlocks.length) {
+    const re = /([A-Za-z_][A-Za-z0-9_]*)\s*[:=]\s*([^,;\n]+)/g;
+    let m;
+    while ((m = re.exec(sigMap)) !== null) {
+      signals[m[1].trim()] = m[2].trim();
+    }
+  }
+  return {
+    cycle: Number.isFinite(cycle) ? cycle : idx,
+    action: blockField(b, 'action', 320) || blockField(b, 'description', 320) || blockField(b, 'event', 320) || '',
+    fl_state: blockField(b, 'fl_state') || blockField(b, 'function_state') || blockField(b, 'fl') || '',
+    cl_state: blockField(b, 'cl_state') || blockField(b, 'cycle_state') || blockField(b, 'cl') || blockField(b, 'stage') || '',
+    signals,
+    notes: blockField(b, 'notes', 200),
+  };
+});
+
+const _scenarioFromBlock = (block) => ({
+  name: blockField(block, 'name') || blockField(block, 'id') || 'scenario',
+  summary: blockField(block, 'summary', 400) || blockField(block, 'description', 400) || '',
+  steps: _scenarioStepsFromBlocks(listBlocksFromText(block.text, 'steps')),
+});
+
+const extractScenarios = (sections) => {
+  const cycleSection = sectionByKey(sections, 'cycle_model');
+  const fnSection = sectionByKey(sections, 'function_model');
+  const declared = [
+    ...listBlocksFromSection(cycleSection, 'scenarios'),
+    ...listBlocksFromSection(fnSection, 'scenarios'),
+  ].map(_scenarioFromBlock).filter(s => s.steps.length);
+  if (declared.length) return declared;
+  // Auto-synthesize: one scenario per transaction, walking the pipeline.
+  const transactions = listBlocksFromSection(fnSection, 'transactions');
+  const pipeline = listBlocksFromSection(cycleSection, 'pipeline');
+  if (!transactions.length || !pipeline.length) return [];
+  return transactions.slice(0, 8).map((tx, ti) => {
+    const txName = blockField(tx, 'id') || blockField(tx, 'name') || `tx_${ti + 1}`;
+    const summary = blockField(tx, 'description', 360) || blockField(tx, 'purpose', 360) || '';
+    const steps = pipeline.map((stage, si) => ({
+      cycle: si,
+      action: `${blockField(stage, 'stage') || blockField(stage, 'name') || `stage_${si}`}: ${blockField(stage, 'action', 240) || ''}`,
+      fl_state: txName,
+      cl_state: blockField(stage, 'stage') || blockField(stage, 'name') || `stage_${si}`,
+      signals: {},
+      notes: blockField(stage, 'notes', 160) || '',
+    }));
+    return { name: txName, summary, steps, synthesized: true };
+  });
+};
+
+const SsotScenarioPlayer = ({ scenarios, onSelectFsmState }) => {
+  const [active, setActive] = React.useState(0);
+  const [step, setStep] = React.useState(0);
+  const [playing, setPlaying] = React.useState(false);
+  const scenario = scenarios[active] || { steps: [] };
+  const total = scenario.steps.length;
+  React.useEffect(() => { setStep(0); setPlaying(false); }, [active]);
+  React.useEffect(() => {
+    if (!playing) return;
+    if (step >= total - 1) { setPlaying(false); return; }
+    const id = setTimeout(() => setStep(s => Math.min(s + 1, total - 1)), 850);
+    return () => clearTimeout(id);
+  }, [playing, step, total]);
+  const cur = scenario.steps[step] || {};
+  const sigEntries = Object.entries(cur.signals || {});
+  // Pre-collect a stable list of all signals across the scenario for the timeline grid.
+  const allSignals = React.useMemo(() => {
+    const seen = new Set();
+    const order = [];
+    for (const s of scenario.steps) {
+      for (const k of Object.keys(s.signals || {})) {
+        if (!seen.has(k)) { seen.add(k); order.push(k); }
+      }
+    }
+    return order;
+  }, [scenario]);
+  React.useEffect(() => {
+    if (typeof onSelectFsmState === 'function' && cur.fl_state) onSelectFsmState(cur.fl_state);
+  }, [cur.fl_state, onSelectFsmState]);
+  const btnStyle = (active) => ({
+    border: `1px solid ${active ? 'var(--accent)' : 'var(--line)'}`,
+    background: active ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'var(--bg-2)',
+    color: active ? 'var(--accent)' : 'var(--fg)',
+    padding: '4px 10px', borderRadius: 4, fontFamily: 'var(--mono)',
+    fontSize: 'var(--ui-control-font-size)', cursor: 'pointer',
+  });
+  return (
+    <div style={{ display: 'grid', gap: 14 }}>
+      {/* Scenario selector */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {scenarios.map((s, i) => (
+          <span key={`scn-${s.name || i}-${i}`}
+            onClick={() => setActive(i)}
+            title={s.summary}
+            style={{
+              ...btnStyle(i === active),
+              fontWeight: i === active ? 800 : 500,
+            }}>
+            {s.name || `scenario ${i + 1}`}{s.synthesized ? ' ◌' : ''}
+          </span>
+        ))}
+      </div>
+      {scenario.summary ? (
+        <div className="mute" style={{ lineHeight: 1.55 }}>{scenario.summary}</div>
+      ) : null}
+
+      {/* Controls */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <span onClick={() => { setStep(0); setPlaying(false); }} style={btnStyle(false)} title="Reset">↺ Reset</span>
+        <span onClick={() => setStep(s => Math.max(0, s - 1))} style={btnStyle(false)} title="Back">⏮ Back</span>
+        <span onClick={() => setPlaying(p => !p)} style={btnStyle(playing)} title={playing ? 'Pause' : 'Play'}>
+          {playing ? '⏸ Pause' : '▶ Play'}
+        </span>
+        <span onClick={() => setStep(s => Math.min(total - 1, s + 1))} style={btnStyle(false)} title="Step">⏭ Step</span>
+        <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 11 }}>
+          cycle {step + 1} / {total}
+        </span>
+        <input type="range" min={0} max={Math.max(0, total - 1)} value={step}
+          onChange={e => { setStep(Number(e.target.value)); setPlaying(false); }}
+          style={{ flex: 1, minWidth: 160 }} />
+      </div>
+
+      {/* Current step */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(160px, 0.9fr)',
+        gap: 12, alignItems: 'stretch',
+      }}>
+        <div style={{ border: '1px solid var(--accent)', borderRadius: 4, padding: '10px 12px', background: 'var(--bg-2)' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+            <span style={{ fontFamily: 'var(--mono)', color: 'var(--cyan)', fontWeight: 800 }}>
+              cycle {cur.cycle != null ? cur.cycle : step}
+            </span>
+            {cur.fl_state ? (
+              <span style={{
+                fontFamily: 'var(--mono)', fontSize: 10, padding: '2px 8px', borderRadius: 999,
+                background: 'color-mix(in oklch, var(--magenta) 14%, transparent)',
+                color: 'var(--magenta)', border: '1px solid color-mix(in oklch, var(--magenta) 32%, transparent)',
+              }}>FL · {cur.fl_state}</span>
+            ) : null}
+            {cur.cl_state ? (
+              <span style={{
+                fontFamily: 'var(--mono)', fontSize: 10, padding: '2px 8px', borderRadius: 999,
+                background: 'color-mix(in oklch, var(--accent) 14%, transparent)',
+                color: 'var(--accent)', border: '1px solid color-mix(in oklch, var(--accent) 32%, transparent)',
+              }}>CL · {cur.cl_state}</span>
+            ) : null}
+          </div>
+          <div style={{ color: 'var(--fg)', lineHeight: 1.55 }}>{cur.action || '—'}</div>
+          {cur.notes ? (
+            <div className="mute" style={{ marginTop: 5, fontSize: 11 }}>{cur.notes}</div>
+          ) : null}
+        </div>
+        {sigEntries.length ? (
+          <div style={{ border: '1px solid var(--line)', borderRadius: 4, padding: '10px 12px', background: 'var(--bg-1)' }}>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg-mute)', marginBottom: 4 }}>SIGNALS @ cycle {cur.cycle != null ? cur.cycle : step}</div>
+            {sigEntries.map(([k, v], i) => (
+              <div key={`sig-${k}-${i}`} style={{ display: 'flex', gap: 8, fontFamily: 'var(--mono)', fontSize: 11, lineHeight: 1.6 }}>
+                <span style={{ color: 'var(--cyan)' }}>{k}</span>
+                <span style={{ color: 'var(--fg-mute)' }}>=</span>
+                <span style={{ color: 'var(--fg)' }}>{String(v)}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      {/* Timeline */}
+      {allSignals.length ? (
+        <div style={{ border: '1px solid var(--line)', borderRadius: 4, padding: '10px 12px', overflowX: 'auto' }}>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg-mute)', marginBottom: 6 }}>
+            SIGNAL TIMELINE (click a column to jump)
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: `120px repeat(${total}, minmax(48px, 1fr))`, gap: 2 }}>
+            <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10 }}>cycle</div>
+            {scenario.steps.map((s, i) => (
+              <div key={`hd-${i}`}
+                onClick={() => { setStep(i); setPlaying(false); }}
+                style={{
+                  color: i === step ? 'var(--accent)' : 'var(--fg-mute)',
+                  fontFamily: 'var(--mono)', fontSize: 10, textAlign: 'center', cursor: 'pointer',
+                  fontWeight: i === step ? 800 : 400,
+                }}>
+                {s.cycle != null ? s.cycle : i}
+              </div>
+            ))}
+            {allSignals.map(sig => (
+              <React.Fragment key={`row-${sig}`}>
+                <div style={{ color: 'var(--cyan)', fontFamily: 'var(--mono)', fontSize: 11 }}>{sig}</div>
+                {scenario.steps.map((s, i) => {
+                  const val = s.signals && s.signals[sig];
+                  return (
+                    <div key={`cell-${sig}-${i}`}
+                      onClick={() => { setStep(i); setPlaying(false); }}
+                      style={{
+                        background: i === step
+                          ? 'color-mix(in oklch, var(--accent) 22%, transparent)'
+                          : (val != null ? 'var(--bg-2)' : 'transparent'),
+                        border: '1px solid var(--line)',
+                        color: 'var(--fg)', textAlign: 'center',
+                        fontFamily: 'var(--mono)', fontSize: 10,
+                        padding: '2px 4px', cursor: 'pointer',
+                      }}>
+                      {val != null ? String(val) : ''}
+                    </div>
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
 const SSOT_DIGEST_VIEWS = [
   { id: 'overview', label: 'Brief', keys: ['top_module', 'features', 'sub_modules', 'io_list', 'registers', 'dataflow'] },
+  { id: 'scenarios', label: 'Scenarios', keys: ['cycle_model', 'function_model', 'features', 'fsm', 'registers'] },
   { id: 'architecture', label: 'Architecture', keys: ['sub_modules', 'decomposition'] },
   { id: 'interfaces', label: 'Interfaces', keys: ['io_list', 'decomposition'] },
   { id: 'feature_map', label: 'Feature Map', keys: ['features', 'sub_modules', 'decomposition', 'function_model', 'cycle_model', 'registers', 'dataflow'] },
@@ -7611,6 +8078,7 @@ const extractReviewInterfaces = (sections, ioSection) => {
 
 const extractFeatures = (section) => listBlocksFromSection(section).map(block => ({
   name: blockField(block, 'name') || 'Feature',
+  description: blockField(block, 'description', 480) || blockField(block, 'summary', 480),
   trigger: blockField(block, 'trigger', 360),
   datapath: blockField(block, 'datapath', 520),
   control: blockField(block, 'control', 300),
@@ -7672,6 +8140,10 @@ const extractRegisters = (section) => {
     reset: blockField(block, 'reset'),
     description: blockField(block, 'description', 300),
     fields: listBlocksFromText(block.text, 'fields').map(field => ({
+      bits: blockField(field, 'bits')
+        || blockField(field, 'bit')
+        || blockField(field, 'range')
+        || blockField(field, 'position'),
       name: blockField(field, 'name') || 'field',
       access: blockField(field, 'access'),
       reset: blockField(field, 'reset'),
@@ -7796,6 +8268,7 @@ const digestViewsForSections = (sections) => {
   if (!(sections || []).length) return [];
   return SSOT_DIGEST_VIEWS.filter(view => (
     view.id === 'overview'
+    || view.id === 'scenarios'
     || view.id === 'review_gaps'
     || view.id === 'raw_yaml'
     || sourceSectionsForDigestView(view, sections).length > 0
@@ -8697,6 +9170,7 @@ const _FeatureRow = ({ glyph, label, value, color }) => {
 const FeatureCard = ({ index, feature }) => {
   const [hover, setHover] = React.useState(false);
   const hasAny = feature && (feature.datapath || feature.control || feature.output);
+  const description = feature && feature.description;
   return (
     <div
       onMouseEnter={() => setHover(true)}
@@ -8730,6 +9204,11 @@ const FeatureCard = ({ index, feature }) => {
           }}>trigger · {feature.trigger}</span>
         ) : null}
       </div>
+      {description ? (
+        <div className="mute" style={{ lineHeight: 1.55, fontSize: 'var(--ui-control-font-size)' }}>
+          {description}
+        </div>
+      ) : null}
       {hasAny ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 2 }}>
           <_FeatureRow glyph="➜" label="datapath" value={feature.datapath}
@@ -9749,7 +10228,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     <>
       {header}
       <div style={{ display: 'grid', gap: 10 }}>
-        {features.length ? features.map(feature => {
+        {features.length ? features.map((feature, i) => {
           const tokens = featureTokens(feature);
           const ownedModules = namesForFeature(
             submods,
@@ -9789,7 +10268,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
           );
           const modules = compactDigestItems([...new Set([...ownedModules, ...contractModules])], 5);
           return (
-            <DigestCard key={feature.name} title={feature.name} meta={feature.sourceKey || feature.trigger}>
+            <DigestCard key={`feat-${feature.name || ''}-${i}`} title={feature.name} meta={feature.sourceKey || feature.trigger}>
               <DigestKV rows={[
                 ['what', feature.datapath || feature.output || feature.trigger],
                 ['implemented by', modules || compactDigestItems(featureSections.filter(section => matchesFeature(section.text, tokens)).map(section => ssotTitleFor(section.key)), 5)],
@@ -9836,13 +10315,13 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
         <DigestCard title="Module Split" meta={`${submods.length} submodules`}>
           {submods.length ? (
             <div style={{ display: 'grid', gap: 9 }}>
-              {submods.map(m => {
+              {submods.map((m, i) => {
                 const contract = contractByModule[m.name] || {};
                 const localInputs = (contract.inputs || []).length ? contract.inputs : [];
                 const localOutputs = (contract.outputs || []).length ? contract.outputs : [];
                 const owns = (contract.owns || []).length ? contract.owns : m.implements;
                 return (
-                  <div key={m.name} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 7 }}>
+                  <div key={`sm-${m.name || ''}-${i}`} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 7 }}>
                     <div><b>{m.name}</b> <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>{m.file}</span></div>
                     <div className="mute" style={{ marginTop: 2 }}>{m.description}</div>
                     {owns.length ? <div style={{ marginTop: 3, color: 'var(--cyan)', fontFamily: 'var(--mono)', fontSize: 10 }}>direction: {owns.join(', ')}</div> : null}
@@ -9861,8 +10340,8 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
         {moduleContracts.length ? (
           <DigestCard title="Implementation Direction" meta={`${moduleContracts.length} module contracts`}>
             <div style={{ display: 'grid', gap: 10 }}>
-              {moduleContracts.map(contract => (
-                <div key={contract.module} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
+              {moduleContracts.map((contract, i) => (
+                <div key={`mc-${contract.module || ''}-${i}`} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
                   <div style={{ fontWeight: 800 }}>{contract.module}</div>
                   {contract.implementation ? <div className="mute" style={{ marginTop: 2 }}>{contract.implementation}</div> : null}
                   <DigestKV rows={[
@@ -9888,8 +10367,8 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
           <div>{sectionFact(functionSection, 'purpose', 'No function model purpose available yet.')}</div>
         </DigestCard>
         <DigestCard title="Transactions" meta={`${transactions.length} transactions`}>
-          {transactions.length ? transactions.map(tx => (
-            <div key={blockField(tx, 'id') || blockField(tx, 'name')} style={{ marginBottom: 10, borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
+          {transactions.length ? transactions.map((tx, i) => (
+            <div key={`tx-${blockField(tx, 'id') || blockField(tx, 'name') || i}-${i}`} style={{ marginBottom: 10, borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
               <div><b>{blockField(tx, 'id')}</b> {blockField(tx, 'name')}</div>
               <DigestKV rows={[
                 ['preconditions', blockListValues(tx, 'preconditions', 4).join('; ')],
@@ -9903,7 +10382,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
         <DigestCard title="State Variables" meta={`${stateVars.length} variables`}>
           {stateVars.length ? (
             <div style={{ display: 'grid', gap: 5 }}>
-              {stateVars.map(v => <DigestKV key={blockField(v, 'name')} rows={[[blockField(v, 'name'), `${blockField(v, 'source')} · reset ${blockField(v, 'reset')} · ${blockField(v, 'description')}`]]} />)}
+              {stateVars.map((v, i) => <DigestKV key={`sv-${blockField(v, 'name') || i}-${i}`} rows={[[blockField(v, 'name'), `${blockField(v, 'source')} · reset ${blockField(v, 'reset')} · ${blockField(v, 'description')}`]]} />)}
             </div>
           ) : <DigestEmpty />}
         </DigestCard>
@@ -9933,7 +10412,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
           const graph = fsmGraphFromMachine(machine);
           return (
             <DigestCard
-              key={machine.name}
+              key={`fsm-${machine.name || ''}-${machineIdx}`}
               title={machine.name}
               meta={`${graph.states.length} states · ${graph.transitions.length} transitions`}
             >
@@ -9990,14 +10469,14 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
           ]} />
         </DigestCard>
         <DigestCard title="Latency" meta={`${latencyGroups.length} paths`}>
-          {latencyGroups.length ? latencyGroups.map(g => (
-            <DigestKV key={g.key} rows={[[g.key, `${fieldFromText(g.text, 'min_cycles') || '?'}-${fieldFromText(g.text, 'max_cycles') || '?'} cycles · ${fieldFromText(g.text, 'description')}`]]} />
+          {latencyGroups.length ? latencyGroups.map((g, i) => (
+            <DigestKV key={`lat-${g.key || ''}-${i}`} rows={[[g.key, `${fieldFromText(g.text, 'min_cycles') || '?'}-${fieldFromText(g.text, 'max_cycles') || '?'} cycles · ${fieldFromText(g.text, 'description')}`]]} />
           )) : <DigestEmpty />}
         </DigestCard>
         <DigestCard title="Handshake / Pipeline" meta={`${handshakeRules.length} rules · ${pipeline.length} stages`}>
-          {handshakeRules.slice(0, 8).map(r => <div key={blockField(r, 'signal')} style={{ marginBottom: 4 }}><b>{blockField(r, 'signal')}</b> <span className="mute">{blockField(r, 'rule', 320)}</span></div>)}
+          {handshakeRules.slice(0, 8).map((r, i) => <div key={`hr-${blockField(r, 'signal') || i}-${i}`} style={{ marginBottom: 4 }}><b>{blockField(r, 'signal')}</b> <span className="mute">{blockField(r, 'rule', 320)}</span></div>)}
           {pipeline.length ? <hr style={{ border: 0, borderTop: '1px solid var(--line)', margin: '8px 0' }} /> : null}
-          {pipeline.map(p => <div key={blockField(p, 'stage')} style={{ marginBottom: 4 }}><b>{blockField(p, 'stage')}</b> <span className="mute">{blockField(p, 'cycle')} · {blockField(p, 'action', 320)}</span></div>)}
+          {pipeline.map((p, i) => <div key={`pl-${blockField(p, 'stage') || i}-${i}`} style={{ marginBottom: 4 }}><b>{blockField(p, 'stage')}</b> <span className="mute">{blockField(p, 'cycle')} · {blockField(p, 'action', 320)}</span></div>)}
         </DigestCard>
       </div>
     </>
@@ -10008,12 +10487,12 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
       {header}
       <div style={{ display: 'grid', gap: 10 }}>
         <div style={{ color: 'var(--accent)', fontWeight: 800, fontSize: 12 }}>Top Module External Interfaces <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>{interfaces.length} interfaces</span></div>
-        {interfaces.length ? interfaces.map(iface => (
-          <DigestCard key={iface.name} title={iface.name} meta={`${iface.type}${iface.role ? ` · ${iface.role}` : ''} · ${iface.ports.length} ${t.ports}`}>
+        {interfaces.length ? interfaces.map((iface, i) => (
+          <DigestCard key={`if-${iface.name || ''}-${i}`} title={iface.name} meta={`${iface.type}${iface.role ? ` · ${iface.role}` : ''} · ${iface.ports.length} ${t.ports}`}>
             <div className="mute" style={{ marginBottom: 8 }}>{iface.description}</div>
             <div style={{ display: 'grid', gap: 4 }}>
-              {iface.ports.map(port => (
-                <div key={port.name} style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 0.7fr) 56px minmax(70px, max-content) minmax(0, 1.4fr)', gap: 10, fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)', alignItems: 'baseline' }}>
+              {iface.ports.map((port, pi) => (
+                <div key={`port-${port.name || ''}-${pi}`} style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 0.7fr) 56px minmax(70px, max-content) minmax(0, 1.4fr)', gap: 10, fontFamily: 'var(--mono)', fontSize: 'var(--ui-control-font-size)', alignItems: 'baseline' }}>
                   <span style={{ color: 'var(--fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{port.name}</span>
                   <span className="mute">{port.direction}</span>
                   <span className="mute" style={{ whiteSpace: 'nowrap' }}>{_formatWidth(port.width) || '[0]'}</span>
@@ -10026,8 +10505,8 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
         {moduleContracts.length ? (
           <DigestCard title="Submodule Local Interfaces" meta={`${moduleContracts.length} modules`}>
             <div style={{ display: 'grid', gap: 10 }}>
-              {moduleContracts.map(contract => (
-                <div key={contract.module} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
+              {moduleContracts.map((contract, ci) => (
+                <div key={`mc2-${contract.module || ''}-${ci}`} style={{ borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
                   <div style={{ fontWeight: 800 }}>{contract.module}</div>
                   <DigestKV rows={[
                     ['inputs', contract.inputs.join('; ')],
@@ -10035,8 +10514,8 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                   ]} />
                   {contract.interfaces.length ? (
                     <div style={{ marginTop: 7, display: 'grid', gap: 6 }}>
-                      {contract.interfaces.map(iface => (
-                        <div key={iface.name}>
+                      {contract.interfaces.map((iface, ii) => (
+                        <div key={`cif-${iface.name || ''}-${ii}`}>
                           <b>{iface.name}</b> <span className="mute">{iface.type}{iface.role ? ` · ${iface.role}` : ''}</span>
                           <DigestKV rows={[
                             ['inputs', iface.inputs.join('; ')],
@@ -10060,13 +10539,51 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     <>
       {header}
       <DigestCard title="Register Map" meta={`${registers.length} registers`}>
-        {registers.length ? registers.map(reg => (
-          <div key={reg.name} style={{ marginBottom: 11, borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
-            <div><b>{reg.name}</b> <span className="mute" style={{ fontFamily: 'var(--mono)' }}>@ {reg.offset} · {reg.access} · reset {reg.reset}</span></div>
-            <div className="mute" style={{ marginTop: 2 }}>{reg.description}</div>
-            {reg.fields.length ? <div style={{ marginTop: 5, color: 'var(--cyan)', fontFamily: 'var(--mono)', fontSize: 10 }}>{reg.fields.slice(0, 10).map(f => `${f.name}(${f.access})`).join(', ')}</div> : null}
+        {registers.length ? (
+          <div style={{ display: 'grid', gap: 14 }}>
+            {registers.map((reg, i) => (
+              <div key={`reg-${reg.name || ''}-${i}`} style={{ borderLeft: '3px solid var(--accent)', paddingLeft: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+                  <span style={{ fontFamily: 'var(--mono)', color: 'var(--cyan)', fontWeight: 800 }}>
+                    {reg.offset || '--'}
+                  </span>
+                  <span style={{ fontWeight: 800, color: 'var(--fg)', fontSize: 13 }}>{reg.name}</span>
+                  {reg.access ? (
+                    <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>access: {reg.access}</span>
+                  ) : null}
+                  {reg.reset ? (
+                    <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>reset: {reg.reset}</span>
+                  ) : null}
+                  {reg.width ? (
+                    <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>width: {reg.width}</span>
+                  ) : null}
+                </div>
+                {reg.description ? (
+                  <div className="mute" style={{ marginTop: 3, lineHeight: 1.5 }}>{reg.description}</div>
+                ) : null}
+                {reg.fields && reg.fields.length ? (
+                  <div style={{ marginTop: 6, display: 'grid', gridTemplateColumns: '70px minmax(80px, 0.8fr) 50px 60px minmax(0, 2.2fr)',
+                    gap: 6, fontFamily: 'var(--mono)', fontSize: 10, alignItems: 'baseline' }}>
+                    <div style={{ color: 'var(--fg-mute)', fontWeight: 700, borderBottom: '1px solid var(--line)' }}>BITS</div>
+                    <div style={{ color: 'var(--fg-mute)', fontWeight: 700, borderBottom: '1px solid var(--line)' }}>FIELD</div>
+                    <div style={{ color: 'var(--fg-mute)', fontWeight: 700, borderBottom: '1px solid var(--line)' }}>ACCESS</div>
+                    <div style={{ color: 'var(--fg-mute)', fontWeight: 700, borderBottom: '1px solid var(--line)' }}>RESET</div>
+                    <div style={{ color: 'var(--fg-mute)', fontWeight: 700, borderBottom: '1px solid var(--line)' }}>DESCRIPTION</div>
+                    {reg.fields.map((f, fi) => (
+                      <React.Fragment key={`rf-${reg.name || i}-${f.name || ''}-${fi}`}>
+                        <div style={{ color: 'var(--cyan)' }}>{f.bits || '-'}</div>
+                        <div style={{ color: 'var(--fg)' }}>{f.name || '-'}</div>
+                        <div className="mute">{f.access || '-'}</div>
+                        <div className="mute">{f.reset || '-'}</div>
+                        <div className="mute" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.description || ''}</div>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ))}
           </div>
-        )) : <DigestEmpty />}
+        ) : <DigestEmpty />}
       </DigestCard>
     </>
   );
@@ -10075,8 +10592,8 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     <>
       {header}
       <div style={{ display: 'grid', gap: 10 }}>
-        {dataflowGroups.length ? dataflowGroups.map(g => (
-          <DigestCard key={g.key} title={ssotTitleFor(g.key)}>
+        {dataflowGroups.length ? dataflowGroups.map((g, i) => (
+          <DigestCard key={`df-${g.key || ''}-${i}`} title={ssotTitleFor(g.key)}>
             <DigestKV rows={[
               ['source', fieldFromText(g.text, 'source')],
               ['sequence', blockListValues(g, 'sequence', 8).join(' -> ')],
@@ -10095,13 +10612,13 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
       {header}
       <div style={{ display: 'grid', gap: 10 }}>
         <DigestCard title="Clock Domains" meta={`${clockDomains.length} domains`}>
-          {clockDomains.length ? clockDomains.map(d => <DigestKV key={d.name} rows={[[d.name, `${d.frequency || '?'} MHz · ${d.description}`]]} />) : <DigestEmpty />}
+          {clockDomains.length ? clockDomains.map((d, i) => <DigestKV key={`cd-${d.name || ''}-${i}`} rows={[[d.name, `${d.frequency || '?'} MHz · ${d.description}`]]} />) : <DigestEmpty />}
         </DigestCard>
         <DigestCard title="Reset">
-          {resets.length ? resets.map(r => <DigestKV key={r.name} rows={[[r.name, `${r.polarity} · ${r.type} · ${r.description}`]]} />) : <DigestKV rows={[['scheme', sectionFact(clockSection, 'type') || sectionFact(clockSection, 'reset_scheme')]]} />}
+          {resets.length ? resets.map((r, i) => <DigestKV key={`rs-${r.name || ''}-${i}`} rows={[[r.name, `${r.polarity} · ${r.type} · ${r.description}`]]} />) : <DigestKV rows={[['scheme', sectionFact(clockSection, 'type') || sectionFact(clockSection, 'reset_scheme')]]} />}
         </DigestCard>
         <DigestCard title="CDC / RDC" meta={`${cdcCrossings.length} CDC crossings`}>
-          {cdcCrossings.length ? cdcCrossings.map(c => <DigestKV key={c.name} rows={[[c.name, `${c.from} -> ${c.to} · ${c.synchronizer} · ${c.description}`]]} />) : <DigestEmpty text={sectionFact(rdcSection, 'note') || 'No CDC crossings listed.'} />}
+          {cdcCrossings.length ? cdcCrossings.map((c, i) => <DigestKV key={`cdc-${c.name || ''}-${i}`} rows={[[c.name, `${c.from} -> ${c.to} · ${c.synchronizer} · ${c.description}`]]} />) : <DigestEmpty text={sectionFact(rdcSection, 'note') || 'No CDC crossings listed.'} />}
         </DigestCard>
       </div>
     </>
@@ -10210,8 +10727,22 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   );
 
   const sourceSections = sourceSectionsForDigestView(view, sections);
+  const scenarios = React.useMemo(() => extractScenarios(sections), [sections]);
+  const renderScenarios = () => (
+    <>
+      {header}
+      <DigestCard title="Interactive scenarios" meta={`${scenarios.length} scenarios${scenarios.length && scenarios[0].synthesized ? ' · auto-synthesized from transactions + pipeline' : ''}`}>
+        {scenarios.length ? (
+          <SsotScenarioPlayer scenarios={scenarios} />
+        ) : (
+          <DigestEmpty text="No cycle_model.scenarios[] declared and no function_model.transactions[] + cycle_model.pipeline[] to synthesize from. Add scenarios under cycle_model: { scenarios: [{ name, summary, steps:[{cycle,action,fl_state,cl_state,signals}] }] } to make this IP self-demonstrating." />
+        )}
+      </DigestCard>
+    </>
+  );
   let body;
   if (view.id === 'overview') body = renderOverview();
+  else if (view.id === 'scenarios') body = renderScenarios();
   else if (view.id === 'features') body = renderFeatures();
   else if (view.id === 'architecture') body = renderArchitecture();
   else if (view.id === 'feature_map') body = renderFeatureMap();
@@ -10230,7 +10761,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   return (
     <>
       {body}
-      {!['architecture', 'overview', 'review_gaps', 'raw_yaml', 'gates'].includes(view.id) ? (
+      {!['architecture', 'overview', 'scenarios', 'review_gaps', 'raw_yaml', 'gates'].includes(view.id) ? (
         <DigestSourceSections view={view} sections={sections} statusByKey={statusByKey} t={t} />
       ) : null}
     </>
@@ -14003,7 +14534,8 @@ const ConvModeSelector = () => {
 // ── ATLAS status panel ─────────────────────────────────────────────
 const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
   // Live context — populated by /healthz + WS 'context' events.
-  const _ctx = window.CONTEXT || {};
+  const [liveContext, setLiveContext] = React.useState(() => Object.assign({}, window.CONTEXT || {}));
+  const _ctx = liveContext;
   const [liveStageStatus, setLiveStageStatus] = React.useState(null);
   const effortOptions = ['none', 'low', 'medium', 'high', 'xhigh'];
   const normalizeEffortValue = (value) => (
@@ -14019,6 +14551,48 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
   const [savingEffort, setSavingEffort] = React.useState(false);
   const [savingModel, setSavingModel] = React.useState(false);
   const [settingsError, setSettingsError] = React.useState('');
+  React.useEffect(() => {
+    let alive = true;
+    const syncContext = (extra) => {
+      if (!alive) return;
+      const clean = {};
+      Object.entries(extra || {}).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) clean[key] = value;
+      });
+      setLiveContext(prev => Object.assign({}, prev || {}, window.CONTEXT || {}, clean));
+    };
+    const poll = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      fetch('/healthz', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(j => {
+          if (!j) return;
+          syncContext({
+            model: j.model || j.base_model || '',
+            maxTokens: j.max_context,
+            tokens: j.tokens,
+            tokensIn: j.tokens_in,
+            tokensCache: j.tokens_cache,
+            tokensOut: j.tokens_out,
+            costUsd: j.cost_usd,
+            pricing: j.pricing || null,
+          });
+        })
+        .catch(() => {});
+    };
+    const onDataChanged = () => syncContext();
+    syncContext();
+    poll();
+    const timer = setInterval(poll, 2500);
+    window.addEventListener('atlas-data-changed', onDataChanged);
+    window.addEventListener('atlas-session-loaded', onDataChanged);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+      window.removeEventListener('atlas-data-changed', onDataChanged);
+      window.removeEventListener('atlas-session-loaded', onDataChanged);
+    };
+  }, []);
   React.useEffect(() => {
     setEffortValue(normalizeEffortValue(_ctx.reasoningEffort));
   }, [_ctx.reasoningEffort]);
@@ -14217,7 +14791,8 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
           const cIn   = ti * pi / 1e6;
           const cCach = tc * pc / 1e6;
           const cOut  = to * po / 1e6;
-          const cTot  = cIn + cCach + cOut;
+          const cCalc = cIn + cCach + cOut;
+          const cTot = Number(_ctx.costUsd || 0) > 0 ? Number(_ctx.costUsd) : cCalc;
           return (
             <>
               <div className="mute" style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>

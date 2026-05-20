@@ -1174,54 +1174,976 @@ def _ssot_docx_render_section(doc: Any, key: str, value: Any) -> None:
     _ssot_docx_yaml_block(doc, value)
 
 
-def _ssot_to_docx(data: dict, ip: str, out_path: Path) -> None:
+def _ssot_docx_cover_page(doc: Any, ip: str, data: dict) -> None:
+    """TRM-style cover page: product title, version, abstract, timestamp."""
     from datetime import datetime, timezone
+    from docx.enum.text import WD_ALIGN_PARAGRAPH  # type: ignore
+    from docx.shared import Pt  # type: ignore
+
+    top = data.get("top_module") if isinstance(data, dict) else {}
+    if not isinstance(top, dict):
+        top = {}
+    name = str(top.get("name") or ip).strip() or ip
+    version = str(top.get("version") or "").strip() or "draft"
+    description = str(top.get("description") or "").strip()
+    kind = str(top.get("type") or "").strip()
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+    blank = doc.add_paragraph()
+    blank.paragraph_format.space_after = Pt(80)
+
+    title = doc.add_paragraph()
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = title.add_run(name)
+    run.bold = True
+    run.font.size = Pt(36)
+
+    subtitle = doc.add_paragraph()
+    subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    sub = subtitle.add_run("Technical Reference Manual")
+    sub.italic = True
+    sub.font.size = Pt(18)
+
+    spacer = doc.add_paragraph()
+    spacer.paragraph_format.space_after = Pt(60)
+
+    if description:
+        abstract_label = doc.add_paragraph()
+        abstract_label.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        lbl = abstract_label.add_run("Abstract")
+        lbl.bold = True
+        lbl.font.size = Pt(11)
+        abstract = doc.add_paragraph(description)
+        abstract.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        for run in abstract.runs:
+            run.font.size = Pt(11)
+
+    spacer2 = doc.add_paragraph()
+    spacer2.paragraph_format.space_after = Pt(40)
+
+    meta = doc.add_paragraph()
+    meta.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    meta_lines = [
+        f"Version: {version}",
+        f"Module type: {kind}" if kind else "",
+        f"Source: {ip}/yaml/{ip}.ssot.yaml",
+        f"Exported: {ts}",
+    ]
+    for line in [l for l in meta_lines if l]:
+        run = meta.add_run(line + "\n")
+        run.font.size = Pt(10)
+        run.italic = True
+
+    _ssot_docx_page_break(doc)
+
+
+def _ssot_docx_render_revision_history(doc: Any, data: dict) -> bool:
+    """If top_module.history / data.history / data.revision_history exists, emit a TRM revision table."""
+    if not isinstance(data, dict):
+        return False
+    history = None
+    for src in (data.get("revision_history"), data.get("history"),
+                (data.get("top_module") or {}).get("history") if isinstance(data.get("top_module"), dict) else None):
+        if isinstance(src, list) and src:
+            history = src
+            break
+    if not history:
+        return False
+    rows = []
+    for ent in history:
+        if isinstance(ent, dict):
+            rows.append([
+                _ssot_md_scalar(ent.get("version") or ent.get("rev") or ent.get("revision") or ""),
+                _ssot_md_scalar(ent.get("date") or ent.get("when") or ""),
+                _ssot_md_scalar(ent.get("author") or ent.get("by") or ""),
+                _ssot_md_scalar(ent.get("changes") or ent.get("description") or ent.get("notes") or ""),
+            ])
+        else:
+            rows.append(["", "", "", _ssot_md_scalar(ent)])
+    if not rows:
+        return False
+    doc.add_heading("Revision History", level=1)
+    _ssot_docx_table_from_rows(doc, ["Version", "Date", "Author", "Changes"], rows)
+    _ssot_docx_page_break(doc)
+    return True
+
+
+def _ssot_docx_apply_heading_numbering(doc: Any) -> None:
+    """Inject a multilevel-list style so Heading 1/2/3 auto-number as 1, 1.1, 1.1.1."""
+    from docx.oxml.ns import qn  # type: ignore
+    from docx.oxml import OxmlElement  # type: ignore
+
+    numbering = doc.part.numbering_part.element
+    # Use a high abstractNumId / numId to avoid colliding with anything Word
+    # ships as default in this skeleton.
+    abstract_id = "8801"
+    num_id = "8801"
+    # Skip if we already injected this.
+    abstract_tag = qn("w:abstractNum")
+    abstract_attr = qn("w:abstractNumId")
+    for child in numbering:
+        if child.tag == abstract_tag and child.get(abstract_attr) == abstract_id:
+            return
+    from docx.oxml import parse_xml  # type: ignore
+    w = "xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'"
+    abstract_xml = f"""
+    <w:abstractNum {w} w:abstractNumId='{abstract_id}'>
+      <w:multiLevelType w:val='hybridMultilevel'/>
+      <w:lvl w:ilvl='0'>
+        <w:start w:val='1'/>
+        <w:numFmt w:val='decimal'/>
+        <w:lvlText w:val='%1.'/>
+        <w:lvlJc w:val='left'/>
+        <w:pPr><w:ind w:left='432' w:hanging='432'/></w:pPr>
+      </w:lvl>
+      <w:lvl w:ilvl='1'>
+        <w:start w:val='1'/>
+        <w:numFmt w:val='decimal'/>
+        <w:lvlText w:val='%1.%2'/>
+        <w:lvlJc w:val='left'/>
+        <w:pPr><w:ind w:left='720' w:hanging='576'/></w:pPr>
+      </w:lvl>
+      <w:lvl w:ilvl='2'>
+        <w:start w:val='1'/>
+        <w:numFmt w:val='decimal'/>
+        <w:lvlText w:val='%1.%2.%3'/>
+        <w:lvlJc w:val='left'/>
+        <w:pPr><w:ind w:left='1008' w:hanging='720'/></w:pPr>
+      </w:lvl>
+    </w:abstractNum>"""
+    numbering.append(parse_xml(abstract_xml))
+    num_xml = f"""
+    <w:num {w} w:numId='{num_id}'>
+      <w:abstractNumId w:val='{abstract_id}'/>
+    </w:num>"""
+    numbering.append(parse_xml(num_xml))
+    # Link Heading 1/2/3 styles to this numbering list.
+    styles = doc.styles.element
+    for level, style_name in enumerate(("Heading 1", "Heading 2", "Heading 3")):
+        style = doc.styles[style_name]
+        pPr = style.element.find(qn("w:pPr"))
+        if pPr is None:
+            pPr = OxmlElement("w:pPr")
+            style.element.append(pPr)
+        # Drop any existing numPr in case we ran before.
+        existing = pPr.find(qn("w:numPr"))
+        if existing is not None:
+            pPr.remove(existing)
+        numPr = OxmlElement("w:numPr")
+        ilvl = OxmlElement("w:ilvl"); ilvl.set(qn("w:val"), str(level))
+        numId = OxmlElement("w:numId"); numId.set(qn("w:val"), num_id)
+        numPr.append(ilvl); numPr.append(numId)
+        pPr.append(numPr)
+
+
+def _ssot_docx_set_footer(doc: Any, ip: str) -> None:
+    """TRM-style footer: '<ip> · <tab> · Page X of Y'."""
+    from docx.enum.text import WD_ALIGN_PARAGRAPH  # type: ignore
+    from docx.oxml.ns import qn  # type: ignore
+    from docx.oxml import OxmlElement  # type: ignore
+    from docx.shared import Pt  # type: ignore
+
+    for section in doc.sections:
+        footer = section.footer
+        # Replace any default paragraph so we don't double-render.
+        if footer.paragraphs:
+            para = footer.paragraphs[0]
+            for run in list(para.runs):
+                run.text = ""
+        else:
+            para = footer.add_paragraph()
+        para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+        left_run = para.add_run(f"{ip}  ·  ")
+        left_run.font.size = Pt(9)
+        left_run.italic = True
+
+        page_label = para.add_run("Page ")
+        page_label.font.size = Pt(9)
+
+        # PAGE field
+        fld_begin = OxmlElement("w:fldChar")
+        fld_begin.set(qn("w:fldCharType"), "begin")
+        instr = OxmlElement("w:instrText")
+        instr.set(qn("xml:space"), "preserve")
+        instr.text = " PAGE "
+        fld_sep = OxmlElement("w:fldChar")
+        fld_sep.set(qn("w:fldCharType"), "separate")
+        placeholder = OxmlElement("w:t")
+        placeholder.text = "1"
+        fld_end = OxmlElement("w:fldChar")
+        fld_end.set(qn("w:fldCharType"), "end")
+        page_run = para.add_run()
+        page_run.font.size = Pt(9)
+        r = page_run._r
+        r.append(fld_begin); r.append(instr); r.append(fld_sep); r.append(placeholder); r.append(fld_end)
+
+        of_run = para.add_run(" of ")
+        of_run.font.size = Pt(9)
+
+        # NUMPAGES field
+        fld_begin2 = OxmlElement("w:fldChar")
+        fld_begin2.set(qn("w:fldCharType"), "begin")
+        instr2 = OxmlElement("w:instrText")
+        instr2.set(qn("xml:space"), "preserve")
+        instr2.text = " NUMPAGES "
+        fld_sep2 = OxmlElement("w:fldChar")
+        fld_sep2.set(qn("w:fldCharType"), "separate")
+        placeholder2 = OxmlElement("w:t")
+        placeholder2.text = "1"
+        fld_end2 = OxmlElement("w:fldChar")
+        fld_end2.set(qn("w:fldCharType"), "end")
+        num_run = para.add_run()
+        num_run.font.size = Pt(9)
+        r2 = num_run._r
+        r2.append(fld_begin2); r2.append(instr2); r2.append(fld_sep2); r2.append(placeholder2); r2.append(fld_end2)
+
+
+def _ssot_docx_page_break(doc: Any) -> None:
+    from docx.enum.text import WD_BREAK  # type: ignore
+    para = doc.add_paragraph()
+    run = para.add_run()
+    run.add_break(WD_BREAK.PAGE)
+
+
+def _ssot_docx_add_toc(doc: Any) -> None:
+    """Insert a Word TOC field. Word/LibreOffice auto-populates on open."""
+    from docx.oxml.ns import qn  # type: ignore
+    from docx.oxml import OxmlElement  # type: ignore
+
+    doc.add_heading("Table of Contents", level=1)
+    para = doc.add_paragraph()
+    run = para.add_run()
+    fld_begin = OxmlElement("w:fldChar")
+    fld_begin.set(qn("w:fldCharType"), "begin")
+    instr = OxmlElement("w:instrText")
+    instr.set(qn("xml:space"), "preserve")
+    instr.text = r' TOC \o "1-3" \h \z \u '
+    fld_sep = OxmlElement("w:fldChar")
+    fld_sep.set(qn("w:fldCharType"), "separate")
+    placeholder = OxmlElement("w:t")
+    placeholder.text = "Right-click and choose 'Update Field' to populate the table of contents."
+    fld_end = OxmlElement("w:fldChar")
+    fld_end.set(qn("w:fldCharType"), "end")
+    r = run._r
+    r.append(fld_begin)
+    r.append(instr)
+    r.append(fld_sep)
+    r.append(placeholder)
+    r.append(fld_end)
+    _ssot_docx_page_break(doc)
+
+
+def _ssot_docx_table_from_rows(
+    doc: Any,
+    headers: list[str],
+    rows: list[list[str]],
+) -> None:
+    """TRM-style table with bold header row + light grid styling."""
+    if not rows:
+        return
+    table = doc.add_table(rows=1 + len(rows), cols=len(headers))
+    try:
+        table.style = "Light Grid Accent 1"
+    except Exception:
+        pass
+    for col_idx, h in enumerate(headers):
+        cell = table.rows[0].cells[col_idx]
+        cell.text = h
+        for run in cell.paragraphs[0].runs:
+            run.bold = True
+    for row_idx, row in enumerate(rows, start=1):
+        for col_idx, value in enumerate(row):
+            table.rows[row_idx].cells[col_idx].text = "" if value is None else str(value)
+
+
+def _ssot_docx_render_top_module(doc: Any, top: dict) -> None:
+    """Top-of-chapter prose + properties table instead of YAML dump."""
+    if not isinstance(top, dict):
+        _ssot_docx_yaml_block(doc, top)
+        return
+    description = str(top.get("description") or "").strip()
+    purpose = str(top.get("purpose") or "").strip()
+    if description:
+        doc.add_paragraph(description)
+    if purpose and purpose != description:
+        doc.add_paragraph(purpose)
+    prop_keys = [
+        ("name", "Name"),
+        ("file", "Top file"),
+        ("type", "Module type"),
+        ("version", "Version"),
+        ("clock_freq_mhz", "Clock frequency (MHz)"),
+        ("bus", "Bus"),
+        ("role", "Role"),
+    ]
+    prop_rows = []
+    for k, label in prop_keys:
+        v = top.get(k)
+        if v not in (None, "", [], {}):
+            prop_rows.append([label, _ssot_md_scalar(v)])
+    if prop_rows:
+        doc.add_heading("Properties", level=2)
+        _ssot_docx_table_from_rows(doc, ["Property", "Value"], prop_rows)
+    nested_params = top.get("parameters")
+    if nested_params:
+        doc.add_heading("Top-Module Parameters", level=2)
+        _ssot_docx_render_parameters(doc, nested_params)
+    leftover = {k: v for k, v in top.items() if k not in dict(prop_keys) and k not in (
+        "description", "purpose", "parameters", "history",
+    )}
+    if leftover:
+        doc.add_heading("Additional Top-Module Fields", level=2)
+        _ssot_docx_dict_block(doc, leftover)
+
+
+def _ssot_docx_render_parameters(doc: Any, params: Any) -> None:
+    """Name | Default | Type/Range | Description table."""
+    rows_in: list[dict] = []
+    if isinstance(params, list):
+        for p in params:
+            if isinstance(p, dict):
+                rows_in.append(p)
+    elif isinstance(params, dict):
+        # KEY: VALUE mapping
+        for k, v in params.items():
+            if isinstance(v, dict):
+                row = {"name": k, **v}
+            else:
+                row = {"name": k, "default": v}
+            rows_in.append(row)
+    if not rows_in:
+        _ssot_docx_yaml_block(doc, params)
+        return
+    rows = []
+    for r in rows_in:
+        name = _ssot_md_scalar(r.get("name") or r.get("key") or r.get("param") or "")
+        default = _ssot_md_scalar(
+            r.get("default")
+            or r.get("value")
+            or r.get("default_value")
+            or r.get("val")
+            or ""
+        )
+        typ = _ssot_md_scalar(
+            r.get("type") or r.get("range") or r.get("width") or ""
+        )
+        desc = _ssot_md_scalar(r.get("description") or r.get("desc") or r.get("notes") or "")
+        rows.append([name, default, typ, desc])
+    _ssot_docx_table_from_rows(doc, ["Parameter", "Default", "Type / Range", "Description"], rows)
+
+
+def _ssot_docx_render_features(doc: Any, features: Any) -> None:
+    """Numbered list with bold name + description paragraph."""
+    if not isinstance(features, list):
+        _ssot_docx_yaml_block(doc, features)
+        return
+    for idx, feat in enumerate(features, start=1):
+        if not isinstance(feat, dict):
+            doc.add_paragraph(_ssot_md_scalar(feat), style="List Number")
+            continue
+        name = str(feat.get("name") or f"Feature {idx}").strip() or f"Feature {idx}"
+        para = doc.add_paragraph(style="List Number")
+        run = para.add_run(name)
+        run.bold = True
+        for field in ("description", "trigger", "datapath", "control", "output"):
+            text = str(feat.get(field) or "").strip()
+            if not text:
+                continue
+            sub = doc.add_paragraph()
+            sub.paragraph_format.left_indent = sub.paragraph_format.left_indent or None
+            label = sub.add_run(f"{field.replace('_', ' ').title()}: ")
+            label.bold = True
+            sub.add_run(text)
+
+
+def _ssot_docx_render_register_detail(doc: Any, reg: dict, level: int = 2) -> None:
+    """Per-register heading + properties table + bit-field table."""
+    if not isinstance(reg, dict):
+        _ssot_docx_yaml_block(doc, reg)
+        return
+    name = str(reg.get("name") or "(unnamed register)").strip()
+    offset = _ssot_md_scalar(reg.get("offset") or "")
+    title = f"{name}" + (f"  (@ {offset})" if offset else "")
+    doc.add_heading(title, level=level)
+    description = str(reg.get("description") or "").strip()
+    if description:
+        doc.add_paragraph(description)
+    prop_keys = [
+        ("offset", "Offset"),
+        ("size", "Size"),
+        ("width", "Width"),
+        ("access", "Access"),
+        ("reset", "Reset value"),
+        ("type", "Type"),
+    ]
+    prop_rows = []
+    for k, label in prop_keys:
+        v = reg.get(k)
+        if v not in (None, "", [], {}):
+            prop_rows.append([label, _ssot_md_scalar(v)])
+    if prop_rows:
+        _ssot_docx_table_from_rows(doc, ["Property", "Value"], prop_rows)
+    fields = reg.get("fields")
+    if isinstance(fields, list) and fields:
+        bit_rows = []
+        for f in fields:
+            if not isinstance(f, dict):
+                continue
+            bit_rows.append([
+                _ssot_md_scalar(f.get("bits") or f.get("bit") or f.get("range") or ""),
+                _ssot_md_scalar(f.get("name") or ""),
+                _ssot_md_scalar(f.get("access") or ""),
+                _ssot_md_scalar(f.get("reset") or ""),
+                _ssot_md_scalar(f.get("description") or ""),
+            ])
+        if bit_rows:
+            field_label = doc.add_paragraph()
+            field_label.add_run("Bit fields").bold = True
+            _ssot_docx_table_from_rows(
+                doc,
+                ["Bits", "Field", "Access", "Reset", "Description"],
+                bit_rows,
+            )
+
+
+def _ssot_docx_port_direction(port: dict) -> str:
+    raw = str(port.get("direction") or port.get("dir") or port.get("io") or "").strip().lower()
+    if not raw:
+        return "Unspecified"
+    if raw in {"in", "input", "i"}:
+        return "Input"
+    if raw in {"out", "output", "o"}:
+        return "Output"
+    if raw in {"inout", "bidir", "io", "b"}:
+        return "Bidirectional"
+    return raw.title()
+
+
+def _ssot_docx_port_rows(ports: list, include_iface: bool = False, iface_name: str = "") -> dict[str, list[list[str]]]:
+    """Bucket ports by canonical direction → list of [Signal, Width, Clock, Reset, Description (, Iface)]."""
+    bucketed: dict[str, list[list[str]]] = {}
+    for port in ports:
+        if not isinstance(port, dict):
+            continue
+        direction = _ssot_docx_port_direction(port)
+        row = [
+            _ssot_md_scalar(port.get("name") or port.get("signal") or ""),
+            _ssot_md_scalar(port.get("width") or port.get("bits") or port.get("range") or ""),
+            _ssot_md_scalar(port.get("clock") or port.get("clock_domain") or ""),
+            _ssot_md_scalar(port.get("reset") or port.get("reset_domain") or ""),
+            _ssot_md_scalar(port.get("description") or port.get("desc") or ""),
+        ]
+        if include_iface:
+            row.append(iface_name)
+        bucketed.setdefault(direction, []).append(row)
+    return bucketed
+
+
+def _ssot_docx_render_port_buckets(
+    doc: Any,
+    bucketed: dict[str, list[list[str]]],
+    include_iface: bool = False,
+) -> None:
+    if not bucketed:
+        return
+    headers = ["Signal", "Width", "Clock", "Reset", "Description"]
+    if include_iface:
+        headers.append("Interface")
+    ordering = ["Input", "Output", "Bidirectional", "Unspecified"]
+    seen = set()
+    keys = [k for k in ordering if k in bucketed] + [k for k in bucketed if k not in ordering]
+    for direction in keys:
+        if direction in seen:
+            continue
+        seen.add(direction)
+        rows = bucketed.get(direction, [])
+        if not rows:
+            continue
+        sub = doc.add_paragraph()
+        sub.add_run(f"{direction} signals  ({len(rows)})").bold = True
+        _ssot_docx_table_from_rows(doc, headers, rows)
+
+
+def _ssot_docx_render_io_list(doc: Any, value: Any) -> None:
+    """Clock/Reset/Interface (with direction-grouped port tables) signal description."""
+    if isinstance(value, list):
+        bucketed = _ssot_docx_port_rows(value)
+        if bucketed:
+            _ssot_docx_render_port_buckets(doc, bucketed)
+            return
+        _ssot_docx_yaml_block(doc, value)
+        return
+
+    if not isinstance(value, dict):
+        _ssot_docx_yaml_block(doc, value)
+        return
+
+    cd = value.get("clock_domains") or value.get("clocks")
+    if isinstance(cd, list) and cd:
+        doc.add_heading("Clock domains", level=2)
+        rows = []
+        for entry in cd:
+            if not isinstance(entry, dict):
+                continue
+            rows.append([
+                _ssot_md_scalar(entry.get("name") or ""),
+                _ssot_md_scalar(entry.get("frequency_mhz") or entry.get("frequency") or ""),
+                _ssot_md_scalar(entry.get("source") or ""),
+                _ssot_md_scalar(entry.get("description") or ""),
+            ])
+        if rows:
+            _ssot_docx_table_from_rows(doc, ["Domain", "Frequency (MHz)", "Source", "Description"], rows)
+
+    rst = value.get("resets")
+    if isinstance(rst, list) and rst:
+        doc.add_heading("Resets", level=2)
+        rows = []
+        for entry in rst:
+            if not isinstance(entry, dict):
+                continue
+            rows.append([
+                _ssot_md_scalar(entry.get("name") or ""),
+                _ssot_md_scalar(entry.get("polarity") or ""),
+                _ssot_md_scalar(entry.get("sync_async") or entry.get("type") or ""),
+                _ssot_md_scalar(entry.get("source") or ""),
+                _ssot_md_scalar(entry.get("description") or ""),
+            ])
+        if rows:
+            _ssot_docx_table_from_rows(doc, ["Reset", "Polarity", "Sync / Async", "Source", "Description"], rows)
+
+    ifs = value.get("interfaces")
+    if isinstance(ifs, list) and ifs:
+        doc.add_heading("Interfaces", level=2)
+        for iface in ifs:
+            if not isinstance(iface, dict):
+                _ssot_docx_yaml_block(doc, iface)
+                continue
+            iname = str(iface.get("name") or "(unnamed)")
+            doc.add_heading(iname, level=3)
+            description = str(iface.get("description") or "").strip()
+            if description:
+                doc.add_paragraph(description)
+            iface_meta_keys = [
+                ("type", "Type"),
+                ("role", "Role"),
+                ("protocol", "Protocol"),
+                ("data_width", "Data width"),
+                ("addr_width", "Address width"),
+                ("clock", "Clock domain"),
+                ("reset", "Reset domain"),
+            ]
+            meta_rows = []
+            for k, label in iface_meta_keys:
+                v = iface.get(k)
+                if v not in (None, "", [], {}):
+                    meta_rows.append([label, _ssot_md_scalar(v)])
+            if meta_rows:
+                _ssot_docx_table_from_rows(doc, ["Property", "Value"], meta_rows)
+            ports = iface.get("ports")
+            if isinstance(ports, list) and ports:
+                bucketed = _ssot_docx_port_rows(ports)
+                _ssot_docx_render_port_buckets(doc, bucketed)
+
+    flat_ports = value.get("ports")
+    if isinstance(flat_ports, list) and flat_ports and not ifs:
+        doc.add_heading("Signals", level=2)
+        bucketed = _ssot_docx_port_rows(flat_ports)
+        _ssot_docx_render_port_buckets(doc, bucketed)
+
+    leftover = {
+        k: v for k, v in value.items()
+        if k not in ("clock_domains", "clocks", "resets", "interfaces", "ports")
+        and not _ssot_section_is_empty(v)
+    }
+    if leftover:
+        doc.add_heading("Additional I/O metadata", level=2)
+        _ssot_docx_dict_block(doc, leftover)
+
+
+def _ssot_docx_render_interrupts(doc: Any, value: Any) -> None:
+    """ID | Source | Polarity | Mask register | Description."""
+    if isinstance(value, dict):
+        config = {k: v for k, v in value.items() if k not in ("interrupt_list", "interrupts", "list")}
+        items = value.get("interrupt_list") or value.get("interrupts") or value.get("list")
+        if config:
+            cfg_rows = [[k.replace("_", " "), _ssot_md_scalar(v)]
+                        for k, v in config.items() if not _ssot_section_is_empty(v)]
+            if cfg_rows:
+                doc.add_heading("Interrupt configuration", level=2)
+                _ssot_docx_table_from_rows(doc, ["Property", "Value"], cfg_rows)
+    else:
+        items = value
+    if not isinstance(items, list) or not items:
+        _ssot_docx_yaml_block(doc, value)
+        return
+    rows = []
+    detail_blocks = []
+    for idx, ent in enumerate(items, start=1):
+        if not isinstance(ent, dict):
+            rows.append(["", _ssot_md_scalar(ent), "", "", ""])
+            continue
+        irq_id = _ssot_md_scalar(ent.get("id") or ent.get("number") or ent.get("vector") or idx)
+        name = _ssot_md_scalar(ent.get("name") or ent.get("signal") or "")
+        source = _ssot_md_scalar(ent.get("source") or ent.get("cause") or "")
+        polarity = _ssot_md_scalar(ent.get("polarity") or ent.get("level") or ent.get("trigger") or "")
+        mask = _ssot_md_scalar(ent.get("mask") or ent.get("mask_register") or ent.get("enable") or "")
+        description = _ssot_md_scalar(ent.get("description") or ent.get("desc") or "")
+        rows.append([
+            irq_id,
+            (name + (f" ({source})" if source and source != name else "")) if name else source,
+            polarity,
+            mask,
+            description[:120],
+        ])
+        detail_blocks.append((name or irq_id, ent, description))
+    doc.add_heading("Interrupt summary", level=2)
+    _ssot_docx_table_from_rows(
+        doc,
+        ["ID", "Signal / Source", "Polarity / Trigger", "Mask register", "Description"],
+        rows,
+    )
+    # Detail blocks for any interrupts that carry richer metadata (clearing rule, status bit, etc).
+    extra_keys = ("clear", "status", "ack", "priority", "vector_address", "context", "notes")
+    detail_rows = []
+    for label, ent, desc in detail_blocks:
+        meta = []
+        for k in extra_keys:
+            if ent.get(k) not in (None, "", [], {}):
+                meta.append((k, ent.get(k)))
+        if meta:
+            detail_rows.append((label, desc, meta))
+    if detail_rows:
+        doc.add_heading("Interrupt details", level=2)
+        for label, desc, meta in detail_rows:
+            doc.add_heading(str(label), level=3)
+            if desc:
+                doc.add_paragraph(desc)
+            _ssot_docx_table_from_rows(
+                doc,
+                ["Property", "Value"],
+                [[k.replace("_", " "), _ssot_md_scalar(v)] for k, v in meta],
+            )
+
+
+def _ssot_docx_render_fsm(doc: Any, value: Any) -> None:
+    """State list + transition table per machine."""
+    machines: list[dict] = []
+    if isinstance(value, dict):
+        ml = value.get("machines") or value.get("fsm_list") or value.get("list")
+        if isinstance(ml, list):
+            machines = [m for m in ml if isinstance(m, dict)]
+        else:
+            # Pattern: {<machine_name>: {states: [...], transitions: [...]}}
+            for k, v in value.items():
+                if isinstance(v, dict) and (v.get("states") or v.get("transitions")):
+                    machines.append({"name": k, **v})
+    elif isinstance(value, list):
+        machines = [m for m in value if isinstance(m, dict)]
+    if not machines:
+        _ssot_docx_yaml_block(doc, value)
+        return
+    for m in machines:
+        name = str(m.get("name") or "(unnamed FSM)")
+        doc.add_heading(name, level=2)
+        description = str(m.get("description") or m.get("purpose") or "").strip()
+        if description:
+            doc.add_paragraph(description)
+        meta_keys = [
+            ("reset_state", "Reset state"),
+            ("encoding", "Encoding"),
+            ("clock", "Clock domain"),
+            ("reset", "Reset domain"),
+            ("illegal_recovery", "Illegal recovery"),
+        ]
+        meta_rows = []
+        for k, label in meta_keys:
+            v = m.get(k)
+            if v not in (None, "", [], {}):
+                meta_rows.append([label, _ssot_md_scalar(v)])
+        if meta_rows:
+            _ssot_docx_table_from_rows(doc, ["Property", "Value"], meta_rows)
+        states = m.get("states")
+        if isinstance(states, list) and states:
+            doc.add_heading("States", level=3)
+            rows = []
+            for s in states:
+                if isinstance(s, dict):
+                    rows.append([
+                        _ssot_md_scalar(s.get("id") or s.get("name") or ""),
+                        _ssot_md_scalar(s.get("label") or s.get("name") or ""),
+                        _ssot_md_scalar(s.get("encoding") or ""),
+                        "yes" if s.get("reset") else "",
+                        _ssot_md_scalar(s.get("description") or s.get("action") or ""),
+                    ])
+                else:
+                    rows.append(["", _ssot_md_scalar(s), "", "", ""])
+            _ssot_docx_table_from_rows(doc, ["ID", "State", "Encoding", "Reset", "Description / Action"], rows)
+        transitions = m.get("transitions")
+        if isinstance(transitions, list) and transitions:
+            doc.add_heading("Transitions", level=3)
+            rows = []
+            for tr in transitions:
+                if isinstance(tr, dict):
+                    rows.append([
+                        _ssot_md_scalar(tr.get("from") or tr.get("source") or tr.get("current") or ""),
+                        _ssot_md_scalar(tr.get("event") or tr.get("condition") or tr.get("trigger") or ""),
+                        _ssot_md_scalar(tr.get("to") or tr.get("dest") or tr.get("target") or tr.get("next") or ""),
+                        _ssot_md_scalar(tr.get("action") or tr.get("output") or ""),
+                        _ssot_md_scalar(tr.get("description") or ""),
+                    ])
+                else:
+                    rows.append(["", _ssot_md_scalar(tr), "", "", ""])
+            _ssot_docx_table_from_rows(
+                doc, ["Current", "Event / Condition", "Next", "Action / Output", "Description"], rows,
+            )
+        outputs = m.get("outputs") or m.get("output_rules")
+        if outputs:
+            doc.add_heading("Output rules", level=3)
+            if isinstance(outputs, list) and outputs and all(isinstance(o, dict) for o in outputs):
+                _ssot_docx_list_of_dicts(doc, outputs)
+            else:
+                _ssot_docx_yaml_block(doc, outputs)
+
+
+def _ssot_docx_render_cycle_model(doc: Any, value: Any) -> None:
+    """Cycle contract prose + Latency table + Handshake table + Pipeline table."""
+    if not isinstance(value, dict):
+        _ssot_docx_yaml_block(doc, value)
+        return
+    purpose = str(value.get("purpose") or value.get("description") or "").strip()
+    if purpose:
+        doc.add_paragraph(purpose)
+    contract_keys = [
+        ("clock", "Clock domain"),
+        ("reset", "Reset domain"),
+        ("assertion", "Reset assertion"),
+        ("deassertion", "Reset deassertion"),
+        ("scope", "Scope"),
+    ]
+    contract_rows = []
+    for k, label in contract_keys:
+        v = value.get(k)
+        if v not in (None, "", [], {}):
+            contract_rows.append([label, _ssot_md_scalar(v)])
+    if contract_rows:
+        doc.add_heading("Cycle contract", level=2)
+        _ssot_docx_table_from_rows(doc, ["Property", "Value"], contract_rows)
+    latency = value.get("latency") or value.get("latencies")
+    if isinstance(latency, dict) and latency:
+        doc.add_heading("Latency", level=2)
+        rows = []
+        for path, info in latency.items():
+            if isinstance(info, dict):
+                rows.append([
+                    str(path),
+                    _ssot_md_scalar(info.get("min_cycles") or info.get("min") or ""),
+                    _ssot_md_scalar(info.get("max_cycles") or info.get("max") or ""),
+                    _ssot_md_scalar(info.get("description") or info.get("notes") or ""),
+                ])
+            else:
+                rows.append([str(path), "", "", _ssot_md_scalar(info)])
+        _ssot_docx_table_from_rows(doc, ["Path", "Min cycles", "Max cycles", "Description"], rows)
+    elif isinstance(latency, list) and latency:
+        doc.add_heading("Latency", level=2)
+        rows = []
+        for ent in latency:
+            if isinstance(ent, dict):
+                rows.append([
+                    _ssot_md_scalar(ent.get("path") or ent.get("name") or ent.get("from_to") or ""),
+                    _ssot_md_scalar(ent.get("min_cycles") or ent.get("min") or ""),
+                    _ssot_md_scalar(ent.get("max_cycles") or ent.get("max") or ""),
+                    _ssot_md_scalar(ent.get("description") or ent.get("notes") or ""),
+                ])
+        _ssot_docx_table_from_rows(doc, ["Path", "Min cycles", "Max cycles", "Description"], rows)
+    handshake = value.get("handshake_rules") or value.get("handshake")
+    if isinstance(handshake, list) and handshake:
+        doc.add_heading("Handshake rules", level=2)
+        rows = []
+        for ent in handshake:
+            if isinstance(ent, dict):
+                rows.append([
+                    _ssot_md_scalar(ent.get("signal") or ent.get("name") or ""),
+                    _ssot_md_scalar(ent.get("rule") or ent.get("contract") or ent.get("description") or ""),
+                    _ssot_md_scalar(ent.get("notes") or ""),
+                ])
+        _ssot_docx_table_from_rows(doc, ["Signal", "Rule", "Notes"], rows)
+    pipeline = value.get("pipeline") or value.get("stages")
+    if isinstance(pipeline, list) and pipeline:
+        doc.add_heading("Pipeline", level=2)
+        rows = []
+        for ent in pipeline:
+            if isinstance(ent, dict):
+                rows.append([
+                    _ssot_md_scalar(ent.get("stage") or ent.get("name") or ent.get("id") or ""),
+                    _ssot_md_scalar(ent.get("cycle") or ent.get("phase") or ""),
+                    _ssot_md_scalar(ent.get("action") or ent.get("description") or ""),
+                    _ssot_md_scalar(ent.get("ready") or ""),
+                    _ssot_md_scalar(ent.get("notes") or ""),
+                ])
+        _ssot_docx_table_from_rows(doc, ["Stage", "Cycle", "Action", "Ready / Backpressure", "Notes"], rows)
+    leftover = {
+        k: v for k, v in value.items()
+        if k not in dict(contract_keys)
+        and k not in ("latency", "latencies", "handshake_rules", "handshake", "pipeline", "stages", "purpose", "description")
+        and not _ssot_section_is_empty(v)
+    }
+    if leftover:
+        doc.add_heading("Additional cycle-model fields", level=2)
+        _ssot_docx_dict_block(doc, leftover)
+
+
+def _ssot_docx_render_error_handling(doc: Any, value: Any) -> None:
+    """Error-code table + per-error detail blocks."""
+    errors: list = []
+    leftover: dict = {}
+    if isinstance(value, dict):
+        for cand_key in ("errors", "error_list", "error_sources", "codes", "list"):
+            cand = value.get(cand_key)
+            if isinstance(cand, list) and cand:
+                errors = [e for e in cand if isinstance(e, dict)]
+                break
+        leftover = {
+            k: v for k, v in value.items()
+            if k not in ("errors", "error_list", "error_sources", "codes", "list")
+            and not _ssot_section_is_empty(v)
+        }
+        policy = str(value.get("policy") or value.get("strategy") or "").strip()
+        if policy:
+            doc.add_paragraph(policy)
+    elif isinstance(value, list):
+        errors = [e for e in value if isinstance(e, dict)]
+    if not errors:
+        if leftover:
+            _ssot_docx_dict_block(doc, leftover)
+        if not leftover:
+            _ssot_docx_yaml_block(doc, value)
+        return
+    summary_rows = []
+    for idx, e in enumerate(errors, start=1):
+        summary_rows.append([
+            _ssot_md_scalar(e.get("id") or e.get("code") or idx),
+            _ssot_md_scalar(e.get("name") or e.get("label") or ""),
+            _ssot_md_scalar(e.get("condition") or e.get("cause") or e.get("trigger") or ""),
+            _ssot_md_scalar(e.get("severity") or ""),
+            _ssot_md_scalar(e.get("recovery") or e.get("response") or e.get("handling") or ""),
+        ])
+    doc.add_heading("Error summary", level=2)
+    _ssot_docx_table_from_rows(
+        doc,
+        ["ID / Code", "Name", "Condition / Cause", "Severity", "Recovery / Handling"],
+        summary_rows,
+    )
+    detail_keys = ("architectural_effect", "status_register", "clear", "log",
+                   "notes", "description", "isolation", "trace")
+    detail_payload = [(e, [(k, e.get(k)) for k in detail_keys if e.get(k) not in (None, "", [], {})])
+                      for e in errors]
+    detail_payload = [(e, kvs) for e, kvs in detail_payload if kvs]
+    if detail_payload:
+        doc.add_heading("Error details", level=2)
+        for e, kvs in detail_payload:
+            label = str(e.get("name") or e.get("id") or e.get("code") or "(error)")
+            doc.add_heading(label, level=3)
+            _ssot_docx_table_from_rows(
+                doc, ["Property", "Value"],
+                [[k.replace("_", " "), _ssot_md_scalar(v)] for k, v in kvs],
+            )
+    if leftover:
+        doc.add_heading("Additional error-handling metadata", level=2)
+        _ssot_docx_dict_block(doc, leftover)
+
+
+def _ssot_to_docx(data: dict, ip: str, out_path: Path) -> None:
     from docx import Document  # type: ignore
 
     doc = Document()
-    doc.add_heading(ip, level=0)
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    version = ""
-    if isinstance(data, dict):
-        top = data.get("top_module")
-        if isinstance(top, dict):
-            version = str(top.get("version") or "").strip()
-    intro = doc.add_paragraph()
-    intro.add_run(
-        f"SSOT specification — generated from {ip}/yaml/{ip}.ssot.yaml"
-    ).italic = True
-    meta = doc.add_paragraph()
-    meta.add_run(f"Export timestamp: {ts}\n").italic = True
-    meta.add_run(f"Source SSOT version: {version or 'unspecified'}").italic = True
+    safe_data = data if isinstance(data, dict) else {}
+    _ssot_docx_set_footer(doc, ip)
+    _ssot_docx_apply_heading_numbering(doc)
+    _ssot_docx_cover_page(doc, ip, safe_data)
+    _ssot_docx_render_revision_history(doc, safe_data)
+    _ssot_docx_add_toc(doc)
 
     if not isinstance(data, dict):
+        doc.add_heading("Raw Document", level=1)
         _ssot_docx_yaml_block(doc, data)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         doc.save(str(out_path))
         return
 
+    chapter_no = 0
     for key, label in _SSOT_EXPORT_SECTION_ORDER:
         if key not in data:
             continue
         value = data.get(key)
         if _ssot_section_is_empty(value):
             continue
+        chapter_no += 1
+        if chapter_no > 1:
+            _ssot_docx_page_break(doc)
         doc.add_heading(label, level=1)
         try:
-            _ssot_docx_render_section(doc, key, value)
+            if key == "top_module" and isinstance(value, dict):
+                _ssot_docx_render_top_module(doc, value)
+            elif key == "parameters":
+                _ssot_docx_render_parameters(doc, value)
+            elif key == "features":
+                _ssot_docx_render_features(doc, value)
+            elif key == "io_list":
+                _ssot_docx_render_io_list(doc, value)
+            elif key == "interrupts":
+                _ssot_docx_render_interrupts(doc, value)
+            elif key == "fsm":
+                _ssot_docx_render_fsm(doc, value)
+            elif key == "cycle_model":
+                _ssot_docx_render_cycle_model(doc, value)
+            elif key == "error_handling":
+                _ssot_docx_render_error_handling(doc, value)
+            elif key == "registers" and isinstance(value, dict) and isinstance(value.get("register_list"), list):
+                cfg = value.get("config")
+                if isinstance(cfg, dict) and cfg:
+                    doc.add_heading("Register block configuration", level=2)
+                    _ssot_docx_table_from_rows(
+                        doc,
+                        ["Property", "Value"],
+                        [[k.replace("_", " "), _ssot_md_scalar(v)] for k, v in cfg.items()],
+                    )
+                doc.add_heading("Register map", level=2)
+                map_rows = []
+                for reg in value["register_list"]:
+                    if not isinstance(reg, dict):
+                        continue
+                    map_rows.append([
+                        _ssot_md_scalar(reg.get("offset") or ""),
+                        _ssot_md_scalar(reg.get("name") or ""),
+                        _ssot_md_scalar(reg.get("access") or ""),
+                        _ssot_md_scalar(reg.get("reset") or ""),
+                        _ssot_md_scalar(reg.get("description") or "")[:120],
+                    ])
+                if map_rows:
+                    _ssot_docx_table_from_rows(
+                        doc,
+                        ["Offset", "Register", "Access", "Reset", "Description"],
+                        map_rows,
+                    )
+                doc.add_heading("Register details", level=2)
+                for reg in value["register_list"]:
+                    _ssot_docx_render_register_detail(doc, reg, level=3)
+            else:
+                _ssot_docx_render_section(doc, key, value)
         except Exception as exc:
             err = doc.add_paragraph()
             err.add_run(f"(render error: {exc})").italic = True
             _ssot_docx_yaml_block(doc, value)
 
     known = {key for key, _ in _SSOT_EXPORT_SECTION_ORDER}
-    extras = [k for k in data.keys() if k not in known]
+    extras = [k for k in data.keys() if k not in known and not _ssot_section_is_empty(data.get(k))]
     if extras:
+        chapter_no += 1
+        _ssot_docx_page_break(doc)
         doc.add_heading("Other Sections", level=1)
         for key in extras:
             value = data.get(key)
-            if _ssot_section_is_empty(value):
-                continue
             doc.add_heading(str(key), level=2)
             _ssot_docx_render_section(doc, key, value)
 
@@ -2137,7 +3059,7 @@ def create_app():
     # up in the Gates tab / TODO panel / compile/lint evidence cards.
     # Hide them in `/api/files` listings and exclude them from .ZIP
     # downloads. They remain on disk; workflow scripts and the
-    # `/resolve-rtl-blockers` flow still read them directly.
+    # SSOT-gen blocker inline flow still read them directly.
     SKIP_FILES = {
         "manifest.json", "decomposition.json",
         "import_manifest.json", "ssot_downstream_blockers.json",
@@ -7511,7 +8433,6 @@ def create_app():
         "/import", "/imp",
         "/grill-me", "/grill", "/g",
         "/to-ssot", "/ssot", "/ts",
-        "/resolve-rtl-blockers", "/rrb",
         "/validate-yaml",
         "/ssot-fl-model", "/sfm",
         "/ssot-equiv-goals", "/equiv-goals", "/seg",
@@ -8568,6 +9489,159 @@ def create_app():
             doc["custom"] = custom
         return doc, custom
 
+    def _infer_decisions_from_yaml(doc: dict[str, Any]) -> dict[str, str]:
+        # The Validation pane needs to reflect what is actually written to
+        # <ip>/yaml/<ip>.ssot.yaml on disk, not just the parallel
+        # custom.atlas_decisions promise tracker. /to-ssot and direct
+        # generators write top-level sections (top_module, registers,
+        # parameters, ...) without ever touching atlas_decisions, so the
+        # tracker shows 0/9 while the yaml has 17+ populated sections.
+        # Infer a "filled" signal for each required decision from real
+        # section content; explicit atlas_decisions still wins downstream.
+        if not isinstance(doc, dict):
+            return {}
+        out: dict[str, str] = {}
+
+        def _meaningful(value: Any) -> bool:
+            if value in (None, "", [], {}):
+                return False
+            if isinstance(value, str):
+                token = value.strip().lower()
+                if not token:
+                    return False
+                return token not in {"tbd", "todo", "draft", "?", "n/a"}
+            if isinstance(value, (list, tuple, set)):
+                return any(_meaningful(v) for v in value)
+            if isinstance(value, dict):
+                return any(_meaningful(v) for v in value.values())
+            return True
+
+        def _section(*keys: str) -> Any:
+            for k in keys:
+                v = doc.get(k)
+                if _meaningful(v):
+                    return v
+            return None
+
+        def _count(v: Any) -> int:
+            if isinstance(v, (list, tuple, set, dict)):
+                return len(v)
+            return 1 if _meaningful(v) else 0
+
+        top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+        purpose = ""
+        if isinstance(top, dict):
+            for k in ("description", "purpose", "summary"):
+                cand = top.get(k)
+                if isinstance(cand, str) and _meaningful(cand):
+                    purpose = cand.strip()
+                    break
+        if purpose:
+            out["purpose"] = purpose[:200]
+
+        io_list = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
+        interfaces = None
+        if isinstance(io_list, dict):
+            interfaces = io_list.get("interfaces")
+        if not _meaningful(interfaces):
+            interfaces = _section("interfaces")
+        if _meaningful(interfaces):
+            labels: list[str] = []
+            iter_src = interfaces if isinstance(interfaces, list) else (
+                list(interfaces.values()) if isinstance(interfaces, dict) else []
+            )
+            for ent in iter_src:
+                if isinstance(ent, dict):
+                    label = ent.get("name") or ent.get("type") or ent.get("role")
+                    if label:
+                        labels.append(str(label))
+                elif isinstance(ent, str):
+                    labels.append(ent)
+            out["bus_interface"] = ", ".join(labels[:4]) if labels else "interfaces present"
+
+        regs = _section("registers", "memoryMap", "memory_map")
+        if _meaningful(regs):
+            out["register_map"] = f"{_count(regs)} register entries"
+
+        clocks_present = (
+            _meaningful(_section("clock_reset_domains", "clock_reset", "clocks"))
+            or (isinstance(io_list, dict) and (
+                _meaningful(io_list.get("clocks")) or _meaningful(io_list.get("resets"))
+            ))
+        )
+        if clocks_present:
+            out["clock_reset"] = "clock_reset section present"
+
+        if _meaningful(_section("interrupts")):
+            out["interrupt"] = "interrupts section present"
+
+        if _meaningful(_section("memory", "memory_map")):
+            out["memory_map"] = "memory section present"
+
+        params = _section("parameters")
+        if not _meaningful(params) and isinstance(top, dict):
+            params = top.get("parameters")
+        if _meaningful(params):
+            out["parameters"] = f"{_count(params)} parameters"
+
+        if _meaningful(_section("sub_modules", "submodules", "decomposition")):
+            out["submodule_structure"] = "submodule section present"
+
+        if _meaningful(_section("test_requirements", "tb_plan", "test_plan", "tests")):
+            out["test_expectation"] = "test section present"
+
+        return out
+
+    def _ssot_raw_top_keys(ip: str) -> set[str]:
+        # Regex fallback when PyYAML can't parse the file. Real-world SSOT
+        # files occasionally contain block-style entries that confuse the
+        # parser; we still want the Validation pane to reflect the actual
+        # set of top-level sections written to disk.
+        path = _ssot_yaml_path(ip)
+        if not path.is_file():
+            return set()
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            return set()
+        keys: set[str] = set()
+        for line in text.splitlines():
+            if not line or line.startswith((" ", "\t", "#", "-")):
+                continue
+            stripped = line.rstrip()
+            if not stripped.endswith(":") and ":" not in stripped:
+                continue
+            head = stripped.split(":", 1)[0].strip()
+            if not head or not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", head):
+                continue
+            keys.add(head)
+        return keys
+
+    _SSOT_SECTION_ALIASES: dict[str, set[str]] = {
+        "purpose":             {"top_module", "purpose", "overview"},
+        "bus_interface":       {"io_list", "interfaces", "ports", "bus", "bus_interface"},
+        "register_map":        {"registers", "register_map", "memoryMap", "memory_map"},
+        "clock_reset":         {"clock_reset_domains", "clock_reset", "clocking", "clocks"},
+        "interrupt":           {"interrupts", "interrupt"},
+        "memory_map":          {"memory", "memory_map"},
+        "parameters":          {"parameters"},
+        "submodule_structure": {"sub_modules", "submodules", "decomposition", "architecture"},
+        "test_expectation":    {"test_requirements", "tb_plan", "test_plan", "tests", "verification"},
+    }
+
+    def _decisions_from_top_keys(top_keys: set[str]) -> dict[str, str]:
+        # When the yaml fails to parse, surface presence-only inference
+        # using the section names we recovered via regex. This keeps the
+        # Validation pane honest even on a structurally broken draft.
+        if not top_keys:
+            return {}
+        out: dict[str, str] = {}
+        for decision, aliases in _SSOT_SECTION_ALIASES.items():
+            hit = aliases & top_keys
+            if hit:
+                out[decision] = f"{sorted(hit)[0]} section present"
+        return out
+
     def _ssot_decisions(ip: str, state: dict[str, Any] | None = None) -> dict[str, str]:
         doc = _load_ssot_draft(ip)
         custom = doc.get("custom") if isinstance(doc.get("custom"), dict) else {}
@@ -8575,7 +9649,21 @@ def create_app():
         if not isinstance(raw, dict) or not raw:
             legacy = state if isinstance(state, dict) else _load_ssot_state(ip)
             raw = legacy.get("decisions") if isinstance(legacy.get("decisions"), dict) else {}
-        return {str(k): str(v).strip() for k, v in (raw or {}).items() if str(v or "").strip()}
+        merged = {str(k): str(v).strip() for k, v in (raw or {}).items() if str(v or "").strip()}
+        # Fill any decisions the promise tracker has not recorded yet from
+        # whatever is actually present in the SSOT yaml on disk. Explicit
+        # tracker entries win — inference only covers gaps.
+        for k, v in _infer_decisions_from_yaml(doc).items():
+            if k not in merged and v:
+                merged[k] = v
+        # If PyYAML failed (doc empty) but the file exists, fall back to
+        # regex-detected top-level section names so the Validation pane
+        # still shows the real on-disk state.
+        if not doc or len(merged) < len(_SSOT_REQUIRED_DECISIONS):
+            for k, v in _decisions_from_top_keys(_ssot_raw_top_keys(ip)).items():
+                if k not in merged and v:
+                    merged[k] = v
+        return merged
 
     def _missing_ssot_decisions(ip: str, state: dict[str, Any] | None = None) -> list[str]:
         decisions = _ssot_decisions(ip, state)
@@ -10122,105 +11210,6 @@ def create_app():
             })
         return questions
 
-    def _run_rtl_blocker_resolution(ip: str, blocker: dict[str, Any], answer_entries: list[dict[str, Any]], client_session: Any | None = None) -> str:
-        import subprocess
-
-        state = _load_ssot_state(ip)
-        state.setdefault("ip", ip)
-        state.setdefault("kind", "rtl blocker resolution")
-        state["approved"] = True
-        state["status"] = "rtl_blocker_answered"
-        state["rtl_blocker_source"] = str(_rtl_blocker_path(ip).relative_to(PROJECT_ROOT))
-        state["rtl_blocker_answers"] = answer_entries
-        _save_ssot_state(ip, state)
-        answers_path = _ssot_session_dir(ip) / "rtl_blocker_answers.json"
-        answers_path.parent.mkdir(parents=True, exist_ok=True)
-        answers_path.write_text(json.dumps({
-            "rtl_blocker_answers": answer_entries,
-            "source": "atlas-ui",
-            "ip": ip,
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        }, ensure_ascii=False, indent=2), encoding="utf-8")
-
-        scripts = {
-            "resolve": SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "resolve_rtl_blockers.py",
-            "check": SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh",
-            "fl": SOURCE_ROOT / "workflow" / "fl-model-gen" / "scripts" / "emit_fl_model.py",
-            "preflight": SOURCE_ROOT / "workflow" / "rtl-gen" / "scripts" / "ssot_to_rtl.py",
-        }
-        runs: list[dict[str, Any]] = []
-
-        def _run(label: str, cmd: list[str], timeout_s: int = 180) -> int:
-            proc = subprocess.run(
-                cmd,
-                cwd=str(PROJECT_ROOT),
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                capture_output=True,
-                timeout=timeout_s,
-            )
-            runs.append({
-                "label": label,
-                "cmd": " ".join(cmd),
-                "returncode": proc.returncode,
-                "stdout": (proc.stdout or "").strip()[:12000],
-                "stderr": (proc.stderr or "").strip()[:12000],
-            })
-            return int(proc.returncode)
-
-        resolve_rc = _run("resolve_rtl_blockers", [
-            sys.executable,
-            str(scripts["resolve"]),
-            ip,
-            "--root",
-            str(PROJECT_ROOT),
-            "--answers-json",
-            str(answers_path),
-        ])
-        check_rc = _run("check_ssot_disk", ["bash", str(scripts["check"]), ip]) if resolve_rc == 0 else None
-        fl_rc = _run("emit_fl_model", [sys.executable, str(scripts["fl"]), ip, "--root", str(PROJECT_ROOT)]) if check_rc == 0 else None
-        preflight_rc = _run("rtl_preflight", [sys.executable, str(scripts["preflight"]), ip, "--root", str(PROJECT_ROOT), "--preflight-only"]) if fl_rc == 0 else None
-
-        if preflight_rc == 0:
-            headline = "[SSOT RESULT] rtl blocker decisions applied; rtl-gen preflight PASS"
-        elif preflight_rc == 2:
-            headline = "[SSOT QUESTION] rtl-gen still needs SSOT decisions"
-        else:
-            headline = "[SSOT BLOCKED] rtl blocker resolution failed validation"
-
-        lines = [
-            headline,
-            f"module: {ip}",
-            f"source blocker: {_rtl_blocker_path(ip).relative_to(PROJECT_ROOT)}",
-            f"answers captured: {len(answer_entries)}",
-            "",
-            "runs:",
-        ]
-        for run in runs:
-            lines.append(f"- {run['label']}: exit {run['returncode']}")
-            lines.append(f"  cmd: {run['cmd']}")
-            if run["stdout"]:
-                lines.append("  stdout:")
-                lines.append(run["stdout"])
-            if run["stderr"]:
-                lines.append("  stderr:")
-                lines.append(run["stderr"])
-        lines += [
-            "",
-            "artifacts:",
-            f"- {ip}/yaml/{ip}.ssot.yaml",
-            f"- {ip}/rtl/rtl_blocked_resolved.json",
-            f"- {ip}/model/functional_model.py",
-            f"- {ip}/model/decomposition.json",
-            f"- {ip}/cov/fcov_plan.json",
-        ]
-        if preflight_rc == 0:
-            lines.append("")
-            lines.append("next: queued /ssot-rtl to start RTL implementation from the repaired SSOT")
-            _queue_prompt_for_session(client_session, f"/ssot-rtl {ip}")
-        return "\n".join(lines)
-
     def _start_rtl_blocker_qna(
         ip: str,
         *,
@@ -10233,137 +11222,33 @@ def create_app():
         if not blocker or not cards:
             _emit_workflow_result(
                 f"[RTL BLOCKER Q&A] no rtl_blocked.json questions found for {ip}",
-                "resolve-rtl-blockers",
+                "rtl-blocker",
             )
             return True
 
-        # ATLAS_RTL_BLOCKER_AUTO_SKIP=1 → never surface SSOT QA cards from
-        # rtl_blocked.json. The blocker JSON is still written on disk so
-        # `/resolve-rtl-blockers <ip>` and ssot-gen can still address them
-        # on demand, but the agent stops popping 8+ Q&A cards at the user
-        # mid-flight. Matches the user's "SSOT-GEN 만 QA" policy: rtl-gen
-        # writing blockers is fine, but auto-promoting them into SSOT QA
-        # is the part that became spam.
-        if os.environ.get("ATLAS_RTL_BLOCKER_AUTO_SKIP", "").strip() in {"1", "true", "yes", "on"}:
-            msg = (
-                f"[RTL BLOCKER] {len(cards)} blocker(s) for {ip} recorded to "
-                f"{_rtl_blocker_path(ip).relative_to(PROJECT_ROOT)}\n"
-                "QA card promotion suppressed by ATLAS_RTL_BLOCKER_AUTO_SKIP.\n"
-                f"Run `/resolve-rtl-blockers {ip}` to address them on demand."
-            )
-            _append_session_message(_canonical_session_string(ip), "assistant", msg)
-            _append_workflow_history("ssot-gen", "assistant", msg)
-            _emit_workflow_result(msg, "resolve-rtl-blockers")
-            return True
-
-        ctx_ip, ctx_session = _active_ssot_qa_context()
-        ssot_session = ctx_session if ctx_ip == ip and ctx_session else _canonical_session_string(ip)
-        qa_write_session = ssot_session if client_session is not None else None
-        qa_flow_id = _rtl_blocker_flow_id(blocker)
-        qa_questions = _rtl_blocker_qa_questions(ip, blocker, cards, reason=reason)
-        qa_pairs = _ssot_q_pairs_from_questions(qa_questions)
-        if qa_pairs:
-            _upsert_ssot_qa_items(
-                ip,
-                flow_id=qa_flow_id,
-                kind=str((_load_ssot_state(ip) or {}).get("kind") or "general IP"),
-                q_pairs=qa_pairs,
-                status="pending",
-                session=qa_write_session,
-                source="rtl-blocker",
-            )
-            bridge.emit(
-                "ssot_qa_updated",
-                ip=ip,
-                workflow="ssot-gen",
-                flow_id=qa_flow_id,
-                session=ssot_session,
-            )
-
-        if not interactive:
-            msg = (
-                f"[RTL BLOCKER Q&A] recorded {len(qa_pairs)} pending SSOT QA card(s) for {ip}\n"
-                f"source: {_rtl_blocker_path(ip).relative_to(PROJECT_ROOT)}\n"
-                f"session: {ssot_session}\n"
-                "next: answer from SSOT QA/Preview, or run /resolve-rtl-blockers "
-                f"{ip} when ready to apply the decisions."
-            )
-            _append_session_message(_canonical_session_string(ip), "assistant", msg)
-            _append_workflow_history("ssot-gen", "assistant", msg)
-            _append_active_history("assistant", "```\n" + msg + "\n```")
-            _emit_workflow_result(msg, "resolve-rtl-blockers")
-            return True
-
-        def _worker() -> None:
-            import uuid as _uuid
-
-            flow_id = "rtlq_" + _uuid.uuid4().hex[:10]
-            bridge.open_question(flow_id)
-            bridge.emit("ask_user", flow_id=flow_id, questions=cards)
-            bridge.emit("agent_state", running=True)
-            try:
-                ans = bridge.wait_answer(flow_id, timeout=900)
-            finally:
-                bridge.close_question(flow_id)
-            if not isinstance(ans, dict) or not isinstance(ans.get("answers"), list):
-                msg = (
-                    f"[RTL BLOCKER Q&A] {ip}: no answer received; SSOT remains blocked.\n"
-                    f"source: {_rtl_blocker_path(ip).relative_to(PROJECT_ROOT)}"
-                )
-                _append_session_message(_canonical_session_string(ip), "assistant", msg)
-                _append_workflow_history("ssot-gen", "assistant", msg)
-                _append_active_history("assistant", "```\n" + msg + "\n```")
-                _emit_workflow_result(msg, "resolve-rtl-blockers")
-                return
-
-            answer_entries: list[dict[str, Any]] = []
-            qa_answers: dict[str, dict[str, Any]] = {}
-            for qa_pair, card, raw_answer in zip(qa_pairs, cards, ans.get("answers") or []):
-                qa = raw_answer if isinstance(raw_answer, dict) else {}
-                key, _label, question = qa_pair
-                answer_text = _answer_text(qa, question)
-                answer_entries.append({
-                    "id": card.get("id"),
-                    "decision_needed": card.get("question"),
-                    "answer": answer_text,
-                    "selected": qa.get("selected") or [],
-                    "custom": str(qa.get("custom") or "").strip(),
-                    "source": reason,
-                })
-                qa_answers[key] = {
-                    "answer": answer_text,
-                    "selected": qa.get("selected") or [],
-                    "custom": str(qa.get("custom") or "").strip(),
-                }
-            if qa_pairs:
-                _upsert_ssot_qa_items(
-                    ip,
-                    flow_id=qa_flow_id,
-                    kind=str((_load_ssot_state(ip) or {}).get("kind") or "general IP"),
-                    q_pairs=qa_pairs,
-                    status="approved",
-                    answers=qa_answers,
-                    session=qa_write_session,
-                    source="rtl-blocker",
-                )
-                bridge.emit(
-                    "ssot_qa_updated",
-                    ip=ip,
-                    workflow="ssot-gen",
-                    flow_id=qa_flow_id,
-                    session=ssot_session,
-                )
-            try:
-                msg = _run_rtl_blocker_resolution(ip, blocker, answer_entries, client_session)
-            except Exception as exc:
-                msg = f"[RTL BLOCKER Q&A] {ip}: failed to apply answers: {exc}"
-            _append_session_message(_canonical_session_string(ip), "assistant", msg)
-            _append_workflow_history("ssot-gen", "assistant", msg)
-            _append_active_history("assistant", "```\n" + msg + "\n```")
-            _emit_workflow_result(msg, "resolve-rtl-blockers")
-
-        ctx = contextvars.copy_context()
-        threading.Thread(target=ctx.run, args=(_worker,), daemon=True).start()
+        # Surface RTL blockers as a single grouped agent-turn message and
+        # leave rtl_blocked.json on disk as evidence. The user answers
+        # them inline and the SSOT-gen workflow picks them up — there is
+        # no separate slash command, no env-var gate, and no auto-skip.
+        question_lines: list[str] = []
+        for idx, card in enumerate(cards, start=1):
+            title = str(card.get("question") or card.get("label") or card.get("title") or "(no question)").strip()
+            yaml_path = str(card.get("yaml_path") or card.get("source_ref") or "").strip()
+            tag = f"  [{idx}/{len(cards)}]"
+            if yaml_path:
+                question_lines.append(f"{tag} {title}  ← {yaml_path}")
+            else:
+                question_lines.append(f"{tag} {title}")
+        msg = (
+            f"[RTL BLOCKER] {len(cards)} SSOT decision(s) needed for {ip} "
+            f"(see {_rtl_blocker_path(ip).relative_to(PROJECT_ROOT)}):\n"
+            + "\n".join(question_lines[:20])
+            + ("\n  ... (additional blockers truncated)" if len(cards) > 20 else "")
+            + "\nAnswer inline so the SSOT-gen workflow can incorporate them."
+        )
+        _append_session_message(_canonical_session_string(ip), "assistant", msg)
+        _append_workflow_history("ssot-gen", "assistant", msg)
+        _emit_workflow_result(msg, "rtl-blocker")
         return True
 
     def _sim_human_gate_cards(ip: str, classify_doc: dict[str, Any]) -> list[dict[str, Any]]:
@@ -10502,20 +11387,6 @@ def create_app():
         ctx = contextvars.copy_context()
         threading.Thread(target=ctx.run, args=(_worker,), daemon=True).start()
         return True
-
-    def _handle_resolve_rtl_blockers_command(text: str, client_session: Any | None = None) -> bool:
-        cmd, args = _split_slash(text)
-        if cmd not in ("resolve-rtl-blockers", "rrb"):
-            return False
-        ip = args.split(None, 1)[0] if args else ""
-        if not _valid_ip_name(ip):
-            _emit_workflow_result(
-                "[resolve-rtl-blockers] missing or invalid IP name\n"
-                "usage: /resolve-rtl-blockers <ip_name>",
-                "resolve-rtl-blockers",
-            )
-            return True
-        return _start_rtl_blocker_qna(ip, reason="manual /resolve-rtl-blockers", client_session=client_session)
 
     app.state.atlas_bridge = bridge
     app.state.start_rtl_blocker_qna = _start_rtl_blocker_qna
@@ -14413,8 +15284,6 @@ def create_app():
                         continue
                     # /approve removed per user request — the approval
                     # state is gone, the SSOT yaml is author-it-yourself.
-                    if _handle_resolve_rtl_blockers_command(_txt, client_session=session):
-                        continue
                     if _handle_repair_ssot_command(_txt, client_session=session):
                         continue
                     if _handle_repair_rtl_command(_txt, client_session=session):

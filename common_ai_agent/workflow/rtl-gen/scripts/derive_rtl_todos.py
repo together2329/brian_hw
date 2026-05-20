@@ -2621,6 +2621,18 @@ def _add_register_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], module
         )
         for field_name, field in _register_fields(reg):
             field_ref = f"{ref}.fields.{_slug(field_name)}"
+            # Pure reserved fields (access=reserved with explicit read_value +
+            # write_effect=ignore) are fully specified by SSOT — RTL only ties
+            # them off. Emitting an "implement this" task creates an open
+            # required todo that the audit cannot close without scanning for
+            # bit-pattern matches, which is fragile. Skip these so the audit
+            # focuses on real implementation gaps.
+            if isinstance(field, dict):
+                access = str(field.get("access") or "").strip().lower()
+                write_effect = str(field.get("write_effect") or "").strip().lower()
+                has_read_value = "read_value" in field
+                if access == "reserved" and write_effect == "ignore" and has_read_value:
+                    continue
             _task(
                 tasks,
                 category="registers.field",
@@ -5038,12 +5050,12 @@ def _write_dynamic_blocker(ip_dir: Path, plan: dict[str, Any]) -> None:
         "schema_version": 1,
         "type": "rtl_blocker",
         "status": "blocked",
-        "owner": "ssot-gen + human gate",
+        "owner": "ssot-gen",
         "ip": plan.get("ip"),
         "top": plan.get("top"),
         "reason": "SSOT-derived dynamic RTL TODO gate is blocked.",
         "questions": questions,
-        "next_action": "Answer these questions through ATLAS UI, update SSOT, regenerate FL/equivalence goals, then rerun /ssot-rtl.",
+        "next_action": "Answer these questions inline so SSOT-gen records them, update SSOT, regenerate FL/equivalence goals, then rerun /ssot-rtl.",
         "timestamp": _utc(),
     }
     path = ip_dir / "rtl" / "rtl_blocked.json"

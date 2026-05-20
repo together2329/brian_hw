@@ -220,8 +220,8 @@ def _connection_contract_review(question: dict[str, Any], suggestions: dict[str,
         "candidate_count": len(rows),
         "candidate_rows": rows,
         "approval_rule": (
-            "Rows become SSOT authority only after human review and application through "
-            "resolve_rtl_blockers.py with explicit rtl_blocker_answers."
+            "Rows become SSOT authority only after the SSOT-gen workflow records them inline "
+            "into <ip>/yaml/<ip>.ssot.yaml."
         ),
     }
 

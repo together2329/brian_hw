@@ -2374,11 +2374,11 @@ def _blocker_metadata(questions: list[dict]) -> dict[str, str]:
             "next_action": "Resolve SSOT questions first, then run rtl-gen against rtl_todo_plan.json and rerun /ssot-rtl.",
         }
     return {
-        "owner": "ssot-gen + human gate",
+        "owner": "ssot-gen",
         "reason": "SSOT behavior is not concrete enough for production RTL implementation.",
         "next_action": (
-            "Run workflow/rtl-gen/scripts/prepare_rtl_human_review.py to create a pending review packet, "
-            "answer/approve through ATLAS UI or resolve_rtl_blockers.py, update SSOT, then rerun /ssot-rtl."
+            "Answer the rtl_blocked.json questions inline so SSOT-gen can record them, "
+            "update SSOT, then rerun /ssot-rtl."
         ),
     }
 
