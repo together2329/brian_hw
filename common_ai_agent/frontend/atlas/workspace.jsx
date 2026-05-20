@@ -1485,9 +1485,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
   // 'sim_summary' / 'debug' / 'coverage' / 'workflow_report' are workflow-specific first tabs.
   // 'qa' is the dedicated question-answer pane. 'checklist' is the SSOT
   // validation/readiness pane for ssot-gen, kept separate from Q&A.
-  // 'import_export' owns document upload/import and SSOT export.
+  // 'import' / 'export' own document upload/import and SSOT export
+  // respectively (split out from the legacy 'import_export' tab so the
+  // user can deep-link to either half independently).
   // Double-clicking a file in the left tree sets previewPath + flips tab.
-  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | checklist | import_export | split | preview | sim_summary | debug | coverage | workflow_report
+  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | checklist | import | export | split | preview | sim_summary | debug | coverage | workflow_report
   const [previewPath, setPreviewPath] = React.useState(() => {
     try {
       const saved = localStorage.getItem('atlasPreviewPath');
@@ -1506,7 +1508,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
       const d = ev && ev.detail || {};
       if (!d.sha) return;
       setGitShow({ sha: d.sha, ip: d.ip || '', subject: d.subject || '' });
-      setMainTab(t => (t === 'chat' || t === 'qa' || t === 'checklist' || t === 'import_export') ? 'split' : t);
+      setMainTab(t => (t === 'chat' || t === 'qa' || t === 'checklist' || t === 'import' || t === 'export') ? 'split' : t);
     };
     window.addEventListener('atlas-git-show', onShow);
     return () => window.removeEventListener('atlas-git-show', onShow);
@@ -3702,17 +3704,32 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
             {showSsotImportExportTab && (
               <span
                 className="tab-chip"
-                onClick={() => setMainTab('import_export')}
-                title="Import docs and export SSOT artifacts"
+                onClick={() => setMainTab('import')}
+                title="Upload and import docs into the SSOT evidence base"
                 style={{
                   cursor: 'pointer',
                   padding: '2px 8px', borderRadius: 2,
-                  color: mainTab === 'import_export' ? 'var(--accent)' : 'var(--fg-mute)',
-                  background: mainTab === 'import_export' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-                  border: '1px solid ' + (mainTab === 'import_export' ? 'var(--accent)' : 'transparent'),
+                  color: mainTab === 'import' ? 'var(--accent)' : 'var(--fg-mute)',
+                  background: mainTab === 'import' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'import' ? 'var(--accent)' : 'transparent'),
                   fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
                 }}
-              >Import / Export</span>
+              >Import</span>
+            )}
+            {showSsotImportExportTab && (
+              <span
+                className="tab-chip"
+                onClick={() => setMainTab('export')}
+                title="Export SSOT artifacts (md / docx / html)"
+                style={{
+                  cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+                  color: mainTab === 'export' ? 'var(--accent)' : 'var(--fg-mute)',
+                  background: mainTab === 'export' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'export' ? 'var(--accent)' : 'transparent'),
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
+                }}
+              >Export</span>
             )}
             <span
               className="tab-chip"
@@ -3867,9 +3884,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 SSOT validation · missing items · SSOT percent · script gate
               </span>
-            ) : mainTab === 'import_export' ? (
+            ) : mainTab === 'import' ? (
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
-                Upload/import docs · export SSOT
+                Upload/import docs into SSOT evidence base
+              </span>
+            ) : mainTab === 'export' ? (
+              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
+                Export SSOT artifacts (md · docx · html)
               </span>
             ) : mainTab === 'sim_summary' ? (
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
@@ -3898,7 +3919,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                 "Running / End of loop / Waiting on you" pill above the
                 input row already conveys this state, and louder, so two
                 redundant indicators just add noise to the tab header. */}
-            {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot' || mainTab === 'checklist' || mainTab === 'import_export') && (
+            {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot' || mainTab === 'checklist' || mainTab === 'import' || mainTab === 'export') && (
               <span style={{ fontSize: 10 }}>
                 <span className="mute" style={{ marginRight: 8 }}>{mainTab === 'split' ? 'chat only' : 'back to chat'}</span>
                 <span onClick={() => setMainTab('chat')} className="acc"
@@ -3932,7 +3953,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               showChecklist={true}
               checklistOnly={true}
             />
-          ) : mainTab === 'import_export' ? (
+          ) : mainTab === 'import' ? (
             <SsotQaBoard
               data={ssotQaBoardData}
               sessions={ssotQaSessions}
@@ -3942,7 +3963,19 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               onBack={() => setMainTab('chat')}
               onRefresh={() => { refreshSsotQa(); refreshSsotQaSessions(); }}
               onRunCommand={submitMsg}
-              importExportOnly={true}
+              importOnly={true}
+            />
+          ) : mainTab === 'export' ? (
+            <SsotQaBoard
+              data={ssotQaBoardData}
+              sessions={ssotQaSessions}
+              activeSession={currentSession}
+              uiLang={uiLang}
+              onSelectSession={activateSsotQaSession}
+              onBack={() => setMainTab('chat')}
+              onRefresh={() => { refreshSsotQa(); refreshSsotQaSessions(); }}
+              onRunCommand={submitMsg}
+              exportOnly={true}
             />
           ) : mainTab === 'chat' ? (
             renderChatPane()
@@ -5162,6 +5195,8 @@ const SsotQaBoard = ({
   showChecklist = false,
   checklistOnly = false,
   importExportOnly = false,
+  importOnly = false,
+  exportOnly = false,
 }) => {
   const sections = Array.isArray(data?.sections) ? data.sections : [];
   const sessionRows = Array.isArray(sessions) ? sessions : [];
@@ -6038,7 +6073,9 @@ const SsotQaBoard = ({
     );
   }
 
-  if (importExportOnly) {
+  if (importExportOnly || importOnly || exportOnly) {
+    const showImportCard = !!(importExportOnly || importOnly);
+    const showExportCard = !!(importExportOnly || exportOnly);
     return (
       <div style={{
         display: 'flex',
@@ -6069,11 +6106,13 @@ const SsotQaBoard = ({
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ flex: '1 1 360px', minWidth: 260 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <div style={{ color: 'var(--fg)', fontSize: 16, fontWeight: 800 }}>{t.importExportTitle}</div>
+                <div style={{ color: 'var(--fg)', fontSize: 16, fontWeight: 800 }}>
+                  {importOnly ? t.uploadImportTitle : (exportOnly ? t.exportTitle : t.importExportTitle)}
+                </div>
                 <code className="acc">{data.ip}</code>
               </div>
               <div style={{ marginTop: 5, color: 'var(--fg-mute)', fontSize: 12, lineHeight: 1.45, maxWidth: 820 }}>
-                {t.importExportSubtitle}
+                {importOnly ? t.uploadImportDetail : (exportOnly ? t.exportDetail : t.importExportSubtitle)}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -6089,6 +6128,7 @@ const SsotQaBoard = ({
           gap: 12,
           alignItems: 'stretch',
         }}>
+          {showImportCard && (
           <div style={{
             border: '1px solid var(--line)',
             background: 'color-mix(in oklch, var(--bg-2) 58%, transparent)',
@@ -6143,7 +6183,9 @@ const SsotQaBoard = ({
             {renderImportStatus()}
             {renderImportedFiles()}
           </div>
+          )}
 
+          {showExportCard && (
           <div style={{
             border: '1px solid var(--line)',
             background: 'color-mix(in oklch, var(--bg-2) 58%, transparent)',
@@ -6159,6 +6201,7 @@ const SsotQaBoard = ({
               <button className="mini-btn" type="button" onClick={() => exportSsot('html')}>{t.exportHtml}</button>
             </div>
           </div>
+          )}
         </div>
       </div>
     );

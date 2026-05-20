@@ -34,9 +34,11 @@ def test_ssot_qa_workbench_has_first_class_actions_and_no_history_panel():
     assert "runSsotCommand(`/grill-me ${data.ip}`)" in src
     assert "runSsotCommand(`/to-ssot ${data.ip}`)" in src
     assert "Validation" in src
-    assert "Import / Export" in src
+    assert ">Import<" in src
+    assert ">Export<" in src
     assert "checklistOnly={true}" in src
-    assert "importExportOnly={true}" in src
+    assert "importOnly={true}" in src
+    assert "exportOnly={true}" in src
     assert "무엇을 만들까?" in src
     assert "채워야 하는 9칸" in src
     assert "SSOT Percent" in src
