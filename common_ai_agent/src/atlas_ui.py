@@ -10597,6 +10597,52 @@ def create_app():
             )
         return "", last_err or "markitdown not runnable"
 
+    def _cursor_agent_convert(src_path: Path) -> tuple[str, str]:
+        """Convert any supported document to Markdown via cursor-agent CLI.
+
+        cursor-agent has a vision-capable model and tool access, so it can
+        open a file, parse heading/table/list structure, and emit clean
+        Markdown without depending on per-format Python libs (markitdown,
+        python-docx, pymupdf4llm). Returns (md_text, error); empty error
+        string means success.
+        """
+        import shutil as _shutil
+        cursor_exe = _shutil.which("cursor-agent")
+        if not cursor_exe:
+            return "", "cursor-agent not on PATH"
+        prompt = (
+            f"Read the file at this absolute path and convert it to clean "
+            f"GitHub-Flavored Markdown.\n\nFile: {src_path}\n\n"
+            "Requirements:\n"
+            "- Preserve headings (#, ##, ###).\n"
+            "- Render tables as Markdown tables (| col | col | with the "
+            "  --- separator row).\n"
+            "- Preserve numbered + bulleted lists.\n"
+            "- Quote code, signal names, register addresses with backticks "
+            "  or fenced code blocks.\n"
+            "- Do NOT add commentary, summaries, or explanations — emit the "
+            "  document content only.\n"
+            "- If the file is an image, describe its content in 2-3 "
+            "  sentences under a `## Image Description` heading.\n"
+        )
+        try:
+            proc = subprocess.run(
+                [cursor_exe, "--print", "--model", "auto", "-p", prompt],
+                capture_output=True, text=True,
+                encoding="utf-8", errors="replace",
+                timeout=180,
+            )
+        except subprocess.TimeoutExpired:
+            return "", "cursor-agent convert timed out (180s)"
+        except Exception as exc:
+            return "", f"cursor-agent convert error: {exc}"
+        if proc.returncode != 0:
+            return "", f"cursor-agent convert failed (rc={proc.returncode}): {(proc.stderr or '')[:300]}"
+        text = (proc.stdout or "").strip()
+        if not text:
+            return "", "cursor-agent returned empty output"
+        return text, ""
+
     def _describe_image(img: Path) -> str:
         """Describe an image for SSOT import evidence.
 
@@ -10709,10 +10755,41 @@ def create_app():
                 return md_target, [original_path], err
 
             md_written = False
-            md_text, mk_err = _markitdown_convert(original_path)
-            if not mk_err and md_text:
-                md_target.write_text(md_text, encoding="utf-8")
-                md_written = True
+            mk_err = ""
+            # Converter selection (user picks via Import / Export
+            # dropdown → POST /api/ssot/import/converter → env var).
+            #   markitdown   (default): markitdown only, fall through
+            #                           to per-format extractor on fail.
+            #   cursor-agent          : cursor-agent only, no fallback.
+            #   auto                  : cursor-agent first, markitdown
+            #                           on fail, then per-format.
+            converter = (os.environ.get("ATLAS_IMPORT_CONVERTER", "markitdown") or "markitdown").strip().lower()
+            if converter == "cursor-agent":
+                md_text, mk_err = _cursor_agent_convert(original_path)
+                if not mk_err and md_text:
+                    md_target.write_text(md_text, encoding="utf-8")
+                    md_written = True
+            elif converter == "auto":
+                md_text, mk_err = _cursor_agent_convert(original_path)
+                if not mk_err and md_text:
+                    md_target.write_text(md_text, encoding="utf-8")
+                    md_written = True
+                else:
+                    md_text, mk_err = _markitdown_convert(original_path)
+                    if not mk_err and md_text:
+                        md_target.write_text(md_text, encoding="utf-8")
+                        md_written = True
+            else:
+                md_text, mk_err = _markitdown_convert(original_path)
+                if not mk_err and md_text:
+                    md_target.write_text(md_text, encoding="utf-8")
+                    md_written = True
+
+            # cursor-agent-only mode: skip per-format extraction so the
+            # user gets a clean error pointing at cursor-agent instead
+            # of silently switching strategies.
+            if converter == "cursor-agent" and not md_written:
+                return None, image_paths, mk_err or "cursor-agent did not produce markdown"
 
             if suffix == ".pdf":
                 if not md_written:
@@ -10884,6 +10961,45 @@ def create_app():
             return md_target, image_paths, ""
         except Exception as exc:
             return None, image_paths, f"convert failed: {exc}"
+
+    _SSOT_IMPORT_CONVERTERS = ("markitdown", "cursor-agent", "auto")
+
+    @app.get("/api/ssot/import/converter")
+    async def api_ssot_import_converter_get():
+        """Return the active document→markdown converter preference."""
+        current = (os.environ.get("ATLAS_IMPORT_CONVERTER", "markitdown") or "markitdown").strip().lower()
+        if current not in _SSOT_IMPORT_CONVERTERS:
+            current = "markitdown"
+        return JSONResponse({
+            "ok": True,
+            "converter": current,
+            "options": list(_SSOT_IMPORT_CONVERTERS),
+        })
+
+    @app.post("/api/ssot/import/converter")
+    async def api_ssot_import_converter_set(request: Request):
+        """Set the active document→markdown converter preference.
+
+        Body: {"converter": "markitdown" | "cursor-agent" | "auto"}.
+        Persists into .env via _persist_env_values so the choice
+        survives a backend restart.
+        """
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        choice = str((body or {}).get("converter") or "").strip().lower()
+        if choice not in _SSOT_IMPORT_CONVERTERS:
+            return JSONResponse({
+                "ok": False,
+                "error": f"converter must be one of {_SSOT_IMPORT_CONVERTERS}",
+            }, status_code=400)
+        os.environ["ATLAS_IMPORT_CONVERTER"] = choice
+        try:
+            _persist_env_values({"ATLAS_IMPORT_CONVERTER": choice})
+        except Exception:
+            pass
+        return JSONResponse({"ok": True, "converter": choice})
 
     @app.post("/api/ssot/import/upload")
     async def api_ssot_import_upload(request: Request):

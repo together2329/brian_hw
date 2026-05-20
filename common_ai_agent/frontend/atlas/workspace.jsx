@@ -5470,6 +5470,30 @@ const SsotQaBoard = ({
   const importInputRef = React.useRef(null);
   const [importBusy, setImportBusy] = React.useState(false);
   const [importStatus, setImportStatus] = React.useState('');
+  // Document → markdown converter pick. Server is authoritative; fetch
+  // once on mount and write back on user change.
+  const [importConverter, setImportConverter] = React.useState('markitdown');
+  React.useEffect(() => {
+    let cancelled = false;
+    fetch('/api/ssot/import/converter')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (cancelled || !d || !d.converter) return;
+        setImportConverter(String(d.converter));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  const changeImportConverter = React.useCallback((next) => {
+    const choice = String(next || '').trim().toLowerCase();
+    if (!choice) return;
+    setImportConverter(choice);
+    fetch('/api/ssot/import/converter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ converter: choice }),
+    }).catch(() => {});
+  }, []);
   const [importDragActive, setImportDragActive] = React.useState(false);
   const [validationMode, setValidationMode] = React.useState('engineering');
   const [validationBusy, setValidationBusy] = React.useState(false);
@@ -6132,6 +6156,33 @@ const SsotQaBoard = ({
             <div style={{ color: 'var(--fg)', fontSize: 14, fontWeight: 800 }}>{t.uploadImportTitle}</div>
             <div style={{ marginTop: 5, color: 'var(--fg-mute)', fontSize: 12, lineHeight: 1.45 }}>
               {t.uploadImportDetail}
+            </div>
+            <div style={{
+              marginTop: 10,
+              display: 'flex', alignItems: 'center', gap: 8,
+              fontSize: 11, color: 'var(--fg-mute)',
+            }}>
+              <span>Converter</span>
+              <select
+                value={importConverter}
+                onChange={(ev) => changeImportConverter(ev.target.value)}
+                style={{
+                  background: 'var(--bg-1)', color: 'var(--fg)',
+                  border: '1px solid var(--line)', borderRadius: 2,
+                  padding: '2px 6px', fontFamily: 'var(--mono)', fontSize: 11,
+                }}
+              >
+                <option value="markitdown">markitdown (default)</option>
+                <option value="cursor-agent">cursor-agent only</option>
+                <option value="auto">auto (cursor-agent → markitdown)</option>
+              </select>
+              <span style={{ opacity: 0.65 }}>
+                {importConverter === 'cursor-agent'
+                  ? 'Routes every doc through cursor-agent.'
+                  : importConverter === 'auto'
+                    ? 'Tries cursor-agent first, falls back to markitdown.'
+                    : 'Python markitdown CLI (python3.12 on Windows).'}
+              </span>
             </div>
             <div
               onDragEnter={(ev) => { ev.preventDefault(); ev.stopPropagation(); setImportDragActive(true); }}
