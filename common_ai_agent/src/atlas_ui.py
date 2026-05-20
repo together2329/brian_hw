@@ -11589,79 +11589,30 @@ def create_app():
             )
             return True
         _set_active_ssot_ip(ip)
-        state = _load_ssot_state(ip)
-        if state and not state.get("approved"):
-            kind = str(state.get("kind") or "imported IP evidence")
-            filled, conflicts, artifacts, errors = _import_defaults_if_available(ip, kind, state)
-            state = _load_ssot_state(ip)
-            if artifacts:
-                note = (
-                    f"[SSOT IMPORT] auto-imported {len(artifacts)} file(s) before /to-ssot {ip}\n"
-                    f"filled decisions: {', '.join(filled) if filled else '(none)'}\n"
-                    f"conflicts: {', '.join(str(c.get('key') or '') for c in conflicts[:8]) if conflicts else '(none)'}"
-                )
-                if errors:
-                    note += "\nnotes:\n" + "\n".join(f"- {err}" for err in errors[:8])
-                _append_session_message(_canonical_session_string(ip), "assistant", note)
-                _append_workflow_history("ssot-gen", "assistant", note)
-                _append_active_history("assistant", "```\n" + note + "\n```")
-            if not state.get("approved"):
-                missing_at_approval = _missing_ssot_decisions(ip, state)
-                state["approved"] = True
-                state["approved_at"] = time.time()
-                state["approval_source"] = "to_ssot"
-                state["status"] = "approved"
-                state["last_step"] = "approved_by_to_ssot"
-                state["active_session"] = _active_session_value() or _canonical_session_string(ip)
-                if missing_at_approval:
-                    state["approved_with_missing_decisions"] = missing_at_approval
-                _save_ssot_state(ip, state)
-                note = (
-                    f"[SSOT APPROVED] {ip}: To SSOT was pressed, so the current Web Q&A, "
-                    "import manifest, and per-IP wiki evidence are treated as approved for SSOT generation."
-                )
-                if missing_at_approval:
-                    note += "\nreview flags carried into SSOT: " + ", ".join(missing_at_approval)
-                if conflicts:
-                    note += "\nimport conflicts carried into SSOT review context: " + ", ".join(str(c.get("key") or "") for c in conflicts[:8])
-                _append_session_message(_canonical_session_string(ip), "assistant", note)
-                _append_workflow_history("ssot-gen", "assistant", note)
-                _append_active_history("assistant", "```\n" + note + "\n```")
-        if not state.get("approved"):
-            missing = _missing_ssot_decisions(ip, state) if state else [k for k, _ in _SSOT_REQUIRED_DECISIONS]
-            msg = (
-                f"[SSOT GATE] blocked: {ip} has no usable SSOT state yet\n"
-                "YAML writes need imported evidence, Web Q&A state, or a scaffolded SSOT session.\n"
-                f"missing decisions: {', '.join(missing) if missing else '(state missing)'}\n\n"
-                f"Put files under {ip}/doc/ or upload/import docs, then press To SSOT again. Use Deep Interview only for the listed gaps."
-            )
-            _append_session_message(_canonical_session_string(ip), "user", text)
-            _append_session_message(_canonical_session_string(ip), "assistant", msg)
-            _append_active_history("user", text)
-            _append_active_history("assistant", "```\n" + msg + "\n```")
-            _emit_workflow_result(msg, "to-ssot")
-            if state:
-                _emit_ssot_approval_ready(ip, state, missing)
-            return True
-        spec = _render_approved_ssot_spec(ip, state)
-        _append_session_message(_canonical_session_string(ip), "user", text)
-        _append_session_message(_canonical_session_string(ip), "assistant", spec)
+        state = _load_ssot_state(ip) or {}
+        # Per user instruction: /to-ssot does NOT
+        #   - auto-import (`_import_defaults_if_available` removed)
+        #   - flip state["approved"] to True
+        #   - block on a "missing decisions" gate
+        #   - run the deterministic bridge / template
+        # It only renders the spec snapshot (Web Q&A + import context)
+        # and points at the SSOT yaml path. Author the YAML yourself.
+        spec = _render_approved_ssot_spec(ip, state) if state else f"[to-ssot] {ip}: no SSOT state yet."
+        session = _canonical_session_string(ip)
+        _append_session_message(session, "user", text)
+        _append_session_message(session, "assistant", spec)
         _append_workflow_history("ssot-gen", "user", text)
         _append_workflow_history("ssot-gen", "assistant", spec)
         _append_active_history("user", text)
-        # The deterministic bridge + template stamping was removed at
-        # the user's request: they want to author the SSOT yaml by
-        # hand. /to-ssot now just records the approved Web Q&A / import
-        # snapshot to disk and surfaces the spec; no subprocess runs,
-        # no LLM prompt is queued.
         ssot_path = PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
         ready_msg = (
-            f"[to-ssot] {ip} approved — bridge + template generation disabled.\n"
+            f"[to-ssot] {ip} — spec emitted; nothing written automatically.\n"
             f"SSOT path: {ssot_path}\n"
-            "Write or edit the YAML yourself; the import manifest + Web Q&A snapshot are "
-            f"saved at `{ip}/req/import_manifest.json` and the canonical session state."
+            f"Sources to draw from: `{ip}/req/import_manifest.json`, "
+            f"`{ip}/req/imports/`, `{ip}/wiki/`.\n"
+            "Author / edit the YAML yourself."
         )
-        _append_session_message(_canonical_session_string(ip), "assistant", ready_msg)
+        _append_session_message(session, "assistant", ready_msg)
         _append_workflow_history("ssot-gen", "assistant", ready_msg)
         _append_active_history("assistant", "```\n" + ready_msg + "\n```")
         _emit_workflow_result(ready_msg, "to-ssot")
@@ -14339,8 +14290,8 @@ def create_app():
                         continue
                     if _handle_grill_me_command(_txt, client_session=session):
                         continue
-                    if _handle_approval_command(_txt, client_session=session):
-                        continue
+                    # /approve removed per user request — the approval
+                    # state is gone, the SSOT yaml is author-it-yourself.
                     if _handle_resolve_rtl_blockers_command(_txt, client_session=session):
                         continue
                     if _handle_repair_ssot_command(_txt, client_session=session):
