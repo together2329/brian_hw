@@ -294,10 +294,15 @@ def _setup_workspace(name: str) -> None:
                     _active_session = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/")
                     _session_parts = [p for p in _active_session.split("/") if p]
                     _workspace = _session_parts[-1] if len(_session_parts) >= 3 else (name or "")
+                    _project_root = (
+                        os.environ.get("ATLAS_PROJECT_ROOT")
+                        or os.environ.get("PROJECT_ROOT")
+                        or os.getcwd()
+                    )
                     if _active_ip and _active_ip != "default":
-                        _project_root = os.environ.get("ATLAS_PROJECT_ROOT") or os.getcwd()
                         _ip_root = os.path.join(_project_root, _active_ip)
                         merged = (
+                            f"[PROJECT_ROOT: {_project_root}]\n"
                             f"[ACTIVE_WORKSPACE: {_workspace or 'default'}]\n"
                             f"[ACTIVE_SESSION: {_active_session or 'default'}]\n"
                             f"[ACTIVE_IP: {_active_ip}]\n"
@@ -308,7 +313,7 @@ def _setup_workspace(name: str) -> None:
                             f"prefix project-root paths with {_active_ip}/.]\n"
                             f"[NO_QA_FOR_DERIVABLE_FACTS: Do not ask the user a "
                             f"question whose answer is already derivable from "
-                            f"ACTIVE_IP, IP_ROOT, the import manifest "
+                            f"PROJECT_ROOT, ACTIVE_IP, IP_ROOT, the import manifest "
                             f"({_active_ip}/req/import_manifest.json), the IP wiki "
                             f"({_active_ip}/wiki/), the existing SSOT draft "
                             f"({_active_ip}/yaml/{_active_ip}.ssot.yaml), or any "
@@ -318,7 +323,13 @@ def _setup_workspace(name: str) -> None:
                             + merged
                         )
                     elif _workspace:
-                        merged = f"[ACTIVE_WORKSPACE: {_workspace}]\n\n" + merged
+                        merged = (
+                            f"[PROJECT_ROOT: {_project_root}]\n"
+                            f"[ACTIVE_WORKSPACE: {_workspace}]\n\n"
+                            + merged
+                        )
+                    else:
+                        merged = f"[PROJECT_ROOT: {_project_root}]\n\n" + merged
                 except Exception:
                     pass
                 try:

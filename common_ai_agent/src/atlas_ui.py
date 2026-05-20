@@ -15013,6 +15013,11 @@ def main() -> None:
         os.chdir(str(target))
         global PROJECT_ROOT
         PROJECT_ROOT = target
+    # Always export PROJECT_ROOT to the env so workers, sub-agents, and
+    # the system-prompt header injector resolve to the same path the UI
+    # serves files from — even when the user launches without --root and
+    # relies on the cwd default.
+    os.environ["ATLAS_PROJECT_ROOT"] = str(PROJECT_ROOT)
     # Seed environment so all path resolvers see the canonical 3-part string.
     new_session = f"{args.session_id}/{args.ip}/{args.workflow}"
     _atlas_active_session_cv.set(new_session)
