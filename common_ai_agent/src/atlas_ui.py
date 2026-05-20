@@ -7574,8 +7574,8 @@ def create_app():
     # External Python interpreter used to run markitdown (atlas_ui itself
     # may be on 3.9 where markitdown >=0.1 won't install). The probe order
     # is OS-aware:
-    #   - Windows: python3.12 first (user's request), then py -3.12, then
-    #     python (whatever's on PATH).
+    #   - Windows: plain `python` / `python.exe` first, then `python3.12`,
+    #     then `py -3.12` as a last resort.
     #   - macOS / Linux: python3.12, python3.11, python3.10 via PATH, then
     #     the Homebrew default location as a last resort.
     # ATLAS_MARKITDOWN_PYTHON env var overrides everything.
@@ -10526,7 +10526,8 @@ def create_app():
 
         Probe order:
           1. ATLAS_MARKITDOWN_PYTHON env (explicit override).
-          2. Windows: `python3.12`, `py -3.12`, `python`.
+          2. Windows: `python` / `python.exe`, then `python3.12`,
+             then `py -3.12`.
           3. macOS/Linux: `python3.12`, `python3.11`, `python3.10` (PATH),
              then `/opt/homebrew/bin/python3.10` as a last resort.
         """
@@ -10540,11 +10541,14 @@ def create_app():
             if _SSOT_MARKITDOWN_PY:
                 cands.append([_SSOT_MARKITDOWN_PY])
             if is_windows:
-                for name in ("python3.12", "python"):
+                # Plain `python` (= python.exe on PATH) is the user's
+                # preferred entry point on Windows; only fall back to
+                # the py launcher / versioned aliases when it isn't
+                # installed.
+                for name in ("python", "python.exe", "python3.12"):
                     found = _shutil.which(name)
                     if found:
                         cands.append([found])
-                # py.exe launcher with -3.12 selector
                 py_launcher = _shutil.which("py")
                 if py_launcher:
                     cands.append([py_launcher, "-3.12"])
@@ -10562,8 +10566,8 @@ def create_app():
         if not candidates:
             return "", (
                 "markitdown needs Python 3.10+: no candidate interpreter found. "
-                "Set ATLAS_MARKITDOWN_PYTHON or install python3.12 "
-                + ("(`py -3.12 -m pip install markitdown`)" if is_windows else "")
+                "Set ATLAS_MARKITDOWN_PYTHON or install Python "
+                + ("(`python -m pip install markitdown`)" if is_windows else "(python3.12 with markitdown)")
             )
 
         last_err = ""
