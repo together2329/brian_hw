@@ -875,6 +875,19 @@
       if (typeof d.chat_feed_summary === 'boolean') {
         window.ATLAS_CHAT_FEED_SUMMARY = d.chat_feed_summary;
       }
+      // The backend is the source of truth for active_ip — it was either
+      // pinned by the `-ip` CLI arg or by a slash command. If the
+      // browser's localStorage SCOPE_PATH is stale (e.g. cached from a
+      // previous run that targeted a different IP) it would otherwise
+      // keep showing the wrong workspace in the file-tree footer and
+      // the @-mention base. Sync SCOPE_PATH to the backend IP whenever
+      // the two diverge.
+      const backendActiveIp = String(d.active_ip || '').trim();
+      if (backendActiveIp && backendActiveIp !== 'default' && backendActiveIp !== window.SCOPE_PATH) {
+        window.SCOPE_PATH = backendActiveIp;
+        try { localStorage.setItem('atlasScopePath', backendActiveIp); } catch (_) {}
+        window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
+      }
       window.CONTEXT = Object.assign({}, _prev, {
         frontend:    d.frontend  || '',
         model:       d.model     || _prev.model || '—',
