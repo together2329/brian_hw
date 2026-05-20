@@ -349,7 +349,7 @@
       "blocked": false,
       "blocker": "",
       "unverified": false,
-      "sample_cycle": 2
+      "sample_cycle": 1
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_RX_BYTE",

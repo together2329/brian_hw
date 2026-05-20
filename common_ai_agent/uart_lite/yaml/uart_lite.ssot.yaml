@@ -445,6 +445,7 @@ function_model:
   transactions:
   - id: FM_TX_BYTE
     name: transmit_byte
+    sample_stage: TX_START
     preconditions:
     - tx_enable == 1
     - tx_fifo not empty

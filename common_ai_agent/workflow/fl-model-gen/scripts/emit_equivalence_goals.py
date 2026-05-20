@@ -304,8 +304,16 @@ def _goal(
     default_owner: str = "rtl",
     possible_owners: list[str] | None = None,
     scope: dict[str, Any] | None = None,
+    machine_spec: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     owners = possible_owners or ["ssot", "fl_model", "rtl", "tb", "coverage", "human"]
+    stimulus_contract: dict[str, Any] = {
+        "transaction_type": transaction_type,
+        "required_fields": required_fields,
+        "constraints": constraints,
+    }
+    if isinstance(machine_spec, dict) and machine_spec:
+        stimulus_contract["machine_spec"] = machine_spec
     goal = {
         "goal_id": goal_id,
         "title": title,
@@ -314,11 +322,7 @@ def _goal(
         "ssot_refs": ssot_refs,
         "decomposition_refs": decomposition_refs,
         "coverage_refs": coverage_refs,
-        "stimulus_contract": {
-            "transaction_type": transaction_type,
-            "required_fields": required_fields,
-            "constraints": constraints,
-        },
+        "stimulus_contract": stimulus_contract,
         "expected_contract": {
             "model_api": "FunctionalModel.apply",
             "observables": observables,
@@ -545,6 +549,7 @@ def _scenario_goals(ssot: dict[str, Any], decomp: dict[str, Any], fcov: dict[str
                     if tx_contract["blocked"] else ""
                 )
             ),
+            machine_spec=sc.get("stimulus_machine_spec") if isinstance(sc.get("stimulus_machine_spec"), dict) else None,
         ))
     return goals
 
@@ -966,6 +971,62 @@ def emit(ip: str, root: Path) -> dict[str, Any]:
         + _module_equivalence_goals(ssot, decomp, fcov)
     )
     goals = _dedupe(base_goals + _coverage_closure_goals(ssot, decomp, fcov, base_goals))
+    # Tag each goal with a `sample_cycle` derived from cycle_model.pipeline.
+    # Opt-in via SSOT.cycle_model.use_per_cycle_expected: true. This keeps
+    # auto-tagging off for IPs whose cycle_model.pipeline.output_rules
+    # expressions reference signals that the cocotb stimulus does not yet
+    # propagate by name (e.g. arbiter_rr's `req_i` vs stimulus field
+    # `requests`), and lets uart-class IPs opt in once their output_rules
+    # use constants or already-resolved env names.
+    _cycle_model = ssot.get("cycle_model") if isinstance(ssot.get("cycle_model"), dict) else {}
+    if bool(_cycle_model.get("use_per_cycle_expected", False)):
+        _pipeline = _cycle_model.get("pipeline") or []
+        _abs_cycles: list[int] = []
+        _stage_cycle: dict[str, int] = {}
+        for _entry in _pipeline:
+            if not isinstance(_entry, dict):
+                continue
+            _raw = _entry.get("cycle")
+            _cnum: int | None = None
+            if isinstance(_raw, int):
+                _cnum = _raw
+            elif isinstance(_raw, str) and _raw.strip().isdigit():
+                _cnum = int(_raw.strip())
+            if _cnum is not None:
+                _abs_cycles.append(_cnum)
+                _sname = _entry.get("stage")
+                if isinstance(_sname, str) and _sname:
+                    _stage_cycle[_sname] = _cnum
+        # Build transaction id -> sample_stage map from SSOT (opt-in field).
+        _tx_stage: dict[str, str] = {}
+        for _tx in (ssot.get("function_model") or {}).get("transactions") or []:
+            if isinstance(_tx, dict):
+                _sst = _tx.get("sample_stage")
+                if isinstance(_sst, str) and _sst:
+                    for _key in (_tx.get("id"), _tx.get("name")):
+                        if _key:
+                            _tx_stage[str(_key)] = _sst
+        if _abs_cycles:
+            _sample_cycle_default = max(_abs_cycles)
+            for _g in goals:
+                if not isinstance(_g, dict) or "sample_cycle" in _g:
+                    continue
+                _per_goal: int | None = None
+                # Per-transaction goal: parse goal_id suffix or transaction payload.
+                gid = str(_g.get("goal_id") or "")
+                tx_payload = _g.get("transaction") if isinstance(_g.get("transaction"), dict) else None
+                tx_kind = str(tx_payload.get("kind") or "") if tx_payload else ""
+                stage = _tx_stage.get(tx_kind) if tx_kind else None
+                if stage is None and gid.startswith("EQ_TRANSACTION_"):
+                    tail = gid[len("EQ_TRANSACTION_"):]
+                    # Match by safe-name canonical form against tx ids/names.
+                    for _k, _v in _tx_stage.items():
+                        if _safe_name(_k, _k).upper() == tail.upper():
+                            stage = _v
+                            break
+                if stage and stage in _stage_cycle:
+                    _per_goal = _stage_cycle[stage]
+                _g["sample_cycle"] = _per_goal if _per_goal is not None else _sample_cycle_default
     blocked = sum(1 for g in goals if g.get("blocked"))
     unverified = sum(1 for g in goals if g.get("unverified"))
     required = sum(1 for g in goals if not g.get("blocked"))
