@@ -10693,6 +10693,39 @@ def create_app():
                 from docx import Document  # type: ignore
 
                 doc = Document(str(original_path))
+
+                def _docx_tables_as_markdown(d) -> str:
+                    """Render every <w:tbl> in the docx as a Markdown table.
+
+                    markitdown frequently flattens .docx tables (loses the
+                    separator row or collapses cells) and the paragraphs-
+                    only fallback below misses them entirely because
+                    python-docx exposes tables on `Document.tables`, not on
+                    `Document.paragraphs`. Re-emit them here so the SSOT
+                    importer always has a faithful copy of register maps,
+                    pin lists, etc.
+                    """
+                    blocks: list[str] = []
+                    for tbl in getattr(d, "tables", []) or []:
+                        rows = []
+                        for row in tbl.rows:
+                            cells = [
+                                " ".join((c.text or "").split()).replace("|", "\\|") or " "
+                                for c in row.cells
+                            ]
+                            rows.append(cells)
+                        if not rows:
+                            continue
+                        width = max(len(r) for r in rows)
+                        norm = [r + [" "] * (width - len(r)) for r in rows]
+                        header = "| " + " | ".join(norm[0]) + " |"
+                        sep = "| " + " | ".join(["---"] * width) + " |"
+                        body = "\n".join("| " + " | ".join(r) + " |" for r in norm[1:])
+                        blocks.append(header + "\n" + sep + ("\n" + body if body else ""))
+                    return "\n\n".join(blocks)
+
+                docx_tables_md = _docx_tables_as_markdown(doc)
+
                 if not md_written:
                     md_lines = []
                     for para in doc.paragraphs:
@@ -10711,6 +10744,23 @@ def create_app():
                             md_lines.append(text)
                     md_target.write_text("\n".join(md_lines), encoding="utf-8")
                     md_written = True
+
+                # Always append the python-docx-rendered tables after the
+                # main body (whether markitdown wrote it or the
+                # paragraphs fallback did). They sit under a "## Source
+                # Tables" heading so downstream consumers can locate them
+                # deterministically even when markitdown silently dropped
+                # the originals.
+                if docx_tables_md:
+                    existing = md_target.read_text(encoding="utf-8", errors="replace")
+                    if "## Source Tables" not in existing:
+                        with md_target.open("a", encoding="utf-8") as _fh:
+                            if existing and not existing.endswith("\n"):
+                                _fh.write("\n")
+                            _fh.write("\n## Source Tables\n\n")
+                            _fh.write(docx_tables_md)
+                            _fh.write("\n")
+
                 n = 0
                 try:
                     for rel in doc.part.rels.values():
