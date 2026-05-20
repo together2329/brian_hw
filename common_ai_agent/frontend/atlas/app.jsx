@@ -1065,11 +1065,14 @@ const App = () => {
 
   const selectIp = (rawIp) => {
     const ip = normalizeSession(rawIp) || WORKFLOW_DEFAULT;
-    // Picking an IP keeps the current workflow when it is valid. The
-    // explicit default IP_ID is a real selectable namespace segment, not
-    // a request to clear the workflow.
+    // Picking an IP defaults the workflow to ssot-gen so the user lands
+    // directly in the IMPORT / Q&A / VALIDATION flow that drives SSOT
+    // for a freshly-picked IP. If the user was already on a specific
+    // non-default workflow (rtl-gen, sim_debug, …), keep that — only
+    // promote from the bare `default` segment.
     const cur = currentWorkflow();
-    const wf = isWorkflowSegment(cur) ? cur : WORKFLOW_DEFAULT;
+    const keepCurrent = isWorkflowSegment(cur) && cur && cur !== WORKFLOW_DEFAULT;
+    const wf = keepCurrent ? cur : 'ssot-gen';
     activateNamespace(activeSessionId, ip, wf, true);
   };
 
