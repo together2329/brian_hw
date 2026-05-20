@@ -1485,11 +1485,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
   // 'sim_summary' / 'debug' / 'coverage' / 'workflow_report' are workflow-specific first tabs.
   // 'qa' is the dedicated question-answer pane. 'checklist' is the SSOT
   // validation/readiness pane for ssot-gen, kept separate from Q&A.
-  // 'import' / 'export' own document upload/import and SSOT export
-  // respectively (split out from the legacy 'import_export' tab so the
-  // user can deep-link to either half independently).
-  // Double-clicking a file in the left tree sets previewPath + flips tab.
-  const [mainTab, setMainTab] = React.useState('split');    // chat | ssot | qa | checklist | import | export | split | preview | sim_summary | debug | coverage | workflow_report
+  // 'import_export' owns document upload/import and SSOT export. The
+  // user lands on 'chat' by default; preview / split / SSOT-tab modes
+  // are entered explicitly by clicking tabs or double-clicking files.
+  const [mainTab, setMainTab] = React.useState('chat');    // chat | ssot | qa | checklist | import_export | split | preview | sim_summary | debug | coverage | workflow_report
   const [previewPath, setPreviewPath] = React.useState(() => {
     try {
       const saved = localStorage.getItem('atlasPreviewPath');
@@ -2859,6 +2858,19 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
     subs.push(window.backend.subscribe('ask_user_answered', closeAskUser));
     subs.push(window.backend.subscribe('ask_user_closed', closeAskUser));
     subs.push(window.backend.subscribe('ssot_qa_updated', (m) => refreshSsotQa(m && m.session)));
+    // /new-ip and other backend-driven pivots ask the UI to switch
+    // namespace without a manual dropdown click. activateAtlasNamespace
+    // is exported by app.jsx at mount time.
+    subs.push(window.backend.subscribe('session_switch_request', (m) => {
+      const targetIp = String(m?.ip || '').trim();
+      const targetWf = String(m?.workflow || 'ssot-gen').trim() || 'ssot-gen';
+      if (!targetIp) return;
+      const fn = window.activateAtlasNamespace;
+      if (typeof fn !== 'function') return;
+      const sessionParts = String(window.ACTIVE_SESSION || '').split('/').filter(Boolean);
+      const sessionId = sessionParts[0] || 'default';
+      fn(sessionId, targetIp, targetWf, true);
+    }));
     return () => {
       if (_streamTimer) clearTimeout(_streamTimer);
       if (_reasonRaf) cancelAnimationFrame(_reasonRaf);

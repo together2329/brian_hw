@@ -11185,6 +11185,18 @@ def create_app():
         _append_active_history("assistant", "```\n" + plan + "\n```")
         _emit_workflow_result(plan, "new-ip")
         _emit_ssot_approval_ready(ip, state)
+        # Tell the frontend to pivot to the newly-created IP under
+        # ssot-gen so the user lands directly in the import / Q&A
+        # workspace instead of having to flip the IP dropdown by hand.
+        try:
+            bridge.emit(
+                "session_switch_request",
+                ip=ip,
+                workflow="ssot-gen",
+                reason="new-ip",
+            )
+        except Exception:
+            pass
         return True
 
     def _handle_ip_command(text: str, client_session: Any | None = None) -> bool:
