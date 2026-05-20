@@ -11618,136 +11618,22 @@ def create_app():
         _append_workflow_history("ssot-gen", "user", text)
         _append_workflow_history("ssot-gen", "assistant", spec)
         _append_active_history("user", text)
-        script_path = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "approved_to_ssot.py"
-        validator_path = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
-        template_path = SOURCE_ROOT / "workflow" / "ssot-gen" / "rules" / "ssot-template.yaml"
+        # The deterministic bridge + template stamping was removed at
+        # the user's request: they want to author the SSOT yaml by
+        # hand. /to-ssot now just records the approved Web Q&A / import
+        # snapshot to disk and surfaces the spec; no subprocess runs,
+        # no LLM prompt is queued.
         ssot_path = PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
-
-        try:
-            import subprocess
-
-            draft = subprocess.run(
-                [sys.executable, str(script_path), ip, "--root", str(PROJECT_ROOT)],
-                cwd=str(PROJECT_ROOT),
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                capture_output=True,
-                timeout=60,
-            )
-            # `check_ssot_disk.sh` needs a real bash. Resolve it via shutil
-            # so Windows machines without bash on PATH (which raised
-            # `[WinError 2] 지정된 파일을 찾을 수 없습니다.` here) don't
-            # explode the whole to-ssot bridge — report a clean skip
-            # instead and let the deterministic draft still be evaluated
-            # on its own returncode.
-            import shutil as _shutil
-            bash_exe = _shutil.which("bash")
-            if bash_exe:
-                validate = subprocess.run(
-                    [bash_exe, str(validator_path), ip],
-                    cwd=str(PROJECT_ROOT),
-                    text=True,
-                    encoding="utf-8",
-                    errors="replace",
-                    capture_output=True,
-                    timeout=60,
-                )
-            else:
-                class _SkippedValidator:
-                    returncode = 127
-                    stdout = ""
-                    stderr = (
-                        "bash not found on PATH — skipping check_ssot_disk.sh. "
-                        "Install Git Bash / WSL or add bash to PATH to enable "
-                        "the disk-side SSOT validator."
-                    )
-                validate = _SkippedValidator()
-        except Exception as exc:
-            draft = None
-            validate = None
-            bridge_msg = f"[to-ssot] generic bridge failed before validation: {exc}"
-        else:
-            bridge_parts = [
-                f"[to-ssot] generic Web To SSOT bridge for {ip}",
-                f"script: {script_path}",
-                f"ssot: {ssot_path}",
-                f"bridge exit: {draft.returncode}",
-            ]
-            if draft.stdout.strip():
-                bridge_parts += ["", "bridge stdout:", draft.stdout.strip()]
-            if draft.stderr.strip():
-                bridge_parts += ["", "bridge stderr:", draft.stderr.strip()]
-            bridge_parts += ["", f"validator exit: {validate.returncode}"]
-            if validate.stdout.strip():
-                bridge_parts += ["", "validator stdout:", validate.stdout.strip()]
-            if validate.stderr.strip():
-                bridge_parts += ["", "validator stderr:", validate.stderr.strip()]
-            bridge_msg = "\n".join(bridge_parts)
-
-        _append_session_message(_canonical_session_string(ip), "assistant", bridge_msg)
-        _append_workflow_history("ssot-gen", "assistant", bridge_msg)
-        _append_active_history("assistant", "```\n" + bridge_msg + "\n```")
-        _emit_workflow_result(bridge_msg, "to-ssot")
-
-        if draft is not None and validate is not None and draft.returncode == 0 and validate.returncode == 0:
-            return True
-
-        llm_fallback = os.environ.get("ATLAS_TO_SSOT_LLM_FALLBACK", "").strip().lower()
-        if llm_fallback not in {"1", "true", "yes", "on"}:
-            fail_msg = (
-                "\n[to-ssot] deterministic bridge did not pass validation. "
-                "No LLM repair was queued, so the browser stays in ssot-gen and "
-                "import/wiki trace evidence is not overwritten. Fix the bridge or "
-                "run /repair-ssot explicitly if you want a repair pass."
-            )
-            _append_session_message(_canonical_session_string(ip), "assistant", fail_msg)
-            _append_workflow_history("ssot-gen", "assistant", fail_msg)
-            _append_active_history("assistant", "```\n" + fail_msg + "\n```")
-            _emit_workflow_result(fail_msg, "to-ssot")
-            return True
-
-        _queue_prompt_for_session(client_session, "/mode normal")
-        _queue_prompt_for_session(client_session, "/wf ssot-gen")
-        _queue_prompt_for_session(client_session, "/clear")
-        _queue_prompt_for_session(client_session,
-            f"/to-ssot {ip}\n\n"
-            f"Hard workspace boundary for this run:\n"
-            f"- Project root / IP artifacts: `{PROJECT_ROOT}`\n"
-            f"- Common agent source root: `{SOURCE_ROOT}`\n"
-            f"- SSOT path to edit: `{ssot_path}`\n"
-            "Do not search or read outside those two roots. Ignore similarly named "
-            "directories such as NEW_IP, NEW_CPU, brian_home, or other legacy projects.\n\n"
-            "The generic approved-state bridge attempted to write the SSOT first. "
-            "Its exact disk-truth result was:\n"
-            "```text\n"
-            f"{bridge_msg}\n"
-            "```\n\n"
-            "Web To SSOT Spec, copied inline so this fresh run does not depend "
-            "on stale workflow chat history:\n"
-            "```text\n"
-            f"{spec}\n"
-            "```\n\n"
-            "Before writing the final SSOT, inspect the per-IP wiki navigation and import context. "
-            f"Start at `{ip}/wiki/index.md` and `{ip}/wiki/_graph.json`, then read "
-            f"`{ip}/wiki/import-evidence.md`, `{ip}/req/import_manifest.json`, "
-            "`log.md`, `notes.md`, and any linked artifacts that materially affect the SSOT. "
-            "Do not stop at the manifest JSON when wiki/import evidence points to more specific sources.\n\n"
-            "Execute this as the SSOT write step. Do not call todo_write; "
-            "it is Plan Mode only. Use the Web To SSOT Spec above as source truth, "
-            "replace scaffold-only placeholders, "
-            "write the complete production canonical SSOT, and run the exact validator "
-            f"`bash {validator_path} {ip}` before emitting [SSOT HANDOFF]. "
-            f"The authoritative 33-section template is `{template_path}`. "
-            "Do not use an inline/stale 20/25-section validator, and do not claim "
-            "PASS unless that exact script exits 0.\n\n"
-            "Bounded execution requirement: read the template, existing SSOT, and "
-            "validator at most once each. After identifying missing/weak sections, "
-            "your next tool action must be write_file, replace_in_file, or the "
-            "validator run if the file is already complete. Do not reread the same "
-            "files or draft the full YAML in prose before using the file tool."
+        ready_msg = (
+            f"[to-ssot] {ip} approved — bridge + template generation disabled.\n"
+            f"SSOT path: {ssot_path}\n"
+            "Write or edit the YAML yourself; the import manifest + Web Q&A snapshot are "
+            f"saved at `{ip}/req/import_manifest.json` and the canonical session state."
         )
-        bridge.emit("agent_state", running=True)
+        _append_session_message(_canonical_session_string(ip), "assistant", ready_msg)
+        _append_workflow_history("ssot-gen", "assistant", ready_msg)
+        _append_active_history("assistant", "```\n" + ready_msg + "\n```")
+        _emit_workflow_result(ready_msg, "to-ssot")
         return True
 
     def _handle_repair_ssot_command(text: str, client_session: Any | None = None) -> bool:
