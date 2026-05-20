@@ -3,7 +3,7 @@
   "type": "generic_goal_scoreboard_cocotb_manifest",
   "ip": "arm_m0_min",
   "top": "arm_m0_min",
-  "generated_at": "2026-05-16T23:28:49Z",
+  "generated_at": "2026-05-20T23:55:07Z",
   "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
   "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
   "ssot": "arm_m0_min/yaml/arm_m0_min.ssot.yaml",

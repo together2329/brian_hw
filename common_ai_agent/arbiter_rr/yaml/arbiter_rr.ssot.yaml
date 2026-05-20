@@ -219,6 +219,10 @@ function_model:
 # =============================================================================
 cycle_model:
   purpose: "Cycle/handshake contract for rtl-gen; describes when arbitration outputs and state may change."
+  # last_winner state intentionally preserved across SC1-SC9 so round-robin
+  # fairness checks observe rotation across multiple goals; per-goal reset
+  # would lose this and break SC2/SC6/etc.
+  state_accumulating: true
   executable: "pymtl3"
   backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle."
   clock: "PCLK"

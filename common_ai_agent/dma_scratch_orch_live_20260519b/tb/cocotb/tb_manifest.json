@@ -3,7 +3,7 @@
   "type": "generic_goal_scoreboard_cocotb_manifest",
   "ip": "dma_scratch_orch_live_20260519b",
   "top": "dma_scratch_orch_live_20260519b",
-  "generated_at": "2026-05-19T00:14:46Z",
+  "generated_at": "2026-05-20T23:55:08Z",
   "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
   "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
   "ssot": "dma_scratch_orch_live_20260519b/yaml/dma_scratch_orch_live_20260519b.ssot.yaml",

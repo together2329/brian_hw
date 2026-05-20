@@ -1012,6 +1012,87 @@ def _is_reset_stimulus(stimulus: dict[str, Any]) -> bool:
     return "reset" in text
 
 
+async def _apb_write_one(dut, manifest: dict[str, Any], offset: int, data: int) -> None:
+    """APB master agent (setup -> access -> idle), used by machine_spec.csr_writes."""
+    clock = manifest["clock"]
+    clk = getattr(dut, clock)
+    input_ports = set(manifest.get("input_ports") or [])
+    has_pready = _has_signal(dut, "PREADY")
+    await FallingEdge(clk)
+    if "PSEL" in input_ports: _set_signal(dut, "PSEL", 0)
+    if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 0)
+    await FallingEdge(clk)
+    if "PADDR" in input_ports: _set_signal(dut, "PADDR", offset)
+    if "PWDATA" in input_ports: _set_signal(dut, "PWDATA", data)
+    if "PWRITE" in input_ports: _set_signal(dut, "PWRITE", 1)
+    if "PSTRB" in input_ports: _set_signal(dut, "PSTRB", 0xF)
+    if "PSEL" in input_ports: _set_signal(dut, "PSEL", 1)
+    if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 0)
+    await RisingEdge(clk)
+    await FallingEdge(clk)
+    if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 1)
+    for _ in range(16):
+        await RisingEdge(clk)
+        await ReadOnly()
+        if not has_pready or int(_get_signal(dut, "PREADY") or 0) == 1:
+            break
+    await FallingEdge(clk)
+    if "PSEL" in input_ports: _set_signal(dut, "PSEL", 0)
+    if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 0)
+    if "PWRITE" in input_ports: _set_signal(dut, "PWRITE", 0)
+
+
+async def _apply_machine_spec(dut, manifest: dict[str, Any], machine_spec: dict[str, Any]) -> None:
+    """SSOT-aware machine_spec executor.
+
+    Reads goal.stimulus_contract.machine_spec from SSOT.scenarios and drives
+    DUT accordingly:
+      - timeline[]: ordered list of { csr_write | assign | wait_cycles | wait_until }
+      - assign{}: one-shot field->value drive (no timeline)
+      - csr_writes[]: sequence of APB writes (no timeline)
+    """
+    timeline = machine_spec.get("timeline") or []
+    clock = manifest["clock"]
+    clk = getattr(dut, clock)
+    input_ports = set(manifest.get("input_ports") or [])
+    input_map = manifest.get("input_map") or {}
+    if not timeline and machine_spec.get("assign"):
+        await FallingEdge(clk)
+        for field, value in machine_spec["assign"].items():
+            port = input_map.get(field, field)
+            if port in input_ports:
+                _set_signal(dut, port, int(value))
+        return
+    if not timeline and machine_spec.get("csr_writes"):
+        for entry in machine_spec["csr_writes"]:
+            await _apb_write_one(dut, manifest, int(entry.get("offset", entry.get("addr", 0))), int(entry.get("data", entry.get("value", 0))))
+        return
+    for step in timeline:
+        if not isinstance(step, dict):
+            continue
+        if "csr_write" in step:
+            cw = step["csr_write"]
+            await _apb_write_one(dut, manifest, int(cw.get("offset", cw.get("addr", 0))), int(cw.get("data", cw.get("value", 0))))
+        elif "assign" in step:
+            await FallingEdge(clk)
+            for field, value in (step["assign"] or {}).items():
+                port = input_map.get(field, field)
+                if port in input_ports:
+                    _set_signal(dut, port, int(value))
+        elif "wait_cycles" in step:
+            for _ in range(int(step["wait_cycles"])):
+                await RisingEdge(clk)
+        elif "wait_until" in step:
+            wu = step["wait_until"]
+            sig = wu.get("signal")
+            target = int(wu.get("equals", 1))
+            for _ in range(int(wu.get("timeout", 64))):
+                await RisingEdge(clk)
+                await ReadOnly()
+                if sig and _has_signal(dut, sig) and int(_get_signal(dut, sig) or 0) == target:
+                    break
+
+
 @cocotb.test()
 async def fl_rtl_equivalence_goals(dut):
     manifest = _load_manifest()
@@ -1032,10 +1113,19 @@ async def fl_rtl_equivalence_goals(dut):
     for idx, goal in enumerate(goals):
         goal_id = str(goal["goal_id"])
         stimulus = _stimulus_for_goal(goal, manifest, idx)
+        machine_spec = (
+            goal.get("stimulus_contract", {}).get("machine_spec")
+            if isinstance(goal.get("stimulus_contract"), dict)
+            else None
+        )
         if _is_reset_stimulus(stimulus):
             await _reset_dut(dut, manifest, release=False)
         else:
             await _reset_dut(dut, manifest)
+            if isinstance(machine_spec, dict) and (
+                machine_spec.get("timeline") or machine_spec.get("assign") or machine_spec.get("csr_writes")
+            ):
+                await _apply_machine_spec(dut, manifest, machine_spec)
             await FallingEdge(getattr(dut, clock))
             _drive_inputs(dut, manifest, stimulus)
             for _ in range(_goal_wait_cycles(goal, manifest)):

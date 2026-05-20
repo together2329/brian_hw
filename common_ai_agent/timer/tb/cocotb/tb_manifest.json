@@ -3,12 +3,13 @@
   "type": "generic_goal_scoreboard_cocotb_manifest",
   "ip": "timer",
   "top": "timer",
-  "generated_at": "2026-05-12T13:54:46Z",
+  "generated_at": "2026-05-20T23:55:08Z",
   "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
   "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
   "ssot": "timer/yaml/timer.ssot.yaml",
   "equivalence_goals": "timer/verify/equivalence_goals.json",
   "rtl_contract": "timer/rtl/rtl_contract.json",
+  "rtl_contract_source": "rtl_contract_json",
   "clock": "clk",
   "reset": "rst_n",
   "reset_active": "low",
@@ -16,6 +17,40 @@
   "parameters": {
     "COUNT_WIDTH": 16
   },
+  "registers": {
+    "config": {},
+    "register_list": []
+  },
+  "state_observables": [
+    "count_q",
+    "running_q",
+    "done_q"
+  ],
+  "state_observable_aliases": {},
+  "rtl_signal_names": [
+    "COUNTDOWN",
+    "RTL_TIMER_OBSERVABILITY",
+    "S0",
+    "S0_CONTROL_SAMPLE",
+    "S1",
+    "S1_STATE_VISIBLE",
+    "SAMPLE",
+    "SC_COUNTDOWN_DONE",
+    "VISIBLE",
+    "clk",
+    "core",
+    "count_q",
+    "ctrl",
+    "done_q",
+    "enabled_tick",
+    "hold_cycle",
+    "load_is_nonzero",
+    "running_q",
+    "ssot_trace_guard",
+    "state_is_done_pulse",
+    "state_q",
+    "terminal_tick"
+  ],
   "ports": [
     {
       "name": "clk",
@@ -87,6 +122,7 @@
     "done",
     "running"
   ],
+  "inout_ports": [],
   "input_map": {
     "load": "load_value"
   },
