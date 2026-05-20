@@ -3699,6 +3699,33 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                 }}
               >{workflowReportMeta.label}</span>
             )}
+            {showSsotImportExportTab && (
+              <span
+                className="tab-chip"
+                onClick={() => setMainTab('import_export')}
+                title="Import docs and export SSOT artifacts"
+                style={{
+                  cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 2,
+                  color: mainTab === 'import_export' ? 'var(--accent)' : 'var(--fg-mute)',
+                  background: mainTab === 'import_export' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'import_export' ? 'var(--accent)' : 'transparent'),
+                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
+                }}
+              >Import / Export</span>
+            )}
+            <span
+              className="tab-chip"
+              onClick={() => setMainTab('chat')}
+              style={{
+                cursor: 'pointer', padding: '2px 8px', borderRadius: 2,
+                marginLeft: (showSsotImportExportTab || showDebugTab || showCoverageTab || showWorkflowReportTab) ? 4 : 0,
+                color: mainTab === 'chat' ? 'var(--accent)' : 'var(--fg-mute)',
+                background: mainTab === 'chat' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                border: '1px solid ' + (mainTab === 'chat' ? 'var(--accent)' : 'transparent'),
+                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
+              }}
+            >chat</span>
             {showQaTab && workflow === 'ssot-gen' && (
               <span
                 className="tab-chip"
@@ -3706,7 +3733,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                 title={pendingQcard ? 'Answer the agent\'s questions' : 'SSOT Q&A session'}
                 style={{
                   cursor: 'pointer',
-                  padding: '2px 8px', borderRadius: 2,
+                  padding: '2px 8px', borderRadius: 2, marginLeft: 4,
                   position: 'relative',
                   color: mainTab === 'qa' ? 'var(--warn)' : (pendingQcard ? 'var(--warn)' : 'var(--fg-mute)'),
                   background: mainTab === 'qa' ? 'color-mix(in oklch, var(--warn) 14%, transparent)' : 'transparent',
@@ -3740,33 +3767,6 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                 }}
               >Validation</span>
             )}
-            {showSsotImportExportTab && (
-              <span
-                className="tab-chip"
-                onClick={() => setMainTab('import_export')}
-                title="Import docs and export SSOT artifacts"
-                style={{
-                  cursor: 'pointer',
-                  padding: '2px 8px', borderRadius: 2, marginLeft: 4,
-                  color: mainTab === 'import_export' ? 'var(--accent)' : 'var(--fg-mute)',
-                  background: mainTab === 'import_export' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-                  border: '1px solid ' + (mainTab === 'import_export' ? 'var(--accent)' : 'transparent'),
-                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
-                }}
-              >Import / Export</span>
-            )}
-            <span
-              className="tab-chip"
-              onClick={() => setMainTab('chat')}
-              style={{
-                cursor: 'pointer', padding: '2px 8px', borderRadius: 2,
-                marginLeft: (showDebugTab || showCoverageTab || showWorkflowReportTab) ? 4 : 0,
-                color: mainTab === 'chat' ? 'var(--accent)' : 'var(--fg-mute)',
-                background: mainTab === 'chat' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-                border: '1px solid ' + (mainTab === 'chat' ? 'var(--accent)' : 'transparent'),
-                fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
-              }}
-            >chat</span>
             {showSsotTab && (
               <span
                 className="tab-chip"

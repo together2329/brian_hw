@@ -14626,6 +14626,22 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
             {"session": ssot_session, "ip": ssot_ip, "workflow": "ssot-gen", "source": "llm-ssot-qna"}
             if ssot_ip else {}
         )
+        # ssot-gen disables ask_user popups: questions are already
+        # written to the SsotQaBoard above, and the user answers them
+        # at their own pace from the Q&A Session tab. Returning a
+        # short instructional string unblocks the agent without
+        # forcing a 15-min wait or surfacing a modal qcard.
+        _active_session_str = str(_active_session_value() or "")
+        if _active_session_str.rstrip("/").endswith("/ssot-gen"):
+            n_qs = len(questions) if questions else 1
+            return (
+                f"[ssot-gen] ask_user disabled in this workflow. "
+                f"{n_qs} question(s) were recorded to the Web Q&A board "
+                f"for the user to answer asynchronously via the Q&A "
+                f"Session tab. Skip blocking on this and continue with "
+                f"the next non-blocking step (e.g. import evidence, "
+                f"draft SSOT sections from disk truth)."
+            )
         auto_mode = bool(
             _tools
             and hasattr(_tools, "_ask_user_exec_mode")
