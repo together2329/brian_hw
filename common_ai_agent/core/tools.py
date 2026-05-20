@@ -921,6 +921,24 @@ def run_command(command, timeout=60):
         # Translate Unix commands to Windows equivalents
         command = _translate_command_for_windows(command)
 
+        # Pin cwd to ATLAS_PROJECT_ROOT/ATLAS_ACTIVE_IP so `pwd`, `ls`,
+        # `git status`, etc. always run from the active IP directory
+        # the user explicitly set with --root + -ip. When no IP is
+        # bound, fall back to PROJECT_ROOT alone.
+        _proj_root = (
+            os.environ.get("ATLAS_PROJECT_ROOT", "")
+            or os.environ.get("PROJECT_ROOT", "")
+        )
+        _active_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
+        _cmd_cwd = None
+        if _proj_root:
+            if _active_ip and _active_ip != "default":
+                _ip_path = os.path.join(_proj_root, _active_ip)
+                if os.path.isdir(_ip_path):
+                    _cmd_cwd = _ip_path
+            if _cmd_cwd is None:
+                _cmd_cwd = _proj_root
+
         # Receive raw bytes; decode with platform-aware fallback chain in
         # _decode_robust(). text=True + encoding='utf-8' breaks on Windows
         # cp949 / cp1252 native tool output (Korean Windows, msvc cl.exe).
@@ -930,6 +948,7 @@ def run_command(command, timeout=60):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=False,
+            cwd=_cmd_cwd,
             # Create new process group so we can kill the entire tree
             preexec_fn=os.setsid if hasattr(os, 'setsid') else None,
             # Windows: create new process group via CREATE_NEW_PROCESS_GROUP
