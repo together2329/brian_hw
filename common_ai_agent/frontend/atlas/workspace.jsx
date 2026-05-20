@@ -7607,6 +7607,114 @@ const extractScenarios = (sections) => {
   });
 };
 
+// Build a flat map of "known" identifiers → {kind, description, ref} so
+// any prose can be turned into hoverable cross-reference chips. The kinds
+// we care about: register (CR), register field (CR.EN), feature (Baud
+// generator), interrupt (TX_EMPTY), FSM state (IDLE). Lowercase keys for
+// case-insensitive matching but original casing preserved in the chip.
+const buildReferenceTokens = ({ registers, features, fsmMachines, irqs }) => {
+  const map = new Map();
+  const add = (token, entry) => {
+    const key = String(token || '').trim();
+    if (!key || key.length < 2) return;
+    const lower = key.toLowerCase();
+    if (map.has(lower)) return;
+    map.set(lower, { ...entry, label: key });
+  };
+  for (const reg of registers || []) {
+    add(reg.name, {
+      kind: 'register',
+      description: [
+        reg.offset && `offset ${reg.offset}`,
+        reg.access && `access ${reg.access}`,
+        reg.reset && `reset ${reg.reset}`,
+        reg.description,
+      ].filter(Boolean).join(' · '),
+    });
+    for (const f of (reg.fields || [])) {
+      add(`${reg.name}.${f.name}`, {
+        kind: 'field',
+        description: [
+          f.bits && `bits ${f.bits}`,
+          f.access && `access ${f.access}`,
+          f.reset && `reset ${f.reset}`,
+          f.description,
+        ].filter(Boolean).join(' · '),
+      });
+    }
+  }
+  for (const feat of features || []) {
+    add(feat.name, {
+      kind: 'feature',
+      description: feat.description || feat.datapath || feat.trigger || '',
+    });
+  }
+  for (const m of fsmMachines || []) {
+    for (const s of (m.states || [])) {
+      add(s, {
+        kind: 'state',
+        description: `FSM ${m.name} state${String(m.resetState || '').trim() === String(s).trim() ? ' (reset)' : ''}`,
+      });
+    }
+  }
+  for (const irq of irqs || []) {
+    add(irq.name, {
+      kind: 'interrupt',
+      description: [irq.polarity && `polarity ${irq.polarity}`, irq.mask && `mask ${irq.mask}`, irq.description].filter(Boolean).join(' · '),
+    });
+  }
+  return map;
+};
+
+const _refKindColor = (kind) => ({
+  register: 'var(--cyan)',
+  field: 'var(--accent)',
+  feature: 'var(--magenta)',
+  state: 'var(--magenta)',
+  interrupt: 'var(--warn)',
+}[kind] || 'var(--accent)');
+
+const linkifyReferences = (text, tokenMap) => {
+  const raw = String(text || '');
+  if (!raw || !tokenMap || !tokenMap.size) return raw;
+  // Sort keys longest-first so "CR.EN" matches before "CR".
+  const tokens = Array.from(tokenMap.keys()).sort((a, b) => b.length - a.length);
+  // Build a regex per match: word-ish boundary, allow dotted field paths.
+  const escaped = tokens.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  if (!escaped) return raw;
+  const re = new RegExp(`(?<![A-Za-z0-9_.])(${escaped})(?![A-Za-z0-9_])`, 'gi');
+  const out = [];
+  let last = 0;
+  let m;
+  let key = 0;
+  while ((m = re.exec(raw)) !== null) {
+    if (m.index > last) out.push(raw.slice(last, m.index));
+    const entry = tokenMap.get(m[0].toLowerCase());
+    if (entry) {
+      const color = _refKindColor(entry.kind);
+      out.push(
+        <span key={`ref-${key++}`}
+          title={entry.description ? `${entry.kind}: ${entry.label} — ${entry.description}` : `${entry.kind}: ${entry.label}`}
+          style={{
+            fontFamily: 'var(--mono)',
+            fontSize: '0.9em',
+            padding: '1px 5px',
+            borderRadius: 3,
+            background: `color-mix(in oklch, ${color} 12%, transparent)`,
+            color,
+            border: `1px solid color-mix(in oklch, ${color} 32%, transparent)`,
+            cursor: 'help',
+          }}>{m[0]}</span>
+      );
+    } else {
+      out.push(m[0]);
+    }
+    last = m.index + m[0].length;
+  }
+  if (last < raw.length) out.push(raw.slice(last));
+  return out;
+};
+
 const _parseBitRange = (raw) => {
   // Accepts "[7:0]", "7:0", "[0]", "0", "31:24", "15..0".
   const txt = String(raw || '').trim().replace(/^\[|\]$/g, '');
@@ -7716,7 +7824,7 @@ const RegisterBitMap = ({ width, fields }) => {
   );
 };
 
-const SsotScenarioPlayer = ({ scenarios, fsmMachines = [], onSelectFsmState }) => {
+const SsotScenarioPlayer = ({ scenarios, fsmMachines = [], tokenMap, onSelectFsmState }) => {
   const [active, setActive] = React.useState(0);
   const [step, setStep] = React.useState(0);
   const [playing, setPlaying] = React.useState(false);
@@ -7823,9 +7931,13 @@ const SsotScenarioPlayer = ({ scenarios, fsmMachines = [], onSelectFsmState }) =
               }}>CL · {cur.cl_state}</span>
             ) : null}
           </div>
-          <div style={{ color: 'var(--fg)', lineHeight: 1.55 }}>{cur.action || '—'}</div>
+          <div style={{ color: 'var(--fg)', lineHeight: 1.55 }}>
+            {tokenMap ? linkifyReferences(cur.action || '—', tokenMap) : (cur.action || '—')}
+          </div>
           {cur.notes ? (
-            <div className="mute" style={{ marginTop: 5, fontSize: 11 }}>{cur.notes}</div>
+            <div className="mute" style={{ marginTop: 5, fontSize: 11 }}>
+              {tokenMap ? linkifyReferences(cur.notes, tokenMap) : cur.notes}
+            </div>
           ) : null}
         </div>
         {sigEntries.length ? (
@@ -9347,7 +9459,7 @@ const _FeatureRow = ({ glyph, label, value, color }) => {
   );
 };
 
-const FeatureCard = ({ index, feature }) => {
+const FeatureCard = ({ index, feature, tokenMap }) => {
   const [hover, setHover] = React.useState(false);
   const hasAny = feature && (feature.datapath || feature.control || feature.output);
   const description = feature && feature.description;
@@ -9386,7 +9498,7 @@ const FeatureCard = ({ index, feature }) => {
       </div>
       {description ? (
         <div className="mute" style={{ lineHeight: 1.55, fontSize: 'var(--ui-control-font-size)' }}>
-          {description}
+          {tokenMap ? linkifyReferences(description, tokenMap) : description}
         </div>
       ) : null}
       {hasAny ? (
@@ -10284,6 +10396,24 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     description: blockField(block, 'description', 260),
   }));
   const fsmMachines = extractFsms(fsmSection);
+  const irqs = React.useMemo(() => {
+    const blocks = []
+      .concat(listBlocksFromSection(interruptsSection, 'interrupt_list'))
+      .concat(listBlocksFromSection(interruptsSection, 'list'))
+      .concat(listBlocksFromSection(interruptsSection));
+    return blocks
+      .map(b => ({
+        name: blockField(b, 'name') || blockField(b, 'id') || '',
+        polarity: blockField(b, 'polarity'),
+        mask: blockField(b, 'mask') || blockField(b, 'enable'),
+        description: blockField(b, 'description', 240),
+      }))
+      .filter(e => e.name);
+  }, [interruptsSection]);
+  const refTokenMap = React.useMemo(
+    () => buildReferenceTokens({ registers, features, fsmMachines, irqs }),
+    [registers, features, fsmMachines, irqs]
+  );
   const dataflowGroups = mapGroupsFromSection(dataflowSection).filter(g => g.key !== 'locked_decisions');
   const transactions = listBlocksFromSection(functionSection, 'transactions');
   const stateVars = listBlocksFromSection(functionSection, 'state_variables');
@@ -10465,7 +10595,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                       }}>{step.ref}</span>
                     ) : null}
                   </div>
-                  <div className="mute" style={{ marginTop: 3, lineHeight: 1.55 }}>{step.hint}</div>
+                  <div className="mute" style={{ marginTop: 3, lineHeight: 1.55 }}>{linkifyReferences(step.hint, refTokenMap)}</div>
                 </div>
               </div>
             ))}
@@ -10524,7 +10654,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
       {header}
       <div style={{ display: 'grid', gap: 14 }}>
         {features.length ? features.map((f, i) => (
-          <FeatureCard key={`${f.name}-${i}`} index={i + 1} feature={f} />
+          <FeatureCard key={`${f.name}-${i}`} index={i + 1} feature={f} tokenMap={refTokenMap} />
         )) : <DigestEmpty />}
       </div>
     </>
@@ -10865,7 +10995,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                   ) : null}
                 </div>
                 {reg.description ? (
-                  <div className="mute" style={{ marginTop: 3, lineHeight: 1.5 }}>{reg.description}</div>
+                  <div className="mute" style={{ marginTop: 3, lineHeight: 1.5 }}>{linkifyReferences(reg.description, refTokenMap)}</div>
                 ) : null}
                 {reg.fields && reg.fields.length ? (
                   <RegisterBitMap width={reg.width || 32} fields={reg.fields} />
@@ -10884,7 +11014,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                         <div style={{ color: 'var(--fg)' }}>{f.name || '-'}</div>
                         <div className="mute">{f.access || '-'}</div>
                         <div className="mute">{f.reset || '-'}</div>
-                        <div className="mute" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.description || ''}</div>
+                        <div className="mute" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{linkifyReferences(f.description || '', refTokenMap)}</div>
                       </React.Fragment>
                     ))}
                   </div>
@@ -11042,7 +11172,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
       {header}
       <DigestCard title="Interactive scenarios" meta={`${scenarios.length} scenarios${scenarios.length && scenarios[0].synthesized ? ' · auto-synthesized from transactions + pipeline' : ''}`}>
         {scenarios.length ? (
-          <SsotScenarioPlayer scenarios={scenarios} fsmMachines={fsmMachines} />
+          <SsotScenarioPlayer scenarios={scenarios} fsmMachines={fsmMachines} tokenMap={refTokenMap} />
         ) : (
           <DigestEmpty text="No cycle_model.scenarios[] declared and no function_model.transactions[] + cycle_model.pipeline[] to synthesize from. Add scenarios under cycle_model: { scenarios: [{ name, summary, steps:[{cycle,action,fl_state,cl_state,signals}] }] } to make this IP self-demonstrating." />
         )}
