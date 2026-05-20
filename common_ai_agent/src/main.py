@@ -302,6 +302,7 @@ def _setup_workspace(name: str) -> None:
                     if _active_ip and _active_ip != "default":
                         _ip_root = os.path.join(_project_root, _active_ip)
                         _is_ssot_gen = (_workspace or "").lower() == "ssot-gen"
+                        _is_rtl_gen = (_workspace or "").lower() == "rtl-gen"
                         ssot_format_block = ""
                         if _is_ssot_gen:
                             ssot_format_block = (
@@ -348,6 +349,48 @@ def _setup_workspace(name: str) -> None:
                                 f"don't recognize, but do NOT copy its empty "
                                 f"placeholders into the SSOT.]\n"
                             )
+                        rtl_format_block = ""
+                        if _is_rtl_gen:
+                            rtl_format_block = (
+                                f"[RTL_FROM_SSOT_CONTRACT: rtl-gen authors "
+                                f"synthesizable SystemVerilog under "
+                                f"`{_active_ip}/rtl/` using the SSOT yaml as "
+                                f"the single source of truth.\n"
+                                f"Source-of-truth path: "
+                                f"`{_active_ip}/yaml/{_active_ip}.ssot.yaml`\n"
+                                f"Coding rules: "
+                                f"`workflow/rtl-gen/rules/rtl-coding-rules.md` "
+                                f"(synthesizable .sv subset — read this before "
+                                f"writing any RTL).\n"
+                                f"Rules:\n"
+                                f"  1. Read the SSOT yaml first. Pull module "
+                                f"name, port list (clk, rst_n, bus signals, "
+                                f"interrupts, debug), parameter defaults, "
+                                f"register map, FSM states, and clock/reset "
+                                f"domains directly from it. Do NOT invent "
+                                f"signal names or widths that aren't in the "
+                                f"SSOT.\n"
+                                f"  2. If an SSOT field is empty or marked "
+                                f"`# gap: ...`, do NOT silently fabricate the "
+                                f"RTL detail. Emit `// TODO: SSOT gap <field> "
+                                f"— <reason>` in the RTL and stop on that "
+                                f"unit; return a `[SSOT TBD REPORT]` to "
+                                f"ssot-gen instead of guessing.\n"
+                                f"  3. Quote register address/encoding/width "
+                                f"verbatim from SSOT. Each register write "
+                                f"should carry a `// source: yaml/<ip>.ssot.yaml "
+                                f"register_map.<name>` comment.\n"
+                                f"  4. RTL files live under `{_active_ip}/rtl/` "
+                                f"(one file per top/sub_module). Filelist "
+                                f"goes to `{_active_ip}/list/{_active_ip}.f`.\n"
+                                f"  5. Do not write SSOT yaml, tests, or "
+                                f"firmware from rtl-gen — that's ssot-gen / "
+                                f"tb-gen territory. If you find the SSOT "
+                                f"itself is wrong, return a `[SSOT TBD REPORT]` "
+                                f"and stop, do not patch the SSOT yourself.\n"
+                                f"  6. Emit `[RTL HANDOFF]` once each module "
+                                f"compiles cleanly with the configured lint.]\n"
+                            )
                         merged = (
                             f"[PROJECT_ROOT: {_project_root}]\n"
                             f"[ACTIVE_WORKSPACE: {_workspace or 'default'}]\n"
@@ -358,7 +401,8 @@ def _setup_workspace(name: str) -> None:
                             f"req/, list/, sim/, sdc/, lint/, doc/, wiki/) live under "
                             f"{_active_ip}/. Use relative paths from IP_ROOT or "
                             f"prefix project-root paths with {_active_ip}/.]\n"
-                            + ssot_format_block +
+                            + ssot_format_block
+                            + rtl_format_block +
                             f"[NO_QA_FOR_DERIVABLE_FACTS: Do not ask the user a "
                             f"question whose answer is already derivable from "
                             f"PROJECT_ROOT, ACTIVE_IP, IP_ROOT, the IP wiki "
