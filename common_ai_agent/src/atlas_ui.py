@@ -10573,46 +10573,18 @@ def create_app():
             _emit_ssot_approval_ready(ip, state)
             return True
 
-        # LLM-base import (per user request): skip the deterministic
-        # regex-based candidate extraction entirely. Write a bare
-        # manifest with just artifact metadata (path + bytes), then
-        # queue an LLM turn that reads each import file and populates
-        # the SSOT draft + manifest candidate_facts itself.
-        artifacts: list[dict[str, Any]] = []
+        # LLM-base import (per user request). The intermediate
+        # import_manifest.json layer was retired — the LLM writes
+        # extracted evidence directly to `<ip>/wiki/import-evidence.md`
+        # (human-readable) and `<ip>/yaml/<ip>.ssot.yaml` (final
+        # structured artifact). The req/imports/ directory itself is
+        # the durable record of "what was uploaded".
+        artifact_paths_list: list[str] = []
         for path in files:
             try:
-                rel = _relative_project_path(path)
-                size_bytes = path.stat().st_size
+                artifact_paths_list.append(_relative_project_path(path))
             except Exception:
                 continue
-            artifacts.append({"path": rel, "bytes": int(size_bytes)})
-        manifest_path = PROJECT_ROOT / ip / "req" / "import_manifest.json"
-        try:
-            manifest_path.parent.mkdir(parents=True, exist_ok=True)
-            manifest_path.write_text(
-                json.dumps(
-                    {
-                        "schema_version": "ssot_import_manifest.v1",
-                        "ip": ip,
-                        "workflow": "ssot-gen",
-                        "updated_at": time.time(),
-                        "kind": kind,
-                        "artifacts": artifacts,
-                        "candidate_facts": {},
-                        "sources": {},
-                        "filled_decisions": [],
-                        "conflicts": [],
-                        "workflow_todo_summary": {},
-                        "next": "llm-extract",
-                    },
-                    ensure_ascii=False,
-                    indent=2,
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-        except Exception:
-            pass
 
         state.setdefault("ip", ip)
         state.setdefault("kind", kind)
@@ -10623,7 +10595,8 @@ def create_app():
         lines = [
             f"[SSOT IMPORT] {ip} — queueing LLM extraction.",
             f"imported files: {len(files)}",
-            f"manifest: {ip}/req/import_manifest.json (artifacts written; candidate_facts left empty for LLM)",
+            f"target evidence wiki: {ip}/wiki/import-evidence.md",
+            f"target SSOT yaml:     {ip}/yaml/{ip}.ssot.yaml",
         ]
         if errors:
             lines += ["", "notes:"]
@@ -10632,9 +10605,9 @@ def create_app():
             "",
             "evidence:",
         ]
-        lines.extend(f"- {a.get('path')}" for a in artifacts[:12])
-        if len(artifacts) > 12:
-            lines.append(f"- ... {len(artifacts) - 12} more")
+        lines.extend(f"- {p}" for p in artifact_paths_list[:12])
+        if len(artifact_paths_list) > 12:
+            lines.append(f"- ... {len(artifact_paths_list) - 12} more")
         msg = "\n".join(lines)
         _append_session_message(_canonical_session_string(ip), "user", text)
         _append_session_message(_canonical_session_string(ip), "assistant", msg)
@@ -10645,44 +10618,43 @@ def create_app():
         _emit_workflow_result(msg, "import")
         _emit_ssot_approval_ready(ip, state, _missing_ssot_decisions(ip, state))
 
-        # Queue the LLM extraction turn. Same pattern as /to-ssot:
-        # /mode normal → /wf ssot-gen → /clear → instruction prompt.
+        # Queue the LLM extraction turn. Same pattern as /to-ssot.
         ssot_path = PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
-        artifact_paths = "\n".join(f"  - `{a.get('path')}`" for a in artifacts[:40])
-        if len(artifacts) > 40:
-            artifact_paths += f"\n  - ... {len(artifacts) - 40} more"
+        artifact_block = "\n".join(f"  - `{p}`" for p in artifact_paths_list[:40])
+        if len(artifact_paths_list) > 40:
+            artifact_block += f"\n  - ... {len(artifact_paths_list) - 40} more"
         _queue_prompt_for_session(client_session, "/mode normal")
         _queue_prompt_for_session(client_session, "/wf ssot-gen")
         _queue_prompt_for_session(client_session, "/clear")
         _queue_prompt_for_session(client_session,
-            f"Read the import artifacts for IP `{ip}` and extract structured "
-            f"SSOT evidence from them.\n\n"
+            f"Read the import artifacts for IP `{ip}` and write structured "
+            f"SSOT evidence directly to disk.\n\n"
             "Workspace boundary (do not search or read outside these roots):\n"
             f"  - PROJECT_ROOT: `{PROJECT_ROOT}`\n"
             f"  - IP_ROOT:      `{PROJECT_ROOT / ip}`\n\n"
             "Imported artifacts (just-uploaded source documents):\n"
-            f"{artifact_paths}\n\n"
+            f"{artifact_block}\n\n"
             "What to do:\n"
-            "  1. Read each artifact listed above with read_file.\n"
+            "  1. Read each artifact above with read_file.\n"
             "  2. Identify per-decision evidence: purpose, bus_interface, "
             "register_map, clock_reset, dataflow, interrupts, error_handling, "
             "test_requirements, security/safety. Quote register addresses, "
             "signal names, encodings, and table rows verbatim.\n"
-            "  3. Write the structured evidence back into the manifest at "
-            f"`{ip}/req/import_manifest.json` by populating its "
-            "`candidate_facts` (per-decision strings) and `sources` "
-            "(per-decision array of `{path, excerpt}` objects) — use "
-            "replace_in_file or write_file with the full updated JSON.\n"
+            f"  3. Append (or replace) a structured evidence section in "
+            f"`{ip}/wiki/import-evidence.md` — one heading per artifact, "
+            "facts grouped by decision key, with `# source: <path> "
+            "L<line>` citations on every transcribed number / row / "
+            "normative requirement.\n"
             f"  4. Update `{ssot_path}` draft fields where the evidence is "
-            "unambiguous. Where the imports conflict or stay silent, leave "
-            "the SSOT field empty and add a short inline comment explaining "
-            "the gap — do NOT invent placeholders.\n"
-            f"  5. Append/update `{ip}/wiki/import-evidence.md` with a "
-            "human-readable summary keyed by source artifact.\n\n"
-            "Cite the source path inline (e.g. `# source: <path> L<line>`) "
-            "for every transcribed number, table row, or normative "
-            "requirement. Do not call todo_write (Plan Mode only).\n"
-            "Emit `[IMPORT EVIDENCE DONE]` once the manifest + wiki are updated."
+            "unambiguous. Where the imports conflict or stay silent, "
+            "leave the SSOT field empty and add a short inline comment "
+            "explaining the gap — do NOT invent placeholders.\n"
+            "  5. Do NOT write `req/import_manifest.json` — that "
+            "intermediate file was retired. The imports/ directory itself "
+            "is the durable record of uploads; wiki + SSOT yaml are the "
+            "structured outputs.\n\n"
+            "Do not call todo_write (Plan Mode only).\n"
+            "Emit `[IMPORT EVIDENCE DONE]` once the wiki + SSOT updates are written."
         )
         bridge.emit("agent_state", running=True)
         return True
