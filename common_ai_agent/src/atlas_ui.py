@@ -8239,38 +8239,67 @@ def create_app():
             if isinstance(artifact, dict):
                 _add_imported_file(artifact)
         imports_dir = PROJECT_ROOT / ip / "req" / "imports"
+        originals_dir = imports_dir / "originals"
+        # Build a lookup of every uploaded source document under
+        # imports/originals/<stamp>_<idx>_<filename>. The .md sibling
+        # in imports/ has the same <stamp>_<idx>_ prefix; matching by
+        # stem lets us collapse the docx/md pair into a single row
+        # whose displayed name is the user's original upload filename
+        # (foo.docx, not <stamp>_<idx>_foo.md).
+        original_by_stem: dict[str, Path] = {}
+        if originals_dir.is_dir():
+            for orig_path in originals_dir.iterdir():
+                if not orig_path.is_file():
+                    continue
+                stem = orig_path.stem
+                original_by_stem[stem] = orig_path
+                try:
+                    rel = orig_path.relative_to(PROJECT_ROOT).as_posix()
+                except Exception:
+                    rel = orig_path.as_posix()
+                m = re.match(r"^(\d+_\d+)_(.+)$", orig_path.name)
+                display_name = m.group(2) if m else orig_path.name
+                # Pair the original with its md sibling (same stem in
+                # imports/) so the listing UI shows the docx name and
+                # the agent still sees the converted md_path.
+                md_sibling = imports_dir / f"{stem}.md"
+                md_rel = ""
+                if md_sibling.is_file():
+                    try:
+                        md_rel = md_sibling.relative_to(PROJECT_ROOT).as_posix()
+                    except Exception:
+                        md_rel = md_sibling.as_posix()
+                _add_imported_file({
+                    "name": display_name,
+                    "bytes": orig_path.stat().st_size,
+                    "path": rel,
+                    "md_path": md_rel,
+                    "original_path": rel,
+                })
         if imports_dir.is_dir():
             for path in sorted(imports_dir.glob("*"), key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)[:80]:
-                # Skip the auto-generated images/ subdir — those are
-                # embedded figures, not standalone documents.
                 if path.is_dir():
                     continue
-                if path.is_file():
-                    try:
-                        rel = path.relative_to(PROJECT_ROOT).as_posix()
-                    except Exception:
-                        rel = path.as_posix()
-                    # If the .md sibling of a manifest-registered docx
-                    # is already known via md_path, skip it here so the
-                    # user sees one row per logical import, not two.
-                    if rel in seen_import_paths:
-                        continue
-                    suffix = path.suffix.lower()
-                    sibling_keys = []
-                    if suffix == ".md":
-                        for ext in (".docx", ".pdf", ".pptx", ".xlsx", ".html", ".htm"):
-                            sibling_keys.append(rel[:-3] + ext)
-                    elif suffix in {".docx", ".pdf", ".pptx", ".xlsx", ".html", ".htm"}:
-                        sibling_keys.append(rel.rsplit(".", 1)[0] + ".md")
-                    if any(k in seen_import_paths for k in sibling_keys):
-                        continue
-                    _add_imported_file({
-                        "name": path.name,
-                        "bytes": path.stat().st_size,
-                        "path": rel,
-                        "md_path": rel if suffix == ".md" else "",
-                        "original_path": rel,
-                    })
+                if not path.is_file():
+                    continue
+                try:
+                    rel = path.relative_to(PROJECT_ROOT).as_posix()
+                except Exception:
+                    rel = path.as_posix()
+                if rel in seen_import_paths:
+                    continue
+                # Loose .md files whose <stamp>_<idx>_<name> stem
+                # matches an entry under originals/ are already covered
+                # by the originals pass above.
+                if path.suffix.lower() == ".md" and path.stem in original_by_stem:
+                    continue
+                _add_imported_file({
+                    "name": path.name,
+                    "bytes": path.stat().st_size,
+                    "path": rel,
+                    "md_path": rel if path.suffix.lower() == ".md" else "",
+                    "original_path": rel,
+                })
         return {
             "ip": ip,
             "workflow": "ssot-gen",
@@ -10957,7 +10986,21 @@ def create_app():
                     except ValueError:
                         rel = img_path.as_posix()
                     desc_lines.append(f"### `{rel}`")
-                    desc_lines.append(desc if desc else "_(no description)_")
+                    desc_text = (desc or "").strip()
+                    # Suppress vision-provider error noise (HTTP 403,
+                    # quota, model-not-enabled, etc.) so the imported
+                    # markdown stays readable. The image file is still
+                    # linked above; the agent can re-describe later if
+                    # vision comes back online.
+                    is_err = (
+                        not desc_text
+                        or desc_text.lower().startswith("error")
+                        or desc_text.lower().startswith("image description unavailable")
+                    )
+                    if is_err:
+                        desc_lines.append("_(image not described — vision provider unavailable)_")
+                    else:
+                        desc_lines.append(desc_text)
                     desc_lines.append("")
                 with open(md_target, "a", encoding="utf-8") as fh:
                     fh.write("\n".join(desc_lines))
