@@ -375,7 +375,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Protected registers update only when REG_WEN is set according to approved policy"
+          "Protected registers update only when REG_WEN is set according to approved policy",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/ordering must hold when applicable",
         "state_updates": [
@@ -441,7 +443,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "REG_WEN becomes one when lower 16 bits match 0x5aa5"
+          "REG_WEN becomes one when lower 16 bits match 0x5aa5",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/ordering must hold when applicable",
         "state_updates": [
@@ -510,7 +514,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "COUNTER resets to zero and STATE becomes ST_INTTIME"
+          "COUNTER resets to zero and STATE becomes ST_INTTIME",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/ordering must hold when applicable",
         "state_updates": [
@@ -641,7 +647,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "inttime_end and rsttime_end predicates"
+          "inttime_end and rsttime_end predicates",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/ordering must hold when applicable",
         "state_updates": [
@@ -850,7 +858,9 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "COUNTER clears and STATE returns to ST_INTTIME.",
-          "COUNTER resets to zero and STATE becomes ST_INTTIME"
+          "COUNTER resets to zero and STATE becomes ST_INTTIME",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [
@@ -2263,6 +2273,10 @@
         "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
       },
       "ssot_refs": [
+        "dataflow.sequence.sequence_0",
+        "dataflow.sequence.sequence_1",
+        "dataflow.sinks.sinks_0",
+        "decomposition.units.apb_register_block",
         "error_handling",
         "features.restart_and_pause",
         "function_model",
@@ -2293,6 +2307,8 @@
         "function_model.transactions.apb_write.error_cases.error_case_0",
         "function_model.transactions.apb_write.inputs.input_0",
         "function_model.transactions.apb_write.inputs.input_1",
+        "function_model.transactions.apb_write.output_rules.wdt_int_rule",
+        "function_model.transactions.apb_write.output_rules.wdt_rst_rule",
         "function_model.transactions.apb_write.outputs.output_0",
         "function_model.transactions.apb_write.preconditions.precondition_0",
         "function_model.transactions.apb_write.side_effects.side_effect_0",
@@ -2304,6 +2320,8 @@
         "function_model.transactions.write_unlock",
         "function_model.transactions.write_unlock.error_cases.error_case_0",
         "function_model.transactions.write_unlock.inputs.input_0",
+        "function_model.transactions.write_unlock.output_rules.wdt_int_rule",
+        "function_model.transactions.write_unlock.output_rules.wdt_rst_rule",
         "function_model.transactions.write_unlock.outputs.output_0",
         "function_model.transactions.write_unlock.preconditions.precondition_0",
         "function_model.transactions.write_unlock.side_effects.side_effect_0",
@@ -2338,7 +2356,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Protected registers update only when REG_WEN is set according to approved policy"
+          "Protected registers update only when REG_WEN is set according to approved policy",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/ordering must hold at the module boundary",
         "state_updates": [
@@ -2403,6 +2423,13 @@
         "cycle_model.pipeline.s3_count",
         "cycle_model.pipeline.s4_timeout_output",
         "cycle_model.reset",
+        "dataflow.sequence.sequence_2",
+        "dataflow.sequence.sequence_3",
+        "dataflow.sequence.sequence_4",
+        "dataflow.sequence.sequence_5",
+        "dataflow.sinks.sinks_1",
+        "dataflow.sinks.sinks_2",
+        "decomposition.units.watchdog_core",
         "features.watchdog_timeout",
         "fsm",
         "fsm.watchdog",
@@ -2411,6 +2438,8 @@
         "function_model.transactions.restart.error_cases.error_case_0",
         "function_model.transactions.restart.inputs.input_0",
         "function_model.transactions.restart.inputs.input_1",
+        "function_model.transactions.restart.output_rules.wdt_int_rule",
+        "function_model.transactions.restart.output_rules.wdt_rst_rule",
         "function_model.transactions.restart.outputs.output_0",
         "function_model.transactions.restart.preconditions.precondition_0",
         "function_model.transactions.restart.side_effects.side_effect_0",
@@ -2421,6 +2450,8 @@
         "function_model.transactions.timeout_decode.inputs.input_0",
         "function_model.transactions.timeout_decode.inputs.input_1",
         "function_model.transactions.timeout_decode.inputs.input_2",
+        "function_model.transactions.timeout_decode.output_rules.wdt_int_rule",
+        "function_model.transactions.timeout_decode.output_rules.wdt_rst_rule",
         "function_model.transactions.timeout_decode.outputs.output_0",
         "function_model.transactions.timeout_decode.preconditions.precondition_0",
         "function_model.transactions.timeout_decode.side_effects.side_effect_0",
@@ -2448,7 +2479,8 @@
         "function_model.transactions.watchdog_tick.state_updates.sr_rstzero",
         "function_model.transactions.watchdog_tick.state_updates.state",
         "interrupts",
-        "parameters.counter_width"
+        "parameters.counter_width",
+        "parameters.int_time_width"
       ],
       "decomposition_refs": [
         "atcwdt200_core"
@@ -2467,7 +2499,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Protected registers update only when REG_WEN is set according to approved policy"
+          "Protected registers update only when REG_WEN is set according to approved policy",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/ordering must hold at the module boundary",
         "state_updates": [
@@ -2539,7 +2573,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Protected registers update only when REG_WEN is set according to approved policy"
+          "Protected registers update only when REG_WEN is set according to approved policy",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2609,7 +2645,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Protected registers update only when REG_WEN is set according to approved policy"
+          "Protected registers update only when REG_WEN is set according to approved policy",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2679,7 +2717,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Protected registers update only when REG_WEN is set according to approved policy"
+          "Protected registers update only when REG_WEN is set according to approved policy",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2749,7 +2789,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Protected registers update only when REG_WEN is set according to approved policy"
+          "Protected registers update only when REG_WEN is set according to approved policy",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2819,7 +2861,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Protected registers update only when REG_WEN is set according to approved policy"
+          "Protected registers update only when REG_WEN is set according to approved policy",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2889,7 +2933,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Protected registers update only when REG_WEN is set according to approved policy"
+          "Protected registers update only when REG_WEN is set according to approved policy",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2959,7 +3005,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Protected registers update only when REG_WEN is set according to approved policy"
+          "Protected registers update only when REG_WEN is set according to approved policy",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -3029,7 +3077,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Protected registers update only when REG_WEN is set according to approved policy"
+          "Protected registers update only when REG_WEN is set according to approved policy",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -3099,7 +3149,9 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Protected registers update only when REG_WEN is set according to approved policy"
+          "Protected registers update only when REG_WEN is set according to approved policy",
+          "wdt_int_rule",
+          "wdt_rst_rule"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [

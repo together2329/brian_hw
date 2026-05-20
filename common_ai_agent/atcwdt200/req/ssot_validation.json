@@ -1,0 +1,47 @@
+{
+  "ip": "atcwdt200",
+  "ssot": "atcwdt200/yaml/atcwdt200.ssot.yaml",
+  "summary": {
+    "blockers": 0,
+    "warnings": 6,
+    "total": 6
+  },
+  "issues": [
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario reset_defaults has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[0]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario apb_register_access has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[1]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario restart_command has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[2]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario interrupt_timeout has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[3]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario reset_timeout has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[4]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario pause_and_extclk has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[5]"
+    }
+  ]
+}

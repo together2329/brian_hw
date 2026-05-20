@@ -530,6 +530,38 @@ except Exception:
     from session_names import normalize_session_name  # type: ignore
 
 
+_DEFAULT_SESSION_PLACEHOLDERS = {"default/default", "default/default/default"}
+
+
+def _normalized_session_or_empty(value: Any) -> str:
+    session = normalize_session_name(str(value or ""))
+    if session in _DEFAULT_SESSION_PLACEHOLDERS:
+        return ""
+    return session
+
+
+def _atlas_emit_session_id() -> str:
+    """Resolve the safest session id for backend-to-browser agent events.
+
+    Prefer the per-agent bridge context over process-global env. The env
+    fallback remains only for older code paths that have no context.
+    """
+    try:
+        from core.atlas_multiuser import get_atlas_bridge_session_id
+        bridge_session = _normalized_session_or_empty(get_atlas_bridge_session_id())
+    except Exception:
+        bridge_session = ""
+    if bridge_session and bridge_session != "default":
+        return bridge_session
+
+    context_session = _normalized_session_or_empty(_atlas_active_session_cv.get())
+    if context_session and context_session != "default":
+        return context_session
+
+    env_session = _normalized_session_or_empty(os.environ.get("ATLAS_ACTIVE_SESSION", ""))
+    return bridge_session or context_session or env_session
+
+
 # ── ask_user answer formatter ──────────────────────────────────────
 def _format_answer(ans: dict[str, Any], options: list[dict[str, Any]]) -> str:
     """Render a UI answer payload back into a tool observation string."""
@@ -2053,15 +2085,138 @@ def _ssot_docx_render_error_handling(doc: Any, value: Any) -> None:
         _ssot_docx_dict_block(doc, leftover)
 
 
-def _ssot_docx_render_block_diagram(doc: Any, data: dict) -> None:
-    """Text-based block diagram — top-module heading + sub-module table.
+def _ssot_docx_block_diagram_png(data: dict):
+    """Render an Andes-style block diagram PNG (BytesIO) via matplotlib.
 
-    Andes-style datasheets use a real figure here; until we wire in a
-    PNG/SVG generator the SSOT export still gives the reader a clear
-    map of what blocks sit inside the IP and what each owns.
+    Returns None when matplotlib is not importable; the caller then
+    emits only the text-and-table representation.
     """
+    try:
+        import matplotlib  # type: ignore
+        matplotlib.use("Agg", force=True)
+        import matplotlib.pyplot as plt  # type: ignore
+        import matplotlib.patches as mpatches  # type: ignore
+    except Exception:
+        return None
+    import io as _io
+
+    top = data.get("top_module") if isinstance(data.get("top_module"), dict) else {}
+    submods_raw = data.get("sub_modules") if isinstance(data.get("sub_modules"), list) else []
+    submods = [sm for sm in submods_raw if isinstance(sm, (dict, str))]
+    io_list = data.get("io_list") if isinstance(data.get("io_list"), dict) else {}
+    interfaces = io_list.get("interfaces") if isinstance(io_list, dict) else None
+    if not isinstance(interfaces, list):
+        interfaces = []
+
+    fig_w = 9.5
+    fig_h = 6.0 if submods else 4.0
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    ax.set_xlim(0, 10)
+    ax.set_ylim(0, fig_h)
+    ax.axis("off")
+
+    outer_x, outer_w = 1.5, 7.0
+    outer_y, outer_h = 0.6, fig_h - 1.0
+    outer = mpatches.FancyBboxPatch(
+        (outer_x, outer_y), outer_w, outer_h,
+        boxstyle="round,pad=0.02",
+        edgecolor="#4a6cf7", facecolor="#f4f7ff", lw=2,
+    )
+    ax.add_patch(outer)
+    top_name = str(top.get("name") or "TOP")
+    top_role = str(top.get("type") or top.get("role") or "").strip()
+    ax.text(
+        outer_x + outer_w / 2, outer_y + outer_h - 0.35,
+        top_name + (f"   ({top_role})" if top_role else ""),
+        ha="center", va="center", fontsize=14, fontweight="bold",
+    )
+
+    if submods:
+        cols = min(3, len(submods))
+        rows = (len(submods) + cols - 1) // cols
+        inner_w = outer_w - 0.6
+        inner_h = outer_h - 1.4
+        cell_w = inner_w / cols
+        cell_h = inner_h / rows
+        for i, sm in enumerate(submods):
+            r = i // cols
+            c = i % cols
+            x = outer_x + 0.3 + c * cell_w
+            y = outer_y + 0.4 + (rows - 1 - r) * cell_h
+            sub = mpatches.FancyBboxPatch(
+                (x + 0.08, y + 0.08), cell_w - 0.16, cell_h - 0.16,
+                boxstyle="round,pad=0.02",
+                edgecolor="#4a6cf7", facecolor="#ffffff", lw=1.2,
+            )
+            ax.add_patch(sub)
+            name = (sm.get("name") if isinstance(sm, dict) else str(sm)) or "?"
+            desc = ""
+            if isinstance(sm, dict):
+                desc = str(sm.get("description") or sm.get("implementation") or "")[:64]
+            ax.text(
+                x + cell_w / 2, y + cell_h / 2 + (0.15 if desc else 0),
+                name, ha="center", va="center",
+                fontsize=10, fontweight="bold", family="monospace",
+            )
+            if desc:
+                ax.text(
+                    x + cell_w / 2, y + cell_h / 2 - 0.2,
+                    desc, ha="center", va="center",
+                    fontsize=7, color="#5a6a8f",
+                )
+
+    valid_ifs = [i for i in interfaces if isinstance(i, dict)][:4]
+    in_color, out_color = "#4a6cf7", "#7a4af7"
+    for idx, ifc in enumerate(valid_ifs):
+        name = str(ifc.get("name") or "?")
+        ifc_type = str(ifc.get("type") or "").strip()
+        role = str(ifc.get("role") or "").lower()
+        inward = role in {"slave", "sink", "in", "input", ""}
+        side_left = idx % 2 == 0
+        y_pos = outer_y + outer_h - 0.9 - (idx // 2) * 1.6
+        if y_pos < outer_y + 0.4:
+            y_pos = outer_y + outer_h / 2
+        if side_left:
+            arrow = mpatches.FancyArrowPatch(
+                (0.4, y_pos) if inward else (outer_x + 0.1, y_pos),
+                (outer_x + 0.1, y_pos) if inward else (0.4, y_pos),
+                arrowstyle="->", mutation_scale=18,
+                color=in_color if inward else out_color, lw=1.6,
+            )
+            ax.text(0.55, y_pos + 0.22, name + (f"\n({ifc_type})" if ifc_type else ""),
+                    ha="center", va="bottom", fontsize=9, color="#1f2a44")
+        else:
+            arrow = mpatches.FancyArrowPatch(
+                (9.6, y_pos) if inward else (outer_x + outer_w - 0.1, y_pos),
+                (outer_x + outer_w - 0.1, y_pos) if inward else (9.6, y_pos),
+                arrowstyle="->", mutation_scale=18,
+                color=in_color if inward else out_color, lw=1.6,
+            )
+            ax.text(9.45, y_pos + 0.22, name + (f"\n({ifc_type})" if ifc_type else ""),
+                    ha="center", va="bottom", fontsize=9, color="#1f2a44")
+        ax.add_patch(arrow)
+
+    buf = _io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight", dpi=160, facecolor="white")
+    plt.close(fig)
+    buf.seek(0)
+    return buf
+
+
+def _ssot_docx_render_block_diagram(doc: Any, data: dict) -> None:
+    """Block-diagram chapter body — real figure first, submodule table beneath as key."""
     from docx.enum.text import WD_ALIGN_PARAGRAPH  # type: ignore
-    from docx.shared import Pt  # type: ignore
+    from docx.shared import Inches, Pt  # type: ignore
+
+    fig_buf = _ssot_docx_block_diagram_png(data)
+    if fig_buf is not None:
+        doc.add_picture(fig_buf, width=Inches(6.4))
+        doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
+        caption = doc.add_paragraph()
+        caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        cap_run = caption.add_run("Figure 1.2  Block diagram")
+        cap_run.italic = True
+        cap_run.font.size = Pt(9)
 
     top = data.get("top_module") if isinstance(data.get("top_module"), dict) else {}
     top_name = str(top.get("name") or "TOP").strip() or "TOP"
@@ -15148,12 +15303,20 @@ def create_app():
         if callable(fn):
             fn(name)
 
-    def _setup_session_proxy(session_id: str) -> None:
+    def _setup_session_proxy(
+        session_id: str,
+        *,
+        mirror_env: bool = True,
+        apply_main: bool = True,
+    ) -> None:
         session = normalize_session_name(str(session_id or ""))
         if not session:
             return
         _atlas_active_session_cv.set(session)
-        os.environ["ATLAS_ACTIVE_SESSION"] = session
+        if mirror_env:
+            os.environ["ATLAS_ACTIVE_SESSION"] = session
+        if not apply_main:
+            return
         try:
             import main as _main_mod  # type: ignore
         except ImportError:
@@ -15167,7 +15330,8 @@ def create_app():
         else:
             from core.session_setup import setup_session as _shared_setup_session
             _shared_setup_session(session)
-        os.environ["ATLAS_SESSION_APPLIED"] = session
+        if mirror_env:
+            os.environ["ATLAS_SESSION_APPLIED"] = session
 
     register_sessions_routes(
         app,
@@ -15434,7 +15598,10 @@ def create_app():
             return
         bridge.bind_client(websocket, session_id)
         try:
-            _setup_session_proxy(session_id)
+            if bridge._using_processes():
+                _setup_session_proxy(session_id, mirror_env=False, apply_main=False)
+            else:
+                _setup_session_proxy(session_id)
         except Exception:
             pass
         _ensure_broadcaster()
@@ -15493,9 +15660,11 @@ def create_app():
                             if session is None:
                                 continue
                             set_atlas_bridge_session_id(session.session_id)
-                        _atlas_active_session_cv.set(_session)
                         try:
-                            _setup_session_proxy(_session)
+                            if bridge._using_processes():
+                                _setup_session_proxy(_session, mirror_env=False, apply_main=False)
+                            else:
+                                _setup_session_proxy(_session)
                         except Exception as exc:
                             session.emit("error", message=f"session setup failed: {exc}")
                             continue
@@ -15808,6 +15977,32 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     def _clean(s):
         return _ANSI_RE.sub("", s) if isinstance(s, str) else s
 
+    def _emit_session_id() -> str:
+        return _atlas_emit_session_id()
+
+    def _emit_agent_event(msg_type: str, **payload: Any) -> None:
+        sess_id = _emit_session_id()
+        if sess_id:
+            payload.setdefault("session_id", sess_id)
+        bridge.emit(msg_type, **payload)
+
+    def _set_session_agent_state(
+        running: bool | None = None,
+        alive: bool | None = None,
+    ) -> None:
+        sess_id = _emit_session_id()
+        if sess_id:
+            session = bridge._ensure_session(sess_id)
+            if running is not None:
+                session.agent_running = bool(running)
+            if alive is not None:
+                session.agent_alive = bool(alive)
+            return
+        if running is not None:
+            bridge.agent_running = bool(running)
+        if alive is not None:
+            bridge.agent_alive = bool(alive)
+
     def _current_todo_state() -> dict[str, Any]:
         """Return the freshest structured todo state for browser rendering."""
         try:
@@ -15834,20 +16029,20 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
 
     def _emit_todo_line(text: str) -> None:
         state = {"todos": []} if not str(text or "").strip() else _current_todo_state()
-        bridge.emit(
+        _emit_agent_event(
             "todo_line",
             text=_clean(text),
             todo_state=state,
             todos=state.get("todos", []),
         )
 
-    _main._textual_emit_content_fn   = lambda text, cls="": bridge.emit("token",     text=_clean(text), cls=cls)
+    _main._textual_emit_content_fn   = lambda text, cls="": _emit_agent_event("token", text=_clean(text), cls=cls)
 
     def _atlas_emit_reasoning(text, blank=False):
         cleaned = _clean(text)
         # Browser side via the live WS bridge (chat feed renders this
         # as a CollapsibleThought block — see workspace.jsx).
-        bridge.emit("reasoning", text=cleaned)
+        _emit_agent_event("reasoning", text=cleaned)
         # Server-console mirror: an operator running textual_main.py
         # in a terminal needs to see what the model is thinking too,
         # not just the tool calls. Mirror to stderr with a CYAN ┃
@@ -15868,25 +16063,16 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     _main._textual_emit_reasoning_fn = _atlas_emit_reasoning
     _main._textual_emit_todo_fn      = _emit_todo_line
     _main._textual_emit_flush_fn     = lambda: (
-        bridge.emit("flush"),
+        _emit_agent_event("flush"),
         # Workspace switches happen behind a slash command and re-register
         # the slash registry. Nudge the UI to re-fetch /api/commands so the
         # autocomplete dropdown picks up new workspace commands.
-        bridge.emit("commands_changed"),
+        _emit_agent_event("commands_changed"),
     )
     def _emit_tool_line(text: str) -> None:
-        # bridge.emit() falls back to the bridge contextvar when no
-        # session_id is supplied. The agent loop sometimes runs in a
-        # nested thread (parallel worker, async dispatcher) whose
-        # contextvar snapshot was taken BEFORE the user's WS bind, so
-        # the tool event lands in an orphan session with no clients
-        # and never reaches the browser live (visible only after a
-        # page reload reads conversation.json). Pull ATLAS_ACTIVE_SESSION
-        # directly — that's a process-global env var that always
-        # reflects the active 3-part session string set by main() and
-        # /api/session/activate.
-        sess_id = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/") or None
-        bridge.emit("tool", text=_clean(text), session_id=sess_id)
+        # Route from per-agent bridge context first; process-global env is
+        # only a legacy fallback inside _atlas_emit_session_id().
+        _emit_agent_event("tool", text=_clean(text))
     _main._textual_emit_tool_fn      = _emit_tool_line
     # Browser-side tool_result cap. Display-only — LLM still gets the
     # full obs upstream; this just trims what we ship over the WS so a
@@ -15920,16 +16106,11 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     def _emit_tool_result(obs, tool=""):
         cleaned = _clean(obs)
         cleaned = _STEP_HEADER_RE.sub("", cleaned, count=1)
-        # Same orphan-session guard as _emit_tool_line — pin session_id
-        # from the env var so tool_result frames reach the user's WS
-        # even when the emitting thread's contextvar drifted.
-        sess_id = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/") or None
-        bridge.emit(
+        _emit_agent_event(
             "tool_result",
             text=cleaned[:_ws_tool_max],
             tool=tool,
             truncated=len(cleaned) > _ws_tool_max,
-            session_id=sess_id,
         )
         # Auto-commit for write/replace/edit tools — capture the
         # operated-on path from the tool result body and snapshot the
@@ -15944,7 +16125,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                 # auto-reload preview / SSOT / file-tree without
                 # waiting for the next tool_result coalesce window.
                 try:
-                    bridge.emit("file_changed", path=str(_path_hit), tool=tool, session_id=sess_id)
+                    _emit_agent_event("file_changed", path=str(_path_hit), tool=tool)
                 except Exception:
                     pass
         except Exception:
@@ -15952,7 +16133,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     _main._textual_emit_tool_result_fn = _emit_tool_result
 
     def _ctx_update(tokens, max_tok):
-        bridge.emit("context", used=tokens, max=max_tok)
+        _emit_agent_event("context", used=tokens, max=max_tok)
     _main._textual_emit_context_fn = _ctx_update
     def _emit_token(in_tok, cache_tok, out_tok):
         # Resolve pricing at LLM-call time so the rate matches the model
@@ -16005,8 +16186,9 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         # but only in the textual app — the web path was emitting WS
         # frames without ever touching .session/<sess>/cost.json, so the
         # ledger reset to $0.0000 every page load.
+        sess_id = _emit_session_id()
         try:
-            _sess_str = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/")
+            _sess_str = str(sess_id or "").strip("/")
             if _sess_str:
                 cost_path = PROJECT_ROOT / ".session" / _sess_str / "cost.json"
                 cost_path.parent.mkdir(parents=True, exist_ok=True)
@@ -16034,20 +16216,18 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                 )
         except Exception:
             pass
-        sess_id = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/") or None
-        bridge.emit(
+        _emit_agent_event(
             "cost",
             input=in_tok, cached=cache_tok, output=out_tok,
             cost_usd_delta=cost_delta,
             pricing={"input": p.input, "cache": p.cache, "output": p.output} if p else None,
             model=_model_now,
-            session_id=sess_id,
         )
     _main._textual_emit_token_fn = _emit_token
 
     def _set_running(val: bool):
-        bridge.agent_running = val
-        bridge.emit("agent_state", running=val)
+        _set_session_agent_state(running=val)
+        _emit_agent_event("agent_state", running=val)
     _main._textual_set_agent_running_fn = _set_running
 
     # Safety-net emit for slash command output. The token+flush pipeline has
@@ -16055,14 +16235,14 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     # subsequent agent_state but no token frame), leaving the user with a
     # missing /context / /help / /skills response. This event lands the
     # payload directly in the feed via workspace.jsx's slash_output handler.
-    _main._textual_emit_slash_output_fn = lambda text: bridge.emit(
+    _main._textual_emit_slash_output_fn = lambda text: _emit_agent_event(
         "slash_output", text=_clean(text)
     )
 
     # Mode-change notification — chat_loop auto-promotes plan_q→normal when
     # the user types "y" to confirm. Without this signal the React mode pill
     # stays on PLAN even though the agent is now executing.
-    _main._textual_emit_mode_fn = lambda mode: bridge.emit("mode_change", mode=mode)
+    _main._textual_emit_mode_fn = lambda mode: _emit_agent_event("mode_change", mode=mode)
 
     # ── ask_user → emit qcard event, block on answer queue ────────
     import uuid
@@ -16111,6 +16291,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
             workflow="ssot-gen",
             flow_id=flow_id,
             session=target_session,
+            session_id=target_session,
         )
         return (
             f"[record_ssot_qa] recorded {len(q_pairs)} "
@@ -16158,9 +16339,16 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                     workflow="ssot-gen",
                     flow_id=flow_id,
                     session=ssot_session,
+                    session_id=ssot_session,
                 )
         ssot_emit = (
-            {"session": ssot_session, "ip": ssot_ip, "workflow": "ssot-gen", "source": "llm-ssot-qna"}
+            {
+                "session": ssot_session,
+                "session_id": ssot_session,
+                "ip": ssot_ip,
+                "workflow": "ssot-gen",
+                "source": "llm-ssot-qna",
+            }
             if ssot_ip else {}
         )
         # ssot-gen disables ask_user popups: questions are already
@@ -16226,6 +16414,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                     workflow="ssot-gen",
                     flow_id=flow_id,
                     session=ssot_session,
+                    session_id=ssot_session,
                 )
             bridge.emit("ask_user_auto_selected", flow_id=flow_id, **ssot_emit)
             if questions and isinstance(ans, dict) and "answers" in ans:
@@ -16296,6 +16485,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                     workflow="ssot-gen",
                     flow_id=flow_id,
                     session=ssot_session,
+                    session_id=ssot_session,
                 )
             return "Batched answers:\n" + "\n".join(blocks) if blocks else "(no answers)"
         if ssot_ip and ssot_q_pairs and isinstance(ans, dict):
@@ -16321,6 +16511,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                 workflow="ssot-gen",
                 flow_id=flow_id,
                 session=ssot_session,
+                session_id=ssot_session,
             )
         return _format_answer(ans, options or [])
 
@@ -16334,13 +16525,11 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         try:
             _main.chat_loop()
         except Exception as e:
-            bridge.emit("error", message=str(e))
+            _emit_agent_event("error", message=str(e))
         finally:
-            with bridge._agent_lock:
-                bridge.agent_alive = False
-            bridge.agent_running = False
-            bridge.emit("agent_state", running=False)
-            bridge.emit("done")
+            _set_session_agent_state(running=False, alive=False)
+            _emit_agent_event("agent_state", running=False)
+            _emit_agent_event("done")
 
     def _start_agent_thread():
         ctx = contextvars.copy_context()

@@ -266,6 +266,9 @@ function_model:
       preconditions: [psel and penable and pwrite are asserted]
       inputs: [paddr, pwdata]
       outputs: [Protected registers update only when REG_WEN is set according to approved policy]
+      output_rules:
+        - { name: wdt_int_rule, port: wdt_int, expr: SR_INTZERO & CR_INTEN, width: 1, description: APB write does not synchronously change interrupt output; it remains the qualified SR/CR combination. }
+        - { name: wdt_rst_rule, port: wdt_rst, expr: SR_RSTZERO & CR_RSTEN, width: 1, description: APB write does not synchronously change reset output; it remains the qualified SR/CR combination. }
       state_updates:
         - { name: CR_FIELDS, expr: pwdata & 0x7ff, width: 11 }
         - { name: SR_INTZERO, expr: SR_INTZERO & (((pwdata & 1) ^ 1) & 1), width: 1 }
@@ -276,6 +279,9 @@ function_model:
       preconditions: [APB write to WEN offset 0x18]
       inputs: [pwdata]
       outputs: [REG_WEN becomes one when lower 16 bits match 0x5aa5]
+      output_rules:
+        - { name: wdt_int_rule, port: wdt_int, expr: SR_INTZERO & CR_INTEN, width: 1, description: WEN unlock write does not synchronously alter interrupt output. }
+        - { name: wdt_rst_rule, port: wdt_rst, expr: SR_RSTZERO & CR_RSTEN, width: 1, description: WEN unlock write does not synchronously alter reset output. }
       state_updates:
         - { name: REG_WEN, expr: "(pwdata & 0xffff) == 0x5aa5", width: 1 }
       side_effects: [Unlock consumption policy pending QA]
@@ -285,6 +291,9 @@ function_model:
       preconditions: [Unlocked APB write to RES offset 0x14 with lower 16 bits 0xcafe]
       inputs: [pwdata, REG_WEN]
       outputs: [COUNTER resets to zero and STATE becomes ST_INTTIME]
+      output_rules:
+        - { name: wdt_int_rule, port: wdt_int, expr: SR_INTZERO & CR_INTEN, width: 1, description: Restart command updates COUNTER/STATE; wdt_int continues to reflect the qualified SR/CR combination at restart cycle. }
+        - { name: wdt_rst_rule, port: wdt_rst, expr: SR_RSTZERO & CR_RSTEN, width: 1, description: Restart command does not directly assert reset output; remains the qualified SR/CR combination. }
       state_updates:
         - { name: COUNTER, expr: 0, width: COUNTER_WIDTH }
         - { name: STATE, expr: 0, width: 1 }
@@ -311,6 +320,9 @@ function_model:
       preconditions: [COUNTER advances]
       inputs: [CR_INTTIME, CR_RSTTIME, COUNTER]
       outputs: [inttime_end and rsttime_end predicates]
+      output_rules:
+        - { name: wdt_int_rule, port: wdt_int, expr: SR_INTZERO & CR_INTEN, width: 1, description: Timeout decode is internal; wdt_int still reflects the qualified SR/CR combination at this cycle. }
+        - { name: wdt_rst_rule, port: wdt_rst, expr: SR_RSTZERO & CR_RSTEN, width: 1, description: Timeout decode is internal; wdt_rst still reflects the qualified SR/CR combination at this cycle. }
       state_updates:
         - { name: TIMEOUT_PREDICATES, expr: 0, width: 2 }
       side_effects: [Drives watchdog_tick state updates]

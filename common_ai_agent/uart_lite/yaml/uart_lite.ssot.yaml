@@ -5,8 +5,8 @@ top_module:
   type: peripheral
   description: Parameterized UART transceiver with APB-lite CSR interface, TX/RX FIFOs,
     configurable baud/parity/stop bits, and sticky status interrupts
-  reference_spec: user-defined — generic UART with oversampling, no hardware flow
-    control
+  reference_spec: "user-defined \u2014 generic UART with oversampling, no hardware\
+    \ flow control"
   target:
     technology: generic
     clock_freq_mhz: 50
@@ -147,7 +147,8 @@ sub_modules:
   - dataflow.sequence
   feature_refs:
   - features
-  description: Top integration — instantiates all sub-modules and wires them together
+  description: "Top integration \u2014 instantiates all sub-modules and wires them\
+    \ together"
 decomposition:
   units:
   - id: decode
@@ -349,16 +350,17 @@ io_list:
 features:
 - name: TX serialization
   trigger: APB write to TXDATA register when TX FIFO not full
-  datapath: CPU → APB → TXDATA register → TX FIFO → TX shift register → tx pin (LSB-first)
-  control: 'TX FSM: TX_IDLE → TX_START → TX_DATA → TX_PARITY → TX_STOP1 → TX_STOP2
-    → TX_IDLE'
+  datapath: "CPU \u2192 APB \u2192 TXDATA register \u2192 TX FIFO \u2192 TX shift\
+    \ register \u2192 tx pin (LSB-first)"
+  control: "TX FSM: TX_IDLE \u2192 TX_START \u2192 TX_DATA \u2192 TX_PARITY \u2192\
+    \ TX_STOP1 \u2192 TX_STOP2 \u2192 TX_IDLE"
   output: Serial UART frame on tx pin
 - name: RX deserialization
   trigger: Falling edge on rx pin after 2-FF synchronizer
-  datapath: rx pin → 2-FF sync → oversampler → RX shift register → RX FIFO → RXDATA
-    register → APB read
-  control: 'RX FSM: RX_IDLE → RX_START_DETECT → RX_START_CONFIRM → RX_DATA → RX_PARITY
-    → RX_STOP1 → RX_STOP2 → RX_IDLE'
+  datapath: "rx pin \u2192 2-FF sync \u2192 oversampler \u2192 RX shift register \u2192\
+    \ RX FIFO \u2192 RXDATA register \u2192 APB read"
+  control: "RX FSM: RX_IDLE \u2192 RX_START_DETECT \u2192 RX_START_CONFIRM \u2192\
+    \ RX_DATA \u2192 RX_PARITY \u2192 RX_STOP1 \u2192 RX_STOP2 \u2192 RX_IDLE"
   output: Received byte available in RXDATA register
 - name: Parity generation/checking
   trigger: Enabled via CTRL.parity_en; CTRL.parity_odd selects even/odd
@@ -381,8 +383,8 @@ dataflow:
     source: APB write to TXDATA
     buffer: TX FIFO (depth FIFO_DEPTH, width DATA_WIDTH)
     serializer: TX shift register, LSB-first
-    sequence: APB write → TXDATA register → TX FIFO (if not full) → TX FSM pops byte
-      → shift register → tx pin
+    sequence: "APB write \u2192 TXDATA register \u2192 TX FIFO (if not full) \u2192\
+      \ TX FSM pops byte \u2192 shift register \u2192 tx pin"
   rx_path:
     source: rx pin
     synchronizer: 2-FF synchronizer (2 PCLK stages)
@@ -390,10 +392,11 @@ dataflow:
     deserializer: RX shift register, LSB-first
     buffer: RX FIFO (depth FIFO_DEPTH, width DATA_WIDTH)
     destination: APB read from RXDATA
-    sequence: rx pin → 2-FF sync → oversampler → start detect → shift register → RX
-      FIFO (if not full) → RXDATA register → APB read
+    sequence: "rx pin \u2192 2-FF sync \u2192 oversampler \u2192 start detect \u2192\
+      \ shift register \u2192 RX FIFO (if not full) \u2192 RXDATA register \u2192\
+      \ APB read"
   loopback_control:
-    path: tx pin → internal mux → rx synchronizer input (after 2-FF)
+    path: "tx pin \u2192 internal mux \u2192 rx synchronizer input (after 2-FF)"
     trigger: CTRL.loopback = 1
 function_model:
   purpose: Executable behavioral contract for rtl-gen and tb-gen; describes what the
@@ -452,7 +455,7 @@ function_model:
     outputs:
     - 'tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en),
       1 or 2 stop bits (1)'
-    - tx_active transitions true → false across the frame
+    - "tx_active transitions true \u2192 false across the frame"
     side_effects:
     - debug counter bytes_tx increments by 1
     - tx_fifo level decreases by 1
@@ -541,7 +544,8 @@ function_model:
       reset: 1
       expr: '1'
   invariants:
-  - TX FIFO never underflows during a valid frame — underrun terminates frame early.
+  - "TX FIFO never underflows during a valid frame \u2014 underrun terminates frame\
+    \ early."
   - RX FIFO never overflows without sticky overrun_err flag.
   - Register read side effects are exactly those listed in registers.register_list.
   - Sticky status flags remain set until explicitly cleared via CLR_STAT W1C.
@@ -603,46 +607,123 @@ cycle_model:
   - stage: TX_IDLE
     cycle: 0
     action: Wait for TX FIFO not empty; assert tx_active=false
+    output_rules:
+    - name: tx_serial
+      port: tx
+      expr: '1'
+      width: 1
+    - name: tx_active
+      expr: '0'
+      width: 1
   - stage: TX_START
     cycle: 1
     action: Drive tx=0 for one baud tick period; assert tx_active
+    output_rules:
+    - name: tx_serial
+      port: tx
+      expr: '0'
+      width: 1
+    - name: tx_active
+      expr: '1'
+      width: 1
   - stage: TX_DATA
     cycle: 2..1+DATA_WIDTH
     action: Shift LSB of tx_shift_reg to tx each baud tick; repeat DATA_WIDTH times.
       tx_shift_reg loaded from TX FIFO on entry.
+    output_rules:
+    - name: tx_serial
+      port: tx
+      expr: (tx_byte >> data_bit_index) & 1
+      width: 1
+    - name: tx_active
+      expr: '1'
+      width: 1
   - stage: TX_PARITY
     cycle: 2+DATA_WIDTH
     action: Drive computed parity bit to tx for one baud tick (present only if parity_en=1)
+    output_rules:
+    - name: tx_serial
+      port: tx
+      expr: tx_parity_bit
+      width: 1
+    - name: tx_active
+      expr: '1'
+      width: 1
   - stage: TX_STOP1
     cycle: 3+DATA_WIDTH
     action: Drive tx=1 for one baud tick
+    output_rules:
+    - name: tx_serial
+      port: tx
+      expr: '1'
+      width: 1
+    - name: tx_active
+      expr: '1'
+      width: 1
   - stage: TX_STOP2
     cycle: 4+DATA_WIDTH
     action: Drive tx=1 for one baud tick (present only if stop_bits=1)
+    output_rules:
+    - name: tx_serial
+      port: tx
+      expr: '1'
+      width: 1
+    - name: tx_active
+      expr: '0'
+      width: 1
   - stage: RX_IDLE
     cycle: 0
     action: Monitor synchronized rx for falling edge; assert rx_active=false
+    output_rules:
+    - name: rx_active
+      expr: '0'
+      width: 1
   - stage: RX_START_DETECT
     cycle: 1
     action: On falling edge, wait until oversample count 7
+    output_rules:
+    - name: rx_active
+      expr: '1'
+      width: 1
   - stage: RX_START_CONFIRM
     cycle: 2
-    action: At oversample count 7, sample synchronized rx. If low → confirmed start,
-      advance. If high → spurious, return to RX_IDLE.
+    action: "At oversample count 7, sample synchronized rx. If low \u2192 confirmed\
+      \ start, advance. If high \u2192 spurious, return to RX_IDLE."
+    output_rules:
+    - name: rx_active
+      expr: '1'
+      width: 1
   - stage: RX_DATA
     cycle: 3..2+DATA_WIDTH
     action: At oversample count 7 of each subsequent bit period, sample rx into rx_shift_reg
       LSB-first; repeat DATA_WIDTH times
+    output_rules:
+    - name: rx_active
+      expr: '1'
+      width: 1
   - stage: RX_PARITY
     cycle: 3+DATA_WIDTH
     action: At oversample count 7, sample parity bit; compute expected parity; compare.
       (present only if parity_en=1)
+    output_rules:
+    - name: rx_active
+      expr: '1'
+      width: 1
   - stage: RX_STOP1
     cycle: 4+DATA_WIDTH
-    action: At oversample count 7, sample stop bit. If high → valid. If low → frame_err.
+    action: "At oversample count 7, sample stop bit. If high \u2192 valid. If low\
+      \ \u2192 frame_err."
+    output_rules:
+    - name: rx_active
+      expr: '1'
+      width: 1
   - stage: RX_STOP2
     cycle: 5+DATA_WIDTH
     action: At oversample count 7, sample second stop bit. (present only if stop_bits=1)
+    output_rules:
+    - name: rx_active
+      expr: '1'
+      width: 1
   ordering:
   - TX FSM does not start a new frame until the current frame completes (no pipelining
     across bytes).
@@ -670,6 +751,7 @@ cycle_model:
   - Every function_model transaction maps to at least one cycle_model TX or RX stage.
   - Baud tick, oversample counter, TX/RX shift registers, and FIFO pointers are observable
     in waveform.
+  use_per_cycle_expected: true
 clock_reset_domains:
   domains:
   - name: PCLK
@@ -701,7 +783,7 @@ cdc_requirements:
 rdc_requirements:
   crossings: []
   synchronizers: []
-  note: No reset domain crossings — single reset PRESETn
+  note: "No reset domain crossings \u2014 single reset PRESETn"
 registers:
   config:
     register_width: 32
@@ -748,7 +830,7 @@ registers:
       - 2
       access: rw
       reset: 0
-      description: 'Loopback test mode: internal tx→rx connection'
+      description: "Loopback test mode: internal tx\u2192rx connection"
     - name: break_send
       bits:
       - 3
@@ -796,7 +878,7 @@ registers:
     access: ro
     reset: 0
     category: status
-    description: Status Register — live FIFO flags and sticky error flags
+    description: "Status Register \u2014 live FIFO flags and sticky error flags"
     fields:
     - name: tx_full
       bits:
@@ -898,8 +980,8 @@ registers:
       - 0
       access: rw
       reset: 324
-      description: 'Baud divisor: bit_period = (baud_div+1) * OVERSAMPLE PCLK cycles.
-        Reset=324 → 9600 baud at 50 MHz/16x.'
+      description: "Baud divisor: bit_period = (baud_div+1) * OVERSAMPLE PCLK cycles.\
+        \ Reset=324 \u2192 9600 baud at 50 MHz/16x."
     - name: reserved_31_16
       bits:
       - 31
@@ -1232,8 +1314,8 @@ memory:
     read_ports: 1
     write_ports: 1
     latency: 1
-    description: TX FIFO — parameterized to FIFO_DEPTH × DATA_WIDTH; write on APB
-      write to TXDATA, read on TX FSM pop
+    description: "TX FIFO \u2014 parameterized to FIFO_DEPTH \xD7 DATA_WIDTH; write\
+      \ on APB write to TXDATA, read on TX FSM pop"
   - name: rx_fifo
     type: sram_fifo
     depth: 16
@@ -1241,8 +1323,8 @@ memory:
     read_ports: 1
     write_ports: 1
     latency: 1
-    description: RX FIFO — parameterized to FIFO_DEPTH × DATA_WIDTH; write on RX frame
-      complete, read on APB read from RXDATA
+    description: "RX FIFO \u2014 parameterized to FIFO_DEPTH \xD7 DATA_WIDTH; write\
+      \ on RX frame complete, read on APB read from RXDATA"
   note: FIFOs implemented as SRAM-based circular buffers with read/write pointers.
     Depth parameter FIFO_DEPTH (default 16, power-of-two).
 interrupts:
@@ -1364,12 +1446,12 @@ fsm:
       condition: oversample tick
     error_detection:
     - state: RX_STOP1
-      condition: stop bit sampled low → frame_err sticky flag set
+      condition: "stop bit sampled low \u2192 frame_err sticky flag set"
     - state: RX_STOP2
-      condition: stop bit sampled low → frame_err sticky flag set
+      condition: "stop bit sampled low \u2192 frame_err sticky flag set"
     - state: RX_DATA
-      condition: RX FIFO full when new byte ready → overrun_err sticky flag; frame
-        discarded
+      condition: "RX FIFO full when new byte ready \u2192 overrun_err sticky flag;\
+        \ frame discarded"
 rtl_contract:
   transaction: FM_TX_BYTE, FM_RX_BYTE
   input_map:
@@ -1501,7 +1583,7 @@ security:
   privilege_model: External bus fabric enforces privilege; this IP implements no internal
     privilege levels
   safety_goals:
-  - No silent data corruption — parity/framing errors are always flagged
+  - "No silent data corruption \u2014 parity/framing errors are always flagged"
   - Error conditions are software-visible and interruptible
 error_handling:
   error_sources:
@@ -1588,7 +1670,7 @@ integration:
   address_map_requirements:
     alignment_bytes: 4
     decode_owner: SoC interconnect
-    implemented_range: 0x00 - 0x2F (12 registers × 4 bytes)
+    implemented_range: "0x00 - 0x2F (12 registers \xD7 4 bytes)"
     illegal_access_response: PSLVERR asserted with PREADY=1 for addresses >= 0x30
   dependencies:
     external_modules: []
@@ -1597,8 +1679,8 @@ integration:
     external_resets:
     - PRESETn
   integration_notes:
-  - APB pstrb[3:0] byte strobes — writes use full 32-bit word; partial byte writes
-    to registers may be ignored per reserved_field_policy.
+  - "APB pstrb[3:0] byte strobes \u2014 writes use full 32-bit word; partial byte\
+    \ writes to registers may be ignored per reserved_field_policy."
   - SoC interrupt controller samples uart_irq as active-high level.
   - External rx pin requires PCB-level pull-up to avoid spurious start bits when unconnected.
 dft:
@@ -1709,15 +1791,15 @@ custom:
   - DATA_WIDTH range is 5 to 8; values outside this range are not validated.
   - FIFO_DEPTH must be a power of two; non-power-of-two values produce undefined FIFO
     behavior.
-  - APB writes to TXDATA when TX FIFO is full are silently discarded (underrun_err
-    only set for TX FSM underrun, not for APB write overflow — TXDATA write to full
-    FIFO is a no-op at the register interface level).
+  - "APB writes to TXDATA when TX FIFO is full are silently discarded (underrun_err\
+    \ only set for TX FSM underrun, not for APB write overflow \u2014 TXDATA write\
+    \ to full FIFO is a no-op at the register interface level)."
   - APB reads from RXDATA when RX FIFO is empty return the last valid data (or 0x00
     if never written); no error flag is set.
   - loopback connects tx to rx synchronizer input AFTER the 2-FF stage, so loopback
     data passes through one synchronizer stage before being sampled.
-  - break_send self-clears after one full frame duration even if CPU writes 1 again
-    before completion; a new 0→1 transition is needed for another break.
+  - "break_send self-clears after one full frame duration even if CPU writes 1 again\
+    \ before completion; a new 0\u21921 transition is needed for another break."
   - Parity bit is computed across all DATA_WIDTH data bits (LSB to MSB).
   - Stop bit sampling on RX uses a single mid-bit sample at oversample count 7; no
     majority voting.
@@ -1868,7 +1950,7 @@ test_requirements:
     - TX_STOP2
     - RX_STOP2
   - id: SC12
-    name: Interrupts — tx_empty
+    name: "Interrupts \u2014 tx_empty"
     stimulus: Enable tx_empty interrupt (INTEN.tx_empty_en=1). Fill TX FIFO, let it
       drain completely.
     expected: INTPEND.tx_empty_pend asserts when TX FIFO goes empty. uart_irq asserts.
@@ -1877,7 +1959,7 @@ test_requirements:
     coverage:
     - interrupts.tx_empty
   - id: SC13
-    name: Interrupts — rx_not_empty + clear via W1C
+    name: "Interrupts \u2014 rx_not_empty + clear via W1C"
     stimulus: Enable rx_not_empty interrupt. Drive byte on rx.
     expected: INTPEND.rx_not_empty_pend asserts. uart_irq asserts. Software W1C clears
       pend.
@@ -2107,9 +2189,9 @@ workflow_todos:
     required: true
   - id: RTL_IMPL_TX_FSM
     content: Implement TX FSM with parity generation
-    detail: 'From fsm.tx_fsm states and transitions: implement TX_IDLE → TX_START
-      → TX_DATA → TX_PARITY (if parity_en) → TX_STOP1 → TX_STOP2 (if stop_bits=1).
-      Compute even/odd parity across DATA_WIDTH bits.'
+    detail: "From fsm.tx_fsm states and transitions: implement TX_IDLE \u2192 TX_START\
+      \ \u2192 TX_DATA \u2192 TX_PARITY (if parity_en) \u2192 TX_STOP1 \u2192 TX_STOP2\
+      \ (if stop_bits=1). Compute even/odd parity across DATA_WIDTH bits."
     criteria:
     - TX FSM states and all declared transitions implemented
     - Parity computed per CTRL.parity_en and CTRL.parity_odd
@@ -2123,10 +2205,10 @@ workflow_todos:
     required: true
   - id: RTL_IMPL_RX_FSM
     content: Implement RX FSM with 2-FF synchronizer and oversampling
-    detail: 'From fsm.rx_fsm and cycle_model pipeline: implement RX_IDLE → RX_START_DETECT
-      → RX_START_CONFIRM → RX_DATA → RX_PARITY (if parity_en) → RX_STOP1 → RX_STOP2
-      (if stop_bits=1). Sample at oversample count 7 of 16. Detect framing/parity
-      errors.'
+    detail: "From fsm.rx_fsm and cycle_model pipeline: implement RX_IDLE \u2192 RX_START_DETECT\
+      \ \u2192 RX_START_CONFIRM \u2192 RX_DATA \u2192 RX_PARITY (if parity_en) \u2192\
+      \ RX_STOP1 \u2192 RX_STOP2 (if stop_bits=1). Sample at oversample count 7 of\
+      \ 16. Detect framing/parity errors."
     criteria:
     - RX FSM states and all declared transitions implemented
     - Mid-bit sampling at oversample count 7

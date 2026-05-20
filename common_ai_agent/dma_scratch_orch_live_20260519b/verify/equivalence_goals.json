@@ -381,7 +381,9 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "Architectural output matches feature definition",
-          "{'state': 'fm2_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}"
+          "{'state': 'fm2_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
+          "irq",
+          "csr_error"
         ],
         "latency": "cycle_model latency/ordering must hold when applicable",
         "state_updates": [
@@ -446,7 +448,9 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "Architectural output matches feature definition",
-          "{'state': 'fm3_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}"
+          "{'state': 'fm3_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
+          "irq",
+          "mem_req_valid"
         ],
         "latency": "cycle_model latency/ordering must hold when applicable",
         "state_updates": [
@@ -511,7 +515,9 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "Architectural output matches feature definition",
-          "{'state': 'fm4_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}"
+          "{'state': 'fm4_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
+          "irq",
+          "mem_req_write"
         ],
         "latency": "cycle_model latency/ordering must hold when applicable",
         "state_updates": [
@@ -978,7 +984,9 @@
         "observables": [
           "Outputs and side effects match `FM2` exactly.",
           "Architectural output matches feature definition",
-          "{'state': 'fm2_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}"
+          "{'state': 'fm2_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
+          "irq",
+          "csr_error"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [
@@ -1045,7 +1053,9 @@
         "observables": [
           "Outputs and side effects match `FM3` exactly.",
           "Architectural output matches feature definition",
-          "{'state': 'fm3_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}"
+          "{'state': 'fm3_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
+          "irq",
+          "mem_req_valid"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [
@@ -1112,7 +1122,9 @@
         "observables": [
           "Outputs and side effects match `FM4` exactly.",
           "Architectural output matches feature definition",
-          "{'state': 'fm4_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}"
+          "{'state': 'fm4_observed', 'expr': '1', 'description': 'Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.'}",
+          "irq",
+          "mem_req_write"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [
@@ -2308,6 +2320,8 @@
         "function_model.transactions.fm2",
         "function_model.transactions.fm2.error_cases.error_case_0",
         "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.output_rules.csr_error",
+        "function_model.transactions.fm2.output_rules.irq",
         "function_model.transactions.fm2.outputs.fm2_observed",
         "function_model.transactions.fm2.outputs.output_0",
         "function_model.transactions.fm2.preconditions.precondition_0",
@@ -2316,6 +2330,8 @@
         "function_model.transactions.fm3",
         "function_model.transactions.fm3.error_cases.error_case_0",
         "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.output_rules.irq",
+        "function_model.transactions.fm3.output_rules.mem_req_valid",
         "function_model.transactions.fm3.outputs.fm3_observed",
         "function_model.transactions.fm3.outputs.output_0",
         "function_model.transactions.fm3.preconditions.precondition_0",
@@ -2324,6 +2340,8 @@
         "function_model.transactions.fm4",
         "function_model.transactions.fm4.error_cases.error_case_0",
         "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.output_rules.irq",
+        "function_model.transactions.fm4.output_rules.mem_req_write",
         "function_model.transactions.fm4.outputs.fm4_observed",
         "function_model.transactions.fm4.outputs.output_0",
         "function_model.transactions.fm4.preconditions.precondition_0",

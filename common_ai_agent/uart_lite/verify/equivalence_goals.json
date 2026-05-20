@@ -268,13 +268,15 @@
     }
   },
   "summary": {
-    "total": 68,
-    "required": 68,
+    "total": 69,
+    "required": 69,
     "optional": 0,
     "blocked": 0,
-    "module_total": 2,
-    "module_required": 2,
-    "module_blocked": 0
+    "unverified": 0,
+    "module_total": 3,
+    "module_required": 3,
+    "module_blocked": 0,
+    "module_unverified": 0
   },
   "goals": [
     {
@@ -345,7 +347,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_RX_BYTE",
@@ -418,7 +422,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_BREAK_SEND",
@@ -455,7 +461,7 @@
         "model_api": "FunctionalModel.apply",
         "observables": [
           "tx line forced low for duration of one full frame (start+data+parity+stop bits)",
-          "break_serial"
+          "tx_serial"
         ],
         "latency": "cycle_model latency/ordering must hold when applicable",
         "state_updates": [
@@ -483,7 +489,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_LOOPBACK",
@@ -548,7 +556,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC1",
@@ -588,23 +598,35 @@
         "SC17_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC1",
+        "transaction_type": "transmit_byte",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Write one byte to TXDATA when TX FIFO empty. CTRL: tx_enable=1, parity_en=0, stop_bits=0."
+          "Write one byte to TXDATA when TX FIFO empty. CTRL: tx_enable=1, parity_en=0, stop_bits=0.",
+          "tx_enable == 1",
+          "tx_fifo not empty",
+          "tx_active == false",
+          "break_send == false"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "tx line shows start=0, DATA_WIDTH data bits LSB-first, 1 stop=1 bit. STAT.tx_empty=1 after frame. bytes_tx increments."
+          "tx line shows start=0, DATA_WIDTH data bits LSB-first, 1 stop=1 bit. STAT.tx_empty=1 after frame. bytes_tx increments.",
+          "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)",
+          "tx_active transitions true \u2192 false across the frame",
+          "tx_serial"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
-        "error_policy": ""
+        "state_updates": [
+          "debug counter bytes_tx increments by 1",
+          "tx_fifo level decreases by 1",
+          "STAT.tx_empty updates when FIFO becomes empty",
+          "tx"
+        ],
+        "error_policy": "{'condition': 'tx_fifo empty when TX FSM requests byte', 'result': 'underrun_err sticky flag set; frame aborted with tx returning to idle (mark)'}"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -624,7 +646,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC2",
@@ -656,23 +680,35 @@
         "SC2_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC2",
+        "transaction_type": "receive_byte",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Drive rx line with start=0, 8 data bits LSB-first, 1 stop=1. CTRL: rx_enable=1."
+          "Drive rx line with start=0, 8 data bits LSB-first, 1 stop=1. CTRL: rx_enable=1.",
+          "rx_enable == 1",
+          "rx_active == false",
+          "rx_fifo not full"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Byte pushed to RX FIFO. RXDATA reads correct byte. bytes_rx increments. No error flags."
+          "Byte pushed to RX FIFO. RXDATA reads correct byte. bytes_rx increments. No error flags.",
+          "byte d reconstructed from sampled bits pushed to rx_fifo",
+          "STAT.rx_not_empty set",
+          "rx_irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
-        "error_policy": ""
+        "state_updates": [
+          "debug counter bytes_rx increments by 1",
+          "rx_fifo level increases by 1",
+          "If parity_en and parity mismatch: parity_err sticky set, parities_errored incremented",
+          "If stop bit(s) not high: frame_err sticky set, frames_errored incremented",
+          "uart_irq"
+        ],
+        "error_policy": "{'condition': 'rx_fifo full when new byte ready', 'result': 'overrun_err sticky flag set; received byte discarded'}; {'condition': 'spurious start bit (mid-bit sample high)', 'result': 'rx_active returns false; no byte pushed'}; {'condition': 'frame_err: stop bit sampled low', 'result': 'frame_err sticky set; byte still pushed to rx_fifo if space available'}; {'condition': 'parity_err: computed parity != received parity bit', 'result': 'parity_err sticky set; byte still pushed to rx_fifo if space available'}"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -692,7 +728,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC3",
@@ -724,23 +762,35 @@
         "SC3_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC3",
+        "transaction_type": "transmit_byte",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Write byte 0xA5 to TXDATA. CTRL: tx_enable=1, parity_en=1, parity_odd=0. DATA_WIDTH=8."
+          "Write byte 0xA5 to TXDATA. CTRL: tx_enable=1, parity_en=1, parity_odd=0. DATA_WIDTH=8.",
+          "tx_enable == 1",
+          "tx_fifo not empty",
+          "tx_active == false",
+          "break_send == false"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Parity bit after data: 0 (even number of 1s: 4 in 0xA5). tx shows start, 8 data, parity=0, 1 stop."
+          "Parity bit after data: 0 (even number of 1s: 4 in 0xA5). tx shows start, 8 data, parity=0, 1 stop.",
+          "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)",
+          "tx_active transitions true \u2192 false across the frame",
+          "tx_serial"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
-        "error_policy": ""
+        "state_updates": [
+          "debug counter bytes_tx increments by 1",
+          "tx_fifo level decreases by 1",
+          "STAT.tx_empty updates when FIFO becomes empty",
+          "tx"
+        ],
+        "error_policy": "{'condition': 'tx_fifo empty when TX FSM requests byte', 'result': 'underrun_err sticky flag set; frame aborted with tx returning to idle (mark)'}"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -760,7 +810,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC4",
@@ -792,23 +844,35 @@
         "SC4_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC4",
+        "transaction_type": "receive_byte",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Drive rx with start, 0xA5 data (4 ones), odd parity=1, stop. CTRL: rx_enable=1, parity_en=1, parity_odd=1."
+          "Drive rx with start, 0xA5 data (4 ones), odd parity=1, stop. CTRL: rx_enable=1, parity_en=1, parity_odd=1.",
+          "rx_enable == 1",
+          "rx_active == false",
+          "rx_fifo not full"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Byte 0xA5 pushed to RX FIFO. No parity_err. parities_errored unchanged."
+          "Byte 0xA5 pushed to RX FIFO. No parity_err. parities_errored unchanged.",
+          "byte d reconstructed from sampled bits pushed to rx_fifo",
+          "STAT.rx_not_empty set",
+          "rx_irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
-        "error_policy": ""
+        "state_updates": [
+          "debug counter bytes_rx increments by 1",
+          "rx_fifo level increases by 1",
+          "If parity_en and parity mismatch: parity_err sticky set, parities_errored incremented",
+          "If stop bit(s) not high: frame_err sticky set, frames_errored incremented",
+          "uart_irq"
+        ],
+        "error_policy": "{'condition': 'rx_fifo full when new byte ready', 'result': 'overrun_err sticky flag set; received byte discarded'}; {'condition': 'spurious start bit (mid-bit sample high)', 'result': 'rx_active returns false; no byte pushed'}; {'condition': 'frame_err: stop bit sampled low', 'result': 'frame_err sticky set; byte still pushed to rx_fifo if space available'}; {'condition': 'parity_err: computed parity != received parity bit', 'result': 'parity_err sticky set; byte still pushed to rx_fifo if space available'}"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -828,7 +892,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC5",
@@ -860,23 +926,35 @@
         "SC5_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC5",
+        "transaction_type": "receive_byte",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Drive rx with start, 0xA5 data, wrong parity bit (even parity sent, but rx expects odd). CTRL: parity_en=1, parity_odd=1."
+          "Drive rx with start, 0xA5 data, wrong parity bit (even parity sent, but rx expects odd). CTRL: parity_en=1, parity_odd=1.",
+          "rx_enable == 1",
+          "rx_active == false",
+          "rx_fifo not full"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "parity_err sticky flag set. Byte still pushed to RX FIFO. parities_errored increments."
+          "parity_err sticky flag set. Byte still pushed to RX FIFO. parities_errored increments.",
+          "byte d reconstructed from sampled bits pushed to rx_fifo",
+          "STAT.rx_not_empty set",
+          "rx_irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
-        "error_policy": ""
+        "state_updates": [
+          "debug counter bytes_rx increments by 1",
+          "rx_fifo level increases by 1",
+          "If parity_en and parity mismatch: parity_err sticky set, parities_errored incremented",
+          "If stop bit(s) not high: frame_err sticky set, frames_errored incremented",
+          "uart_irq"
+        ],
+        "error_policy": "{'condition': 'rx_fifo full when new byte ready', 'result': 'overrun_err sticky flag set; received byte discarded'}; {'condition': 'spurious start bit (mid-bit sample high)', 'result': 'rx_active returns false; no byte pushed'}; {'condition': 'frame_err: stop bit sampled low', 'result': 'frame_err sticky set; byte still pushed to rx_fifo if space available'}; {'condition': 'parity_err: computed parity != received parity bit', 'result': 'parity_err sticky set; byte still pushed to rx_fifo if space available'}"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -896,7 +974,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC6",
@@ -928,23 +1008,35 @@
         "SC6_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC6",
+        "transaction_type": "receive_byte",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Drive rx with start, data, stop=0 (invalid). CTRL: rx_enable=1."
+          "Drive rx with start, data, stop=0 (invalid). CTRL: rx_enable=1.",
+          "rx_enable == 1",
+          "rx_active == false",
+          "rx_fifo not full"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "frame_err sticky flag set. Byte pushed to RX FIFO. frames_errored increments."
+          "frame_err sticky flag set. Byte pushed to RX FIFO. frames_errored increments.",
+          "byte d reconstructed from sampled bits pushed to rx_fifo",
+          "STAT.rx_not_empty set",
+          "rx_irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
-        "error_policy": ""
+        "state_updates": [
+          "debug counter bytes_rx increments by 1",
+          "rx_fifo level increases by 1",
+          "If parity_en and parity mismatch: parity_err sticky set, parities_errored incremented",
+          "If stop bit(s) not high: frame_err sticky set, frames_errored incremented",
+          "uart_irq"
+        ],
+        "error_policy": "{'condition': 'rx_fifo full when new byte ready', 'result': 'overrun_err sticky flag set; received byte discarded'}; {'condition': 'spurious start bit (mid-bit sample high)', 'result': 'rx_active returns false; no byte pushed'}; {'condition': 'frame_err: stop bit sampled low', 'result': 'frame_err sticky set; byte still pushed to rx_fifo if space available'}; {'condition': 'parity_err: computed parity != received parity bit', 'result': 'parity_err sticky set; byte still pushed to rx_fifo if space available'}"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -964,7 +1056,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC7",
@@ -996,23 +1090,35 @@
         "SC7_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC7",
+        "transaction_type": "receive_byte",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Fill RX FIFO to full (16 bytes). Drive 17th byte on rx."
+          "Fill RX FIFO to full (16 bytes). Drive 17th byte on rx.",
+          "rx_enable == 1",
+          "rx_active == false",
+          "rx_fifo not full"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "17th byte discarded. overrun_err sticky flag set. RX FIFO still has 16 bytes."
+          "17th byte discarded. overrun_err sticky flag set. RX FIFO still has 16 bytes.",
+          "byte d reconstructed from sampled bits pushed to rx_fifo",
+          "STAT.rx_not_empty set",
+          "rx_irq"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
-        "error_policy": ""
+        "state_updates": [
+          "debug counter bytes_rx increments by 1",
+          "rx_fifo level increases by 1",
+          "If parity_en and parity mismatch: parity_err sticky set, parities_errored incremented",
+          "If stop bit(s) not high: frame_err sticky set, frames_errored incremented",
+          "uart_irq"
+        ],
+        "error_policy": "{'condition': 'rx_fifo full when new byte ready', 'result': 'overrun_err sticky flag set; received byte discarded'}; {'condition': 'spurious start bit (mid-bit sample high)', 'result': 'rx_active returns false; no byte pushed'}; {'condition': 'frame_err: stop bit sampled low', 'result': 'frame_err sticky set; byte still pushed to rx_fifo if space available'}; {'condition': 'parity_err: computed parity != received parity bit', 'result': 'parity_err sticky set; byte still pushed to rx_fifo if space available'}"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -1032,7 +1138,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC8",
@@ -1064,23 +1172,35 @@
         "SC8_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC8",
+        "transaction_type": "transmit_byte",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Start TX FSM with one byte in TX FIFO, then prevent further writes. After frame completes, TX FSM goes idle with FIFO empty."
+          "Start TX FSM with one byte in TX FIFO, then prevent further writes. After frame completes, TX FSM goes idle with FIFO empty.",
+          "tx_enable == 1",
+          "tx_fifo not empty",
+          "tx_active == false",
+          "break_send == false"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "No underrun during normal operation. To trigger underrun: disable TX FIFO write while FSM mid-frame (not directly possible via CSR; tested via back-to-back framing where FIFO drains). STAT.underrun_err=0 if FIFO never underflows."
+          "No underrun during normal operation. To trigger underrun: disable TX FIFO write while FSM mid-frame (not directly possible via CSR; tested via back-to-back framing where FIFO drains). STAT.underrun_err=0 if FIFO never underflows.",
+          "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)",
+          "tx_active transitions true \u2192 false across the frame",
+          "tx_serial"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
-        "error_policy": ""
+        "state_updates": [
+          "debug counter bytes_tx increments by 1",
+          "tx_fifo level decreases by 1",
+          "STAT.tx_empty updates when FIFO becomes empty",
+          "tx"
+        ],
+        "error_policy": "{'condition': 'tx_fifo empty when TX FSM requests byte', 'result': 'underrun_err sticky flag set; frame aborted with tx returning to idle (mark)'}"
       },
       "pass_criteria": [
         "Generated sequence executes the SSOT stimulus",
@@ -1100,7 +1220,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC9",
@@ -1133,22 +1255,29 @@
         "fcov_fm_loopback"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC9",
+        "transaction_type": "loopback_mode",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Enable loopback=1. Write bytes to TXDATA. CTRL: tx_enable=1, rx_enable=1."
+          "Enable loopback=1. Write bytes to TXDATA. CTRL: tx_enable=1, rx_enable=1.",
+          "loopback == 1"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Transmitted bytes appear in RX FIFO. External rx line ignored. TX and RX data match."
+          "Transmitted bytes appear in RX FIFO. External rx line ignored. TX and RX data match.",
+          "rx synchronizer input connected to tx output (after 2-FF synchronizer stage)",
+          "loopback_tx"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "External rx pin ignored",
+          "All TX bytes appear as received bytes when rx_enable == 1",
+          "tx"
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -1169,7 +1298,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC10",
@@ -1202,22 +1333,29 @@
         "fcov_fm_break"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC10",
+        "transaction_type": "send_break",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Write break_send=1 to CTRL."
+          "Write break_send=1 to CTRL.",
+          "break_send written to 1 via CTRL register"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "tx line held low for at least one full frame duration. break_send self-clears to 0."
+          "tx line held low for at least one full frame duration. break_send self-clears to 0.",
+          "tx line forced low for duration of one full frame (start+data+parity+stop bits)",
+          "tx_serial"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "break_send self-clears to 0 after break completes",
+          "TX FSM held in IDLE during break",
+          "tx"
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -1238,7 +1376,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC11",
@@ -1282,7 +1422,8 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "TX sends 2 stop bits. RX accepts 2 stop bits."
+          "TX sends 2 stop bits. RX accepts 2 stop bits.",
+          "Scenario expected result from SSOT"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [],
@@ -1306,7 +1447,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC12",
@@ -1350,7 +1493,8 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "INTPEND.tx_empty_pend asserts when TX FIFO goes empty. uart_irq asserts. Write 1 to INTPEND.tx_empty_pend clears it; uart_irq deasserts if no other pend."
+          "INTPEND.tx_empty_pend asserts when TX FIFO goes empty. uart_irq asserts. Write 1 to INTPEND.tx_empty_pend clears it; uart_irq deasserts if no other pend.",
+          "Scenario expected result from SSOT"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [],
@@ -1374,7 +1518,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC13",
@@ -1418,7 +1564,8 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "INTPEND.rx_not_empty_pend asserts. uart_irq asserts. Software W1C clears pend."
+          "INTPEND.rx_not_empty_pend asserts. uart_irq asserts. Software W1C clears pend.",
+          "Scenario expected result from SSOT"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [],
@@ -1442,7 +1589,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC14",
@@ -1486,7 +1635,8 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "TX sends 5 data bits. RX receives 5 data bits. Upper bits in TXDATA ignored, RXDATA zero-filled above bit 4."
+          "TX sends 5 data bits. RX receives 5 data bits. Upper bits in TXDATA ignored, RXDATA zero-filled above bit 4.",
+          "Scenario expected result from SSOT"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [],
@@ -1510,7 +1660,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC15",
@@ -1554,7 +1706,8 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "STAT.tx_full, tx_empty, rx_full, rx_empty track FIFO levels correctly."
+          "STAT.tx_full, tx_empty, rx_full, rx_empty track FIFO levels correctly.",
+          "Scenario expected result from SSOT"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [],
@@ -1578,7 +1731,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC16",
@@ -1622,7 +1777,8 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "RX FSM returns to RX_IDLE; no byte captured; no error flag."
+          "RX FSM returns to RX_IDLE; no byte captured; no error flag.",
+          "Scenario expected result from SSOT"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [],
@@ -1646,7 +1802,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC17",
@@ -1690,7 +1848,8 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Current frame completes at old rate. Next frame uses new rate."
+          "Current frame completes at old rate. Next frame uses new rate.",
+          "Scenario expected result from SSOT"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [],
@@ -1714,7 +1873,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
@@ -1773,7 +1934,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
@@ -1832,7 +1995,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
@@ -1891,7 +2056,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
@@ -1950,7 +2117,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_TIMING_ORDERING_0",
@@ -2007,7 +2176,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_TIMING_ORDERING_1",
@@ -2064,7 +2235,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_TIMING_ORDERING_2",
@@ -2121,7 +2294,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_REGISTER_CTRL",
@@ -2148,7 +2323,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CTRL', 'offset': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'control', 'description': 'Control Register', 'write_side_effects': ['Fields take effect immediately on APB write; TX/RX enable changes during active transfer follow error_handling rules.', 'loopback=1 internally connects tx to rx synchronizer input after the 2-FF stage.', 'break_send=1 forces tx low for at least one full frame duration (start+data+parity+stop) then self-clears.'], 'fields': [{'name': 'tx_enable', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'description': 'Enable transmitter'}, {'name': 'rx_enable', 'bits': [1, 1], 'access': 'rw', 'reset': 0, 'description': 'Enable receiver'}, {'name': 'loopback', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'description': 'Loopback test mode: internal tx\u2192rx connection'}, {'name': 'break_send', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'description': 'Send break (force tx=0); self-clears after one frame'}, {'name': 'parity_en', 'bits': [4, 4], 'access': 'rw', 'reset': 0, 'description': 'Enable parity generation/checking'}, {'name': 'parity_odd', 'bits': [5, 5], 'access': 'rw', 'reset': 0, 'description': '0=even parity, 1=odd parity (when parity_en=1)'}, {'name': 'stop_bits', 'bits': [6, 6], 'access': 'rw', 'reset': 0, 'description': '0=1 stop bit, 1=2 stop bits'}, {'name': 'reserved_31_7', 'bits': [31, 7], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+          "{'name': 'CTRL', 'offset': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'control', 'description': 'Control Register', 'write_side_effects': ['Fields take effect immediately on APB write; TX/RX enable changes during active transfer follow error_handling rules.', 'loopback=1 internally connects tx to rx synchronizer input after the 2-FF stage.', 'break_send=1 forces tx low for at least one full frame duration (start+data+parity+stop) then self-clears.'], 'fields': [{'name': 'tx_enable', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'description': 'Enable transmitter'}, {'name': 'rx_enable', 'bits': [1, 1], 'access': 'rw', 'reset': 0, 'description': 'Enable receiver'}, {'name': 'loopback', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'description': 'Loopback test mode: internal tx\u2192rx connection'}, {'name': 'break_send', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'description': 'Send break (force tx=0); self-clears after one frame'}, {'name': 'parity_en', 'bits': [4, 4], 'access': 'rw', 'reset': 0, 'description': 'Enable parity generation/checking'}, {'name': 'parity_odd', 'bits': [5, 5], 'access': 'rw', 'reset': 0, 'description': '0=even parity, 1=odd parity (when parity_en=1)'}, {'name': 'stop_bits', 'bits': [6, 6], 'access': 'rw', 'reset': 0, 'description': '0=1 stop bit, 1=2 stop bits'}, {'name': 'reserved_31_7', 'bits': [31, 7], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}], 'output_rules': [{'name': 'uart_irq', 'port': 'uart_irq', 'expr': '0'}]}"
         ]
       },
       "expected_contract": {
@@ -2181,7 +2356,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_REGISTER_STAT",
@@ -2231,7 +2408,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'STAT', 'offset': 4, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'status', 'description': 'Status Register \u2014 live FIFO flags and sticky error flags', 'fields': [{'name': 'tx_full', 'bits': [0, 0], 'access': 'ro', 'reset': 0, 'description': 'TX FIFO full (live)'}, {'name': 'tx_empty', 'bits': [1, 1], 'access': 'ro', 'reset': 1, 'description': 'TX FIFO empty (live)'}, {'name': 'rx_empty', 'bits': [2, 2], 'access': 'ro', 'reset': 1, 'description': 'RX FIFO empty (live)'}, {'name': 'rx_full', 'bits': [3, 3], 'access': 'ro', 'reset': 0, 'description': 'RX FIFO full (live)'}, {'name': 'tx_busy', 'bits': [4, 4], 'access': 'ro', 'reset': 0, 'description': 'Transmitter active (shift register busy)'}, {'name': 'rx_busy', 'bits': [5, 5], 'access': 'ro', 'reset': 0, 'description': 'Receiver active (frame in progress)'}, {'name': 'frame_err', 'bits': [6, 6], 'access': 'ro', 'reset': 0, 'description': 'Framing error detected (sticky, clear via CLR_STAT)'}, {'name': 'parity_err', 'bits': [7, 7], 'access': 'ro', 'reset': 0, 'description': 'Parity error detected (sticky, clear via CLR_STAT)'}, {'name': 'overrun_err', 'bits': [8, 8], 'access': 'ro', 'reset': 0, 'description': 'RX overrun (sticky, clear via CLR_STAT)'}, {'name': 'underrun_err', 'bits': [9, 9], 'access': 'ro', 'reset': 0, 'description': 'TX underrun (sticky, clear via CLR_STAT)'}, {'name': 'reserved_31_10', 'bits': [31, 10], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+          "{'name': 'STAT', 'offset': 4, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'status', 'description': 'Status Register \u2014 live FIFO flags and sticky error flags', 'fields': [{'name': 'tx_full', 'bits': [0, 0], 'access': 'ro', 'reset': 0, 'description': 'TX FIFO full (live)'}, {'name': 'tx_empty', 'bits': [1, 1], 'access': 'ro', 'reset': 1, 'description': 'TX FIFO empty (live)'}, {'name': 'rx_empty', 'bits': [2, 2], 'access': 'ro', 'reset': 1, 'description': 'RX FIFO empty (live)'}, {'name': 'rx_full', 'bits': [3, 3], 'access': 'ro', 'reset': 0, 'description': 'RX FIFO full (live)'}, {'name': 'tx_busy', 'bits': [4, 4], 'access': 'ro', 'reset': 0, 'description': 'Transmitter active (shift register busy)'}, {'name': 'rx_busy', 'bits': [5, 5], 'access': 'ro', 'reset': 0, 'description': 'Receiver active (frame in progress)'}, {'name': 'frame_err', 'bits': [6, 6], 'access': 'ro', 'reset': 0, 'description': 'Framing error detected (sticky, clear via CLR_STAT)'}, {'name': 'parity_err', 'bits': [7, 7], 'access': 'ro', 'reset': 0, 'description': 'Parity error detected (sticky, clear via CLR_STAT)'}, {'name': 'overrun_err', 'bits': [8, 8], 'access': 'ro', 'reset': 0, 'description': 'RX overrun (sticky, clear via CLR_STAT)'}, {'name': 'underrun_err', 'bits': [9, 9], 'access': 'ro', 'reset': 0, 'description': 'TX underrun (sticky, clear via CLR_STAT)'}, {'name': 'reserved_31_10', 'bits': [31, 10], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}], 'output_rules': [{'name': 'uart_irq', 'port': 'uart_irq', 'expr': '0'}]}"
         ]
       },
       "expected_contract": {
@@ -2264,7 +2441,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_REGISTER_BAUD",
@@ -2310,7 +2489,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'BAUD', 'offset': 8, 'width': 32, 'access': 'rw', 'reset': 324, 'category': 'control', 'description': 'Baud Rate Divisor', 'write_side_effects': ['Changing BAUD during an active TX or RX frame results in the current frame completing at the old rate; the new divisor takes effect for the next frame.'], 'fields': [{'name': 'baud_div', 'bits': [15, 0], 'access': 'rw', 'reset': 324, 'description': 'Baud divisor: bit_period = (baud_div+1) * OVERSAMPLE PCLK cycles. Reset=324 \u2192 9600 baud at 50 MHz/16x.'}, {'name': 'reserved_31_16', 'bits': [31, 16], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+          "{'name': 'BAUD', 'offset': 8, 'width': 32, 'access': 'rw', 'reset': 324, 'category': 'control', 'description': 'Baud Rate Divisor', 'write_side_effects': ['Changing BAUD during an active TX or RX frame results in the current frame completing at the old rate; the new divisor takes effect for the next frame.'], 'fields': [{'name': 'baud_div', 'bits': [15, 0], 'access': 'rw', 'reset': 324, 'description': 'Baud divisor: bit_period = (baud_div+1) * OVERSAMPLE PCLK cycles. Reset=324 \u2192 9600 baud at 50 MHz/16x.'}, {'name': 'reserved_31_16', 'bits': [31, 16], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}], 'output_rules': [{'name': 'uart_irq', 'port': 'uart_irq', 'expr': '0'}]}"
         ]
       },
       "expected_contract": {
@@ -2343,7 +2522,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_REGISTER_TXDATA",
@@ -2370,7 +2551,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'TXDATA', 'offset': 12, 'width': 32, 'access': 'wo', 'reset': 0, 'category': 'data', 'description': 'TX Data Write (pushes to TX FIFO)', 'write_side_effects': ['Writing when tx_full=1 discards data and sets underrun_err sticky flag.', 'On successful write, TX FSM is triggered if idle.'], 'fields': [{'name': 'tx_data', 'bits': [7, 0], 'access': 'wo', 'reset': 0, 'description': 'Transmit data byte'}, {'name': 'reserved_31_8', 'bits': [31, 8], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+          "{'name': 'TXDATA', 'offset': 12, 'width': 32, 'access': 'wo', 'reset': 0, 'category': 'data', 'description': 'TX Data Write (pushes to TX FIFO)', 'write_side_effects': ['Writing when tx_full=1 discards data and sets underrun_err sticky flag.', 'On successful write, TX FSM is triggered if idle.'], 'fields': [{'name': 'tx_data', 'bits': [7, 0], 'access': 'wo', 'reset': 0, 'description': 'Transmit data byte'}, {'name': 'reserved_31_8', 'bits': [31, 8], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}], 'output_rules': [{'name': 'uart_irq', 'port': 'uart_irq', 'expr': '0'}]}"
         ]
       },
       "expected_contract": {
@@ -2403,7 +2584,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_REGISTER_RXDATA",
@@ -2430,7 +2613,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'RXDATA', 'offset': 16, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'data', 'description': 'RX Data Read (pops from RX FIFO)', 'read_side_effects': ['Reading when rx_empty=1 returns last valid data or 0x00 and does not change FIFO state.', 'Successful read pops one byte from RX FIFO.'], 'fields': [{'name': 'rx_data', 'bits': [7, 0], 'access': 'ro', 'reset': 0, 'description': 'Received data byte'}, {'name': 'reserved_31_8', 'bits': [31, 8], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+          "{'name': 'RXDATA', 'offset': 16, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'data', 'description': 'RX Data Read (pops from RX FIFO)', 'read_side_effects': ['Reading when rx_empty=1 returns last valid data or 0x00 and does not change FIFO state.', 'Successful read pops one byte from RX FIFO.'], 'fields': [{'name': 'rx_data', 'bits': [7, 0], 'access': 'ro', 'reset': 0, 'description': 'Received data byte'}, {'name': 'reserved_31_8', 'bits': [31, 8], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}], 'output_rules': [{'name': 'uart_irq', 'port': 'uart_irq', 'expr': '0'}]}"
         ]
       },
       "expected_contract": {
@@ -2463,7 +2646,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_REGISTER_INTEN",
@@ -2490,7 +2675,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'INTEN', 'offset': 20, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'interrupt', 'description': 'Interrupt Enable Register', 'write_side_effects': ['Changes take effect immediately.'], 'fields': [{'name': 'tx_empty_en', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'description': 'Enable TX empty interrupt'}, {'name': 'rx_not_empty_en', 'bits': [1, 1], 'access': 'rw', 'reset': 0, 'description': 'Enable RX not empty interrupt'}, {'name': 'rx_overrun_en', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'description': 'Enable RX overrun interrupt'}, {'name': 'frame_err_en', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'description': 'Enable framing error interrupt'}, {'name': 'parity_err_en', 'bits': [4, 4], 'access': 'rw', 'reset': 0, 'description': 'Enable parity error interrupt'}, {'name': 'reserved_31_5', 'bits': [31, 5], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+          "{'name': 'INTEN', 'offset': 20, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'interrupt', 'description': 'Interrupt Enable Register', 'write_side_effects': ['Changes take effect immediately.'], 'fields': [{'name': 'tx_empty_en', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'description': 'Enable TX empty interrupt'}, {'name': 'rx_not_empty_en', 'bits': [1, 1], 'access': 'rw', 'reset': 0, 'description': 'Enable RX not empty interrupt'}, {'name': 'rx_overrun_en', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'description': 'Enable RX overrun interrupt'}, {'name': 'frame_err_en', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'description': 'Enable framing error interrupt'}, {'name': 'parity_err_en', 'bits': [4, 4], 'access': 'rw', 'reset': 0, 'description': 'Enable parity error interrupt'}, {'name': 'reserved_31_5', 'bits': [31, 5], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}], 'output_rules': [{'name': 'uart_irq', 'port': 'uart_irq', 'expr': '0'}]}"
         ]
       },
       "expected_contract": {
@@ -2523,7 +2708,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_REGISTER_INTPEND",
@@ -2550,7 +2737,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'INTPEND', 'offset': 24, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'interrupt', 'description': 'Interrupt Pending Register (W1C for set bits)', 'write_side_effects': ['Writing 1 to a bit clears that pending flag. Writing 0 has no effect.', 'Hardware sets pending bits when enabled interrupt conditions occur.'], 'fields': [{'name': 'tx_empty_pend', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'description': 'TX empty pending (W1C)'}, {'name': 'rx_not_empty_pend', 'bits': [1, 1], 'access': 'rw', 'reset': 0, 'description': 'RX not empty pending (W1C)'}, {'name': 'rx_overrun_pend', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'description': 'RX overrun pending (W1C)'}, {'name': 'frame_err_pend', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'description': 'Framing error pending (W1C)'}, {'name': 'parity_err_pend', 'bits': [4, 4], 'access': 'rw', 'reset': 0, 'description': 'Parity error pending (W1C)'}, {'name': 'reserved_31_5', 'bits': [31, 5], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+          "{'name': 'INTPEND', 'offset': 24, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'interrupt', 'description': 'Interrupt Pending Register (W1C for set bits)', 'write_side_effects': ['Writing 1 to a bit clears that pending flag. Writing 0 has no effect.', 'Hardware sets pending bits when enabled interrupt conditions occur.'], 'fields': [{'name': 'tx_empty_pend', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'description': 'TX empty pending (W1C)'}, {'name': 'rx_not_empty_pend', 'bits': [1, 1], 'access': 'rw', 'reset': 0, 'description': 'RX not empty pending (W1C)'}, {'name': 'rx_overrun_pend', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'description': 'RX overrun pending (W1C)'}, {'name': 'frame_err_pend', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'description': 'Framing error pending (W1C)'}, {'name': 'parity_err_pend', 'bits': [4, 4], 'access': 'rw', 'reset': 0, 'description': 'Parity error pending (W1C)'}, {'name': 'reserved_31_5', 'bits': [31, 5], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}], 'output_rules': [{'name': 'uart_irq', 'port': 'uart_irq', 'expr': '0'}]}"
         ]
       },
       "expected_contract": {
@@ -2583,7 +2770,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_REGISTER_CLR_STAT",
@@ -2610,7 +2799,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'CLR_STAT', 'offset': 28, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'status', 'description': 'Clear Sticky Status Flags (W1C)', 'write_side_effects': ['Writing 1 to a bit clears the corresponding sticky flag in STAT. Writing 0 has no effect.'], 'fields': [{'name': 'clr_frame_err', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'description': 'Clear frame_err (W1C)'}, {'name': 'clr_parity_err', 'bits': [1, 1], 'access': 'rw', 'reset': 0, 'description': 'Clear parity_err (W1C)'}, {'name': 'clr_overrun_err', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'description': 'Clear overrun_err (W1C)'}, {'name': 'clr_underrun_err', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'description': 'Clear underrun_err (W1C)'}, {'name': 'reserved_31_4', 'bits': [31, 4], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}]}"
+          "{'name': 'CLR_STAT', 'offset': 28, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'status', 'description': 'Clear Sticky Status Flags (W1C)', 'write_side_effects': ['Writing 1 to a bit clears the corresponding sticky flag in STAT. Writing 0 has no effect.'], 'fields': [{'name': 'clr_frame_err', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'description': 'Clear frame_err (W1C)'}, {'name': 'clr_parity_err', 'bits': [1, 1], 'access': 'rw', 'reset': 0, 'description': 'Clear parity_err (W1C)'}, {'name': 'clr_overrun_err', 'bits': [2, 2], 'access': 'rw', 'reset': 0, 'description': 'Clear overrun_err (W1C)'}, {'name': 'clr_underrun_err', 'bits': [3, 3], 'access': 'rw', 'reset': 0, 'description': 'Clear underrun_err (W1C)'}, {'name': 'reserved_31_4', 'bits': [31, 4], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved; reads zero'}], 'output_rules': [{'name': 'uart_irq', 'port': 'uart_irq', 'expr': '0'}]}"
         ]
       },
       "expected_contract": {
@@ -2643,7 +2832,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_REGISTER_DBG_BYTES_TX",
@@ -2670,7 +2861,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'DBG_BYTES_TX', 'offset': 32, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'debug', 'description': 'Debug Counter: Bytes Transmitted', 'read_side_effects': ['Read returns current count. Counter wraps at 0xFFFFFFFF.'], 'fields': [{'name': 'bytes_tx', 'bits': [31, 0], 'access': 'ro', 'reset': 0, 'description': 'Total bytes transmitted (wrapping)'}]}"
+          "{'name': 'DBG_BYTES_TX', 'offset': 32, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'debug', 'description': 'Debug Counter: Bytes Transmitted', 'read_side_effects': ['Read returns current count. Counter wraps at 0xFFFFFFFF.'], 'fields': [{'name': 'bytes_tx', 'bits': [31, 0], 'access': 'ro', 'reset': 0, 'description': 'Total bytes transmitted (wrapping)'}], 'output_rules': [{'name': 'uart_irq', 'port': 'uart_irq', 'expr': '0'}]}"
         ]
       },
       "expected_contract": {
@@ -2703,7 +2894,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_REGISTER_DBG_BYTES_RX",
@@ -2730,7 +2923,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'DBG_BYTES_RX', 'offset': 36, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'debug', 'description': 'Debug Counter: Bytes Received', 'fields': [{'name': 'bytes_rx', 'bits': [31, 0], 'access': 'ro', 'reset': 0, 'description': 'Total bytes received (wrapping)'}]}"
+          "{'name': 'DBG_BYTES_RX', 'offset': 36, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'debug', 'description': 'Debug Counter: Bytes Received', 'fields': [{'name': 'bytes_rx', 'bits': [31, 0], 'access': 'ro', 'reset': 0, 'description': 'Total bytes received (wrapping)'}], 'output_rules': [{'name': 'uart_irq', 'port': 'uart_irq', 'expr': '0'}]}"
         ]
       },
       "expected_contract": {
@@ -2763,7 +2956,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_REGISTER_DBG_FRAMES_ERR",
@@ -2791,7 +2986,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'DBG_FRAMES_ERR', 'offset': 40, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'debug', 'description': 'Debug Counter: Framing Errors', 'fields': [{'name': 'frames_errored', 'bits': [31, 0], 'access': 'ro', 'reset': 0, 'description': 'Total framing errors (wrapping)'}]}"
+          "{'name': 'DBG_FRAMES_ERR', 'offset': 40, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'debug', 'description': 'Debug Counter: Framing Errors', 'fields': [{'name': 'frames_errored', 'bits': [31, 0], 'access': 'ro', 'reset': 0, 'description': 'Total framing errors (wrapping)'}], 'output_rules': [{'name': 'uart_irq', 'port': 'uart_irq', 'expr': '0'}]}"
         ]
       },
       "expected_contract": {
@@ -2824,7 +3019,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_REGISTER_DBG_PARITIES_ERR",
@@ -2852,7 +3049,7 @@
           "addr_or_name"
         ],
         "constraints": [
-          "{'name': 'DBG_PARITIES_ERR', 'offset': 44, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'debug', 'description': 'Debug Counter: Parity Errors', 'fields': [{'name': 'parities_errored', 'bits': [31, 0], 'access': 'ro', 'reset': 0, 'description': 'Total parity errors (wrapping)'}]}"
+          "{'name': 'DBG_PARITIES_ERR', 'offset': 44, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'debug', 'description': 'Debug Counter: Parity Errors', 'fields': [{'name': 'parities_errored', 'bits': [31, 0], 'access': 'ro', 'reset': 0, 'description': 'Total parity errors (wrapping)'}], 'output_rules': [{'name': 'uart_irq', 'port': 'uart_irq', 'expr': '0'}]}"
         ]
       },
       "expected_contract": {
@@ -2885,7 +3082,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_MEMORY_TX_FIFO",
@@ -2941,7 +3140,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_MEMORY_RX_FIFO",
@@ -2997,7 +3198,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_ERROR_NONE",
@@ -3065,7 +3268,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_IDLE_TO_TX_START_0",
@@ -3132,7 +3337,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_START_TO_TX_DATA_1",
@@ -3198,7 +3405,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_DATA_TO_TX_PARITY_2",
@@ -3264,7 +3473,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_DATA_TO_TX_STOP1_3",
@@ -3330,7 +3541,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_PARITY_TO_TX_STOP1_4",
@@ -3395,7 +3608,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_STOP1_TO_TX_IDLE_5",
@@ -3462,7 +3677,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_STOP1_TO_TX_STOP2_6",
@@ -3527,7 +3744,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
@@ -3594,7 +3813,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_IDLE_TO_RX_START_DETECT_0",
@@ -3663,7 +3884,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_START_DETECT_TO_RX_START_CONFIRM_1",
@@ -3731,7 +3954,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_START_DETECT_TO_RX_IDLE_2",
@@ -3800,7 +4025,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_START_CONFIRM_TO_RX_DATA_3",
@@ -3869,7 +4096,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_DATA_TO_RX_PARITY_4",
@@ -3937,7 +4166,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_DATA_TO_RX_STOP1_5",
@@ -4005,7 +4236,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_PARITY_TO_RX_STOP1_6",
@@ -4072,7 +4305,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_STOP1_TO_RX_IDLE_7",
@@ -4141,7 +4376,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_STOP1_TO_RX_STOP2_8",
@@ -4208,7 +4445,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
@@ -4277,7 +4516,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_DEBUG_OBSERVABILITY",
@@ -4335,7 +4576,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_MODULE_UART_LITE_TX",
@@ -4352,9 +4595,6 @@
         "cycle_model.backpressure.backpressure_0",
         "cycle_model.backpressure.backpressure_1",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.pready",
-        "cycle_model.handshake_rules.pslverr",
-        "cycle_model.handshake_rules.tx",
         "cycle_model.latency",
         "cycle_model.observability.observability_0",
         "cycle_model.observability.observability_1",
@@ -4383,31 +4623,7 @@
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
         "function_model.invariants.invariant_4",
-        "function_model.state_variables.baud_div",
-        "function_model.state_variables.break_send",
-        "function_model.state_variables.loopback",
-        "function_model.state_variables.parity_en",
-        "function_model.state_variables.parity_odd",
-        "function_model.state_variables.stop_bits",
-        "function_model.state_variables.tx_active",
-        "function_model.state_variables.tx_fifo",
         "function_model.transactions.FM_TX_BYTE",
-        "function_model.transactions.fm_break_send",
-        "function_model.transactions.fm_break_send.inputs.input_0",
-        "function_model.transactions.fm_break_send.output_rules.break_serial",
-        "function_model.transactions.fm_break_send.outputs.output_0",
-        "function_model.transactions.fm_break_send.preconditions.precondition_0",
-        "function_model.transactions.fm_break_send.side_effects.side_effect_0",
-        "function_model.transactions.fm_break_send.side_effects.side_effect_1",
-        "function_model.transactions.fm_break_send.state_updates.tx",
-        "function_model.transactions.fm_loopback",
-        "function_model.transactions.fm_loopback.inputs.input_0",
-        "function_model.transactions.fm_loopback.output_rules.loopback_tx",
-        "function_model.transactions.fm_loopback.outputs.output_0",
-        "function_model.transactions.fm_loopback.preconditions.precondition_0",
-        "function_model.transactions.fm_loopback.side_effects.side_effect_0",
-        "function_model.transactions.fm_loopback.side_effects.side_effect_1",
-        "function_model.transactions.fm_loopback.state_updates.tx",
         "function_model.transactions.fm_tx_byte",
         "function_model.transactions.fm_tx_byte.error_cases.error_case_0",
         "function_model.transactions.fm_tx_byte.inputs.input_0",
@@ -4474,7 +4690,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_MODULE_UART_LITE_RX",
@@ -4489,7 +4707,10 @@
       "ssot_refs": [
         "cycle_model",
         "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.pslverr",
         "cycle_model.handshake_rules.rx",
+        "cycle_model.handshake_rules.tx",
         "cycle_model.pipeline",
         "cycle_model.pipeline.rx_data",
         "cycle_model.pipeline.rx_idle",
@@ -4508,8 +4729,6 @@
         "fsm",
         "fsm.rx_fsm",
         "function_model",
-        "function_model.state_variables.rx_active",
-        "function_model.state_variables.rx_fifo",
         "function_model.transactions.FM_RX_BYTE",
         "function_model.transactions.fm_rx_byte",
         "function_model.transactions.fm_rx_byte.error_cases.error_case_0",
@@ -4580,7 +4799,117 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
+    },
+    {
+      "goal_id": "EQ_MODULE_UART_LITE_CORE",
+      "title": "Module uart_lite_core functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "uart_lite_core",
+        "rtl_file": "rtl/uart_lite_core.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.sequence",
+        "decomposition",
+        "decomposition.units.execute",
+        "features",
+        "features.break_send",
+        "features.loopback_test_mode",
+        "features.parity_generation_checking",
+        "features.rx_deserialization",
+        "features.tx_serialization",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.state_variables.baud_div",
+        "function_model.state_variables.break_send",
+        "function_model.state_variables.loopback",
+        "function_model.state_variables.parity_en",
+        "function_model.state_variables.parity_odd",
+        "function_model.state_variables.rx_active",
+        "function_model.state_variables.rx_fifo",
+        "function_model.state_variables.stop_bits",
+        "function_model.state_variables.tx_active",
+        "function_model.state_variables.tx_fifo",
+        "function_model.transactions",
+        "function_model.transactions.fm_break_send",
+        "function_model.transactions.fm_break_send.inputs.input_0",
+        "function_model.transactions.fm_break_send.output_rules.tx_serial",
+        "function_model.transactions.fm_break_send.outputs.output_0",
+        "function_model.transactions.fm_break_send.preconditions.precondition_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_1",
+        "function_model.transactions.fm_break_send.state_updates.tx",
+        "function_model.transactions.fm_loopback",
+        "function_model.transactions.fm_loopback.inputs.input_0",
+        "function_model.transactions.fm_loopback.output_rules.loopback_tx",
+        "function_model.transactions.fm_loopback.outputs.output_0",
+        "function_model.transactions.fm_loopback.preconditions.precondition_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_1",
+        "function_model.transactions.fm_loopback.state_updates.tx"
+      ],
+      "decomposition_refs": [
+        "uart_lite_core"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "transmit_byte",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "tx_enable == 1",
+          "tx_fifo not empty",
+          "tx_active == false",
+          "break_send == false",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)",
+          "tx_active transitions true \u2192 false across the frame",
+          "tx_serial"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "debug counter bytes_tx increments by 1",
+          "tx_fifo level decreases by 1",
+          "STAT.tx_empty updates when FIFO becomes empty",
+          "tx"
+        ],
+        "error_policy": "{'condition': 'tx_fifo empty when TX FSM requests byte', 'result': 'underrun_err sticky flag set; frame aborted with tx returning to idle (mark)'}"
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_COVERAGE_CCOV_PERF_FIFO_DEPTH",
@@ -4656,7 +4985,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
@@ -4732,7 +5063,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
@@ -4808,7 +5141,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
@@ -4884,7 +5219,9 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false,
+      "sample_cycle": 2
     }
   ]
 }

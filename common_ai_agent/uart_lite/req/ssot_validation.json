@@ -1,0 +1,113 @@
+{
+  "ip": "uart_lite",
+  "ssot": "uart_lite/yaml/uart_lite.ssot.yaml",
+  "summary": {
+    "blockers": 0,
+    "warnings": 17,
+    "total": 17
+  },
+  "issues": [
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC1 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[0]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC2 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[1]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC3 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[2]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC4 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[3]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC5 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[4]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC6 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[5]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC7 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[6]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC8 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[7]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC9 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[8]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC10 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[9]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC11 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[10]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC12 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[11]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC13 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[12]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC14 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[13]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC15 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[14]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC16 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[15]"
+    },
+    {
+      "rule": "scenarios.stimulus_machine_spec_missing",
+      "severity": "warning",
+      "evidence": "scenario SC17 has no stimulus_machine_spec; heuristic stimulus generator will guess inputs",
+      "source_ref": "test_requirements.scenarios[16]"
+    }
+  ]
+}

@@ -340,12 +340,22 @@ function_model:
     error_cases:
     - condition: Downstream protocol response is non-OKAY or invalid
       result: Set error status and block signoff until handled
-    output_rules: []
+    output_rules:
+    - name: irq
+      port: irq
+      expr: '0'
+      width: 1
+      description: feature_2 does not raise irq during normal operation; scoreboard checks irq stays low.
+    - name: csr_error
+      port: csr_error
+      expr: '0'
+      width: 1
+      description: feature_2 does not propagate CSR protocol error on this transaction; scoreboard checks csr_error stays low when csr_valid is deasserted.
     state_updates:
     - name: fm2_observed
       expr: '1'
       width: 1
-      description: Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.
+      description: feature_2 transaction completed; marker enables coverage-style scoreboard projection.
   - id: FM3
     name: feature_3
     preconditions:
@@ -362,12 +372,22 @@ function_model:
     error_cases:
     - condition: Downstream protocol response is non-OKAY or invalid
       result: Set error status and block signoff until handled
-    output_rules: []
+    output_rules:
+    - name: irq
+      port: irq
+      expr: '0'
+      width: 1
+      description: feature_3 does not raise irq during normal operation; scoreboard checks irq stays low.
+    - name: mem_req_valid
+      port: mem_req_valid
+      expr: '0'
+      width: 1
+      description: feature_3 does not drive a memory master request during this transaction; scoreboard checks mem_req_valid stays low.
     state_updates:
     - name: fm3_observed
       expr: '1'
       width: 1
-      description: Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.
+      description: feature_3 transaction completed; marker enables coverage-style scoreboard projection.
   - id: FM4
     name: feature_4
     preconditions:
@@ -384,12 +404,22 @@ function_model:
     error_cases:
     - condition: Downstream protocol response is non-OKAY or invalid
       result: Set error status and block signoff until handled
-    output_rules: []
+    output_rules:
+    - name: irq
+      port: irq
+      expr: '0'
+      width: 1
+      description: feature_4 does not raise irq during normal operation; scoreboard checks irq stays low.
+    - name: mem_req_write
+      port: mem_req_write
+      expr: '0'
+      width: 1
+      description: feature_4 does not initiate a write on mem_master during this transaction; scoreboard checks mem_req_write stays low.
     state_updates:
     - name: fm4_observed
       expr: '1'
       width: 1
-      description: Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.
+      description: feature_4 transaction completed; marker enables coverage-style scoreboard projection.
   invariants:
   - No externally visible output changes except through declared interfaces, registers, interrupts, or debug signals.
   - All state updates are synchronous to the declared clock and return to reset values under the declared reset policy.
