@@ -2053,6 +2053,256 @@ def _ssot_docx_render_error_handling(doc: Any, value: Any) -> None:
         _ssot_docx_dict_block(doc, leftover)
 
 
+def _ssot_docx_render_block_diagram(doc: Any, data: dict) -> None:
+    """Text-based block diagram — top-module heading + sub-module table.
+
+    Andes-style datasheets use a real figure here; until we wire in a
+    PNG/SVG generator the SSOT export still gives the reader a clear
+    map of what blocks sit inside the IP and what each owns.
+    """
+    from docx.enum.text import WD_ALIGN_PARAGRAPH  # type: ignore
+    from docx.shared import Pt  # type: ignore
+
+    top = data.get("top_module") if isinstance(data.get("top_module"), dict) else {}
+    top_name = str(top.get("name") or "TOP").strip() or "TOP"
+    top_role = str(top.get("type") or top.get("role") or "").strip()
+    title_para = doc.add_paragraph()
+    title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    title_run = title_para.add_run(top_name + (f"  ({top_role})" if top_role else ""))
+    title_run.bold = True
+    title_run.font.size = Pt(13)
+
+    submods = data.get("sub_modules")
+    if isinstance(submods, list) and submods:
+        cols = min(3, len(submods))
+        rows = (len(submods) + cols - 1) // cols
+        table = doc.add_table(rows=rows, cols=cols)
+        try:
+            table.style = "Light Grid Accent 1"
+        except Exception:
+            pass
+        for idx, sm in enumerate(submods):
+            r = idx // cols
+            c = idx % cols
+            cell = table.rows[r].cells[c]
+            if isinstance(sm, dict):
+                name = str(sm.get("name") or sm.get("module") or "?").strip()
+                desc = str(sm.get("description") or sm.get("implementation") or "").strip()
+            else:
+                name = str(sm)
+                desc = ""
+            cell.text = name
+            for run in cell.paragraphs[0].runs:
+                run.bold = True
+            if desc:
+                p = cell.add_paragraph()
+                p.add_run(desc[:160]).italic = True
+        # Center each cell
+        for row in table.rows:
+            for cell in row.cells:
+                for para in cell.paragraphs:
+                    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    else:
+        caption = doc.add_paragraph()
+        cap = caption.add_run("(no sub-modules declared — single-block design)")
+        cap.italic = True
+        caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    # External interface chips
+    io_list = data.get("io_list") if isinstance(data.get("io_list"), dict) else {}
+    interfaces = io_list.get("interfaces") if isinstance(io_list, dict) else None
+    if isinstance(interfaces, list) and interfaces:
+        legend = doc.add_paragraph()
+        legend.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        legend.add_run("External interfaces: ").italic = True
+        legend.add_run(", ".join(
+            str(i.get("name") or "?") + (f" ({i.get('type')})" if isinstance(i, dict) and i.get("type") else "")
+            for i in interfaces if isinstance(i, dict)
+        ))
+
+
+def _ssot_docx_render_function_description(doc: Any, data: dict) -> None:
+    """Per-feature or per-submodule prose sub-section.
+
+    Mirrors AndeShape §1.3 layout — one H3 per feature with the
+    description paragraph that walks the reader through what that
+    feature does. Falls through to sub_modules → function_model
+    transactions when features are absent.
+    """
+    features = data.get("features")
+    if isinstance(features, list) and features:
+        for feat in features:
+            if not isinstance(feat, dict):
+                doc.add_paragraph(_ssot_md_scalar(feat))
+                continue
+            name = str(feat.get("name") or "(unnamed)")
+            doc.add_heading(name, level=3)
+            for body_key in ("description", "datapath", "control", "output", "trigger"):
+                txt = str(feat.get(body_key) or "").strip()
+                if txt:
+                    p = doc.add_paragraph()
+                    if body_key != "description":
+                        p.add_run(f"{body_key.title()}: ").bold = True
+                    p.add_run(txt)
+        return
+    submods = data.get("sub_modules")
+    if isinstance(submods, list) and submods:
+        for sm in submods:
+            if not isinstance(sm, dict):
+                continue
+            name = str(sm.get("name") or sm.get("module") or "(unnamed)")
+            desc = str(sm.get("description") or sm.get("implementation") or "").strip()
+            if not desc:
+                continue
+            doc.add_heading(name, level=3)
+            doc.add_paragraph(desc)
+        return
+    fn_model = data.get("function_model") if isinstance(data.get("function_model"), dict) else {}
+    purpose = str(fn_model.get("purpose") or fn_model.get("description") or "").strip()
+    if purpose:
+        doc.add_paragraph(purpose)
+    transactions = fn_model.get("transactions") if isinstance(fn_model, dict) else None
+    if isinstance(transactions, list) and transactions:
+        for tx in transactions:
+            if not isinstance(tx, dict):
+                continue
+            label = str(tx.get("id") or tx.get("name") or "(transaction)").strip()
+            doc.add_heading(label, level=3)
+            for body_key in ("description", "preconditions", "inputs", "outputs", "side_effects"):
+                v = tx.get(body_key)
+                if v in (None, "", [], {}):
+                    continue
+                if isinstance(v, (list, tuple)):
+                    text = "; ".join(_ssot_md_scalar(item) for item in v)
+                else:
+                    text = _ssot_md_scalar(v)
+                p = doc.add_paragraph()
+                p.add_run(f"{body_key.replace('_', ' ').title()}: ").bold = True
+                p.add_run(text)
+
+
+def _ssot_docx_render_programming_model(doc: Any, registers: Any) -> None:
+    """Andes §3 layout — Summary of Registers table → per-register Description."""
+    reg_list = []
+    if isinstance(registers, dict):
+        cfg = registers.get("config")
+        if isinstance(cfg, dict) and cfg:
+            doc.add_heading("Register Block Configuration", level=2)
+            _ssot_docx_table_from_rows(
+                doc, ["Property", "Value"],
+                [[k.replace("_", " "), _ssot_md_scalar(v)] for k, v in cfg.items()],
+            )
+        if isinstance(registers.get("register_list"), list):
+            reg_list = registers["register_list"]
+    elif isinstance(registers, list):
+        reg_list = registers
+    reg_list = [r for r in reg_list if isinstance(r, dict)]
+    if not reg_list:
+        _ssot_docx_yaml_block(doc, registers)
+        return
+    doc.add_heading("Summary of Registers", level=2)
+    summary_rows = []
+    for reg in reg_list:
+        summary_rows.append([
+            _ssot_md_scalar(reg.get("offset") or ""),
+            _ssot_md_scalar(reg.get("name") or ""),
+            _ssot_md_scalar(reg.get("access") or ""),
+            _ssot_md_scalar(reg.get("reset") or ""),
+            _ssot_md_scalar(reg.get("description") or "")[:120],
+        ])
+    _ssot_docx_table_from_rows(
+        doc, ["Offset", "Register", "Access", "Reset", "Description"], summary_rows,
+    )
+    doc.add_heading("Register Description", level=2)
+    for reg in reg_list:
+        _ssot_docx_render_register_detail(doc, reg, level=3)
+
+
+def _ssot_docx_render_programming_sequence(doc: Any, data: dict) -> None:
+    """Andes §5 layout — Setup / TX / RX style sub-sections derived from SSOT.
+
+    Heuristics:
+      * "IP Setup": find Enable / Configure registers, emit a numbered
+        step list with the relevant register writes.
+      * Scenarios: if cycle_model.scenarios / function_model.scenarios
+        exist, one H3 per scenario walking cycle-by-cycle through the
+        steps with action prose.
+    """
+    cycle_model = data.get("cycle_model") if isinstance(data.get("cycle_model"), dict) else {}
+    fn_model = data.get("function_model") if isinstance(data.get("function_model"), dict) else {}
+    scenarios = []
+    for src in (cycle_model.get("scenarios"), fn_model.get("scenarios")):
+        if isinstance(src, list):
+            scenarios.extend(s for s in src if isinstance(s, dict))
+
+    # 5.1 IP Setup
+    registers = data.get("registers")
+    reg_list = []
+    if isinstance(registers, dict) and isinstance(registers.get("register_list"), list):
+        reg_list = [r for r in registers["register_list"] if isinstance(r, dict)]
+    elif isinstance(registers, list):
+        reg_list = [r for r in registers if isinstance(r, dict)]
+    enable_targets = []
+    configure_targets = []
+    for reg in reg_list:
+        rn = str(reg.get("name") or "")
+        fields = reg.get("fields") if isinstance(reg.get("fields"), list) else []
+        en_field = next((f for f in fields if isinstance(f, dict)
+                         and re.search(r"\ben\b|enable", str(f.get("name") or ""), re.I)), None)
+        if en_field:
+            enable_targets.append((rn, en_field.get("name"), en_field.get("description")))
+        elif re.match(r"^(cr|ctrl|control|cfg|config|mode)\b", rn, re.I):
+            enable_targets.append((rn, None, reg.get("description")))
+        if re.match(r"^(dlr|brr|baud|div|mr|prescaler|cfg)", rn, re.I) and not any(rn == e[0] for e in enable_targets):
+            configure_targets.append((rn, reg.get("offset"), reg.get("description")))
+    if enable_targets or configure_targets:
+        doc.add_heading("IP Setup", level=2)
+        steps = []
+        for rn, fld, desc in enable_targets[:2]:
+            steps.append(f"Write {rn}.{fld}=1 to enable the module." if fld else f"Configure {rn} (the primary control register) to bring the module out of reset.")
+        for rn, off, desc in configure_targets[:3]:
+            label = f"{rn}" + (f" (@ {off})" if off else "")
+            steps.append(f"Program {label} with the operating parameters required for your use case.")
+        if not steps:
+            steps.append("Refer to the Register Description chapter for the bring-up sequence specific to this IP.")
+        for i, s in enumerate(steps, start=1):
+            p = doc.add_paragraph(style="List Number")
+            p.add_run(s)
+
+    # 5.2+ Scenarios
+    for scn in scenarios:
+        name = str(scn.get("name") or scn.get("id") or "Scenario")
+        doc.add_heading(name, level=2)
+        summary = str(scn.get("summary") or scn.get("description") or "").strip()
+        if summary:
+            doc.add_paragraph(summary)
+        steps = scn.get("steps") if isinstance(scn.get("steps"), list) else []
+        rows = []
+        for st in steps:
+            if not isinstance(st, dict):
+                continue
+            cycle = st.get("cycle")
+            rows.append([
+                _ssot_md_scalar(cycle if cycle is not None else ""),
+                _ssot_md_scalar(st.get("action") or st.get("description") or ""),
+                _ssot_md_scalar(st.get("fl_state") or st.get("function_state") or ""),
+                _ssot_md_scalar(st.get("cl_state") or st.get("cycle_state") or st.get("stage") or ""),
+            ])
+        if rows:
+            _ssot_docx_table_from_rows(doc, ["Cycle", "Action", "FL state", "CL state"], rows)
+
+
+_SSOT_DOCX_APPENDIX_KEYS = (
+    "decomposition", "dataflow", "cycle_model", "clock_reset_domains",
+    "cdc_requirements", "rdc_requirements", "memory", "interrupts", "fsm",
+    "rtl_contract", "timing", "power", "security", "error_handling",
+    "debug_observability", "integration", "dft", "synthesis", "pnr",
+    "coding_rules", "reuse_modules", "custom", "dir_structure", "filelist",
+    "test_requirements", "quality_gates", "traceability", "workflow_todos",
+    "generation_flow",
+)
+
+
 def _ssot_to_docx(data: dict, ip: str, out_path: Path) -> None:
     from docx import Document  # type: ignore
 
@@ -2071,81 +2321,92 @@ def _ssot_to_docx(data: dict, ip: str, out_path: Path) -> None:
         doc.save(str(out_path))
         return
 
-    chapter_no = 0
-    for key, label in _SSOT_EXPORT_SECTION_ORDER:
-        if key not in data:
-            continue
-        value = data.get(key)
-        if _ssot_section_is_empty(value):
-            continue
-        chapter_no += 1
-        if chapter_no > 1:
-            _ssot_docx_page_break(doc)
-        doc.add_heading(label, level=1)
-        try:
-            if key == "top_module" and isinstance(value, dict):
-                _ssot_docx_render_top_module(doc, value)
-            elif key == "parameters":
-                _ssot_docx_render_parameters(doc, value)
-            elif key == "features":
-                _ssot_docx_render_features(doc, value)
-            elif key == "io_list":
-                _ssot_docx_render_io_list(doc, value)
-            elif key == "interrupts":
-                _ssot_docx_render_interrupts(doc, value)
-            elif key == "fsm":
-                _ssot_docx_render_fsm(doc, value)
-            elif key == "cycle_model":
-                _ssot_docx_render_cycle_model(doc, value)
-            elif key == "error_handling":
-                _ssot_docx_render_error_handling(doc, value)
-            elif key == "registers" and isinstance(value, dict) and isinstance(value.get("register_list"), list):
-                cfg = value.get("config")
-                if isinstance(cfg, dict) and cfg:
-                    doc.add_heading("Register block configuration", level=2)
-                    _ssot_docx_table_from_rows(
-                        doc,
-                        ["Property", "Value"],
-                        [[k.replace("_", " "), _ssot_md_scalar(v)] for k, v in cfg.items()],
-                    )
-                doc.add_heading("Register map", level=2)
-                map_rows = []
-                for reg in value["register_list"]:
-                    if not isinstance(reg, dict):
-                        continue
-                    map_rows.append([
-                        _ssot_md_scalar(reg.get("offset") or ""),
-                        _ssot_md_scalar(reg.get("name") or ""),
-                        _ssot_md_scalar(reg.get("access") or ""),
-                        _ssot_md_scalar(reg.get("reset") or ""),
-                        _ssot_md_scalar(reg.get("description") or "")[:120],
-                    ])
-                if map_rows:
-                    _ssot_docx_table_from_rows(
-                        doc,
-                        ["Offset", "Register", "Access", "Reset", "Description"],
-                        map_rows,
-                    )
-                doc.add_heading("Register details", level=2)
-                for reg in value["register_list"]:
-                    _ssot_docx_render_register_detail(doc, reg, level=3)
-            else:
-                _ssot_docx_render_section(doc, key, value)
-        except Exception as exc:
-            err = doc.add_paragraph()
-            err.add_run(f"(render error: {exc})").italic = True
-            _ssot_docx_yaml_block(doc, value)
+    # ── Chapter 1. Introduction ────────────────────────────────────
+    doc.add_heading("Introduction", level=1)
+    top = data.get("top_module") if isinstance(data.get("top_module"), dict) else {}
+    intro_text = str(top.get("description") or top.get("purpose") or "").strip()
+    if intro_text:
+        doc.add_paragraph(intro_text)
+    if not _ssot_section_is_empty(data.get("features")):
+        doc.add_heading("Features", level=2)
+        _ssot_docx_render_features(doc, data["features"])
+    if not _ssot_section_is_empty(data.get("top_module")) or not _ssot_section_is_empty(data.get("sub_modules")):
+        doc.add_heading("Block Diagram", level=2)
+        _ssot_docx_render_block_diagram(doc, data)
+    if (not _ssot_section_is_empty(data.get("features"))
+            or not _ssot_section_is_empty(data.get("sub_modules"))
+            or not _ssot_section_is_empty(data.get("function_model"))):
+        doc.add_heading("Function Description", level=2)
+        _ssot_docx_render_function_description(doc, data)
 
-    known = {key for key, _ in _SSOT_EXPORT_SECTION_ORDER}
-    extras = [k for k in data.keys() if k not in known and not _ssot_section_is_empty(data.get(k))]
-    if extras:
-        chapter_no += 1
+    # ── Chapter 2. Signal Description ──────────────────────────────
+    if not _ssot_section_is_empty(data.get("io_list")):
+        _ssot_docx_page_break(doc)
+        doc.add_heading("Signal Description", level=1)
+        _ssot_docx_render_io_list(doc, data["io_list"])
+
+    # ── Chapter 3. Programming Model ───────────────────────────────
+    if not _ssot_section_is_empty(data.get("registers")):
+        _ssot_docx_page_break(doc)
+        doc.add_heading("Programming Model", level=1)
+        _ssot_docx_render_programming_model(doc, data["registers"])
+
+    # ── Chapter 4. Hardware Configuration Options ──────────────────
+    if not _ssot_section_is_empty(data.get("parameters")):
+        _ssot_docx_page_break(doc)
+        doc.add_heading("Hardware Configuration Options", level=1)
+        _ssot_docx_render_parameters(doc, data["parameters"])
+
+    # ── Chapter 5. Programming Sequence ────────────────────────────
+    cycle_model = data.get("cycle_model") if isinstance(data.get("cycle_model"), dict) else {}
+    fn_model = data.get("function_model") if isinstance(data.get("function_model"), dict) else {}
+    has_scenarios = (isinstance(cycle_model.get("scenarios"), list) and cycle_model["scenarios"]) \
+        or (isinstance(fn_model.get("scenarios"), list) and fn_model["scenarios"])
+    if has_scenarios or not _ssot_section_is_empty(data.get("registers")):
+        _ssot_docx_page_break(doc)
+        doc.add_heading("Programming Sequence", level=1)
+        _ssot_docx_render_programming_sequence(doc, data)
+
+    # ── Appendix — Detailed sections ───────────────────────────────
+    appendix_items = [
+        (k, data.get(k)) for k in _SSOT_DOCX_APPENDIX_KEYS
+        if k in data and not _ssot_section_is_empty(data.get(k))
+    ]
+    if appendix_items:
+        _ssot_docx_page_break(doc)
+        doc.add_heading("Appendix — Detailed Sections", level=1)
+        for key, value in appendix_items:
+            label = next((lbl for k, lbl in _SSOT_EXPORT_SECTION_ORDER if k == key), key.replace("_", " ").title())
+            doc.add_heading(label, level=2)
+            try:
+                if key == "fsm":
+                    _ssot_docx_render_fsm(doc, value)
+                elif key == "interrupts":
+                    _ssot_docx_render_interrupts(doc, value)
+                elif key == "cycle_model":
+                    _ssot_docx_render_cycle_model(doc, value)
+                elif key == "error_handling":
+                    _ssot_docx_render_error_handling(doc, value)
+                else:
+                    _ssot_docx_render_section(doc, key, value)
+            except Exception as exc:
+                err = doc.add_paragraph()
+                err.add_run(f"(render error: {exc})").italic = True
+                _ssot_docx_yaml_block(doc, value)
+
+    # Catch-all: any keys not in the canonical list nor the appendix.
+    canonical = {key for key, _ in _SSOT_EXPORT_SECTION_ORDER}
+    chapter1_keys = {"top_module", "features", "sub_modules", "function_model"}
+    chapter_keys = chapter1_keys | {"io_list", "registers", "parameters"} | set(_SSOT_DOCX_APPENDIX_KEYS)
+    other_keys = [k for k in data.keys()
+                  if k not in chapter_keys and k not in canonical
+                  and not _ssot_section_is_empty(data.get(k))]
+    if other_keys:
         _ssot_docx_page_break(doc)
         doc.add_heading("Other Sections", level=1)
-        for key in extras:
-            value = data.get(key)
+        for key in other_keys:
             doc.add_heading(str(key), level=2)
-            _ssot_docx_render_section(doc, key, value)
+            _ssot_docx_render_section(doc, key, data.get(key))
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     doc.save(str(out_path))
@@ -2351,11 +2612,10 @@ def create_app():
                 # `tool` / `tool_result` / `token` / `cost` frames are
                 # dropped — exactly the "tool calls only show after
                 # reload" + "cost stays at 0" symptoms users hit.
-                # Fall back to every connected client of every session
-                # in that case so the live stream reaches the browser
-                # the user is looking at. Multi-user routing is
-                # unaffected because real per-user sessions always have
-                # at least one client of their own.
+                # Fall back only to connected clients with the same owner
+                # in multi-user mode. That preserves live recovery for a
+                # user's sibling tabs without leaking an ownerless or
+                # inactive user's stream to someone else's browser.
                 if not snapshot:
                     seen_clients = set()
                     try:
@@ -2363,7 +2623,14 @@ def create_app():
                             all_sessions = list(bridge._sessions.values())
                     except Exception:
                         all_sessions = []
+                    _multi_raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
+                    _multi_user = _multi_raw not in ("0", "false", "no", "off")
+                    _target_owner = str(session_id or "").split("/", 1)[0]
                     for sess in all_sessions:
+                        if _multi_user:
+                            _sess_owner = str(getattr(sess, "session_id", "") or "").split("/", 1)[0]
+                            if not _target_owner or _target_owner == "default" or _sess_owner != _target_owner:
+                                continue
                         for c in list(sess.clients):
                             if c not in seen_clients:
                                 seen_clients.add(c)
