@@ -1011,22 +1011,43 @@ def emit(ip: str, root: Path) -> dict[str, Any]:
             for _g in goals:
                 if not isinstance(_g, dict) or "sample_cycle" in _g:
                     continue
+                # Resolve per-transaction sample_stage first; an explicit
+                # sample_stage authored by the SSOT means the IP author has
+                # committed to a stable comparison point regardless of
+                # stimulus shape (e.g. FM_TX_BYTE -> TX_START), so honor it.
                 _per_goal: int | None = None
-                # Per-transaction goal: parse goal_id suffix or transaction payload.
                 gid = str(_g.get("goal_id") or "")
                 tx_payload = _g.get("transaction") if isinstance(_g.get("transaction"), dict) else None
                 tx_kind = str(tx_payload.get("kind") or "") if tx_payload else ""
                 stage = _tx_stage.get(tx_kind) if tx_kind else None
                 if stage is None and gid.startswith("EQ_TRANSACTION_"):
                     tail = gid[len("EQ_TRANSACTION_"):]
-                    # Match by safe-name canonical form against tx ids/names.
                     for _k, _v in _tx_stage.items():
                         if _safe_name(_k, _k).upper() == tail.upper():
                             stage = _v
                             break
                 if stage and stage in _stage_cycle:
                     _per_goal = _stage_cycle[stage]
-                _g["sample_cycle"] = _per_goal if _per_goal is not None else _sample_cycle_default
+                    _g["sample_cycle"] = _per_goal
+                    continue
+                # No sample_stage match: only auto-tag default sample_cycle
+                # when this goal has a real stimulus_machine_spec
+                # (assign / csr_writes / timeline). Without machine_spec,
+                # RTL stays idle and cycle_view comparison against SSOT
+                # pipeline.output_rules produces false negatives (expected
+                # "TX_START drives 0" vs observed "TX_IDLE driving 1").
+                # model_result is the right verdict for unsequenced goals.
+                _ms = (
+                    _g.get("stimulus_contract", {}).get("machine_spec")
+                    if isinstance(_g.get("stimulus_contract"), dict)
+                    else None
+                )
+                _has_ms = bool(
+                    isinstance(_ms, dict)
+                    and (_ms.get("assign") or _ms.get("csr_writes") or _ms.get("timeline"))
+                )
+                if _has_ms:
+                    _g["sample_cycle"] = _sample_cycle_default
     blocked = sum(1 for g in goals if g.get("blocked"))
     unverified = sum(1 for g in goals if g.get("unverified"))
     required = sum(1 for g in goals if not g.get("blocked"))

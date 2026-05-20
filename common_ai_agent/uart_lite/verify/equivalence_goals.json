@@ -268,13 +268,13 @@
     }
   },
   "summary": {
-    "total": 69,
-    "required": 69,
+    "total": 68,
+    "required": 68,
     "optional": 0,
     "blocked": 0,
     "unverified": 0,
-    "module_total": 3,
-    "module_required": 3,
+    "module_total": 2,
+    "module_required": 2,
     "module_blocked": 0,
     "module_unverified": 0
   },
@@ -423,8 +423,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_BREAK_SEND",
@@ -490,8 +489,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_TRANSACTION_FM_LOOPBACK",
@@ -557,8 +555,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC1",
@@ -647,8 +644,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC2",
@@ -729,8 +725,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC3",
@@ -811,8 +806,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC4",
@@ -893,8 +887,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC5",
@@ -975,8 +968,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC6",
@@ -1057,8 +1049,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC7",
@@ -1139,8 +1130,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC8",
@@ -1221,8 +1211,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC9",
@@ -1299,8 +1288,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC10",
@@ -1377,8 +1365,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC11",
@@ -1448,8 +1435,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC12",
@@ -1519,8 +1505,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC13",
@@ -1590,8 +1575,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC14",
@@ -1661,8 +1645,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC15",
@@ -1732,8 +1715,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC16",
@@ -1803,8 +1785,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC17",
@@ -1874,8 +1855,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
@@ -1935,8 +1915,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
@@ -1996,8 +1975,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
@@ -2057,8 +2035,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
@@ -2118,8 +2095,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_TIMING_ORDERING_0",
@@ -2177,8 +2153,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_TIMING_ORDERING_1",
@@ -2236,8 +2211,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_TIMING_ORDERING_2",
@@ -2295,8 +2269,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_CTRL",
@@ -2357,8 +2330,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_STAT",
@@ -2442,8 +2414,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_BAUD",
@@ -2523,8 +2494,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_TXDATA",
@@ -2585,8 +2555,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_RXDATA",
@@ -2647,8 +2616,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_INTEN",
@@ -2709,8 +2677,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_INTPEND",
@@ -2771,8 +2738,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_CLR_STAT",
@@ -2833,8 +2799,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_DBG_BYTES_TX",
@@ -2895,8 +2860,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_DBG_BYTES_RX",
@@ -2957,8 +2921,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_DBG_FRAMES_ERR",
@@ -3020,8 +2983,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_DBG_PARITIES_ERR",
@@ -3083,8 +3045,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_MEMORY_TX_FIFO",
@@ -3141,8 +3102,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_MEMORY_RX_FIFO",
@@ -3199,8 +3159,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_ERROR_NONE",
@@ -3269,8 +3228,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_IDLE_TO_TX_START_0",
@@ -3338,8 +3296,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_START_TO_TX_DATA_1",
@@ -3406,8 +3363,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_DATA_TO_TX_PARITY_2",
@@ -3474,8 +3430,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_DATA_TO_TX_STOP1_3",
@@ -3542,8 +3497,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_PARITY_TO_TX_STOP1_4",
@@ -3609,8 +3563,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_STOP1_TO_TX_IDLE_5",
@@ -3678,8 +3631,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_STOP1_TO_TX_STOP2_6",
@@ -3745,8 +3697,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
@@ -3814,8 +3765,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_IDLE_TO_RX_START_DETECT_0",
@@ -3885,8 +3835,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_START_DETECT_TO_RX_START_CONFIRM_1",
@@ -3955,8 +3904,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_START_DETECT_TO_RX_IDLE_2",
@@ -4026,8 +3974,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_START_CONFIRM_TO_RX_DATA_3",
@@ -4097,8 +4044,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_DATA_TO_RX_PARITY_4",
@@ -4167,8 +4113,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_DATA_TO_RX_STOP1_5",
@@ -4237,8 +4182,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_PARITY_TO_RX_STOP1_6",
@@ -4306,8 +4250,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_STOP1_TO_RX_IDLE_7",
@@ -4377,8 +4320,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_STOP1_TO_RX_STOP2_8",
@@ -4446,8 +4388,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
@@ -4517,8 +4458,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_DEBUG_OBSERVABILITY",
@@ -4577,8 +4517,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_MODULE_UART_LITE_TX",
@@ -4595,6 +4534,9 @@
         "cycle_model.backpressure.backpressure_0",
         "cycle_model.backpressure.backpressure_1",
         "cycle_model.clock",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.handshake_rules.tx",
         "cycle_model.latency",
         "cycle_model.observability.observability_0",
         "cycle_model.observability.observability_1",
@@ -4623,7 +4565,31 @@
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
         "function_model.invariants.invariant_4",
+        "function_model.state_variables.baud_div",
+        "function_model.state_variables.break_send",
+        "function_model.state_variables.loopback",
+        "function_model.state_variables.parity_en",
+        "function_model.state_variables.parity_odd",
+        "function_model.state_variables.stop_bits",
+        "function_model.state_variables.tx_active",
+        "function_model.state_variables.tx_fifo",
         "function_model.transactions.FM_TX_BYTE",
+        "function_model.transactions.fm_break_send",
+        "function_model.transactions.fm_break_send.inputs.input_0",
+        "function_model.transactions.fm_break_send.output_rules.tx_serial",
+        "function_model.transactions.fm_break_send.outputs.output_0",
+        "function_model.transactions.fm_break_send.preconditions.precondition_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_1",
+        "function_model.transactions.fm_break_send.state_updates.tx",
+        "function_model.transactions.fm_loopback",
+        "function_model.transactions.fm_loopback.inputs.input_0",
+        "function_model.transactions.fm_loopback.output_rules.loopback_tx",
+        "function_model.transactions.fm_loopback.outputs.output_0",
+        "function_model.transactions.fm_loopback.preconditions.precondition_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_1",
+        "function_model.transactions.fm_loopback.state_updates.tx",
         "function_model.transactions.fm_tx_byte",
         "function_model.transactions.fm_tx_byte.error_cases.error_case_0",
         "function_model.transactions.fm_tx_byte.inputs.input_0",
@@ -4691,8 +4657,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_MODULE_UART_LITE_RX",
@@ -4707,10 +4672,7 @@
       "ssot_refs": [
         "cycle_model",
         "cycle_model.handshake_rules",
-        "cycle_model.handshake_rules.pready",
-        "cycle_model.handshake_rules.pslverr",
         "cycle_model.handshake_rules.rx",
-        "cycle_model.handshake_rules.tx",
         "cycle_model.pipeline",
         "cycle_model.pipeline.rx_data",
         "cycle_model.pipeline.rx_idle",
@@ -4729,6 +4691,8 @@
         "fsm",
         "fsm.rx_fsm",
         "function_model",
+        "function_model.state_variables.rx_active",
+        "function_model.state_variables.rx_fifo",
         "function_model.transactions.FM_RX_BYTE",
         "function_model.transactions.fm_rx_byte",
         "function_model.transactions.fm_rx_byte.error_cases.error_case_0",
@@ -4800,116 +4764,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
-    },
-    {
-      "goal_id": "EQ_MODULE_UART_LITE_CORE",
-      "title": "Module uart_lite_core functionality equals FunctionalModel",
-      "kind": "module",
-      "scope": {
-        "level": "module",
-        "rtl_module": "uart_lite_core",
-        "rtl_file": "rtl/uart_lite_core.sv",
-        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
-      },
-      "ssot_refs": [
-        "cycle_model",
-        "cycle_model.pipeline",
-        "dataflow",
-        "dataflow.sequence",
-        "decomposition",
-        "decomposition.units.execute",
-        "features",
-        "features.break_send",
-        "features.loopback_test_mode",
-        "features.parity_generation_checking",
-        "features.rx_deserialization",
-        "features.tx_serialization",
-        "function_model",
-        "function_model.state_variables",
-        "function_model.state_variables.baud_div",
-        "function_model.state_variables.break_send",
-        "function_model.state_variables.loopback",
-        "function_model.state_variables.parity_en",
-        "function_model.state_variables.parity_odd",
-        "function_model.state_variables.rx_active",
-        "function_model.state_variables.rx_fifo",
-        "function_model.state_variables.stop_bits",
-        "function_model.state_variables.tx_active",
-        "function_model.state_variables.tx_fifo",
-        "function_model.transactions",
-        "function_model.transactions.fm_break_send",
-        "function_model.transactions.fm_break_send.inputs.input_0",
-        "function_model.transactions.fm_break_send.output_rules.tx_serial",
-        "function_model.transactions.fm_break_send.outputs.output_0",
-        "function_model.transactions.fm_break_send.preconditions.precondition_0",
-        "function_model.transactions.fm_break_send.side_effects.side_effect_0",
-        "function_model.transactions.fm_break_send.side_effects.side_effect_1",
-        "function_model.transactions.fm_break_send.state_updates.tx",
-        "function_model.transactions.fm_loopback",
-        "function_model.transactions.fm_loopback.inputs.input_0",
-        "function_model.transactions.fm_loopback.output_rules.loopback_tx",
-        "function_model.transactions.fm_loopback.outputs.output_0",
-        "function_model.transactions.fm_loopback.preconditions.precondition_0",
-        "function_model.transactions.fm_loopback.side_effects.side_effect_0",
-        "function_model.transactions.fm_loopback.side_effects.side_effect_1",
-        "function_model.transactions.fm_loopback.state_updates.tx"
-      ],
-      "decomposition_refs": [
-        "uart_lite_core"
-      ],
-      "coverage_refs": [],
-      "stimulus_contract": {
-        "transaction_type": "transmit_byte",
-        "required_fields": [
-          "kind"
-        ],
-        "constraints": [
-          "tx_enable == 1",
-          "tx_fifo not empty",
-          "tx_active == false",
-          "break_send == false",
-          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
-        ]
-      },
-      "expected_contract": {
-        "model_api": "FunctionalModel.apply",
-        "observables": [
-          "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)",
-          "tx_active transitions true \u2192 false across the frame",
-          "tx_serial"
-        ],
-        "latency": "cycle_model latency/ordering must hold at the module boundary",
-        "state_updates": [
-          "debug counter bytes_tx increments by 1",
-          "tx_fifo level decreases by 1",
-          "STAT.tx_empty updates when FIFO becomes empty",
-          "tx"
-        ],
-        "error_policy": "{'condition': 'tx_fifo empty when TX FSM requests byte', 'result': 'underrun_err sticky flag set; frame aborted with tx returning to idle (mark)'}"
-      },
-      "pass_criteria": [
-        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
-        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
-        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
-        "Record a scoreboard row for this module goal before top-level signoff"
-      ],
-      "owner_on_fail": {
-        "default": "rtl",
-        "possible": [
-          "ssot",
-          "fl_model",
-          "rtl",
-          "tb",
-          "coverage",
-          "human"
-        ]
-      },
-      "blocked": false,
-      "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_COVERAGE_CCOV_PERF_FIFO_DEPTH",
@@ -4986,8 +4841,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
@@ -5064,8 +4918,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
@@ -5142,8 +4995,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
@@ -5220,8 +5072,7 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false,
-      "sample_cycle": 2
+      "unverified": false
     }
   ]
 }
