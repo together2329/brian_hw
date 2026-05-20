@@ -8194,19 +8194,29 @@ def create_app():
         def _add_imported_file(row: dict[str, Any]) -> None:
             path = str(row.get("path") or row.get("md_path") or row.get("original_path") or "").strip()
             original = str(row.get("original_path") or row.get("path") or "").strip()
+            md_path_str = str(row.get("md_path") or "").strip()
             if not path and not original:
                 return
-            key = path or original
-            if key in seen_import_paths:
+            # Dedup against EVERY path the artifact knows about. Without
+            # this a manifest entry for foo.docx (with sibling md_path=
+            # foo.md) would still be re-added by the imports/ glob pass
+            # when it iterates foo.md as a standalone file, producing two
+            # rows for the same import.
+            keys = [k for k in (path, original, md_path_str) if k]
+            if any(k in seen_import_paths for k in keys):
                 return
-            seen_import_paths.add(key)
+            for k in keys:
+                seen_import_paths.add(k)
             name = str(row.get("name") or Path(original or path).name or "").strip()
             images = row.get("image_paths") if isinstance(row.get("image_paths"), list) else []
+            for img in images:
+                if isinstance(img, str) and img:
+                    seen_import_paths.add(img)
             imported_files.append({
                 "name": name,
                 "bytes": int(row.get("bytes") or row.get("size_bytes") or 0),
                 "path": path,
-                "md_path": str(row.get("md_path") or (path if path.endswith(".md") else "") or ""),
+                "md_path": md_path_str or (path if path.endswith(".md") else ""),
                 "original_path": original,
                 "image_paths": images,
                 "image_count": len(images),
@@ -8224,16 +8234,34 @@ def create_app():
         imports_dir = PROJECT_ROOT / ip / "req" / "imports"
         if imports_dir.is_dir():
             for path in sorted(imports_dir.glob("*"), key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)[:80]:
+                # Skip the auto-generated images/ subdir — those are
+                # embedded figures, not standalone documents.
+                if path.is_dir():
+                    continue
                 if path.is_file():
                     try:
                         rel = path.relative_to(PROJECT_ROOT).as_posix()
                     except Exception:
                         rel = path.as_posix()
+                    # If the .md sibling of a manifest-registered docx
+                    # is already known via md_path, skip it here so the
+                    # user sees one row per logical import, not two.
+                    if rel in seen_import_paths:
+                        continue
+                    suffix = path.suffix.lower()
+                    sibling_keys = []
+                    if suffix == ".md":
+                        for ext in (".docx", ".pdf", ".pptx", ".xlsx", ".html", ".htm"):
+                            sibling_keys.append(rel[:-3] + ext)
+                    elif suffix in {".docx", ".pdf", ".pptx", ".xlsx", ".html", ".htm"}:
+                        sibling_keys.append(rel.rsplit(".", 1)[0] + ".md")
+                    if any(k in seen_import_paths for k in sibling_keys):
+                        continue
                     _add_imported_file({
                         "name": path.name,
                         "bytes": path.stat().st_size,
                         "path": rel,
-                        "md_path": rel if path.suffix.lower() == ".md" else "",
+                        "md_path": rel if suffix == ".md" else "",
                         "original_path": rel,
                     })
         return {

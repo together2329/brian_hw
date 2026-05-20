@@ -1508,7 +1508,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
       const d = ev && ev.detail || {};
       if (!d.sha) return;
       setGitShow({ sha: d.sha, ip: d.ip || '', subject: d.subject || '' });
-      setMainTab(t => (t === 'chat' || t === 'qa' || t === 'checklist' || t === 'import' || t === 'export') ? 'split' : t);
+      setMainTab(t => (t === 'chat' || t === 'qa' || t === 'checklist' || t === 'import_export') ? 'split' : t);
     };
     window.addEventListener('atlas-git-show', onShow);
     return () => window.removeEventListener('atlas-git-show', onShow);
@@ -3718,32 +3718,17 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
             {showSsotImportExportTab && (
               <span
                 className="tab-chip"
-                onClick={() => setMainTab('import')}
-                title="Upload and import docs into the SSOT evidence base"
+                onClick={() => setMainTab('import_export')}
+                title="Import docs and export SSOT artifacts"
                 style={{
                   cursor: 'pointer',
                   padding: '2px 8px', borderRadius: 2,
-                  color: mainTab === 'import' ? 'var(--accent)' : 'var(--fg-mute)',
-                  background: mainTab === 'import' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-                  border: '1px solid ' + (mainTab === 'import' ? 'var(--accent)' : 'transparent'),
+                  color: mainTab === 'import_export' ? 'var(--accent)' : 'var(--fg-mute)',
+                  background: mainTab === 'import_export' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+                  border: '1px solid ' + (mainTab === 'import_export' ? 'var(--accent)' : 'transparent'),
                   fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
                 }}
-              >Import</span>
-            )}
-            {showSsotImportExportTab && (
-              <span
-                className="tab-chip"
-                onClick={() => setMainTab('export')}
-                title="Export SSOT artifacts (md / docx / html)"
-                style={{
-                  cursor: 'pointer',
-                  padding: '2px 8px', borderRadius: 2, marginLeft: 4,
-                  color: mainTab === 'export' ? 'var(--accent)' : 'var(--fg-mute)',
-                  background: mainTab === 'export' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-                  border: '1px solid ' + (mainTab === 'export' ? 'var(--accent)' : 'transparent'),
-                  fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
-                }}
-              >Export</span>
+              >Import / Export</span>
             )}
             <span
               className="tab-chip"
@@ -3898,13 +3883,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
                 SSOT validation · missing items · SSOT percent · script gate
               </span>
-            ) : mainTab === 'import' ? (
+            ) : mainTab === 'import_export' ? (
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
-                Upload/import docs into SSOT evidence base
-              </span>
-            ) : mainTab === 'export' ? (
-              <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
-                Export SSOT artifacts (md · docx · html)
+                Upload/import docs · export SSOT
               </span>
             ) : mainTab === 'sim_summary' ? (
               <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
@@ -3933,7 +3914,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
                 "Running / End of loop / Waiting on you" pill above the
                 input row already conveys this state, and louder, so two
                 redundant indicators just add noise to the tab header. */}
-            {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot' || mainTab === 'checklist' || mainTab === 'import' || mainTab === 'export') && (
+            {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot' || mainTab === 'checklist' || mainTab === 'import_export') && (
               <span style={{ fontSize: 10 }}>
                 <span className="mute" style={{ marginRight: 8 }}>{mainTab === 'split' ? 'chat only' : 'back to chat'}</span>
                 <span onClick={() => setMainTab('chat')} className="acc"
@@ -3967,7 +3948,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               showChecklist={true}
               checklistOnly={true}
             />
-          ) : mainTab === 'import' ? (
+          ) : mainTab === 'import_export' ? (
             <SsotQaBoard
               data={ssotQaBoardData}
               sessions={ssotQaSessions}
@@ -3977,19 +3958,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               onBack={() => setMainTab('chat')}
               onRefresh={() => { refreshSsotQa(); refreshSsotQaSessions(); }}
               onRunCommand={submitMsg}
-              importOnly={true}
-            />
-          ) : mainTab === 'export' ? (
-            <SsotQaBoard
-              data={ssotQaBoardData}
-              sessions={ssotQaSessions}
-              activeSession={currentSession}
-              uiLang={uiLang}
-              onSelectSession={activateSsotQaSession}
-              onBack={() => setMainTab('chat')}
-              onRefresh={() => { refreshSsotQa(); refreshSsotQaSessions(); }}
-              onRunCommand={submitMsg}
-              exportOnly={true}
+              importExportOnly={true}
             />
           ) : mainTab === 'chat' ? (
             renderChatPane()
