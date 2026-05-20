@@ -2102,16 +2102,28 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
     const slash = raw.lastIndexOf('/');
     const parentRel = slash >= 0 ? raw.slice(0, slash) : '';
     const filter    = slash >= 0 ? raw.slice(slash + 1) : raw;
-    // @-completion is always project-root-relative — independent of
-    // SCOPE_PATH, which only narrows the file-tree panel. The token
-    // that ends up in the chat must be a full project-root-relative
-    // path so the agent can resolve it without knowing about scope.
+    // Active-IP aware resolution: if the user typed `@req/imports/...`
+    // and an IP is bound to the session, search relative to <ip>/ first
+    // so the user doesn't have to retype the IP prefix on every mention.
+    // Escape hatches: a leading `/` ("@/workflow/...") or a token that
+    // already starts with the active IP both fall back to project-root.
+    const activeIp = (window.CONTEXT && window.CONTEXT.activeIp || '').trim();
+    const ipPrefix = activeIp && activeIp !== 'default' ? activeIp : '';
+    const absoluteEscape = raw.startsWith('/');
+    const alreadyIpScoped = ipPrefix && (parentRel === ipPrefix || parentRel.startsWith(ipPrefix + '/'));
+    const ipScoped = !!(ipPrefix && !absoluteEscape && !alreadyIpScoped);
+    const trimmedParent = absoluteEscape ? parentRel.replace(/^\/+/, '') : parentRel;
+    const parentAbs = ipScoped
+      ? (trimmedParent ? `${ipPrefix}/${trimmedParent}` : ipPrefix)
+      : trimmedParent;
     return {
       token: '@' + raw,
       pos: m.index + m[1].length,
       raw,
-      parentRel,
-      parentAbs: parentRel,  // project-root-relative
+      parentRel: trimmedParent,
+      parentAbs,
+      ipScoped,
+      ipPrefix,
       filter: filter.toLowerCase(),
     };
   }, [input]);
@@ -2172,20 +2184,22 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
     if (!atQuery) return;
     const before = input.slice(0, atQuery.pos);
     const after  = input.slice(atQuery.pos + atQuery.token.length);
-    // Replace only the filter portion of the @-token, keeping the
-    // parent path the user already typed. So "@workflow/s" + selecting
-    // "ssot-gen/" becomes "@workflow/ssot-gen/" (popup stays open and
-    // shows ssot-gen's contents next), while selecting a file appends
-    // a trailing space and closes the popup.
+    // When IP-scoped, the visible token stays short ("@req/imports/foo")
+    // but the underlying resolved path includes the IP prefix so the
+    // agent sees the full project-root-relative path. We rewrite the
+    // visible token to the full path on file selection so the chat
+    // history records exactly what the agent receives.
     const parent = atQuery.parentRel ? atQuery.parentRel + '/' : '';
+    const fullParent = atQuery.ipScoped
+      ? `${atQuery.ipPrefix}/${parent}`
+      : parent;
     if (entry.type === 'dir') {
-      // Chain into the directory — popup re-opens with its contents
-      // because the new query ends in '/'.
+      // Chain into the directory — keep the IP prefix hidden from the
+      // visible token until the user selects a file, so the chain
+      // experience stays "@req/" → "@req/imports/" → file pick.
       setInput(before + '@' + parent + entry.name + '/' + after);
-      // Keep showAt true; the effect that listens to atQuery will
-      // refetch the new directory's entries automatically.
     } else {
-      setInput(before + '@' + parent + entry.name + ' ' + after);
+      setInput(before + '@' + fullParent + entry.name + ' ' + after);
       setShowAt(false);
     }
   };
