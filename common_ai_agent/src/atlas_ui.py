@@ -14666,7 +14666,20 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         # autocomplete dropdown picks up new workspace commands.
         bridge.emit("commands_changed"),
     )
-    _main._textual_emit_tool_fn      = lambda text: bridge.emit("tool", text=_clean(text))
+    def _emit_tool_line(text: str) -> None:
+        # bridge.emit() falls back to the bridge contextvar when no
+        # session_id is supplied. The agent loop sometimes runs in a
+        # nested thread (parallel worker, async dispatcher) whose
+        # contextvar snapshot was taken BEFORE the user's WS bind, so
+        # the tool event lands in an orphan session with no clients
+        # and never reaches the browser live (visible only after a
+        # page reload reads conversation.json). Pull ATLAS_ACTIVE_SESSION
+        # directly — that's a process-global env var that always
+        # reflects the active 3-part session string set by main() and
+        # /api/session/activate.
+        sess_id = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/") or None
+        bridge.emit("tool", text=_clean(text), session_id=sess_id)
+    _main._textual_emit_tool_fn      = _emit_tool_line
     # Browser-side tool_result cap. Display-only — LLM still gets the
     # full obs upstream; this just trims what we ship over the WS so a
     # multi-MB grep / sim log doesn't drown the chat. Configurable via
@@ -14699,11 +14712,16 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     def _emit_tool_result(obs, tool=""):
         cleaned = _clean(obs)
         cleaned = _STEP_HEADER_RE.sub("", cleaned, count=1)
+        # Same orphan-session guard as _emit_tool_line — pin session_id
+        # from the env var so tool_result frames reach the user's WS
+        # even when the emitting thread's contextvar drifted.
+        sess_id = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/") or None
         bridge.emit(
             "tool_result",
             text=cleaned[:_ws_tool_max],
             tool=tool,
             truncated=len(cleaned) > _ws_tool_max,
+            session_id=sess_id,
         )
         # Auto-commit for write/replace/edit tools — capture the
         # operated-on path from the tool result body and snapshot the
@@ -14718,7 +14736,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                 # auto-reload preview / SSOT / file-tree without
                 # waiting for the next tool_result coalesce window.
                 try:
-                    bridge.emit("file_changed", path=str(_path_hit), tool=tool)
+                    bridge.emit("file_changed", path=str(_path_hit), tool=tool, session_id=sess_id)
                 except Exception:
                     pass
         except Exception:
@@ -14808,12 +14826,14 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                 )
         except Exception:
             pass
+        sess_id = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/") or None
         bridge.emit(
             "cost",
             input=in_tok, cached=cache_tok, output=out_tok,
             cost_usd_delta=cost_delta,
             pricing={"input": p.input, "cache": p.cache, "output": p.output} if p else None,
             model=_model_now,
+            session_id=sess_id,
         )
     _main._textual_emit_token_fn = _emit_token
 
