@@ -10569,9 +10569,16 @@ def create_app():
         last_err = ""
         for cmd_prefix in candidates:
             try:
+                # text=True without an explicit encoding uses the OS
+                # locale codec — Korean Windows defaults to cp949, which
+                # blows up on the 0xf0 leading bytes of any 4-byte UTF-8
+                # sequence (emoji, CJK extension B+, etc.) that
+                # markitdown emits. Pin utf-8 explicitly.
                 result = _subprocess.run(
                     [*cmd_prefix, "-m", "markitdown", str(src_path)],
-                    capture_output=True, text=True, timeout=60,
+                    capture_output=True, text=True,
+                    encoding="utf-8", errors="replace",
+                    timeout=60,
                 )
             except _subprocess.TimeoutExpired:
                 last_err = "markitdown timed out (60s)"
@@ -11105,6 +11112,8 @@ def create_app():
                 cwd=str(PROJECT_ROOT),
                 env=env,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 timeout=30,
