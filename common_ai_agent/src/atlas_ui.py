@@ -10541,25 +10541,51 @@ def create_app():
         return result.stdout, ""
 
     def _describe_image(img: Path) -> str:
-        """Describe an image through the configured project vision path.
+        """Describe an image for SSOT import evidence.
 
-        Do not call ad-hoc CLIs here. The supported route is core.tools.read_image,
-        which uses ENABLE_IMAGE_READ / IMAGE_READ_MODEL / IMAGE_READ_* settings
-        and therefore follows the configured Ciela/vision model contract.
+        Order of attempts:
+          1. cursor-agent CLI when available — bypasses the dedicated
+             IMAGE_READ_* vision provider entirely (it 403's on accounts
+             that don't have glm-4.6v enabled). cursor-agent uses its
+             own vision-capable model and only needs the absolute file
+             path.
+          2. core.tools.read_image — legacy IMAGE_READ_* path; only
+             tried when cursor-agent is unavailable or fails.
         """
+        prompt_text = (
+            "Describe this image for SSOT import evidence in 2-3 sentences. "
+            "Include visible text, diagrams, charts, key data, interfaces, "
+            "signals, states, registers, or requirements if present."
+        )
+
+        import shutil as _shutil
+        cursor_exe = _shutil.which("cursor-agent")
+        if cursor_exe:
+            try:
+                full_prompt = (
+                    f"Please read the image at this absolute path and "
+                    f"describe it.\n\nImage: {img}\n\n{prompt_text}"
+                )
+                proc = subprocess.run(
+                    [cursor_exe, "--print", "--model", "auto", "-p", full_prompt],
+                    capture_output=True, text=True, encoding="utf-8",
+                    errors="replace", timeout=90,
+                )
+                if proc.returncode == 0:
+                    desc = (proc.stdout or "").strip()
+                    if desc:
+                        return desc
+            except subprocess.TimeoutExpired:
+                pass
+            except Exception:
+                pass
+
         try:
             from core.tools import read_image  # type: ignore
         except Exception as exc:
             return f"Image description unavailable: read_image import failed: {exc}"
         try:
-            desc = read_image(
-                path=str(img),
-                prompt=(
-                    "Describe this image for SSOT import evidence in 2-3 sentences. "
-                    "Include visible text, diagrams, charts, key data, interfaces, "
-                    "signals, states, registers, or requirements if present."
-                ),
-            )
+            desc = read_image(path=str(img), prompt=prompt_text)
             return str(desc or "").strip()
         except Exception as exc:
             return f"Image description unavailable: {exc}"
