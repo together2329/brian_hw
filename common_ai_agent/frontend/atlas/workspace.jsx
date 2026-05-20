@@ -7674,12 +7674,20 @@ const _refKindColor = (kind) => ({
   interrupt: 'var(--warn)',
 }[kind] || 'var(--accent)');
 
-const linkifyReferences = (text, tokenMap) => {
+const _viewIdForRefKind = (kind) => ({
+  register: 'registers',
+  field: 'registers',
+  feature: 'features',
+  state: 'fsm',
+  interrupt: 'overview',
+  interface: 'interfaces',
+  scenario: 'scenarios',
+}[kind] || 'overview');
+
+const linkifyReferences = (text, tokenMap, onJump) => {
   const raw = String(text || '');
   if (!raw || !tokenMap || !tokenMap.size) return raw;
-  // Sort keys longest-first so "CR.EN" matches before "CR".
   const tokens = Array.from(tokenMap.keys()).sort((a, b) => b.length - a.length);
-  // Build a regex per match: word-ish boundary, allow dotted field paths.
   const escaped = tokens.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
   if (!escaped) return raw;
   const re = new RegExp(`(?<![A-Za-z0-9_.])(${escaped})(?![A-Za-z0-9_])`, 'gi');
@@ -7692,9 +7700,12 @@ const linkifyReferences = (text, tokenMap) => {
     const entry = tokenMap.get(m[0].toLowerCase());
     if (entry) {
       const color = _refKindColor(entry.kind);
+      const jumpId = _viewIdForRefKind(entry.kind);
+      const clickable = typeof onJump === 'function';
       out.push(
         <span key={`ref-${key++}`}
           title={entry.description ? `${entry.kind}: ${entry.label} — ${entry.description}` : `${entry.kind}: ${entry.label}`}
+          onClick={clickable ? () => onJump(jumpId) : undefined}
           style={{
             fontFamily: 'var(--mono)',
             fontSize: '0.9em',
@@ -7703,7 +7714,7 @@ const linkifyReferences = (text, tokenMap) => {
             background: `color-mix(in oklch, ${color} 12%, transparent)`,
             color,
             border: `1px solid color-mix(in oklch, ${color} 32%, transparent)`,
-            cursor: 'help',
+            cursor: clickable ? 'pointer' : 'help',
           }}>{m[0]}</span>
       );
     } else {
@@ -8094,7 +8105,7 @@ const RegisterBitMap = ({ width, fields }) => {
   );
 };
 
-const SsotScenarioPlayer = ({ scenarios, fsmMachines = [], tokenMap, onSelectFsmState }) => {
+const SsotScenarioPlayer = ({ scenarios, fsmMachines = [], tokenMap, onJump, onSelectFsmState }) => {
   const [active, setActive] = React.useState(0);
   const [step, setStep] = React.useState(0);
   const [playing, setPlaying] = React.useState(false);
@@ -8202,11 +8213,11 @@ const SsotScenarioPlayer = ({ scenarios, fsmMachines = [], tokenMap, onSelectFsm
             ) : null}
           </div>
           <div style={{ color: 'var(--fg)', lineHeight: 1.55 }}>
-            {tokenMap ? linkifyReferences(cur.action || '—', tokenMap) : (cur.action || '—')}
+            {tokenMap ? linkifyReferences(cur.action || '—', tokenMap, onJump) : (cur.action || '—')}
           </div>
           {cur.notes ? (
             <div className="mute" style={{ marginTop: 5, fontSize: 11 }}>
-              {tokenMap ? linkifyReferences(cur.notes, tokenMap) : cur.notes}
+              {tokenMap ? linkifyReferences(cur.notes, tokenMap, onJump) : cur.notes}
             </div>
           ) : null}
         </div>
@@ -9729,7 +9740,7 @@ const _FeatureRow = ({ glyph, label, value, color }) => {
   );
 };
 
-const FeatureCard = ({ index, feature, tokenMap }) => {
+const FeatureCard = ({ index, feature, tokenMap, onJump }) => {
   const [hover, setHover] = React.useState(false);
   const hasAny = feature && (feature.datapath || feature.control || feature.output);
   const description = feature && feature.description;
@@ -9768,7 +9779,7 @@ const FeatureCard = ({ index, feature, tokenMap }) => {
       </div>
       {description ? (
         <div className="mute" style={{ lineHeight: 1.55, fontSize: 'var(--ui-control-font-size)' }}>
-          {tokenMap ? linkifyReferences(description, tokenMap) : description}
+          {tokenMap ? linkifyReferences(description, tokenMap, onJump) : description}
         </div>
       ) : null}
       {hasAny ? (
@@ -10929,16 +10940,25 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                 <div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
                     <span style={{ color: 'var(--fg)', fontWeight: 800 }}>{step.title}</span>
-                    {step.ref ? (
-                      <span style={{
-                        fontFamily: 'var(--mono)', fontSize: 10,
-                        padding: '2px 7px', borderRadius: 3,
-                        background: 'var(--bg-2)', color: 'var(--cyan)',
-                        border: '1px solid var(--line)',
-                      }}>{step.ref}</span>
-                    ) : null}
+                    {step.ref ? (() => {
+                      const jumpId = step.kind === 'observe'
+                        ? 'overview'
+                        : 'registers';
+                      const clickable = typeof onJump === 'function';
+                      return (
+                        <span title={clickable ? `Jump to ${jumpId}` : step.ref}
+                          onClick={clickable ? () => onJump(jumpId) : undefined}
+                          style={{
+                            fontFamily: 'var(--mono)', fontSize: 10,
+                            padding: '2px 7px', borderRadius: 3,
+                            background: 'var(--bg-2)', color: 'var(--cyan)',
+                            border: '1px solid var(--line)',
+                            cursor: clickable ? 'pointer' : 'default',
+                          }}>{step.ref}</span>
+                      );
+                    })() : null}
                   </div>
-                  <div className="mute" style={{ marginTop: 3, lineHeight: 1.55 }}>{linkifyReferences(step.hint, refTokenMap)}</div>
+                  <div className="mute" style={{ marginTop: 3, lineHeight: 1.55 }}>{linkifyReferences(step.hint, refTokenMap, onJump)}</div>
                 </div>
               </div>
             ))}
@@ -10997,7 +11017,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
       {header}
       <div style={{ display: 'grid', gap: 14 }}>
         {features.length ? features.map((f, i) => (
-          <FeatureCard key={`${f.name}-${i}`} index={i + 1} feature={f} tokenMap={refTokenMap} />
+          <FeatureCard key={`${f.name}-${i}`} index={i + 1} feature={f} tokenMap={refTokenMap} onJump={onJump} />
         )) : <DigestEmpty />}
       </div>
     </>
@@ -11344,7 +11364,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                   ) : null}
                 </div>
                 {reg.description ? (
-                  <div className="mute" style={{ marginTop: 3, lineHeight: 1.5 }}>{linkifyReferences(reg.description, refTokenMap)}</div>
+                  <div className="mute" style={{ marginTop: 3, lineHeight: 1.5 }}>{linkifyReferences(reg.description, refTokenMap, onJump)}</div>
                 ) : null}
                 {reg.fields && reg.fields.length ? (
                   <RegisterBitMap width={reg.width || 32} fields={reg.fields} />
@@ -11363,7 +11383,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                         <div style={{ color: 'var(--fg)' }}>{f.name || '-'}</div>
                         <div className="mute">{f.access || '-'}</div>
                         <div className="mute">{f.reset || '-'}</div>
-                        <div className="mute" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{linkifyReferences(f.description || '', refTokenMap)}</div>
+                        <div className="mute" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{linkifyReferences(f.description || '', refTokenMap, onJump)}</div>
                       </React.Fragment>
                     ))}
                   </div>
@@ -11522,7 +11542,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
       <NarratorBanner ip={narratorIp} chapter="scenarios" uiLang={uiLang} />
       <DigestCard title="Interactive scenarios" meta={`${scenarios.length} scenarios${scenarios.length && scenarios[0].synthesized ? ' · auto-synthesized from transactions + pipeline' : ''}`}>
         {scenarios.length ? (
-          <SsotScenarioPlayer scenarios={scenarios} fsmMachines={fsmMachines} tokenMap={refTokenMap} />
+          <SsotScenarioPlayer scenarios={scenarios} fsmMachines={fsmMachines} tokenMap={refTokenMap} onJump={onJump} />
         ) : (
           <DigestEmpty text="No cycle_model.scenarios[] declared and no function_model.transactions[] + cycle_model.pipeline[] to synthesize from. Add scenarios under cycle_model: { scenarios: [{ name, summary, steps:[{cycle,action,fl_state,cl_state,signals}] }] } to make this IP self-demonstrating." />
         )}
@@ -11554,6 +11574,16 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
         <DigestSourceSections view={view} sections={sections} statusByKey={statusByKey} t={t} />
       ) : null}
       <SsotCommandPalette items={paletteItems} onJump={onJump} />
+      <div style={{
+        position: 'fixed', right: 16, bottom: 14, zIndex: 50,
+        padding: '4px 10px', borderRadius: 999,
+        background: 'color-mix(in oklch, var(--bg-2) 70%, transparent)',
+        border: '1px solid var(--line)', color: 'var(--fg-mute)',
+        fontFamily: 'var(--mono)', fontSize: 10, pointerEvents: 'none',
+        backdropFilter: 'blur(2px)',
+      }}>
+        ⌘K  jump
+      </div>
     </>
   );
 };
