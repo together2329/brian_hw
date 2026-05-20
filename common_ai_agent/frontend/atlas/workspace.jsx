@@ -7607,6 +7607,115 @@ const extractScenarios = (sections) => {
   });
 };
 
+const _parseBitRange = (raw) => {
+  // Accepts "[7:0]", "7:0", "[0]", "0", "31:24", "15..0".
+  const txt = String(raw || '').trim().replace(/^\[|\]$/g, '');
+  if (!txt) return null;
+  const m = txt.match(/^(\d+)\s*(?::|\.\.)\s*(\d+)$/);
+  if (m) {
+    const a = parseInt(m[1], 10);
+    const b = parseInt(m[2], 10);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+    return { hi: Math.max(a, b), lo: Math.min(a, b) };
+  }
+  const single = parseInt(txt, 10);
+  if (Number.isFinite(single)) return { hi: single, lo: single };
+  return null;
+};
+
+const _accessColor = (access) => {
+  const a = String(access || '').toLowerCase();
+  if (/^rw|^w\b/.test(a)) return 'var(--accent)';
+  if (/^ro\b|^r\b/.test(a)) return 'var(--cyan)';
+  if (/wo|w1c|w0c|w1s|wac/.test(a)) return 'var(--magenta)';
+  if (/rsvd|reserved/.test(a)) return 'var(--fg-mute)';
+  return 'var(--accent)';
+};
+
+const RegisterBitMap = ({ width, fields }) => {
+  const w = Math.max(1, Math.min(64, parseInt(width || '32', 10) || 32));
+  const fieldByBit = Array(w).fill(null);
+  for (const f of fields || []) {
+    const r = _parseBitRange(f.bits);
+    if (!r) continue;
+    for (let i = r.lo; i <= r.hi; i++) {
+      if (i >= 0 && i < w && !fieldByBit[i]) fieldByBit[i] = f;
+    }
+  }
+  // Collapse consecutive same-field cells into spans.
+  const segments = [];
+  for (let i = 0; i < w; i++) {
+    const f = fieldByBit[i];
+    if (segments.length && segments[segments.length - 1].field === f) {
+      segments[segments.length - 1].span += 1;
+      segments[segments.length - 1].hi = i;
+    } else {
+      segments.push({ field: f, span: 1, lo: i, hi: i });
+    }
+  }
+  // MSB-on-left convention for register-map readers.
+  const segsLR = [...segments].reverse();
+  const labelsLR = segsLR.map((seg, idx) => {
+    const f = seg.field;
+    if (!f) {
+      return (
+        <div key={`bm-rsv-${idx}-${seg.lo}-${seg.hi}`}
+          title={`reserved [${seg.hi}:${seg.lo}]`}
+          style={{
+            flex: `${seg.span} ${seg.span} 0`, minWidth: 0,
+            background: 'repeating-linear-gradient(45deg, var(--bg-1) 0 4px, var(--bg-2) 4px 8px)',
+            border: '1px solid var(--line)',
+            color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 9,
+            textAlign: 'center', padding: '6px 2px', overflow: 'hidden',
+            textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>—</div>
+      );
+    }
+    const color = _accessColor(f.access);
+    const range = seg.hi === seg.lo ? `[${seg.hi}]` : `[${seg.hi}:${seg.lo}]`;
+    const tooltip = [
+      f.name && `field: ${f.name}`,
+      f.access && `access: ${f.access}`,
+      f.reset !== undefined && f.reset !== null && f.reset !== '' && `reset: ${f.reset}`,
+      range,
+      f.description && `\n${f.description}`,
+    ].filter(Boolean).join(' · ');
+    return (
+      <div key={`bm-${f.name || idx}-${seg.lo}-${seg.hi}`}
+        title={tooltip}
+        style={{
+          flex: `${seg.span} ${seg.span} 0`, minWidth: 0,
+          background: `color-mix(in oklch, ${color} 18%, transparent)`,
+          border: `1px solid color-mix(in oklch, ${color} 60%, var(--line))`,
+          color: 'var(--fg)', fontFamily: 'var(--mono)', fontSize: 10,
+          textAlign: 'center', padding: '6px 4px', overflow: 'hidden',
+          textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+        <div style={{ fontWeight: 800, color }}>{f.name || '?'}</div>
+        <div style={{ color: 'var(--fg-mute)', fontSize: 8 }}>{range}</div>
+      </div>
+    );
+  });
+  // Bit-number scale (MSB on left).
+  const scaleTicks = [];
+  const tickStep = w >= 32 ? 4 : (w >= 16 ? 2 : 1);
+  for (let bit = w - 1; bit >= 0; bit -= tickStep) {
+    scaleTicks.push(
+      <div key={`tk-${bit}`}
+        style={{ flex: '1 1 0', minWidth: 0, textAlign: 'center',
+          fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--fg-mute)' }}>
+        {bit}
+      </div>
+    );
+  }
+  return (
+    <div style={{ marginTop: 6, marginBottom: 6 }}>
+      <div style={{ display: 'flex', gap: 2 }}>{labelsLR}</div>
+      <div style={{ display: 'flex', gap: 2, marginTop: 2 }}>{scaleTicks}</div>
+    </div>
+  );
+};
+
 const SsotScenarioPlayer = ({ scenarios, onSelectFsmState }) => {
   const [active, setActive] = React.useState(0);
   const [step, setStep] = React.useState(0);
@@ -10163,9 +10272,135 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     { label: 'Dataflow', status: statusForPresence(dataflowGroups.length > 0 || semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 1).length > 0), detail: dataflowGroups.length ? `${dataflowGroups.length} flows` : compactDigestItems(semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 3), 3) },
   ];
 
+  const quickstartSteps = (() => {
+    // Build a 3-step "how to use this IP" recipe by guessing intent from
+    // SSOT fields. Each step has a label, hint, and an optional ref like
+    // "CR.EN" so the user can locate it in the Registers tab.
+    const steps = [];
+    const enableField = (() => {
+      for (const reg of registers || []) {
+        for (const f of (reg.fields || [])) {
+          if (/^(en|enable)$/i.test(f.name || '') || /enable/i.test(f.name || '')) {
+            return { reg: reg.name, field: f.name, description: f.description };
+          }
+        }
+      }
+      const cr = (registers || []).find(r => /^(cr|ctrl|control|cfg|config)$/i.test(r.name || ''));
+      if (cr) return { reg: cr.name, field: '', description: cr.description };
+      const first = (registers || [])[0];
+      if (first) return { reg: first.name, field: '', description: first.description };
+      return null;
+    })();
+    if (enableField) {
+      const ref = enableField.field
+        ? `${enableField.reg}.${enableField.field}`
+        : enableField.reg;
+      steps.push({
+        kind: 'enable',
+        title: 'Enable the IP',
+        hint: enableField.field
+          ? `Write 1 to ${ref} to bring the module out of reset state.`
+          : `Configure ${ref} (the primary control register) to enable operation.`,
+        ref,
+      });
+    }
+    const cfgFeature = (features || []).find(f =>
+      /baud|clock|divisor|rate|threshold|prescaler|mode/i.test([f.name, f.description, f.datapath].join(' '))
+    );
+    const cfgReg = (registers || []).find(r => /^(dlr|brr|cfg|mr|mode|baud|div)/i.test(r.name || ''));
+    if (cfgFeature || cfgReg) {
+      const ref = cfgReg
+        ? `${cfgReg.name}${cfgReg.offset ? ` (@ ${cfgReg.offset})` : ''}`
+        : cfgFeature.name;
+      steps.push({
+        kind: 'configure',
+        title: cfgFeature ? `Configure ${cfgFeature.name}` : `Program ${cfgReg.name}`,
+        hint: cfgFeature
+          ? trimSsotValue(cfgFeature.description || cfgFeature.datapath || cfgFeature.trigger, 200)
+            || `Set the operating parameters described by ${cfgFeature.name}.`
+          : `Program ${ref} with the operating parameters required for your use case.`,
+        ref,
+      });
+    }
+    const irqBlocks = []
+      .concat(listBlocksFromSection(interruptsSection, 'interrupt_list'))
+      .concat(listBlocksFromSection(interruptsSection, 'list'))
+      .concat(listBlocksFromSection(interruptsSection));
+    const irqList = irqBlocks
+      .map(b => ({
+        name: blockField(b, 'name') || blockField(b, 'id') || '',
+        description: blockField(b, 'description', 240),
+      }))
+      .filter(e => e.name);
+    if (irqList.length) {
+      const primary = irqList[0];
+      steps.push({
+        kind: 'observe',
+        title: `Observe ${primary.name}`,
+        hint: primary.description
+          ? `Wait for the ${primary.name} interrupt — ${trimSsotValue(primary.description, 180)}`
+          : `Wait for the ${primary.name} interrupt to handle the next event.`,
+        ref: primary.name,
+      });
+    } else if ((features || []).length) {
+      const lastFeature = features[features.length - 1];
+      steps.push({
+        kind: 'observe',
+        title: `Verify ${lastFeature.name}`,
+        hint: trimSsotValue(lastFeature.output || lastFeature.description || lastFeature.datapath, 200)
+          || `Confirm the IP produces the expected observable behavior of ${lastFeature.name}.`,
+        ref: lastFeature.name,
+      });
+    }
+    return steps.slice(0, 3);
+  })();
+
   const renderOverview = () => (
     <>
       {header}
+      {quickstartSteps.length ? (
+        <DigestCard
+          title="Quickstart"
+          meta={`${quickstartSteps.length}-step usage walkthrough · derived from registers + features + interrupts`}
+        >
+          <div style={{ display: 'grid', gap: 10 }}>
+            {quickstartSteps.map((step, i) => (
+              <div key={`qs-${step.kind}-${i}`}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '36px minmax(0, 1fr)',
+                  gap: 10,
+                  alignItems: 'start',
+                  padding: '8px 10px',
+                  borderLeft: '3px solid var(--accent)',
+                  background: 'color-mix(in oklch, var(--accent) 8%, transparent)',
+                  borderRadius: 4,
+                }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: '50%',
+                  background: 'var(--accent)', color: 'var(--bg-1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: 900, fontFamily: 'var(--mono)', fontSize: 13,
+                }}>{i + 1}</div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ color: 'var(--fg)', fontWeight: 800 }}>{step.title}</span>
+                    {step.ref ? (
+                      <span style={{
+                        fontFamily: 'var(--mono)', fontSize: 10,
+                        padding: '2px 7px', borderRadius: 3,
+                        background: 'var(--bg-2)', color: 'var(--cyan)',
+                        border: '1px solid var(--line)',
+                      }}>{step.ref}</span>
+                    ) : null}
+                  </div>
+                  <div className="mute" style={{ marginTop: 3, lineHeight: 1.55 }}>{step.hint}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DigestCard>
+      ) : null}
       <div style={{ display: 'grid', gap: 10 }}>
         <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
           <DigestCard title="Top Module" meta={top ? `line ${top.startLine}` : ''}>
@@ -10560,6 +10795,9 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
                 </div>
                 {reg.description ? (
                   <div className="mute" style={{ marginTop: 3, lineHeight: 1.5 }}>{reg.description}</div>
+                ) : null}
+                {reg.fields && reg.fields.length ? (
+                  <RegisterBitMap width={reg.width || 32} fields={reg.fields} />
                 ) : null}
                 {reg.fields && reg.fields.length ? (
                   <div style={{ marginTop: 6, display: 'grid', gridTemplateColumns: '70px minmax(80px, 0.8fr) 50px 60px minmax(0, 2.2fr)',
