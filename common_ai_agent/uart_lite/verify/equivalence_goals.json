@@ -268,13 +268,13 @@
     }
   },
   "summary": {
-    "total": 68,
-    "required": 68,
+    "total": 69,
+    "required": 69,
     "optional": 0,
     "blocked": 0,
     "unverified": 0,
-    "module_total": 2,
-    "module_required": 2,
+    "module_total": 3,
+    "module_required": 3,
     "module_blocked": 0,
     "module_unverified": 0
   },
@@ -606,7 +606,40 @@
           "tx_fifo not empty",
           "tx_active == false",
           "break_send == false"
-        ]
+        ],
+        "machine_spec": {
+          "csr_writes": [
+            {
+              "offset": 0,
+              "data": 1
+            },
+            {
+              "offset": 12,
+              "data": 171
+            }
+          ],
+          "timeline": [
+            {
+              "csr_write": {
+                "offset": 0,
+                "data": 1
+              }
+            },
+            {
+              "csr_write": {
+                "offset": 12,
+                "data": 171
+              }
+            },
+            {
+              "wait_until": {
+                "signal": "tx_active",
+                "equals": 1,
+                "timeout": 32
+              }
+            }
+          ]
+        }
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
@@ -644,7 +677,8 @@
       },
       "blocked": false,
       "blocker": "",
-      "unverified": false
+      "unverified": false,
+      "sample_cycle": 2
     },
     {
       "goal_id": "EQ_SCENARIO_SC2",
@@ -4534,9 +4568,6 @@
         "cycle_model.backpressure.backpressure_0",
         "cycle_model.backpressure.backpressure_1",
         "cycle_model.clock",
-        "cycle_model.handshake_rules.pready",
-        "cycle_model.handshake_rules.pslverr",
-        "cycle_model.handshake_rules.tx",
         "cycle_model.latency",
         "cycle_model.observability.observability_0",
         "cycle_model.observability.observability_1",
@@ -4565,31 +4596,7 @@
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
         "function_model.invariants.invariant_4",
-        "function_model.state_variables.baud_div",
-        "function_model.state_variables.break_send",
-        "function_model.state_variables.loopback",
-        "function_model.state_variables.parity_en",
-        "function_model.state_variables.parity_odd",
-        "function_model.state_variables.stop_bits",
-        "function_model.state_variables.tx_active",
-        "function_model.state_variables.tx_fifo",
         "function_model.transactions.FM_TX_BYTE",
-        "function_model.transactions.fm_break_send",
-        "function_model.transactions.fm_break_send.inputs.input_0",
-        "function_model.transactions.fm_break_send.output_rules.tx_serial",
-        "function_model.transactions.fm_break_send.outputs.output_0",
-        "function_model.transactions.fm_break_send.preconditions.precondition_0",
-        "function_model.transactions.fm_break_send.side_effects.side_effect_0",
-        "function_model.transactions.fm_break_send.side_effects.side_effect_1",
-        "function_model.transactions.fm_break_send.state_updates.tx",
-        "function_model.transactions.fm_loopback",
-        "function_model.transactions.fm_loopback.inputs.input_0",
-        "function_model.transactions.fm_loopback.output_rules.loopback_tx",
-        "function_model.transactions.fm_loopback.outputs.output_0",
-        "function_model.transactions.fm_loopback.preconditions.precondition_0",
-        "function_model.transactions.fm_loopback.side_effects.side_effect_0",
-        "function_model.transactions.fm_loopback.side_effects.side_effect_1",
-        "function_model.transactions.fm_loopback.state_updates.tx",
         "function_model.transactions.fm_tx_byte",
         "function_model.transactions.fm_tx_byte.error_cases.error_case_0",
         "function_model.transactions.fm_tx_byte.inputs.input_0",
@@ -4672,7 +4679,10 @@
       "ssot_refs": [
         "cycle_model",
         "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.pslverr",
         "cycle_model.handshake_rules.rx",
+        "cycle_model.handshake_rules.tx",
         "cycle_model.pipeline",
         "cycle_model.pipeline.rx_data",
         "cycle_model.pipeline.rx_idle",
@@ -4691,8 +4701,6 @@
         "fsm",
         "fsm.rx_fsm",
         "function_model",
-        "function_model.state_variables.rx_active",
-        "function_model.state_variables.rx_fifo",
         "function_model.transactions.FM_RX_BYTE",
         "function_model.transactions.fm_rx_byte",
         "function_model.transactions.fm_rx_byte.error_cases.error_case_0",
@@ -4714,6 +4722,113 @@
       ],
       "decomposition_refs": [
         "uart_lite_rx"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "transmit_byte",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "tx_enable == 1",
+          "tx_fifo not empty",
+          "tx_active == false",
+          "break_send == false",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "tx line: start bit (0), d[0]..d[DATA_WIDTH-1] LSB-first, parity bit (if parity_en), 1 or 2 stop bits (1)",
+          "tx_active transitions true \u2192 false across the frame",
+          "tx_serial"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "debug counter bytes_tx increments by 1",
+          "tx_fifo level decreases by 1",
+          "STAT.tx_empty updates when FIFO becomes empty",
+          "tx"
+        ],
+        "error_policy": "{'condition': 'tx_fifo empty when TX FSM requests byte', 'result': 'underrun_err sticky flag set; frame aborted with tx returning to idle (mark)'}"
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_MODULE_UART_LITE_CORE",
+      "title": "Module uart_lite_core functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "uart_lite_core",
+        "rtl_file": "rtl/uart_lite_core.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.sequence",
+        "decomposition",
+        "decomposition.units.execute",
+        "features",
+        "features.break_send",
+        "features.loopback_test_mode",
+        "features.parity_generation_checking",
+        "features.rx_deserialization",
+        "features.tx_serialization",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.state_variables.baud_div",
+        "function_model.state_variables.break_send",
+        "function_model.state_variables.loopback",
+        "function_model.state_variables.parity_en",
+        "function_model.state_variables.parity_odd",
+        "function_model.state_variables.rx_active",
+        "function_model.state_variables.rx_fifo",
+        "function_model.state_variables.stop_bits",
+        "function_model.state_variables.tx_active",
+        "function_model.state_variables.tx_fifo",
+        "function_model.transactions",
+        "function_model.transactions.fm_break_send",
+        "function_model.transactions.fm_break_send.inputs.input_0",
+        "function_model.transactions.fm_break_send.output_rules.tx_serial",
+        "function_model.transactions.fm_break_send.outputs.output_0",
+        "function_model.transactions.fm_break_send.preconditions.precondition_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_0",
+        "function_model.transactions.fm_break_send.side_effects.side_effect_1",
+        "function_model.transactions.fm_break_send.state_updates.tx",
+        "function_model.transactions.fm_loopback",
+        "function_model.transactions.fm_loopback.inputs.input_0",
+        "function_model.transactions.fm_loopback.output_rules.loopback_tx",
+        "function_model.transactions.fm_loopback.outputs.output_0",
+        "function_model.transactions.fm_loopback.preconditions.precondition_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_0",
+        "function_model.transactions.fm_loopback.side_effects.side_effect_1",
+        "function_model.transactions.fm_loopback.state_updates.tx"
+      ],
+      "decomposition_refs": [
+        "uart_lite_core"
       ],
       "coverage_refs": [],
       "stimulus_contract": {

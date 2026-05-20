@@ -1845,6 +1845,14 @@ test_requirements:
     name: TX single byte no parity 1 stop
     stimulus: 'Write one byte to TXDATA when TX FIFO empty. CTRL: tx_enable=1, parity_en=0,
       stop_bits=0.'
+    stimulus_machine_spec:
+      csr_writes:
+        - { offset: 0,  data: 0x01 }     # CTRL.tx_enable=1
+        - { offset: 12, data: 0xAB }     # TXDATA = 0xAB (writes byte to TX FIFO)
+      timeline:
+        - { csr_write: { offset: 0,  data: 0x01 } }
+        - { csr_write: { offset: 12, data: 0xAB } }
+        - { wait_until: { signal: tx_active, equals: 1, timeout: 32 } }
     expected: tx line shows start=0, DATA_WIDTH data bits LSB-first, 1 stop=1 bit.
       STAT.tx_empty=1 after frame. bytes_tx increments.
     checker: Scoreboard samples tx output and verifies bit pattern matches written
