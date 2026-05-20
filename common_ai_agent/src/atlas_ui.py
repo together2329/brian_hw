@@ -11297,15 +11297,34 @@ def create_app():
                 capture_output=True,
                 timeout=60,
             )
-            validate = subprocess.run(
-                ["bash", str(validator_path), ip],
-                cwd=str(PROJECT_ROOT),
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                capture_output=True,
-                timeout=60,
-            )
+            # `check_ssot_disk.sh` needs a real bash. Resolve it via shutil
+            # so Windows machines without bash on PATH (which raised
+            # `[WinError 2] 지정된 파일을 찾을 수 없습니다.` here) don't
+            # explode the whole to-ssot bridge — report a clean skip
+            # instead and let the deterministic draft still be evaluated
+            # on its own returncode.
+            import shutil as _shutil
+            bash_exe = _shutil.which("bash")
+            if bash_exe:
+                validate = subprocess.run(
+                    [bash_exe, str(validator_path), ip],
+                    cwd=str(PROJECT_ROOT),
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    capture_output=True,
+                    timeout=60,
+                )
+            else:
+                class _SkippedValidator:
+                    returncode = 127
+                    stdout = ""
+                    stderr = (
+                        "bash not found on PATH — skipping check_ssot_disk.sh. "
+                        "Install Git Bash / WSL or add bash to PATH to enable "
+                        "the disk-side SSOT validator."
+                    )
+                validate = _SkippedValidator()
         except Exception as exc:
             draft = None
             validate = None
