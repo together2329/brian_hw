@@ -7571,8 +7571,15 @@ def create_app():
     _SSOT_IMPORT_IMAGE_EXTENSIONS = {
         ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg", ".tif", ".tiff",
     }
-    # External Python 3.10 used to run markitdown (atlas_ui itself is on 3.9).
-    _SSOT_MARKITDOWN_PY = "/opt/homebrew/bin/python3.10"
+    # External Python interpreter used to run markitdown (atlas_ui itself
+    # may be on 3.9 where markitdown >=0.1 won't install). The probe order
+    # is OS-aware:
+    #   - Windows: python3.12 first (user's request), then py -3.12, then
+    #     python (whatever's on PATH).
+    #   - macOS / Linux: python3.12, python3.11, python3.10 via PATH, then
+    #     the Homebrew default location as a last resort.
+    # ATLAS_MARKITDOWN_PYTHON env var overrides everything.
+    _SSOT_MARKITDOWN_PY = os.environ.get("ATLAS_MARKITDOWN_PYTHON", "").strip()
     _SSOT_IMPORT_SKIP_DIRS = {
         ".git", ".session", ".omx", "__pycache__", "node_modules",
         ".pytest_cache", ".mypy_cache", ".ruff_cache",
@@ -10513,32 +10520,75 @@ def create_app():
         return safe[:120]
 
     def _markitdown_convert(src_path: Path) -> tuple[str, str]:
-        """Run markitdown on src_path under Python 3.10. Returns (md_text, error).
+        """Run markitdown on src_path under an external Python ≥3.10.
 
-        markitdown >=0.1 needs Python 3.10+, but atlas_ui itself runs on 3.9
-        on this host, so we shell out. An empty error string means success.
+        Returns (md_text, error). An empty error string means success.
+
+        Probe order:
+          1. ATLAS_MARKITDOWN_PYTHON env (explicit override).
+          2. Windows: `python3.12`, `py -3.12`, `python`.
+          3. macOS/Linux: `python3.12`, `python3.11`, `python3.10` (PATH),
+             then `/opt/homebrew/bin/python3.10` as a last resort.
         """
         import shutil as _shutil
         import subprocess as _subprocess
 
-        py310 = _SSOT_MARKITDOWN_PY
-        if not Path(py310).exists():
-            found = _shutil.which("python3.10")
-            if not found:
-                return "", f"python3.10 not found at {py310}; markitdown needs Python 3.10+"
-            py310 = found
-        try:
-            result = _subprocess.run(
-                [py310, "-m", "markitdown", str(src_path)],
-                capture_output=True, text=True, timeout=60,
+        is_windows = sys.platform.startswith("win")
+
+        def _candidates() -> list[list[str]]:
+            cands: list[list[str]] = []
+            if _SSOT_MARKITDOWN_PY:
+                cands.append([_SSOT_MARKITDOWN_PY])
+            if is_windows:
+                for name in ("python3.12", "python"):
+                    found = _shutil.which(name)
+                    if found:
+                        cands.append([found])
+                # py.exe launcher with -3.12 selector
+                py_launcher = _shutil.which("py")
+                if py_launcher:
+                    cands.append([py_launcher, "-3.12"])
+            else:
+                for name in ("python3.12", "python3.11", "python3.10"):
+                    found = _shutil.which(name)
+                    if found:
+                        cands.append([found])
+                brew = "/opt/homebrew/bin/python3.10"
+                if Path(brew).exists():
+                    cands.append([brew])
+            return cands
+
+        candidates = _candidates()
+        if not candidates:
+            return "", (
+                "markitdown needs Python 3.10+: no candidate interpreter found. "
+                "Set ATLAS_MARKITDOWN_PYTHON or install python3.12 "
+                + ("(`py -3.12 -m pip install markitdown`)" if is_windows else "")
             )
-        except _subprocess.TimeoutExpired:
-            return "", "markitdown timed out (60s)"
-        except Exception as exc:
-            return "", f"markitdown error: {exc}"
-        if result.returncode != 0:
-            return "", f"markitdown failed (rc={result.returncode}): {result.stderr[:300]}"
-        return result.stdout, ""
+
+        last_err = ""
+        for cmd_prefix in candidates:
+            try:
+                result = _subprocess.run(
+                    [*cmd_prefix, "-m", "markitdown", str(src_path)],
+                    capture_output=True, text=True, timeout=60,
+                )
+            except _subprocess.TimeoutExpired:
+                last_err = "markitdown timed out (60s)"
+                continue
+            except FileNotFoundError as exc:
+                last_err = f"{' '.join(cmd_prefix)} not found: {exc}"
+                continue
+            except Exception as exc:
+                last_err = f"markitdown error via {' '.join(cmd_prefix)}: {exc}"
+                continue
+            if result.returncode == 0:
+                return result.stdout, ""
+            last_err = (
+                f"markitdown failed via {' '.join(cmd_prefix)} "
+                f"(rc={result.returncode}): {result.stderr[:300]}"
+            )
+        return "", last_err or "markitdown not runnable"
 
     def _describe_image(img: Path) -> str:
         """Describe an image for SSOT import evidence.
