@@ -282,6 +282,27 @@ def _setup_workspace(name: str) -> None:
                     )
                 except Exception:
                     pass
+                # Inject the active IP + its workspace root so the agent
+                # always knows where its files live. Without this the
+                # agent has to guess from the chat context whether
+                # `rtl/foo.sv` means `./rtl/foo.sv` or
+                # `<ip>/rtl/foo.sv`, and that guess is often wrong.
+                try:
+                    _active_ip = _get_active_ip_str()
+                    if _active_ip and _active_ip != "default":
+                        _project_root = os.environ.get("ATLAS_PROJECT_ROOT") or os.getcwd()
+                        _ip_root = os.path.join(_project_root, _active_ip)
+                        merged = (
+                            f"[ACTIVE_IP: {_active_ip}]\n"
+                            f"[IP_ROOT: {_ip_root}]\n"
+                            f"[IP_FILES_HINT: All per-IP artifacts (rtl/, yaml/, tb/, "
+                            f"req/, list/, sim/, sdc/, lint/, doc/, wiki/) live under "
+                            f"{_active_ip}/. Use relative paths from IP_ROOT or "
+                            f"prefix project-root paths with {_active_ip}/.]\n\n"
+                            + merged
+                        )
+                except Exception:
+                    pass
                 try:
                     merged = _pb.apply_memory_override(merged, memory_system, workflow=name)
                 except Exception:
