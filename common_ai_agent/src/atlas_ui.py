@@ -2001,13 +2001,70 @@ def create_app():
                     _P(_sess) / ".session" / (info["workspace"] or "default") / "cost.json",
                     _P(_sess) / ".session" / "default" / "cost.json",
                 ]
+                def _merge_cost_rows(rows):
+                    merged = {
+                        "in_tok": 0,
+                        "cache_tok": 0,
+                        "out_tok": 0,
+                        "sum_tok": 0,
+                        "cost_usd": 0.0,
+                        "model": "",
+                        "updated_at": 0,
+                    }
+                    for row in rows:
+                        if not isinstance(row, dict):
+                            continue
+                        merged["in_tok"] += int(row.get("in_tok", row.get("input", 0)) or 0)
+                        merged["cache_tok"] += int(row.get("cache_tok", row.get("cached", 0)) or 0)
+                        merged["out_tok"] += int(row.get("out_tok", row.get("output", 0)) or 0)
+                        merged["sum_tok"] += int(row.get("sum_tok", 0) or 0)
+                        merged["cost_usd"] += float(row.get("cost_usd", 0) or 0)
+                        updated = float(row.get("updated_at", 0) or 0)
+                        if updated >= float(merged.get("updated_at", 0) or 0):
+                            merged["updated_at"] = updated
+                            merged["model"] = row.get("model", merged.get("model", "")) or merged.get("model", "")
+                    if not merged["sum_tok"]:
+                        merged["sum_tok"] = merged["in_tok"] + merged["out_tok"]
+                    return merged
+
+                def _read_cost_file(c):
+                    try:
+                        return _json.loads(c.read_text(encoding="utf-8", errors="replace"))
+                    except Exception:
+                        return None
+
                 def _pick_cost():
                     for c in _candidates:
                         if c.exists():
-                            try:
-                                return _json.loads(c.read_text(encoding="utf-8", errors="replace"))
-                            except Exception:
-                                return None
+                            d = _read_cost_file(c)
+                            if d is not None:
+                                return d
+                    # If the active workflow has no ledger yet, show a useful
+                    # UI total instead of $0.0000. Aggregate same-IP ledgers
+                    # first, then fall back to every session ledger under
+                    # .session. This makes cost visible while users move
+                    # between ssot-gen / rtl-gen / orchestrator / pipeline.
+                    root = _P(_sess) / ".session"
+                    aggregate_candidates = []
+                    parts = [p for p in _sess_str.split("/") if p]
+                    if len(parts) >= 2:
+                        ip_name = parts[-2]
+                        aggregate_candidates.extend(root.glob(f"*/{ip_name}/*/cost.json"))
+                    if len(parts) >= 1:
+                        aggregate_candidates.extend((root / parts[0]).glob("*/*/cost.json"))
+                    aggregate_candidates.extend(root.glob("*/*/*/cost.json"))
+                    seen = set()
+                    rows = []
+                    for c in aggregate_candidates:
+                        key = str(c)
+                        if key in seen or not c.exists():
+                            continue
+                        seen.add(key)
+                        d = _read_cost_file(c)
+                        if d is not None:
+                            rows.append(d)
+                    if rows:
+                        return _merge_cost_rows(rows)
                     return None
                 d = await asyncio.to_thread(_pick_cost)
                 if d is not None:
@@ -15316,7 +15373,37 @@ def main() -> None:
     ap.add_argument("--effort", default="",
                     help="Runtime reasoning effort for the Atlas orchestrator "
                          "(none, low, medium, high, xhigh).")
+    ap.add_argument("--exec", "--exec-mode", dest="exec_mode",
+                    default=None,
+                    help="Execution topology. Accepted values:\n"
+                         "  s | single | single-worker  → spawn one child "
+                         "main.py worker on port 5601 (local single-user).\n"
+                         "  o | orch | orchestrator      → expect an external "
+                         "12-worker fleet on 5621-5632 (dispatch only).\n"
+                         "Falls back to ATLAS_EXEC_MODE / "
+                         "ATLAS_SINGLE_MAIN_LOOP / ATLAS_ORCHESTRATOR_MODE "
+                         "env vars when omitted; final fallback is "
+                         "'orchestrator'.")
     args = ap.parse_args()
+    # Normalize the exec_mode shorthand (--exec s / --exec o) and pin
+    # into env BEFORE any boot-config / worker-spawn code reads it so
+    # the CLI flag wins over inherited env.
+    _exec_raw = (args.exec_mode or "").strip().lower()
+    if _exec_raw:
+        if _exec_raw in {"s", "single", "single-worker", "sw", "main"}:
+            _exec_resolved = "single-worker"
+        elif _exec_raw in {"o", "orch", "orchestrator"}:
+            _exec_resolved = "orchestrator"
+        else:
+            sys.exit(f"--exec: unknown value {args.exec_mode!r}. "
+                     f"Use s|single|single-worker or o|orch|orchestrator.")
+        os.environ["ATLAS_EXEC_MODE"] = _exec_resolved
+        if _exec_resolved == "single-worker":
+            os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "1"
+            os.environ["ATLAS_ORCHESTRATOR_MODE"] = "0"
+        else:
+            os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "0"
+            os.environ["ATLAS_ORCHESTRATOR_MODE"] = "1"
     # Re-anchor PROJECT_ROOT before any request handler runs. Module-level
     # PROJECT_ROOT was computed from the import-time cwd; chdir + rebind
     # so /api/files, .session/, and friends all serve from --root.
