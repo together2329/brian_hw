@@ -1422,6 +1422,30 @@ def create_app():
                 except Exception:
                     session = bridge._ensure_session(session_id)
                 snapshot = list(session.clients)
+                # When the agent thread's contextvar didn't carry the
+                # active session_id forward (e.g. orchestrator threads
+                # whose copy_context() snapshot predated the WS bind),
+                # the target session ends up with zero clients and live
+                # `tool` / `tool_result` / `token` / `cost` frames are
+                # dropped — exactly the "tool calls only show after
+                # reload" + "cost stays at 0" symptoms users hit.
+                # Fall back to every connected client of every session
+                # in that case so the live stream reaches the browser
+                # the user is looking at. Multi-user routing is
+                # unaffected because real per-user sessions always have
+                # at least one client of their own.
+                if not snapshot:
+                    seen_clients = set()
+                    try:
+                        with bridge._sessions_lock:
+                            all_sessions = list(bridge._sessions.values())
+                    except Exception:
+                        all_sessions = []
+                    for sess in all_sessions:
+                        for c in list(sess.clients):
+                            if c not in seen_clients:
+                                seen_clients.add(c)
+                                snapshot.append(c)
                 if not snapshot:
                     continue
                 # Serialize once for the whole fan-out and skip the
