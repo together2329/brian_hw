@@ -1065,14 +1065,11 @@ const App = () => {
 
   const selectIp = (rawIp) => {
     const ip = normalizeSession(rawIp) || WORKFLOW_DEFAULT;
-    // Picking an IP defaults the workflow to ssot-gen so the user lands
-    // directly in the IMPORT / Q&A / VALIDATION flow that drives SSOT
-    // for a freshly-picked IP. If the user was already on a specific
-    // non-default workflow (rtl-gen, sim_debug, …), keep that — only
-    // promote from the bare `default` segment.
+    // Workflow / ip / session changes are user-driven only — picking
+    // an IP keeps whatever workflow segment was already active. Use
+    // the workflow dropdown explicitly to change it.
     const cur = currentWorkflow();
-    const keepCurrent = isWorkflowSegment(cur) && cur && cur !== WORKFLOW_DEFAULT;
-    const wf = keepCurrent ? cur : 'ssot-gen';
+    const wf = isWorkflowSegment(cur) ? cur : WORKFLOW_DEFAULT;
     activateNamespace(activeSessionId, ip, wf, true);
   };
 
@@ -1223,9 +1220,13 @@ const App = () => {
     try {
       const params = new URLSearchParams(window.location.search || '');
       const urlView = (params.get('view') || '').trim().toLowerCase();
+      // Explicit ?view=pipeline / ?view=architect still honored so
+      // deep links keep working — but a bare ?ip=<name> no longer
+      // jumps to the Pipeline screen (which then auto-flipped the
+      // workflow to 'orchestrator' on every IP pick). Default mode
+      // is Workspace; user clicks ◫ Pipeline / ◇ Architect chips to
+      // enter those flows explicitly.
       if (urlView === 'pipeline' || urlView === 'architect') return urlView;
-      const urlIp = (params.get('ip') || params.get('ip_id') || '').trim();
-      if (urlIp && urlIp !== 'default') return 'pipeline';
       const saved = localStorage.atlasScreen;
       if (saved === 'pipeline' || saved === 'architect') return saved;
       return 'workspace';
@@ -1314,52 +1315,36 @@ const App = () => {
     splitSessionNamespace,
   ]);
 
-  // Auto-switch the agent's workflow when entering / leaving Architect.
-  // Architect is a SoC-level supervisor (one tier above ssot-gen,
-  // rtl-gen, sim, lint, …), so the persona that handles its chat needs
-  // to be different. We only fire the switch on *transition* (not on
-  // every render) and only after window.backend is ready.
+  // Screen-change → workflow auto-switch is OPT-IN. By default the
+  // user's workflow / IP / session are manual. Pipeline and Architect
+  // screens previously force-switched the workflow to 'orchestrator' /
+  // 'architect' on enter and back to 'default' on exit, which surprised
+  // users who wanted the workflow they explicitly picked to stick.
+  // Re-enable via:
+  //   localStorage.setItem('atlasArchAutoSwitch', 'on')
   const prevScreenRef = React.useRef(screen);
   React.useEffect(() => {
     const prev = prevScreenRef.current;
     if (prev === screen) return;
     prevScreenRef.current = screen;
-    // Don't fire on initial mount — backend may not be connected yet,
-    // and the user's current workflow is whatever the server picked.
-    // Only react to genuine user-initiated screen flips.
     if (!window.backend || typeof window.backend.send !== 'function') return;
+    const optIn = (() => { try { return localStorage.getItem('atlasArchAutoSwitch') === 'on'; }
+                           catch (_) { return false; } })();
+    if (!optIn) return;
     if (screen === 'architect' || screen === 'pipeline') {
-      // Disable via localStorage if user finds it disruptive.
-      const optOut = (() => { try { return localStorage.getItem('atlasArchAutoSwitch') === 'off'; }
-                              catch (_) { return false; } })();
-      // Pipeline screen routes its chat to the orchestrator workflow
-      // (the orchestrator IS the conversation surface that decides
-      // which worker to dispatch). Architect screen still gets the
-      // architect agent for SoC-level design conversations.
       const targetWorkflow = screen === 'pipeline' ? 'orchestrator' : 'architect';
-      if (!optOut) {
-        activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, targetWorkflow, true, {
-          preserveRunning: execMode === 'orchestrator' && targetWorkflow === 'orchestrator',
-        });
-      }
+      activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, targetWorkflow, true, {
+        preserveRunning: execMode === 'orchestrator' && targetWorkflow === 'orchestrator',
+      });
     } else if (prev === 'architect' || prev === 'pipeline') {
       if (workflowWorkspaceOpenRef.current) {
         workflowWorkspaceOpenRef.current = false;
         return;
       }
-      if (prev === 'pipeline' && execMode === 'orchestrator') {
-        return;
-      }
-      // Leaving pipeline/architect → fall back to default (could be
-      // smarter and restore the prior workflow, but default keeps
-      // things simple).
-      const optOut = (() => { try { return localStorage.getItem('atlasArchAutoSwitch') === 'off'; }
-                              catch (_) { return false; } })();
-      if (!optOut) {
-        activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, WORKFLOW_DEFAULT, true, {
-          preserveRunning: execMode === 'orchestrator' && prev === 'pipeline',
-        });
-      }
+      if (prev === 'pipeline' && execMode === 'orchestrator') return;
+      activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, WORKFLOW_DEFAULT, true, {
+        preserveRunning: execMode === 'orchestrator' && prev === 'pipeline',
+      });
     }
   }, [activateNamespace, activeIp, activeSessionId, execMode, screen, uiLang]);
 
