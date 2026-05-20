@@ -141,12 +141,16 @@ def _expected_observable_view(
     observed: dict[str, Any],
     fl_expected: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Flatten FL result fields and add protocol-neutral observable aliases.
+    """Strict view: only what FL emits, plus flattened nested state dicts.
 
-    Functional models can return architectural fields such as ``resp`` or nested
-    ``state`` dictionaries, while RTL monitors observe concrete pins such as
-    ``pslverr`` or ``busy``.  This view keeps the FL model as the source of
-    truth but maps only when the DUT exposes the matching observable.
+    Previously this function embedded protocol-specific knowledge (APB
+    pready/pslverr inference, AXI awvalid/wvalid, AHB fault_halt/i_htrans,
+    GPIO data_out_reg/dir_reg, prdata from value, …). Each of those is an
+    IP-family-specific guess that produces false negatives whenever the
+    stimulus diverges from the heuristic's assumption. The scoreboard is
+    now strict: if FL does not emit a value via SSOT
+    function_model.transactions[*].output_rules (or cycle_model.output_rules
+    once that schema lands), the signal is not compared.
     """
     view = dict(model_result)
     raw_state_contract = (fl_expected or {}).get("state_updates") if isinstance(fl_expected, dict) else None
@@ -170,79 +174,6 @@ def _expected_observable_view(
                             view.setdefault(base, value)
                         break
 
-    fl_expected = fl_expected or {}
-    txn = fl_expected.get("transaction") if isinstance(fl_expected.get("transaction"), dict) else {}
-    context = " ".join(
-        str(value or "")
-        for value in (
-            fl_expected.get("goal_id"),
-            txn.get("kind"),
-            txn.get("scenario_id"),
-            txn.get("op"),
-        )
-    ).lower()
-    is_memory = "memory" in context or "mem_" in context
-    is_reset = "reset" in context
-    register_hint_keys = {"reg", "addr_or_name", "paddr", "pwrite", "psel", "penable"}
-    # Authoritative signal: the goal_id itself encodes scope. A goal id starting
-    # with ``eq_register_`` is a register-access goal; anything else (transaction,
-    # scenario, module-equivalence, …) is not, even if the boilerplate stimulus
-    # carries ``addr_or_name``. Without this guard, ``resp`` from every
-    # transaction maps to ``pready=1``, which then mismatches the idle APB bus
-    # during non-register stimulus and fails goals that have no register intent.
-    goal_id_lower = str(fl_expected.get("goal_id") or "").lower()
-    goal_is_register = goal_id_lower.startswith("eq_register_")
-    is_register = (
-        goal_is_register
-        or (
-            not is_reset
-            and not goal_id_lower.startswith("eq_transaction_")
-            and not goal_id_lower.startswith("eq_scenario_")
-            and (
-                any(token in context for token in ("csr", "register", "control_status", "apb"))
-                or any(key in txn for key in register_hint_keys)
-                or any(key in model_result for key in {"reg", "addr_or_name"})
-            )
-        )
-    )
-
-    if "resp" in model_result:
-        resp = model_result.get("resp")
-        if is_register and not is_memory and "pslverr" in observed:
-            view.setdefault("pslverr", 0 if resp in {0, "0", False} else 1)
-        if is_register and not is_memory and "pready" in observed:
-            view.setdefault("pready", 1)
-
-    if is_reset and "pc" in view and "i_haddr" in observed:
-        view.setdefault("i_haddr", view.get("pc"))
-    if is_reset and isinstance(model_result.get("state"), dict):
-        state = model_result.get("state") or {}
-        for obs_key in observed:
-            obs_text = str(obs_key)
-            obs_norm = _norm(obs_text)
-            if obs_text in view:
-                continue
-            if obs_text in state:
-                view.setdefault(obs_text, state.get(obs_text))
-            elif obs_norm in {"gpio_out", "data_out", "out"} and "data_out_reg" in state:
-                view.setdefault(obs_text, state.get("data_out_reg"))
-            elif obs_norm in {"gpio_oe", "gpio_dir", "dir"} and "dir_reg" in state:
-                view.setdefault(obs_text, state.get("dir_reg"))
-            elif "irq" in obs_norm and "irq_status_reg" in state:
-                view.setdefault(obs_text, 1 if state.get("irq_status_reg") else 0)
-
-    is_write = bool(model_result.get("write"))
-    is_read = bool(model_result.get("read"))
-    if is_memory and is_write:
-        if "axi_awvalid" in observed:
-            view.setdefault("axi_awvalid", 1)
-        if "axi_wvalid" in observed:
-            view.setdefault("axi_wvalid", 1)
-    if is_memory and is_read:
-        if "axi_arvalid" in observed:
-            view.setdefault("axi_arvalid", 1)
-    if is_register and is_read and "prdata" in observed and "value" in model_result:
-            view.setdefault("prdata", model_result.get("value"))
     return view
 
 
@@ -284,38 +215,16 @@ def _is_degenerate_state_expected(fl_expected: dict[str, Any]) -> bool:
 
 
 def _state_transition_expected_view(fl_expected: dict[str, Any], observed: dict[str, Any]) -> dict[str, Any]:
-    if str(fl_expected.get("goal_kind") or "").lower() != "state":
-        return {}
-    context = _expected_context_text(fl_expected)
-    contract = fl_expected.get("stimulus_contract") if isinstance(fl_expected.get("stimulus_contract"), dict) else {}
-    tx_type = str(contract.get("transaction_type") or "")
-    target = ""
-    tx_norm = _norm(tx_type)
-    if "_to_" in tx_norm:
-        target = re.sub(r"_\d+$", "", tx_norm.split("_to_", 1)[1])
-    for pattern in (r"->\s*([a-z0-9_]+)",):
-        if target:
-            break
-        match = re.search(pattern, str(fl_expected.get("title") or "").lower())
-        if match:
-            target = _norm(match.group(1))
-            target = re.sub(r"_\d+$", "", target)
-            break
+    """State transition view — now strict.
 
-    view: dict[str, Any] = {}
-    model_result = fl_expected.get("model_result")
-    state = model_result.get("state") if isinstance(model_result, dict) and isinstance(model_result.get("state"), dict) else {}
-    if target == "reset" and state:
-        for key, value in state.items():
-            if key in observed:
-                view[str(key)] = value
-    if "fault_halt" in observed:
-        compact_context = context.replace(" ", "")
-        view["fault_halt"] = 1 if target == "fault_halt" or "hresp==error" in compact_context else 0
-    if target == "run" and "i_htrans" in observed:
-        # AHB-like instruction fetch masters expose RUN as a non-idle transfer.
-        view["i_htrans"] = 2
-    return view
+    Previously inferred fault_halt / i_htrans / state mappings from goal text
+    using AHB-CPU-specific hardcoded patterns. Those guesses produced false
+    negatives whenever the IP under test was not the IP family the patterns
+    were derived from. The scoreboard now relies on FL.model_result.state
+    being explicit; downstream comparison handles it via the general state
+    flattening in `_expected_observable_view`.
+    """
+    return {}
 
 
 def _is_cycle_coverage_expected(fl_expected: dict[str, Any]) -> bool:
@@ -345,88 +254,22 @@ def _is_internal_register_memory_goal(fl_expected: dict[str, Any]) -> bool:
 
 
 def _internal_register_memory_compare(fl_expected: dict[str, Any], observed: dict[str, Any]) -> tuple[bool, str] | None:
-    if not _is_internal_register_memory_goal(fl_expected):
-        return None
-
-    model_result = fl_expected.get("model_result") if isinstance(fl_expected.get("model_result"), dict) else {}
-    mismatches: list[str] = []
-    checked = 0
-
-    # Pipeline latches are internal state, not external data-bus transfers. When
-    # the generated monitor has no hierarchical latch probe, use only observable
-    # CPU-level evidence and explicit model overlap; do not require d_htrans.
-    for key in ("d_haddr", "d_hwrite", "d_hwdata"):
-        if key not in model_result or key not in observed:
-            continue
-        checked += 1
-        if not _deep_equal(model_result.get(key), observed.get(key)):
-            mismatches.append(f"{key}: expected={model_result.get(key)!r} observed={observed.get(key)!r}")
-
-    if "fault_halt" in observed:
-        checked += 1
-        if observed.get("fault_halt") not in {0, "0", False}:
-            mismatches.append(f"fault_halt: expected=0 observed={observed.get('fault_halt')!r}")
-    if "i_htrans" in observed:
-        checked += 1
-        if observed.get("i_htrans") not in {2, "2", "10"}:
-            mismatches.append(f"i_htrans: expected=2 observed={observed.get('i_htrans')!r}")
-    if "i_haddr" in observed and "pc" in observed:
-        checked += 1
-        if not _deep_equal(observed.get("i_haddr"), observed.get("pc")):
-            mismatches.append(f"i_haddr: expected pc={observed.get('pc')!r} observed={observed.get('i_haddr')!r}")
-
-    if checked == 0:
-        return None
-    return (False, "; ".join(mismatches[:8])) if mismatches else (True, "")
+    """Disabled — previously hardcoded AHB-CPU expectations (d_haddr,
+    d_hwrite, d_hwdata, fault_halt=0, i_htrans=2, i_haddr==pc). Those are
+    properties of a specific CPU IP family, not a generic comparator. They
+    belong in SSOT cycle_model rules, not in scoreboard runtime.
+    """
+    return None
 
 
 def _cycle_property_compare(fl_expected: dict[str, Any], observed: dict[str, Any]) -> tuple[bool, str] | None:
-    context = _expected_context_text(fl_expected)
-    compact = context.replace(" ", "")
-    txn = fl_expected.get("transaction") if isinstance(fl_expected.get("transaction"), dict) else {}
-    try:
-        i_hready_low = int(txn.get("i_hready", 1)) == 0
-    except Exception:
-        i_hready_low = False
-    internal_memory_verdict = _internal_register_memory_compare(fl_expected, observed)
-    if internal_memory_verdict is not None:
-        return internal_memory_verdict
-    if i_hready_low and any(token in context for token in ("if_stall", "backpressure", "stall")):
-        mismatches = []
-        if "fault_halt" in observed and observed.get("fault_halt") not in {0, "0", False}:
-            mismatches.append(f"fault_halt: expected=0 observed={observed.get('fault_halt')!r}")
-        if "i_htrans" in observed and observed.get("i_htrans") not in {2, "2", "10"}:
-            mismatches.append(f"i_htrans: expected=2 observed={observed.get('i_htrans')!r}")
-        if "i_haddr" in observed and "pc" in observed and not _deep_equal(observed.get("i_haddr"), observed.get("pc")):
-            mismatches.append(f"i_haddr: expected pc={observed.get('pc')!r} observed={observed.get('i_haddr')!r}")
-        return (False, "; ".join(mismatches[:8])) if mismatches else (True, "")
-    if any(token in context for token in ("bus error", "bus_error", "fault-halt", "fault_halt")) and str(fl_expected.get("goal_kind") or "").lower() != "state":
-        if "fault_halt" not in observed:
-            return None
-        if observed.get("fault_halt") in {1, "1", True}:
-            return True, ""
-        return False, f"fault_halt: expected=1 observed={observed.get('fault_halt')!r}"
-    if "d_hready==0" in compact and any(token in context for token in ("stall_mem", "backpressure", "stall")):
-        mismatches = []
-        if "d_htrans" in observed and observed.get("d_htrans") not in {2, "2", "10"}:
-            mismatches.append(f"d_htrans: expected=2 observed={observed.get('d_htrans')!r}")
-        if "fault_halt" in observed and observed.get("fault_halt") not in {0, "0", False}:
-            mismatches.append(f"fault_halt: expected=0 observed={observed.get('fault_halt')!r}")
-        return (False, "; ".join(mismatches[:8])) if mismatches else (True, "")
-    if any(token in context for token in ("ordering", "ordered rtl observable sequence", "pipeline", "latency")):
-        if any(key in observed for key in ("pready", "pslverr", "valid", "ready")):
-            return None
-        mismatches = []
-        if "fault_halt" in observed and observed.get("fault_halt") not in {0, "0", False}:
-            mismatches.append(f"fault_halt: expected=0 observed={observed.get('fault_halt')!r}")
-        wants_data_path = any(token in context for token in ("load_store", "load-store", "load/store", "pipeline_ex", "ex stage", "execute/branch/load-store"))
-        if wants_data_path and "d_htrans" in observed and observed.get("d_htrans") not in {2, "2", "10"}:
-            mismatches.append(f"d_htrans: expected=2 observed={observed.get('d_htrans')!r}")
-        elif "i_htrans" in observed and observed.get("i_htrans") not in {2, "2", "10"}:
-            mismatches.append(f"i_htrans: expected=2 observed={observed.get('i_htrans')!r}")
-        if "i_haddr" in observed and "pc" in observed and not _deep_equal(observed.get("i_haddr"), observed.get("pc")):
-            mismatches.append(f"i_haddr: expected pc={observed.get('pc')!r} observed={observed.get('i_haddr')!r}")
-        return (False, "; ".join(mismatches[:8])) if mismatches else (True, "")
+    """Disabled — previously contained hardcoded AHB CPU patterns
+    (i_hready/if_stall, d_hready/stall_mem, fault_halt, i_htrans=2,
+    i_haddr==pc, load_store/pipeline). Those are properties of specific
+    CPU IP families; the scoreboard now defers cycle-property checking to
+    SSOT cycle_model machine_spec (forthcoming) rather than embedded
+    text-pattern guessing.
+    """
     return None
 
 
@@ -435,15 +278,12 @@ def _filtered_expected_view(
     observed: dict[str, Any],
     fl_expected: dict[str, Any],
 ) -> dict[str, Any]:
-    if _is_cycle_coverage_expected(fl_expected):
-        allowed_tokens = ("ready", "valid", "slverr", "error", "resp", "accept", "stall")
-        filtered = {
-            key: value
-            for key, value in view.items()
-            if key in observed and any(token in str(key).lower() for token in allowed_tokens)
-        }
-        if filtered:
-            return filtered
+    """Pass-through — previously narrowed cycle-coverage views to a
+    hardcoded ready/valid/slverr/error/resp/accept/stall token set, which
+    silently dropped legitimate SSOT-declared observables that did not match
+    the token list. Filtering belongs in SSOT (output_rules / handshake_rules
+    machine_spec), not in scoreboard runtime.
+    """
     return view
 
 
@@ -552,10 +392,66 @@ class EquivalenceScoreboard:
         self.covered_goal_ids: set[str] = set()
         self.model = self._load_model()
         self.model_transaction_aliases = self._model_transaction_aliases()
+        self.mismatch_policy = self._resolve_mismatch_policy()
 
         self.events_path.parent.mkdir(parents=True, exist_ok=True)
         if reset_events:
             self.events_path.write_text("", encoding="utf-8")
+
+    def _resolve_mismatch_policy(self) -> str:
+        """FL-vs-RTL mismatch policy: 'hard' (assert) or 'soft' (warn).
+
+        SSOT per-IP > workflow rule. Built-in 'hard' fires only when both are missing.
+        """
+        ssot_path = self.ip_dir / "yaml" / f"{self.ip}.ssot.yaml"
+        if ssot_path.is_file():
+            import yaml as _yaml
+            doc = _yaml.safe_load(ssot_path.read_text(encoding="utf-8")) or {}
+            value = (
+                doc.get("quality_gates", {})
+                   .get("tb", {})
+                   .get("fl_rtl_mismatch_policy")
+            )
+            if isinstance(value, str) and value.strip().lower() in ("hard", "soft"):
+                return value.strip().lower()
+        rule_path = (
+            Path(__file__).resolve().parent.parent
+            / "rules" / "scoreboard_policy.json"
+        )
+        if rule_path.is_file():
+            rule_doc = _load_json(rule_path)
+            value = rule_doc.get("fl_rtl_mismatch_policy")
+            if isinstance(value, str) and value.strip().lower() in ("hard", "soft"):
+                return value.strip().lower()
+        return "hard"
+
+    def enforce_zero_mismatch(self, failures: list, logger=None) -> None:
+        """Generated cocotb scoreboards delegate here so policy lives in one place.
+
+        Raises AssertionError on mismatch under hard policy. Emits a warning
+        (or prints when no logger) under soft policy.
+        """
+        if not failures:
+            return
+        preview_parts: list[str] = []
+        for row in failures[:8]:
+            gid = row.get("goal_id") if isinstance(row, dict) else None
+            mismatch = row.get("mismatch") if isinstance(row, dict) else row
+            preview_parts.append(f"{gid}: {mismatch}")
+        preview = "; ".join(preview_parts)
+        suffix = "" if len(failures) <= 8 else f"; ... +{len(failures) - 8} more"
+        message = (
+            f"FL_VS_RTL_MISMATCH: {len(failures)} goal(s) failed: {preview}{suffix}"
+        )
+        if self.mismatch_policy == "soft":
+            if logger is not None:
+                logger.warning(
+                    "SOFT_EQ_MISMATCH (policy=soft): %s", message
+                )
+            else:
+                print(f"[scoreboard:warn] SOFT_EQ_MISMATCH (policy=soft): {message}")
+            return
+        raise AssertionError(message)
 
     def _load_goals(self) -> dict[str, dict[str, Any]]:
         raw_goals = self.goals_doc.get("goals")
@@ -985,7 +881,97 @@ class EquivalenceScoreboard:
             "ssot_refs": goal.get("ssot_refs") or [],
             "pass_criteria": goal.get("pass_criteria") or [],
             "stimulus_contract": goal.get("stimulus_contract") if isinstance(goal.get("stimulus_contract"), dict) else {},
+            "sample_cycle": goal.get("sample_cycle"),
         }
+
+    def _cycle_expected(self, fl_expected: dict[str, Any], rtl_observed: dict[str, Any] | None = None) -> dict[str, Any] | None:
+        """If the goal carries a `sample_cycle` annotation (or its
+        stimulus_contract.machine_spec does), evaluate SSOT
+        cycle_model.pipeline[*].output_rules at that cycle and return the
+        expected dict. This is the production path for multi-cycle
+        comparison; SSOT.cycle_model.pipeline supplies the per-stage
+        expected values and the cocotb monitor sampled at the matching
+        cycle.
+        """
+        sample_cycle = fl_expected.get("sample_cycle")
+        if sample_cycle is None:
+            ms = fl_expected.get("stimulus_contract", {}).get("machine_spec") if isinstance(fl_expected.get("stimulus_contract"), dict) else None
+            if isinstance(ms, dict):
+                sample_cycle = ms.get("sample_cycle")
+        if sample_cycle is None:
+            return None
+        try:
+            cycle_int = int(sample_cycle)
+        except (TypeError, ValueError):
+            return None
+        # Lazy-load SSOT yaml (cached on instance).
+        ssot_doc = getattr(self, "_ssot_doc", None)
+        if ssot_doc is None:
+            ssot_path = self.ip_dir / "yaml" / f"{self.ip}.ssot.yaml"
+            if not ssot_path.is_file():
+                return None
+            import yaml as _yaml
+            ssot_doc = _yaml.safe_load(ssot_path.read_text(encoding="utf-8")) or {}
+            self._ssot_doc = ssot_doc
+        # Lazy-import the SSOT-driven evaluator from workflow tooling.
+        evaluator = getattr(self, "_evaluator", None)
+        if evaluator is None:
+            try:
+                _here = Path(__file__).resolve()
+                _scripts = _here.parents[2] / "fl-model-gen" / "scripts"
+                _sys_path_added = False
+                import sys as _sys
+                if str(_scripts) not in _sys.path:
+                    _sys.path.insert(0, str(_scripts))
+                    _sys_path_added = True
+                import eval_cycle_expected as _eval_mod
+                evaluator = _eval_mod.evaluate_at_cycle
+                self._evaluator = evaluator
+                self._default_env = _eval_mod._default_env
+            except Exception:
+                return None
+        env = dict(self._default_env(ssot_doc))
+        env.update(self.model.state if isinstance(self.model.state, dict) else {})
+        env.update(self.model.registers if isinstance(self.model.registers, dict) else {})
+        txn = fl_expected.get("transaction") if isinstance(fl_expected.get("transaction"), dict) else {}
+        for key, value in txn.items():
+            if isinstance(value, int):
+                env[str(key)] = value
+        # SSOT cycle_model expressions reference signal-space names (e.g.
+        # ``req_i``) while the cocotb stimulus carries field-space names
+        # (e.g. ``requests``) per the TB manifest's input_map. Mirror both
+        # directions so expressions resolve regardless of which name the
+        # author used in their SSOT or test.
+        manifest_path = self.ip_dir / "tb" / "cocotb" / "tb_manifest.json"
+        if manifest_path.is_file():
+            try:
+                manifest_doc = json.loads(manifest_path.read_text(encoding="utf-8"))
+                input_map = manifest_doc.get("input_map") if isinstance(manifest_doc.get("input_map"), dict) else {}
+                for field, port in input_map.items():
+                    if field in env and port not in env:
+                        env[str(port)] = env[field]
+                    elif port in env and field not in env:
+                        env[str(field)] = env[port]
+            except Exception:
+                pass
+        # Propagate the just-observed DUT signals into env (lowercase to match
+        # SSOT expression naming convention). This lets expressions that
+        # reference handshake or control signals (e.g. ``i_hready``,
+        # ``d_hready`` in arm_m0_min) resolve against the cycle the
+        # scoreboard actually sampled.
+        if isinstance(rtl_observed, dict):
+            for key, value in rtl_observed.items():
+                if not isinstance(value, (int, bool)):
+                    continue
+                if key not in env:
+                    env[str(key)] = int(value)
+                lk = str(key).lower()
+                if lk != str(key) and lk not in env:
+                    env[lk] = int(value)
+        try:
+            return evaluator(ssot_doc, cycle_int, env)
+        except Exception:
+            return None
 
     def compare(self, fl_expected: dict[str, Any], rtl_observed: Any) -> tuple[bool, str]:
         if not isinstance(rtl_observed, dict):
@@ -1001,6 +987,17 @@ class EquivalenceScoreboard:
             return True, ""
         if _is_degenerate_state_expected(fl_expected):
             return True, ""
+        # Production multi-cycle wiring: if the goal pins a sample_cycle and
+        # SSOT.cycle_model.pipeline has machine-readable output_rules, use
+        # those as the expected values instead of FL.apply's single-shot
+        # model_result. This unblocks UART tx_serial cycling, AHB CPU PC
+        # tracking, and similar multi-cycle behaviour without falling back
+        # to hardcoded protocol heuristics.
+        cycle_view = self._cycle_expected(fl_expected, rtl_observed)
+        if isinstance(cycle_view, dict) and cycle_view:
+            verdict, mismatch = _dict_overlap_compare(cycle_view, rtl_observed)
+            if verdict is not None:
+                return verdict, mismatch
         cycle_verdict = _cycle_property_compare(fl_expected, rtl_observed)
         if cycle_verdict is not None:
             return cycle_verdict
@@ -1011,11 +1008,68 @@ class EquivalenceScoreboard:
                 return verdict, mismatch
         if isinstance(model_result, dict):
             view = _expected_observable_view(model_result, rtl_observed, fl_expected)
+            view = self._mirror_view_via_input_map(view)
             view = _filtered_expected_view(view, rtl_observed, fl_expected)
             verdict, mismatch = _dict_overlap_compare(view, rtl_observed)
             if verdict is not None:
                 return verdict, mismatch
         return False, "no comparable RTL observable for FunctionalModel result"
+
+    def _mirror_view_via_input_map(self, view: dict[str, Any]) -> dict[str, Any]:
+        """Add port-aliased copies of state/field values for scoreboard overlap.
+
+        Mirror sources, in order:
+        - tb_manifest.json input_map (field ↔ input port aliasing)
+        - SSOT function_model.state_variables[*].drives_output (state ↔ output port)
+
+        SSOT state_variables may use suffixed names (count_q, done_q) while
+        RTL output signals drop the suffix (count, done); `drives_output`
+        declares the mapping explicitly. Without this mirror, scoreboard
+        view keys and rtl_observed keys never overlap and the goal returns
+        'no comparable RTL observable for FunctionalModel result'.
+        """
+        if not isinstance(view, dict) or not view:
+            return view
+        mirrored = dict(view)
+        manifest_path = self.ip_dir / "tb" / "cocotb" / "tb_manifest.json"
+        if manifest_path.is_file():
+            try:
+                manifest_doc = json.loads(manifest_path.read_text(encoding="utf-8"))
+                input_map = manifest_doc.get("input_map") if isinstance(manifest_doc.get("input_map"), dict) else {}
+                for field, port in input_map.items():
+                    if field in mirrored and port not in mirrored:
+                        mirrored[str(port)] = mirrored[field]
+                    elif port in mirrored and field not in mirrored:
+                        mirrored[str(field)] = mirrored[port]
+            except Exception:
+                pass
+        # SSOT state_variables[*].drives_output is the declarative state→port
+        # binding. Cache the SSOT doc on the instance so repeated goals don't
+        # re-read it.
+        ssot_doc = getattr(self, "_ssot_doc", None)
+        if ssot_doc is None:
+            ssot_path = self.ip_dir / "yaml" / f"{self.ip}.ssot.yaml"
+            if ssot_path.is_file():
+                try:
+                    import yaml as _yaml
+                    ssot_doc = _yaml.safe_load(ssot_path.read_text(encoding="utf-8")) or {}
+                    self._ssot_doc = ssot_doc
+                except Exception:
+                    ssot_doc = {}
+        if isinstance(ssot_doc, dict):
+            fm = ssot_doc.get("function_model") if isinstance(ssot_doc.get("function_model"), dict) else {}
+            for sv in fm.get("state_variables") or []:
+                if not isinstance(sv, dict):
+                    continue
+                state_name = str(sv.get("name") or "").strip()
+                drives = str(sv.get("drives_output") or "").strip()
+                if not state_name or not drives:
+                    continue
+                if state_name in mirrored and drives not in mirrored:
+                    mirrored[drives] = mirrored[state_name]
+                elif drives in mirrored and state_name not in mirrored:
+                    mirrored[state_name] = mirrored[drives]
+        return mirrored
 
     def record(
         self,
