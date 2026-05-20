@@ -2170,7 +2170,8 @@ def create_app():
         }.get(ext, "application/octet-stream")
         try:
             from fastapi.responses import FileResponse as _FR
-            return _FR(target, media_type=mime, filename=target.name)
+            return _FR(target, media_type=mime, filename=target.name,
+                       content_disposition_type="inline")
         except Exception as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
 
@@ -8187,6 +8188,54 @@ def create_app():
             }
             for key, label in _SSOT_REQUIRED_DECISIONS
         ]
+        imported_files: list[dict[str, Any]] = []
+        seen_import_paths: set[str] = set()
+
+        def _add_imported_file(row: dict[str, Any]) -> None:
+            path = str(row.get("path") or row.get("md_path") or row.get("original_path") or "").strip()
+            original = str(row.get("original_path") or row.get("path") or "").strip()
+            if not path and not original:
+                return
+            key = path or original
+            if key in seen_import_paths:
+                return
+            seen_import_paths.add(key)
+            name = str(row.get("name") or Path(original or path).name or "").strip()
+            images = row.get("image_paths") if isinstance(row.get("image_paths"), list) else []
+            imported_files.append({
+                "name": name,
+                "bytes": int(row.get("bytes") or row.get("size_bytes") or 0),
+                "path": path,
+                "md_path": str(row.get("md_path") or (path if path.endswith(".md") else "") or ""),
+                "original_path": original,
+                "image_paths": images,
+                "image_count": len(images),
+                "convert_error": str(row.get("convert_error") or ""),
+            })
+
+        manifest_path = PROJECT_ROOT / ip / "req" / "import_manifest.json"
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8", errors="replace")) if manifest_path.is_file() else {}
+        except Exception:
+            manifest = {}
+        for artifact in (manifest.get("artifacts") if isinstance(manifest, dict) else []) or []:
+            if isinstance(artifact, dict):
+                _add_imported_file(artifact)
+        imports_dir = PROJECT_ROOT / ip / "req" / "imports"
+        if imports_dir.is_dir():
+            for path in sorted(imports_dir.glob("*"), key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)[:80]:
+                if path.is_file():
+                    try:
+                        rel = path.relative_to(PROJECT_ROOT).as_posix()
+                    except Exception:
+                        rel = path.as_posix()
+                    _add_imported_file({
+                        "name": path.name,
+                        "bytes": path.stat().st_size,
+                        "path": rel,
+                        "md_path": rel if path.suffix.lower() == ".md" else "",
+                        "original_path": rel,
+                    })
         return {
             "ip": ip,
             "workflow": "ssot-gen",
@@ -8204,6 +8253,7 @@ def create_app():
                 "missing_keys": missing_requirements,
             },
             "items": items,
+            "imports": imported_files,
             "path": str(_ssot_qa_path(ip, session).relative_to(PROJECT_ROOT)),
         }
 
@@ -11284,6 +11334,20 @@ def create_app():
         _emit_workflow_result(bridge_msg, "to-ssot")
 
         if draft is not None and validate is not None and draft.returncode == 0 and validate.returncode == 0:
+            return True
+
+        llm_fallback = os.environ.get("ATLAS_TO_SSOT_LLM_FALLBACK", "").strip().lower()
+        if llm_fallback not in {"1", "true", "yes", "on"}:
+            fail_msg = (
+                "\n[to-ssot] deterministic bridge did not pass validation. "
+                "No LLM repair was queued, so the browser stays in ssot-gen and "
+                "import/wiki trace evidence is not overwritten. Fix the bridge or "
+                "run /repair-ssot explicitly if you want a repair pass."
+            )
+            _append_session_message(_canonical_session_string(ip), "assistant", fail_msg)
+            _append_workflow_history("ssot-gen", "assistant", fail_msg)
+            _append_active_history("assistant", "```\n" + fail_msg + "\n```")
+            _emit_workflow_result(fail_msg, "to-ssot")
             return True
 
         _queue_prompt_for_session(client_session, "/mode normal")

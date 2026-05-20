@@ -17,6 +17,29 @@
 //
 // React via in-browser Babel — no imports, no ES modules, no TS.
 
+const PIPE_LAYOUT_VERSION = 'center-wide-compact-chat-v2';
+const PIPE_LEFT_DEFAULT = 280;
+const PIPE_LEFT_MIN = 200;
+const PIPE_LEFT_MAX = 560;
+const PIPE_RIGHT_DEFAULT = 340;
+const PIPE_RIGHT_MIN = 240;
+const PIPE_RIGHT_MAX = 620;
+
+function clampPipeWidth(value, fallback, min, max) {
+  const n = Number(value);
+  const safe = Number.isFinite(n) && n > 0 ? n : fallback;
+  return Math.max(min, Math.min(max, safe));
+}
+
+function readPipeWidth(key, fallback, min, max) {
+  try {
+    if (localStorage.getItem('atlasPipeLayoutVersion') !== PIPE_LAYOUT_VERSION) return fallback;
+    return clampPipeWidth(localStorage.getItem(key), fallback, min, max);
+  } catch (_) {
+    return fallback;
+  }
+}
+
 (function injectPipelineHelpers() {
   // Hard-coded copy of _PIPELINE_STAGE_DEPS from src/atlas_api_jobs.py.
   // The frontend can't introspect Python; refresh by hand if the
@@ -2598,7 +2621,7 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }) {
           placeholder={hasIp ? `Message orchestrator for ${ip}…` : 'Select an IP first'}
           value={draft}
           disabled={sending}
-          rows={2}
+          rows={1}
           onChange={e => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
         />
@@ -2700,12 +2723,10 @@ window.AtlasPipeline = function AtlasPipeline() {
   const [chatTarget, setChatTarget] = React.useState('orchestrator');
   const [localPolicy, setLocalPolicy] = React.useState(() => window.pipelinePolicyPayload());
   const [leftW, setLeftW] = React.useState(() => {
-    try { return Math.max(200, Math.min(600, Number(localStorage.getItem('atlasPipeLeftW')) || 300)); }
-    catch (_) { return 300; }
+    return readPipeWidth('atlasPipeLeftW', PIPE_LEFT_DEFAULT, PIPE_LEFT_MIN, PIPE_LEFT_MAX);
   });
   const [rightW, setRightW] = React.useState(() => {
-    try { return Math.max(280, Math.min(900, Number(localStorage.getItem('atlasPipeRightW')) || 430)); }
-    catch (_) { return 430; }
+    return readPipeWidth('atlasPipeRightW', PIPE_RIGHT_DEFAULT, PIPE_RIGHT_MIN, PIPE_RIGHT_MAX);
   });
   const dragRef = React.useRef(null);
   const beginDrag = React.useCallback((edge) => (ev) => {
@@ -2718,10 +2739,10 @@ window.AtlasPipeline = function AtlasPipeline() {
     const onMove = (e) => {
       const dx = e.clientX - startX;
       if (edge === 'left') {
-        const w = Math.max(200, Math.min(600, startLeft + dx));
+        const w = clampPipeWidth(startLeft + dx, PIPE_LEFT_DEFAULT, PIPE_LEFT_MIN, PIPE_LEFT_MAX);
         setLeftW(w);
       } else if (edge === 'right') {
-        const w = Math.max(280, Math.min(900, startRight - dx));
+        const w = clampPipeWidth(startRight - dx, PIPE_RIGHT_DEFAULT, PIPE_RIGHT_MIN, PIPE_RIGHT_MAX);
         setRightW(w);
       }
     };
@@ -2738,6 +2759,9 @@ window.AtlasPipeline = function AtlasPipeline() {
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
   }, [leftW, rightW]);
+  React.useEffect(() => {
+    try { localStorage.setItem('atlasPipeLayoutVersion', PIPE_LAYOUT_VERSION); } catch (_) {}
+  }, []);
   // Persist on every change.
   React.useEffect(() => {
     try { localStorage.setItem('atlasPipeLeftW', String(leftW)); } catch (_) {}

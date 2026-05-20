@@ -2523,13 +2523,13 @@ code,
   --panel: #0f1118;
   --line: #262d3a;
   --line-2: #394255;
-  --pipe-left-w: 300px;
-  --pipe-right-w: 430px;
+  --pipe-left-w: 280px;
+  --pipe-right-w: 340px;
   flex: 1 1 0;
   min-height: 0;
   height: 100%;
   display: grid;
-  grid-template-columns: var(--pipe-left-w) 6px minmax(420px, 1fr) 6px var(--pipe-right-w);
+  grid-template-columns: var(--pipe-left-w) 4px minmax(560px, 1fr) 4px var(--pipe-right-w);
   grid-template-rows: minmax(0, 1fr);
   overflow: hidden;
 }
@@ -3026,10 +3026,17 @@ body[data-resize-cursor="col"] {
   min-height: 0;
   display: flex;
 }
-.pipe-orch-chat-shell > div {
+.pipe-orch-chat-shell > .orch-chat-body {
   flex: 1 1 auto;
   min-height: 0;
-  height: 100%;
+  height: auto;
+  border-left: 0 !important;
+}
+.pipe-orch-chat-shell > .orch-chat-header,
+.pipe-orch-chat-shell > .orch-chat-input-row {
+  flex: 0 0 auto;
+  min-height: auto;
+  height: auto;
   border-left: 0 !important;
 }
 
@@ -3080,26 +3087,28 @@ body[data-resize-cursor="col"] {
 .orch-chat-content { white-space: pre-wrap; word-break: break-word; }
 .orch-chat-input-row {
   display: flex;
-  align-items: flex-end;     /* was 'stretch' — caused send btn to grow vertically when row container had extra height */
-  gap: 6px;
-  padding: 8px 10px;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
   border-top: 1px solid var(--line);
   background: var(--bg-2, #151823);
   flex: 0 0 auto;
 }
 .orch-chat-input {
   flex: 1 1 auto;
-  min-height: 32px;
-  max-height: 64px;     /* keep input compact so chat body keeps most of the panel; reduces the "3-section equal split" feel when the textarea would otherwise stretch */
-  padding: 6px 8px;
+  height: 30px;
+  min-height: 30px;
+  max-height: 30px;
+  padding: 5px 8px;
   border: 1px solid var(--line);
   border-radius: 3px;
   background: var(--bg, #0b0c10);
   color: var(--fg);
   font-family: var(--mono);
   font-size: var(--ui-control-font-size, 12.5px);
-  line-height: 1.4;
+  line-height: 1.25;
   resize: none;
+  overflow-y: hidden;
   outline: none;
 }
 .orch-chat-input:focus { border-color: var(--accent, #f2b632); }
@@ -3112,8 +3121,9 @@ body[data-resize-cursor="col"] {
   background: color-mix(in oklch, var(--accent) 14%, transparent);
   color: var(--accent, #f2b632);
   cursor: pointer;
-  max-height: 64px;     /* don't stretch with align-items:stretch when row height grows */
-  align-self: stretch;
+  height: 30px;
+  max-height: 30px;
+  align-self: center;
   font-size: 14px;
   min-width: 32px;
 }

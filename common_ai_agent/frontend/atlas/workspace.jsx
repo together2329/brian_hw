@@ -5467,8 +5467,33 @@ const SsotQaBoard = ({
     });
   }, [importStorageKey]);
   React.useEffect(() => {
-    setImportedFilesState(readStoredImportedFiles());
-  }, [readStoredImportedFiles]);
+    const backendImports = Array.isArray(data?.imports) ? data.imports : [];
+    if (!backendImports.length) {
+      setImportedFilesState(readStoredImportedFiles());
+      return;
+    }
+    const normalized = backendImports.map((item, idx) => ({
+      name: item.name || String(item.path || item.md_path || item.original_path || '').split('/').pop(),
+      bytes: item.bytes || 0,
+      md_path: item.md_path || (String(item.path || '').endsWith('.md') ? item.path : ''),
+      original_path: item.original_path || item.path || '',
+      image_count: item.image_count || (Array.isArray(item.image_paths) ? item.image_paths.length : 0),
+      pending: false,
+      error: !!item.convert_error,
+      ts: item.updated_at || item.mtime || idx,
+    })).filter(item => item.name || item.md_path || item.original_path);
+    setImportedFiles(prev => {
+      const merged = [];
+      const seen = new Set();
+      for (const item of [...normalized, ...prev]) {
+        const key = item.md_path || item.original_path || item.name;
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        merged.push(item);
+      }
+      return merged.slice(0, 20);
+    });
+  }, [data?.imports, readStoredImportedFiles, setImportedFiles]);
   const runSsotCommand = (cmd) => {
     const text = String(cmd || '').trim();
     if (!text || !onRunCommand) return;

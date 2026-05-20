@@ -29,17 +29,20 @@ def test_ssot_qa_workbench_has_first_class_actions_and_no_history_panel():
     assert "Q&amp;A Session" in src
     assert "fullHeight={true}" in src
     assert "/api/ssot/import/upload" in src
+    assert "/api/ssot/validate" in src
+    assert "check_ssot_disk.sh" in src
     assert "runSsotCommand(`/grill-me ${data.ip}`)" in src
     assert "runSsotCommand(`/to-ssot ${data.ip}`)" in src
-    assert "Check List" in src
+    assert "Validation" in src
+    assert "Import / Export" in src
     assert "checklistOnly={true}" in src
+    assert "importExportOnly={true}" in src
     assert "무엇을 만들까?" in src
     assert "채워야 하는 9칸" in src
-    assert "RTL 생성 준비도" in src
-    assert "1. 새로 원하는 것 = Chat" in src
-    assert "2. 이미 가진 문서 = Import" in src
-    assert "3. 모르는 것 = Deep Interview" in src
-    assert "4. 약속장 만들기 = To SSOT" in src
+    assert "SSOT Percent" in src
+    assert "SSOT 3단계 흐름" in src
+    assert "2. Deep Interview" in src
+    assert "3. To SSOT" in src
     assert "QaHistoryPanel history={visibleQaHistory}" not in src
 
 

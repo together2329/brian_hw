@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Write a generic SSOT draft from approved ATLAS Web Q&A state.
+"""Write a generic SSOT draft from ATLAS Web To SSOT state.
 
 This is a workflow bridge, not an RTL generator and not an IP-specific
-template. It converts the human-approved Web Q&A ledger into the canonical
+template. It converts the Web Q&A/import/wiki ledger into the canonical
 33-section SSOT shape so downstream LLM workflows can operate from disk truth
 instead of a long chat transcript. Unsupported or ambiguous details are
 recorded as assumptions in the SSOT; implementation remains owned by rtl-gen,
@@ -120,6 +120,135 @@ def _safe_markdown_text(value: Any) -> str:
     return text
 
 
+def _compact_context_text(value: Any, limit: int = 1000) -> str:
+    text = " ".join(str(value or "").strip().split())
+    if len(text) <= limit:
+        return text
+    return text[: max(0, limit - 3)].rstrip() + "..."
+
+
+def _load_json_object(path: Path) -> dict[str, Any]:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _path_record(root: Path, path: Path) -> dict[str, Any]:
+    try:
+        rel = str(path.relative_to(root))
+    except Exception:
+        rel = str(path)
+    record: dict[str, Any] = {"path": rel, "exists": path.is_file()}
+    if path.is_file():
+        try:
+            record["size_bytes"] = path.stat().st_size
+        except Exception:
+            pass
+    return record
+
+
+def _load_import_context(root: Path, ip: str, state: dict[str, Any]) -> dict[str, Any]:
+    ip_root = root / ip
+    manifest_path = ip_root / "req" / "import_manifest.json"
+    wiki_index_path = ip_root / "wiki" / "index.md"
+    wiki_graph_path = ip_root / "wiki" / "_graph.json"
+    import_evidence_path = ip_root / "wiki" / "import-evidence.md"
+    wiki_log_path = ip_root / "wiki" / "log.md"
+    wiki_notes_path = ip_root / "wiki" / "notes.md"
+    read_order = [
+        f"{ip}/wiki/index.md",
+        f"{ip}/wiki/_graph.json",
+        f"{ip}/wiki/import-evidence.md",
+        f"{ip}/req/import_manifest.json",
+        f"{ip}/wiki/log.md",
+        f"{ip}/wiki/notes.md",
+    ]
+    manifest = _load_json_object(manifest_path) if manifest_path.is_file() else {}
+    graph = _load_json_object(wiki_graph_path) if wiki_graph_path.is_file() else {}
+    artifacts = manifest.get("artifacts") if isinstance(manifest.get("artifacts"), list) else []
+    candidates = manifest.get("candidate_facts") if isinstance(manifest.get("candidate_facts"), dict) else {}
+    sources = manifest.get("sources") if isinstance(manifest.get("sources"), dict) else {}
+    conflicts = manifest.get("conflicts") if isinstance(manifest.get("conflicts"), list) else []
+    filled = manifest.get("filled_decisions") if isinstance(manifest.get("filled_decisions"), list) else []
+    workflow_todos = manifest.get("workflow_todo_summary") if isinstance(manifest.get("workflow_todo_summary"), dict) else {}
+    page_paths = {
+        "wiki_index": wiki_index_path,
+        "wiki_graph": wiki_graph_path,
+        "import_evidence": import_evidence_path,
+        "import_manifest": manifest_path,
+        "wiki_log": wiki_log_path,
+        "wiki_notes": wiki_notes_path,
+    }
+    page_summaries: dict[str, str] = {}
+    for key, path in page_paths.items():
+        if key == "wiki_graph" or not path.is_file():
+            continue
+        try:
+            page_summaries[key] = _compact_context_text(path.read_text(encoding="utf-8", errors="replace"), 1600)
+        except Exception:
+            pass
+    source_excerpt_summary: dict[str, list[dict[str, str]]] = {}
+    for key, rows in sources.items():
+        if not isinstance(rows, list):
+            continue
+        out_rows: list[dict[str, str]] = []
+        for row in rows[:8]:
+            if not isinstance(row, dict):
+                continue
+            out_rows.append({
+                "path": _compact_context_text(row.get("path"), 240),
+                "excerpt": _compact_context_text(row.get("excerpt"), 700),
+            })
+        if out_rows:
+            source_excerpt_summary[str(key)] = out_rows
+    graph_nodes: list[dict[str, Any]] = []
+    if isinstance(graph.get("nodes"), list):
+        for node in graph["nodes"][:80]:
+            if not isinstance(node, dict):
+                continue
+            graph_nodes.append({
+                "id": node.get("id"),
+                "title": node.get("title"),
+                "type": node.get("type"),
+                "path": node.get("path"),
+                "summary": _compact_context_text(node.get("summary"), 500),
+            })
+    source_custom = _ssot_custom(state)
+    custom_imports = source_custom.get("atlas_imports") if isinstance(source_custom.get("atlas_imports"), list) else []
+    return {
+        "policy": "SSOT generation must reconcile approved Web Q&A with per-IP wiki navigation, import manifest, imported markdown/source excerpts, conflicts, notes, logs, and linked implementation/verification artifacts.",
+        "read_order": read_order,
+        "available_paths": [_path_record(root, path) for path in page_paths.values()],
+        "manifest_summary": {
+            "path": f"{ip}/req/import_manifest.json",
+            "schema_version": manifest.get("schema_version"),
+            "updated_at": manifest.get("updated_at"),
+            "kind": manifest.get("kind"),
+            "artifact_count": len(artifacts),
+            "candidate_fact_keys": sorted(str(key) for key in candidates),
+            "filled_decisions": filled,
+            "conflict_count": len(conflicts),
+            "next": manifest.get("next"),
+            "workflow_todo_summary": workflow_todos,
+        },
+        "candidate_facts": {str(key): _compact_context_text(value, 1800) for key, value in candidates.items()},
+        "source_excerpts": source_excerpt_summary,
+        "conflicts": conflicts[:40],
+        "wiki_page_summaries": page_summaries,
+        "wiki_graph_summary": {
+            "path": f"{ip}/wiki/_graph.json",
+            "schema_version": graph.get("schema_version"),
+            "generated_at": graph.get("generated_at"),
+            "node_count": graph.get("node_count"),
+            "edge_count": graph.get("edge_count"),
+        },
+        "wiki_nodes": graph_nodes,
+        "atlas_import_batches": len(custom_imports),
+    }
+
+
 def _write_requirements(root: Path, ip: str, state: dict[str, Any], doc: dict[str, Any]) -> Path:
     decisions = _decisions(state)
     req_dir = root / ip / "req"
@@ -137,7 +266,8 @@ def _write_requirements(root: Path, ip: str, state: dict[str, Any], doc: dict[st
     lines: list[str] = [
         f"# {ip} Requirements Ledger",
         "",
-        f"- Source: human-approved ATLAS Web Q&A state captured for `{ip}`.",
+        f"- Source: ATLAS Web Q&A state plus per-IP wiki/import evidence captured for `{ip}`.",
+        f"- Evidence index: `{ip}/wiki/index.md`, `{ip}/wiki/import-evidence.md`, `{ip}/req/import_manifest.json`.",
         "- Authority: this file records requirement intent; the YAML SSOT remains the machine-readable source for downstream FL, RTL, DV, lint, simulation, and coverage stages.",
         f"- IP kind: {_safe_markdown_text(state.get('kind') or top.get('type') or 'leaf IP')}.",
         f"- Generated: {time.strftime('%Y-%m-%dT%H:%M:%S')}.",
@@ -673,6 +803,11 @@ def _interfaces(ip: str, state: dict[str, Any], params: list[dict[str, Any]], ma
                 "type": "valid_ready",
                 "role": "sink",
                 "description": "Native valid/ready transaction interface derived from approved Web Q&A.",
+                "protocol": {
+                    "accept": "A transaction is accepted when valid and ready are both high.",
+                    "backpressure": "ready may deassert to stall acceptance; inputs remain stable while stalled.",
+                    "response": "Observable outputs update according to function_model output_rules after acceptance.",
+                },
                 "ports": _valid_ready_ports(data_width, count_width, params, extra_inputs, extra_outputs),
             }
         )
@@ -683,6 +818,13 @@ def _interfaces(ip: str, state: dict[str, Any], params: list[dict[str, Any]], ma
                 "type": "APB4",
                 "role": "slave",
                 "description": bus or "APB4 slave control/status interface",
+                "protocol": {
+                    "setup_phase": "psel=1 and penable=0 captures address/control.",
+                    "access_phase": "psel=1 and penable=1 completes when pready=1.",
+                    "read_rule": "prdata is valid in the completing access phase for reads.",
+                    "write_rule": "pwdata is sampled in the completing access phase for writes.",
+                    "error_rule": "pslverr reports unsupported address or illegal access policy.",
+                },
                 "ports": _apb_ports(addr_width, data_width),
             }
         )
@@ -693,6 +835,11 @@ def _interfaces(ip: str, state: dict[str, Any], params: list[dict[str, Any]], ma
                 "type": "AXI4-Lite",
                 "role": "slave",
                 "description": bus or "AXI4-Lite control/status interface",
+                "protocol": {
+                    "address": "AW/AR handshakes capture write/read addresses.",
+                    "data": "W handshake captures write data; R/B channels return read/write responses.",
+                    "ordering": "Single-interface accesses complete in accepted address order unless SSOT adds reordering.",
+                },
                 "ports": _axi_lite_ports(addr_width, data_width),
             }
         )
@@ -703,6 +850,11 @@ def _interfaces(ip: str, state: dict[str, Any], params: list[dict[str, Any]], ma
                 "type": "AXI4-Stream",
                 "role": "sink",
                 "description": "Streaming payload input observed or transformed by the IP",
+                "protocol": {
+                    "beat_accept": "A stream beat is accepted when tvalid and tready are both high.",
+                    "packet_end": "tlast marks packet boundary when present.",
+                    "stability": "Payload and qualifiers remain stable while tvalid is high and tready is low.",
+                },
                 "ports": _axis_ports(data_width, keep_width),
             }
         )
@@ -713,6 +865,11 @@ def _interfaces(ip: str, state: dict[str, Any], params: list[dict[str, Any]], ma
                 "type": "custom",
                 "role": "slave",
                 "description": decisions.get("bus_interface") or "Custom control/data interface from approved Q&A",
+                "protocol": {
+                    "accept": "cfg_valid and cfg_ready indicate accepted control/data input.",
+                    "response": "status_data reflects the function_model-visible result/status.",
+                    "stability": "cfg_data remains stable while cfg_valid is asserted and cfg_ready is low.",
+                },
                 "ports": [
                     _port("cfg_valid", 1, "input", "Configuration/transaction valid"),
                     _port("cfg_ready", 1, "output", "Configuration/transaction ready"),
@@ -729,6 +886,10 @@ def _interfaces(ip: str, state: dict[str, Any], params: list[dict[str, Any]], ma
                 "type": "level_irq",
                 "role": "source",
                 "description": interrupt,
+                "protocol": {
+                    "assertion": "irq asserts when an enabled approved interrupt source is pending.",
+                    "clear": "irq deasserts after the approved clear/reset policy removes all pending sources.",
+                },
                 "ports": [_port("irq", 1, "output", "Level interrupt output")],
             }
         )
@@ -738,12 +899,21 @@ def _interfaces(ip: str, state: dict[str, Any], params: list[dict[str, Any]], ma
             "type": "custom",
             "role": "output",
             "description": "Minimal waveform and status observability required by SSOT quality gates",
+            "protocol": {
+                "sampling": "busy and error are sampled in the primary clock domain.",
+                "reset": "debug status returns to function_model reset values on reset.",
+                "visibility": "Signals are waveform-observable for debug and scoreboard triage.",
+            },
             "ports": [
                 _port("busy", 1, "output", "IP is processing an accepted transaction or packet"),
                 _port("error", 1, "output", "Sticky or current error indication"),
             ],
         }
     )
+    for iface in interfaces:
+        if isinstance(iface, dict):
+            iface.setdefault("clock_domain", "primary_clk")
+            iface.setdefault("reset_domain", rst)
     return {
         "clock_domains": [
             {
@@ -774,6 +944,8 @@ def _parse_registers(text: str, data_width: Any) -> dict[str, Any]:
                 "memory_mapped_registers": False,
                 "note": text or "No firmware-visible registers were approved.",
             },
+            "no_registers": True,
+            "reason": text or "No firmware-visible registers were approved for this revision.",
             "register_list": [],
         }
     rows: list[dict[str, Any]] = []
@@ -887,8 +1059,32 @@ def _fields_from_desc(name: str, access: str, desc: str) -> list[dict[str, Any]]
         clean = token.lower()
         if clean in ignored or clean.isdigit():
             continue
-        fields.append({"name": clean, "bits": [bit, bit], "access": access, "reset": 0})
-    return fields or [{"name": name.lower(), "bits": ["WIDTH-1", 0], "access": access, "reset": _infer_reset_value(desc)}]
+        field = {
+            "name": clean,
+            "bits": [bit, bit],
+            "access": access,
+            "reset": 0,
+            "description": f"{clean} field derived from approved register description: {desc or name}",
+        }
+        if access == "reserved":
+            field["read_value"] = 0
+            field["write_effect"] = "ignored"
+        elif "w" in access:
+            field["write_effect"] = "Writes update this field according to the approved CSR access policy."
+        fields.append(field)
+    fallback = {
+        "name": name.lower(),
+        "bits": ["WIDTH-1", 0],
+        "access": access,
+        "reset": _infer_reset_value(desc),
+        "description": desc or f"{name} register field",
+    }
+    if access == "reserved":
+        fallback["read_value"] = 0
+        fallback["write_effect"] = "ignored"
+    elif "w" in access:
+        fallback["write_effect"] = "Writes update this field according to the approved CSR access policy."
+    return fields or [fallback]
 
 
 def _sub_modules(ip: str, state: dict[str, Any]) -> list[dict[str, Any]]:
@@ -1164,6 +1360,49 @@ def _function_model(
                 "description": reg.get("description", "Approved CSR state"),
             }
         )
+    default_primary_output_rules = [
+        {
+            "name": "busy",
+            "expr": "busy",
+            "width": 1,
+            "port": "busy",
+            "description": "Scoreboard-observable busy output mirrors function_model busy state.",
+        },
+        {
+            "name": "error",
+            "expr": "error",
+            "width": 1,
+            "port": "error",
+            "description": "Scoreboard-observable error output mirrors function_model error state.",
+        },
+    ]
+    default_primary_state_updates = [
+        {
+            "name": "busy",
+            "expr": "1",
+            "width": 1,
+            "reset": 0,
+            "description": "Primary accepted transaction marks the IP busy until the cycle_model response point.",
+        }
+    ]
+    csr_output_rules = [
+        {
+            "name": "error",
+            "expr": "error",
+            "width": 1,
+            "port": "error",
+            "description": "CSR illegal access or malformed transaction status is visible on error.",
+        }
+    ]
+    csr_state_updates = [
+        {
+            "name": "error",
+            "expr": "error",
+            "width": 1,
+            "reset": 0,
+            "description": "CSR transaction preserves or updates error according to register/error policy.",
+        }
+    ]
     primary_tx: dict[str, Any] = {
         "id": "FM_PRIMARY",
         "name": "primary_behavior",
@@ -1172,6 +1411,8 @@ def _function_model(
         "outputs": [decisions.get("purpose") or f"{ip} performs approved behavior"],
         "side_effects": ["updates status, counters, events, and observable outputs according to approved Q&A"],
         "error_cases": [{"condition": "malformed input or invalid control policy", "result": "error status follows error_handling section"}],
+        "output_rules": default_primary_output_rules,
+        "state_updates": default_primary_state_updates,
     }
     sample_condition = _valid_ready_sample_condition(machine.get("sample_condition") or "valid", text)
     if _needs_valid_ready_interface(text) and machine.get("output_rules"):
@@ -1180,7 +1421,7 @@ def _function_model(
                 "scenario_id": "SC_NOMINAL_TRANSACTION",
                 "sample_condition": sample_condition,
                 "output_rules": machine.get("output_rules") or [],
-                "state_updates": machine.get("state_updates") or [],
+                "state_updates": machine.get("state_updates") or default_primary_state_updates,
             }
         )
     return {
@@ -1205,6 +1446,8 @@ def _function_model(
                 "outputs": ["read data and side effects match registers.register_list"],
                 "side_effects": ["RW and W1C fields update exactly as specified"],
                 "error_cases": [{"condition": "unsupported address or illegal access", "result": "bus error/status error according to error_handling"}],
+                "output_rules": csr_output_rules,
+                "state_updates": csr_state_updates,
             },
         ],
         "invariants": [
@@ -1236,6 +1479,15 @@ def _rtl_contract(ip: str, decisions: dict[str, str], io: dict[str, Any], fm: di
             "clock": clk,
             "reset": rst["name"],
             "reset_active": reset_active,
+            "input_map": {"external_transaction": "io_list.interfaces"},
+            "output_map": {"busy": "busy", "error": "error"},
+            "output_rules": output_rules or [
+                {"name": "busy", "expr": "busy", "width": 1, "port": "busy"},
+                {"name": "error", "expr": "error", "width": 1, "port": "error"},
+            ],
+            "state_updates": state_updates or [
+                {"name": "busy", "expr": "1", "width": 1, "reset": 0},
+            ],
             "note": "No machine-checkable valid/ready datapath rule was approved in Web Q&A; rtl-gen must refine from SSOT before implementation.",
         }
     state_names = {
@@ -1272,7 +1524,7 @@ def _rtl_contract(ip: str, decisions: dict[str, str], io: dict[str, Any], fm: di
         "reset": rst["name"],
         "reset_active": reset_active,
         "sample_condition": sample_condition,
-        "input_map": {name: name for name in input_names},
+        "input_map": {name: name for name in input_names} or {"external_transaction": "valid_ready_transaction"},
         "output_map": output_map,
         "ready_output": "ready",
         "output_valid": "result_valid" if "result_valid" in output_map.values() else "",
@@ -1335,9 +1587,10 @@ def _cycle_model(decisions: dict[str, str], io: dict[str, Any]) -> dict[str, Any
     }
 
 
-def _doc(ip: str, state: dict[str, Any]) -> dict[str, Any]:
+def _doc(root: Path, ip: str, state: dict[str, Any]) -> dict[str, Any]:
     decisions = _decisions(state)
     source_custom = _ssot_custom(state)
+    import_context = _load_import_context(root, ip, state)
     params = _parse_parameters(decisions.get("parameters", ""))
     machine = _machine_rules(decisions, params)
     ip_type = _infer_ip_type(ip, state)
@@ -1358,10 +1611,11 @@ def _doc(ip: str, state: dict[str, Any]) -> dict[str, Any]:
     doc: dict[str, Any] = {
         "top_module": {
             "name": ip,
+            "file": f"rtl/{ip}.sv",
             "version": "1.0",
             "type": ip_type,
             "description": decisions.get("purpose") or str(state.get("kind") or f"{ip} leaf IP"),
-            "reference_spec": "approved ATLAS Web Q&A state",
+            "reference_spec": "ATLAS Web Q&A state plus per-IP wiki/import evidence",
             "target": {"technology": "generic", "clock_freq_mhz": freq, "area_um2": "not_constrained", "power_mw": "not_constrained"},
         },
         "sub_modules": subs,
@@ -1521,13 +1775,14 @@ def _doc(ip: str, state: dict[str, Any]) -> dict[str, Any]:
             "atlas_decision_sources": source_custom.get("atlas_decision_sources", {}),
             "atlas_imports": source_custom.get("atlas_imports", []),
             "atlas_import_conflicts": source_custom.get("atlas_import_conflicts", []),
+            "atlas_import_context": import_context,
             "optional_behavior_policy": {
                 "resolution": (
                     "No optional RTL behavior is implied by prose. Features not explicitly approved "
                     "are disabled for this revision unless represented by an explicit SSOT parameter, "
                     "register field, or feature row with reset default and coverage bins."
                 ),
-                "source": "approved ATLAS Web Q&A state",
+                "source": "ATLAS Web Q&A state",
                 "downstream_rule": "rtl-gen, tb-gen, sim-debug, and coverage must treat this policy as the only optional-behavior authority.",
             },
             "assumptions": [
@@ -1593,6 +1848,15 @@ def _doc(ip: str, state: dict[str, Any]) -> dict[str, Any]:
             "signoff": {"pass": "SSOT, FL/equivalence, RTL, lint, DV, simulation, coverage, and required EDA gates pass with fresh artifacts.", "evidence": ["ATLAS /api/progress signoff PASS"]},
         },
         "traceability": {
+            "import_and_wiki_evidence": {
+                "read_order": import_context.get("read_order", []),
+                "manifest_summary": import_context.get("manifest_summary", {}),
+                "wiki_graph_summary": import_context.get("wiki_graph_summary", {}),
+                "source_rule": (
+                    "Downstream agents must use this wiki/import evidence to locate source requirements, "
+                    "but approved SSOT fields remain the authority for implementation."
+                ),
+            },
             "yaml_to_output": [
                 {"yaml": "top_module", "output": "RTL top module, filelist, TB top binding"},
                 {"yaml": "io_list", "output": "RTL port list and protocol monitors"},
@@ -1754,14 +2018,14 @@ def main() -> int:
     ns = ap.parse_args()
     root = Path(ns.root).resolve()
     state = _load_state(root, ns.ip)
-    doc = _doc(ns.ip, state)
+    doc = _doc(root, ns.ip, state)
     yaml_dir = root / ns.ip / "yaml"
     yaml_dir.mkdir(parents=True, exist_ok=True)
     out = yaml_dir / f"{ns.ip}.ssot.yaml"
     header = (
         "# =============================================================================\n"
         f"# {ns.ip}.ssot.yaml -- YAML Single Source of Truth\n"
-        f"# Generated from ATLAS Web Q&A approval at {time.strftime('%Y-%m-%dT%H:%M:%S')}\n"
+        f"# Generated from ATLAS Web To SSOT state at {time.strftime('%Y-%m-%dT%H:%M:%S')}\n"
         "# Generator: workflow/ssot-gen/scripts/approved_to_ssot.py (generic SSOT bridge)\n"
         "# =============================================================================\n\n"
     )
