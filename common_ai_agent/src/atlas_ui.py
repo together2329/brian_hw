@@ -12777,6 +12777,154 @@ def create_app():
             "command": " ".join(shlex.quote(part) for part in cmd),
         })
 
+    _NARRATE_CHAPTER_FOCUS = {
+        "overview": (
+            "Top-of-document summary of what this IP is and what an engineer should care about first.",
+            ("top_module", "features", "io_list", "registers", "interrupts", "sub_modules"),
+        ),
+        "scenarios": (
+            "Cycle-by-cycle usage walkthroughs — how a programmer drives this IP end-to-end.",
+            ("features", "cycle_model", "function_model", "fsm", "registers", "interrupts"),
+        ),
+        "registers": (
+            "Programming model — register map ergonomics and the bring-up order an engineer should follow.",
+            ("registers", "interrupts", "features"),
+        ),
+        "signals": (
+            "External pin / interface description and clock/reset domains.",
+            ("io_list", "clock_reset_domains"),
+        ),
+    }
+
+    def _ssot_narrate_cache_path(ip: str) -> Path:
+        return PROJECT_ROOT / ip / "yaml" / ".ssot_narrate.json"
+
+    def _ssot_narrate_load_cache(ip: str) -> dict:
+        path = _ssot_narrate_cache_path(ip)
+        if not path.is_file():
+            return {}
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+
+    def _ssot_narrate_save_cache(ip: str, blob: dict) -> None:
+        path = _ssot_narrate_cache_path(ip)
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(blob, ensure_ascii=False, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+
+    def _ssot_narrate_extract_focus(doc: dict, focus_keys: tuple[str, ...]) -> str:
+        import yaml as _yaml  # type: ignore
+        slice_doc = {}
+        if isinstance(doc, dict):
+            for k in focus_keys:
+                v = doc.get(k)
+                if v not in (None, "", [], {}):
+                    slice_doc[k] = v
+        try:
+            text = _yaml.safe_dump(slice_doc, allow_unicode=True, sort_keys=False, width=120)
+        except Exception:
+            text = json.dumps(slice_doc, ensure_ascii=False)[:6000]
+        return text[:8000]
+
+    @app.post("/api/ssot/narrate")
+    async def api_ssot_narrate(request: Request):
+        """Two-sentence prose summary of one SSOT chapter for the IP digest UI.
+
+        Body: {ip, chapter, force_refresh?, ui_lang?}
+        Response: {ok, summary, chapter, ip, model, cached, error?}
+
+        Cached at <ip>/yaml/.ssot_narrate.json keyed by
+        '{chapter}@{yaml_mtime}@{ui_lang}', so repeat hits during a
+        session are free.
+        """
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        ip = str((body or {}).get("ip") or _active_ssot_ip() or "").strip()
+        chapter = str((body or {}).get("chapter") or "overview").strip().lower()
+        force = bool((body or {}).get("force_refresh"))
+        ui_lang = str((body or {}).get("ui_lang") or "en").strip().lower()
+        if not _valid_ip_name(ip):
+            return JSONResponse({"ok": False, "error": f"invalid ip {ip!r}"}, status_code=400)
+        if chapter not in _NARRATE_CHAPTER_FOCUS:
+            return JSONResponse({"ok": False, "error": f"unknown chapter {chapter!r}"}, status_code=400)
+
+        ssot_path = _ssot_yaml_path(ip)
+        if not ssot_path.is_file():
+            return JSONResponse({
+                "ok": False,
+                "error": f"no SSOT yaml at {ssot_path.relative_to(PROJECT_ROOT)}",
+            }, status_code=404)
+        try:
+            mtime = int(ssot_path.stat().st_mtime)
+        except Exception:
+            mtime = 0
+        cache_key = f"{chapter}@{mtime}@{ui_lang}"
+        cache = _ssot_narrate_load_cache(ip)
+        if not force and cache_key in cache and isinstance(cache[cache_key], dict):
+            entry = cache[cache_key]
+            return JSONResponse({
+                "ok": True, "summary": entry.get("summary", ""),
+                "chapter": chapter, "ip": ip,
+                "model": entry.get("model", ""), "cached": True,
+            })
+
+        focus_desc, focus_keys = _NARRATE_CHAPTER_FOCUS[chapter]
+        doc = _load_ssot_draft(ip)
+        focus_text = _ssot_narrate_extract_focus(doc, focus_keys)
+        if not focus_text.strip():
+            return JSONResponse({
+                "ok": False,
+                "error": f"chapter {chapter!r} has no source data in {ip}/yaml/{ip}.ssot.yaml",
+            }, status_code=404)
+
+        lang_directive = "Reply in Korean." if ui_lang.startswith("ko") else "Reply in English."
+        prompt = (
+            f"You are writing a Technical Reference Manual chapter summary for IP `{ip}`.\n"
+            f"Chapter focus: {focus_desc}\n"
+            f"{lang_directive}\n\n"
+            "Constraints:\n"
+            "- EXACTLY two sentences.\n"
+            "- Concrete: name specific registers / signals / states from the data when relevant.\n"
+            "- No marketing language, no boilerplate, no bullet points, no headings.\n"
+            "- Target reader: a hardware/firmware engineer who just opened the chapter.\n\n"
+            "SSOT excerpt (YAML):\n"
+            "```yaml\n"
+            f"{focus_text}\n"
+            "```\n"
+        )
+        try:
+            try:
+                from src.llm_client import call_llm_raw  # type: ignore
+            except ImportError:
+                from llm_client import call_llm_raw  # type: ignore
+            summary = call_llm_raw(
+                prompt=prompt,
+                temperature=0.3,
+                max_tokens=256,
+                caller_tag="ssot-narrate",
+            )
+        except Exception as exc:
+            return JSONResponse({"ok": False, "error": f"LLM call failed: {exc}"}, status_code=500)
+
+        summary = (summary or "").strip()
+        if not summary:
+            return JSONResponse({"ok": False, "error": "empty LLM response"}, status_code=502)
+        model_used = os.environ.get("LLM_ACTIVE_MODEL_NAME") or os.environ.get("MODEL_NAME") or ""
+        # Drop cache entries for stale mtimes, then write the new one.
+        cache = {k: v for k, v in cache.items() if "@" in k and k.split("@", 2)[1] == str(mtime)}
+        cache[cache_key] = {"summary": summary, "model": model_used, "ts": int(time.time())}
+        _ssot_narrate_save_cache(ip, cache)
+        return JSONResponse({
+            "ok": True, "summary": summary, "chapter": chapter, "ip": ip,
+            "model": model_used, "cached": False,
+        })
+
     def _handle_grill_me_command(text: str, client_session: Any | None = None) -> bool:
         cmd, args = _split_slash(text)
         if cmd not in ("grill-me", "grill", "g"):
@@ -15441,8 +15589,24 @@ def create_app():
             with AtlasDB() as db:
                 users = db.list_all_users()
                 counts = db.count_sessions_by_user()
+                active_by_user: dict[str, dict] = {}
+                for session in db.list_all_sessions():
+                    user_id = str(session.get("user_id") or "")
+                    if not user_id or user_id in active_by_user:
+                        continue
+                    if str(session.get("status") or "").lower() != "active":
+                        continue
+                    active_by_user[user_id] = session
                 for u in users:
                     u["session_count"] = counts.get(u["id"], 0)
+                    active = active_by_user.get(str(u["id"] or ""))
+                    u["active_session_id"] = (active or {}).get("id") or ""
+                    u["active_ip"] = (active or {}).get("ip") or ""
+                    u["active_workflow"] = (active or {}).get("workflow") or ""
+                    u["active_session_updated_at"] = (active or {}).get("updated_at")
+                    u["active_workflow_status"] = (
+                        (active or {}).get("latest_workflow_status") or ""
+                    )
                 return JSONResponse({"users": users})
         except Exception as e:
             print(f"api_admin_users error: {e}")

@@ -7811,6 +7811,70 @@ const PipelineTraceDiagram = ({ pipeline, transactions, maxTransactions = 4 }) =
   );
 };
 
+const NarratorBanner = ({ ip, chapter, uiLang = 'en' }) => {
+  const [state, setState] = React.useState({ loading: false, summary: '', model: '', cached: false, error: '' });
+  const fetchSummary = React.useCallback((force) => {
+    if (!ip || !chapter) return;
+    setState(s => ({ ...s, loading: true, error: '' }));
+    fetch('/api/ssot/narrate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ip, chapter, force_refresh: !!force, ui_lang: uiLang }),
+    })
+      .then(r => r.json())
+      .then(j => {
+        if (j && j.ok) {
+          setState({ loading: false, summary: j.summary || '', model: j.model || '', cached: !!j.cached, error: '' });
+        } else {
+          setState(s => ({ ...s, loading: false, error: (j && j.error) || 'no response' }));
+        }
+      })
+      .catch(err => setState(s => ({ ...s, loading: false, error: String(err && err.message || err) })));
+  }, [ip, chapter, uiLang]);
+  React.useEffect(() => { fetchSummary(false); }, [fetchSummary]);
+  if (!ip) return null;
+  return (
+    <div style={{
+      borderLeft: '3px solid var(--magenta)',
+      background: 'color-mix(in oklch, var(--magenta) 8%, transparent)',
+      borderRadius: 4, padding: '10px 14px', marginBottom: 12,
+      display: 'grid', gap: 6,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+        <span style={{
+          fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--magenta)',
+          letterSpacing: '0.06em', fontWeight: 800,
+        }}>NARRATOR · {chapter.toUpperCase()}</span>
+        {state.cached ? (
+          <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 9 }}>cached</span>
+        ) : null}
+        {state.model ? (
+          <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 9 }}>{state.model}</span>
+        ) : null}
+        <span style={{ flex: 1 }} />
+        <span onClick={() => fetchSummary(true)}
+          title="regenerate"
+          style={{
+            fontFamily: 'var(--mono)', fontSize: 10, padding: '2px 8px',
+            border: '1px solid var(--line)', borderRadius: 3,
+            color: 'var(--fg-mute)', cursor: 'pointer',
+          }}>↻ regenerate</span>
+      </div>
+      {state.loading && !state.summary ? (
+        <div className="mute" style={{ fontStyle: 'italic' }}>
+          {uiLang === 'ko' ? '챕터 요약 생성 중…' : 'Generating chapter summary…'}
+        </div>
+      ) : state.error && !state.summary ? (
+        <div style={{ color: 'var(--warn)', fontFamily: 'var(--mono)', fontSize: 11 }}>
+          {state.error}
+        </div>
+      ) : state.summary ? (
+        <div style={{ color: 'var(--fg)', lineHeight: 1.55 }}>{state.summary}</div>
+      ) : null}
+    </div>
+  );
+};
+
 const SsotCommandPalette = ({ items, onJump }) => {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState('');
@@ -10693,6 +10757,12 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   const handshakeRules = listBlocksFromSection(cycleSection, 'handshake_rules');
   const pipeline = listBlocksFromSection(cycleSection, 'pipeline');
   const topName = sectionFact(top, 'name') || sectionFact(top, 'module') || (top && top.value) || 'SSOT';
+  const narratorIp = React.useMemo(() => (
+    ssotIpFromSession(typeof window !== 'undefined' ? window.ACTIVE_SESSION : '')
+      || (typeof window !== 'undefined' ? String(window.ACTIVE_IP || '').trim() : '')
+      || (sectionFact(top, 'name') || '').trim()
+      || ''
+  ), [top]);
 
   const header = (
     <div style={{ marginBottom: 12 }}>
@@ -10831,6 +10901,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   const renderOverview = () => (
     <>
       {header}
+      <NarratorBanner ip={narratorIp} chapter="overview" uiLang={uiLang} />
       {quickstartSteps.length ? (
         <DigestCard
           title="Quickstart"
@@ -11251,6 +11322,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   const renderRegisters = () => (
     <>
       {header}
+      <NarratorBanner ip={narratorIp} chapter="registers" uiLang={uiLang} />
       <DigestCard title="Register Map" meta={`${registers.length} registers`}>
         {registers.length ? (
           <div style={{ display: 'grid', gap: 14 }}>
@@ -11447,6 +11519,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   const renderScenarios = () => (
     <>
       {header}
+      <NarratorBanner ip={narratorIp} chapter="scenarios" uiLang={uiLang} />
       <DigestCard title="Interactive scenarios" meta={`${scenarios.length} scenarios${scenarios.length && scenarios[0].synthesized ? ' · auto-synthesized from transactions + pipeline' : ''}`}>
         {scenarios.length ? (
           <SsotScenarioPlayer scenarios={scenarios} fsmMachines={fsmMachines} tokenMap={refTokenMap} />
