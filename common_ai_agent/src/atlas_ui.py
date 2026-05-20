@@ -1991,7 +1991,13 @@ def create_app():
                 import json as _json
                 from pathlib import Path as _P
                 _sess = os.environ.get("ATLAS_PROJECT_ROOT") or os.getcwd()
-                _candidates = [
+                _sess_str = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/")
+                _candidates = []
+                if _sess_str:
+                    # Canonical 3-part path: .session/<sess_id>/<ip>/<workflow>/cost.json
+                    # (matches what _emit_token writes on every LLM call)
+                    _candidates.append(_P(_sess) / ".session" / _sess_str / "cost.json")
+                _candidates += [
                     _P(_sess) / ".session" / (info["workspace"] or "default") / "cost.json",
                     _P(_sess) / ".session" / "default" / "cost.json",
                 ]
@@ -2005,21 +2011,22 @@ def create_app():
                     return None
                 d = await asyncio.to_thread(_pick_cost)
                 if d is not None:
-                    # cost.json schema (written by lib/textual_ui.py):
-                    # {in_tok, cache_tok, out_tok, sum_tok}. The
-                    # previous code read input/cached/output, which
-                    # always missed and reported 0 — that wiped the
-                    # live-accumulated tokens on every flush via the
-                    # /healthz refresh path.
+                    # cost.json schema written by both lib/textual_ui.py
+                    # and atlas_ui._emit_token:
+                    #   {in_tok, cache_tok, out_tok, sum_tok, cost_usd,
+                    #    model, updated_at}
                     info["tokens_in"]    = d.get("in_tok",    d.get("input",  0))
                     info["tokens_cache"] = d.get("cache_tok", d.get("cached", 0))
                     info["tokens_out"]   = d.get("out_tok",   d.get("output", 0))
-                    # Cost in USD. tokens_in is total prompt_tokens
-                    # (includes cached subset); tokens_cache is that
-                    # cached subset, NOT additive. Subtract cached
-                    # before applying p.input or we'd bill the cache
-                    # twice (once at input, once at cache rate).
-                    if info["pricing"]:
+                    # Prefer the cost_usd written by _emit_token (uses
+                    # the per-call pricing at the moment of the LLM
+                    # request, so model switches mid-session don't
+                    # retroactively re-price old calls). Only recompute
+                    # from the live pricing if cost_usd isn't on disk.
+                    disk_cost = d.get("cost_usd")
+                    if disk_cost is not None:
+                        info["cost_usd"] = float(disk_cost)
+                    elif info["pricing"]:
                         ti = info["tokens_in"]    or 0
                         tc = info["tokens_cache"] or 0
                         to = info["tokens_out"]   or 0
@@ -14766,6 +14773,41 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                     _model_now = ""
         except Exception:
             _model_now = ""
+        # Persist cumulative cost to disk so /healthz re-reads after
+        # reload AND so the figure survives a backend restart. textual_ui
+        # writes the same schema (in_tok / cache_tok / out_tok / sum_tok)
+        # but only in the textual app — the web path was emitting WS
+        # frames without ever touching .session/<sess>/cost.json, so the
+        # ledger reset to $0.0000 every page load.
+        try:
+            _sess_str = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/")
+            if _sess_str:
+                cost_path = PROJECT_ROOT / ".session" / _sess_str / "cost.json"
+                cost_path.parent.mkdir(parents=True, exist_ok=True)
+                existing = {}
+                if cost_path.exists():
+                    try:
+                        existing = json.loads(cost_path.read_text(encoding="utf-8", errors="replace"))
+                    except Exception:
+                        existing = {}
+                cumulative_in = int(existing.get("in_tok", 0) or 0) + int(in_tok or 0)
+                cumulative_cache = int(existing.get("cache_tok", 0) or 0) + int(cache_tok or 0)
+                cumulative_out = int(existing.get("out_tok", 0) or 0) + int(out_tok or 0)
+                cumulative_cost = float(existing.get("cost_usd", 0) or 0) + float(cost_delta or 0)
+                cost_path.write_text(
+                    json.dumps({
+                        "in_tok": cumulative_in,
+                        "cache_tok": cumulative_cache,
+                        "out_tok": cumulative_out,
+                        "sum_tok": cumulative_in + cumulative_out,
+                        "cost_usd": cumulative_cost,
+                        "model": _model_now,
+                        "updated_at": time.time(),
+                    }, indent=2, ensure_ascii=False),
+                    encoding="utf-8",
+                )
+        except Exception:
+            pass
         bridge.emit(
             "cost",
             input=in_tok, cached=cache_tok, output=out_tok,
