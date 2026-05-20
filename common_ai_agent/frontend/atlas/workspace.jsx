@@ -7716,12 +7716,22 @@ const RegisterBitMap = ({ width, fields }) => {
   );
 };
 
-const SsotScenarioPlayer = ({ scenarios, onSelectFsmState }) => {
+const SsotScenarioPlayer = ({ scenarios, fsmMachines = [], onSelectFsmState }) => {
   const [active, setActive] = React.useState(0);
   const [step, setStep] = React.useState(0);
   const [playing, setPlaying] = React.useState(false);
   const scenario = scenarios[active] || { steps: [] };
   const total = scenario.steps.length;
+  // Map fl_state → first step index that hits it (so a state-pill click can
+  // jump the scenario back to where that state first appears).
+  const stateFirstStep = React.useMemo(() => {
+    const map = new Map();
+    scenario.steps.forEach((s, i) => {
+      const key = String(s.fl_state || '').trim();
+      if (key && !map.has(key)) map.set(key, i);
+    });
+    return map;
+  }, [scenario]);
   React.useEffect(() => { setStep(0); setPlaying(false); }, [active]);
   React.useEffect(() => {
     if (!playing) return;
@@ -7831,6 +7841,67 @@ const SsotScenarioPlayer = ({ scenarios, onSelectFsmState }) => {
           </div>
         ) : null}
       </div>
+
+      {/* FSM state map — pills per machine, active state highlighted */}
+      {fsmMachines.length ? (
+        <div style={{ display: 'grid', gap: 10 }}>
+          {fsmMachines.map((m, mi) => {
+            const activeName = String(cur.fl_state || '').trim();
+            const activeMatch = (m.states || []).find(s => String(s).trim() === activeName);
+            return (
+              <div key={`fsm-pane-${m.name || mi}`}
+                style={{ border: '1px solid var(--line)', borderRadius: 4, padding: '8px 10px' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg-mute)' }}>FSM</span>
+                  <span style={{ color: 'var(--accent)', fontWeight: 800 }}>{m.name || `fsm_${mi}`}</span>
+                  <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>
+                    {(m.states || []).length} states · {(m.transitions || []).length} transitions
+                  </span>
+                  {activeName && !activeMatch ? (
+                    <span style={{
+                      fontFamily: 'var(--mono)', fontSize: 10, padding: '1px 7px', borderRadius: 999,
+                      background: 'color-mix(in oklch, var(--warn) 14%, transparent)',
+                      color: 'var(--warn)',
+                      border: '1px solid color-mix(in oklch, var(--warn) 32%, transparent)',
+                    }}>fl_state "{activeName}" not in this machine</span>
+                  ) : null}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {(m.states || []).map((s, si) => {
+                    const label = String(s).trim();
+                    const isActive = label === activeName;
+                    const isReset = String(m.resetState || '').trim() === label;
+                    const jumpIdx = stateFirstStep.get(label);
+                    return (
+                      <span key={`st-${m.name || mi}-${label || si}-${si}`}
+                        title={isReset ? `${label} (reset state)` : label}
+                        onClick={() => {
+                          if (jumpIdx != null) {
+                            setStep(jumpIdx); setPlaying(false);
+                          }
+                        }}
+                        style={{
+                          fontFamily: 'var(--mono)', fontSize: 11, padding: '4px 10px',
+                          borderRadius: 999,
+                          background: isActive
+                            ? 'color-mix(in oklch, var(--magenta) 28%, transparent)'
+                            : (jumpIdx != null ? 'var(--bg-2)' : 'var(--bg-1)'),
+                          color: isActive ? 'var(--magenta)' : (jumpIdx != null ? 'var(--fg)' : 'var(--fg-mute)'),
+                          border: `1px solid ${isActive ? 'var(--magenta)' : (isReset ? 'var(--accent)' : 'var(--line)')}`,
+                          fontWeight: isActive ? 800 : 500,
+                          cursor: jumpIdx != null ? 'pointer' : 'default',
+                          letterSpacing: '0.02em',
+                        }}>
+                        {label}{isReset ? ' ◉' : ''}{isActive ? ' ●' : ''}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
 
       {/* Timeline */}
       {allSignals.length ? (
@@ -10971,7 +11042,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
       {header}
       <DigestCard title="Interactive scenarios" meta={`${scenarios.length} scenarios${scenarios.length && scenarios[0].synthesized ? ' · auto-synthesized from transactions + pipeline' : ''}`}>
         {scenarios.length ? (
-          <SsotScenarioPlayer scenarios={scenarios} />
+          <SsotScenarioPlayer scenarios={scenarios} fsmMachines={fsmMachines} />
         ) : (
           <DigestEmpty text="No cycle_model.scenarios[] declared and no function_model.transactions[] + cycle_model.pipeline[] to synthesize from. Add scenarios under cycle_model: { scenarios: [{ name, summary, steps:[{cycle,action,fl_state,cl_state,signals}] }] } to make this IP self-demonstrating." />
         )}
