@@ -7715,6 +7715,102 @@ const linkifyReferences = (text, tokenMap) => {
   return out;
 };
 
+const PipelineTraceDiagram = ({ pipeline, transactions, maxTransactions = 4 }) => {
+  // Build a classic stages × cycles matrix from the SSOT pipeline list.
+  // Each transaction enters stage 0 one cycle after the previous one,
+  // walking diagonally through subsequent stages, so the user can see
+  // the instruction-flow pattern with no SSOT scenario data required.
+  const stages = (pipeline || [])
+    .map((b, i) => ({
+      name: blockField(b, 'stage') || blockField(b, 'name') || blockField(b, 'id') || `S${i}`,
+      cycle: Number(blockField(b, 'cycle') || blockField(b, 'phase') || i),
+      action: blockField(b, 'action', 200) || blockField(b, 'description', 200) || '',
+    }))
+    .filter(s => s.name);
+  const txList = (transactions || [])
+    .slice(0, maxTransactions)
+    .map((b, i) => blockField(b, 'id') || blockField(b, 'name') || `tx_${i + 1}`)
+    .filter(Boolean);
+  if (!stages.length) return null;
+  if (!txList.length) txList.push('flow');
+  const txColors = ['var(--accent)', 'var(--magenta)', 'var(--cyan)', 'var(--warn)'];
+  const totalCycles = stages.length + txList.length - 1;
+  return (
+    <div style={{ marginTop: 6 }}>
+      <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg-mute)', marginBottom: 5 }}>
+        PIPELINE TRACE — {stages.length} stages × {txList.length} {txList.length === 1 ? 'flow' : 'transactions'}
+      </div>
+      <div style={{ overflowX: 'auto' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: `minmax(110px, max-content) repeat(${totalCycles}, minmax(60px, 1fr))`,
+          gap: 2,
+        }}>
+          <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, padding: '4px 6px' }}>
+            stage \\ cycle
+          </div>
+          {Array.from({ length: totalCycles }, (_, c) => (
+            <div key={`pt-h-${c}`}
+              style={{
+                color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10,
+                textAlign: 'center', padding: '4px 2px', borderBottom: '1px solid var(--line)',
+              }}>{c}</div>
+          ))}
+          {stages.map((stage, si) => (
+            <React.Fragment key={`pt-row-${stage.name}-${si}`}>
+              <div title={stage.action || stage.name}
+                style={{
+                  fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--fg)',
+                  padding: '4px 6px', borderRight: '1px solid var(--line)',
+                  fontWeight: 700,
+                }}>
+                {stage.name}
+              </div>
+              {Array.from({ length: totalCycles }, (_, c) => {
+                // Transaction at column c, row si: tx index = c - si.
+                const txIdx = c - si;
+                if (txIdx < 0 || txIdx >= txList.length) {
+                  return (
+                    <div key={`pt-c-${si}-${c}`}
+                      style={{ border: '1px solid var(--line)', background: 'transparent', minHeight: 22 }} />
+                  );
+                }
+                const color = txColors[txIdx % txColors.length];
+                return (
+                  <div key={`pt-c-${si}-${c}`}
+                    title={`${stage.name} @ cycle ${c} — ${txList[txIdx]}${stage.action ? `\n${stage.action}` : ''}`}
+                    style={{
+                      border: `1px solid color-mix(in oklch, ${color} 60%, var(--line))`,
+                      background: `color-mix(in oklch, ${color} 22%, transparent)`,
+                      color, fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 700,
+                      textAlign: 'center', padding: '4px 2px',
+                      minHeight: 22, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                    {txList[txIdx]}
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+        {txList.map((name, i) => {
+          const color = txColors[i % txColors.length];
+          return (
+            <span key={`pt-leg-${name}-${i}`}
+              style={{
+                fontFamily: 'var(--mono)', fontSize: 10, padding: '2px 8px', borderRadius: 999,
+                background: `color-mix(in oklch, ${color} 14%, transparent)`,
+                color, border: `1px solid color-mix(in oklch, ${color} 35%, transparent)`,
+              }}>{name}</span>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const _parseBitRange = (raw) => {
   // Accepts "[7:0]", "7:0", "[0]", "0", "31:24", "15..0".
   const txt = String(raw || '').trim().replace(/^\[|\]$/g, '');
@@ -10914,6 +11010,11 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
           {pipeline.length ? <hr style={{ border: 0, borderTop: '1px solid var(--line)', margin: '8px 0' }} /> : null}
           {pipeline.map((p, i) => <div key={`pl-${blockField(p, 'stage') || i}-${i}`} style={{ marginBottom: 4 }}><b>{blockField(p, 'stage')}</b> <span className="mute">{blockField(p, 'cycle')} · {blockField(p, 'action', 320)}</span></div>)}
         </DigestCard>
+        {pipeline.length ? (
+          <DigestCard title="Pipeline trace" meta={`${pipeline.length}-stage staircase · ${Math.min(transactions.length || 1, 4)} ${transactions.length ? 'transactions' : 'flow'}`}>
+            <PipelineTraceDiagram pipeline={pipeline} transactions={transactions} />
+          </DigestCard>
+        ) : null}
       </div>
     </>
   );
