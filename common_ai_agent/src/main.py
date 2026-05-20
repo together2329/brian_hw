@@ -287,6 +287,8 @@ def _setup_workspace(name: str) -> None:
                 # agent has to guess from the chat context whether
                 # `rtl/foo.sv` means `./rtl/foo.sv` or
                 # `<ip>/rtl/foo.sv`, and that guess is often wrong.
+                # Also tells the agent which facts are inferable so it
+                # stops Q&A-ing the user for things already on disk.
                 try:
                     _active_ip = _get_active_ip_str()
                     if _active_ip and _active_ip != "default":
@@ -298,7 +300,16 @@ def _setup_workspace(name: str) -> None:
                             f"[IP_FILES_HINT: All per-IP artifacts (rtl/, yaml/, tb/, "
                             f"req/, list/, sim/, sdc/, lint/, doc/, wiki/) live under "
                             f"{_active_ip}/. Use relative paths from IP_ROOT or "
-                            f"prefix project-root paths with {_active_ip}/.]\n\n"
+                            f"prefix project-root paths with {_active_ip}/.]\n"
+                            f"[NO_QA_FOR_DERIVABLE_FACTS: Do not ask the user a "
+                            f"question whose answer is already derivable from "
+                            f"ACTIVE_IP, IP_ROOT, the import manifest "
+                            f"({_active_ip}/req/import_manifest.json), the IP wiki "
+                            f"({_active_ip}/wiki/), the existing SSOT draft "
+                            f"({_active_ip}/yaml/{_active_ip}.ssot.yaml), or any "
+                            f"file on disk you can read. Read the source first. "
+                            f"Only ask for genuinely undetermined design decisions "
+                            f"the user has not yet expressed in any form.]\n\n"
                             + merged
                         )
                 except Exception:
