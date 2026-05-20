@@ -291,10 +291,15 @@ def _setup_workspace(name: str) -> None:
                 # stops Q&A-ing the user for things already on disk.
                 try:
                     _active_ip = _get_active_ip_str()
+                    _active_session = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/")
+                    _session_parts = [p for p in _active_session.split("/") if p]
+                    _workspace = _session_parts[-1] if len(_session_parts) >= 3 else (name or "")
                     if _active_ip and _active_ip != "default":
                         _project_root = os.environ.get("ATLAS_PROJECT_ROOT") or os.getcwd()
                         _ip_root = os.path.join(_project_root, _active_ip)
                         merged = (
+                            f"[ACTIVE_WORKSPACE: {_workspace or 'default'}]\n"
+                            f"[ACTIVE_SESSION: {_active_session or 'default'}]\n"
                             f"[ACTIVE_IP: {_active_ip}]\n"
                             f"[IP_ROOT: {_ip_root}]\n"
                             f"[IP_FILES_HINT: All per-IP artifacts (rtl/, yaml/, tb/, "
@@ -312,6 +317,8 @@ def _setup_workspace(name: str) -> None:
                             f"the user has not yet expressed in any form.]\n\n"
                             + merged
                         )
+                    elif _workspace:
+                        merged = f"[ACTIVE_WORKSPACE: {_workspace}]\n\n" + merged
                 except Exception:
                     pass
                 try:
