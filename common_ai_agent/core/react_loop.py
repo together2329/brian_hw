@@ -1098,9 +1098,24 @@ def run_react_agent_impl(
         # were already being emitted.
         if (_in_tok > 0 or _out_tok > 0):
             try:
-                from lib.model_pricing import get_pricing
-                _model_name = getattr(cfg, "MODEL_NAME", "") or ""
-                _price = get_pricing(_model_name) if _model_name else None
+                from lib.model_pricing import get_pricing, get_active_pricing
+                # Match the same resolution chain as the live cost emit
+                # (atlas_ui._emit_token) so worker LLM calls land in
+                # atlas.db with the same per-1M rate the UI ledger uses.
+                # Reading cfg.MODEL_NAME alone missed dropdown switches
+                # to non-profile aliases like `sol-soc-gpt-5.4` /
+                # `gpt-5.3-codex` because _set_runtime_model only mutates
+                # cfg.MODEL_NAME on profile activation; the env vars
+                # always reflect the user's pick.
+                _model_name = (
+                    os.environ.get("LLM_ACTIVE_BASE_NAME", "").strip()
+                    or os.environ.get("LLM_BASE_NAME", "").strip()
+                    or os.environ.get("LLM_ACTIVE_BASE_MODEL", "").strip()
+                    or os.environ.get("LLM_BASE_MODEL", "").strip()
+                    or os.environ.get("LLM_MODEL_NAME", "").strip()
+                    or (getattr(cfg, "MODEL_NAME", "") or "")
+                )
+                _price = get_active_pricing() or (get_pricing(_model_name) if _model_name else None)
                 _cost_usd = 0.0
                 if _price is not None:
                     _billable_in = max(0, _in_tok - _cr)
