@@ -7811,6 +7811,116 @@ const PipelineTraceDiagram = ({ pipeline, transactions, maxTransactions = 4 }) =
   );
 };
 
+const SsotCommandPalette = ({ items, onJump }) => {
+  const [open, setOpen] = React.useState(false);
+  const [query, setQuery] = React.useState('');
+  const [sel, setSel] = React.useState(0);
+  React.useEffect(() => {
+    const handler = (e) => {
+      const isCmd = (e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K');
+      if (isCmd) {
+        e.preventDefault();
+        setOpen(o => !o);
+        setQuery('');
+        setSel(0);
+      } else if (e.key === 'Escape' && open) {
+        e.preventDefault();
+        setOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [open]);
+  if (!open) return null;
+  const q = query.trim().toLowerCase();
+  const filtered = (items || [])
+    .filter(it => !q || it.label.toLowerCase().includes(q) || (it.kind || '').toLowerCase().includes(q) || (it.detail || '').toLowerCase().includes(q))
+    .slice(0, 40);
+  const handleSelect = (item) => {
+    setOpen(false);
+    setQuery('');
+    if (item && typeof onJump === 'function' && item.viewId) onJump(item.viewId);
+  };
+  const kindColor = (kind) => ({
+    register: 'var(--cyan)',
+    field: 'var(--accent)',
+    feature: 'var(--magenta)',
+    state: 'var(--magenta)',
+    interrupt: 'var(--warn)',
+    scenario: 'var(--accent)',
+    interface: 'var(--cyan)',
+  }[kind] || 'var(--fg-mute)');
+  return (
+    <div onClick={() => setOpen(false)}
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'color-mix(in oklch, var(--bg-1) 70%, transparent)',
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+        zIndex: 9999, paddingTop: '12vh', backdropFilter: 'blur(2px)',
+      }}>
+      <div onClick={e => e.stopPropagation()}
+        style={{
+          background: 'var(--bg-1)', border: '1px solid var(--accent)', borderRadius: 6,
+          width: 640, maxWidth: '92vw', overflow: 'hidden',
+          boxShadow: '0 16px 64px rgba(0,0,0,0.45)',
+        }}>
+        <input autoFocus value={query}
+          onChange={e => { setQuery(e.target.value); setSel(0); }}
+          onKeyDown={e => {
+            if (e.key === 'ArrowDown') { e.preventDefault(); setSel(s => Math.min(filtered.length - 1, s + 1)); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); setSel(s => Math.max(0, s - 1)); }
+            else if (e.key === 'Enter') { e.preventDefault(); handleSelect(filtered[sel]); }
+          }}
+          placeholder="Jump to register / field / feature / state / interrupt / scenario..."
+          style={{
+            width: '100%', padding: '12px 16px', background: 'transparent',
+            border: 'none', borderBottom: '1px solid var(--line)',
+            color: 'var(--fg)', fontSize: 14, fontFamily: 'var(--mono)',
+            outline: 'none', boxSizing: 'border-box',
+          }} />
+        <div style={{ maxHeight: '54vh', overflowY: 'auto' }}>
+          {filtered.length ? filtered.map((item, i) => (
+            <div key={`pal-${item.kind}-${item.label}-${i}`}
+              onClick={() => handleSelect(item)}
+              onMouseEnter={() => setSel(i)}
+              style={{
+                padding: '7px 16px', cursor: 'pointer',
+                background: i === sel ? 'color-mix(in oklch, var(--accent) 16%, transparent)' : 'transparent',
+                display: 'grid', gridTemplateColumns: '64px minmax(0, 1.4fr) minmax(0, 1.2fr) 90px',
+                alignItems: 'baseline', gap: 12, fontFamily: 'var(--mono)', fontSize: 12,
+                borderBottom: '1px solid var(--line)',
+              }}>
+              <span style={{
+                color: kindColor(item.kind), textTransform: 'uppercase', letterSpacing: '0.06em',
+                fontSize: 10, fontWeight: 700,
+              }}>{item.kind}</span>
+              <span style={{ color: 'var(--fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {item.label}
+              </span>
+              <span style={{ color: 'var(--fg-mute)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {item.detail || ''}
+              </span>
+              <span style={{ color: 'var(--fg-mute)', fontSize: 10, textAlign: 'right' }}>{item.viewId}</span>
+            </div>
+          )) : (
+            <div style={{ padding: '14px 16px', color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 12 }}>
+              No matches for &ldquo;{query}&rdquo;.
+            </div>
+          )}
+        </div>
+        <div style={{
+          padding: '6px 16px', fontFamily: 'var(--mono)', fontSize: 10,
+          color: 'var(--fg-mute)', borderTop: '1px solid var(--line)',
+          display: 'flex', justifyContent: 'space-between',
+        }}>
+          <span>↑/↓ navigate · ↵ jump · esc close</span>
+          <span>{filtered.length}/{(items || []).length} entries</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const _parseBitRange = (raw) => {
   // Accepts "[7:0]", "7:0", "[0]", "0", "31:24", "15..0".
   const txt = String(raw || '').trim().replace(/^\[|\]$/g, '');
@@ -10370,7 +10480,7 @@ const DigestSourceSections = ({ view, sections, statusByKey, t }) => {
   );
 };
 
-const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content = '', selected = '' }) => {
+const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content = '', selected = '', onJump }) => {
   const t = uiLang === 'en'
     ? { sourceSections: 'Source section review', ports: 'ports', fields: 'fields' }
     : { sourceSections: '원본 섹션 리뷰', ports: 'ports', fields: 'fields' };
@@ -10510,6 +10620,72 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     () => buildReferenceTokens({ registers, features, fsmMachines, irqs }),
     [registers, features, fsmMachines, irqs]
   );
+  const paletteScenarios = React.useMemo(() => extractScenarios(sections), [sections]);
+  const paletteItems = React.useMemo(() => {
+    const out = [];
+    (registers || []).forEach((reg) => {
+      out.push({
+        kind: 'register',
+        label: reg.name || '(reg)',
+        detail: [reg.offset && `@ ${reg.offset}`, reg.access].filter(Boolean).join(' · '),
+        viewId: 'registers',
+      });
+      (reg.fields || []).forEach((f) => {
+        if (!f.name) return;
+        out.push({
+          kind: 'field',
+          label: `${reg.name}.${f.name}`,
+          detail: [f.bits && `bits ${f.bits}`, f.access].filter(Boolean).join(' · '),
+          viewId: 'registers',
+        });
+      });
+    });
+    (features || []).forEach((feat) => {
+      out.push({
+        kind: 'feature',
+        label: feat.name || '(feature)',
+        detail: String(feat.description || feat.datapath || feat.trigger || '').slice(0, 80),
+        viewId: 'features',
+      });
+    });
+    (fsmMachines || []).forEach((m) => {
+      (m.states || []).forEach((s) => {
+        const label = String(s).trim();
+        if (!label) return;
+        out.push({
+          kind: 'state',
+          label,
+          detail: `FSM ${m.name || ''}${String(m.resetState || '').trim() === label ? ' · reset' : ''}`,
+          viewId: 'fsm',
+        });
+      });
+    });
+    (irqs || []).forEach((irq) => {
+      out.push({
+        kind: 'interrupt',
+        label: irq.name,
+        detail: String(irq.description || '').slice(0, 80),
+        viewId: 'overview',
+      });
+    });
+    (interfaces || []).forEach((iface) => {
+      out.push({
+        kind: 'interface',
+        label: iface.name || '(iface)',
+        detail: [iface.type, iface.role && `role ${iface.role}`].filter(Boolean).join(' · '),
+        viewId: 'interfaces',
+      });
+    });
+    (paletteScenarios || []).forEach((scn) => {
+      out.push({
+        kind: 'scenario',
+        label: scn.name,
+        detail: String(scn.summary || '').slice(0, 80),
+        viewId: 'scenarios',
+      });
+    });
+    return out;
+  }, [registers, features, fsmMachines, irqs, interfaces, paletteScenarios]);
   const dataflowGroups = mapGroupsFromSection(dataflowSection).filter(g => g.key !== 'locked_decisions');
   const transactions = listBlocksFromSection(functionSection, 'transactions');
   const stateVars = listBlocksFromSection(functionSection, 'state_variables');
@@ -11304,6 +11480,7 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
       {!['architecture', 'overview', 'scenarios', 'review_gaps', 'raw_yaml', 'gates'].includes(view.id) ? (
         <DigestSourceSections view={view} sections={sections} statusByKey={statusByKey} t={t} />
       ) : null}
+      <SsotCommandPalette items={paletteItems} onJump={onJump} />
     </>
   );
 };
@@ -11861,6 +12038,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
               uiLang={uiLang}
               content={content}
               selected={selected}
+              onJump={(viewId) => setActiveKey(viewId)}
             />
           ) : (
             <div className="code" style={{ padding: 16, color: 'var(--fg-mute)' }}># no sections parsed</div>
