@@ -265,19 +265,16 @@ def get_file_access_summary() -> str:
 
 
 def _resolve_asset_path(path):
-    """Resolve a relative path the user/agent gave against the user's cwd
-    AND, as a fallback, the common_ai_agent install root (COMMON_AI_AGENT_HOME,
-    set by textual_main.py at startup).
+    """Resolve a relative path against, in order:
+      1. cwd (preserves user-intended layouts)
+      2. ATLAS_PROJECT_ROOT (the directory atlas_ui serves files from)
+      3. ATLAS_PROJECT_ROOT / ATLAS_ACTIVE_IP (so the agent can write
+         `rtl/foo.sv` and have it resolve under the active IP)
+      4. COMMON_AI_AGENT_HOME (bundled-asset fallback — workflow/, rules/,
+         and other install-anchored files referenced by prompts).
 
-    Why: people run `python3 textual_main.py` from their OWN project
-    directories (NEW_ATLAS, NEW_IP, …), but the agent often references
-    bundled assets like `workflow/ssot-gen/rules/ssot-template.yaml` that
-    only live under the common_ai_agent install. Without this fallback the
-    bundled-asset reference 404s on every developer machine that isn't
-    cwd'd into common_ai_agent itself.
-
-    Read-only. Returns the original path if neither resolves (so the
-    caller's existing not-found error message still fires correctly).
+    Read-only. Returns the original path if no candidate exists, so the
+    caller's existing not-found error message still fires correctly.
     """
     if not path:
         return path
@@ -287,11 +284,71 @@ def _resolve_asset_path(path):
     # cwd wins if the file exists there (preserves user-intended layouts).
     if os.path.exists(path):
         return path
+    project_root = (
+        os.environ.get("ATLAS_PROJECT_ROOT", "")
+        or os.environ.get("PROJECT_ROOT", "")
+    )
+    if project_root:
+        candidate = os.path.join(project_root, path)
+        if os.path.exists(candidate):
+            return candidate
+        active_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
+        if active_ip and active_ip != "default":
+            # Only prefix the IP when the agent's path doesn't already
+            # name it — `rtl/foo.sv` → `<ip>/rtl/foo.sv`, but
+            # `<ip>/rtl/foo.sv` is left alone.
+            if not path.startswith(active_ip + os.sep) and not path.startswith(active_ip + "/"):
+                ip_candidate = os.path.join(project_root, active_ip, path)
+                if os.path.exists(ip_candidate):
+                    return ip_candidate
     home = os.environ.get("COMMON_AI_AGENT_HOME", "")
     if home:
         candidate = os.path.join(home, path)
         if os.path.exists(candidate):
             return candidate
+    return path
+
+
+_IP_SUBDIRS = frozenset({
+    "rtl", "yaml", "tb", "tc", "sim", "sdc", "lint", "doc", "wiki",
+    "req", "list", "model", "syn", "sta", "pnr", "cov", "verify",
+    "todo", "sta-post",
+})
+
+
+def _resolve_write_path(path):
+    """Write-side counterpart to _resolve_asset_path.
+
+    Reads can rely on os.path.exists() to pick the right candidate; writes
+    cannot (the target file doesn't exist yet). Instead, when:
+      - the path is relative,
+      - an active IP is bound,
+      - the first segment is a known per-IP subdir (rtl/, yaml/, tb/, ...),
+      - the path is NOT already prefixed with the IP name,
+    we route the write under <PROJECT_ROOT>/<active_ip>/<path>.
+
+    Project-level paths (workflow/, .session/, anything outside the
+    per-IP layout) fall through untouched and land in cwd.
+    """
+    if not path or os.path.isabs(path):
+        return path
+    if os.path.exists(path):
+        return path
+    project_root = (
+        os.environ.get("ATLAS_PROJECT_ROOT", "")
+        or os.environ.get("PROJECT_ROOT", "")
+    )
+    if not project_root:
+        return path
+    active_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
+    if not active_ip or active_ip == "default":
+        return path
+    norm = path.replace("\\", "/").lstrip("./")
+    first = norm.split("/", 1)[0]
+    if first == active_ip:
+        return path  # already IP-scoped
+    if first in _IP_SUBDIRS:
+        return os.path.join(project_root, active_ip, norm)
     return path
 
 
@@ -729,6 +786,7 @@ def write_file(path: str = None, content: str = None, append: bool = False) -> s
         # LLM may pass append="false" (string) — that's truthy and would
         # silently flip mode to append. Coerce explicitly.
         append = _as_bool(append, default=False)
+        path = _resolve_write_path(path)
         dir_name = os.path.dirname(path)
         if dir_name:
             os.makedirs(dir_name, exist_ok=True)
@@ -1019,6 +1077,7 @@ def list_dir(path=".", show_hidden=True, **kwargs):
     try:
         # Coerce LLM-supplied "false"/"true" string → real bool.
         show_hidden = _as_bool(show_hidden, default=True)
+        path = _resolve_asset_path(path)
         if os.path.isfile(path):
             return f"'{path}' is a file, not a directory. Use read_file() or grep_file() instead."
         if not os.path.exists(path):
@@ -1321,6 +1380,7 @@ def read_lines(path=None, start_line=None, end_line=None):
             except (TypeError, ValueError):
                 return f"Error: start_line and end_line must be integers (got start_line={start_line!r}, end_line={end_line!r})"
 
+        path = _resolve_asset_path(path)
         if not os.path.exists(path):
             import glob
             basename = os.path.basename(path)
@@ -1568,6 +1628,7 @@ def replace_in_file(path=None, old_text=None, new_text=None, count=-1, start_lin
     if new_text is None:
         return "Error: replace_in_file() requires 'new_text'. Usage: replace_in_file(path=\"file.sv\", old_text=\"...\", new_text=\"...\")"
     try:
+        path = _resolve_asset_path(path)
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
 
@@ -2321,6 +2382,7 @@ def replace_lines(path=None, start_line=None, end_line=None, new_content=None):
         except (TypeError, ValueError):
             return f"Error: start_line and end_line must be integers (got start_line={start_line!r}, end_line={end_line!r})"
 
+        path = _resolve_asset_path(path)
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
 
