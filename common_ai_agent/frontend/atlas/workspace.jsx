@@ -483,7 +483,10 @@ const _markdownHtml = (text) => {
     ? window.marked.parse(body || '', { breaks: true, gfm: true })
     : renderInline(body || '');
   return (typeof window.DOMPurify !== 'undefined' && window.DOMPurify.sanitize)
-    ? window.DOMPurify.sanitize(rawHtml, { ADD_ATTR: ['target', 'rel'] })
+    ? window.DOMPurify.sanitize(rawHtml, {
+      ADD_ATTR: ['target', 'rel'],
+      ADD_DATA_URI_TAGS: ['img'],
+    })
     : rawHtml;
 };
 
@@ -493,6 +496,27 @@ const _normalizeMarkdownImageSrc = (src) => {
   return value
     .replace(/^data:(image\/[a-z0-9.+-]+)\s*:\s*base64\s*,/i, 'data:$1;base64,')
     .replace(/^data:(image\/[a-z0-9.+-]+)\s*;\s*base64\s*,/i, 'data:$1;base64,');
+};
+
+const _sanitizePrismLanguageClasses = (node) => {
+  if (!node) return;
+  node.querySelectorAll('pre > code').forEach(c => {
+    const classes = Array.from(c.classList || []);
+    const langClasses = classes.filter(cls => /^language-/i.test(cls));
+    if (!langClasses.length) {
+      c.classList.add('language-none');
+      return;
+    }
+    langClasses.forEach(cls => {
+      const lang = cls.replace(/^language-/i, '').trim();
+      if (!/^[a-z0-9_-]{1,40}$/i.test(lang) || /^data[:;]/i.test(lang)) {
+        c.classList.remove(cls);
+      }
+    });
+    if (!Array.from(c.classList || []).some(cls => /^language-/i.test(cls))) {
+      c.classList.add('language-none');
+    }
+  });
 };
 
 // Inline-code chip classification + interactivity. Inline `<code>`
@@ -608,11 +632,8 @@ const _postProcessMarkdownNode = (node) => {
     a.setAttribute('target', '_blank');
     a.setAttribute('rel', 'noopener noreferrer');
   });
+  _sanitizePrismLanguageClasses(node);
   if (window.Prism) {
-    node.querySelectorAll('pre > code').forEach(c => {
-      const has = (c.className || '').match(/\blanguage-/);
-      if (!has) c.classList.add('language-none');
-    });
     try { window.Prism.highlightAllUnder(node); } catch (_) {}
   }
   _processInlineChips(node);
@@ -5513,7 +5534,7 @@ const SsotQaBoard = ({
         exportDocx: 'Word',
         exportHtml: 'HTML',
         validationScriptTitle: 'SSOT validator script',
-        validationScriptDetail: 'Runs workflow/ssot-gen/scripts/check_ssot_disk.sh against this IP.',
+        validationScriptDetail: 'Runs verify_ssot.py with --root; check_ssot_disk.sh is used when available.',
         validationMode: 'mode',
         runValidation: 'Run validation',
         validationPass: 'PASS',
@@ -5597,7 +5618,7 @@ const SsotQaBoard = ({
         exportDocx: 'Word',
         exportHtml: 'HTML',
         validationScriptTitle: 'SSOT validator script',
-        validationScriptDetail: 'workflow/ssot-gen/scripts/check_ssot_disk.sh를 이 IP에 대해 실행합니다.',
+        validationScriptDetail: 'verify_ssot.py를 --root 기준으로 실행합니다. 가능하면 check_ssot_disk.sh도 같이 사용합니다.',
         validationMode: 'mode',
         runValidation: 'Validation 실행',
         validationPass: 'PASS',
@@ -8525,6 +8546,71 @@ const listBlocksFromSection = (section, parentKey = '') =>
     startLine: section.startLine + b.startLineOffset,
   })) : [];
 
+const childBlockFromText = (text, parentKey = '') => {
+  if (!parentKey) return null;
+  const lines = ssotPreviewLines(text);
+  const parentRx = new RegExp(`^\\s*${rxEscape(parentKey)}:\\s*(.*)$`);
+  const idx = lines.findIndex(line => parentRx.test(line));
+  if (idx < 0) return null;
+  const parentIndent = indentOf(lines[idx]);
+  const blockLines = [lines[idx]];
+  for (let i = idx + 1; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (trimmed && indentOf(line) <= parentIndent) break;
+    blockLines.push(line);
+  }
+  return { text: blockLines.join('\n'), startLineOffset: idx };
+};
+
+const nestedFieldFromText = (text, parentKey, childKey, max = 240) => {
+  const child = childBlockFromText(text, parentKey);
+  if (!child) return '';
+  const firstLine = String(child.text || '').split(/\r?\n/)[0] || '';
+  const inline = inlineYamlObjectFromLine(firstLine);
+  if (inline && inline[childKey]) return trimSsotValue(inline[childKey], max);
+  return fieldFromText(child.text, childKey, max);
+};
+
+const mapBlocksFromText = (text, parentKey = '') => {
+  const lines = ssotPreviewLines(text);
+  let start = 0;
+  let parentIndent = -1;
+  if (parentKey) {
+    const parentRx = new RegExp(`^\\s*${rxEscape(parentKey)}:\\s*(?:#.*)?$`);
+    const idx = lines.findIndex(line => parentRx.test(line));
+    if (idx < 0) return [];
+    start = idx + 1;
+    parentIndent = indentOf(lines[idx]);
+  }
+
+  const baseIndent = parentKey ? parentIndent + 2 : (lines[0] ? indentOf(lines[0]) + 2 : 0);
+  const blocks = [];
+  let cur = null;
+  for (let i = start; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const ind = indentOf(line);
+    if (parentKey && ind <= parentIndent) break;
+    const m = line.match(/^\s*([A-Za-z0-9_.-]+):\s*(.*)$/);
+    if (m && ind === baseIndent && !trimmed.startsWith('- ')) {
+      if (cur) blocks.push(cur);
+      cur = { mapKey: m[1], startLineOffset: i, lines: [line] };
+    } else if (cur) {
+      cur.lines.push(line);
+    }
+  }
+  if (cur) blocks.push(cur);
+  return blocks.map(b => ({ mapKey: b.mapKey, text: b.lines.join('\n'), startLineOffset: b.startLineOffset }));
+};
+
+const mapBlocksFromSection = (section, parentKey = '') =>
+  section ? mapBlocksFromText(section.text, parentKey).map(b => ({
+    ...b,
+    startLine: section.startLine + b.startLineOffset,
+  })) : [];
+
 const inlineYamlObjectFromLine = (line) => {
   const raw = String(line || '').match(/\{(.+)\}/);
   if (!raw) return {};
@@ -8582,44 +8668,95 @@ const mapGroupsFromSection = (section, parentKey = '') => {
 };
 
 const interfaceFromBlock = (block, fallbackName = 'interface', fallbackType = 'custom') => ({
-  name: blockField(block, 'name') || blockField(block, 'id') || blockField(block, 'bus') || fallbackName,
-  type: blockField(block, 'type') || blockField(block, 'proto') || blockField(block, 'protocol') || fallbackType,
+  name: block?.mapKey || blockField(block, 'name') || blockField(block, 'id') || blockField(block, 'bus') || fallbackName,
+  type: blockField(block, 'type')
+    || blockField(block, 'proto')
+    || blockField(block, 'protocol')
+    || blockField(block, 'bus_type')
+    || nestedFieldFromText(block?.text, 'busType', 'name')
+    || nestedFieldFromText(block?.text, 'bus_type', 'name')
+    || fallbackType,
   role: blockField(block, 'role'),
-  description: blockField(block, 'description', 360),
+  description: blockField(block, 'description', 360) || blockField(block, 'displayName', 220),
   ports: [
     ...listBlocksFromText(block.text, 'ports'),
+    ...mapBlocksFromText(block.text, 'ports'),
     ...listBlocksFromText(block.text, 'signals'),
+    ...mapBlocksFromText(block.text, 'signals'),
   ].map(port => ({
-    name: blockField(port, 'name') || stripYamlScalar(port.text.replace(/^\s*-\s*/, '').split(':')[0]),
-    direction: blockField(port, 'direction'),
-    width: blockField(port, 'width'),
+    name: blockField(port, 'name') || port?.mapKey || stripYamlScalar(port.text.replace(/^\s*-\s*/, '').split(':')[0]),
+    direction: blockField(port, 'direction') || blockField(port, 'dir') || blockField(port, 'mode'),
+    width: blockField(port, 'width') || blockField(port, 'bits') || blockField(port, 'range'),
     description: blockField(port, 'description', 220),
   })),
 });
 
-const extractInterfaces = (section) => [
-  ...listBlocksFromSection(section, 'interfaces').map(block => interfaceFromBlock(block, 'interface', 'custom')),
-  ...listBlocksFromSection(section, 'bus_interfaces').map(block => interfaceFromBlock(block, 'bus_interface', 'bus')),
-  ...listBlocksFromSection(section, 'bus_interface').map(block => interfaceFromBlock(block, 'bus_interface', 'bus')),
-  ...listBlocksFromSection(section, 'busInterfaces').map(block => interfaceFromBlock(block, 'bus_interface', 'bus')),
-  ...listBlocksFromSection(section, 'buses').map(block => interfaceFromBlock(block, 'bus', 'bus')),
-];
+const scalarInterfaceFromSection = (section, key, fallbackName = 'bus_interface') => {
+  const value = section ? fieldFromText(section.text, key, 260) : '';
+  if (!value || /^(?:\[\]|\{\}|\[|\{)$/.test(value)) return [];
+  const inline = inlineYamlObjectFromLine(`${key}: ${value}`);
+  const type = inline.type || inline.proto || inline.protocol || inline.bus_type || value;
+  const name = inline.name || inline.id || fallbackName;
+  return [{
+    name,
+    type,
+    role: inline.role || '',
+    description: inline.description || value,
+    ports: [],
+  }];
+};
 
-const extractSignalPorts = (section) => listBlocksFromSection(section, 'signals').map(block => ({
-  name: blockField(block, 'name') || 'signal',
-  direction: blockField(block, 'direction') || blockField(block, 'dir'),
-  width: blockField(block, 'width') || '1',
+const extractInterfaces = (section) => {
+  const keys = [
+    ['interfaces', 'interface', 'custom'],
+    ['bus_interfaces', 'bus_interface', 'bus'],
+    ['bus_interface', 'bus_interface', 'bus'],
+    ['busInterfaces', 'bus_interface', 'bus'],
+    ['buses', 'bus', 'bus'],
+  ];
+  const rows = [];
+  keys.forEach(([key, fallbackName, fallbackType]) => {
+    rows.push(
+      ...listBlocksFromSection(section, key).map(block => interfaceFromBlock(block, fallbackName, fallbackType)),
+      ...mapBlocksFromSection(section, key).map(block => interfaceFromBlock(block, block.mapKey || fallbackName, fallbackType)),
+    );
+    rows.push(...scalarInterfaceFromSection(section, key, fallbackName));
+  });
+  return rows;
+};
+
+const extractSignalPorts = (section) => [
+  ...listBlocksFromSection(section, 'signals'),
+  ...mapBlocksFromSection(section, 'signals'),
+  ...listBlocksFromSection(section, 'ports'),
+  ...mapBlocksFromSection(section, 'ports'),
+].map(block => ({
+  name: blockField(block, 'name') || block?.mapKey || 'signal',
+  direction: blockField(block, 'direction') || blockField(block, 'dir') || blockField(block, 'mode'),
+  width: blockField(block, 'width') || blockField(block, 'bits') || blockField(block, 'range') || '1',
   description: blockField(block, 'description', 220),
 }));
 
 const extractReviewInterfaces = (sections, ioSection) => {
   const canonical = extractInterfaces(ioSection);
   const generic = (sections || [])
-    .filter(section => section !== ioSection && /(interface|businterfaces|interrupts?)$/i.test(section.key || ''))
+    .filter(section => section !== ioSection && /(interfaces?|bus_?interfaces?|busInterfaces|interrupts?)$/i.test(section.key || ''))
     .flatMap(section => {
-      const busItems = listBlocksFromSection(section);
+      const busItems = [
+        ...listBlocksFromSection(section),
+        ...mapBlocksFromSection(section),
+      ];
       if (busItems.length && /^bus_?interfaces?$/i.test(section.key || '')) {
         return busItems.map(block => interfaceFromBlock(block, ssotTitleFor(section.key), 'bus'));
+      }
+      if (/^bus_?interface$/i.test(section.key || '') && section.value) {
+        return [{
+          name: ssotTitleFor(section.key),
+          type: stripYamlScalar(section.value) || 'bus',
+          role: sectionFact(section, 'role'),
+          description: sectionFact(section, 'description', stripYamlScalar(section.value)),
+          ports: extractSignalPorts(section),
+        }];
       }
       return [{
         name: ssotTitleFor(section.key),
@@ -8691,22 +8828,36 @@ const extractModuleContracts = (section) => listBlocksFromSection(section, 'modu
 const extractRegisters = (section) => {
   const blocks = [
     ...listBlocksFromSection(section, 'register_list'),
+    ...mapBlocksFromSection(section, 'register_list'),
     ...listBlocksFromSection(section, 'map'),
+    ...mapBlocksFromSection(section, 'map'),
   ];
-  const source = blocks.length ? blocks : listBlocksFromSection(section);
+  const rootMap = mapBlocksFromSection(section).filter(block => {
+    const key = String(block.mapKey || '').toLowerCase();
+    if (['config', 'register_width', 'addr_width', 'byte_addressable', 'no_registers', 'no_csr', 'no_register_map'].includes(key)) return false;
+    return blockField(block, 'offset')
+      || blockField(block, 'access')
+      || blockField(block, 'width')
+      || listBlocksFromText(block.text, 'fields').length
+      || mapBlocksFromText(block.text, 'fields').length;
+  });
+  const source = blocks.length ? blocks : (listBlocksFromSection(section).length ? listBlocksFromSection(section) : rootMap);
   return source.map(block => ({
-    name: blockField(block, 'name') || 'REG',
+    name: blockField(block, 'name') || block?.mapKey || 'REG',
     offset: blockField(block, 'offset'),
     width: blockField(block, 'width'),
     access: blockField(block, 'access'),
     reset: blockField(block, 'reset'),
     description: blockField(block, 'description', 300),
-    fields: listBlocksFromText(block.text, 'fields').map(field => ({
+    fields: [
+      ...listBlocksFromText(block.text, 'fields'),
+      ...mapBlocksFromText(block.text, 'fields'),
+    ].map(field => ({
       bits: blockField(field, 'bits')
         || blockField(field, 'bit')
         || blockField(field, 'range')
         || blockField(field, 'position'),
-      name: blockField(field, 'name') || 'field',
+      name: blockField(field, 'name') || field?.mapKey || 'field',
       access: blockField(field, 'access'),
       reset: blockField(field, 'reset'),
       description: blockField(field, 'description', 240),
@@ -10656,6 +10807,11 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     return acc;
   }, {});
   const registers = extractRegisters(registersSection);
+  const registerConfig = {
+    addrWidth: sectionFact(registersSection, 'addr_width') || sectionFact(registersSection, 'address_width'),
+    dataWidth: sectionFact(registersSection, 'register_width') || sectionFact(registersSection, 'data_width'),
+    byteAddressable: sectionFact(registersSection, 'byte_addressable'),
+  };
   const noRegisterPolicy = (() => {
     if (!registersSection) return '';
     const hasPolicy = ['no_registers', 'no_csr', 'no_register_map']
@@ -10839,144 +10995,9 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     { label: 'Dataflow', status: statusForPresence(dataflowGroups.length > 0 || semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 1).length > 0), detail: dataflowGroups.length ? `${dataflowGroups.length} flows` : compactDigestItems(semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 3), 3) },
   ];
 
-  const quickstartSteps = (() => {
-    // Build a 3-step "how to use this IP" recipe by guessing intent from
-    // SSOT fields. Each step has a label, hint, and an optional ref like
-    // "CR.EN" so the user can locate it in the Registers tab.
-    const steps = [];
-    const enableField = (() => {
-      for (const reg of registers || []) {
-        for (const f of (reg.fields || [])) {
-          if (/^(en|enable)$/i.test(f.name || '') || /enable/i.test(f.name || '')) {
-            return { reg: reg.name, field: f.name, description: f.description };
-          }
-        }
-      }
-      const cr = (registers || []).find(r => /^(cr|ctrl|control|cfg|config)$/i.test(r.name || ''));
-      if (cr) return { reg: cr.name, field: '', description: cr.description };
-      const first = (registers || [])[0];
-      if (first) return { reg: first.name, field: '', description: first.description };
-      return null;
-    })();
-    if (enableField) {
-      const ref = enableField.field
-        ? `${enableField.reg}.${enableField.field}`
-        : enableField.reg;
-      steps.push({
-        kind: 'enable',
-        title: 'Enable the IP',
-        hint: enableField.field
-          ? `Write 1 to ${ref} to bring the module out of reset state.`
-          : `Configure ${ref} (the primary control register) to enable operation.`,
-        ref,
-      });
-    }
-    const cfgFeature = (features || []).find(f =>
-      /baud|clock|divisor|rate|threshold|prescaler|mode/i.test([f.name, f.description, f.datapath].join(' '))
-    );
-    const cfgReg = (registers || []).find(r => /^(dlr|brr|cfg|mr|mode|baud|div)/i.test(r.name || ''));
-    if (cfgFeature || cfgReg) {
-      const ref = cfgReg
-        ? `${cfgReg.name}${cfgReg.offset ? ` (@ ${cfgReg.offset})` : ''}`
-        : cfgFeature.name;
-      steps.push({
-        kind: 'configure',
-        title: cfgFeature ? `Configure ${cfgFeature.name}` : `Program ${cfgReg.name}`,
-        hint: cfgFeature
-          ? trimSsotValue(cfgFeature.description || cfgFeature.datapath || cfgFeature.trigger, 200)
-            || `Set the operating parameters described by ${cfgFeature.name}.`
-          : `Program ${ref} with the operating parameters required for your use case.`,
-        ref,
-      });
-    }
-    const irqBlocks = []
-      .concat(listBlocksFromSection(interruptsSection, 'interrupt_list'))
-      .concat(listBlocksFromSection(interruptsSection, 'list'))
-      .concat(listBlocksFromSection(interruptsSection));
-    const irqList = irqBlocks
-      .map(b => ({
-        name: blockField(b, 'name') || blockField(b, 'id') || '',
-        description: blockField(b, 'description', 240),
-      }))
-      .filter(e => e.name);
-    if (irqList.length) {
-      const primary = irqList[0];
-      steps.push({
-        kind: 'observe',
-        title: `Observe ${primary.name}`,
-        hint: primary.description
-          ? `Wait for the ${primary.name} interrupt — ${trimSsotValue(primary.description, 180)}`
-          : `Wait for the ${primary.name} interrupt to handle the next event.`,
-        ref: primary.name,
-      });
-    } else if ((features || []).length) {
-      const lastFeature = features[features.length - 1];
-      steps.push({
-        kind: 'observe',
-        title: `Verify ${lastFeature.name}`,
-        hint: trimSsotValue(lastFeature.output || lastFeature.description || lastFeature.datapath, 200)
-          || `Confirm the IP produces the expected observable behavior of ${lastFeature.name}.`,
-        ref: lastFeature.name,
-      });
-    }
-    return steps.slice(0, 3);
-  })();
-
   const renderOverview = () => (
     <>
       {header}
-      {quickstartSteps.length ? (
-        <DigestCard
-          title="Quickstart"
-          meta={`${quickstartSteps.length}-step usage walkthrough · derived from registers + features + interrupts`}
-        >
-          <div style={{ display: 'grid', gap: 10 }}>
-            {quickstartSteps.map((step, i) => (
-              <div key={`qs-${step.kind}-${i}`}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '36px minmax(0, 1fr)',
-                  gap: 10,
-                  alignItems: 'start',
-                  padding: '8px 10px',
-                  borderLeft: '3px solid var(--accent)',
-                  background: 'color-mix(in oklch, var(--accent) 8%, transparent)',
-                  borderRadius: 4,
-                }}>
-                <div style={{
-                  width: 28, height: 28, borderRadius: '50%',
-                  background: 'var(--accent)', color: 'var(--bg-1)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 900, fontFamily: 'var(--mono)', fontSize: 13,
-                }}>{i + 1}</div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ color: 'var(--fg)', fontWeight: 800 }}>{step.title}</span>
-                    {step.ref ? (() => {
-                      const jumpId = step.kind === 'observe'
-                        ? 'overview'
-                        : 'registers';
-                      const clickable = typeof onJump === 'function';
-                      return (
-                        <span title={clickable ? `Jump to ${jumpId}` : step.ref}
-                          onClick={clickable ? () => onJump(jumpId) : undefined}
-                          style={{
-                            fontFamily: 'var(--mono)', fontSize: 10,
-                            padding: '2px 7px', borderRadius: 3,
-                            background: 'var(--bg-2)', color: 'var(--cyan)',
-                            border: '1px solid var(--line)',
-                            cursor: clickable ? 'pointer' : 'default',
-                          }}>{step.ref}</span>
-                      );
-                    })() : null}
-                  </div>
-                  <div className="mute" style={{ marginTop: 3, lineHeight: 1.55 }}>{linkifyReferences(step.hint, refTokenMap, onJump)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </DigestCard>
-      ) : null}
       <div style={{ display: 'grid', gap: 10 }}>
         <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
           <DigestCard title="Top Module" meta={top ? `line ${top.startLine}` : ''}>
@@ -11361,47 +11382,126 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
       {header}
       <DigestCard title="Register Map" meta={`${registers.length} registers`}>
         {registers.length ? (
-          <div style={{ display: 'grid', gap: 14 }}>
-            {registers.map((reg, i) => (
-              <div key={`reg-${reg.name || ''}-${i}`} style={{ borderLeft: '3px solid var(--accent)', paddingLeft: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: 'var(--mono)', color: 'var(--cyan)', fontWeight: 800 }}>
-                    {reg.offset || '--'}
-                  </span>
-                  <span style={{ fontWeight: 800, color: 'var(--fg)', fontSize: 13 }}>{reg.name}</span>
-                  {reg.access ? (
-                    <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>access: {reg.access}</span>
-                  ) : null}
-                  {reg.reset ? (
-                    <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>reset: {reg.reset}</span>
-                  ) : null}
-                  {reg.width ? (
-                    <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 10 }}>width: {reg.width}</span>
-                  ) : null}
+          <div style={{ display: 'grid', gap: 12 }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+              gap: 8,
+            }}>
+              {[
+                ['registers', registers.length],
+                ['addr width', registerConfig.addrWidth || '-'],
+                ['data width', registerConfig.dataWidth || registers.find(r => r.width)?.width || '-'],
+                ['byte addr', registerConfig.byteAddressable || '-'],
+              ].map(([label, value]) => (
+                <div key={`reg-summary-${label}`} style={{
+                  border: '1px solid var(--line)',
+                  borderRadius: 4,
+                  padding: '7px 9px',
+                  background: 'var(--bg-3)',
+                  minWidth: 0,
+                }}>
+                  <div className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 9, textTransform: 'uppercase' }}>{label}</div>
+                  <div style={{ marginTop: 2, color: 'var(--fg)', fontFamily: 'var(--mono)', fontWeight: 800, wordBreak: 'break-word' }}>{String(value || '-')}</div>
                 </div>
-                {reg.description ? (
-                  <div className="mute" style={{ marginTop: 3, lineHeight: 1.5 }}>{linkifyReferences(reg.description, refTokenMap, onJump)}</div>
-                ) : null}
+              ))}
+            </div>
+            {registers.map((reg, i) => (
+              <div key={`reg-${reg.name || ''}-${i}`} style={{
+                border: '1px solid var(--line)',
+                borderLeft: '3px solid var(--accent)',
+                borderRadius: 4,
+                background: 'var(--bg-2)',
+                padding: 10,
+                minWidth: 0,
+              }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '92px minmax(0, 1fr)', gap: 10, alignItems: 'start' }}>
+                  <div style={{
+                    fontFamily: 'var(--mono)',
+                    color: 'var(--cyan)',
+                    fontWeight: 900,
+                    border: '1px solid var(--line-2)',
+                    borderRadius: 4,
+                    padding: '5px 7px',
+                    textAlign: 'center',
+                    background: 'var(--bg-1)',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {reg.offset || '--'}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 900, color: 'var(--fg)', fontSize: 14, fontFamily: 'var(--mono)', wordBreak: 'break-word' }}>{reg.name}</span>
+                      {[
+                        reg.access && `access ${reg.access}`,
+                        reg.reset && `reset ${reg.reset}`,
+                        reg.width && `${reg.width}b`,
+                      ].filter(Boolean).map(tag => (
+                        <span key={`${reg.name}-${tag}`} className="mute" style={{
+                          fontFamily: 'var(--mono)',
+                          fontSize: 10,
+                          border: '1px solid var(--line)',
+                          borderRadius: 3,
+                          padding: '2px 6px',
+                          background: 'var(--bg-3)',
+                          whiteSpace: 'nowrap',
+                        }}>{tag}</span>
+                      ))}
+                    </div>
+                    {reg.description ? (
+                      <div className="mute" style={{ marginTop: 5, lineHeight: 1.5, wordBreak: 'break-word' }}>{linkifyReferences(reg.description, refTokenMap, onJump)}</div>
+                    ) : null}
+                  </div>
+                </div>
                 {reg.fields && reg.fields.length ? (
                   <RegisterBitMap width={reg.width || 32} fields={reg.fields} />
                 ) : null}
                 {reg.fields && reg.fields.length ? (
-                  <div style={{ marginTop: 6, display: 'grid', gridTemplateColumns: '70px minmax(80px, 0.8fr) 50px 60px minmax(0, 2.2fr)',
-                    gap: 6, fontFamily: 'var(--mono)', fontSize: 10, alignItems: 'baseline' }}>
-                    <div style={{ color: 'var(--fg-mute)', fontWeight: 700, borderBottom: '1px solid var(--line)' }}>BITS</div>
-                    <div style={{ color: 'var(--fg-mute)', fontWeight: 700, borderBottom: '1px solid var(--line)' }}>FIELD</div>
-                    <div style={{ color: 'var(--fg-mute)', fontWeight: 700, borderBottom: '1px solid var(--line)' }}>ACCESS</div>
-                    <div style={{ color: 'var(--fg-mute)', fontWeight: 700, borderBottom: '1px solid var(--line)' }}>RESET</div>
-                    <div style={{ color: 'var(--fg-mute)', fontWeight: 700, borderBottom: '1px solid var(--line)' }}>DESCRIPTION</div>
-                    {reg.fields.map((f, fi) => (
-                      <React.Fragment key={`rf-${reg.name || i}-${f.name || ''}-${fi}`}>
-                        <div style={{ color: 'var(--cyan)' }}>{f.bits || '-'}</div>
-                        <div style={{ color: 'var(--fg)' }}>{f.name || '-'}</div>
-                        <div className="mute">{f.access || '-'}</div>
-                        <div className="mute">{f.reset || '-'}</div>
-                        <div className="mute" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{linkifyReferences(f.description || '', refTokenMap, onJump)}</div>
-                      </React.Fragment>
-                    ))}
+                  <div style={{ marginTop: 8, overflowX: 'auto' }}>
+                    <div style={{
+                      minWidth: 620,
+                      display: 'grid',
+                      gridTemplateColumns: '86px minmax(120px, 0.9fr) 72px 78px minmax(220px, 2fr)',
+                      gap: 0,
+                      fontFamily: 'var(--mono)',
+                      fontSize: 10,
+                      alignItems: 'stretch',
+                      border: '1px solid var(--line)',
+                      borderRadius: 4,
+                      overflow: 'hidden',
+                    }}>
+                      {['BITS', 'FIELD', 'ACCESS', 'RESET', 'DESCRIPTION'].map(label => (
+                        <div key={`reg-head-${reg.name}-${label}`} style={{
+                          color: 'var(--fg-mute)',
+                          fontWeight: 800,
+                          background: 'var(--bg-3)',
+                          borderBottom: '1px solid var(--line)',
+                          padding: '5px 7px',
+                        }}>{label}</div>
+                      ))}
+                      {reg.fields.map((f, fi) => (
+                        <React.Fragment key={`rf-${reg.name || i}-${f.name || ''}-${fi}`}>
+                          {[
+                            { value: f.bits || '-', color: 'var(--cyan)' },
+                            { value: f.name || '-', color: 'var(--fg)', weight: 800 },
+                            { value: f.access || '-', muted: true },
+                            { value: f.reset || '-', muted: true },
+                            { value: linkifyReferences(f.description || '', refTokenMap, onJump), muted: true, wrap: true },
+                          ].map((cell, ci) => (
+                            <div key={`rf-cell-${reg.name || i}-${fi}-${ci}`} className={cell.muted ? 'mute' : undefined} style={{
+                              color: cell.color,
+                              fontWeight: cell.weight,
+                              padding: '5px 7px',
+                              borderTop: fi ? '1px solid var(--line)' : 0,
+                              background: fi % 2 ? 'var(--bg-1)' : 'transparent',
+                              minWidth: 0,
+                              whiteSpace: cell.wrap ? 'normal' : 'nowrap',
+                              wordBreak: cell.wrap ? 'break-word' : 'normal',
+                            }}>{cell.value}</div>
+                          ))}
+                        </React.Fragment>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
               </div>

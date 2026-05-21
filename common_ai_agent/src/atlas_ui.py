@@ -24,10 +24,13 @@ from __future__ import annotations
 import argparse
 import asyncio
 import collections
+import contextlib
 import contextvars
 import faulthandler
 import hashlib
 import html as html_lib
+import importlib.util
+import io
 import json
 import os
 import queue
@@ -633,10 +636,24 @@ def _ssot_export_valid_ip(name: str) -> bool:
     return bool(_SSOT_EXPORT_IP_NAME_RE.match(name or ""))
 
 
+def _project_ip_root(ip: str) -> Path:
+    nested = PROJECT_ROOT / ip
+    if nested.exists():
+        return nested
+    if PROJECT_ROOT.name == ip and (PROJECT_ROOT / "yaml").is_dir():
+        return PROJECT_ROOT
+    return nested
+
+
 def _ssot_yaml_path(ip: str) -> Path:
     if not _ssot_export_valid_ip(ip):
         raise ValueError(f"invalid ip name {ip!r}")
-    return PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
+    ip_dir = _project_ip_root(ip)
+    for name in (f"{ip}.ssot.yaml", f"{ip}_ssot.yaml", f"{ip}.ssot.yml"):
+        candidate = ip_dir / "yaml" / name
+        if candidate.is_file():
+            return candidate
+    return ip_dir / "yaml" / f"{ip}.ssot.yaml"
 
 
 def _load_ssot_yaml(ip: str) -> dict:
@@ -3778,7 +3795,7 @@ def create_app():
         run_info: dict[str, Any] | None = None
         if refresh:
             script = SOURCE_ROOT / "workflow" / "lint" / "scripts" / "dut_lint_report.py"
-            cmd = [sys.executable, str(script), rel_ip, "--top", top or ip_dir.name]
+            cmd = [_python_cmd(), str(script), rel_ip, "--top", top or ip_dir.name]
 
             def _run_lint_report():
                 return subprocess.run(
@@ -4286,7 +4303,7 @@ def create_app():
 
         if refresh:
             script = SOURCE_ROOT / "workflow" / "coverage" / "scripts" / "ssot_coverage_summary.py"
-            cmd = [sys.executable, str(script), rel_ip]
+            cmd = [_python_cmd(), str(script), rel_ip]
 
             def _run_summary():
                 return subprocess.run(
@@ -9932,7 +9949,12 @@ def create_app():
         return {"sessions": sessions, "count": len(sessions)}
 
     def _ssot_yaml_path(ip: str) -> Path:
-        return PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
+        ip_dir = _ip_root(ip)
+        for name in (f"{ip}.ssot.yaml", f"{ip}_ssot.yaml", f"{ip}.ssot.yml"):
+            candidate = ip_dir / "yaml" / name
+            if candidate.is_file():
+                return candidate
+        return ip_dir / "yaml" / f"{ip}.ssot.yaml"
 
     def _load_ssot_draft(ip: str) -> dict[str, Any]:
         path = _ssot_yaml_path(ip)
@@ -10361,17 +10383,87 @@ def create_app():
         _atlas_active_ip_cv.set(ip)
         _atlas_active_session_cv.set(_canonical_session_string(ip, "ssot-gen"))
 
+    def _infer_ip_from_project_root() -> str:
+        """Infer an IP when ATLAS is pointed directly at an IP workspace."""
+        yaml_dir = PROJECT_ROOT / "yaml"
+        if yaml_dir.is_dir():
+            for pattern in ("*.ssot.yaml", "*_ssot.yaml", "*.ssot.yml"):
+                for path in sorted(yaml_dir.glob(pattern)):
+                    name = path.name
+                    if name.endswith(".ssot.yaml"):
+                        candidate = name[: -len(".ssot.yaml")]
+                    elif name.endswith("_ssot.yaml"):
+                        candidate = name[: -len("_ssot.yaml")]
+                    elif name.endswith(".ssot.yml"):
+                        candidate = name[: -len(".ssot.yml")]
+                    else:
+                        candidate = path.stem
+                    if _valid_ip_name(candidate):
+                        return candidate
+            if _valid_ip_name(PROJECT_ROOT.name):
+                return PROJECT_ROOT.name
+        nested = sorted({
+            p.parents[1].name
+            for pattern in ("*/yaml/*.ssot.yaml", "*/yaml/*_ssot.yaml", "*/yaml/*.ssot.yml")
+            for p in PROJECT_ROOT.glob(pattern)
+            if _valid_ip_name(p.parents[1].name)
+        })
+        if len(nested) == 1:
+            return nested[0]
+        return ""
+
     def _active_ssot_ip() -> str:
         env_ip = str(_active_ip_value() or "").strip()
-        if _valid_ip_name(env_ip):
+        if _valid_ip_name(env_ip) and env_ip != "default":
             return env_ip
         session = normalize_session_name(str(_active_session_value() or ""))
         parts = [p for p in session.split("/") if p]
-        if len(parts) >= 2 and parts[-1] == "ssot-gen" and _valid_ip_name(parts[-2]):
+        if len(parts) >= 2 and parts[-1] == "ssot-gen" and _valid_ip_name(parts[-2]) and parts[-2] != "default":
             return parts[-2]
-        if len(parts) == 1 and _valid_ip_name(parts[0]) and _ssot_state_path(parts[0]).is_file():
+        if len(parts) == 1 and _valid_ip_name(parts[0]) and parts[0] != "default" and _ssot_state_path(parts[0]).is_file():
             return parts[0]
+        root_ip = _infer_ip_from_project_root()
+        if _valid_ip_name(root_ip):
+            return root_ip
         return _latest_pending_ssot_ip()
+
+    def _first_ip_token(args: str) -> str:
+        try:
+            tokens = shlex.split(args or "")
+        except ValueError:
+            tokens = str(args or "").split()
+        skip_next = False
+        for tok in tokens:
+            if skip_next:
+                skip_next = False
+                continue
+            if tok in {"--mode", "--run-mode", "--preview", "--preview-contract", "--top"}:
+                skip_next = True
+                continue
+            if tok.startswith("-"):
+                continue
+            return tok
+        return ""
+
+    def _command_ip(args: str = "") -> str:
+        explicit = _first_ip_token(args)
+        if _valid_ip_name(explicit):
+            return explicit
+        return _active_ssot_ip()
+
+    def _ip_root(ip: str) -> Path:
+        nested = PROJECT_ROOT / ip
+        if nested.exists():
+            return nested
+        if PROJECT_ROOT.name == ip and (PROJECT_ROOT / "yaml").is_dir():
+            return PROJECT_ROOT
+        return nested
+
+    def _script_project_root(ip: str) -> Path:
+        ip_dir = _ip_root(ip)
+        if ip_dir == PROJECT_ROOT and PROJECT_ROOT.name == ip:
+            return PROJECT_ROOT.parent
+        return PROJECT_ROOT
 
     def _render_new_ip_plan(ip: str, kind: str, state: dict[str, Any]) -> str:
         missing = _missing_ssot_decisions(ip, state)
@@ -11067,7 +11159,7 @@ def create_app():
         return ip, paths, ""
 
     def _default_import_roots(ip: str) -> list[Path]:
-        ip_dir = PROJECT_ROOT / ip
+        ip_dir = _ip_root(ip)
         return [ip_dir] if ip_dir.exists() else []
 
     def _collect_import_files(ip: str, raw_paths: list[str]) -> tuple[list[Path], list[str]]:
@@ -11943,8 +12035,9 @@ def create_app():
             _emit_workflow_result(err, "import")
             return True
         _set_active_ssot_ip(ip)
+        ip_dir = _ip_root(ip)
         try:
-            (PROJECT_ROOT / ip).mkdir(parents=True, exist_ok=True)
+            ip_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
             _emit_workflow_result(f"[SSOT IMPORT] failed to scaffold {ip}: {exc}", "import")
             return True
@@ -12017,7 +12110,7 @@ def create_app():
         _emit_ssot_approval_ready(ip, state, _missing_ssot_decisions(ip, state))
 
         # Queue the LLM extraction turn. Same pattern as /to-ssot.
-        ssot_path = PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
+        ssot_path = _ssot_yaml_path(ip)
         artifact_block = "\n".join(f"  - `{p}`" for p in artifact_paths_list[:40])
         if len(artifact_paths_list) > 40:
             artifact_block += f"\n  - ... {len(artifact_paths_list) - 40} more"
@@ -12029,7 +12122,7 @@ def create_app():
             f"SSOT evidence directly to disk.\n\n"
             "Workspace boundary (do not search or read outside these roots):\n"
             f"  - PROJECT_ROOT: `{PROJECT_ROOT}`\n"
-            f"  - IP_ROOT:      `{PROJECT_ROOT / ip}`\n\n"
+            f"  - IP_ROOT:      `{ip_dir}`\n\n"
             "Imported artifacts (just-uploaded source documents):\n"
             f"{artifact_block}\n\n"
             "What to do:\n"
@@ -12274,16 +12367,79 @@ def create_app():
         """
         md_target = dest_dir / f"{stamp}_{idx}_{basename}.md"
         image_paths: list[Path] = []
+        image_seq = 0
 
-        def _write_image(blob: bytes, ext: str, n: int) -> None:
+        def _write_image(blob: bytes, ext: str, n: int | None = None) -> Path:
+            nonlocal image_seq
+            if n is None:
+                image_seq += 1
+                n = image_seq
+            else:
+                image_seq = max(image_seq, int(n or 0))
             ext = (ext or "png").lower().lstrip(".") or "png"
+            if ext in {"jpeg", "jpg"}:
+                ext = "jpg"
+            elif ext in {"svg+xml", "svg"}:
+                ext = "svg"
+            elif not re.match(r"^[A-Za-z0-9]+$", ext):
+                ext = "png"
             img_path = images_dir / f"{stamp}_{idx}_{n}.{ext}"
             img_path.write_bytes(blob)
             image_paths.append(img_path)
+            return img_path
+
+        def _inline_image_rel(path: Path) -> str:
+            try:
+                return path.relative_to(dest_dir).as_posix()
+            except ValueError:
+                try:
+                    return path.relative_to(PROJECT_ROOT).as_posix()
+                except ValueError:
+                    return path.as_posix()
+
+        def _materialize_data_image_uris(text: str) -> str:
+            """Replace inline base64 image data URIs with saved image files."""
+            import base64 as _base64
+
+            def _save_data_image(mime: str, encoded: str) -> str:
+                payload = re.sub(r"\s+", "", encoded or "")
+                if not payload:
+                    return ""
+                try:
+                    blob = _base64.b64decode(payload, validate=True)
+                except Exception:
+                    return ""
+                ext = str(mime or "image/png").split("/", 1)[-1]
+                return _inline_image_rel(_write_image(blob, ext))
+
+            md_re = re.compile(
+                r"!\[([^\]]*)\]\(\s*data:(image/[A-Za-z0-9.+-]+)\s*[:;]\s*base64\s*,"
+                r"([A-Za-z0-9+/=_\-\s\r\n]+)\s*(?:[\"'][^)]*[\"'])?\)",
+                re.IGNORECASE,
+            )
+            html_re = re.compile(
+                r"(\bsrc\s*=\s*[\"'])data:(image/[A-Za-z0-9.+-]+)\s*[:;]\s*base64\s*,"
+                r"([^\"']+)([\"'])",
+                re.IGNORECASE,
+            )
+
+            def _replace_md(match: re.Match[str]) -> str:
+                rel = _save_data_image(match.group(2), match.group(3))
+                if not rel:
+                    return match.group(0)
+                return f"![{match.group(1)}]({rel})"
+
+            def _replace_html(match: re.Match[str]) -> str:
+                rel = _save_data_image(match.group(2), match.group(3))
+                if not rel:
+                    return match.group(0)
+                return f"{match.group(1)}{rel}{match.group(4)}"
+
+            return html_re.sub(_replace_html, md_re.sub(_replace_md, str(text or "")))
 
         def _write_markdown(text: str) -> None:
             md_target.write_text(
-                _normalize_markdown_data_image_uris(text),
+                _normalize_markdown_data_image_uris(_materialize_data_image_uris(text)),
                 encoding="utf-8",
             )
 
@@ -12637,7 +12793,7 @@ def create_app():
         if not upload_entries:
             return JSONResponse({"error": "missing file upload"}, status_code=400)
 
-        dest_dir = PROJECT_ROOT / ip / "req" / "imports"
+        dest_dir = _ip_root(ip) / "req" / "imports"
         originals_dir = dest_dir / "originals"
         images_dir = dest_dir / "images"
         try:
@@ -12724,7 +12880,7 @@ def create_app():
         except ValueError as exc:
             return JSONResponse({"error": str(exc)}, status_code=400)
 
-        out_dir = PROJECT_ROOT / ip / "doc"
+        out_dir = _ip_root(ip) / "doc"
         try:
             out_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
@@ -12768,15 +12924,17 @@ def create_app():
     async def api_ssot_validate(request: Request):
         """Run the disk-truth SSOT validator for one IP.
 
-        This is intentionally a small wrapper around the existing
-        workflow/ssot-gen/scripts/check_ssot_disk.sh script so the UI reports
-        the same validation result as the pipeline gate.
+        Use the Python verifier as the UI entry point so ATLAS_PROJECT_ROOT /
+        --root stays explicit. The verifier still calls check_ssot_disk.sh
+        when that shell wrapper is available, but can report/fallback cleanly
+        when bash or the wrapper path is unavailable.
         """
         try:
             body = await request.json()
         except Exception:
             body = {}
-        ip = str((body or {}).get("ip") or _active_ssot_ip() or "").strip()
+        ip = str((body or {}).get("ip") or "").strip()
+        ip = ip if _valid_ip_name(ip) else _active_ssot_ip()
         mode = str((body or {}).get("mode") or "engineering").strip().lower().replace("_", "-")
         if mode == "eng":
             mode = "engineering"
@@ -12785,30 +12943,49 @@ def create_app():
         if mode not in {"starter", "engineering", "signoff"}:
             return JSONResponse({"error": f"invalid mode {mode!r}"}, status_code=400)
         if not _valid_ip_name(ip):
-            return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
+            return JSONResponse({"error": "no active IP found"}, status_code=400)
 
-        script = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
+        script = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "verify_ssot.py"
         if not script.is_file():
             return JSONResponse({"error": f"validator script not found: {script}"}, status_code=404)
 
         env = os.environ.copy()
         env["IP_NAME"] = ip
         env["ATLAS_RUN_MODE"] = mode
-        cmd = ["bash", str(script), ip, "--mode", mode]
+        env["ATLAS_PROJECT_ROOT"] = str(PROJECT_ROOT)
+        cmd = [
+            "python",
+            str(script),
+            ip,
+            "--root",
+            str(PROJECT_ROOT),
+            "--mode",
+            mode,
+            "--preview",
+            "strict",
+        ]
         started = time.time()
+        command_text = " ".join(shlex.quote(part) for part in cmd)
+
+        def _run_verify_inprocess() -> tuple[int, str, str]:
+            spec = importlib.util.spec_from_file_location("_atlas_verify_ssot_runtime", script)
+            if spec is None or spec.loader is None:
+                raise RuntimeError(f"cannot load verifier module: {script}")
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            old_argv = sys.argv[:]
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            try:
+                sys.argv = cmd[1:]
+                with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                    rc = int(module.main())
+            finally:
+                sys.argv = old_argv
+            return rc, stdout.getvalue(), stderr.getvalue()
+
         try:
-            proc = await asyncio.to_thread(
-                subprocess.run,
-                cmd,
-                cwd=str(PROJECT_ROOT),
-                env=env,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                timeout=30,
-            )
+            returncode, stdout, stderr = await asyncio.to_thread(_run_verify_inprocess)
         except subprocess.TimeoutExpired as exc:
             return JSONResponse({
                 "ok": False,
@@ -12818,20 +12995,20 @@ def create_app():
                 "stdout": exc.stdout or "",
                 "stderr": exc.stderr or "validation timed out",
                 "elapsed_ms": int((time.time() - started) * 1000),
-                "command": " ".join(shlex.quote(part) for part in cmd),
+                "command": command_text,
             }, status_code=504)
         except Exception as exc:
             return JSONResponse({"error": f"validation failed to launch: {exc}"}, status_code=500)
 
         return JSONResponse({
-            "ok": proc.returncode == 0,
+            "ok": returncode == 0,
             "ip": ip,
             "mode": mode,
-            "returncode": proc.returncode,
-            "stdout": proc.stdout or "",
-            "stderr": proc.stderr or "",
+            "returncode": returncode,
+            "stdout": stdout or "",
+            "stderr": stderr or "",
             "elapsed_ms": int((time.time() - started) * 1000),
-            "command": " ".join(shlex.quote(part) for part in cmd),
+            "command": command_text,
         })
 
     def _handle_grill_me_command(text: str, client_session: Any | None = None) -> bool:
@@ -12857,7 +13034,7 @@ def create_app():
             return True
         _set_active_ssot_ip(ip)
         try:
-            (PROJECT_ROOT / ip).mkdir(parents=True, exist_ok=True)
+            _ip_root(ip).mkdir(parents=True, exist_ok=True)
         except OSError as exc:
             _emit_workflow_result(f"[SSOT GRILL] failed to scaffold {ip}: {exc}", "grill-me")
             return True
@@ -12895,7 +13072,7 @@ def create_app():
             return True
         if not _valid_ip_name(ip):
             _emit_workflow_result(
-                "[SSOT PLAN] missing or invalid IP name\n"
+                "[SSOT PLAN] new IP name required\n"
                 "usage: /new-ip <ip_name> [kind]\n"
                 "example: /new-ip demo_i2c APB4 I2C controller\n"
                 "then: /import <ip_name> or /import @path",
@@ -12961,12 +13138,11 @@ def create_app():
         cmd, args = _split_slash(text)
         if cmd not in ("ip", "use"):  # `/use` retained as alias
             return False
-        ip = (args or "").strip().split()[0] if args else ""
+        ip = _command_ip(args)
         if not _valid_ip_name(ip):
             _emit_workflow_result(
-                "[IP] missing or invalid IP name\n"
-                "usage: /ip <ip_name>\n"
-                "example: /ip gpio",
+                "[IP] no active IP found\n"
+                "Open/select an IP or run /new-ip <ip_name> first.",
                 "ip",
             )
             return True
@@ -13019,7 +13195,7 @@ def create_app():
         if not (low.startswith("approve") or raw.startswith("승인")):
             return False
         parts = raw.split()
-        ip = parts[1] if len(parts) > 1 else _active_ssot_ip()
+        ip = parts[1] if len(parts) > 1 and _valid_ip_name(parts[1]) else _active_ssot_ip()
         if not _valid_ip_name(ip):
             _emit_workflow_result(
                 "[SSOT APPROVAL] no pending IP found\n"
@@ -13077,15 +13253,16 @@ def create_app():
         cmd, args = _split_slash(text)
         if cmd not in ("to-ssot", "ssot", "ts"):
             return False
-        ip = args.split(None, 1)[0] if args else _active_ssot_ip()
+        ip = _command_ip(args)
         if not _valid_ip_name(ip):
             _emit_workflow_result(
-                "[SSOT GATE] missing IP name\n"
-                "usage: /to-ssot [<ip_name>]",
+                "[SSOT GATE] no active IP found\n"
+                "Open/select an IP or run /new-ip <ip_name> first.",
                 "to-ssot",
             )
             return True
         _set_active_ssot_ip(ip)
+        ip_dir = _ip_root(ip)
         state = _load_ssot_state(ip) or {}
         # /to-ssot does NOT auto-import, does NOT flip an approve flag,
         # does NOT block on missing decisions, and does NOT use the
@@ -13100,7 +13277,7 @@ def create_app():
         _append_workflow_history("ssot-gen", "user", text)
         _append_workflow_history("ssot-gen", "assistant", spec)
         _append_active_history("user", text)
-        ssot_path = PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
+        ssot_path = _ssot_yaml_path(ip)
         ready_msg = (
             f"[to-ssot] {ip} — queueing LLM SSOT write.\n"
             f"Target: {ssot_path}\n"
@@ -13121,7 +13298,7 @@ def create_app():
             f"  `{ssot_path}`\n\n"
             "Workspace boundary (do not search or read outside these roots):\n"
             f"  - PROJECT_ROOT: `{PROJECT_ROOT}`\n"
-            f"  - IP_ROOT:      `{PROJECT_ROOT / ip}`\n"
+            f"  - IP_ROOT:      `{ip_dir}`\n"
             f"  - COMMON_AI_AGENT_HOME (read-only): `{SOURCE_ROOT}`\n\n"
             "Source-of-truth inputs (READ these first):\n"
             f"  1. `{ip}/req/imports/`               — uploaded/converted requirement evidence.\n"
@@ -13159,17 +13336,17 @@ def create_app():
         cmd, args = _split_slash(text)
         if cmd not in ("repair-ssot", "rs"):
             return False
-        ip = args.split(None, 1)[0] if args else ""
+        ip = _command_ip(args)
         if not _valid_ip_name(ip):
             _emit_workflow_result(
-                "[repair-ssot] missing or invalid IP name\nusage: /repair-ssot <ip_name>",
+                "[repair-ssot] no active IP found\nOpen/select an IP or run /new-ip <ip_name> first.",
                 "repair-ssot",
             )
             return True
 
         script = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
-        validator = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
-        ssot_path = PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
+        validator = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "verify_ssot.py"
+        ssot_path = _ssot_yaml_path(ip)
         session = _canonical_session_string(ip)
         _append_session_message(session, "user", text)
         _append_workflow_history("ssot-gen", "user", text)
@@ -13179,7 +13356,7 @@ def create_app():
         if not ssot_path.is_file():
             msg = (
                 f"[repair-ssot] blocked: SSOT not found at {ssot_path}\n"
-                f"Run /new-ip {ip}, then /to-ssot {ip} first."
+                "Run /new-ip if needed, then /to-ssot for the active IP."
             )
             _append_session_message(session, "assistant", msg)
             _append_workflow_history("ssot-gen", "assistant", msg)
@@ -13191,7 +13368,7 @@ def create_app():
             import subprocess
 
             repair = subprocess.run(
-                [sys.executable, str(script), ip, "--root", str(PROJECT_ROOT)],
+                [_python_cmd(), str(script), ip, "--root", str(PROJECT_ROOT)],
                 cwd=str(PROJECT_ROOT),
                 text=True,
                 encoding="utf-8",
@@ -13200,7 +13377,7 @@ def create_app():
                 timeout=60,
             )
             validate = subprocess.run(
-                ["bash", str(validator), ip],
+                [_python_cmd(), str(validator), ip, "--root", str(PROJECT_ROOT), "--mode", "engineering"],
                 cwd=str(PROJECT_ROOT),
                 text=True,
                 encoding="utf-8",
@@ -13273,17 +13450,17 @@ def create_app():
                 ip = tok
             i += 1
 
-        ip = ip or _active_ssot_ip()
+        ip = ip if _valid_ip_name(ip) else _active_ssot_ip()
         if not _valid_ip_name(ip):
             _emit_workflow_result(
-                "[verify-ssot] missing or invalid IP name\n"
-                "usage: /verify-ssot <ip_name> [--mode starter|engineering|signoff]",
+                "[verify-ssot] no active IP found\n"
+                "Open/select an IP or run /new-ip <ip_name> first.",
                 "verify-ssot",
             )
             return True
 
         _set_active_ssot_ip(ip)
-        ssot_path = PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
+        ssot_path = _ssot_yaml_path(ip)
         script = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "verify_ssot.py"
         session = _canonical_session_string(ip)
         _append_session_message(session, "user", text)
@@ -13302,7 +13479,7 @@ def create_app():
         try:
             verify = subprocess.run(
                 [
-                    sys.executable,
+                    _python_cmd(),
                     str(script),
                     ip,
                     "--root",
@@ -13348,24 +13525,25 @@ def create_app():
         cmd, args = _split_slash(text)
         if cmd not in ("repair-rtl", "rrtl"):
             return False
-        ip = args.split(None, 1)[0] if args else ""
+        ip = _command_ip(args)
         if not _valid_ip_name(ip):
             _emit_workflow_result(
-                "[repair-rtl] missing or invalid IP name\nusage: /repair-rtl <ip_name>",
+                "[repair-rtl] no active IP found\nOpen/select an IP or run /new-ip <ip_name> first.",
                 "repair-rtl",
             )
             return True
-        ssot_path = PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
+        ip_dir = _ip_root(ip)
+        ssot_path = _ssot_yaml_path(ip)
         if not ssot_path.is_file():
             _emit_workflow_result(
                 f"[repair-rtl] blocked: SSOT not found at {ip}/yaml/{ip}.ssot.yaml\n"
-                f"Run /new-ip {ip}, then /to-ssot {ip} first.",
+                "Run /new-ip if needed, then /to-ssot for the active IP.",
                 "repair-rtl",
             )
             return True
         session = f"{ip}/rtl-gen"
-        compile_report = PROJECT_ROOT / ip / "rtl" / "rtl_compile.json"
-        lint_report = PROJECT_ROOT / ip / "lint" / "dut_lint.json"
+        compile_report = ip_dir / "rtl" / "rtl_compile.json"
+        lint_report = ip_dir / "lint" / "dut_lint.json"
         py_cmd = _python_cmd()
         queued = (
             f"[repair-rtl] queued through rtl-gen\n"
@@ -13387,9 +13565,9 @@ def create_app():
             f"Read these evidence files first:\n"
             f"- SSOT: `{ssot_path}`\n"
             f"- compile report: `{compile_report}`\n"
-            f"- compile log: `{PROJECT_ROOT / ip / 'rtl' / 'rtl_compile.log'}`\n"
+            f"- compile log: `{ip_dir / 'rtl' / 'rtl_compile.log'}`\n"
             f"- lint report: `{lint_report}`\n"
-            f"- filelist: `{PROJECT_ROOT / ip / 'list' / f'{ip}.f'}`\n\n"
+            f"- filelist: `{ip_dir / 'list' / f'{ip}.f'}`\n\n"
             "Repair only files under `<ip>/rtl/` and `<ip>/list/` unless the evidence "
             "proves the SSOT manifest itself is wrong. If SSOT/filelist/top-module "
             "naming is inconsistent, emit `[SSOT QUESTION] -> ssot-gen` with the exact "
@@ -13420,14 +13598,14 @@ def create_app():
         cmd, args = _split_slash(text)
         if cmd not in ("repair-equiv", "repair-equivalence", "reqv"):
             return False
-        ip = args.split(None, 1)[0] if args else ""
+        ip = _command_ip(args)
         if not _valid_ip_name(ip):
             _emit_workflow_result(
-                "[repair-equiv] missing or invalid IP name\nusage: /repair-equiv <ip_name>",
+                "[repair-equiv] no active IP found\nOpen/select an IP or run /new-ip <ip_name> first.",
                 "repair-equiv",
             )
             return True
-        classify_path = PROJECT_ROOT / ip / "sim" / "mismatch_classification.json"
+        classify_path = _ip_root(ip) / "sim" / "mismatch_classification.json"
         if not classify_path.is_file():
             _emit_workflow_result(
                 f"[repair-equiv] blocked: missing {ip}/sim/mismatch_classification.json\n"
@@ -13561,18 +13739,19 @@ def create_app():
         spec = _STAGE_RUNNERS.get(alias)
         if not spec:
             return False
-        ip = args.split(None, 1)[0] if args else ""
+        ip = _command_ip(args)
         if not _valid_ip_name(ip):
             _emit_workflow_result(
-                f"[{alias}] missing or invalid IP name\nusage: /{alias} <ip_name>",
+                f"[{alias}] no active IP found\nOpen/select an IP or run /new-ip <ip_name> first.",
                 alias,
             )
             return True
-        ssot_path = PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
+        ip_dir = _ip_root(ip)
+        ssot_path = _ssot_yaml_path(ip)
         if not ssot_path.is_file():
             _emit_workflow_result(
                 f"[{alias}] blocked: SSOT not found at {ip}/yaml/{ip}.ssot.yaml\n"
-                f"Run /new-ip {ip}, then /to-ssot {ip} first.",
+                "Run /new-ip if needed, then /to-ssot for the active IP.",
                 alias,
             )
             return True
@@ -13640,7 +13819,7 @@ def create_app():
         if is_common_stage(alias):
             template = str(spec.get("template") or alias)
             surface = run_common_stage_surface(
-                project_root=PROJECT_ROOT,
+                project_root=_script_project_root(ip),
                 source_root=SOURCE_ROOT,
                 alias=alias,
                 ip=ip,
@@ -13692,11 +13871,11 @@ def create_app():
             validator = SOURCE_ROOT / "workflow" / "tb-gen" / "scripts" / "check_tb_sim_evidence.sh"
             coverage_script = SOURCE_ROOT / "workflow" / "coverage" / "scripts" / "ssot_coverage_summary.py"
             runner_candidates = [
-                PROJECT_ROOT / ip / "tb" / "cocotb" / "test_runner.py",
-                PROJECT_ROOT / ip / "tb" / "cocotb" / "run_tests.py",
-                PROJECT_ROOT / ip / "tb" / "test_runner.py",
-                PROJECT_ROOT / ip / "tb" / "run_tests.py",
-                PROJECT_ROOT / ip / "sim" / f"test_{ip}.py",
+                ip_dir / "tb" / "cocotb" / "test_runner.py",
+                ip_dir / "tb" / "cocotb" / "run_tests.py",
+                ip_dir / "tb" / "test_runner.py",
+                ip_dir / "tb" / "run_tests.py",
+                ip_dir / "sim" / f"test_{ip}.py",
             ]
             runner = next((p for p in runner_candidates if p.is_file()), None)
             _append_session_message(session, "user", text)
@@ -13719,10 +13898,15 @@ def create_app():
                 return True
             try:
                 import subprocess
+                stage_root = _script_project_root(ip)
+                try:
+                    runner_rel = runner.relative_to(stage_root).as_posix()
+                except ValueError:
+                    runner_rel = runner.relative_to(PROJECT_ROOT).as_posix()
 
                 sim_run = subprocess.run(
-                    ["bash", str(script), runner.relative_to(PROJECT_ROOT).as_posix()],
-                    cwd=str(PROJECT_ROOT),
+                    ["bash", str(script), runner_rel],
+                    cwd=str(stage_root),
                     text=True,
                     encoding="utf-8",
                     errors="replace",
@@ -13731,7 +13915,7 @@ def create_app():
                 )
                 validate_run = subprocess.run(
                     ["bash", str(validator), ip],
-                    cwd=str(PROJECT_ROOT),
+                    cwd=str(stage_root),
                     text=True,
                     encoding="utf-8",
                     errors="replace",
@@ -13739,15 +13923,15 @@ def create_app():
                     timeout=180,
                 )
                 coverage_run = subprocess.CompletedProcess(
-                    args=[sys.executable, str(coverage_script), str(PROJECT_ROOT / ip)],
+                    args=[_python_cmd(), str(coverage_script), str(ip_dir)],
                     returncode=0,
                     stdout="",
                     stderr="",
                 )
                 if sim_run.returncode == 0 and validate_run.returncode == 0:
                     coverage_run = subprocess.run(
-                        [sys.executable, str(coverage_script), str(PROJECT_ROOT / ip)],
-                        cwd=str(PROJECT_ROOT),
+                        [_python_cmd(), str(coverage_script), str(ip_dir)],
+                        cwd=str(stage_root),
                         text=True,
                         encoding="utf-8",
                         errors="replace",
@@ -13769,7 +13953,7 @@ def create_app():
                 f"validator: {validator}",
                 f"coverage: {coverage_script}",
                 f"module: {ip}",
-                f"runner: {runner.relative_to(PROJECT_ROOT)}",
+                f"runner: {runner_rel}",
                 f"sim exit: {sim_run.returncode}",
             ]
             if sim_run.stdout.strip():
@@ -13819,6 +14003,7 @@ def create_app():
             _append_active_history("user", text)
             bridge.emit("agent_state", running=True)
             runs: list[dict[str, Any]] = []
+            stage_root = _script_project_root(ip)
 
             def _clip(s: str, limit: int = 12000) -> str:
                 if len(s) <= limit:
@@ -13831,7 +14016,7 @@ def create_app():
 
                     proc = subprocess.run(
                         command,
-                        cwd=str(PROJECT_ROOT),
+                        cwd=str(stage_root),
                         text=True,
                         encoding="utf-8",
                         errors="replace",
@@ -13856,7 +14041,7 @@ def create_app():
                     })
                     return 999
 
-            gen_rc = _run_tool("rtl_generate", [sys.executable, str(script), ip, "--root", str(PROJECT_ROOT)])
+            gen_rc = _run_tool("rtl_generate", [_python_cmd(), str(script), ip, "--root", str(stage_root)])
             compile_rc: int | None = None
             lint_rc: int | None = None
             if gen_rc == 0:
@@ -13865,18 +14050,18 @@ def create_app():
                 compile_rc = _run_tool(
                     "dut_compile",
                     [
-                        sys.executable,
+                        _python_cmd(),
                         str(compile_script),
                         ip,
                         "--top",
                         top,
                         "--project-root",
-                        str(PROJECT_ROOT),
+                        str(stage_root),
                     ],
                 )
-                lint_rc = _run_tool("dut_lint", [sys.executable, str(lint_script), ip, "--top", top])
+                lint_rc = _run_tool("dut_lint", [_python_cmd(), str(lint_script), ip, "--top", top])
 
-            blocked_path = PROJECT_ROOT / ip / "rtl" / "rtl_blocked.json"
+            blocked_path = ip_dir / "rtl" / "rtl_blocked.json"
             blocked_doc: dict[str, Any] = {}
             if blocked_path.is_file():
                 try:
@@ -13982,6 +14167,7 @@ def create_app():
             _append_active_history("user", text)
             bridge.emit("agent_state", running=True)
             runs: list[dict[str, Any]] = []
+            stage_root = _script_project_root(ip)
 
             def _run_local(label: str, cmdline: list[str], timeout_s: int = 60) -> int:
                 try:
@@ -13989,7 +14175,7 @@ def create_app():
 
                     proc = subprocess.run(
                         cmdline,
-                        cwd=str(PROJECT_ROOT),
+                        cwd=str(stage_root),
                         text=True,
                         encoding="utf-8",
                         errors="replace",
@@ -14014,9 +14200,9 @@ def create_app():
                     })
                     return 999
 
-            fl_rc = _run_local("emit_fl_model", [sys.executable, str(fl_script), ip, "--root", str(PROJECT_ROOT)])
-            eq_rc = _run_local("emit_equivalence_goals", [sys.executable, str(script), ip, "--root", str(PROJECT_ROOT)]) if fl_rc == 0 else 999
-            goals_path = PROJECT_ROOT / ip / "verify" / "equivalence_goals.json"
+            fl_rc = _run_local("emit_fl_model", [_python_cmd(), str(fl_script), ip, "--root", str(stage_root)])
+            eq_rc = _run_local("emit_equivalence_goals", [_python_cmd(), str(script), ip, "--root", str(stage_root)]) if fl_rc == 0 else 999
+            goals_path = ip_dir / "verify" / "equivalence_goals.json"
             goal_summary = ""
             if goals_path.is_file():
                 try:
@@ -14081,6 +14267,7 @@ def create_app():
             _append_active_history("user", text)
             bridge.emit("agent_state", running=True)
             runs: list[dict[str, Any]] = []
+            stage_root = _script_project_root(ip)
 
             def _run_tb_tool(label: str, command: list[str], timeout_s: int = 180) -> int:
                 try:
@@ -14088,7 +14275,7 @@ def create_app():
 
                     proc = subprocess.run(
                         command,
-                        cwd=str(PROJECT_ROOT),
+                        cwd=str(stage_root),
                         text=True,
                         encoding="utf-8",
                         errors="replace",
@@ -14113,17 +14300,17 @@ def create_app():
                     })
                     return 999
 
-            gen_rc = _run_tb_tool("emit_goal_scoreboard_cocotb", [sys.executable, str(script), ip, "--root", str(PROJECT_ROOT)])
+            gen_rc = _run_tb_tool("emit_goal_scoreboard_cocotb", [_python_cmd(), str(script), ip, "--root", str(stage_root)])
             structure_rc: int | None = None
             self_check_rc: int | None = None
             if gen_rc == 0:
                 structure_rc = _run_tb_tool("check_pyuvm_structure", ["bash", str(validator), ip])
                 self_check_rc = _run_tb_tool(
                     "equivalence_scoreboard_self_check",
-                    [sys.executable, str(scoreboard), ip, "--root", str(PROJECT_ROOT), "--self-check"],
+                    [_python_cmd(), str(scoreboard), ip, "--root", str(stage_root), "--self-check"],
                 )
 
-            blocked_path = PROJECT_ROOT / ip / "tb" / "cocotb" / "tb_blocked.json"
+            blocked_path = ip_dir / "tb" / "cocotb" / "tb_blocked.json"
             blocked_doc: dict[str, Any] = {}
             if blocked_path.is_file():
                 try:
@@ -14230,8 +14417,8 @@ def create_app():
                 import subprocess
 
                 run = subprocess.run(
-                    [sys.executable, str(script), ip, "--root", str(PROJECT_ROOT)],
-                    cwd=str(PROJECT_ROOT),
+                    [_python_cmd(), str(script), ip, "--root", str(_script_project_root(ip))],
+                    cwd=str(_script_project_root(ip)),
                     text=True,
                     encoding="utf-8",
                     errors="replace",
@@ -14246,8 +14433,8 @@ def create_app():
                 bridge.emit("agent_state", running=False)
                 return True
 
-            compare_path = PROJECT_ROOT / ip / "sim" / "fl_rtl_compare.json"
-            classify_path = PROJECT_ROOT / ip / "sim" / "mismatch_classification.json"
+            compare_path = ip_dir / "sim" / "fl_rtl_compare.json"
+            classify_path = ip_dir / "sim" / "mismatch_classification.json"
             summary_line = ""
             if compare_path.is_file():
                 try:
@@ -14318,8 +14505,8 @@ def create_app():
                 import subprocess
 
                 run = subprocess.run(
-                    [sys.executable, str(script), ip, "--root", str(PROJECT_ROOT)],
-                    cwd=str(PROJECT_ROOT),
+                    [_python_cmd(), str(script), ip, "--root", str(_script_project_root(ip))],
+                    cwd=str(_script_project_root(ip)),
                     text=True,
                     encoding="utf-8",
                     errors="replace",
@@ -14334,7 +14521,7 @@ def create_app():
                 bridge.emit("agent_state", running=False)
                 return True
 
-            audit_path = PROJECT_ROOT / ip / "sim" / "fl_rtl_goal_audit.json"
+            audit_path = ip_dir / "sim" / "fl_rtl_goal_audit.json"
             summary_line = ""
             blockers: list[str] = []
             if audit_path.is_file():
@@ -14392,8 +14579,8 @@ def create_app():
                 import subprocess
 
                 run = subprocess.run(
-                    [sys.executable, str(script), ip, "--root", str(PROJECT_ROOT)],
-                    cwd=str(PROJECT_ROOT),
+                    [_python_cmd(), str(script), ip, "--root", str(_script_project_root(ip))],
+                    cwd=str(_script_project_root(ip)),
                     text=True,
                     encoding="utf-8",
                     errors="replace",

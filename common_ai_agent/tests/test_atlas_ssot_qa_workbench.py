@@ -41,6 +41,7 @@ def test_ssot_qa_workbench_has_first_class_actions_and_no_history_panel():
     assert "/api/ssot/import/upload" in src
     assert "/api/ssot/validate" in src
     assert "check_ssot_disk.sh" in src
+    assert "verify_ssot.py" in src
     assert "runSsotCommand(`/grill-me ${data.ip}`)" in src
     assert "runSsotCommand(`/to-ssot ${data.ip}`)" in src
     assert "Validation" in src
@@ -54,6 +55,9 @@ def test_ssot_qa_workbench_has_first_class_actions_and_no_history_panel():
     assert "2. Deep Interview" in src
     assert "3. To SSOT" in src
     assert "QaHistoryPanel history={visibleQaHistory}" not in src
+    assert "ADD_DATA_URI_TAGS: ['img']" in src
+    assert "_sanitizePrismLanguageClasses(node)" in src
+    assert "/^data[:;]/i.test(lang)" in src
 
 
 def test_ssot_preview_uses_fresh_yaml_without_llm_narrator():
@@ -160,10 +164,17 @@ def test_to_ssot_preview_and_verify_share_canonical_format_contract():
     assert "explicit no-register policy" in workspace_src
     assert "explicit no-FSM policy" in workspace_src
     assert "const interfaceFromBlock = (block" in workspace_src
-    assert "listBlocksFromSection(section, 'bus_interfaces')" in workspace_src
-    assert "listBlocksFromSection(section, 'bus_interface')" in workspace_src
-    assert "listBlocksFromSection(section, 'busInterfaces')" in workspace_src
+    assert "const mapBlocksFromText = (text, parentKey = '') =>" in workspace_src
+    assert "...mapBlocksFromSection(section, key)" in workspace_src
+    assert "scalarInterfaceFromSection(section, key, fallbackName)" in workspace_src
+    assert "nestedFieldFromText(block?.text, 'busType', 'name')" in workspace_src
+    assert "block?.mapKey || blockField(block, 'name')" in workspace_src
     assert "interfaceFromBlock(block, ssotTitleFor(section.key), 'bus')" in workspace_src
+    assert "Quickstart" not in workspace_src
+    assert "quickstartSteps" not in workspace_src
+    assert "const registerConfig = {" in workspace_src
+    assert "key={`reg-summary-${label}`}" in workspace_src
+    assert "gridTemplateColumns: '86px minmax(120px, 0.9fr) 72px 78px minmax(220px, 2fr)'" in workspace_src
 
 
 def test_verify_ssot_script_checks_preview_readable_starter_yaml(tmp_path):
@@ -206,6 +217,100 @@ function_model:
     report = json.loads((tmp_path / ip / "req" / "ssot_validation.json").read_text(encoding="utf-8"))
     assert report["ok"] is True
     assert report["blockers"] == []
+
+
+def test_ssot_validate_api_runs_verifier_from_project_root(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    ip = "mini_validate_ip"
+    ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.parent.mkdir(parents=True)
+    ssot_path.write_text(
+        """
+top_module:
+  name: mini_validate_ip
+  description: "Small preview-readable starter SSOT used by the API validation regression test."
+io_list:
+  interfaces:
+    - name: control
+      type: custom
+      ports:
+        - { name: clk, direction: input, width: 1, description: clock }
+        - { name: done, direction: output, width: 1, description: completion flag }
+function_model:
+  transactions:
+    - id: FM_DONE
+      name: completion
+      outputs: [done]
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    client = TestClient(atlas_ui.create_app())
+    _register(client)
+    response = client.post("/api/ssot/validate", json={"ip": ip, "mode": "starter"})
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["ok"] is True
+    assert payload["mode"] == "starter"
+    assert "verify_ssot.py" in payload["command"]
+    assert f"--root {tmp_path}" in payload["command"]
+    assert "[verify_ssot] PASS" in payload["stdout"]
+
+
+def test_ssot_validate_api_infers_ip_when_project_root_is_ip_root(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    ip = "rooted_validate_ip"
+    ip_root = tmp_path / ip
+    ip_root.mkdir()
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(ip_root)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", ip_root)
+
+    ssot_path = ip_root / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.parent.mkdir(parents=True)
+    ssot_path.write_text(
+        """
+top_module:
+  name: rooted_validate_ip
+  description: "Starter SSOT under an IP root rather than a project root."
+io_list:
+  interfaces:
+    - name: control
+      type: custom
+      ports:
+        - { name: clk, direction: input, width: 1, description: clock }
+        - { name: done, direction: output, width: 1, description: completion flag }
+function_model:
+  transactions:
+    - id: FM_DONE
+      name: completion
+      outputs: [done]
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    client = TestClient(atlas_ui.create_app())
+    _register(client, username="rooted")
+    response = client.post("/api/ssot/validate", json={"mode": "starter"})
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["ok"] is True
+    assert payload["ip"] == ip
+    assert f"--root {ip_root}" in payload["command"]
 
 
 def test_verify_ssot_script_rejects_wrapped_yaml(tmp_path):
@@ -351,8 +456,13 @@ def test_ssot_import_upload_normalizes_markdown_image_data_uri(tmp_path, monkeyp
     assert response.status_code == 200, response.text
     saved = tmp_path / response.json()["paths"][0]
     saved_text = saved.read_text(encoding="utf-8")
-    assert "data:image/png;base64,iVBORw0KGgo=" in saved_text
+    assert "![diagram](images/" in saved_text
+    assert "data:image/png;base64" not in saved_text
     assert "data:image/png:base64" not in saved_text
+    image_refs = [part.split(")", 1)[0] for part in saved_text.split("](")[1:]]
+    assert image_refs
+    for rel in image_refs:
+        assert (saved.parent / rel).is_file()
 
 
 def test_ssot_qa_sessions_list_does_not_parse_ssot_yaml(tmp_path, monkeypatch):

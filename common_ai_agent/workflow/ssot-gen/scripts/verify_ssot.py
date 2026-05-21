@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -128,11 +129,15 @@ def _issue(severity: str, check_id: str, path: str, message: str, fix: str) -> d
 
 
 def _find_ssot(root: Path, ip: str) -> Path:
-    for name in (f"{ip}.ssot.yaml", f"{ip}_ssot.yaml", f"{ip}.ssot.yml"):
-        candidate = root / ip / "yaml" / name
-        if candidate.is_file():
-            return candidate
-    return root / ip / "yaml" / f"{ip}.ssot.yaml"
+    bases = [root / ip]
+    if root.name == ip or (root / "yaml").is_dir():
+        bases.insert(0, root)
+    for base in bases:
+        for name in (f"{ip}.ssot.yaml", f"{ip}_ssot.yaml", f"{ip}.ssot.yml"):
+            candidate = base / "yaml" / name
+            if candidate.is_file():
+                return candidate
+    return bases[0] / "yaml" / f"{ip}.ssot.yaml"
 
 
 def _rel(path: Path, root: Path) -> str:
@@ -392,27 +397,113 @@ def _preview_issues(doc: Any, mode: str, severity: str) -> list[dict[str, str]]:
 
 def _run_check_ssot(root: Path, ip: str, mode: str) -> dict[str, Any]:
     checker = Path(__file__).with_name("check_ssot_disk.sh")
-    if not checker.is_file():
-        return {
-            "ok": False,
-            "returncode": 127,
-            "stdout": "",
-            "stderr": f"checker not found: {checker}",
-        }
+    bash = shutil.which("bash")
+    if not checker.is_file() or not bash:
+        reason = []
+        if not checker.is_file():
+            reason.append(f"checker not found: {checker}")
+        if not bash:
+            reason.append("bash not found on PATH")
+        return _run_native_disk_check(root, ip, mode, "; ".join(reason))
+    checker_root = root
+    if not (checker_root / ip).is_dir() and root.name == ip and (root / "yaml").is_dir():
+        checker_root = root.parent
+    if not (checker_root / ip).is_dir():
+        return _run_native_disk_check(
+            root,
+            ip,
+            mode,
+            f"check_ssot_disk.sh expects <root>/<ip>; got root={root}",
+        )
     proc = subprocess.run(
-        ["bash", str(checker), ip, "--mode", mode],
-        cwd=str(root),
+        [bash, str(checker), ip, "--mode", mode],
+        cwd=str(checker_root),
         text=True,
         encoding="utf-8",
         errors="replace",
         capture_output=True,
         timeout=90,
     )
+    if proc.returncode != 0:
+        try:
+            checker_py_err = Path("/tmp/_ssot_yaml.err").read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            checker_py_err = ""
+        if "ModuleNotFoundError" in checker_py_err and "yaml" in checker_py_err:
+            return _run_native_disk_check(
+                root,
+                ip,
+                mode,
+                "check_ssot_disk.sh helper python cannot import PyYAML",
+            )
     return {
         "ok": proc.returncode == 0,
         "returncode": proc.returncode,
         "stdout": proc.stdout,
         "stderr": proc.stderr,
+    }
+
+
+def _run_native_disk_check(root: Path, ip: str, mode: str, reason: str) -> dict[str, Any]:
+    """Small Python fallback for environments that cannot launch bash.
+
+    The full shell checker remains authoritative when available. This fallback
+    keeps ATLAS UI validation useful on Windows or packaged installs where
+    `bash check_ssot_disk.sh` cannot be launched, while the main verifier still
+    performs canonical-shape and Preview-readable checks above.
+    """
+    ssot = _find_ssot(root, ip)
+    min_yaml = {"starter": 120, "engineering": 3000, "signoff": 4000}[mode]
+    min_sections = {"starter": 3, "engineering": 30, "signoff": 34}[mode]
+    if not ssot.is_file():
+        return {
+            "ok": False,
+            "returncode": 1,
+            "stdout": "",
+            "stderr": f"[verify_ssot] native disk check: no SSOT YAML at {_rel(ssot, root)} ({reason})",
+            "fallback": "python",
+        }
+    size = ssot.stat().st_size
+    if size < min_yaml:
+        return {
+            "ok": False,
+            "returncode": 1,
+            "stdout": "",
+            "stderr": f"[verify_ssot] native disk check: {_rel(ssot, root)} = {size}B (need >= {min_yaml}) ({reason})",
+            "fallback": "python",
+        }
+    doc, blockers = _load_yaml(ssot)
+    if blockers:
+        return {
+            "ok": False,
+            "returncode": 1,
+            "stdout": "",
+            "stderr": f"[verify_ssot] native disk check: YAML parse failed ({reason})",
+            "fallback": "python",
+        }
+    if not isinstance(doc, dict):
+        return {
+            "ok": False,
+            "returncode": 1,
+            "stdout": "",
+            "stderr": f"[verify_ssot] native disk check: top-level YAML must be a mapping ({reason})",
+            "fallback": "python",
+        }
+    hits = sum(1 for key in REQUIRED_BY_MODE[mode] if key in doc)
+    if hits < min_sections:
+        return {
+            "ok": False,
+            "returncode": 1,
+            "stdout": "",
+            "stderr": f"[verify_ssot] native disk check: {_rel(ssot, root)} has {hits} required top-level section keys (need >= {min_sections}) ({reason})",
+            "fallback": "python",
+        }
+    return {
+        "ok": True,
+        "returncode": 0,
+        "stdout": f"[verify_ssot] native disk check PASS: {_rel(ssot, root)} ({reason})",
+        "stderr": "",
+        "fallback": "python",
     }
 
 
