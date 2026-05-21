@@ -6256,6 +6256,7 @@ def create_app():
             "import":          ("imp",        "import an external doc / spec into the active IP"),
             "grill-me":        ("grill,g",    "Q&A the LLM with the active SSOT context"),
             "to-ssot":         ("ssot,ts",    "approve grill answers → write SSOT yaml"),
+            "verify-ssot":     ("verify_ssot,vs", "verify SSOT YAML shape, Preview fields, and gates"),
             "validate-yaml":   ("",           "validate the active SSOT yaml against schema"),
             "ssot-fl-model":   ("sfm",        "generate functional / cycle model from SSOT"),
             "ssot-equiv-goals":("equiv-goals,seg", "generate FL↔RTL equivalence goals"),
@@ -13132,7 +13133,7 @@ def create_app():
             "  - Use these exact top-level keys, in this order:\n"
             "    top_module, sub_modules, decomposition, rtl_contract, parameters, io_list, features, dataflow, function_model, cycle_model, clock_reset_domains, cdc_requirements, rdc_requirements, registers, memory, interrupts, fsm, timing, power, security, error_handling, debug_observability, integration, dft, synthesis, pnr, coding_rules, reuse_modules, custom, dir_structure, filelist, test_requirements, quality_gates, traceability, workflow_todos, generation_flow.\n"
             "  - Do NOT use legacy aliases such as `interface`, `bus_interface`, `register_map`, `clock_reset`, `errors`, `debug`, `dv_plan`, or `verification_plan` as top-level sections.\n"
-            "  - SSOT Preview reads: `top_module.description`, `io_list.interfaces[].ports[]`, `function_model.transactions[]`, `cycle_model.pipeline[]`, `cycle_model.scenarios[]` or `function_model.scenarios[]`, `registers.register_list[]`, `fsm.states/transitions`, and `test_requirements.scenarios[]`; fill those when evidence exists.\n\n"
+            "  - Engineering/signoff SSOT must include the fields SSOT Preview parses: `top_module.description`, `io_list.interfaces[].ports[]`, `function_model.transactions[]`, `cycle_model.pipeline[]`, `cycle_model.scenarios[]` or `function_model.scenarios[]` or `test_requirements.scenarios[]`, `registers.register_list[]` or an explicit no-register policy, `fsm.states/transitions` or an explicit no-FSM policy, and `test_requirements.scenarios[]`.\n\n"
             "Rules for the write:\n"
             "  - Derive structure from the imports themselves. Do NOT stamp a "
             "33-section template; do NOT invent sections the imports don't "
@@ -13148,7 +13149,7 @@ def create_app():
             "Use write_file (or replace_in_file on an existing draft) to "
             "produce the yaml; do not call todo_write (Plan Mode only). "
             f"After the write, run `python3 workflow/ssot-gen/scripts/repair_ssot_schema.py {ip} --mode engineering` "
-            f"and `bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip} --mode engineering`; fix any format failures before handoff. "
+            f"and `python3 workflow/ssot-gen/scripts/verify_ssot.py {ip} --mode engineering`; fix any format failures before handoff. "
             "Emit `[SSOT HANDOFF]` once the yaml is on disk."
         )
         bridge.emit("agent_state", running=True)
@@ -13234,6 +13235,113 @@ def create_app():
         _append_workflow_history("ssot-gen", "assistant", msg)
         _append_active_history("assistant", "```\n" + msg + "\n```")
         _emit_workflow_result(msg, "repair-ssot")
+        return True
+
+    def _handle_verify_ssot_command(text: str, client_session: Any | None = None) -> bool:
+        cmd, args = _split_slash(text)
+        if cmd not in ("verify-ssot", "verify_ssot", "vs", "verity-ssot", "verity_ssot"):
+            return False
+        try:
+            tokens = shlex.split(args or "")
+        except ValueError as exc:
+            _emit_workflow_result(f"[verify-ssot] invalid arguments: {exc}", "verify-ssot")
+            return True
+
+        ip = ""
+        mode = "engineering"
+        preview = "strict"
+        i = 0
+        while i < len(tokens):
+            tok = tokens[i]
+            if tok in ("--mode", "--run-mode") and i + 1 < len(tokens):
+                mode = tokens[i + 1]
+                i += 2
+                continue
+            if tok.startswith("--mode="):
+                mode = tok.split("=", 1)[1]
+                i += 1
+                continue
+            if tok in ("--preview", "--preview-contract") and i + 1 < len(tokens):
+                preview = tokens[i + 1]
+                i += 2
+                continue
+            if tok.startswith("--preview="):
+                preview = tok.split("=", 1)[1]
+                i += 1
+                continue
+            if not tok.startswith("-") and not ip:
+                ip = tok
+            i += 1
+
+        ip = ip or _active_ssot_ip()
+        if not _valid_ip_name(ip):
+            _emit_workflow_result(
+                "[verify-ssot] missing or invalid IP name\n"
+                "usage: /verify-ssot <ip_name> [--mode starter|engineering|signoff]",
+                "verify-ssot",
+            )
+            return True
+
+        _set_active_ssot_ip(ip)
+        ssot_path = PROJECT_ROOT / ip / "yaml" / f"{ip}.ssot.yaml"
+        script = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "verify_ssot.py"
+        session = _canonical_session_string(ip)
+        _append_session_message(session, "user", text)
+        _append_workflow_history("ssot-gen", "user", text)
+        _append_active_history("user", text)
+        bridge.emit("agent_state", running=True)
+
+        if not script.is_file():
+            msg = f"[verify-ssot] verifier script not found: {script}"
+            _append_session_message(session, "assistant", msg)
+            _append_workflow_history("ssot-gen", "assistant", msg)
+            _append_active_history("assistant", "```\n" + msg + "\n```")
+            _emit_workflow_result(msg, "verify-ssot")
+            return True
+
+        try:
+            verify = subprocess.run(
+                [
+                    sys.executable,
+                    str(script),
+                    ip,
+                    "--root",
+                    str(PROJECT_ROOT),
+                    "--mode",
+                    mode,
+                    "--preview",
+                    preview,
+                ],
+                cwd=str(PROJECT_ROOT),
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                capture_output=True,
+                timeout=120,
+            )
+        except Exception as exc:
+            msg = f"[verify-ssot] failed: {exc}"
+            _append_session_message(session, "assistant", msg)
+            _append_workflow_history("ssot-gen", "assistant", msg)
+            _append_active_history("assistant", "```\n" + msg + "\n```")
+            _emit_workflow_result(msg, "verify-ssot")
+            return True
+
+        parts = [
+            f"[verify-ssot] {ip}",
+            f"source: {ssot_path}",
+            f"mode: {mode}",
+            f"exit: {verify.returncode}",
+        ]
+        if verify.stdout.strip():
+            parts += ["", verify.stdout.strip()]
+        if verify.stderr.strip():
+            parts += ["", "stderr:", verify.stderr.strip()]
+        msg = "\n".join(parts)
+        _append_session_message(session, "assistant", msg)
+        _append_workflow_history("ssot-gen", "assistant", msg)
+        _append_active_history("assistant", "```\n" + msg + "\n```")
+        _emit_workflow_result(msg, "verify-ssot")
         return True
 
     def _handle_repair_rtl_command(text: str, client_session: Any | None = None) -> bool:
@@ -16010,6 +16118,8 @@ def create_app():
                         continue
                     # /approve removed per user request — the approval
                     # state is gone, the SSOT yaml is author-it-yourself.
+                    if _handle_verify_ssot_command(_txt, client_session=session):
+                        continue
                     if _handle_repair_ssot_command(_txt, client_session=session):
                         continue
                     if _handle_repair_rtl_command(_txt, client_session=session):

@@ -24,6 +24,7 @@ REQUIRED_ORDER = [
     "top_module",
     "sub_modules",
     "decomposition",
+    "rtl_contract",
     "parameters",
     "io_list",
     "features",
@@ -3920,7 +3921,7 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     out["workflow_todos"] = _ensure_workflow_todos(out, ip)
     out["generation_flow"] = {
         "steps": [
-            {"name": "validate_ssot", "command": f"bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip} --mode ${{ATLAS_RUN_MODE:-signoff}}", "description": "Validate SSOT structure and quality gates at the selected Run Mode"},
+            {"name": "verify_ssot", "command": f"python3 workflow/ssot-gen/scripts/verify_ssot.py {ip} --mode ${{ATLAS_RUN_MODE:-signoff}}", "description": "Validate SSOT structure, Preview fields, and quality gates at the selected Run Mode"},
             {"name": "handoff_fl_model", "command": f"/ssot-fl-model {ip}", "description": "Generate FunctionalModel, decomposition, and FCOV plan from SSOT"},
             {"name": "handoff_equivalence_goals", "command": f"/ssot-equiv-goals {ip}", "description": "Derive FL-vs-RTL equivalence goals before TB generation"},
             {"name": "handoff_rtl", "command": f"/ssot-rtl {ip}", "description": "Generate RTL from validated SSOT"},
@@ -4157,7 +4158,7 @@ def main() -> int:
             return 2
     else:
         print("[repair_ssot_schema] downstream_readiness: clean")
-    print(f"[repair_ssot_schema] next: bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ns.ip} --mode {run_mode}")
+    print(f"[repair_ssot_schema] next: python3 workflow/ssot-gen/scripts/verify_ssot.py {ns.ip} --mode {run_mode}")
     return 0
 
 

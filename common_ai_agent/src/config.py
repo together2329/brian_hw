@@ -2287,6 +2287,10 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
                    "Convert PDF/DOCX/PPTX/XLSX/HTML → markdown (≤32k chars) via "
                    "markitdown. Use when the user references a spec/datasheet/"
                    "requirement doc in a non-text format."),
+        _tool_line("verify_ssot", 'ip="", mode="engineering", root="", preview="strict"',
+                   "Run ssot-gen's script-backed verifier for canonical YAML shape, "
+                   "SSOT Preview-readable fields, and check_ssot_disk.sh; writes "
+                   "<ip>/req/ssot_validation.json."),
     ]
     workflow_tools = [t for t in workflow_tools if t]
     if workflow_tools:

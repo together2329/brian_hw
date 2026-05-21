@@ -973,6 +973,36 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         required=[],  # validation done at runtime: either question or questions
     ),
 
+    "verify_ssot": _fn(
+        "verify_ssot",
+        (
+            "Run the script-backed ssot-gen verifier for an IP. Checks canonical "
+            "top-level YAML shape, ATLAS SSOT Preview-readable fields, and "
+            "check_ssot_disk.sh. Writes <ip>/req/ssot_validation.json."
+        ),
+        properties={
+            "ip": {
+                "type": "string",
+                "description": "IP name. Defaults to ATLAS_ACTIVE_IP when omitted.",
+            },
+            "mode": {
+                "type": "string",
+                "enum": ["starter", "engineering", "signoff"],
+                "description": "Validation strictness. Defaults to engineering.",
+            },
+            "root": {
+                "type": "string",
+                "description": "Project root containing <ip>/yaml. Defaults to ATLAS_PROJECT_ROOT or cwd.",
+            },
+            "preview": {
+                "type": "string",
+                "enum": ["strict", "warn", "off"],
+                "description": "Treat missing Preview fields as blockers, warnings, or ignore them.",
+            },
+        },
+        required=[],
+    ),
+
     # ── Document ingestion (Word / PDF / etc. → markdown) ────────────────────
     "read_doc": _fn(
         "read_doc",
@@ -1067,6 +1097,7 @@ def get_tool_schemas(allowed_tools: List[str], compact: bool = False) -> List[Di
             "replace_in_file":"Edit file: replace text block",
             "replace_lines":  "Edit file: replace line range",
             "read_image":     "Analyze image with vision AI",
+            "verify_ssot":    "Validate SSOT YAML contract",
             "todo_write":     "Create task list",
             "todo_update":    "Update task status",
             "todo_add":       "Add task",

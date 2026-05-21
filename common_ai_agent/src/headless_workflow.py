@@ -874,7 +874,7 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
         },
         "generation_flow": {
             "steps": [
-                {"name": "validate_ssot", "command": f"bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip} --mode ${{ATLAS_RUN_MODE:-signoff}}", "description": "Validate SSOT structure at the selected Run Mode."},
+                {"name": "verify_ssot", "command": f"python3 workflow/ssot-gen/scripts/verify_ssot.py {ip} --mode ${{ATLAS_RUN_MODE:-signoff}}", "description": "Validate SSOT structure, Preview fields, and gates at the selected Run Mode."},
                 {"name": "handoff_fl_model", "command": f"/ssot-fl-model {ip}", "description": "Generate function model from SSOT."},
                 {"name": "handoff_rtl", "command": f"/ssot-rtl {ip}", "description": "Generate RTL from SSOT."},
                 {"name": "handoff_tb", "command": f"/ssot-tb-cocotb {ip}", "description": "Generate cocotb tests from SSOT."},

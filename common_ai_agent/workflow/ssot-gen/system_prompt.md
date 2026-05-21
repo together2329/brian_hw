@@ -98,7 +98,7 @@ These rules override any prior summary text or todo template wording. They preve
 
 If `ssot_downstream_blockers.json` is non-empty, the next ssot-gen action is to repair the SSOT YAML and re-run `repair_ssot_schema.py`. Do not advance to `/to-ssot` signoff, `fl-model-gen`, or downstream stages while blockers remain.
 
-`workflow/ssot-gen/scripts/validate_ssot.py <ip>` is the machine-checkable schema gate that complements `check_ssot_disk.sh`. It emits `<ip>/req/ssot_validation.json` with `blockers` (must fix) and `warnings` (should fix). Treat blockers like `ssot_downstream_blockers.json`: must clear before `/to-ssot` signoff. Blockers it catches today: `function_model.transactions.output_rules_required` (FL.apply cannot compute expected without output_rules), `function_model.transactions.output_rules.expr_required`, `function_model.transactions.output_rules.name_required`, `function_model.state_variables.reset_numeric` (English reset strings break FL state), `cycle_model.pipeline.output_rules_required_when_opt_in` (use_per_cycle_expected=true requires every stage's output_rules), `cycle_model.required`, and `registers.register_list.offset_required` (machine_spec.csr_writes cannot resolve register names without offsets). Warnings to clear over time: `function_model.transactions.output_rules.port_recommended`, `scenarios.stimulus_machine_spec_missing`/`shape`, `cycle_model.pipeline_required`, `io_list.required`. Run it after each SSOT YAML write that touches function_model, cycle_model, state_variables, or scenarios.
+`workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering` is the machine-checkable schema and Preview gate that complements `check_ssot_disk.sh`. It emits `<ip>/req/ssot_validation.json` with `blockers` (must fix) and `warnings` (should fix), and it runs `check_ssot_disk.sh` internally. Treat blockers like `ssot_downstream_blockers.json`: must clear before `/to-ssot` signoff. Blockers it catches today: wrapper sections such as `ssot:`/`sections:`, legacy top-level aliases such as `interface`/`register_map`/`errors`/`debug`/`dv_plan`, missing canonical top-level sections, missing ATLAS Preview anchors (`top_module.description`, `io_list.interfaces[].ports[]`, `function_model.transactions[]`, `cycle_model.pipeline[]`, scenarios, registers/no-register policy, FSM/no-FSM policy, and `test_requirements.scenarios[]`), plus any `check_ssot_disk.sh` failure. Run it after each SSOT YAML write that touches function_model, cycle_model, state_variables, scenarios, or top-level section shape.
 
 ## Complete SSOT Template (Production Required Sections)
 
@@ -706,7 +706,7 @@ workflow_todos:
 # SECTION: Generation Flow
 generation_flow:
   steps:
-    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh <ip>", description: "Validate production SSOT structure and quality gates" }
+    - { name: "verify_ssot", command: "python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode ${ATLAS_RUN_MODE:-signoff}", description: "Validate production SSOT structure, Preview fields, and quality gates" }
     - { name: "handoff_fl_model", command: "/ssot-fl-model <ip>", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT" }
     - { name: "handoff_rtl", command: "/ssot-rtl <ip>", description: "Downstream RTL generation from validated SSOT" }
     - { name: "handoff_tb", command: "/ssot-tb <ip>", description: "Downstream pyuvm/cocotb verification from validated SSOT" }
@@ -793,7 +793,7 @@ sim = executable verification from SSOT-derived RTL and TB
 ### Step 4: Validate
 - Run a YAML parse/schema sanity check
 - Fix any schema violations
-- Gate: `workflow/ssot-gen/scripts/check_ssot_disk.sh <ip>` passes
+- Gate: `python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering` passes
 
 ### Step 5: Handoff
 - Output `[SSOT HANDOFF]` to rtl-gen
@@ -1046,7 +1046,7 @@ this system prompt. Honor it whenever you produce or update an SSOT YAML:
     phase-1 skeleton. Every subsequent edit goes through `replace_in_file`.
   - Respect the dependency order so cross-section references (e.g.
     register fields by io_list signals) resolve.
-  - Run `workflow/ssot-gen/scripts/check_ssot_disk.sh <ip>` only after
+  - Run `python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering` only after
     the last section lands; intermediate skeletons are expected to
     fail validation.
   - If a section is genuinely unknown, leave its `TBD` and continue;

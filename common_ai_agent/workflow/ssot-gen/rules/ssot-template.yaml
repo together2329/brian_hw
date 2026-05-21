@@ -16,7 +16,7 @@
 # Usage:
 #   1. Copy this template: cp rules/ssot-template.yaml <ip>/yaml/<ip>_ssot.yaml
 #   2. Fill in all sections (LLM-assisted)
-#   3. Validate: workflow/ssot-gen/scripts/check_ssot_disk.sh <ip>
+#   3. Validate: workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering
 #   4. Handoff: /ssot-rtl, /ssot-tb, sim_debug, coverage/EDA workflows
 # =============================================================================
 
@@ -81,7 +81,26 @@ decomposition:
     - { id: "execute", kind: "datapath/control", source_refs: ["function_model.transactions", "cycle_model.pipeline"], rtl_candidates: ["<ip>_core"], verification_impact: ["coverage_plan.functional"] }
 
 # =============================================================================
-# SECTION 2: Parameters
+# SECTION 2: RTL Contract
+# =============================================================================
+rtl_contract:
+  transaction: "FM1"
+  sample_condition: "transaction completes on declared interface handshakes"
+  input_map:
+    command_start: "dmago_i or CONTROL.start"
+    source_data: "axi_rd_master.rdata"
+    write_response: "axi_wr_master.bresp"
+  output_map:
+    destination_write: "axi_wr_master.wdata"
+    status: "registers.CSR.ch_status"
+    interrupt: "dmac_irq"
+  state_updates:
+    - { name: "sar", reset: 0, expr: "increment after accepted read beat" }
+    - { name: "dar", reset: 0, expr: "increment after accepted write beat" }
+    - { name: "status", reset: "STOPPED", expr: "STOPPED/EXECUTING/COMPLETED/FAULTED per function_model" }
+
+# =============================================================================
+# SECTION 3: Parameters
 # =============================================================================
 parameters:
   # Shared RTL parameter declarations, if needed, are projected to
@@ -538,25 +557,6 @@ fsm:
     note: "LLM-written FSM in <ip>_core.sv from SSOT behavior — not a fixed IP generator template"
 
 # =============================================================================
-# SECTION 15: RTL Contract
-# =============================================================================
-rtl_contract:
-  transaction: "FM1"
-  sample_condition: "transaction completes on declared interface handshakes"
-  input_map:
-    command_start: "dmago_i or CONTROL.start"
-    source_data: "axi_rd_master.rdata"
-    write_response: "axi_wr_master.bresp"
-  output_map:
-    destination_write: "axi_wr_master.wdata"
-    status: "registers.CSR.ch_status"
-    interrupt: "dmac_irq"
-  state_updates:
-    - { name: "sar", reset: 0, expr: "increment after accepted read beat" }
-    - { name: "dar", reset: 0, expr: "increment after accepted write beat" }
-    - { name: "status", reset: "STOPPED", expr: "STOPPED/EXECUTING/COMPLETED/FAULTED per function_model" }
-
-# =============================================================================
 # SECTION 16: Timing & Performance
 # =============================================================================
 timing:
@@ -987,7 +987,7 @@ workflow_todos:
 # =============================================================================
 generation_flow:
   steps:
-    - { name: "validate_ssot", command: "bash workflow/ssot-gen/scripts/check_ssot_disk.sh <ip>", description: "Validate production SSOT structure, function_model, cycle_model, DV plan, and quality gates" }
+    - { name: "verify_ssot", command: "python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode ${ATLAS_RUN_MODE:-signoff}", description: "Validate production SSOT structure, Preview fields, function_model, cycle_model, DV plan, and quality gates" }
     - { name: "handoff_fl_model", command: "/ssot-fl-model <ip>", description: "fl-model-gen writes FunctionalModel, decomposition, and FCOV plan from SSOT" }
     - { name: "handoff_equivalence_goals", command: "/ssot-equiv-goals <ip>", description: "fl-model-gen derives FL-vs-RTL equivalence goals for TB scoreboards and sim_debug" }
     - { name: "handoff_rtl", command: "/ssot-rtl <ip>", description: "rtl-gen writes RTL directly from the SSOT and proves compile/lint gates" }

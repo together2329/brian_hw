@@ -1,5 +1,6 @@
 import json
 import base64
+import subprocess
 import sys
 from pathlib import Path
 
@@ -15,9 +16,13 @@ if str(ROOT / "src") not in sys.path:
 WORKSPACE_JSX = ROOT / "frontend" / "atlas" / "workspace.jsx"
 DATA_JSX = ROOT / "frontend" / "atlas" / "data.jsx"
 ATLAS_UI_PY = ROOT / "src" / "atlas_ui.py"
+CORE_TOOLS_PY = ROOT / "core" / "tools.py"
+TOOL_SCHEMA_PY = ROOT / "core" / "tool_schema.py"
 TO_SSOT_SKILL = ROOT / "workflow" / "ssot-gen" / "skills" / "to-ssot" / "SKILL.md"
 SSOT_SYSTEM_PROMPT = ROOT / "workflow" / "ssot-gen" / "system_prompt.md"
 COMMON_ENGINE_FLOW = ROOT / "workflow" / "COMMON_ENGINE_FLOW.md"
+VERIFY_SSOT_SCRIPT = ROOT / "workflow" / "ssot-gen" / "scripts" / "verify_ssot.py"
+VERIFY_SSOT_COMMAND = ROOT / "workflow" / "ssot-gen" / "commands" / "verify-ssot.json"
 
 
 def _register(client: TestClient, username: str = "alice") -> None:
@@ -88,6 +93,141 @@ def test_to_ssot_no_longer_reads_retired_import_manifest():
     for path in (TO_SSOT_SKILL, SSOT_SYSTEM_PROMPT, COMMON_ENGINE_FLOW):
         src = path.read_text(encoding="utf-8")
         assert "import_manifest.json" not in src
+
+
+def test_to_ssot_preview_and_verify_share_canonical_format_contract():
+    workspace_src = WORKSPACE_JSX.read_text(encoding="utf-8")
+    atlas_ui_src = ATLAS_UI_PY.read_text(encoding="utf-8")
+    skill_src = TO_SSOT_SKILL.read_text(encoding="utf-8")
+    system_prompt_src = SSOT_SYSTEM_PROMPT.read_text(encoding="utf-8")
+    tools_src = CORE_TOOLS_PY.read_text(encoding="utf-8")
+    schema_src = TOOL_SCHEMA_PY.read_text(encoding="utf-8")
+    command_src = VERIFY_SSOT_COMMAND.read_text(encoding="utf-8")
+
+    gate_start = atlas_ui_src.index("def _handle_to_ssot_gate")
+    gate_end = atlas_ui_src.index("def _handle_repair_ssot_command", gate_start)
+    gate_src = atlas_ui_src[gate_start:gate_end]
+
+    canonical_keys = (
+        "top_module",
+        "sub_modules",
+        "decomposition",
+        "rtl_contract",
+        "io_list",
+        "function_model",
+        "cycle_model",
+        "error_handling",
+        "debug_observability",
+        "test_requirements",
+        "quality_gates",
+        "workflow_todos",
+        "generation_flow",
+    )
+    for key in canonical_keys:
+        assert key in gate_src
+        assert key in skill_src
+
+    assert "Do NOT wrap the document in `ssot:`" in gate_src
+    assert "Do NOT use legacy aliases" in gate_src
+    assert "verify_ssot.py {ip} --mode engineering" in gate_src
+    assert "verify_ssot.py <ip> --mode engineering" in skill_src
+    assert "verify_ssot.py <ip> --mode engineering" in system_prompt_src
+    assert "verify_ssot" in command_src
+    assert '"verify_ssot": verify_ssot' in tools_src
+    assert '"verify_ssot": _fn(' in schema_src
+
+    assert "rtl_contract: 'RTL Contract'" in workspace_src
+    assert "error_handling: 'Error Handling'" in workspace_src
+    assert "debug_observability: 'Debug / Observability'" in workspace_src
+    assert "test_requirements: 'Test Requirements'" in workspace_src
+    assert "{ id: 'rtl_contract'" in workspace_src
+    assert "{ id: 'verification'" in workspace_src
+    assert "{ id: 'implementation'" in workspace_src
+    assert "const testSection = sectionByKey(sections, 'test_requirements');" in workspace_src
+    assert "...listBlocksFromSection(testSection, 'scenarios')" in workspace_src
+    assert "explicit no-register policy" in workspace_src
+    assert "explicit no-FSM policy" in workspace_src
+
+
+def test_verify_ssot_script_checks_preview_readable_starter_yaml(tmp_path):
+    ip = "mini_preview_ip"
+    ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.parent.mkdir(parents=True)
+    ssot_path.write_text(
+        """
+top_module:
+  name: mini_preview_ip
+  description: "Small preview-readable starter SSOT used by the verify_ssot regression test."
+io_list:
+  interfaces:
+    - name: control
+      type: custom
+      ports:
+        - { name: clk, direction: input, width: 1, description: clock }
+        - { name: done, direction: output, width: 1, description: completion flag }
+function_model:
+  transactions:
+    - id: FM_DONE
+      name: completion
+      outputs: [done]
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [sys.executable, str(VERIFY_SSOT_SCRIPT), ip, "--root", str(tmp_path), "--mode", "starter"],
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "[verify_ssot] PASS" in result.stdout
+    report = json.loads((tmp_path / ip / "req" / "ssot_validation.json").read_text(encoding="utf-8"))
+    assert report["ok"] is True
+    assert report["blockers"] == []
+
+
+def test_verify_ssot_script_rejects_wrapped_yaml(tmp_path):
+    ip = "wrapped_ip"
+    ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.parent.mkdir(parents=True)
+    ssot_path.write_text(
+        """
+ssot:
+  top_module:
+    name: wrapped_ip
+    description: "Wrongly wrapped SSOT."
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(VERIFY_SSOT_SCRIPT),
+            ip,
+            "--root",
+            str(tmp_path),
+            "--mode",
+            "starter",
+            "--skip-disk-check",
+        ],
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 1
+    assert "Top-level wrapper key" in result.stdout
+    report = json.loads((tmp_path / ip / "req" / "ssot_validation.json").read_text(encoding="utf-8"))
+    assert any(item["id"] == "ssot.wrapper_key" for item in report["blockers"])
 
 
 def test_ssot_qa_api_reports_remaining_required_decisions(tmp_path, monkeypatch):

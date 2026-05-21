@@ -60,12 +60,36 @@ enrichment instead of rewriting the whole SSOT:
    user once.
 
 3. **Sketch the section map** internally. For each canonical section,
-   note: filled / partial / missing. Sections grill-me typically
-   resolves: 0, 1, 2, 3, 4, 5, 6, 7. The remaining 12 (synthesis,
-   timing, DFT, UPF, integration, technology, documentation, etc.) come
-   from defaults unless the conversation explicitly addressed them.
+   note: filled / partial / missing. Sections grill-me typically resolves
+   the user-facing behavior and interface anchors first; remaining signoff
+   sections come from explicit requirements, approved assumptions, or
+   conservative repair defaults that are visible in provenance.
 
-4. **Fill the YAML generically from the approved context.**
+4. **Use the Preview/validator YAML shape exactly.**
+   - Top level is one YAML mapping. Do not wrap the document in `ssot:`,
+     `sections:`, `spec:`, or markdown fences.
+   - Use these exact top-level keys, in this order:
+     `top_module`, `sub_modules`, `decomposition`, `rtl_contract`,
+     `parameters`, `io_list`, `features`, `dataflow`, `function_model`,
+     `cycle_model`, `clock_reset_domains`, `cdc_requirements`,
+     `rdc_requirements`, `registers`, `memory`, `interrupts`, `fsm`,
+     `timing`, `power`, `security`, `error_handling`,
+     `debug_observability`, `integration`, `dft`, `synthesis`, `pnr`,
+     `coding_rules`, `reuse_modules`, `custom`, `dir_structure`,
+     `filelist`, `test_requirements`, `quality_gates`, `traceability`,
+     `workflow_todos`, `generation_flow`.
+   - Do not use legacy top-level aliases such as `interface`,
+     `bus_interface`, `register_map`, `clock_reset`, `errors`, `debug`,
+     `dv_plan`, or `verification_plan`.
+   - SSOT Preview renders typed cards from `top_module.description`,
+     `io_list.interfaces[].ports[]`, `function_model.transactions[]`,
+     `cycle_model.pipeline[]`, `cycle_model.scenarios[]` or
+     `function_model.scenarios[]`, `registers.register_list[]` or an
+     explicit no-register policy, `fsm.states/transitions` or an explicit
+     no-FSM policy, and `test_requirements.scenarios[]`. Treat these as
+     required for a previewable engineering SSOT.
+
+5. **Fill the YAML generically from the approved context.**
    - Do not use IP-specific fixed templates.
    - Required behavior fields must come from the conversation, local requirements, or explicit assumptions.
    - List sections preserve the order grill-me elicited them in.
@@ -86,12 +110,6 @@ enrichment instead of rewriting the whole SSOT:
    - Comments are optional; do not add `TODO` comments for behavior that
      rtl-gen needs. Ask/stop instead.
 
-5. **Validate before writing final handoff.** Use the workflow validator:
-   `workflow/ssot-gen/scripts/check_ssot_disk.sh <ip>` after writing, or
-   an equivalent YAML parse/structure command before finalizing. If
-   validation fails, fix the YAML and rerun. Do not run RTL/TB generators
-   from ssot-gen.
-
 6. **Write the file.** Path is exactly `<ip>/yaml/<ip>.ssot.yaml` from the
    project root. Do not add a second `<ip>/` segment when the UI scope is
    already set to that IP; for `gpio`, the path is `gpio/yaml/gpio.ssot.yaml`,
@@ -101,13 +119,20 @@ enrichment instead of rewriting the whole SSOT:
    complete canonical SSOT. For a substantive existing SSOT, read it first
    and preserve user-authored facts while completing missing sections.
 
-7. **Summary.** After writing, list:
+7. **Validate before final handoff.** Use the workflow validators:
+   first run `python3 workflow/ssot-gen/scripts/repair_ssot_schema.py <ip> --mode engineering`,
+   then run `python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering`.
+   `verify_ssot.py` also runs `check_ssot_disk.sh` and writes
+   `<ip>/req/ssot_validation.json`. If validation fails, fix the YAML and
+   rerun. Do not run RTL/TB generators from ssot-gen.
+
+8. **Summary.** After writing, list:
    - the path written
    - which sections came from conversation vs. template defaults
    - any `# TODO: confirm` lines that need follow-up
    - whether validation passed
 
-8. **Suggest next steps.** Use `/ssot-rtl <ip>` after the SSOT validates,
+9. **Suggest next steps.** Use `/ssot-rtl <ip>` after the SSOT validates,
    or another `/grill-me` round if blocking behavioral fields are missing.
 
 ## Bounded execution rule

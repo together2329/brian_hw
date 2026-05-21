@@ -1471,7 +1471,7 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
             f"tool call should write {ip}/yaml/{ip}.ssot.yaml with concrete draft sections, including "
             "machine-readable function_model output_rules/state_updates and sub_modules ownership refs. "
             f"Then run python3 workflow/ssot-gen/scripts/repair_ssot_schema.py {ip} --mode engineering "
-            f"and bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip} --mode engineering. "
+            f"and python3 workflow/ssot-gen/scripts/verify_ssot.py {ip} --mode engineering. "
             f"If {ip}/rtl/rtl_blocked.json exists, answer each blocker inline so SSOT-gen can incorporate "
             "the decisions, then rerun /repair-ssot and validation before handing back to rtl-gen. "
             "Finish with an [SSOT HANDOFF] summarizing assumptions, remaining TBDs, validation evidence, "
@@ -1563,7 +1563,7 @@ def _workflow_prompt_with_stage_driver(
         return (
             f"answer the {ip}/rtl/rtl_blocked.json questions inline so SSOT-gen records them; "
             f"then run /repair-ssot {ip}; "
-            f"then bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip} --mode engineering. "
+            f"then python3 workflow/ssot-gen/scripts/verify_ssot.py {ip} --mode engineering. "
             "This is an RTL blocker repair pass; do not rewrite the IP from scratch.\n\n"
             "[Orchestrator worker instruction]\n"
             + custom_prompt

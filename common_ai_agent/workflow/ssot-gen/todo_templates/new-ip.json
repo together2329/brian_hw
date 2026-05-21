@@ -22,9 +22,9 @@
     },
     {
       "content": "[SSOT] Phase 4: Validate SSOT on disk",
-      "detail": "Run workflow/ssot-gen/scripts/check_ssot_disk.sh <ip> or an equivalent YAML parse/structure command from the workspace. Inspect failures literally. Fix missing sections, malformed YAML, weak scenarios, prose-only function_model transactions, missing port fields, missing assumptions, or live TBD markers. Repeat until validation passes. Do not move to handoff based on prose confidence.",
-      "criteria": "Validation command executed and output captured\nYAML parses successfully\nStructural gate passes: substantive file, canonical sections, no unapproved live TBD markers\nAny validator warning is fixed or explicitly documented as an accepted assumption\nNo downstream success is claimed in ssot-gen",
-      "validator": "bash workflow/ssot-gen/scripts/check_ssot_disk.sh",
+      "detail": "Run python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering from the workspace. Inspect failures literally. Fix missing sections, malformed YAML, weak scenarios, prose-only function_model transactions, missing port fields, missing Preview anchors, missing assumptions, or live TBD markers. Repeat until validation passes. Do not move to handoff based on prose confidence.",
+      "criteria": "Validation command executed and output captured\nYAML parses successfully\nStructural gate passes: substantive file, canonical sections, Preview-readable anchors, no unapproved live TBD markers\nAny validator warning is fixed or explicitly documented as an accepted assumption\nNo downstream success is claimed in ssot-gen",
+      "validator": "python3 workflow/ssot-gen/scripts/verify_ssot.py",
       "priority": "high"
     },
     {

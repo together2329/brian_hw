@@ -7473,6 +7473,7 @@ const SSOT_SECTION_LABELS = {
   metadata: 'Metadata',
   top_module: 'Top Module',
   sub_modules: 'Submodules',
+  rtl_contract: 'RTL Contract',
   parameters: 'Parameters',
   io_list: 'I/O List',
   features: 'Features',
@@ -7489,16 +7490,20 @@ const SSOT_SECTION_LABELS = {
   timing: 'Timing',
   power: 'Power',
   security: 'Security',
+  error_handling: 'Error Handling',
+  debug_observability: 'Debug / Observability',
   errors: 'Errors',
   debug: 'Debug',
   integration: 'Integration',
   dft: 'DFT',
   synthesis: 'Synthesis',
+  pnr: 'PnR',
   coding_rules: 'Coding Rules',
   reuse_modules: 'Reuse Modules',
   custom: 'Custom Requirements',
   dir_structure: 'Directory Structure',
   filelist: 'File List',
+  test_requirements: 'Test Requirements',
   dv_plan: 'DV Plan',
   quality_gates: 'Quality Gates',
   traceability: 'Traceability',
@@ -7527,15 +7532,20 @@ const SSOT_REVIEW_FOCUS = {
   timing: ['Latency budgets, max frequencies, and timing exceptions are justified.', 'Handshake timing assumptions are not implicit.'],
   power: ['Clock gating, retention, isolation, and low-power assumptions are visible.', 'Power-state behavior is consistent with reset/CDC sections.'],
   security: ['Threat assumptions, privilege boundaries, and lock/debug behavior are visible.', 'Unsupported security scope is explicit.'],
+  rtl_contract: ['Transaction sampling, input maps, output maps, and state updates are machine-readable.', 'Function-model outputs are traceable to RTL-visible ports or state.'],
+  error_handling: ['Detection, reporting, recovery, and fatal/non-fatal split are clear.', 'Error injection or observability hooks are named when needed.'],
+  debug_observability: ['Counters, traces, debug registers, and visibility points are reviewable.', 'Debug behavior does not conflict with security/power constraints.'],
   errors: ['Detection, reporting, recovery, and fatal/non-fatal split are clear.', 'Error injection or observability hooks are named when needed.'],
   debug: ['Counters, traces, debug registers, and visibility points are reviewable.', 'Debug behavior does not conflict with security/power constraints.'],
   integration: ['SoC integration assumptions, dependencies, and external contracts are stated.', 'Tie-offs, strap values, and constraints are visible.'],
   dft: ['Scan, MBIST/LBIST, test modes, and clock/reset handling are covered.', 'DFT exceptions are justified.'],
   synthesis: ['Target library, constraints, generated blocks, and synthesis assumptions are visible.', 'Non-synthesizable modeling is excluded from RTL scope.'],
+  pnr: ['Floorplan, placement, CTS, routing, and required reports are explicit.', 'Physical constraints align with synthesis and timing assumptions.'],
   coding_rules: ['Style and lint contracts are specific enough for generated RTL.', 'Naming, reset, and clocking rules match project conventions.'],
   reuse_modules: ['Reused IP versions, configuration, and integration contracts are explicit.', 'Ownership and verification reuse assumptions are stated.'],
   dir_structure: ['Generated file layout is predictable.', 'Human-owned and generated files are separated.'],
   filelist: ['Required source, include, constraint, and sim files are enumerated.', 'Generation outputs line up with downstream tools.'],
+  test_requirements: ['Test intent, coverage targets, sequences, and scoreboards trace to requirements.', 'Corner cases and negative tests are visible.'],
   dv_plan: ['Test intent, coverage targets, sequences, and scoreboards trace to requirements.', 'Corner cases and negative tests are visible.'],
   quality_gates: ['Lint, sim, formal, CDC/RDC, and signoff gates have pass criteria.', 'Known waivers or limits are tracked.'],
   traceability: ['Requirements, SSOT sections, RTL, tests, and gates are connected.', 'Untraced or stale entries are easy to spot.'],
@@ -7587,9 +7597,11 @@ const _scenarioFromBlock = (block) => ({
 const extractScenarios = (sections) => {
   const cycleSection = sectionByKey(sections, 'cycle_model');
   const fnSection = sectionByKey(sections, 'function_model');
+  const testSection = sectionByKey(sections, 'test_requirements');
   const declared = [
     ...listBlocksFromSection(cycleSection, 'scenarios'),
     ...listBlocksFromSection(fnSection, 'scenarios'),
+    ...listBlocksFromSection(testSection, 'scenarios'),
   ].map(_scenarioFromBlock).filter(s => s.steps.length);
   if (declared.length) return declared;
   // Auto-synthesize: one scenario per transaction, walking the pipeline.
@@ -8294,9 +8306,12 @@ const SSOT_DIGEST_VIEWS = [
   { id: 'function_model', label: 'Function Model', keys: ['function_model'] },
   { id: 'fsm', label: 'FSM', keys: ['fsm'] },
   { id: 'cycle_model', label: 'Cycle Model', keys: ['cycle_model', 'timing'] },
+  { id: 'rtl_contract', label: 'RTL Contract', keys: ['rtl_contract', 'error_handling', 'debug_observability', 'filelist', 'coding_rules'] },
   { id: 'registers', label: 'Register Map', keys: ['registers'] },
   { id: 'dataflow', label: 'Dataflow', keys: ['dataflow'] },
   { id: 'clocking', label: 'CDC / Reset', keys: ['clock_reset_domains', 'cdc_requirements', 'rdc_requirements'] },
+  { id: 'verification', label: 'Verification', keys: ['test_requirements', 'quality_gates', 'traceability', 'workflow_todos'] },
+  { id: 'implementation', label: 'Implementation', keys: ['integration', 'dft', 'synthesis', 'pnr', 'filelist', 'coding_rules'] },
   { id: 'review_gaps', label: 'Review Gaps', keys: ['workflow_todos', 'quality_gates', 'traceability', 'top_module', 'features', 'sub_modules', 'io_list', 'registers', 'dataflow', 'function_model', 'cycle_model'] },
   { id: 'gates', label: 'Gates', keys: [] },
   { id: 'raw_yaml', label: 'Raw YAML', keys: [] },
@@ -8392,6 +8407,11 @@ const stripYamlScalar = (value) => {
   let text = String(value ?? '').trim();
   text = text.replace(/^['"]|['"]$/g, '');
   return text.replace(/\s+/g, ' ').trim();
+};
+
+const ssotValuePresent = (value) => {
+  const text = stripYamlScalar(value);
+  return !!text && !/^(false|none|n\/a|na|tbd|todo|unknown|placeholder|null|\[\]|\{\})$/i.test(text);
 };
 
 const fieldFromText = (text, key, max = 260) => {
@@ -8759,6 +8779,9 @@ const sourceSectionsForDigestView = (view, sections) => {
     case 'cycle_model':
       addMatching(/cycle|timing|latency|handshake|pipeline|scl/i);
       break;
+    case 'rtl_contract':
+      addMatching(/rtl_?contract|error_?handling|debug_?observability|filelist|coding_?rules/i);
+      break;
     case 'dataflow':
       addMatching(/dataflow|flow|fifo|buffer|bit_control|start_stop|open_drain|access/i);
       break;
@@ -8767,6 +8790,12 @@ const sourceSectionsForDigestView = (view, sections) => {
       break;
     case 'feature_map':
       addMatching(/feature|fifo|fsm|arbitration|ack|interrupt|start_stop|open_drain|scl|bit_control|access/i);
+      break;
+    case 'verification':
+      addMatching(/test_?requirements|quality_?gates|traceability|workflow_?todos|coverage/i);
+      break;
+    case 'implementation':
+      addMatching(/integration|dft|synthesis|pnr|filelist|coding_?rules|reuse_?modules/i);
       break;
     case 'review_gaps':
     case 'raw_yaml':
@@ -10598,6 +10627,17 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     return acc;
   }, {});
   const registers = extractRegisters(registersSection);
+  const noRegisterPolicy = (() => {
+    if (!registersSection) return '';
+    const hasPolicy = ['no_registers', 'no_csr', 'no_register_map']
+      .some(key => ssotValuePresent(sectionFact(registersSection, key)));
+    if (!hasPolicy) return '';
+    return sectionFact(registersSection, 'reason', '')
+      || sectionFact(registersSection, 'policy', '')
+      || sectionFact(registersSection, 'description', '')
+      || sectionFact(registersSection, 'access_model', '')
+      || 'Explicit no-register policy declared.';
+  })();
   const clockDomains = listBlocksFromSection(clockSection, 'domains').map(block => ({
     name: blockField(block, 'name'),
     frequency: blockField(block, 'frequency_mhz'),
@@ -10617,6 +10657,16 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     description: blockField(block, 'description', 260),
   }));
   const fsmMachines = extractFsms(fsmSection);
+  const noFsmPolicy = (() => {
+    if (!fsmSection) return '';
+    const hasPolicy = ['no_fsm', 'no_state_machine', 'combinational_only']
+      .some(key => ssotValuePresent(sectionFact(fsmSection, key)));
+    if (!hasPolicy) return '';
+    return sectionFact(fsmSection, 'reason', '')
+      || sectionFact(fsmSection, 'policy', '')
+      || sectionFact(fsmSection, 'description', '')
+      || 'Explicit no-FSM policy declared.';
+  })();
   const irqs = React.useMemo(() => {
     const blocks = []
       .concat(listBlocksFromSection(interruptsSection, 'interrupt_list'))
@@ -10754,9 +10804,9 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
     { label: 'Architecture', status: statusForPresence(submods.length > 0 || moduleContracts.length > 0), detail: `${submods.length || moduleContracts.length} modules` },
     { label: 'Interfaces', status: statusForPresence(interfaces.length > 0), detail: `${interfaces.length} interfaces` },
     { label: 'Function model', status: statusForPresence(!!functionSection || semanticSectionNames(/function|fsm|logic|state/i, 1).length > 0), detail: functionSection ? 'function_model' : compactDigestItems(semanticSectionNames(/function|fsm|logic|state/i, 3), 3) },
-    { label: 'FSM', status: statusForPresence(fsmMachines.length > 0), detail: fsmMachines.length ? `${fsmMachines.length} machines` : compactDigestItems(semanticSectionNames(/fsm|state|transition/i, 3), 3) },
+    { label: 'FSM', status: statusForPresence(fsmMachines.length > 0 || !!noFsmPolicy), detail: fsmMachines.length ? `${fsmMachines.length} machines` : (noFsmPolicy ? 'explicit no-FSM policy' : compactDigestItems(semanticSectionNames(/fsm|state|transition/i, 3), 3)) },
     { label: 'Cycle model', status: statusForPresence(!!cycleSection || !!timingSection || semanticSectionNames(/cycle|timing|latency|scl/i, 1).length > 0), detail: cycleSection ? 'cycle_model' : compactDigestItems(semanticSectionNames(/cycle|timing|latency|scl/i, 3), 3) },
-    { label: 'Register map', status: statusForPresence(registers.length > 0), detail: `${registers.length} registers` },
+    { label: 'Register map', status: statusForPresence(registers.length > 0 || !!noRegisterPolicy), detail: registers.length ? `${registers.length} registers` : (noRegisterPolicy ? 'explicit no-register policy' : '0 registers') },
     { label: 'Dataflow', status: statusForPresence(dataflowGroups.length > 0 || semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 1).length > 0), detail: dataflowGroups.length ? `${dataflowGroups.length} flows` : compactDigestItems(semanticSectionNames(/dataflow|flow|fifo|buffer|open_drain|access/i, 3), 3) },
   ];
 
@@ -11136,6 +11186,11 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
               ['reset states', compactDigestItems(fsmMachines.map(machine => machine.resetState ? `${machine.name}: ${machine.resetState}` : '').filter(Boolean), 6)],
               ['source', fsmSection ? `fsm section line ${fsmSection.startLine}` : 'No fsm section found'],
             ]} />
+          ) : noFsmPolicy ? (
+            <DigestKV rows={[
+              ['policy', noFsmPolicy],
+              ['source', fsmSection ? `fsm section line ${fsmSection.startLine}` : 'No fsm section found'],
+            ]} />
           ) : (
             <DigestEmpty text="No structured FSM section found. Add fsm.<machine>.states and fsm.<machine>.transitions to SSOT." />
           )}
@@ -11323,6 +11378,8 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
               </div>
             ))}
           </div>
+        ) : noRegisterPolicy ? (
+          <DigestKV rows={[['policy', noRegisterPolicy]]} />
         ) : <DigestEmpty />}
       </DigestCard>
     </>

@@ -1989,7 +1989,7 @@ def _doc(root: Path, ip: str, state: dict[str, Any]) -> dict[str, Any]:
         },
         "generation_flow": {
             "steps": [
-                {"name": "validate_ssot", "command": f"bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip}", "description": "Validate production SSOT structure and model sections"},
+                {"name": "verify_ssot", "command": f"python3 workflow/ssot-gen/scripts/verify_ssot.py {ip} --mode ${{ATLAS_RUN_MODE:-signoff}}", "description": "Validate production SSOT structure, Preview fields, and model sections"},
                 {"name": "handoff_fl_model", "command": "/wf fl-model-gen", "description": "Generate executable FunctionalModel and decomposition from SSOT"},
                 {"name": "handoff_equivalence_goals", "command": f"/ssot-equiv-goals {ip}", "description": "Derive SSOT-traced FL-vs-RTL equivalence goals before TB generation"},
                 {"name": "handoff_rtl", "command": f"/ssot-rtl {ip}", "description": "Generate RTL directly from validated SSOT and prove DUT-only compile/lint"},

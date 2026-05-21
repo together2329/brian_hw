@@ -27,7 +27,7 @@ Expected action order for pipeline tasks:
 
 1. `write_file` or equivalent file-write tool for a compact starter `<ip>/yaml/<ip>.ssot.yaml`.
 2. `run_command` for `python3 workflow/ssot-gen/scripts/repair_ssot_schema.py <ip> --mode engineering`.
-3. `run_command` for `bash workflow/ssot-gen/scripts/check_ssot_disk.sh <ip> --mode engineering`.
+3. `run_command` for `python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering`.
 4. Emit `[SSOT HANDOFF]` with exact SSOT path, assumptions, validation output summary, and next owner `rtl-gen`.
 
 Your last response must contain `Final Answer:`.

@@ -6658,6 +6658,59 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
     return "\n".join(lines)
 
 
+def verify_ssot(ip: str = "", mode: str = "engineering", root: str = "", preview: str = "strict") -> str:
+    """Run the script-backed SSOT validator used by ssot-gen.
+
+    The verifier checks canonical top-level YAML shape, ATLAS SSOT Preview
+    fields, and check_ssot_disk.sh. It writes <ip>/req/ssot_validation.json.
+    """
+    from pathlib import Path as _Path
+
+    ip = str(ip or os.environ.get("ATLAS_ACTIVE_IP") or os.environ.get("IP_NAME") or "").strip()
+    if not ip:
+        return "[verify_ssot] IP name is required. Pass ip=... or set ATLAS_ACTIVE_IP."
+    mode = str(mode or os.environ.get("ATLAS_RUN_MODE") or "engineering").strip()
+    preview = str(preview or "strict").strip().lower()
+    if preview not in {"strict", "warn", "off"}:
+        preview = "strict"
+    project_root = _Path(
+        root
+        or os.environ.get("ATLAS_PROJECT_ROOT")
+        or os.environ.get("PROJECT_ROOT")
+        or os.getcwd()
+    ).resolve()
+    source_root = _Path(os.environ.get("COMMON_AI_AGENT_HOME") or _Path(__file__).resolve().parents[1]).resolve()
+    script = source_root / "workflow" / "ssot-gen" / "scripts" / "verify_ssot.py"
+    if not script.is_file():
+        return f"[verify_ssot] verifier script not found: {script}"
+    try:
+        proc = subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                ip,
+                "--root",
+                str(project_root),
+                "--mode",
+                mode,
+                "--preview",
+                preview,
+            ],
+            cwd=str(project_root),
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+            timeout=120,
+        )
+    except Exception as exc:
+        return f"[verify_ssot] failed to run verifier: {exc}"
+    out = (proc.stdout or proc.stderr or "").strip()
+    if len(out) > 12000:
+        out = out[:12000] + "\n...[verify_ssot output truncated]"
+    return out or f"[verify_ssot] verifier exited {proc.returncode} with no output"
+
+
 # Registry of available tools
 AVAILABLE_TOOLS = {
     "read_file": read_file,
@@ -6674,6 +6727,7 @@ AVAILABLE_TOOLS = {
     "replace_in_file": replace_in_file,
     "replace_lines": replace_lines,
     "wiki_query": wiki_query,
+    "verify_ssot": verify_ssot,
     # Image Analysis (conditional — requires ENABLE_IMAGE_READ=true)
     "read_image": read_image,
     # Task Management
