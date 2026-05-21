@@ -5426,6 +5426,82 @@ body[data-resize-cursor="col"] {
 /* Bus bar last-passed worker tspan */
 .enh-orch-meta-ok { fill: var(--enh-ok, #76c893); font-weight: 700; }
 
+/* Enhanced flow light palette. The newer SVG canvas replaced the legacy
+   .pipe-flow-canvas, so it needs the same explicit light/paper remap. */
+[data-theme="light"] .enh-canvas-wrap,
+[data-theme="paper"] .enh-canvas-wrap {
+  border-color: var(--enh-line, rgba(0,0,0,0.10));
+  background:
+    radial-gradient(circle at 20% 20%, rgba(26,127,160,0.07), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(196,140,0,0.07), transparent 50%),
+    #f8fafc;
+}
+[data-theme="light"] .enh-orch-hub rect,
+[data-theme="paper"] .enh-orch-hub rect {
+  fill: rgba(196,140,0,0.08);
+  filter: drop-shadow(0 0 5px rgba(196,140,0,0.20));
+}
+[data-theme="light"] .enh-orch-dot,
+[data-theme="paper"] .enh-orch-dot {
+  filter: drop-shadow(0 0 4px rgba(196,140,0,0.48));
+}
+[data-theme="light"] .enh-lane rect,
+[data-theme="paper"] .enh-lane rect {
+  fill: rgba(15,23,42,0.025);
+  stroke: rgba(15,23,42,0.10);
+}
+[data-theme="light"] .enh-lane-title,
+[data-theme="paper"] .enh-lane-title {
+  fill: rgba(31,41,55,0.72);
+}
+[data-theme="light"] .enh-lane-hint,
+[data-theme="paper"] .enh-lane-hint {
+  fill: rgba(64,74,88,0.52);
+}
+[data-theme="light"] .enh-node rect,
+[data-theme="paper"] .enh-node rect {
+  fill: rgba(255,255,255,0.98);
+  stroke: rgba(85,96,116,0.32);
+}
+[data-theme="light"] .enh-node[data-state="running"] rect,
+[data-theme="paper"] .enh-node[data-state="running"] rect {
+  filter: drop-shadow(0 0 5px rgba(26,127,160,0.26));
+}
+[data-theme="light"] .enh-node-title,
+[data-theme="paper"] .enh-node-title {
+  fill: var(--enh-fg, #1a1d22);
+}
+[data-theme="light"] .enh-node-sub,
+[data-theme="paper"] .enh-node-sub {
+  fill: var(--enh-fg-mute, #5a6272);
+}
+[data-theme="light"] .enh-pill rect,
+[data-theme="paper"] .enh-pill rect {
+  fill: rgba(15,23,42,0.045);
+  stroke: rgba(15,23,42,0.12);
+}
+[data-theme="light"] .enh-pill text,
+[data-theme="paper"] .enh-pill text {
+  fill: rgba(26,29,34,0.82);
+}
+[data-theme="light"] .enh-pill-dot,
+[data-theme="paper"] .enh-pill-dot {
+  fill: rgba(64,74,88,0.72);
+}
+[data-theme="light"] .enh-next-badge rect,
+[data-theme="paper"] .enh-next-badge rect {
+  fill: rgba(26,127,160,0.12);
+  stroke: rgba(26,127,160,0.40);
+}
+[data-theme="light"] .enh-edge-active,
+[data-theme="paper"] .enh-edge-active {
+  filter: drop-shadow(0 0 3px rgba(196,140,0,0.22));
+}
+[data-theme="light"] .enh-start-badge rect,
+[data-theme="paper"] .enh-start-badge rect {
+  filter: drop-shadow(0 0 5px rgba(26,127,160,0.28));
+}
+
 /* ── worker-7 typography polish ──────────────────────────────────────────
    Windows ClearType renders sub-pixel text sharper with slight positive
    letter-spacing and a weight above 400. Inter is a variable font so

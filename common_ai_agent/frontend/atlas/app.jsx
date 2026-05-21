@@ -88,6 +88,31 @@ const atlasBootConfig = () => {
   try { return window.ATLAS_BOOT_CONFIG || {}; }
   catch (_) { return {}; }
 };
+const atlasNavigationIntent = () => {
+  try {
+    const params = new URLSearchParams(window.location.search || '');
+    const view = String(params.get('view') || '').trim().toLowerCase();
+    const savedScreen = String(localStorage.getItem('atlasScreen') || '').trim().toLowerCase();
+    const hasContext = !!(
+      params.get('session') ||
+      params.get('session_id') ||
+      params.get('ip') ||
+      params.get('ip_id') ||
+      params.get('workflow') ||
+      params.get('wf')
+    );
+    return { view, savedScreen, hasContext };
+  } catch (_) {
+    return { view: '', savedScreen: '', hasContext: false };
+  }
+};
+const atlasShouldHoldDashboardActivation = () => {
+  const intent = atlasNavigationIntent();
+  return !intent.hasContext && (
+    intent.view === 'dashboard' ||
+    (!intent.view && (!intent.savedScreen || intent.savedScreen === 'dashboard'))
+  );
+};
 
 // ── PipelineRunningChip ───────────────────────────────────────────
 // Top-bar "[▶ N running]" chip. Reads window.ATLAS_PIPELINE_RUNNING
@@ -315,11 +340,12 @@ const App = () => {
   const initialBootstrapNamespace = normalizeSession(initialUrlNamespaceRef.current || '')
     || normalizeSession(window.ACTIVE_SESSION || initialStoredNamespace || '');
   const initialSplit = splitSessionNamespace(initialBootstrapNamespace);
+  const holdInitialDashboardActivation = atlasShouldHoldDashboardActivation();
   const [activeSessionId, setActiveSessionId] = React.useState(
     normalizeSession(window.ATLAS_USER_SESSION_ID || initialSplit.sessionId) || 'default'
   );
   const [activeNamespace, setActiveNamespace] = React.useState(
-    initialBootstrapNamespace || `${activeSessionId}/default/default`
+    initialBootstrapNamespace || (holdInitialDashboardActivation ? '' : `${activeSessionId}/default/default`)
   );
   const [activeIp, setActiveIp] = React.useState(initialSplit.ipId || WORKFLOW_DEFAULT);
   const [sessionIdOptions, setSessionIdOptions] = React.useState([]);
@@ -489,10 +515,11 @@ const App = () => {
           const requestedIp = ipParam || normalizeSession(urlParts.ipId || '');
           const requestedWf = wfParam || normalizeSession(urlParts.workflow || '');
           const hasUrlContext = !!(urlSession || requestedIp || requestedWf);
+          const holdDashboardActivation = atlasShouldHoldDashboardActivation();
           const currentNs = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
           const currentOwner = (currentNs.split('/').filter(Boolean)[0] || '');
           localStorage.setItem('atlasUserSessionId', username);
-          if (hasUrlContext || !currentNs || currentNs === 'default' || (currentOwner && currentOwner !== username)) {
+          if (hasUrlContext || (!holdDashboardActivation && (!currentNs || currentNs === 'default' || (currentOwner && currentOwner !== username)))) {
             const savedScreen = (() => {
               try { return localStorage.getItem('atlasScreen') || ''; }
               catch (_) { return ''; }
@@ -518,25 +545,42 @@ const App = () => {
             url.searchParams.delete('ip_id');
             url.searchParams.delete('wf');
             window.history.replaceState(null, '', url);
+          } else if (holdDashboardActivation) {
+            setActiveSessionId(username);
+            if (!currentNs || currentNs === 'default' || (currentOwner && currentOwner !== username)) {
+              window.ACTIVE_SESSION = '';
+              localStorage.removeItem('atlasActiveSession');
+              setActiveNamespace('');
+              setActiveIp(WORKFLOW_DEFAULT);
+              url.searchParams.delete('session');
+              url.searchParams.delete('session_id');
+              url.searchParams.delete('ip');
+              url.searchParams.delete('ip_id');
+              url.searchParams.delete('workflow');
+              url.searchParams.delete('wf');
+              window.history.replaceState(null, '', url);
+            }
           }
-          const activeForBackend = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || `${username}/default/default`) || `${username}/default/default`;
-          if (window.backend && typeof window.backend.disconnect === 'function' && typeof window.backend.connect === 'function') {
-            window.backend.disconnect();
-            setTimeout(() => window.backend.connect(activeForBackend), 0);
+          const activeForBackend = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
+          if (activeForBackend) {
+            if (window.backend && typeof window.backend.disconnect === 'function' && typeof window.backend.connect === 'function') {
+              window.backend.disconnect();
+              setTimeout(() => window.backend.connect(activeForBackend), 0);
+            }
+            const parsed = splitSessionNamespace(activeForBackend);
+            fetch('/api/session/activate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                session_id: parsed.sessionId || username,
+                ip: parsed.ipId || 'default',
+                workflow: parsed.workflow || 'default',
+              }),
+            }).then(() => {
+              try { return window.atlasData && window.atlasData.refreshHealth && window.atlasData.refreshHealth(); }
+              catch (_) { return null; }
+            }).catch(() => {});
           }
-          const parsed = splitSessionNamespace(activeForBackend);
-          fetch('/api/session/activate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              session_id: parsed.sessionId || username,
-              ip: parsed.ipId || 'default',
-              workflow: parsed.workflow || 'default',
-            }),
-          }).then(() => {
-            try { return window.atlasData && window.atlasData.refreshHealth && window.atlasData.refreshHealth(); }
-            catch (_) { return null; }
-          }).catch(() => {});
         } catch (_) {
           try { localStorage.setItem('atlasUserSessionId', user.username); } catch (_) {}
         }
@@ -1011,6 +1055,7 @@ const App = () => {
     // producing the surprising "prev='', ip='sqa', owner='default'"
     // backend log on first connection.
     if (!window.ATLAS_USER) return;
+    if (atlasShouldHoldDashboardActivation()) return;
     const parsed = splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace || '');
     if (!parsed.ipId && !parsed.workflow) return;
     // Also bail if the parsed owner is not this user — the auth
@@ -1211,8 +1256,8 @@ const App = () => {
     if (ok) setNameEntry(null);
   };
 
-  // Top-level screen — 'workspace' (live agent + chat + sidebar) or
-  // 'pipeline' (live stage dispatcher + situation board + chat).
+  // Top-level screen — 'dashboard' (user landing), 'workspace' (live
+  // agent + chat + sidebar), or 'pipeline' (stage dispatcher).
   // Old 'architect' value (mock-data SoC view) migrates to 'pipeline'
   // on first load so existing sessions don't get stranded on a screen
   // that no longer exists.
@@ -1226,11 +1271,11 @@ const App = () => {
       // workflow to 'orchestrator' on every IP pick). Default mode
       // is Workspace; user clicks ◫ Pipeline / ◇ Architect chips to
       // enter those flows explicitly.
-      if (urlView === 'pipeline' || urlView === 'architect') return urlView;
+      if (urlView === 'dashboard' || urlView === 'workspace' || urlView === 'pipeline' || urlView === 'architect') return urlView;
       const saved = localStorage.atlasScreen;
-      if (saved === 'pipeline' || saved === 'architect') return saved;
-      return 'workspace';
-    } catch (_) { return 'workspace'; }
+      if (saved === 'dashboard' || saved === 'workspace' || saved === 'pipeline' || saved === 'architect') return saved;
+      return 'dashboard';
+    } catch (_) { return 'dashboard'; }
   });
   React.useEffect(() => {
     try { localStorage.atlasScreen = screen; } catch (_) {}
@@ -1347,6 +1392,32 @@ const App = () => {
       });
     }
   }, [activateNamespace, activeIp, activeSessionId, execMode, screen, uiLang]);
+
+  const activateDashboardSession = React.useCallback((row) => {
+    const parsed = splitSessionNamespace(String((row && row.id) || ''));
+    const owner = normalizeSession(
+      parsed.sessionId ||
+      activeSessionId ||
+      window.ATLAS_USER_SESSION_ID ||
+      (window.ATLAS_USER && window.ATLAS_USER.username) ||
+      'default'
+    ) || 'default';
+    const ip = normalizeSession(
+      (row && row.ip) ||
+      parsed.ipId ||
+      activeIp ||
+      WORKFLOW_DEFAULT
+    ) || WORKFLOW_DEFAULT;
+    const workflow = normalizeSession(
+      (row && row.workflow) ||
+      parsed.workflow ||
+      currentWorkflow() ||
+      WORKFLOW_DEFAULT
+    ) || WORKFLOW_DEFAULT;
+    activateNamespace(owner, ip, workflow, true, {
+      preserveRunning: execMode === 'orchestrator',
+    });
+  }, [activeIp, activeSessionId, activateNamespace, currentWorkflow, execMode, normalizeSession, splitSessionNamespace]);
 
   React.useEffect(() => {
     document.documentElement.setAttribute('data-dir', dir);
@@ -1760,6 +1831,9 @@ const App = () => {
                   }}>↩ {window.ATLAS_USER.username}</button>
         )}
         <span data-row-break style={{flex:'0 0 100%',width:'100%',height:0,margin:0,padding:0,border:0}} />
+        <button className={`dir-btn ${screen === 'dashboard' ? 'active' : ''}`}
+                title="User dashboard · current focus · recent sessions · usage"
+                onClick={() => setScreen('dashboard')}>▦ Dashboard</button>
         <button className={`dir-btn ${screen === 'workspace' ? 'active' : ''}`}
                 title="Live agent · chat · sidebar (sim/lint/scope)"
                 onClick={() => setScreen('workspace')}>⌂ Workspace</button>
@@ -1799,7 +1873,19 @@ const App = () => {
       <div className="app-main">
         <TitleBar ip="" screen={screen} onScreen={setScreen} />
         <div style={{ flex: 1, overflow: 'hidden' }}>
-          {screen === 'pipeline' && window.AtlasPipeline
+          {screen === 'dashboard' && window.AtlasUserDashboard
+            ? <ErrorBoundary label="Dashboard">
+                <window.AtlasUserDashboard
+                  activeNamespace={activeNamespace}
+                  activeIp={activeIp}
+                  activeWorkflow={currentWorkflow()}
+                  execMode={execMode}
+                  runMode={runMode}
+                  onOpenScreen={setScreen}
+                  onActivateSession={activateDashboardSession}
+                />
+              </ErrorBoundary>
+            : screen === 'pipeline' && window.AtlasPipeline
             ? <ErrorBoundary label="Pipeline"><window.AtlasPipeline /></ErrorBoundary>
             : screen === 'architect' && window.SocArchitect
               ? <ErrorBoundary label="Architect"><window.SocArchitect /></ErrorBoundary>

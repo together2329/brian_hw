@@ -39,6 +39,15 @@ var AtlasAdminDashboard = (() => {
     const [deleting, setDeleting] = React.useState(null);
     const [expandedUsage, setExpandedUsage] = React.useState(null);
     const [resolving, setResolving] = React.useState(null);
+    const [dbTables, setDbTables] = React.useState([]);
+    const [dbSelectedTable, setDbSelectedTable] = React.useState(null);
+    const [dbPage, setDbPage] = React.useState({ columns: [], rows: [], total: 0, limit: 50, offset: 0 });
+    const [dbLoading, setDbLoading] = React.useState(false);
+    const [dbError, setDbError] = React.useState(null);
+    const [dbExpandedRow, setDbExpandedRow] = React.useState(null);
+    const [dbOverview, setDbOverview] = React.useState([]);
+    const [dbOverviewLoading, setDbOverviewLoading] = React.useState(false);
+    const [dbHideEmpty, setDbHideEmpty] = React.useState(true);
     async function reloadFeedback() {
       try {
         const r = await fetch("/api/admin/feedback");
@@ -222,6 +231,71 @@ var AtlasAdminDashboard = (() => {
       setFeedback([]);
       setLoading(false);
     };
+    const loadDbTables = React.useCallback(async () => {
+      setDbError(null);
+      try {
+        const r = await fetch("/api/admin/db/tables");
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const d = await r.json();
+        setDbTables(d.tables || []);
+      } catch (e) {
+        setDbError(String(e));
+      }
+    }, []);
+    const loadDbTable = React.useCallback(async (name, offset = 0, limit = 50) => {
+      if (!name) return;
+      setDbLoading(true);
+      setDbError(null);
+      setDbExpandedRow(null);
+      try {
+        const url = `/api/admin/db/table/${encodeURIComponent(name)}?limit=${limit}&offset=${offset}`;
+        const r = await fetch(url);
+        if (!r.ok) {
+          let detail = `HTTP ${r.status}`;
+          try {
+            const b = await r.json();
+            detail = b.error || detail;
+          } catch (_) {
+          }
+          throw new Error(detail);
+        }
+        const d = await r.json();
+        setDbPage({
+          columns: d.columns || [],
+          rows: d.rows || [],
+          total: d.total || 0,
+          limit: d.limit || limit,
+          offset: d.offset || offset
+        });
+      } catch (e) {
+        setDbError(String(e));
+      } finally {
+        setDbLoading(false);
+      }
+    }, []);
+    const loadDbOverview = React.useCallback(async () => {
+      setDbOverviewLoading(true);
+      setDbError(null);
+      try {
+        const r = await fetch("/api/admin/db/preview?per_table=3");
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const d = await r.json();
+        setDbOverview(d.tables || []);
+      } catch (e) {
+        setDbError(String(e));
+      } finally {
+        setDbOverviewLoading(false);
+      }
+    }, []);
+    React.useEffect(() => {
+      if (activeTab !== "raw-db" || !authUser) return;
+      if (dbTables.length === 0) loadDbTables();
+      if (dbOverview.length === 0 && !dbSelectedTable) loadDbOverview();
+    }, [activeTab, authUser, dbTables.length, dbOverview.length, dbSelectedTable, loadDbTables, loadDbOverview]);
+    React.useEffect(() => {
+      if (activeTab !== "raw-db" || !dbSelectedTable) return;
+      loadDbTable(dbSelectedTable, 0, dbPage.limit || 50);
+    }, [dbSelectedTable, activeTab]);
     const handleResolveFeedback = async (fid) => {
       setResolving(fid);
       try {
@@ -467,6 +541,52 @@ var AtlasAdminDashboard = (() => {
       overflow: "hidden",
       overflowX: "auto"
     };
+    const dashboardGridStyle = {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 420px), 1fr))",
+      gap: 14
+    };
+    const dashboardWideStyle = {
+      gridColumn: "1 / -1"
+    };
+    const widgetHeaderStyle = {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 12,
+      padding: "11px 14px",
+      borderBottom: "1px solid #2a3540",
+      background: "#1c252f"
+    };
+    const widgetTitleStyle = {
+      color: "#f0c674",
+      fontSize: 12,
+      fontWeight: 700,
+      textTransform: "uppercase",
+      letterSpacing: "0.06em"
+    };
+    const widgetMetaStyle = {
+      color: "#8893a3",
+      fontSize: 11,
+      whiteSpace: "nowrap"
+    };
+    const barTrackStyle = {
+      height: 8,
+      borderRadius: 4,
+      background: "#0f151b",
+      border: "1px solid #2a3540",
+      overflow: "hidden"
+    };
+    const barFillStyle = (width, tone = "default") => ({
+      height: "100%",
+      width,
+      minWidth: width === "0%" ? 0 : 4,
+      background: tone === "cost" ? "#f0c674" : "#7dc9a0"
+    });
+    const mutedSmallStyle = {
+      color: "#8893a3",
+      fontSize: 11
+    };
     const tableStyle = {
       width: "100%",
       borderCollapse: "collapse",
@@ -550,7 +670,7 @@ var AtlasAdminDashboard = (() => {
     };
     const sum = (rows, key) => rows.reduce((acc, row) => acc + Number(row[key] || 0), 0);
     const rowTimestamp = (row) => {
-      const direct = row.last_message_at || row.last_event_at || row.last_tool_at || row.last_intervention_at || row.started_at || row.ended_at || row.created_at || row.updated_at || row.first_intervention_at;
+      const direct = row.active_session_updated_at || row.last_message_at || row.last_event_at || row.last_tool_at || row.last_intervention_at || row.started_at || row.ended_at || row.created_at || row.updated_at || row.first_intervention_at;
       if (direct) return Number(direct) || 0;
       if (row.day) {
         const parsed = Date.parse(`${row.day}T23:59:59`);
@@ -577,6 +697,12 @@ var AtlasAdminDashboard = (() => {
       created_at: s.created_at,
       updated_at: s.updated_at
     }));
+    const userFocusContextRows = users.map((u) => ({
+      username: u.username,
+      ip: u.active_ip || "",
+      workflow: u.active_workflow || "",
+      updated_at: u.active_session_updated_at
+    }));
     const allContextRows = [
       ...costContexts,
       ...dateCosts,
@@ -588,7 +714,8 @@ var AtlasAdminDashboard = (() => {
       ...rtlRunHistory,
       ...artifactVersions,
       ...runArtifactSets,
-      ...sessionContextRows
+      ...sessionContextRows,
+      ...userFocusContextRows
     ];
     const filterOptions = {
       ips: uniqueOptions(allContextRows, "ip"),
@@ -600,7 +727,7 @@ var AtlasAdminDashboard = (() => {
         ...feedback
       ], "username")
     };
-    const filteredUsers = users.filter((row) => valueMatches(filters.user, row.username) && !filters.ip && !filters.workspace && !filters.workflow);
+    const filteredUsers = users.filter((row) => valueMatches(filters.user, row.username) && valueMatches(filters.ip, row.active_ip) && !filters.workspace && valueMatches(filters.workflow, row.active_workflow));
     const filteredUsage = usage.filter((row) => inRange(row) && valueMatches(filters.user, row.username) && !filters.ip && !filters.workspace && !filters.workflow);
     const filteredSessions = sessions.filter((row) => inRange(row) && valueMatches(filters.user, row.owner_username || row.user_id) && valueMatches(filters.ip, row.ip || row.project_id || row.title) && !filters.workspace && valueMatches(filters.workflow, row.workflow || row.latest_workflow));
     const filteredCostContexts = costContexts.filter(rowMatches);
@@ -614,6 +741,54 @@ var AtlasAdminDashboard = (() => {
     const filteredArtifactVersions = artifactVersions.filter(rowMatches);
     const filteredRunArtifactSets = runArtifactSets.filter(rowMatches);
     const filteredFeedback = feedback.filter((row) => inRange(row) && valueMatches(filters.user, row.username) && !filters.ip && !filters.workspace && !filters.workflow);
+    const sessionWorkloadRows = filteredSessions.map((s) => ({
+      username: s.owner_username || s.user_id || "unknown",
+      ip: s.ip || s.project_id || s.title || "unknown",
+      workflow: s.workflow || s.latest_workflow || "",
+      session_id: s.id,
+      calls: 0,
+      tokens: 0,
+      cost: 0,
+      updated_at: s.updated_at
+    }));
+    const workloadContextRows = [...filteredCostContexts, ...sessionWorkloadRows];
+    const workloadScore = (row) => Number(row.cost || 0) || Number(row.calls || 0) || Number(row.sessionCount || 0);
+    const aggregateWorkload = (rows, key, fallback) => {
+      const grouped = /* @__PURE__ */ new Map();
+      rows.forEach((row) => {
+        const name = String(row[key] || "").trim() || fallback;
+        if (!grouped.has(name)) {
+          grouped.set(name, {
+            name,
+            calls: 0,
+            tokens: 0,
+            cost: 0,
+            sessionIds: /* @__PURE__ */ new Set(),
+            users: /* @__PURE__ */ new Set(),
+            lastAt: 0
+          });
+        }
+        const item = grouped.get(name);
+        item.calls += Number(row.calls || 0);
+        item.tokens += Number(row.tokens || 0);
+        item.cost += Number(row.cost || 0);
+        if (row.session_id) item.sessionIds.add(row.session_id);
+        if (row.username || row.owner_username) item.users.add(row.username || row.owner_username);
+        item.lastAt = Math.max(item.lastAt, rowTimestamp(row));
+      });
+      return Array.from(grouped.values()).map((row) => ({
+        ...row,
+        sessionCount: row.sessionIds.size,
+        userCount: row.users.size,
+        userList: Array.from(row.users).sort()
+      })).sort((a, b) => workloadScore(b) - workloadScore(a) || b.lastAt - a.lastAt || a.name.localeCompare(b.name));
+    };
+    const activeUserRows = [...filteredUsers].filter((row) => (row.active_ip || row.active_workflow) && inRange(row)).sort((a, b) => rowTimestamp(b) - rowTimestamp(a) || String(a.username || "").localeCompare(String(b.username || ""))).slice(0, 8);
+    const recentSessionRows = [...filteredSessions].sort((a, b) => rowTimestamp(b) - rowTimestamp(a)).slice(0, 8);
+    const ipWorkloadRows = aggregateWorkload(workloadContextRows, "ip", "unknown").slice(0, 8);
+    const workflowWorkloadRows = aggregateWorkload(workloadContextRows, "workflow", "unassigned").slice(0, 8);
+    const maxIpScore = Math.max(1, ...ipWorkloadRows.map(workloadScore));
+    const maxWorkflowScore = Math.max(1, ...workflowWorkloadRows.map(workloadScore));
     const topCostRows = [...filteredCostContexts].sort((a, b) => Number(b.cost || 0) - Number(a.cost || 0)).slice(0, 5);
     const topRejectedTodos = [...filteredTodoUsage].filter((row) => Number(row.rejected_count || 0) > 0).sort((a, b) => Number(b.rejected_count || 0) - Number(a.rejected_count || 0)).slice(0, 5);
     const topToolRows = [...filteredToolUsage].sort((a, b) => Number(b.failed_calls || 0) - Number(a.failed_calls || 0) || Number(b.observation_tokens_est || 0) - Number(a.observation_tokens_est || 0)).slice(0, 5);
@@ -621,6 +796,9 @@ var AtlasAdminDashboard = (() => {
     const askUserOpened = new Set(filteredTraceEvents.filter((row) => row.event_type === "ask_user.opened").map((row) => row.payload && row.payload.flow_id || row.event_id).filter(Boolean));
     const askUserAnswered = new Set(filteredTraceEvents.filter((row) => row.event_type === "ask_user.answered").map((row) => row.payload && row.payload.flow_id || row.event_id).filter(Boolean));
     const overview = {
+      activeUsers: filteredUsers.filter((row) => (row.active_ip || row.active_workflow) && inRange(row)).length,
+      activeSessions: filteredSessions.filter((row) => String(row.status || "").toLowerCase() === "active").length,
+      activeIps: new Set(filteredSessions.filter((row) => String(row.status || "").toLowerCase() === "active").map((row) => row.ip || row.project_id || row.title).filter(Boolean)).size,
       cost: sum(filteredCostContexts, "cost"),
       llmCalls: sum(filteredCostContexts, "calls"),
       toolCalls: sum(filteredToolUsage, "calls"),
@@ -673,7 +851,7 @@ var AtlasAdminDashboard = (() => {
         autoComplete: authStatus.admin_user_exists ? "current-password" : "new-password",
         onChange: (ev) => setLoginForm((prev) => ({ ...prev, password: ev.target.value }))
       }
-    )), /* @__PURE__ */ React.createElement("button", { type: "submit", style: loginButtonStyle, disabled: loginSubmitting }, loginSubmitting ? "Working\u2026" : loginButtonText)), !loading && !loginRequired && error && /* @__PURE__ */ React.createElement("div", { style: errorStateStyle }, error), !loading && !loginRequired && !error && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: tabRowStyle }, /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "overview"), onClick: () => setActiveTab("overview") }, "Overview"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "users"), onClick: () => setActiveTab("users") }, "Users (", filteredUsers.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "sessions"), onClick: () => setActiveTab("sessions") }, "Sessions (", filteredSessions.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "usage"), onClick: () => setActiveTab("usage") }, "Usage (", filteredUsage.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "costs"), onClick: () => setActiveTab("costs") }, "Costs (", filteredCostContexts.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "todos"), onClick: () => setActiveTab("todos") }, "Todos (", filteredTodoUsage.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "flow"), onClick: () => setActiveTab("flow") }, "Flow (", filteredTodoFlow.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "trace"), onClick: () => setActiveTab("trace") }, "Trace (", filteredTraceEvents.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "tools"), onClick: () => setActiveTab("tools") }, "Tools (", filteredToolUsage.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "rtl"), onClick: () => setActiveTab("rtl") }, "RTL Runs (", filteredRtlRunHistory.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "versions"), onClick: () => setActiveTab("versions") }, "Versions (", filteredArtifactVersions.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "run-sets"), onClick: () => setActiveTab("run-sets") }, "Run Sets (", filteredRunArtifactSets.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "human"), onClick: () => setActiveTab("human") }, "Human (", filteredInterventions.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "feedback"), onClick: () => setActiveTab("feedback") }, "Feedback (", filteredFeedback.filter((f) => f.status !== "resolved").length, "/", filteredFeedback.length, ")")), /* @__PURE__ */ React.createElement("div", { style: filterBarStyle }, /* @__PURE__ */ React.createElement("label", { style: filterLabelStyle, htmlFor: "admin-filter-range" }, "Range", /* @__PURE__ */ React.createElement(
+    )), /* @__PURE__ */ React.createElement("button", { type: "submit", style: loginButtonStyle, disabled: loginSubmitting }, loginSubmitting ? "Working\u2026" : loginButtonText)), !loading && !loginRequired && error && /* @__PURE__ */ React.createElement("div", { style: errorStateStyle }, error), !loading && !loginRequired && !error && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: tabRowStyle }, /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "overview"), onClick: () => setActiveTab("overview") }, "Overview"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "users"), onClick: () => setActiveTab("users") }, "Users (", filteredUsers.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "sessions"), onClick: () => setActiveTab("sessions") }, "Sessions (", filteredSessions.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "usage"), onClick: () => setActiveTab("usage") }, "Usage (", filteredUsage.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "costs"), onClick: () => setActiveTab("costs") }, "Costs (", filteredCostContexts.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "todos"), onClick: () => setActiveTab("todos") }, "Todos (", filteredTodoUsage.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "flow"), onClick: () => setActiveTab("flow") }, "Flow (", filteredTodoFlow.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "trace"), onClick: () => setActiveTab("trace") }, "Trace (", filteredTraceEvents.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "tools"), onClick: () => setActiveTab("tools") }, "Tools (", filteredToolUsage.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "rtl"), onClick: () => setActiveTab("rtl") }, "RTL Runs (", filteredRtlRunHistory.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "versions"), onClick: () => setActiveTab("versions") }, "Versions (", filteredArtifactVersions.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "run-sets"), onClick: () => setActiveTab("run-sets") }, "Run Sets (", filteredRunArtifactSets.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "human"), onClick: () => setActiveTab("human") }, "Human (", filteredInterventions.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "feedback"), onClick: () => setActiveTab("feedback") }, "Feedback (", filteredFeedback.filter((f) => f.status !== "resolved").length, "/", filteredFeedback.length, ")"), /* @__PURE__ */ React.createElement("button", { style: tabStyle(activeTab === "raw-db"), onClick: () => setActiveTab("raw-db") }, "Raw DB")), /* @__PURE__ */ React.createElement("div", { style: filterBarStyle }, /* @__PURE__ */ React.createElement("label", { style: filterLabelStyle, htmlFor: "admin-filter-range" }, "Range", /* @__PURE__ */ React.createElement(
       "select",
       {
         id: "admin-filter-range",
@@ -730,7 +908,13 @@ var AtlasAdminDashboard = (() => {
       },
       /* @__PURE__ */ React.createElement("option", { value: "" }, "All users"),
       filterOptions.users.map((value) => /* @__PURE__ */ React.createElement("option", { key: value, value }, value))
-    )), /* @__PURE__ */ React.createElement("label", { style: filterLabelStyle }, "Reset", /* @__PURE__ */ React.createElement("button", { type: "button", style: { ...selectStyle, cursor: "pointer", color: "#f0c674" }, onClick: clearFilters }, "Clear filters"))), activeTab === "overview" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: overviewGridStyle }, /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Cost"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, usd(overview.cost))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "LLM Calls"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.llmCalls))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Tool Calls"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.toolCalls))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.toolFailures ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Tool Failures"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.toolFailures))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Obs Tokens Est"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.obsTokens))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.rejectedTodos ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Rejected Todos"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.rejectedTodos))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.openTodos ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Open Todos"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.openTodos))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "RTL Runs"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.rtlRuns))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Artifact Versions"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.artifactVersions))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Run Artifact Sets"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.runArtifactSets))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Human Inputs"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.humanInputs))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.pendingHuman ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Ask User Pending"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.pendingHuman))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.pendingFeedback ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Open Feedback"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.pendingFeedback)))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 430px), 1fr))", gap: 18 } }, /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Top Cost Contexts"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workspace"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Calls"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Cost"))), /* @__PURE__ */ React.createElement("tbody", null, topCostRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 5, style: { ...tdStyle, ...emptyStateStyle } }, "No cost data in filter.")) : topCostRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: `${row.session_id}-${row.ip}-${row.workflow}-${row.workspace}` }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.workspace || "default"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.workflow || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.calls)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, usd(row.cost))))))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Tool Pressure"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Tool"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Failures"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Obs Tokens"))), /* @__PURE__ */ React.createElement("tbody", null, topToolRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { ...tdStyle, ...emptyStateStyle } }, "No tool data in filter.")) : topToolRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: `${row.session_id}-${row.ip}-${row.workflow}-${row.tool_name}` }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.tool_name || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.failed_calls)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.observation_tokens_est))))))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Rejected Todo Hotspots"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Todo"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Rejects"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Last Reason"))), /* @__PURE__ */ React.createElement("tbody", null, topRejectedTodos.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { ...tdStyle, ...emptyStateStyle } }, "No rejected todos in filter.")) : topRejectedTodos.map((row) => /* @__PURE__ */ React.createElement("tr", { key: row.todo_id }, /* @__PURE__ */ React.createElement("td", { style: { ...tdStyle, maxWidth: 260, whiteSpace: "normal" } }, row.content || shortId(row.todo_id)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.rejected_count)), /* @__PURE__ */ React.createElement("td", { style: { ...tdStyle, maxWidth: 320, whiteSpace: "normal" } }, row.last_rejected_reason || row.last_event_reason || "\u2014")))))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Human Intervention Hotspots"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "User"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Inputs"))), /* @__PURE__ */ React.createElement("tbody", null, topHumanRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { ...tdStyle, ...emptyStateStyle } }, "No human input in filter.")) : topHumanRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: `${row.session_id}-${row.ip}-${row.workflow}-${row.username}` }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.username || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.workflow || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.intervention_count))))))))), activeTab === "users" && /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Username"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Email"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Display Name"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Role"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Sessions"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Created"))), /* @__PURE__ */ React.createElement("tbody", null, filteredUsers.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 6, style: { ...tdStyle, ...emptyStateStyle } }, "No users found.")) : filteredUsers.map((u) => /* @__PURE__ */ React.createElement("tr", { key: u.id }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.username), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.email || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.display_name || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, /* @__PURE__ */ React.createElement("span", { style: {
+    )), /* @__PURE__ */ React.createElement("label", { style: filterLabelStyle }, "Reset", /* @__PURE__ */ React.createElement("button", { type: "button", style: { ...selectStyle, cursor: "pointer", color: "#f0c674" }, onClick: clearFilters }, "Clear filters"))), activeTab === "overview" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: overviewGridStyle }, /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Active Users"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.activeUsers))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Active IPs"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.activeIps))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Active Sessions"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.activeSessions))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Cost"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, usd(overview.cost))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "LLM Calls"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.llmCalls))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Tool Calls"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.toolCalls))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.toolFailures ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Tool Failures"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.toolFailures))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Obs Tokens Est"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.obsTokens))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.rejectedTodos ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Rejected Todos"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.rejectedTodos))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.openTodos ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Open Todos"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.openTodos))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "RTL Runs"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.rtlRuns))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Artifact Versions"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.artifactVersions))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Run Artifact Sets"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.runArtifactSets))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle() }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Human Inputs"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.humanInputs))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.pendingHuman ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Ask User Pending"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.pendingHuman))), /* @__PURE__ */ React.createElement("div", { style: metricCardStyle(overview.pendingFeedback ? "danger" : "default") }, /* @__PURE__ */ React.createElement("div", { style: metricLabelStyle }, "Open Feedback"), /* @__PURE__ */ React.createElement("div", { style: metricValueStyle }, fmt(overview.pendingFeedback)))), /* @__PURE__ */ React.createElement("div", { style: dashboardGridStyle }, /* @__PURE__ */ React.createElement("div", { style: { ...tableWrapStyle, ...dashboardWideStyle } }, /* @__PURE__ */ React.createElement("div", { style: widgetHeaderStyle }, /* @__PURE__ */ React.createElement("div", { style: widgetTitleStyle }, "Active User Focus"), /* @__PURE__ */ React.createElement("div", { style: widgetMetaStyle }, "User \xB7 IP \xB7 Workflow \xB7 session")), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "User"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Active IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Active Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Sessions"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Status"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Updated"))), /* @__PURE__ */ React.createElement("tbody", null, activeUserRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 6, style: { ...tdStyle, ...emptyStateStyle } }, "No active user focus in filter.")) : activeUserRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: row.id || row.username }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.username || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.active_ip || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.active_workflow || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.session_count || 0)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.active_workflow_status || "active"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, formatDate(row.active_session_updated_at))))))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: widgetHeaderStyle }, /* @__PURE__ */ React.createElement("div", { style: widgetTitleStyle }, "IP Workload"), /* @__PURE__ */ React.createElement("div", { style: widgetMetaStyle }, "cost weighted")), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Load"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Calls"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Cost"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Users"))), /* @__PURE__ */ React.createElement("tbody", null, ipWorkloadRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 5, style: { ...tdStyle, ...emptyStateStyle } }, "No IP workload in filter.")) : ipWorkloadRows.map((row) => {
+      const width = `${Math.round(workloadScore(row) / maxIpScore * 100)}%`;
+      return /* @__PURE__ */ React.createElement("tr", { key: row.name }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.name), /* @__PURE__ */ React.createElement("td", { style: { ...tdStyle, minWidth: 120 } }, /* @__PURE__ */ React.createElement("div", { style: barTrackStyle }, /* @__PURE__ */ React.createElement("div", { style: barFillStyle(width, "cost") })), /* @__PURE__ */ React.createElement("div", { style: mutedSmallStyle }, fmt(row.sessionCount), " sessions \xB7 ", fmt(row.tokens), " tokens")), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.calls)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, usd(row.cost)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.userCount)));
+    })))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: widgetHeaderStyle }, /* @__PURE__ */ React.createElement("div", { style: widgetTitleStyle }, "Workflow Load"), /* @__PURE__ */ React.createElement("div", { style: widgetMetaStyle }, "single/orchestrator aware")), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Load"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Calls"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Cost"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Sessions"))), /* @__PURE__ */ React.createElement("tbody", null, workflowWorkloadRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 5, style: { ...tdStyle, ...emptyStateStyle } }, "No workflow load in filter.")) : workflowWorkloadRows.map((row) => {
+      const width = `${Math.round(workloadScore(row) / maxWorkflowScore * 100)}%`;
+      return /* @__PURE__ */ React.createElement("tr", { key: row.name }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.name), /* @__PURE__ */ React.createElement("td", { style: { ...tdStyle, minWidth: 120 } }, /* @__PURE__ */ React.createElement("div", { style: barTrackStyle }, /* @__PURE__ */ React.createElement("div", { style: barFillStyle(width) })), /* @__PURE__ */ React.createElement("div", { style: mutedSmallStyle }, fmt(row.userCount), " users \xB7 ", fmt(row.tokens), " tokens")), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.calls)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, usd(row.cost)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.sessionCount)));
+    })))), /* @__PURE__ */ React.createElement("div", { style: { ...tableWrapStyle, ...dashboardWideStyle } }, /* @__PURE__ */ React.createElement("div", { style: widgetHeaderStyle }, /* @__PURE__ */ React.createElement("div", { style: widgetTitleStyle }, "Recent Sessions"), /* @__PURE__ */ React.createElement("div", { style: widgetMetaStyle }, "latest active context")), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Owner"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Status"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Session"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Updated"))), /* @__PURE__ */ React.createElement("tbody", null, recentSessionRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 6, style: { ...tdStyle, ...emptyStateStyle } }, "No sessions in filter.")) : recentSessionRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: row.id }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.owner_username || row.user_id || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || row.project_id || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.workflow || row.latest_workflow || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.status || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: { ...tdStyle, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 11 } }, shortId(row.id)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, formatDate(row.updated_at)))))))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 430px), 1fr))", gap: 18 } }, /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Top Cost Contexts"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workspace"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Calls"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Cost"))), /* @__PURE__ */ React.createElement("tbody", null, topCostRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 5, style: { ...tdStyle, ...emptyStateStyle } }, "No cost data in filter.")) : topCostRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: `${row.session_id}-${row.ip}-${row.workflow}-${row.workspace}` }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.workspace || "default"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.workflow || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.calls)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, usd(row.cost))))))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Tool Pressure"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Tool"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Failures"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Obs Tokens"))), /* @__PURE__ */ React.createElement("tbody", null, topToolRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { ...tdStyle, ...emptyStateStyle } }, "No tool data in filter.")) : topToolRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: `${row.session_id}-${row.ip}-${row.workflow}-${row.tool_name}` }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.tool_name || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.failed_calls)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.observation_tokens_est))))))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Rejected Todo Hotspots"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Todo"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Rejects"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Last Reason"))), /* @__PURE__ */ React.createElement("tbody", null, topRejectedTodos.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { ...tdStyle, ...emptyStateStyle } }, "No rejected todos in filter.")) : topRejectedTodos.map((row) => /* @__PURE__ */ React.createElement("tr", { key: row.todo_id }, /* @__PURE__ */ React.createElement("td", { style: { ...tdStyle, maxWidth: 260, whiteSpace: "normal" } }, row.content || shortId(row.todo_id)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.rejected_count)), /* @__PURE__ */ React.createElement("td", { style: { ...tdStyle, maxWidth: 320, whiteSpace: "normal" } }, row.last_rejected_reason || row.last_event_reason || "\u2014")))))), /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: panelTitleStyle }, "Human Intervention Hotspots"), /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "User"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Inputs"))), /* @__PURE__ */ React.createElement("tbody", null, topHumanRows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { ...tdStyle, ...emptyStateStyle } }, "No human input in filter.")) : topHumanRows.map((row) => /* @__PURE__ */ React.createElement("tr", { key: `${row.session_id}-${row.ip}-${row.workflow}-${row.username}` }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.username || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.ip || "unknown"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, row.workflow || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, fmt(row.intervention_count))))))))), activeTab === "users" && /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Username"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Email"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Display Name"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Role"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Active IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Active Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Sessions"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Active Updated"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Created"))), /* @__PURE__ */ React.createElement("tbody", null, filteredUsers.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 9, style: { ...tdStyle, ...emptyStateStyle } }, "No users found.")) : filteredUsers.map((u) => /* @__PURE__ */ React.createElement("tr", { key: u.id }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.username), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.email || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.display_name || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, /* @__PURE__ */ React.createElement("span", { style: {
       fontSize: 10,
       fontWeight: 600,
       textTransform: "uppercase",
@@ -739,7 +923,7 @@ var AtlasAdminDashboard = (() => {
       background: u.role === "admin" ? "#2a3a4a" : "#1c252f",
       color: u.role === "admin" ? "#f0c674" : "#a3aebb",
       border: "1px solid #2a3540"
-    } }, u.role)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.session_count ?? 0), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, formatDate(u.created_at))))))), activeTab === "sessions" && /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Title"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Status"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Owner"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Session"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Latest Run"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Updated"), /* @__PURE__ */ React.createElement("th", { style: thStyle }))), /* @__PURE__ */ React.createElement("tbody", null, filteredSessions.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 9, style: { ...tdStyle, ...emptyStateStyle } }, "No sessions found.")) : filteredSessions.map((s) => /* @__PURE__ */ React.createElement("tr", { key: s.id }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.title || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.ip || s.project_id || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.workflow || s.latest_workflow || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, /* @__PURE__ */ React.createElement("span", { style: {
+    } }, u.role)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.active_ip || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.active_workflow || "\u2014", u.active_workflow_status ? /* @__PURE__ */ React.createElement("div", { style: { opacity: 0.65, fontSize: 11 } }, u.active_workflow_status) : null), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, u.session_count ?? 0), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, formatDate(u.active_session_updated_at)), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, formatDate(u.created_at))))))), activeTab === "sessions" && /* @__PURE__ */ React.createElement("div", { style: tableWrapStyle }, /* @__PURE__ */ React.createElement("table", { style: tableStyle }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Title"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "IP"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Workflow"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Status"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Owner"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Session"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Latest Run"), /* @__PURE__ */ React.createElement("th", { style: thStyle }, "Updated"), /* @__PURE__ */ React.createElement("th", { style: thStyle }))), /* @__PURE__ */ React.createElement("tbody", null, filteredSessions.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 9, style: { ...tdStyle, ...emptyStateStyle } }, "No sessions found.")) : filteredSessions.map((s) => /* @__PURE__ */ React.createElement("tr", { key: s.id }, /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.title || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.ip || s.project_id || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, s.workflow || s.latest_workflow || "\u2014"), /* @__PURE__ */ React.createElement("td", { style: tdStyle }, /* @__PURE__ */ React.createElement("span", { style: {
       fontSize: 10,
       fontWeight: 600,
       textTransform: "uppercase",
@@ -847,7 +1031,221 @@ var AtlasAdminDashboard = (() => {
         },
         resolving === f.id ? "\u2026" : "\u2713 Resolve"
       )));
-    })))))));
+    })))), activeTab === "raw-db" && /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "260px 1fr", gap: 16 } }, /* @__PURE__ */ React.createElement("div", { style: { ...tableWrapStyle, maxHeight: 600, overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { style: {
+      padding: "8px 12px",
+      background: "#1c252f",
+      borderBottom: "1px solid #2a3540",
+      fontSize: 11,
+      textTransform: "uppercase",
+      letterSpacing: "0.06em",
+      color: "#a3aebb",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    } }, /* @__PURE__ */ React.createElement("span", null, "Tables (", dbTables.length, ")"), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: loadDbTables,
+        style: { ...headerButtonStyle, padding: "2px 6px", fontSize: 10 },
+        title: "Refresh"
+      },
+      "\u21BB"
+    )), dbTables.length === 0 ? /* @__PURE__ */ React.createElement("div", { style: { padding: 16, color: "#8893a3", fontSize: 12 } }, dbError ? `Error: ${dbError}` : "Loading\u2026") : dbTables.map((t) => {
+      const active = dbSelectedTable === t.name;
+      return /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          key: t.name,
+          onClick: () => setDbSelectedTable(t.name),
+          style: {
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+            padding: "8px 12px",
+            background: active ? "#22303d" : "transparent",
+            color: active ? "#f0c674" : "#d6dde6",
+            border: "none",
+            borderLeft: active ? "3px solid #f0c674" : "3px solid transparent",
+            borderBottom: "1px solid #20272f",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            fontSize: 12,
+            textAlign: "left"
+          }
+        },
+        /* @__PURE__ */ React.createElement("span", { style: { fontWeight: active ? 600 : 400 } }, t.name),
+        /* @__PURE__ */ React.createElement("span", { style: {
+          fontSize: 10,
+          color: active ? "#f0c674" : "#7d8590",
+          background: "#11161c",
+          padding: "2px 6px",
+          borderRadius: 3
+        } }, t.row_count)
+      );
+    })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, !dbSelectedTable ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+      flexWrap: "wrap"
+    } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 600, color: "#f0c674" } }, "All tables overview", /* @__PURE__ */ React.createElement("span", { style: { color: "#7d8590", fontWeight: 400, marginLeft: 8, fontSize: 12 } }, "(3 most-recent rows per table \xB7 click a table name to drill in)")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement("label", { style: { fontSize: 11, color: "#a3aebb", display: "flex", alignItems: "center", gap: 4 } }, /* @__PURE__ */ React.createElement(
+      "input",
+      {
+        type: "checkbox",
+        checked: dbHideEmpty,
+        onChange: (e) => setDbHideEmpty(e.target.checked)
+      }
+    ), "Hide empty"), /* @__PURE__ */ React.createElement("button", { onClick: loadDbOverview, disabled: dbOverviewLoading, style: headerButtonStyle }, dbOverviewLoading ? "\u2026" : "\u21BB Refresh"))), dbError && /* @__PURE__ */ React.createElement("div", { style: { ...tableWrapStyle, padding: 16, color: "#e06c75" } }, dbError), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, dbOverview.length === 0 ? /* @__PURE__ */ React.createElement("div", { style: { ...tableWrapStyle, padding: 24, textAlign: "center", color: "#8893a3" } }, dbOverviewLoading ? "Loading all tables\u2026" : "No data.") : dbOverview.filter((t) => !dbHideEmpty || t.total && t.total > 0).map((t) => /* @__PURE__ */ React.createElement("div", { key: t.name, style: tableWrapStyle }, /* @__PURE__ */ React.createElement("div", { style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "8px 14px",
+      background: "#1c252f",
+      borderBottom: "1px solid #2a3540"
+    } }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setDbSelectedTable(t.name),
+        style: {
+          background: "transparent",
+          border: "none",
+          padding: 0,
+          color: "#f0c674",
+          fontWeight: 600,
+          fontSize: 13,
+          cursor: "pointer",
+          fontFamily: "inherit"
+        }
+      },
+      t.name
+    ), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 10, fontSize: 11, color: "#7d8590" } }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("b", { style: { color: "#d6dde6" } }, t.total), " rows"), /* @__PURE__ */ React.createElement("span", null, t.columns.length, " cols"))), t.total === 0 ? /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 14px", fontSize: 11, color: "#5a6470", fontStyle: "italic" } }, "empty") : t.rows.length === 0 ? /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 14px", fontSize: 11, color: "#e06c75" } }, t.error || "no preview rows available") : /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { ...tableStyle, fontSize: 11, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, t.columns.slice(0, 8).map((c) => /* @__PURE__ */ React.createElement("th", { key: c.name, style: { ...thStyle, padding: "6px 10px", fontSize: 10, whiteSpace: "nowrap" } }, c.name, c.pk ? /* @__PURE__ */ React.createElement("span", { style: { color: "#f0c674", marginLeft: 3 } }, "*") : null)), t.columns.length > 8 && /* @__PURE__ */ React.createElement("th", { style: { ...thStyle, padding: "6px 10px", fontSize: 10, color: "#7d8590" } }, "+", t.columns.length - 8, " more"))), /* @__PURE__ */ React.createElement("tbody", null, t.rows.map((row, i) => /* @__PURE__ */ React.createElement("tr", { key: i }, t.columns.slice(0, 8).map((c) => {
+      const v = row[c.name];
+      let text;
+      if (v === null || v === void 0) text = "\u2205";
+      else if (typeof v === "object") text = JSON.stringify(v);
+      else if (typeof v === "number" && c.name.endsWith("_at") && v > 1e9) {
+        try {
+          text = new Date(v * 1e3).toISOString().replace("T", " ").slice(0, 19);
+        } catch (_) {
+          text = String(v);
+        }
+      } else text = String(v);
+      const truncated = text.length > 40 ? text.slice(0, 40) + "\u2026" : text;
+      return /* @__PURE__ */ React.createElement(
+        "td",
+        {
+          key: c.name,
+          style: {
+            ...tdStyle,
+            padding: "5px 10px",
+            maxWidth: 180,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            color: v === null ? "#5a6470" : tdStyle.color
+          },
+          title: text
+        },
+        truncated
+      );
+    }), t.columns.length > 8 && /* @__PURE__ */ React.createElement("td", { style: { ...tdStyle, padding: "5px 10px", color: "#5a6470", fontStyle: "italic" } }, "\u2026")))))))))) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+      flexWrap: "wrap"
+    } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 600, color: "#f0c674", display: "flex", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setDbSelectedTable(null),
+        style: { ...headerButtonStyle, fontSize: 11, padding: "3px 8px" },
+        title: "Back to all-tables overview"
+      },
+      "\u2190 Overview"
+    ), dbSelectedTable, /* @__PURE__ */ React.createElement("span", { style: { color: "#7d8590", fontWeight: 400, fontSize: 12 } }, "(", dbPage.total, " rows \xB7 showing ", dbPage.offset + 1, "-", Math.min(dbPage.offset + dbPage.rows.length, dbPage.total), ")")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6 } }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => loadDbTable(dbSelectedTable, Math.max(0, dbPage.offset - dbPage.limit), dbPage.limit),
+        disabled: dbPage.offset === 0 || dbLoading,
+        style: headerButtonStyle
+      },
+      "\u2039 Prev"
+    ), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => loadDbTable(dbSelectedTable, dbPage.offset + dbPage.limit, dbPage.limit),
+        disabled: dbPage.offset + dbPage.rows.length >= dbPage.total || dbLoading,
+        style: headerButtonStyle
+      },
+      "Next \u203A"
+    ), /* @__PURE__ */ React.createElement(
+      "select",
+      {
+        value: dbPage.limit,
+        onChange: (e) => loadDbTable(dbSelectedTable, 0, Number(e.target.value)),
+        style: { ...headerButtonStyle, padding: "4px 6px" }
+      },
+      /* @__PURE__ */ React.createElement("option", { value: 25 }, "25"),
+      /* @__PURE__ */ React.createElement("option", { value: 50 }, "50"),
+      /* @__PURE__ */ React.createElement("option", { value: 100 }, "100"),
+      /* @__PURE__ */ React.createElement("option", { value: 200 }, "200")
+    ), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => loadDbTable(dbSelectedTable, dbPage.offset, dbPage.limit),
+        disabled: dbLoading,
+        style: headerButtonStyle
+      },
+      "\u21BB"
+    ))), dbError ? /* @__PURE__ */ React.createElement("div", { style: { ...tableWrapStyle, padding: 16, color: "#e06c75" } }, dbError) : /* @__PURE__ */ React.createElement("div", { style: { ...tableWrapStyle, maxHeight: 600, overflowY: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { ...tableStyle, fontSize: 11.5, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, dbPage.columns.map((c) => /* @__PURE__ */ React.createElement("th", { key: c.name, style: { ...thStyle, fontSize: 10, whiteSpace: "nowrap" } }, c.name, c.pk ? /* @__PURE__ */ React.createElement("span", { style: { color: "#f0c674", marginLeft: 4 } }, "PK") : null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#7d8590", fontWeight: 400, textTransform: "none", letterSpacing: 0 } }, c.type || "ANY", c.notnull ? " \xB7 NN" : ""))))), /* @__PURE__ */ React.createElement("tbody", null, dbPage.rows.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: dbPage.columns.length, style: { ...tdStyle, ...emptyStateStyle } }, dbLoading ? "Loading\u2026" : "Table is empty.")) : dbPage.rows.map((row, i) => {
+      const rowKey = `${dbPage.offset}-${i}`;
+      const expanded = dbExpandedRow === rowKey;
+      return /* @__PURE__ */ React.createElement(React.Fragment, { key: rowKey }, /* @__PURE__ */ React.createElement(
+        "tr",
+        {
+          onClick: () => setDbExpandedRow(expanded ? null : rowKey),
+          style: { cursor: "pointer", background: expanded ? "#191c22" : "transparent" }
+        },
+        dbPage.columns.map((c) => {
+          const v = row[c.name];
+          let text;
+          if (v === null || v === void 0) text = "\u2205";
+          else if (typeof v === "object") text = JSON.stringify(v);
+          else if (typeof v === "number" && c.name.endsWith("_at") && v > 1e9) {
+            try {
+              text = new Date(v * 1e3).toISOString().replace("T", " ").slice(0, 19);
+            } catch (_) {
+              text = String(v);
+            }
+          } else text = String(v);
+          const truncated = text.length > 60 ? text.slice(0, 60) + "\u2026" : text;
+          return /* @__PURE__ */ React.createElement(
+            "td",
+            {
+              key: c.name,
+              style: {
+                ...tdStyle,
+                padding: "6px 10px",
+                maxWidth: 240,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                color: v === null ? "#5a6470" : tdStyle.color
+              },
+              title: text
+            },
+            truncated
+          );
+        })
+      ), expanded && /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: dbPage.columns.length, style: { ...tdStyle, background: "#0f1419", padding: 12 } }, /* @__PURE__ */ React.createElement("pre", { style: {
+        margin: 0,
+        fontSize: 11,
+        color: "#a3aebb",
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word"
+      } }, JSON.stringify(row, null, 2)))));
+    }))))))))));
   }
   window.AdminPage = AdminPage;
   if (typeof document !== "undefined" && document.getElementById("root")) {
