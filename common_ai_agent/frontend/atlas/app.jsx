@@ -92,7 +92,6 @@ const atlasNavigationIntent = () => {
   try {
     const params = new URLSearchParams(window.location.search || '');
     const view = String(params.get('view') || '').trim().toLowerCase();
-    const savedScreen = String(localStorage.getItem('atlasScreen') || '').trim().toLowerCase();
     const hasContext = !!(
       params.get('session') ||
       params.get('session_id') ||
@@ -101,17 +100,14 @@ const atlasNavigationIntent = () => {
       params.get('workflow') ||
       params.get('wf')
     );
-    return { view, savedScreen, hasContext };
+    return { view, hasContext };
   } catch (_) {
-    return { view: '', savedScreen: '', hasContext: false };
+    return { view: '', hasContext: false };
   }
 };
 const atlasShouldHoldDashboardActivation = () => {
   const intent = atlasNavigationIntent();
-  return !intent.hasContext && (
-    intent.view === 'dashboard' ||
-    (!intent.view && (!intent.savedScreen || intent.savedScreen === 'dashboard'))
-  );
+  return !intent.hasContext;
 };
 
 // ── PipelineRunningChip ───────────────────────────────────────────
@@ -310,6 +306,14 @@ const App = () => {
     return { sessionId: parts[0] || 'default', ipId: '', workflow: '' };
   }, [TOP_WORKFLOWS, isWorkflowSegment, normalizeSession]);
 
+  // Bumped to Date.now() whenever the user explicitly picks an IP /
+  // workflow / session. While the timestamp is fresh, the periodic
+  // /healthz sync defers to the UI selection — otherwise a stale
+  // CONTEXT tick fired between the optimistic local update and the
+  // /api/session/activate POST landing on the backend would snap the
+  // dropdowns back to the previous (often "default") triple.
+  const userPickAtRef = React.useRef(0);
+
   const initialUrlNamespaceRef = React.useRef((() => {
     try {
       const url = new URL(window.location.href);
@@ -333,14 +337,15 @@ const App = () => {
     }
   })());
 
+  const holdInitialDashboardActivation = atlasShouldHoldDashboardActivation();
   const initialStoredNamespace = (() => {
+    if (holdInitialDashboardActivation) return '';
     try { return normalizeSession(localStorage.getItem('atlasActiveSession') || ''); }
     catch (_) { return ''; }
   })();
   const initialBootstrapNamespace = normalizeSession(initialUrlNamespaceRef.current || '')
-    || normalizeSession(window.ACTIVE_SESSION || initialStoredNamespace || '');
+    || (holdInitialDashboardActivation ? '' : normalizeSession(window.ACTIVE_SESSION || initialStoredNamespace || ''));
   const initialSplit = splitSessionNamespace(initialBootstrapNamespace);
-  const holdInitialDashboardActivation = atlasShouldHoldDashboardActivation();
   const [activeSessionId, setActiveSessionId] = React.useState(
     normalizeSession(window.ATLAS_USER_SESSION_ID || initialSplit.sessionId) || 'default'
   );
@@ -470,6 +475,11 @@ const App = () => {
     } catch (_) {}
     return () => { subs.forEach(u => { try { u && u(); } catch (_) {} }); };
   }, [setAgentRunningState]);
+  React.useEffect(() => {
+    if (!wfSwitching) return undefined;
+    const t = setTimeout(() => setWfSwitching(null), 2500);
+    return () => clearTimeout(t);
+  }, [wfSwitching]);
 
   // First-connect handshake indicator. Runs a small protocol on mount:
   //   1) WS connects               → 'ws'
@@ -520,18 +530,11 @@ const App = () => {
           const currentOwner = (currentNs.split('/').filter(Boolean)[0] || '');
           localStorage.setItem('atlasUserSessionId', username);
           if (hasUrlContext || (!holdDashboardActivation && (!currentNs || currentNs === 'default' || (currentOwner && currentOwner !== username)))) {
-            const savedScreen = (() => {
-              try { return localStorage.getItem('atlasScreen') || ''; }
-              catch (_) { return ''; }
-            })();
-            const screenWf = savedScreen === 'pipeline'
-              ? 'orchestrator'
-              : savedScreen === 'architect' ? 'architect' : '';
             const currentParts = currentNs
               ? splitSessionNamespace(currentNs)
               : { sessionId: '', ipId: '', workflow: '' };
             const nextIp = requestedIp || currentParts.ipId || WORKFLOW_DEFAULT;
-            const nextWf = requestedWf || screenWf || currentParts.workflow || WORKFLOW_DEFAULT;
+            const nextWf = requestedWf || currentParts.workflow || WORKFLOW_DEFAULT;
             const nextNs = `${username}/${nextIp}/${nextWf}`;
             window.ACTIVE_SESSION = nextNs;
             localStorage.setItem('atlasActiveSession', nextNs);
@@ -547,19 +550,17 @@ const App = () => {
             window.history.replaceState(null, '', url);
           } else if (holdDashboardActivation) {
             setActiveSessionId(username);
-            if (!currentNs || currentNs === 'default' || (currentOwner && currentOwner !== username)) {
-              window.ACTIVE_SESSION = '';
-              localStorage.removeItem('atlasActiveSession');
-              setActiveNamespace('');
-              setActiveIp(WORKFLOW_DEFAULT);
-              url.searchParams.delete('session');
-              url.searchParams.delete('session_id');
-              url.searchParams.delete('ip');
-              url.searchParams.delete('ip_id');
-              url.searchParams.delete('workflow');
-              url.searchParams.delete('wf');
-              window.history.replaceState(null, '', url);
-            }
+            window.ACTIVE_SESSION = '';
+            localStorage.removeItem('atlasActiveSession');
+            setActiveNamespace('');
+            setActiveIp(WORKFLOW_DEFAULT);
+            url.searchParams.delete('session');
+            url.searchParams.delete('session_id');
+            url.searchParams.delete('ip');
+            url.searchParams.delete('ip_id');
+            url.searchParams.delete('workflow');
+            url.searchParams.delete('wf');
+            window.history.replaceState(null, '', url);
           }
           const activeForBackend = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
           if (activeForBackend) {
@@ -769,6 +770,7 @@ const App = () => {
   }, [normalizeSession]);
 
   const activateNamespace = React.useCallback((sessionId, ipId, workflow, syncWorkflow = true, opts = {}) => {
+    userPickAtRef.current = Date.now();
     const owner = normalizeSession(sessionId) || 'default';
     const ip = normalizeSession(ipId || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
     const wf = normalizeSession(workflow || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
@@ -878,6 +880,7 @@ const App = () => {
   const refreshTopTargets = React.useCallback(async () => {
     const nextSessionIds = new Set(['default']);
     const currentUserSession = normalizeSession(window.ATLAS_USER_SESSION_ID || activeSessionId);
+    const holdActivation = atlasShouldHoldDashboardActivation();
     if (currentUserSession) nextSessionIds.add(currentUserSession);
     const nextIps = new Set([WORKFLOW_DEFAULT]);
     const acceptIp = (id) => id && (id === WORKFLOW_DEFAULT || !RESERVED_IP_NAMES.has(id));
@@ -923,7 +926,29 @@ const App = () => {
       }
     } catch (_) {}
 
-    const liveNamespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace) || namespaceFor(currentUserSession, activeIp, currentWorkflow());
+    const liveNamespace = holdActivation
+      ? ''
+      : (normalizeSession(window.ACTIVE_SESSION || activeNamespace) || namespaceFor(currentUserSession, activeIp, currentWorkflow()));
+    if (!liveNamespace) {
+      setSessionIdOptions(Array.from(nextSessionIds).sort((a, b) => {
+        if (a === currentUserSession) return -1;
+        if (b === currentUserSession) return 1;
+        if (a === 'default') return -1;
+        if (b === 'default') return 1;
+        return a.localeCompare(b);
+      }));
+      const sortedIps = Array.from(nextIps).sort((a, b) => {
+        if (a === WORKFLOW_DEFAULT) return -1;
+        if (b === WORKFLOW_DEFAULT) return 1;
+        return a.localeCompare(b);
+      });
+      setIpOptions(sortedIps);
+      window.IP_OPTIONS = sortedIps;
+      setActiveSessionId(currentUserSession || 'default');
+      setActiveNamespace('');
+      setActiveIp(WORKFLOW_DEFAULT);
+      return;
+    }
     const parsedLive = splitSessionNamespace(liveNamespace);
     if (parsedLive.sessionId) nextSessionIds.add(parsedLive.sessionId);
     // Don't auto-include parsedLive.ipId: when the user deletes a
@@ -958,6 +983,20 @@ const App = () => {
   React.useEffect(() => {
     let timer = null;
     const syncCurrent = (ev) => {
+      if (atlasShouldHoldDashboardActivation()) {
+        const authOwner = normalizeSession(
+          (window.ATLAS_USER && window.ATLAS_USER.username) ||
+          window.ATLAS_USER_SESSION_ID ||
+          activeSessionId ||
+          'default'
+        ) || 'default';
+        window.ACTIVE_SESSION = '';
+        try { localStorage.removeItem('atlasActiveSession'); } catch (_) {}
+        setActiveSessionId(authOwner);
+        setActiveNamespace('');
+        setActiveIp(WORKFLOW_DEFAULT);
+        return;
+      }
       const ctx = window.CONTEXT || {};
       const ctxSession = normalizeSession(ctx.active_session || ctx.activeSession || '');
       // refreshHealth periodic poll → backend is the ground truth.
@@ -990,10 +1029,18 @@ const App = () => {
         // DB-backed multi-user mode the authenticated user owns the browser
         // namespace, so do not let that stale backend context rewrite the UI
         // back to default and poison the websocket session.
+        // Recent user-initiated picks (IP/workflow/session dropdown) win
+        // over backend CONTEXT for a brief window. Without this, a /healthz
+        // tick firing between the optimistic UI update and the
+        // /api/session/activate POST landing on the backend would yank the
+        // dropdowns back to the stale triple the backend still reports.
+        const userPickIsFresh = (Date.now() - userPickAtRef.current) < 5000;
         if (urlStillOwnsBoot) {
           namespace = initialUrlNamespace;
         } else if (authOwner && ctxOwner && ctxOwner !== authOwner && ctxOwner !== 'local-admin') {
           namespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
+        } else if (userPickIsFresh) {
+          namespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '') || ctxSession;
         } else {
           namespace = ctxSession;
         }
@@ -1062,17 +1109,10 @@ const App = () => {
     // gate will rewrite localStorage and we'll re-fire then.
     const owner = parsed.sessionId || '';
     if (owner && owner !== (window.ATLAS_USER.username || '')) return;
-    const savedScreen = (() => {
-      try { return localStorage.getItem('atlasScreen') || ''; }
-      catch (_) { return ''; }
-    })();
-    const screenWf = savedScreen === 'pipeline'
-      ? 'orchestrator'
-      : savedScreen === 'architect' ? 'architect' : '';
     activateNamespace(
       parsed.sessionId || activeSessionId || 'default',
       parsed.ipId || WORKFLOW_DEFAULT,
-      screenWf || parsed.workflow || WORKFLOW_DEFAULT,
+      parsed.workflow || WORKFLOW_DEFAULT,
       true
     );
     // Run once on mount AFTER auth: this is the URL/localStorage → backend handshake.
@@ -1265,15 +1305,21 @@ const App = () => {
     try {
       const params = new URLSearchParams(window.location.search || '');
       const urlView = (params.get('view') || '').trim().toLowerCase();
+      const hasUrlContext = !!(
+        params.get('session') ||
+        params.get('session_id') ||
+        params.get('ip') ||
+        params.get('ip_id') ||
+        params.get('workflow') ||
+        params.get('wf')
+      );
       // Explicit ?view=pipeline / ?view=architect still honored so
-      // deep links keep working — but a bare ?ip=<name> no longer
-      // jumps to the Pipeline screen (which then auto-flipped the
-      // workflow to 'orchestrator' on every IP pick). Default mode
-      // is Workspace; user clicks ◫ Pipeline / ◇ Architect chips to
-      // enter those flows explicitly.
+      // deep links keep working. Without URL context, do not restore a
+      // cached workspace/pipeline screen after login; the dashboard should
+      // be the explicit entry point for IP/workflow selection.
       if (urlView === 'dashboard' || urlView === 'workspace' || urlView === 'pipeline' || urlView === 'architect') return urlView;
       const saved = localStorage.atlasScreen;
-      if (saved === 'dashboard' || saved === 'workspace' || saved === 'pipeline' || saved === 'architect') return saved;
+      if (hasUrlContext && (saved === 'dashboard' || saved === 'workspace' || saved === 'pipeline' || saved === 'architect')) return saved;
       return 'dashboard';
     } catch (_) { return 'dashboard'; }
   });
@@ -1551,12 +1597,17 @@ const App = () => {
       )}
       {wfSwitching && (
         <div role="status" aria-live="polite" style={{
-          position: 'absolute', top: 0, left: 0, right: 0, zIndex: 300,
-          padding: '2px 10px', fontSize: 11, fontFamily: 'var(--mono)',
-          background: 'color-mix(in oklch, var(--accent) 22%, var(--bg, #000))',
-          color: 'var(--accent)', borderBottom: '1px solid var(--accent)',
+          position: 'fixed', right: 12, bottom: 12, zIndex: 1200,
+          maxWidth: 'min(520px, calc(100vw - 24px))',
+          padding: '6px 10px', fontSize: 11, fontFamily: 'var(--mono)',
+          background: 'var(--panel)',
+          color: 'var(--accent)',
+          border: '1px solid var(--accent)',
+          borderRadius: 6,
+          boxShadow: '0 10px 28px color-mix(in oklch, var(--fg) 18%, transparent)',
           display: 'flex', alignItems: 'center', gap: 8,
-          height: 20, lineHeight: '16px',
+          lineHeight: '16px',
+          pointerEvents: 'none',
         }}>
           <span style={{
             display: 'inline-block',
