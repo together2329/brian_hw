@@ -158,7 +158,7 @@ function_model:
   state_variables:
     - { name: "last_winner", source: "registers.STATUS.winner", reset: 0, description: "Index of the last granted requestor; used as priority rotation base" }
     - { name: "arb_enabled", source: "registers.CTRL.enable", reset: 1, description: "Global arbiter enable from CSR" }
-    - { name: "req_mask", source: "registers.REQ_MASK", reset: "all-ones", description: "Per-request enable mask (1=enabled, 0=masked)" }
+    - { name: "req_mask", source: "registers.REQ_MASK.mask", reset: 15, description: "Per-request enable mask (1=enabled, 0=masked); reset all-ones for NUM_REQ=4" }
   transactions:
     - id: "FM1"
       name: "arbitrate_grant"

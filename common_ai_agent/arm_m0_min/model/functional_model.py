@@ -12,7 +12,7 @@ import json
 import re
 
 
-SSOT_MODEL = {'ip': 'arm_m0_min', 'parameters': {'XLEN': 32, 'RESET_PC': 0, 'ENABLE_FAULT_HALT': 1}, 'top_module': {'name': 'arm_m0_min', 'file': 'rtl/arm_m0_min.sv', 'version': '1.0', 'type': 'cpu', 'description': 'Minimal ARMv6-M-like educational CPU with a 3-stage in-order pipeline and dual AHB-Lite master ports.', 'reference_spec': 'ARMv6-M architectural subset (teaching profile)', 'target': {'technology': 'generic', 'clock_freq_mhz': 50, 'area_um2': None, 'power_mw': None}}, 'memory': {'instances': [{'name': 'if_id_instr', 'type': 'register', 'depth': 1, 'width': 32, 'read_ports': 1, 'write_ports': 1, 'latency': 0, 'description': 'IF/ID pipeline latch'}, {'name': 'id_ex_ctrl', 'type': 'register', 'depth': 1, 'width': 64, 'read_ports': 1, 'write_ports': 1, 'latency': 0, 'description': 'ID/EX control+operand latch'}], 'note': 'No internal SRAM/FIFO macros in minimal core'}, 'registers': {'no_csr': True, 'no_registers': True, 'policy': 'No firmware-visible CSR/register map is implemented in this profile; add register_list entries before CSR behavior is permitted.', 'note': 'No APB/CSR register map is exposed by this CPU leaf; only architectural GPR/PC/flags internal state exists.', 'config': {'register_width': 32, 'addr_width': 0, 'byte_addressable': False}, 'register_list': []}, 'function_model': {'purpose': 'Cycle-independent architectural contract for downstream RTL and scoreboard generation', 'state_variables': [{'name': 'pc', 'source': 'register_file.R15', 'reset': 0, 'description': 'Program counter'}, {'name': 'gpr', 'source': 'register_file.R0_R14', 'reset': 0, 'description': 'General registers'}, {'name': 'nzcv', 'source': 'arch_flags', 'reset': 0, 'description': 'Condition flags'}, {'name': 'fault_halt', 'source': 'fault_state', 'reset': 0, 'description': 'Fault-halt latch'}], 'transactions': [{'id': 'TX_DECODE_EXEC', 'name': 'alu_compare_branch', 'preconditions': ['fault_halt == 0', 'instruction fetch completed with i_hready == 1 and i_hresp == OKAY'], 'inputs': ['decoded opcode', 'operand values from architectural registers'], 'outputs': ['ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR', 'NZCV updated only for CMP', 'PC updated sequentially or redirected for B/BEQ/BNE'], 'output_rules': [{'name': 'pc_next_addr', 'expr': '(branch_target) if (branch_taken) else ((pc + 2))', 'width': 32, 'port': 'i_haddr'}, {'name': 'store_data_mux', 'expr': '(rs2) if (is_store) else (0)', 'width': 32, 'port': 'd_hwdata'}], 'side_effects': ['pc advances by instruction size on non-branch', 'pc set to target when branch taken'], 'error_cases': [{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}]}, {'id': 'TX_LOAD_STORE', 'name': 'single_transfer_memory_access', 'preconditions': ['fault_halt == 0', 'decoded opcode is LDR or STR'], 'inputs': ['base register', 'immediate offset', 'store data for STR or bus read data for LDR'], 'outputs': ['LDR updates destination register with returned word', 'STR commits one data write on bus'], 'output_rules': [{'name': 'd_haddr_rule', 'expr': 'base + imm', 'width': 32, 'port': 'd_haddr'}, {'name': 'd_hwrite_rule', 'expr': '(1) if (is_store) else (0)', 'width': 1, 'port': 'd_hwrite'}], 'side_effects': ['pc advances after transfer completion'], 'error_cases': [{'condition': 'data bus response ERROR', 'result': 'fault_halt set and no further instruction retirement'}]}], 'invariants': ['No instruction retires while fault_halt==1.', 'IF/ID/EX ordering remains in-order with no out-of-order commit.', 'Register writes occur only from committed EX outcomes.'], 'reference_model_hint': 'tb-gen should create a Python architectural model tracking pc/gpr/nzcv/fault_halt and compare each committed instruction outcome.'}, 'cycle_model': {'purpose': 'Cycle-accurate handshake and stage ordering contract', 'executable': 'pymtl3', 'clock': 'clk', 'reset': {'assertion': 'When rst=1 at rising edge, pipeline and architectural state reset synchronously', 'deassertion': 'After rst returns 0, fetch starts on next rising edge'}, 'latency': {'fetch_accept': {'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}, 'alu_instr': {'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}, 'load_store_instr': {'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}}, 'handshake_rules': [{'signal': 'i_htrans', 'rule': 'IF keeps transfer intent stable until i_hready handshake occurs'}, {'signal': 'd_htrans', 'rule': 'EX keeps active transfer until d_hready indicates completion'}, {'signal': 'd_hwdata', 'rule': 'For STR, write data remains stable while waiting for d_hready'}], 'pipeline': [{'stage': 'IF', 'cycle': 'n', 'action': 'Drive instruction address/control and capture instruction on ready'}, {'stage': 'ID', 'cycle': 'n+1', 'action': 'Decode instruction and read source operands'}, {'stage': 'EX', 'cycle': 'n+2', 'action': 'Execute/branch/load-store and commit results'}], 'ordering': ['Program-order retirement: instruction i commits before i+1.', 'Branch redirection affects subsequent fetch only after branch evaluation reaches commit boundary.'], 'backpressure': ['i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state.', 'd_hready=0 stalls memory operation in EX; no duplicate commit allowed.'], 'observability': ['Expose stage valid/stall indicators, pc, decode class, bus handshakes, and fault_halt for waveform and checker correlation.'], 'performance': {'ipc_nominal': 1.0, 'stall_sensitivity': {'if_backpressure': 'IPC degrades proportionally to i_hready low duty cycle', 'mem_backpressure': 'IPC degrades during load/store wait windows on d_hready low'}, 'branch_penalty_cycles': {'taken_min': 1, 'taken_max': 2}}}, 'fcov_bins': [{'id': 'SC_ALU_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[0]', 'scenario': 'SC_ALU', 'description': 'ALU instruction correctness'}, {'id': 'SC_CMP_BRANCH_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[1]', 'scenario': 'SC_CMP_BRANCH', 'description': 'CMP and conditional branching'}, {'id': 'SC_LOAD_STORE_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[2]', 'scenario': 'SC_LOAD_STORE', 'description': 'Load/store handshake behavior'}, {'id': 'SC_IF_STALL_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[3]', 'scenario': 'SC_IF_STALL', 'description': 'Instruction fetch backpressure'}, {'id': 'SC_BUS_ERROR_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[4]', 'scenario': 'SC_BUS_ERROR', 'description': 'Bus error to fault-halt'}, {'id': 'fcov_tx_decode_exec', 'class': 'transaction', 'coverage_domain': 'function', 'source': 'function_model.transactions.TX_DECODE_EXEC', 'source_ref': 'function_model.transactions.TX_DECODE_EXEC', 'description': 'ALU/compare/branch transaction observed'}, {'id': 'fcov_tx_load_store', 'class': 'transaction', 'coverage_domain': 'function', 'source': 'function_model.transactions.TX_LOAD_STORE', 'source_ref': 'function_model.transactions.TX_LOAD_STORE', 'description': 'Load/store transaction observed'}, {'id': 'ccov_if_stall', 'class': 'stall', 'coverage_domain': 'cycle', 'source': 'cycle_model.backpressure', 'source_ref': 'cycle_model.backpressure', 'description': 'IF backpressure observed'}, {'id': 'ccov_mem_stall', 'class': 'stall', 'coverage_domain': 'cycle', 'source': 'cycle_model.handshake_rules', 'source_ref': 'cycle_model.handshake_rules', 'description': 'MEM backpressure observed'}, {'id': 'ccov_pipeline_order', 'class': 'ordering', 'coverage_domain': 'cycle', 'source': 'cycle_model.ordering', 'source_ref': 'cycle_model.ordering', 'description': 'In-order commit observed'}, {'id': 'function_alu_compare_branch', 'class': 'transaction_type', 'coverage_domain': 'function', 'source': 'function_model.transactions[0]', 'source_ref': 'function_model.transactions.tx_decode_exec', 'description': 'alu_compare_branch'}, {'id': 'function_single_transfer_memory_access', 'class': 'transaction_type', 'coverage_domain': 'function', 'source': 'function_model.transactions[1]', 'source_ref': 'function_model.transactions.tx_load_store', 'description': 'single_transfer_memory_access'}, {'id': 'cycle_handshake_0', 'class': 'protocol', 'coverage_domain': 'cycle', 'source': 'cycle_model.handshake_rules[0]', 'source_ref': 'cycle_model.handshake_rules[0]', 'description': "{'signal': 'i_htrans', 'rule': 'IF keeps transfer intent stable until i_hready handshake occurs'}"}, {'id': 'cycle_handshake_1', 'class': 'protocol', 'coverage_domain': 'cycle', 'source': 'cycle_model.handshake_rules[1]', 'source_ref': 'cycle_model.handshake_rules[1]', 'description': "{'signal': 'd_htrans', 'rule': 'EX keeps active transfer until d_hready indicates completion'}"}, {'id': 'cycle_handshake_2', 'class': 'protocol', 'coverage_domain': 'cycle', 'source': 'cycle_model.handshake_rules[2]', 'source_ref': 'cycle_model.handshake_rules[2]', 'description': "{'signal': 'd_hwdata', 'rule': 'For STR, write data remains stable while waiting for d_hready'}"}, {'id': 'cycle_latency_fetch_accept', 'class': 'latency', 'coverage_domain': 'cycle', 'source': 'cycle_model.latency.fetch_accept', 'source_ref': 'cycle_model.latency.fetch_accept', 'description': "{'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}"}, {'id': 'cycle_latency_alu_instr', 'class': 'latency', 'coverage_domain': 'cycle', 'source': 'cycle_model.latency.alu_instr', 'source_ref': 'cycle_model.latency.alu_instr', 'description': "{'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}"}, {'id': 'cycle_latency_load_store_instr', 'class': 'latency', 'coverage_domain': 'cycle', 'source': 'cycle_model.latency.load_store_instr', 'source_ref': 'cycle_model.latency.load_store_instr', 'description': "{'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}"}, {'id': 'cycle_pipeline_if', 'class': 'pipeline_stage', 'coverage_domain': 'cycle', 'source': 'cycle_model.pipeline[0]', 'source_ref': 'cycle_model.pipeline[0]', 'description': 'Drive instruction address/control and capture instruction on ready'}, {'id': 'cycle_pipeline_id', 'class': 'pipeline_stage', 'coverage_domain': 'cycle', 'source': 'cycle_model.pipeline[1]', 'source_ref': 'cycle_model.pipeline[1]', 'description': 'Decode instruction and read source operands'}, {'id': 'cycle_pipeline_ex', 'class': 'pipeline_stage', 'coverage_domain': 'cycle', 'source': 'cycle_model.pipeline[2]', 'source_ref': 'cycle_model.pipeline[2]', 'description': 'Execute/branch/load-store and commit results'}, {'id': 'cycle_ordering_0', 'class': 'ordering', 'coverage_domain': 'cycle', 'source': 'cycle_model.ordering[0]', 'source_ref': 'cycle_model.ordering[0]', 'description': 'Program-order retirement: instruction i commits before i+1.'}, {'id': 'cycle_ordering_1', 'class': 'ordering', 'coverage_domain': 'cycle', 'source': 'cycle_model.ordering[1]', 'source_ref': 'cycle_model.ordering[1]', 'description': 'Branch redirection affects subsequent fetch only after branch evaluation reaches commit boundary.'}, {'id': 'cycle_backpressure_0', 'class': 'backpressure', 'coverage_domain': 'cycle', 'source': 'cycle_model.backpressure[0]', 'source_ref': 'cycle_model.backpressure[0]', 'description': 'i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state.'}, {'id': 'cycle_backpressure_1', 'class': 'backpressure', 'coverage_domain': 'cycle', 'source': 'cycle_model.backpressure[1]', 'source_ref': 'cycle_model.backpressure[1]', 'description': 'd_hready=0 stalls memory operation in EX; no duplicate commit allowed.'}, {'id': 'fsm_core_reset_to_run_0', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[0]', 'source_ref': 'fsm.core.transitions[0]', 'description': 'rst deasserted'}, {'id': 'fsm_core_run_to_stall_if_1', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[1]', 'source_ref': 'fsm.core.transitions[1]', 'description': 'i_hready==0'}, {'id': 'fsm_core_stall_if_to_run_2', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[2]', 'source_ref': 'fsm.core.transitions[2]', 'description': 'i_hready==1'}, {'id': 'fsm_core_run_to_stall_mem_3', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[3]', 'source_ref': 'fsm.core.transitions[3]', 'description': 'active load/store && d_hready==0'}, {'id': 'fsm_core_stall_mem_to_run_4', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[4]', 'source_ref': 'fsm.core.transitions[4]', 'description': 'd_hready==1 && d_hresp==OKAY'}, {'id': 'fsm_core_run_to_fault_halt_5', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[5]', 'source_ref': 'fsm.core.transitions[5]', 'description': 'i_hresp==ERROR || d_hresp==ERROR'}, {'id': 'fsm_core_stall_mem_to_fault_halt_6', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[6]', 'source_ref': 'fsm.core.transitions[6]', 'description': 'd_hresp==ERROR'}, {'id': 'fsm_core_fault_halt_to_reset_7', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[7]', 'source_ref': 'fsm.core.transitions[7]', 'description': 'rst asserted'}, {'id': 'error_i_bus_error', 'class': 'error', 'coverage_domain': 'function', 'source': 'error_handling.error_sources[0]', 'source_ref': 'error_handling.error_sources[0]', 'description': "{'name': 'I_BUS_ERROR', 'detect': 'i_hresp==ERROR when instruction transfer completes', 'effect': 'enter FAULT_HALT'}"}, {'id': 'error_d_bus_error', 'class': 'error', 'coverage_domain': 'function', 'source': 'error_handling.error_sources[1]', 'source_ref': 'error_handling.error_sources[1]', 'description': "{'name': 'D_BUS_ERROR', 'detect': 'd_hresp==ERROR when data transfer completes', 'effect': 'enter FAULT_HALT'}"}]}
+SSOT_MODEL = {'ip': 'arm_m0_min', 'parameters': {'XLEN': 32, 'RESET_PC': 0, 'ENABLE_FAULT_HALT': 1}, 'top_module': {'name': 'arm_m0_min', 'file': 'rtl/arm_m0_min.sv', 'version': '1.0', 'type': 'cpu', 'description': 'Minimal ARMv6-M-like educational CPU with a 3-stage in-order pipeline and dual AHB-Lite master ports.', 'reference_spec': 'ARMv6-M architectural subset (teaching profile)', 'target': {'technology': 'generic', 'clock_freq_mhz': 50, 'area_um2': None, 'power_mw': None}}, 'memory': {'instances': [{'name': 'if_id_instr', 'type': 'register', 'depth': 1, 'width': 32, 'read_ports': 1, 'write_ports': 1, 'latency': 0, 'description': 'IF/ID pipeline latch'}, {'name': 'id_ex_ctrl', 'type': 'register', 'depth': 1, 'width': 64, 'read_ports': 1, 'write_ports': 1, 'latency': 0, 'description': 'ID/EX control+operand latch'}], 'note': 'No internal SRAM/FIFO macros in minimal core'}, 'registers': {'no_csr': True, 'no_registers': True, 'policy': 'No firmware-visible CSR/register map is implemented in this profile; add register_list entries before CSR behavior is permitted.', 'note': 'No APB/CSR register map is exposed by this CPU leaf; only architectural GPR/PC/flags internal state exists.', 'config': {'register_width': 32, 'addr_width': 0, 'byte_addressable': False}, 'register_list': []}, 'function_model': {'purpose': 'Cycle-independent architectural contract for downstream RTL and scoreboard generation', 'state_variables': [{'name': 'pc', 'source': 'register_file.R15', 'reset': 0, 'description': 'Program counter'}, {'name': 'gpr', 'source': 'register_file.R0_R14', 'reset': 0, 'description': 'General registers'}, {'name': 'nzcv', 'source': 'arch_flags', 'reset': 0, 'description': 'Condition flags'}, {'name': 'fault_halt', 'source': 'fault_state', 'reset': 0, 'description': 'Fault-halt latch'}], 'transactions': [{'id': 'TX_DECODE_EXEC', 'name': 'alu_compare_branch', 'sample_stage': 'EX', 'preconditions': ['fault_halt == 0', 'instruction fetch completed with i_hready == 1 and i_hresp == OKAY'], 'inputs': ['decoded opcode', 'operand values from architectural registers'], 'outputs': ['ALU destination register update for ADD/SUB/AND/ORR/EOR/MOV/LSL/LSR/ASR', 'NZCV updated only for CMP', 'PC updated sequentially or redirected for B/BEQ/BNE'], 'output_rules': [{'name': 'pc_next_addr', 'expr': '(branch_target) if (branch_taken) else ((pc + 2))', 'width': 32, 'port': 'i_haddr'}, {'name': 'store_data_mux', 'expr': '(rs2) if (is_store) else (0)', 'width': 32, 'port': 'd_hwdata'}], 'side_effects': ['pc advances by instruction size on non-branch', 'pc set to target when branch taken'], 'error_cases': [{'condition': 'instruction bus response ERROR', 'result': 'fault_halt set and architectural state frozen except reset'}]}, {'id': 'TX_LOAD_STORE', 'name': 'single_transfer_memory_access', 'sample_stage': 'EX', 'preconditions': ['fault_halt == 0', 'decoded opcode is LDR or STR'], 'inputs': ['base register', 'immediate offset', 'store data for STR or bus read data for LDR'], 'outputs': ['LDR updates destination register with returned word', 'STR commits one data write on bus'], 'output_rules': [{'name': 'd_haddr_rule', 'expr': 'base + imm', 'width': 32, 'port': 'd_haddr'}, {'name': 'd_hwrite_rule', 'expr': '(1) if (is_store) else (0)', 'width': 1, 'port': 'd_hwrite'}], 'side_effects': ['pc advances after transfer completion'], 'error_cases': [{'condition': 'data bus response ERROR', 'result': 'fault_halt set and no further instruction retirement'}]}], 'invariants': ['No instruction retires while fault_halt==1.', 'IF/ID/EX ordering remains in-order with no out-of-order commit.', 'Register writes occur only from committed EX outcomes.'], 'reference_model_hint': 'tb-gen should create a Python architectural model tracking pc/gpr/nzcv/fault_halt and compare each committed instruction outcome.'}, 'cycle_model': {'purpose': 'Cycle-accurate handshake and stage ordering contract', 'executable': 'pymtl3', 'clock': 'clk', 'reset': {'assertion': 'When rst=1 at rising edge, pipeline and architectural state reset synchronously', 'deassertion': 'After rst returns 0, fetch starts on next rising edge'}, 'latency': {'fetch_accept': {'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}, 'alu_instr': {'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}, 'load_store_instr': {'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}}, 'handshake_rules': [{'signal': 'i_htrans', 'rule': 'IF keeps transfer intent stable until i_hready handshake occurs'}, {'signal': 'd_htrans', 'rule': 'EX keeps active transfer until d_hready indicates completion'}, {'signal': 'd_hwdata', 'rule': 'For STR, write data remains stable while waiting for d_hready'}], 'pipeline': [{'stage': 'IF', 'cycle': 0, 'action': 'Drive instruction address/control and capture instruction on ready', 'output_rules': [{'name': 'i_haddr', 'port': 'i_haddr', 'expr': 'pc', 'width': 32}, {'name': 'i_htrans', 'port': 'i_htrans', 'expr': '2 if i_hready else 0', 'width': 2}]}, {'stage': 'ID', 'cycle': 1, 'action': 'Decode instruction and read source operands', 'output_rules': [{'name': 'i_haddr', 'port': 'i_haddr', 'expr': 'pc + 4 if i_hready else pc', 'width': 32}, {'name': 'i_htrans', 'port': 'i_htrans', 'expr': '2 if i_hready else 0', 'width': 2}]}, {'stage': 'EX', 'cycle': 2, 'action': 'Execute/branch/load-store and commit results', 'output_rules': [{'name': 'retire_pulse', 'expr': '1 if (i_hready and d_hready and not is_branch_taken) else 0', 'width': 1}, {'name': 'busy', 'expr': '0 if (i_hready and d_hready) else 1', 'width': 1}]}], 'ordering': ['Program-order retirement: instruction i commits before i+1.', 'Branch redirection affects subsequent fetch only after branch evaluation reaches commit boundary.'], 'backpressure': ['i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state.', 'd_hready=0 stalls memory operation in EX; no duplicate commit allowed.'], 'observability': ['Expose stage valid/stall indicators, pc, decode class, bus handshakes, and fault_halt for waveform and checker correlation.'], 'performance': {'ipc_nominal': 1.0, 'stall_sensitivity': {'if_backpressure': 'IPC degrades proportionally to i_hready low duty cycle', 'mem_backpressure': 'IPC degrades during load/store wait windows on d_hready low'}, 'branch_penalty_cycles': {'taken_min': 1, 'taken_max': 2}}, 'use_per_cycle_expected': False}, 'fcov_bins': [{'id': 'SC_ALU_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[0]', 'scenario': 'SC_ALU', 'description': 'ALU instruction correctness'}, {'id': 'SC_CMP_BRANCH_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[1]', 'scenario': 'SC_CMP_BRANCH', 'description': 'CMP and conditional branching'}, {'id': 'SC_LOAD_STORE_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[2]', 'scenario': 'SC_LOAD_STORE', 'description': 'Load/store handshake behavior'}, {'id': 'SC_IF_STALL_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[3]', 'scenario': 'SC_IF_STALL', 'description': 'Instruction fetch backpressure'}, {'id': 'SC_BUS_ERROR_executed', 'class': 'scenario', 'source': 'test_requirements.scenarios[4]', 'scenario': 'SC_BUS_ERROR', 'description': 'Bus error to fault-halt'}, {'id': 'fcov_tx_decode_exec', 'class': 'transaction', 'coverage_domain': 'function', 'source': 'function_model.transactions.TX_DECODE_EXEC', 'source_ref': 'function_model.transactions.TX_DECODE_EXEC', 'description': 'ALU/compare/branch transaction observed'}, {'id': 'fcov_tx_load_store', 'class': 'transaction', 'coverage_domain': 'function', 'source': 'function_model.transactions.TX_LOAD_STORE', 'source_ref': 'function_model.transactions.TX_LOAD_STORE', 'description': 'Load/store transaction observed'}, {'id': 'ccov_if_stall', 'class': 'stall', 'coverage_domain': 'cycle', 'source': 'cycle_model.backpressure', 'source_ref': 'cycle_model.backpressure', 'description': 'IF backpressure observed'}, {'id': 'ccov_mem_stall', 'class': 'stall', 'coverage_domain': 'cycle', 'source': 'cycle_model.handshake_rules', 'source_ref': 'cycle_model.handshake_rules', 'description': 'MEM backpressure observed'}, {'id': 'ccov_pipeline_order', 'class': 'ordering', 'coverage_domain': 'cycle', 'source': 'cycle_model.ordering', 'source_ref': 'cycle_model.ordering', 'description': 'In-order commit observed'}, {'id': 'function_alu_compare_branch', 'class': 'transaction_type', 'coverage_domain': 'function', 'source': 'function_model.transactions[0]', 'source_ref': 'function_model.transactions.tx_decode_exec', 'description': 'alu_compare_branch'}, {'id': 'function_single_transfer_memory_access', 'class': 'transaction_type', 'coverage_domain': 'function', 'source': 'function_model.transactions[1]', 'source_ref': 'function_model.transactions.tx_load_store', 'description': 'single_transfer_memory_access'}, {'id': 'cycle_handshake_0', 'class': 'protocol', 'coverage_domain': 'cycle', 'source': 'cycle_model.handshake_rules[0]', 'source_ref': 'cycle_model.handshake_rules[0]', 'description': "{'signal': 'i_htrans', 'rule': 'IF keeps transfer intent stable until i_hready handshake occurs'}"}, {'id': 'cycle_handshake_1', 'class': 'protocol', 'coverage_domain': 'cycle', 'source': 'cycle_model.handshake_rules[1]', 'source_ref': 'cycle_model.handshake_rules[1]', 'description': "{'signal': 'd_htrans', 'rule': 'EX keeps active transfer until d_hready indicates completion'}"}, {'id': 'cycle_handshake_2', 'class': 'protocol', 'coverage_domain': 'cycle', 'source': 'cycle_model.handshake_rules[2]', 'source_ref': 'cycle_model.handshake_rules[2]', 'description': "{'signal': 'd_hwdata', 'rule': 'For STR, write data remains stable while waiting for d_hready'}"}, {'id': 'cycle_latency_fetch_accept', 'class': 'latency', 'coverage_domain': 'cycle', 'source': 'cycle_model.latency.fetch_accept', 'source_ref': 'cycle_model.latency.fetch_accept', 'description': "{'min_cycles': 1, 'max_cycles': None, 'description': 'Depends on i_hready backpressure'}"}, {'id': 'cycle_latency_alu_instr', 'class': 'latency', 'coverage_domain': 'cycle', 'source': 'cycle_model.latency.alu_instr', 'source_ref': 'cycle_model.latency.alu_instr', 'description': "{'min_cycles': 1, 'max_cycles': 1, 'description': 'No extra wait in EX for pure ALU ops'}"}, {'id': 'cycle_latency_load_store_instr', 'class': 'latency', 'coverage_domain': 'cycle', 'source': 'cycle_model.latency.load_store_instr', 'source_ref': 'cycle_model.latency.load_store_instr', 'description': "{'min_cycles': 1, 'max_cycles': None, 'description': 'Variable with d_hready'}"}, {'id': 'cycle_pipeline_if', 'class': 'pipeline_stage', 'coverage_domain': 'cycle', 'source': 'cycle_model.pipeline[0]', 'source_ref': 'cycle_model.pipeline[0]', 'description': 'Drive instruction address/control and capture instruction on ready'}, {'id': 'cycle_pipeline_id', 'class': 'pipeline_stage', 'coverage_domain': 'cycle', 'source': 'cycle_model.pipeline[1]', 'source_ref': 'cycle_model.pipeline[1]', 'description': 'Decode instruction and read source operands'}, {'id': 'cycle_pipeline_ex', 'class': 'pipeline_stage', 'coverage_domain': 'cycle', 'source': 'cycle_model.pipeline[2]', 'source_ref': 'cycle_model.pipeline[2]', 'description': 'Execute/branch/load-store and commit results'}, {'id': 'cycle_ordering_0', 'class': 'ordering', 'coverage_domain': 'cycle', 'source': 'cycle_model.ordering[0]', 'source_ref': 'cycle_model.ordering[0]', 'description': 'Program-order retirement: instruction i commits before i+1.'}, {'id': 'cycle_ordering_1', 'class': 'ordering', 'coverage_domain': 'cycle', 'source': 'cycle_model.ordering[1]', 'source_ref': 'cycle_model.ordering[1]', 'description': 'Branch redirection affects subsequent fetch only after branch evaluation reaches commit boundary.'}, {'id': 'cycle_backpressure_0', 'class': 'backpressure', 'coverage_domain': 'cycle', 'source': 'cycle_model.backpressure[0]', 'source_ref': 'cycle_model.backpressure[0]', 'description': 'i_hready=0 stalls IF and upstream PC progression without corrupting ID/EX committed state.'}, {'id': 'cycle_backpressure_1', 'class': 'backpressure', 'coverage_domain': 'cycle', 'source': 'cycle_model.backpressure[1]', 'source_ref': 'cycle_model.backpressure[1]', 'description': 'd_hready=0 stalls memory operation in EX; no duplicate commit allowed.'}, {'id': 'fsm_core_reset_to_run_0', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[0]', 'source_ref': 'fsm.core.transitions[0]', 'description': 'rst deasserted'}, {'id': 'fsm_core_run_to_stall_if_1', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[1]', 'source_ref': 'fsm.core.transitions[1]', 'description': 'i_hready==0'}, {'id': 'fsm_core_stall_if_to_run_2', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[2]', 'source_ref': 'fsm.core.transitions[2]', 'description': 'i_hready==1'}, {'id': 'fsm_core_run_to_stall_mem_3', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[3]', 'source_ref': 'fsm.core.transitions[3]', 'description': 'active load/store && d_hready==0'}, {'id': 'fsm_core_stall_mem_to_run_4', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[4]', 'source_ref': 'fsm.core.transitions[4]', 'description': 'd_hready==1 && d_hresp==OKAY'}, {'id': 'fsm_core_run_to_fault_halt_5', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[5]', 'source_ref': 'fsm.core.transitions[5]', 'description': 'i_hresp==ERROR || d_hresp==ERROR'}, {'id': 'fsm_core_stall_mem_to_fault_halt_6', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[6]', 'source_ref': 'fsm.core.transitions[6]', 'description': 'd_hresp==ERROR'}, {'id': 'fsm_core_fault_halt_to_reset_7', 'class': 'state_transition', 'coverage_domain': 'cycle', 'source': 'fsm.core.transitions[7]', 'source_ref': 'fsm.core.transitions[7]', 'description': 'rst asserted'}, {'id': 'error_i_bus_error', 'class': 'error', 'coverage_domain': 'function', 'source': 'error_handling.error_sources[0]', 'source_ref': 'error_handling.error_sources[0]', 'description': "{'name': 'I_BUS_ERROR', 'detect': 'i_hresp==ERROR when instruction transfer completes', 'effect': 'enter FAULT_HALT'}"}, {'id': 'error_d_bus_error', 'class': 'error', 'coverage_domain': 'function', 'source': 'error_handling.error_sources[1]', 'source_ref': 'error_handling.error_sources[1]', 'description': "{'name': 'D_BUS_ERROR', 'detect': 'd_hresp==ERROR when data transfer completes', 'effect': 'enter FAULT_HALT'}"}]}
 RESP_OKAY = 0
 RESP_SLVERR = 2
 
@@ -309,6 +309,7 @@ class FunctionalModel:
             self.params.update(params)
         self.state_defaults = self._state_defaults()
         self.state = dict(self.state_defaults)
+        self._declared_state_names = set(self.state_defaults)
         self.registers = self._register_defaults()
         self.trace = []
 
@@ -360,9 +361,43 @@ class FunctionalModel:
             return (lo + width - 1, lo)
         return (0, 0)
 
+    def _state_name_for_register(self, reg):
+        name = str(reg.get("name") or "").strip()
+        if not name:
+            return ""
+        fm = SSOT_MODEL.get("function_model") or {}
+        for row in fm.get("state_variables") or []:
+            if not isinstance(row, dict):
+                continue
+            source = str(row.get("source") or "").strip().lower()
+            state_name = str(row.get("name") or "").strip()
+            if state_name and source == f"registers.{name}".lower():
+                return state_name
+        norm = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+        candidates = [
+            norm,
+            f"{norm}_reg",
+            f"{norm}_q",
+            f"{norm}_r",
+            f"{norm}_value",
+        ]
+        for field in reg.get("fields") or []:
+            if isinstance(field, dict):
+                fname = re.sub(r"[^a-z0-9]+", "_", str(field.get("name") or "").lower()).strip("_")
+                if fname:
+                    candidates.extend([fname, f"{fname}_reg", f"{fname}_q", f"{fname}_r"])
+        for candidate in candidates:
+            if candidate in self.state:
+                return candidate
+        return ""
+
     def _register_read_value(self, reg):
         name = str(reg.get("name") or "")
-        value = _parse_int(self.registers.get(name, reg.get("reset", 0)), 0)
+        state_name = self._state_name_for_register(reg)
+        if state_name:
+            value = _parse_int(self.state.get(state_name), 0)
+        else:
+            value = _parse_int(self.registers.get(name, reg.get("reset", 0)), 0)
         for field in reg.get("fields") or []:
             if not isinstance(field, dict):
                 continue
@@ -434,6 +469,72 @@ class FunctionalModel:
         self.trace.append(entry)
         return result
 
+    def _derived_signal_items(self):
+        fm = SSOT_MODEL.get("function_model") or {}
+        return _rule_items(fm.get("derived_signals"))
+
+    def _resolve_derived_signals(self, env):
+        pending = []
+        for idx, item in enumerate(self._derived_signal_items()):
+            name = str(
+                item.get("name")
+                or item.get("signal")
+                or item.get("output")
+                or item.get("port")
+                or f"derived_{idx}"
+            )
+            expr = item.get("expr", item.get("expression", item.get("value", "")))
+            if name and expr not in (None, ""):
+                pending.append((name, expr, item.get("width") or item.get("bits")))
+
+        unresolved_errors = {}
+        for _pass in range(max(len(pending), 1) + 1):
+            progressed = False
+            next_pending = []
+            for name, expr, width in pending:
+                try:
+                    value = _eval_rule_expr(expr, env)
+                except KeyError as exc:
+                    unresolved_errors[name] = str(exc)
+                    next_pending.append((name, expr, width))
+                    continue
+                if width is not None:
+                    width_i = _parse_int(width, 0)
+                    value &= (1 << max(width_i, 0)) - 1 if width_i > 0 else value
+                env[name] = value
+                unresolved_errors.pop(name, None)
+                progressed = True
+            pending = next_pending
+            if not pending or not progressed:
+                break
+        return unresolved_errors
+
+    @staticmethod
+    def _norm_state_token(value):
+        text = re.sub(r"[^a-z0-9]+", "_", str(value or "").lower()).strip("_")
+        for suffix in ("_reg", "_q", "_r", "_ff"):
+            if text.endswith(suffix):
+                text = text[: -len(suffix)]
+                break
+        return text
+
+    def _state_update_target(self, update_name):
+        name = str(update_name or "").strip()
+        if name in self._declared_state_names:
+            return name
+        norm_name = self._norm_state_token(name)
+        best = ""
+        best_len = 0
+        for state_name in self._declared_state_names:
+            norm_state = self._norm_state_token(state_name)
+            if not norm_state:
+                continue
+            if norm_name == norm_state or norm_name.endswith("_" + norm_state) or f"_{norm_state}_" in norm_name:
+                if len(norm_state) > best_len:
+                    best = state_name
+                    best_len = len(norm_state)
+        return best
+
     def _rule_env(self, txn):
         env = {}
         env.update(_default_rule_helpers())
@@ -445,6 +546,7 @@ class FunctionalModel:
         env["reduction_or"] = lambda value: 1 if _parse_int(value, 0) != 0 else 0
         env.setdefault("true", 1)
         env.setdefault("false", 0)
+        self._resolve_derived_signals(env)
         return env
 
     def _apply_structured_rules(self, tx, txn):
@@ -554,6 +656,10 @@ class FunctionalModel:
                     continue
                 updates[name] = value
                 env[name] = value
+                target = self._state_update_target(name)
+                if target and target != name:
+                    updates[target] = value
+                    env[target] = value
                 unresolved_errors.pop(name, None)
                 progressed = True
             pending_updates = next_pending
@@ -565,7 +671,14 @@ class FunctionalModel:
             missing = ", ".join(f"{name}: {unresolved_errors.get(name, 'unresolved dependency')}" for name, _expr in pending_updates)
             raise KeyError(f"unresolved state update dependencies: {missing}")
         if updates:
-            self.state.update(updates)
+            commit_updates = {}
+            for update_name, value in updates.items():
+                target = self._state_update_target(update_name)
+                if target:
+                    commit_updates[target] = value
+                else:
+                    commit_updates[update_name] = value
+            self.state.update(commit_updates)
             result["state_updates"] = dict(updates)
         return result
 
@@ -607,16 +720,166 @@ class FunctionalModel:
     def apply(self, txn):
         txn = dict(txn or {})
         kind = self._norm(txn.get("kind") or txn.get("op") or txn.get("transaction") or "")
+        tx = self._find_transaction(kind)
+        if tx is not None:
+            if self._norm(tx.get("name")) == "reset" or self._norm(tx.get("id")) in {"reset", "fm_reset"}:
+                self.reset()
+                return self._record(kind or "reset", txn, {"kind": "reset", "resp": RESP_OKAY, "state": dict(self.state)})
+            return self._record(kind, txn, self._apply_primary(tx, txn))
         reg_result = self._apply_register_access(txn)
         if reg_result is not None:
             return self._record(kind or "register_access", txn, reg_result)
-        tx = self._find_transaction(kind)
         if tx is None:
             return self._record(kind or "unknown", txn, {"kind": kind or "unknown", "resp": RESP_SLVERR, "error": "unsupported_transaction"})
-        if self._norm(tx.get("name")) == "reset" or self._norm(tx.get("id")) in {"reset", "fm_reset"}:
-            self.reset()
-            return self._record(kind or "reset", txn, {"kind": "reset", "resp": RESP_OKAY, "state": dict(self.state)})
-        return self._record(kind, txn, self._apply_primary(tx, txn))
+
+    def _eval_precondition(self, expr, env):
+        """Evaluate a single precondition string against env.
+
+        SSOT preconditions are mostly Python-evaluable but occasionally carry
+        a trailing natural-language clause in parentheses (e.g.
+        '(req_i & req_mask) != 0 (at least one unmasked active request)').
+        Normalize SQL-style OR/AND/NOT to Python operators, strip trailing
+        natural-language parentheticals, and try progressively shorter
+        prefixes until ast.parse succeeds. Unparseable preconditions are
+        treated as True so they don't block transaction matching.
+        """
+        text = str(expr or "").strip()
+        if not text:
+            return True
+        # Normalize boolean operators (SSOT prose sometimes uses uppercase).
+        text = re.sub(r"\bOR\b", " or ",  text)
+        text = re.sub(r"\bAND\b", " and ", text)
+        text = re.sub(r"\bNOT\b", " not ", text)
+        # Drop trailing parenthesized natural-language comments
+        # ('something words ...'). Detect by alpha-majority content.
+        def _strip_nl_tail(s):
+            # Find a trailing " (...)" where contents are mostly alphabetic.
+            depth = 0
+            best_end = len(s)
+            i = len(s) - 1
+            # Walk from the right, capture the last balanced "(...)" tail.
+            while i >= 0:
+                ch = s[i]
+                if ch == ")":
+                    depth += 1
+                elif ch == "(":
+                    depth -= 1
+                    if depth == 0:
+                        inner = s[i + 1:best_end - 1]
+                        alpha = sum(1 for c in inner if c.isalpha())
+                        if alpha >= max(3, len(inner) // 2) and " " in inner:
+                            # Natural language tail.
+                            return s[:i].rstrip()
+                        break
+                i -= 1
+            return s
+        text = _strip_nl_tail(text)
+        # Try ast.parse on the full string, then on progressively shorter
+        # prefixes ending at a comparison/logical operator.
+        candidates = [text]
+        for tok in (" and ", " or "):
+            for piece in text.split(tok):
+                candidates.append(piece.strip())
+        for cand in candidates:
+            if not cand:
+                continue
+            try:
+                tree = ast.parse(cand, mode="eval")
+            except Exception:
+                continue
+            try:
+                return bool(eval(compile(tree, "<precond>", mode="eval"), {"__builtins__": {}}, dict(env)))
+            except Exception:
+                continue
+        return True
+
+    def _select_transaction(self, inputs):
+        """Pick the transaction whose preconditions all hold given inputs.
+
+        Mutually-exclusive preconditions (typical SSOT pattern) yield a single
+        active transaction. If multiple match, the first declared wins.
+        Returns (tx, txn_payload) or (None, None) if none match.
+        """
+        env = dict(self.state)
+        env.update(self.registers)
+        env.update(inputs or {})
+        for tx in self._transactions():
+            if self._norm(tx.get("name")) == "reset" or self._norm(tx.get("id")) in {"reset", "fm_reset"}:
+                continue
+            preconds = [p for p in (tx.get("preconditions") or []) if isinstance(p, str)]
+            if all(self._eval_precondition(p, env) for p in preconds):
+                txn = {"kind": tx.get("id") or tx.get("name")}
+                txn.update(inputs or {})
+                return tx, txn
+        return None, None
+
+    def step(self, inputs=None):
+        """Cycle-accurate step: select active transaction from preconditions,
+        apply its output_rules and state_updates against current state and
+        inputs, register the result. Mirrors the RTL's per-cycle behaviour
+        when cocotb drives the same inputs cycle-by-cycle.
+
+        Returns the structured result dict (same shape as apply()).
+        """
+        inputs = inputs or {}
+        tx, txn = self._select_transaction(inputs)
+        if tx is None:
+            # No transaction matched preconditions: hold state, emit zero outputs.
+            return {"kind": "idle", "resp": RESP_OKAY, "state": dict(self.state)}
+        try:
+            return self._record(tx.get("id") or "", txn, self._apply_primary(tx, txn))
+        except KeyError as exc:
+            # output_rule references a signal that's neither SSOT state, FL
+            # register, nor caller-provided input (e.g. decoded combinational
+            # signals: branch_taken, is_store). Surface a partial idle result
+            # rather than crash — the per-cycle co-sim path treats this as
+            # 'no comparable expected at this cycle for this IP'.
+            return {
+                "kind": "step_unresolved",
+                "resp": RESP_OKAY,
+                "transaction_id": tx.get("id"),
+                "transaction_name": tx.get("name"),
+                "step_unresolved": str(exc),
+            }
+
+    def csr_write(self, offset, data):
+        """Apply an APB-style CSR write via _apply_register_access. Drives
+        the registers dict + any state_variables sourced from those register
+        fields (e.g. arb_enabled <- CTRL.enable)."""
+        result = self._apply_register_access({"kind": "csr_write", "op": "write", "addr": offset, "reg": offset, "data": data, "value": data})
+        # Mirror register field reset/source mapping into state_variables when
+        # state_variables.source is a register field path.
+        regs = SSOT_MODEL.get("registers") or {}
+        reg_list = regs.get("register_list") or []
+        fm = SSOT_MODEL.get("function_model") or {}
+        state_vars = fm.get("state_variables") or []
+        # Find which register matched the offset.
+        matched_reg = None
+        for r in reg_list:
+            if r.get("offset") == offset:
+                matched_reg = r
+                break
+        if matched_reg is None:
+            return result
+        for sv in state_vars:
+            src = str(sv.get("source") or "")
+            if not src.startswith("registers."):
+                continue
+            parts = src.split(".")
+            if len(parts) >= 2 and parts[1] != matched_reg.get("name"):
+                continue
+            if len(parts) >= 3:
+                field_name = parts[2]
+                for f in matched_reg.get("fields") or []:
+                    if f.get("name") == field_name:
+                        bits = f.get("bits") or [0, 0]
+                        hi, lo = (int(bits[0]), int(bits[1])) if len(bits) >= 2 else (0, 0)
+                        mask = (1 << (hi - lo + 1)) - 1
+                        self.state[sv.get("name")] = (data >> lo) & mask
+                        break
+            else:
+                self.state[sv.get("name")] = data
+        return result
 
     def coverage_seed_bins(self):
         return {item["id"]: False for item in SSOT_MODEL.get("fcov_bins", [])}
@@ -637,9 +900,12 @@ def run_self_check():
                 txn[name] = field_idx + idx + 1
         output_rules = _rule_items(tx.get("output_rules"))
         state_updates = _rule_items(tx.get("state_updates"))
+        derived_signals = _rule_items((SSOT_MODEL.get("function_model") or {}).get("derived_signals"))
         rule_names = set()
         rule_names.update(_expr_names(tx.get("sample_condition", "")))
         for rule in output_rules + state_updates:
+            rule_names.update(_expr_names(rule.get("expr", rule.get("expression", rule.get("value", "")))))
+        for rule in derived_signals:
             rule_names.update(_expr_names(rule.get("expr", rule.get("expression", rule.get("value", "")))))
         output_names = {
             str(rule.get("name") or rule.get("output") or rule.get("port"))
@@ -651,7 +917,13 @@ def run_self_check():
             for rule in state_updates
             if rule.get("name") or rule.get("state")
         }
+        derived_names = {
+            str(rule.get("name") or rule.get("signal") or rule.get("output") or rule.get("port"))
+            for rule in derived_signals
+            if rule.get("name") or rule.get("signal") or rule.get("output") or rule.get("port")
+        }
         known_names = set(model.params) | set(model.state) | set(model.registers) | output_names | update_names
+        known_names.update(derived_names)
         known_names.update({"true", "false", "True", "False", "and", "or", "not"})
         known_names.update(_default_rule_helpers().keys())
         known_names.update({"read_mux", "reduction_or", "range"})

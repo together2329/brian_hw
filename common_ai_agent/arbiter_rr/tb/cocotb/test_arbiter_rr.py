@@ -1110,19 +1110,17 @@ async def fl_rtl_equivalence_goals(dut):
     goals = _goals(ip_dir)
     assert goals, "equivalence_goals.json must contain unblocked goals"
 
-    # PoC: cycle-accurate CL co-simulation alongside scoreboard.
-    # CL is stepped in lock-step with cocotb drive cycles using the SAME
-    # req_i input. After RTL sample, we read CL outputs and compare against
-    # rtl_observed.gnt_o / gnt_valid_o / gnt_idx_o. The count of matching
-    # goals is the honest cycle-accurate FL/RTL PASS rate — independent of
-    # whatever the heuristic FL.apply path returned to the scoreboard.
+    # Cycle-accurate CL co-simulation via SSOT-emitted FunctionalModel.step().
+    # The auto-generated step() selects active transaction from preconditions
+    # and applies output_rules/state_updates per cycle — same effect as a
+    # hand-coded CL Component, but driven entirely by SSOT (no per-IP code).
     import sys as _sys
     from pathlib import Path as _Path
     _model_dir = _Path(__file__).resolve().parents[2] / "model"
     if str(_model_dir) not in _sys.path:
         _sys.path.insert(0, str(_model_dir))
-    from cl_arbiter_rr import ArbiterRR_CL  # type: ignore
-    cl = ArbiterRR_CL()
+    from functional_model import FunctionalModel as _CL  # type: ignore
+    cl = _CL()
     cl_match = 0
     cl_total = 0
 
@@ -1140,6 +1138,7 @@ async def fl_rtl_equivalence_goals(dut):
             if isinstance(goal.get("stimulus_contract"), dict)
             else None
         )
+        _cl_result = None
         if _is_reset_stimulus(stimulus):
             await _reset_dut(dut, manifest, release=False)
             cl.reset()
@@ -1157,20 +1156,24 @@ async def fl_rtl_equivalence_goals(dut):
             # same req_i input that _drive_inputs put on the bus.
             _cycles = _goal_wait_cycles(goal, manifest)
             _req_i_val = int(stimulus.get("requests", stimulus.get("req_i", 0))) & 0xF
+            _cl_result = None
             for _ in range(_cycles):
                 await RisingEdge(getattr(dut, clock))
-                cl.step(_req_i_val)
+                _cl_result = cl.step({"req_i": _req_i_val, "requests": _req_i_val})
         await ReadOnly()
         observed = _observe_outputs(dut, manifest, stimulus)
         # Cycle-accurate co-sim verdict: does CL (running same stimulus in
         # lock-step) agree with RTL on the registered grant signals?
         cl_agrees = False
-        if "gnt_o" in observed and "gnt_idx_o" in observed and "gnt_valid_o" in observed:
+        if _cl_result is not None and "gnt_o" in observed and "gnt_idx_o" in observed and "gnt_valid_o" in observed:
             cl_total += 1
+            _cl_grant = int(_cl_result.get("grant", 0))
+            _cl_idx = int(_cl_result.get("grant_index", 0))
+            _cl_valid = int(_cl_result.get("grant_valid", 0))
             if (
-                int(observed["gnt_o"]) == cl.gnt_o
-                and int(observed["gnt_idx_o"]) == cl.gnt_idx_o
-                and int(observed["gnt_valid_o"]) == cl.gnt_valid_o
+                int(observed["gnt_o"]) == _cl_grant
+                and int(observed["gnt_idx_o"]) == _cl_idx
+                and int(observed["gnt_valid_o"]) == _cl_valid
             ):
                 cl_match += 1
                 cl_agrees = True

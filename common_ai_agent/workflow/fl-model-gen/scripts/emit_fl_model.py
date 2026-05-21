@@ -1723,6 +1723,155 @@ class FunctionalModel:
         if tx is None:
             return self._record(kind or "unknown", txn, {{"kind": kind or "unknown", "resp": RESP_SLVERR, "error": "unsupported_transaction"}})
 
+    def _eval_precondition(self, expr, env):
+        """Evaluate a single precondition string against env.
+
+        SSOT preconditions are mostly Python-evaluable but occasionally carry
+        a trailing natural-language clause in parentheses (e.g.
+        '(req_i & req_mask) != 0 (at least one unmasked active request)').
+        Normalize SQL-style OR/AND/NOT to Python operators, strip trailing
+        natural-language parentheticals, and try progressively shorter
+        prefixes until ast.parse succeeds. Unparseable preconditions are
+        treated as True so they don't block transaction matching.
+        """
+        text = str(expr or "").strip()
+        if not text:
+            return True
+        # Normalize boolean operators (SSOT prose sometimes uses uppercase).
+        text = re.sub(r"\\bOR\\b", " or ",  text)
+        text = re.sub(r"\\bAND\\b", " and ", text)
+        text = re.sub(r"\\bNOT\\b", " not ", text)
+        # Drop trailing parenthesized natural-language comments
+        # ('something words ...'). Detect by alpha-majority content.
+        def _strip_nl_tail(s):
+            # Find a trailing " (...)" where contents are mostly alphabetic.
+            depth = 0
+            best_end = len(s)
+            i = len(s) - 1
+            # Walk from the right, capture the last balanced "(...)" tail.
+            while i >= 0:
+                ch = s[i]
+                if ch == ")":
+                    depth += 1
+                elif ch == "(":
+                    depth -= 1
+                    if depth == 0:
+                        inner = s[i + 1:best_end - 1]
+                        alpha = sum(1 for c in inner if c.isalpha())
+                        if alpha >= max(3, len(inner) // 2) and " " in inner:
+                            # Natural language tail.
+                            return s[:i].rstrip()
+                        break
+                i -= 1
+            return s
+        text = _strip_nl_tail(text)
+        # Try ast.parse on the full string, then on progressively shorter
+        # prefixes ending at a comparison/logical operator.
+        candidates = [text]
+        for tok in (" and ", " or "):
+            for piece in text.split(tok):
+                candidates.append(piece.strip())
+        for cand in candidates:
+            if not cand:
+                continue
+            try:
+                tree = ast.parse(cand, mode="eval")
+            except Exception:
+                continue
+            try:
+                return bool(eval(compile(tree, "<precond>", mode="eval"), {{"__builtins__": {{}}}}, dict(env)))
+            except Exception:
+                continue
+        return True
+
+    def _select_transaction(self, inputs):
+        """Pick the transaction whose preconditions all hold given inputs.
+
+        Mutually-exclusive preconditions (typical SSOT pattern) yield a single
+        active transaction. If multiple match, the first declared wins.
+        Returns (tx, txn_payload) or (None, None) if none match.
+        """
+        env = dict(self.state)
+        env.update(self.registers)
+        env.update(inputs or {{}})
+        for tx in self._transactions():
+            if self._norm(tx.get("name")) == "reset" or self._norm(tx.get("id")) in {{"reset", "fm_reset"}}:
+                continue
+            preconds = [p for p in (tx.get("preconditions") or []) if isinstance(p, str)]
+            if all(self._eval_precondition(p, env) for p in preconds):
+                txn = {{"kind": tx.get("id") or tx.get("name")}}
+                txn.update(inputs or {{}})
+                return tx, txn
+        return None, None
+
+    def step(self, inputs=None):
+        """Cycle-accurate step: select active transaction from preconditions,
+        apply its output_rules and state_updates against current state and
+        inputs, register the result. Mirrors the RTL's per-cycle behaviour
+        when cocotb drives the same inputs cycle-by-cycle.
+
+        Returns the structured result dict (same shape as apply()).
+        """
+        inputs = inputs or {{}}
+        tx, txn = self._select_transaction(inputs)
+        if tx is None:
+            # No transaction matched preconditions: hold state, emit zero outputs.
+            return {{"kind": "idle", "resp": RESP_OKAY, "state": dict(self.state)}}
+        try:
+            return self._record(tx.get("id") or "", txn, self._apply_primary(tx, txn))
+        except KeyError as exc:
+            # output_rule references a signal that's neither SSOT state, FL
+            # register, nor caller-provided input (e.g. decoded combinational
+            # signals: branch_taken, is_store). Surface a partial idle result
+            # rather than crash — the per-cycle co-sim path treats this as
+            # 'no comparable expected at this cycle for this IP'.
+            return {{
+                "kind": "step_unresolved",
+                "resp": RESP_OKAY,
+                "transaction_id": tx.get("id"),
+                "transaction_name": tx.get("name"),
+                "step_unresolved": str(exc),
+            }}
+
+    def csr_write(self, offset, data):
+        """Apply an APB-style CSR write via _apply_register_access. Drives
+        the registers dict + any state_variables sourced from those register
+        fields (e.g. arb_enabled <- CTRL.enable)."""
+        result = self._apply_register_access({{"kind": "csr_write", "op": "write", "addr": offset, "reg": offset, "data": data, "value": data}})
+        # Mirror register field reset/source mapping into state_variables when
+        # state_variables.source is a register field path.
+        regs = SSOT_MODEL.get("registers") or {{}}
+        reg_list = regs.get("register_list") or []
+        fm = SSOT_MODEL.get("function_model") or {{}}
+        state_vars = fm.get("state_variables") or []
+        # Find which register matched the offset.
+        matched_reg = None
+        for r in reg_list:
+            if r.get("offset") == offset:
+                matched_reg = r
+                break
+        if matched_reg is None:
+            return result
+        for sv in state_vars:
+            src = str(sv.get("source") or "")
+            if not src.startswith("registers."):
+                continue
+            parts = src.split(".")
+            if len(parts) >= 2 and parts[1] != matched_reg.get("name"):
+                continue
+            if len(parts) >= 3:
+                field_name = parts[2]
+                for f in matched_reg.get("fields") or []:
+                    if f.get("name") == field_name:
+                        bits = f.get("bits") or [0, 0]
+                        hi, lo = (int(bits[0]), int(bits[1])) if len(bits) >= 2 else (0, 0)
+                        mask = (1 << (hi - lo + 1)) - 1
+                        self.state[sv.get("name")] = (data >> lo) & mask
+                        break
+            else:
+                self.state[sv.get("name")] = data
+        return result
+
     def coverage_seed_bins(self):
         return {{item["id"]: False for item in SSOT_MODEL.get("fcov_bins", [])}}
 
