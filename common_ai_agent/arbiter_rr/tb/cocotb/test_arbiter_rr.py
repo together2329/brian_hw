@@ -1145,12 +1145,21 @@ async def fl_rtl_equivalence_goals(dut):
             else None
         )
         _cl_result = None
+        # State-accumulating IPs (per_goal_reset=false) still need a clean
+        # baseline for *non-scenario* goals (handshake/ordering/coverage/
+        # register/error/module): these are standalone property checks not
+        # part of the accumulated scenario flow. Without a reset, prior
+        # scenario state bleeds into the property-check sample window and
+        # FL.apply's single-shot expected (computed from reset state)
+        # disagrees with RTL's accumulated state.
+        _is_scenario_goal = goal_id.startswith("EQ_SCENARIO_") or goal_id.startswith("EQ_TRANSACTION_")
+        _reset_for_property = (not _per_goal_reset) and (not _is_scenario_goal) and (not _is_reset_stimulus(stimulus))
         if _is_reset_stimulus(stimulus):
             await _reset_dut(dut, manifest, release=False)
             if _cl is not None:
                 _cl.reset()
         else:
-            if _per_goal_reset:
+            if _per_goal_reset or _reset_for_property:
                 await _reset_dut(dut, manifest)
                 if _cl is not None:
                     _cl.reset()
