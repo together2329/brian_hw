@@ -791,7 +791,7 @@
 
   async function refreshSsotList() {
     try {
-      const r = await fetch('/api/ssot');
+      const r = await fetch('/api/ssot', { cache: 'no-store' });
       if (!r.ok) return;
       const d = await r.json();
       window.SSOT_FILES = Array.isArray(d.files) ? d.files : [];

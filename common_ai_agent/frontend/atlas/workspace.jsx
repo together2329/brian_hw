@@ -43,7 +43,14 @@ const _TOOL_CHAT_ALIAS = {
   todo_remove: 'step_remove',
   todo_status: 'step_status',
 };
-const _toolDisplay = (name) => _TOOL_CHAT_ALIAS[name] || name || '?';
+const _normalizeToolName = (name) => {
+  const text = String(name || '').trim();
+  return text && text !== '?' ? text : '';
+};
+const _toolDisplay = (name) => {
+  const tool = _normalizeToolName(name);
+  return _TOOL_CHAT_ALIAS[tool] || tool || 'tool';
+};
 
 // Direct workflow/slash results also arrive as `slash_output`, which is the
 // user-facing Markdown surface. Keep their mirrored `tool_result` event for
@@ -478,6 +485,14 @@ const _markdownHtml = (text) => {
   return (typeof window.DOMPurify !== 'undefined' && window.DOMPurify.sanitize)
     ? window.DOMPurify.sanitize(rawHtml, { ADD_ATTR: ['target', 'rel'] })
     : rawHtml;
+};
+
+const _normalizeMarkdownImageSrc = (src) => {
+  const value = String(src || '').trim();
+  if (!value) return '';
+  return value
+    .replace(/^data:(image\/[a-z0-9.+-]+)\s*:\s*base64\s*,/i, 'data:$1;base64,')
+    .replace(/^data:(image\/[a-z0-9.+-]+)\s*;\s*base64\s*,/i, 'data:$1;base64,');
 };
 
 // Inline-code chip classification + interactivity. Inline `<code>`
@@ -2052,7 +2067,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
           }
           if (Array.isArray(m.tool_calls)) {
             for (const tc of m.tool_calls) {
-              const fn = (tc.function && tc.function.name) || tc.name || '?';
+              const fn = _normalizeToolName((tc.function && tc.function.name) || tc.name) || 'tool';
               const args = (tc.function && tc.function.arguments) || tc.arguments || '';
               const argsShort = typeof args === 'string'
                 ? args.slice(0, 120)
@@ -2756,8 +2771,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
       // Parse "▶ tool_name  args…" → capture tool name so ToolCard can
       // pair this with its tool_result obs and pick a theme color.
       const am = t.match(/^▶\s*(\S+)\s*(.*)$/);
-      const toolName = am ? am[1] : '';
-      const argsText = am ? (am[2] || '').trim() : '';
+      const toolName = _normalizeToolName(am ? am[1] : '');
+      const argsText = (am ? (am[2] || '') : '').replace(/^\?\s+/, '').trim();
       setWorkspaceTelemetry(prev => ({
         ...prev,
         toolCount: Number(prev.toolCount || 0) + 1,
@@ -4438,23 +4453,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
               the user doesn't have to look up at the chat header for. */}
           {(() => {
             const tokenTotal = Number(workspaceTelemetry.tokensIn || 0) + Number(workspaceTelemetry.tokensOut || 0);
-            const resultPreview = String(workspaceTelemetry.lastToolResult || '').replace(/\s+/g, ' ').trim();
-            const resultText = resultPreview
-              ? (resultPreview.length > 150 ? `${resultPreview.slice(0, 150)}...` : resultPreview)
-              : 'no result yet';
-            const status = workspaceTelemetry.lastToolStatus || 'idle';
-            const statusColor = status === 'error' ? 'var(--err)' : status === 'running' ? 'var(--warn)' : status === 'ok' ? 'var(--ok)' : 'var(--fg-mute)';
             return (
               <div className="workspace-telemetry-strip">
-                <span className="workspace-telemetry-chip" data-role="tool-count">
-                  tool <b>{workspaceTelemetry.toolCount || 0}</b>
-                  {workspaceTelemetry.lastTool ? <span className="workspace-telemetry-dim"> · {workspaceTelemetry.lastTool}</span> : null}
-                </span>
-                <span className="workspace-telemetry-chip" style={{ color: statusColor }}>
-                  result <b>{status}</b>
-                  <span className="workspace-telemetry-result" title={workspaceTelemetry.lastToolResult || ''}>{resultText}</span>
-                </span>
-                <span className="workspace-telemetry-spacer" />
                 <span className="workspace-telemetry-chip" data-role="token-count">
                   tok <b>{formatWorkspaceTelemetryNumber(tokenTotal)}</b>
                 </span>
@@ -4761,7 +4761,7 @@ const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '' }) => {
 // Either half can be missing (action-only when blocked, obs-only is
 // uncommon but handled).
 const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
-  const tool = (action && action.tool) || (obs && obs.tool) || '';
+  const tool = _normalizeToolName((action && action.tool) || (obs && obs.tool) || '');
   const theme = _toolTheme(tool);
   // If the obs indicates an error, override the border to red so the
   // eye finds it. Otherwise use the tool theme color.
@@ -4769,7 +4769,11 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   const obsText = obsTextRaw.replace(/\x1b\[[\d;]*m/g, '');
   const status = obs ? _obsStatus(obsText) : 'neutral';
   const borderColor = status === 'err' ? '#f85149' : theme.color;
-  const rawArgsText = action && action.text ? action.text.replace(/^▶\s*/, '').replace(new RegExp('^' + tool + '\\s*'), '') : '';
+  const rawArgsText = action && action.text
+    ? action.text
+        .replace(/^▶\s*/, '')
+        .replace(tool ? new RegExp('^' + tool.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*') : /^\?\s*/, '')
+    : '';
   let argsText = rawArgsText;
   // Replace/write/edit tools dump the new file content into args, which
   // produces a noisy single-line preview next to the tool name (just
@@ -7822,70 +7826,6 @@ const PipelineTraceDiagram = ({ pipeline, transactions, maxTransactions = 4 }) =
   );
 };
 
-const NarratorBanner = ({ ip, chapter, uiLang = 'en' }) => {
-  const [state, setState] = React.useState({ loading: false, summary: '', model: '', cached: false, error: '' });
-  const fetchSummary = React.useCallback((force) => {
-    if (!ip || !chapter) return;
-    setState(s => ({ ...s, loading: true, error: '' }));
-    fetch('/api/ssot/narrate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ip, chapter, force_refresh: !!force, ui_lang: uiLang }),
-    })
-      .then(r => r.json())
-      .then(j => {
-        if (j && j.ok) {
-          setState({ loading: false, summary: j.summary || '', model: j.model || '', cached: !!j.cached, error: '' });
-        } else {
-          setState(s => ({ ...s, loading: false, error: (j && j.error) || 'no response' }));
-        }
-      })
-      .catch(err => setState(s => ({ ...s, loading: false, error: String(err && err.message || err) })));
-  }, [ip, chapter, uiLang]);
-  React.useEffect(() => { fetchSummary(false); }, [fetchSummary]);
-  if (!ip) return null;
-  return (
-    <div style={{
-      borderLeft: '3px solid var(--magenta)',
-      background: 'color-mix(in oklch, var(--magenta) 8%, transparent)',
-      borderRadius: 4, padding: '10px 14px', marginBottom: 12,
-      display: 'grid', gap: 6,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-        <span style={{
-          fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--magenta)',
-          letterSpacing: '0.06em', fontWeight: 800,
-        }}>NARRATOR · {chapter.toUpperCase()}</span>
-        {state.cached ? (
-          <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 9 }}>cached</span>
-        ) : null}
-        {state.model ? (
-          <span className="mute" style={{ fontFamily: 'var(--mono)', fontSize: 9 }}>{state.model}</span>
-        ) : null}
-        <span style={{ flex: 1 }} />
-        <span onClick={() => fetchSummary(true)}
-          title="regenerate"
-          style={{
-            fontFamily: 'var(--mono)', fontSize: 10, padding: '2px 8px',
-            border: '1px solid var(--line)', borderRadius: 3,
-            color: 'var(--fg-mute)', cursor: 'pointer',
-          }}>↻ regenerate</span>
-      </div>
-      {state.loading && !state.summary ? (
-        <div className="mute" style={{ fontStyle: 'italic' }}>
-          {uiLang === 'ko' ? '챕터 요약 생성 중…' : 'Generating chapter summary…'}
-        </div>
-      ) : state.error && !state.summary ? (
-        <div style={{ color: 'var(--warn)', fontFamily: 'var(--mono)', fontSize: 11 }}>
-          {state.error}
-        </div>
-      ) : state.summary ? (
-        <div style={{ color: 'var(--fg)', lineHeight: 1.55 }}>{state.summary}</div>
-      ) : null}
-    </div>
-  );
-};
-
 const SsotCommandPalette = ({ items, onJump }) => {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState('');
@@ -10768,12 +10708,6 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   const handshakeRules = listBlocksFromSection(cycleSection, 'handshake_rules');
   const pipeline = listBlocksFromSection(cycleSection, 'pipeline');
   const topName = sectionFact(top, 'name') || sectionFact(top, 'module') || (top && top.value) || 'SSOT';
-  const narratorIp = React.useMemo(() => (
-    ssotIpFromSession(typeof window !== 'undefined' ? window.ACTIVE_SESSION : '')
-      || (typeof window !== 'undefined' ? String(window.ACTIVE_IP || '').trim() : '')
-      || (sectionFact(top, 'name') || '').trim()
-      || ''
-  ), [top]);
 
   const header = (
     <div style={{ marginBottom: 12 }}>
@@ -10912,7 +10846,6 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   const renderOverview = () => (
     <>
       {header}
-      <NarratorBanner ip={narratorIp} chapter="overview" uiLang={uiLang} />
       {quickstartSteps.length ? (
         <DigestCard
           title="Quickstart"
@@ -11342,7 +11275,6 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   const renderRegisters = () => (
     <>
       {header}
-      <NarratorBanner ip={narratorIp} chapter="registers" uiLang={uiLang} />
       <DigestCard title="Register Map" meta={`${registers.length} registers`}>
         {registers.length ? (
           <div style={{ display: 'grid', gap: 14 }}>
@@ -11539,7 +11471,6 @@ const SsotDigestContent = ({ view, sections, statusByKey, uiLang = 'ko', content
   const renderScenarios = () => (
     <>
       {header}
-      <NarratorBanner ip={narratorIp} chapter="scenarios" uiLang={uiLang} />
       <DigestCard title="Interactive scenarios" meta={`${scenarios.length} scenarios${scenarios.length && scenarios[0].synthesized ? ' · auto-synthesized from transactions + pipeline' : ''}`}>
         {scenarios.length ? (
           <SsotScenarioPlayer scenarios={scenarios} fsmMachines={fsmMachines} tokenMap={refTokenMap} onJump={onJump} />
@@ -11710,7 +11641,10 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
   const filePaths = initialPath && isSsotYamlPath(initialPath) && !ssotFilePaths.includes(initialPath)
     ? [initialPath, ...ssotFilePaths]
     : ssotFilePaths;
-  const filePathKey = filePaths.join('|');
+  const filePathKey = filePaths.map(path => {
+    const meta = files.find(f => ssotPathOf(f) === path) || {};
+    return `${path}@${meta.mtime || 0}:${meta.size || 0}`;
+  }).join('|');
   const [ssotResource, reloadSsot] = useAtlasAsyncResource('ssot', selected, {
     versionKey: filePathKey,
     forceOnVersionChange: true,
@@ -13901,18 +13835,18 @@ const DeferredMarkdownPreview = ({ body, sourcePath = '' }) => {
     // so embedded images from SSOT imports actually render in the preview
     // pane (the raw src is a project-relative path the browser cannot
     // fetch directly).
-    if (sourcePath) {
-      const baseDir = sourcePath.replace(/\/[^/]*$/, '');
-      nodeRef.current.querySelectorAll('img[src]').forEach(img => {
-        const src = img.getAttribute('src') || '';
-        if (!src || /^(https?:|data:|blob:|\/api\/)/.test(src)) return;
-        const rel = src.replace(/^\.\//, '');
-        const resolved = rel.startsWith('/') ? rel.slice(1)
-          : (baseDir ? `${baseDir}/${rel}` : rel);
-        img.setAttribute('src', `/api/file/raw?path=${encodeURIComponent(resolved)}`);
-        img.style.maxWidth = '100%';
-      });
-    }
+    const baseDir = sourcePath ? sourcePath.replace(/\/[^/]*$/, '') : '';
+    nodeRef.current.querySelectorAll('img[src]').forEach(img => {
+      const rawSrc = img.getAttribute('src') || '';
+      const src = _normalizeMarkdownImageSrc(rawSrc);
+      if (src && src !== rawSrc) img.setAttribute('src', src);
+      img.style.maxWidth = '100%';
+      if (!sourcePath || !src || /^(https?:|data:|blob:|\/api\/)/i.test(src)) return;
+      const rel = src.replace(/^\.\//, '');
+      const resolved = rel.startsWith('/') ? rel.slice(1)
+        : (baseDir ? `${baseDir}/${rel}` : rel);
+      img.setAttribute('src', `/api/file/raw?path=${encodeURIComponent(resolved)}`);
+    });
   }, [html, sourcePath]);
 
   if (!text.trim()) return <div className="md-preview-empty">empty markdown file</div>;

@@ -13,6 +13,8 @@ if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 
 WORKSPACE_JSX = ROOT / "frontend" / "atlas" / "workspace.jsx"
+DATA_JSX = ROOT / "frontend" / "atlas" / "data.jsx"
+ATLAS_UI_PY = ROOT / "src" / "atlas_ui.py"
 
 
 def _register(client: TestClient, username: str = "alice") -> None:
@@ -44,6 +46,21 @@ def test_ssot_qa_workbench_has_first_class_actions_and_no_history_panel():
     assert "2. Deep Interview" in src
     assert "3. To SSOT" in src
     assert "QaHistoryPanel history={visibleQaHistory}" not in src
+
+
+def test_ssot_preview_uses_fresh_yaml_without_llm_narrator():
+    workspace_src = WORKSPACE_JSX.read_text(encoding="utf-8")
+    data_src = DATA_JSX.read_text(encoding="utf-8")
+    atlas_ui_src = ATLAS_UI_PY.read_text(encoding="utf-8")
+
+    assert "NarratorBanner" not in workspace_src
+    assert "/api/ssot/narrate" not in workspace_src
+    assert "api_ssot_narrate" not in atlas_ui_src
+    assert "caller_tag=\"ssot-narrate\"" not in atlas_ui_src
+    assert 'data-role="tool-count"' not in workspace_src
+    assert "fetch('/api/ssot', { cache: 'no-store' })" in data_src
+    assert "meta.mtime || 0" in workspace_src
+    assert "meta.size || 0" in workspace_src
 
 
 def test_ssot_qa_api_reports_remaining_required_decisions(tmp_path, monkeypatch):
@@ -120,6 +137,38 @@ def test_ssot_import_upload_saves_attachment_and_returns_import_command(tmp_path
     saved = tmp_path / payload["paths"][0]
     assert saved.is_file()
     assert "AXI slave" in saved.read_text(encoding="utf-8")
+
+
+def test_ssot_import_upload_normalizes_markdown_image_data_uri(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+    _register(client)
+    content = b"![diagram](data:image/png:base64,iVBORw0KGgo=)\n"
+    response = client.post(
+        "/api/ssot/import/upload",
+        json={
+            "ip": "mctp_assembler",
+            "files": [
+                {
+                    "name": "diagram.md",
+                    "content_b64": base64.b64encode(content).decode("ascii"),
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    saved = tmp_path / response.json()["paths"][0]
+    saved_text = saved.read_text(encoding="utf-8")
+    assert "data:image/png;base64,iVBORw0KGgo=" in saved_text
+    assert "data:image/png:base64" not in saved_text
 
 
 def test_ssot_qa_sessions_list_does_not_parse_ssot_yaml(tmp_path, monkeypatch):
