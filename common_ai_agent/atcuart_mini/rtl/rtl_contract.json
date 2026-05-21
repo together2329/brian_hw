@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "atcuart_mini",
+  "top": "atcuart_mini",
+  "generated_at": "2026-05-21T00:00:00Z",
+  "contract": {
+    "top": "atcuart_mini",
+    "transaction": "FM_THR_WRITE",
+    "clock": "PCLK",
+    "reset": "PRESETn",
+    "reset_active": "low",
+    "sample_condition": "((PSEL) != 0) && ((PENABLE) != 0)",
+    "input_map": {
+      "psel": "PSEL",
+      "penable": "PENABLE",
+      "pwrite": "PWRITE",
+      "paddr": "PADDR",
+      "pwdata": "PWDATA"
+    },
+    "outputs": [
+      {
+        "name": "pready_rule",
+        "port": "PREADY",
+        "expr": "1",
+        "width": 1
+      },
+      {
+        "name": "pslverr_rule",
+        "port": "PSLVERR",
+        "expr": "0",
+        "width": 1
+      },
+      {
+        "name": "tx_serial_rule",
+        "port": "tx_serial",
+        "expr": "(pwdata & 1) if ((psel == 1) and (penable == 1) and (pwrite == 1) and (paddr == 0)) else 1",
+        "width": 1
+      }
+    ]
+  }
+}

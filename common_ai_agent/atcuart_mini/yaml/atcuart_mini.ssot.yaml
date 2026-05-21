@@ -1,0 +1,327 @@
+# =============================================================================
+# atcuart_mini.ssot.yaml - Minimal Andes-style UART TX register interface
+# Demonstrates: APB CSR + tx_busy status + serial output mirror.
+# Simplified to single-cycle TX (no real baud divider) so the FL.step()
+# cycle-accurate co-sim path is exercised without per-bit shift logic.
+# =============================================================================
+top_module:
+  name: atcuart_mini
+  file: rtl/atcuart_mini.sv
+  version: "1.0"
+  type: peripheral
+  description: Andes-style minimal UART - APB-Lite CSR with THR (transmit holding register), LSR (line status), and tx_serial output. Single-cycle TX timing for ATLAS demo simplicity.
+  reference_spec: ATCUART100-inspired (simplified)
+  target:
+    technology: generic
+    clock_freq_mhz: 50
+
+decomposition:
+  units:
+    - { id: csr_decode, kind: control, source_refs: [registers.register_list], rtl_candidates: [atcuart_mini], verification_impact: [test_requirements.scenarios] }
+    - { id: tx_path,    kind: datapath, source_refs: [function_model.transactions.FM_THR_WRITE], rtl_candidates: [atcuart_mini], verification_impact: [test_requirements.scenarios] }
+
+sub_modules:
+  - name: atcuart_mini
+    file: rtl/atcuart_mini.sv
+    ownership: manifest
+    ssot_gen: true
+    source_sections: [io_list, registers, function_model]
+    implements: [io_list.interfaces.apb_slave, registers.register_list, function_model.transactions]
+    register_refs: [registers.register_list]
+    function_model_refs: [function_model.transactions.FM_THR_WRITE, function_model.transactions.FM_IDLE]
+    description: APB slave + THR write capture + tx_serial drive.
+
+parameters:
+  - { name: APB_ADDR_WIDTH, default: 4, type: int, description: APB address width }
+  - { name: APB_DATA_WIDTH, default: 32, type: int, description: APB data width }
+  - { name: DATA_WIDTH, default: 8, type: int, description: TX byte width }
+
+io_list:
+  clock_domains:
+    - name: pclk
+      frequency_mhz: 50
+      description: APB clock
+      ports:
+        - { name: PCLK, width: 1, direction: input, description: APB clock }
+  resets:
+    - name: presetn
+      polarity: active_low
+      sync_async: async_assert_sync_deassert
+      description: APB reset
+      ports:
+        - { name: PRESETn, width: 1, direction: input, description: APB reset }
+  interfaces:
+    - name: apb_slave
+      type: APB-Lite
+      role: slave
+      clock_domain: pclk
+      reset_domain: presetn
+      description: APB-Lite CSR
+      protocol:
+        setup_phase: "PSEL=1, PENABLE=0"
+        access_phase: "PSEL=1, PENABLE=1, PREADY=1 (0-wait)"
+      ports:
+        - { name: PADDR,   width: 4,  direction: input  }
+        - { name: PSEL,    width: 1,  direction: input  }
+        - { name: PENABLE, width: 1,  direction: input  }
+        - { name: PWRITE,  width: 1,  direction: input  }
+        - { name: PWDATA,  width: 32, direction: input  }
+        - { name: PRDATA,  width: 32, direction: output }
+        - { name: PREADY,  width: 1,  direction: output }
+        - { name: PSLVERR, width: 1,  direction: output }
+    - name: uart_serial
+      type: custom
+      clock_domain: pclk
+      reset_domain: presetn
+      description: Serial TX output (simplified to LSB-of-byte mirror)
+      ports:
+        - { name: tx_serial, width: 1, direction: output, description: "Serial output mirrors THR bit 0 in this minimal demo" }
+
+features:
+  - name: APB CSR access
+    trigger: APB master read/write
+    datapath: Address decode → THR write or LSR read
+    control: 0-wait-state PREADY
+    output: THR update / PRDATA readback
+  - name: TX byte capture
+    trigger: APB write to THR (offset 0)
+    datapath: PWDATA[7:0] → thr_data; tx_busy pulses high for 1 cycle
+    control: Single-cycle TX (real UART would multi-cycle bit-shift; out of scope here)
+    output: tx_serial = thr_data[0] when tx_busy; otherwise tx_serial=1 (idle high)
+
+registers:
+  config:
+    register_width: 32
+    addr_width: 4
+    byte_addressable: true
+  bit_order: lsb0
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: ignore
+    rtl_requirement: Reserved bits read zero
+  register_list:
+    - name: THR
+      offset: 0x0
+      width: 32
+      access: rw
+      reset: 0x00000000
+      category: data
+      description: Transmit Holding Register (write byte to send; read returns last value)
+      write_side_effects:
+        - "Low 8 bits captured into thr_data on access phase."
+      fields:
+        - { name: data, bits: [7, 0], access: rw, reset: 0, write_effect: Update thr_data, description: TX byte }
+        - { name: reserved_31_8, bits: [31, 8], access: reserved, reset: 0, read_value: 0, write_effect: ignore, description: Reserved }
+    - name: LSR
+      offset: 0x4
+      width: 32
+      access: ro
+      reset: 0x00000001
+      category: status
+      description: Line Status Register
+      fields:
+        - { name: thre, bits: [0, 0], access: ro, reset: 1, description: Transmitter Holding Register Empty (1=ready) }
+        - { name: reserved_31_1, bits: [31, 1], access: reserved, reset: 0, read_value: 0, write_effect: ignore, description: Reserved }
+
+memory:
+  instances: []
+  note: No FIFO in this minimal demo.
+
+interrupts:
+  sources: []
+  output: null
+  note: No interrupts.
+
+fsm:
+  apb_phase:
+    states: [IDLE, ACCESS]
+    transitions:
+      - { from: IDLE,   to: ACCESS, condition: "psel == 1 and penable == 1" }
+      - { from: ACCESS, to: IDLE,   condition: "psel == 0" }
+    note: Always-ready APB slave.
+
+rtl_contract:
+  transaction: FM_THR_WRITE
+  clock: PCLK
+  reset: PRESETn
+  reset_active: low
+  sample_condition: "PRESETn == 1"
+  input_map:
+    psel: PSEL
+    penable: PENABLE
+    pwrite: PWRITE
+    paddr: PADDR
+    pwdata: PWDATA
+  output_map:
+    prdata: PRDATA
+    pready: PREADY
+    pslverr: PSLVERR
+    tx_serial: tx_serial
+
+function_model:
+  purpose: Executable FL contract
+  state_variables:
+    - { name: thr_data,   source: registers.THR.data, reset: 0, description: Captured TX byte }
+    - { name: tx_busy_q,  reset: 0, description: TX busy state (1 cycle pulse after THR write) }
+  transactions:
+    - id: FM_THR_WRITE
+      name: apb_write_thr
+      preconditions: ["psel == 1", "penable == 1", "pwrite == 1", "paddr == 0"]
+      inputs: [pwdata]
+      outputs: ["thr_data updates to pwdata & 0xff; tx_serial = pwdata bit 0; tx_busy pulses"]
+      output_rules:
+        - { name: pready_rule,  port: PREADY,    expr: 1, width: 1 }
+        - { name: pslverr_rule, port: PSLVERR,   expr: 0, width: 1 }
+        - { name: tx_serial_rule, port: tx_serial, expr: "pwdata & 1", width: 1, description: tx_serial drops to LSB during 1-cycle TX }
+      state_updates:
+        - { name: thr_data,  expr: "pwdata & 0xff", width: 8 }
+        - { name: tx_busy_q, expr: 1, width: 1 }
+      side_effects: ["thr_data updated", "TX active for one cycle"]
+      error_cases: []
+    - id: FM_IDLE
+      name: idle_or_read
+      preconditions: ["pwrite == 0 or psel == 0 or penable == 0 or paddr != 0"]
+      inputs: [paddr]
+      outputs: ["tx_serial idles high (1); PRDATA reflects register on read"]
+      output_rules:
+        - { name: pready_rule,   port: PREADY,    expr: 1, width: 1 }
+        - { name: pslverr_rule,  port: PSLVERR,   expr: 0, width: 1 }
+        - { name: tx_serial_rule, port: tx_serial, expr: 1, width: 1, description: Idle high }
+        - { name: prdata_rule,   port: PRDATA,    expr: "thr_data if (psel == 1 and penable == 1 and pwrite == 0 and paddr == 0) else (1 if (psel == 1 and penable == 1 and pwrite == 0 and paddr == 4) else 0)", width: 32 }
+      state_updates:
+        - { name: thr_data,  expr: thr_data,  width: 8 }
+        - { name: tx_busy_q, expr: 0,         width: 1 }
+      side_effects: []
+      error_cases: []
+  invariants:
+    - tx_serial idles high (1) when no active TX.
+    - PREADY=1 always, PSLVERR=0 always.
+
+cycle_model:
+  purpose: Cycle contract - single-cycle TX simplification.
+  executable: python
+  cosim: true
+  clock: PCLK
+  reset:
+    assertion: PRESETn low clears thr_data=0, tx_busy_q=0, tx_serial=1.
+    deassertion: First rising PCLK after deassertion enables register updates.
+  latency:
+    apb_write: { min_cycles: 1, max_cycles: 1 }
+    apb_read:  { min_cycles: 0, max_cycles: 0 }
+  handshake_rules:
+    - { signal: PREADY, rule: Always 1 (0-wait-state slave) }
+    - { signal: tx_serial, rule: "Idle high; pulses to PWDATA bit 0 for 1 cycle during THR write access phase" }
+  pipeline:
+    - { stage: S0_DECODE, cycle: 0, action: APB phase capture and address decode }
+    - { stage: S1_UPDATE, cycle: 1, action: THR register update + tx_serial pulse }
+  ordering:
+    - "THR write completes in the access phase (PSEL+PENABLE both high)."
+    - "tx_serial reflects PWDATA[0] for one cycle when THR is written."
+  backpressure: ["No backpressure."]
+  performance:
+    frequency_mhz: 50
+    throughput: { writes_per_cycle: 1 }
+  observability:
+    - APB phase + tx_serial pulse visible per cycle.
+
+clock_reset_domains:
+  domains:
+    - { name: PCLK, frequency_mhz: 50 }
+  reset_scheme:
+    signal: PRESETn
+    polarity: active_low
+    type: async_assert_sync_deassert
+
+dataflow:
+  sequence:
+    - { id: sequence_0, source: pwdata, sink: thr_data, path: "PWDATA → thr_data (registered)" }
+    - { id: sequence_1, source: thr_data, sink: tx_serial, path: "thr_data[0] → tx_serial during TX pulse" }
+
+power:
+  domains: [PD_MAIN]
+  modes: ["ON"]
+
+security:
+  classifications: []
+
+error_handling:
+  error_sources:
+    - { id: ERR_NONE, condition: "No error sources in this minimal demo", architectural_effect: "PSLVERR always 0" }
+
+debug_observability:
+  signals:
+    - { name: thr_data, source: function_model.state_variables.thr_data, description: Captured TX byte }
+    - { name: tx_busy_q, source: function_model.state_variables.tx_busy_q, description: TX busy flag }
+
+dft:
+  scan: { enabled: false }
+
+synthesis:
+  target: { technology: generic, frequency_mhz: 50 }
+
+integration:
+  top_ports: [PCLK, PRESETn, PADDR, PSEL, PENABLE, PWRITE, PWDATA, PRDATA, PREADY, PSLVERR, tx_serial]
+
+quality_gates:
+  rtl_gen:
+    manifest_hygiene: "tb_manifest.rtl_sources must list every .sv file."
+
+test_requirements:
+  scenarios:
+    - id: SC1
+      name: TX byte 0x55 - LSB=1
+      stimulus: "Write 0x55 to THR; tx_serial pulses to 1 (LSB) for 1 cycle"
+      stimulus_machine_spec:
+        timeline:
+          - { csr_write: { offset: 0x0, data: 0x55 } }
+      expected: "thr_data=0x55, tx_serial=1 during write cycle"
+      checker: "Scoreboard compares tx_serial bit and thr_data state."
+      coverage: [FM_THR_WRITE]
+    - id: SC2
+      name: TX byte 0xAA - LSB=0
+      stimulus: "Write 0xAA to THR; tx_serial pulses to 0"
+      stimulus_machine_spec:
+        timeline:
+          - { csr_write: { offset: 0x0, data: 0xAA } }
+      expected: "thr_data=0xAA, tx_serial=0 during write cycle"
+      checker: "Same as SC1 with bit-0 inverted."
+      coverage: [FM_THR_WRITE]
+    - id: SC3
+      name: Reset
+      stimulus: "Assert PRESETn low; tx_serial returns to idle high"
+      expected: "thr_data=0, tx_busy_q=0, tx_serial=1"
+      checker: "Verifies reset values."
+      coverage: [reset]
+    - id: SC4
+      name: TX zero byte
+      stimulus: "Write 0x00 to THR; tx_serial pulses to 0"
+      stimulus_machine_spec:
+        timeline:
+          - { csr_write: { offset: 0x0, data: 0x00 } }
+      expected: "thr_data=0, tx_serial=0"
+      checker: "Verifies bit-0 mirror for zero byte."
+      coverage: [FM_THR_WRITE]
+    - id: SC5
+      name: TX byte 0xFF - LSB=1
+      stimulus: "Write 0xFF to THR; tx_serial pulses to 1"
+      stimulus_machine_spec:
+        timeline:
+          - { csr_write: { offset: 0x0, data: 0xFF } }
+      expected: "thr_data=0xFF, tx_serial=1"
+      checker: "Verifies bit-0 mirror for all-ones byte."
+      coverage: [FM_THR_WRITE]
+  scoreboard_checks:
+    - THR write captures PWDATA[7:0]
+    - tx_serial mirrors PWDATA[0] for the write cycle
+    - PREADY=1 always, PSLVERR=0 always
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+    cycle:
+      target_pct: 100
+      model: cycle_model
+
+workflow_todos:
+  - { id: DEMO_DONE, description: "Created via the ATLAS framework demo flow (Andes UART minimal)", status: planned }

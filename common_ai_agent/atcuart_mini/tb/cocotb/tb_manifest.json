@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "atcuart_mini",
+  "top": "atcuart_mini",
+  "generated_at": "2026-05-21T06:33:39Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "atcuart_mini/yaml/atcuart_mini.ssot.yaml",
+  "equivalence_goals": "atcuart_mini/verify/equivalence_goals.json",
+  "rtl_contract": "atcuart_mini/rtl/rtl_contract.json",
+  "rtl_contract_source": "rtl_contract_json",
+  "clock": "PCLK",
+  "reset": "PRESETn",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "APB_ADDR_WIDTH": 4,
+    "APB_DATA_WIDTH": 32,
+    "DATA_WIDTH": 8
+  },
+  "registers": {
+    "config": {
+      "register_width": 32,
+      "addr_width": 4,
+      "byte_addressable": true
+    },
+    "register_list": [
+      {
+        "name": "THR",
+        "offset": 0,
+        "access": "rw",
+        "index": 0
+      },
+      {
+        "name": "LSR",
+        "offset": 4,
+        "access": "ro",
+        "index": 1
+      }
+    ]
+  },
+  "state_observables": [
+    "thr_data",
+    "tx_busy_q"
+  ],
+  "state_observable_aliases": {
+    "thr_data": [
+      "thr_data_q"
+    ]
+  },
+  "rtl_signal_names": [
+    "PCLK",
+    "access_phase",
+    "is_lsr",
+    "is_thr",
+    "lsr_read",
+    "thr_data_q",
+    "thr_read",
+    "thr_write"
+  ],
+  "ports": [
+    {
+      "name": "PCLK",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PRESETn",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PADDR",
+      "direction": "input",
+      "width": 4
+    },
+    {
+      "name": "PSEL",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PENABLE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWRITE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWDATA",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "PRDATA",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "PREADY",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "tx_serial",
+      "direction": "output",
+      "width": 1
+    }
+  ],
+  "port_widths": {
+    "PCLK": 1,
+    "PRESETn": 1,
+    "PADDR": 4,
+    "PSEL": 1,
+    "PENABLE": 1,
+    "PWRITE": 1,
+    "PWDATA": 32,
+    "PRDATA": 32,
+    "PREADY": 1,
+    "PSLVERR": 1,
+    "tx_serial": 1
+  },
+  "input_ports": [
+    "PADDR",
+    "PCLK",
+    "PENABLE",
+    "PRESETn",
+    "PSEL",
+    "PWDATA",
+    "PWRITE"
+  ],
+  "output_ports": [
+    "PRDATA",
+    "PREADY",
+    "PSLVERR",
+    "tx_serial"
+  ],
+  "inout_ports": [],
+  "input_map": {
+    "psel": "PSEL",
+    "penable": "PENABLE",
+    "pwrite": "PWRITE",
+    "paddr": "PADDR",
+    "pwdata": "PWDATA"
+  },
+  "sample_condition": "((PSEL) != 0) && ((PENABLE) != 0)",
+  "sample_inputs": [],
+  "outputs": [
+    {
+      "name": "pready_rule",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "pslverr_rule",
+      "port": "PSLVERR",
+      "width": 1
+    },
+    {
+      "name": "tx_serial_rule",
+      "port": "tx_serial",
+      "width": 1
+    },
+    {
+      "name": "PRDATA",
+      "port": "PRDATA",
+      "width": 32
+    },
+    {
+      "name": "PREADY",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "port": "PSLVERR",
+      "width": 1
+    },
+    {
+      "name": "tx_serial",
+      "port": "tx_serial",
+      "width": 1
+    }
+  ],
+  "special_outputs": {},
+  "transaction_kind": "FM_THR_WRITE",
+  "per_goal_reset": true,
+  "cl_cosim": true,
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcuart_mini/rtl/atcuart_mini.sv"
+  ],
+  "goal_count": 22,
+  "module_goal_count": 1,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_ATCUART_MINI",
+      "rtl_module": "atcuart_mini",
+      "rtl_file": "rtl/atcuart_mini.sv"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+TESTS=1 PASS=1 FAIL=0
+results=atcuart_mini/sim/results.xml
+scoreboard=atcuart_mini/sim/scoreboard_events.jsonl
+coverage_functional=atcuart_mini/cov/coverage_functional.json
+waveforms=atcuart_mini/sim/atcuart_mini.vcd
+0 errors, 0 warnings

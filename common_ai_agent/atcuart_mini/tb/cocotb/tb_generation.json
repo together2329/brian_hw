@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_generation",
+  "status": "pass",
+  "ip": "atcuart_mini",
+  "generated_at": "2026-05-21T06:33:39Z",
+  "manifest": "atcuart_mini/tb/cocotb/tb_manifest.json",
+  "test": "atcuart_mini/tb/cocotb/test_atcuart_mini.py",
+  "runner": "atcuart_mini/tb/cocotb/test_runner.py",
+  "goals": 22,
+  "rtl_sources": 1
+}
