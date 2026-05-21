@@ -8339,8 +8339,32 @@ const mdCell = (value) => {
   return text || '-';
 };
 
+const stripSsotYamlComment = (line) => {
+  const text = String(line ?? '');
+  let single = false;
+  let double = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    const prev = i > 0 ? text[i - 1] : '';
+    if (ch === "'" && !double) {
+      single = !single;
+      continue;
+    }
+    if (ch === '"' && !single && prev !== '\\') {
+      double = !double;
+      continue;
+    }
+    if (ch === '#' && !single && !double && (i === 0 || /\s/.test(prev))) {
+      return text.slice(0, i).trimEnd();
+    }
+  }
+  return text;
+};
+
+const ssotPreviewLines = (text) => String(text || '').split(/\r?\n/).map(stripSsotYamlComment);
+
 const splitSsotSections = (content) => {
-  const lines = String(content || '').split(/\r?\n/);
+  const lines = ssotPreviewLines(content);
   const sections = [];
   let current = null;
   const push = () => {
@@ -8367,7 +8391,7 @@ const splitSsotSections = (content) => {
 };
 
 const summarizeSsotSection = (section) => {
-  const lines = String(section.text || '').split(/\r?\n/);
+  const lines = ssotPreviewLines(section.text);
   const facts = [];
   const groups = [];
   const listPreview = [];
@@ -8404,7 +8428,7 @@ const rxEscape = (text) => String(text || '').replace(/[.*+?^${}()|[\]\\]/g, '\\
 const indentOf = (line) => (String(line || '').match(/^\s*/) || [''])[0].length;
 
 const stripYamlScalar = (value) => {
-  let text = String(value ?? '').trim();
+  let text = stripSsotYamlComment(value).trim();
   text = text.replace(/^['"]|['"]$/g, '');
   return text.replace(/\s+/g, ' ').trim();
 };
@@ -8415,7 +8439,7 @@ const ssotValuePresent = (value) => {
 };
 
 const fieldFromText = (text, key, max = 260) => {
-  const lines = String(text || '').split(/\r?\n/);
+  const lines = ssotPreviewLines(text);
   const rx = new RegExp(`^\\s*(?:-\\s*)?${rxEscape(key)}:\\s*(.*)$`);
   for (let i = 0; i < lines.length; i++) {
     const m = lines[i].match(rx);
@@ -8450,7 +8474,7 @@ const sectionFact = (section, key, fallback = '') => {
 };
 
 const listBlocksFromText = (text, parentKey = '') => {
-  const lines = String(text || '').split(/\r?\n/);
+  const lines = ssotPreviewLines(text);
   let start = 0;
   let parentIndent = -1;
   if (parentKey) {
@@ -8526,7 +8550,7 @@ const blockListValues = (block, parentKey, max = 8) =>
 
 const mapGroupsFromSection = (section, parentKey = '') => {
   if (!section) return [];
-  const lines = String(section.text || '').split(/\r?\n/);
+  const lines = ssotPreviewLines(section.text);
   let start = 0;
   let parentIndent = indentOf(lines[0] || '');
   if (parentKey) {
@@ -8557,18 +8581,29 @@ const mapGroupsFromSection = (section, parentKey = '') => {
   return groups.map(g => ({ ...g, text: g.lines.join('\n') }));
 };
 
-const extractInterfaces = (section) => listBlocksFromSection(section, 'interfaces').map(block => ({
-  name: blockField(block, 'name') || 'interface',
-  type: blockField(block, 'type') || 'custom',
+const interfaceFromBlock = (block, fallbackName = 'interface', fallbackType = 'custom') => ({
+  name: blockField(block, 'name') || blockField(block, 'id') || blockField(block, 'bus') || fallbackName,
+  type: blockField(block, 'type') || blockField(block, 'proto') || blockField(block, 'protocol') || fallbackType,
   role: blockField(block, 'role'),
   description: blockField(block, 'description', 360),
-  ports: listBlocksFromText(block.text, 'ports').map(port => ({
+  ports: [
+    ...listBlocksFromText(block.text, 'ports'),
+    ...listBlocksFromText(block.text, 'signals'),
+  ].map(port => ({
     name: blockField(port, 'name') || stripYamlScalar(port.text.replace(/^\s*-\s*/, '').split(':')[0]),
     direction: blockField(port, 'direction'),
     width: blockField(port, 'width'),
     description: blockField(port, 'description', 220),
   })),
-}));
+});
+
+const extractInterfaces = (section) => [
+  ...listBlocksFromSection(section, 'interfaces').map(block => interfaceFromBlock(block, 'interface', 'custom')),
+  ...listBlocksFromSection(section, 'bus_interfaces').map(block => interfaceFromBlock(block, 'bus_interface', 'bus')),
+  ...listBlocksFromSection(section, 'bus_interface').map(block => interfaceFromBlock(block, 'bus_interface', 'bus')),
+  ...listBlocksFromSection(section, 'busInterfaces').map(block => interfaceFromBlock(block, 'bus_interface', 'bus')),
+  ...listBlocksFromSection(section, 'buses').map(block => interfaceFromBlock(block, 'bus', 'bus')),
+];
 
 const extractSignalPorts = (section) => listBlocksFromSection(section, 'signals').map(block => ({
   name: blockField(block, 'name') || 'signal',
@@ -8583,14 +8618,8 @@ const extractReviewInterfaces = (sections, ioSection) => {
     .filter(section => section !== ioSection && /(interface|businterfaces|interrupts?)$/i.test(section.key || ''))
     .flatMap(section => {
       const busItems = listBlocksFromSection(section);
-      if (busItems.length && /^businterfaces$/i.test(section.key || '')) {
-        return busItems.map(block => ({
-          name: blockField(block, 'name') || ssotTitleFor(section.key),
-          type: blockField(block, 'proto') || blockField(block, 'type') || 'bus',
-          role: blockField(block, 'role'),
-          description: blockField(block, 'description', 260),
-          ports: [],
-        }));
+      if (busItems.length && /^bus_?interfaces?$/i.test(section.key || '')) {
+        return busItems.map(block => interfaceFromBlock(block, ssotTitleFor(section.key), 'bus'));
       }
       return [{
         name: ssotTitleFor(section.key),

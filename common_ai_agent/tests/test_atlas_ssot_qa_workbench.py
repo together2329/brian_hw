@@ -71,6 +71,18 @@ def test_ssot_preview_uses_fresh_yaml_without_llm_narrator():
     assert "meta.size || 0" in workspace_src
 
 
+def test_ssot_preview_ignores_yaml_hash_comments_in_digest_parser():
+    workspace_src = WORKSPACE_JSX.read_text(encoding="utf-8")
+
+    assert "const stripSsotYamlComment = (line) =>" in workspace_src
+    assert "const ssotPreviewLines = (text)" in workspace_src
+    assert "const lines = ssotPreviewLines(content);" in workspace_src
+    assert "const lines = ssotPreviewLines(section.text);" in workspace_src
+    assert "const lines = ssotPreviewLines(text);" in workspace_src
+    assert "let text = stripSsotYamlComment(value).trim();" in workspace_src
+    assert "ch === '#' && !single && !double" in workspace_src
+
+
 def test_to_ssot_no_longer_reads_retired_import_manifest():
     atlas_ui_src = ATLAS_UI_PY.read_text(encoding="utf-8")
     gate_start = atlas_ui_src.index("def _handle_to_ssot_gate")
@@ -147,6 +159,11 @@ def test_to_ssot_preview_and_verify_share_canonical_format_contract():
     assert "...listBlocksFromSection(testSection, 'scenarios')" in workspace_src
     assert "explicit no-register policy" in workspace_src
     assert "explicit no-FSM policy" in workspace_src
+    assert "const interfaceFromBlock = (block" in workspace_src
+    assert "listBlocksFromSection(section, 'bus_interfaces')" in workspace_src
+    assert "listBlocksFromSection(section, 'bus_interface')" in workspace_src
+    assert "listBlocksFromSection(section, 'busInterfaces')" in workspace_src
+    assert "interfaceFromBlock(block, ssotTitleFor(section.key), 'bus')" in workspace_src
 
 
 def test_verify_ssot_script_checks_preview_readable_starter_yaml(tmp_path):
