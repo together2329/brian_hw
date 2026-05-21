@@ -1,0 +1,258 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "apb_gpio_demo",
+  "source": "apb_gpio_demo/yaml/apb_gpio_demo.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "apb_gpio_demo/req/",
+      "apb_gpio_demo/yaml/apb_gpio_demo.ssot.yaml",
+      "apb_gpio_demo/model/functional_model.py",
+      "apb_gpio_demo/cov/fcov_plan.json",
+      "apb_gpio_demo/yaml/apb_gpio_demo.ssot.yaml#io_list",
+      "apb_gpio_demo/yaml/apb_gpio_demo.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "apb_gpio_demo/rtl/",
+      "apb_gpio_demo/tb/",
+      "apb_gpio_demo/sim/",
+      "apb_gpio_demo/vectors/",
+      "apb_gpio_demo/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC1_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC1",
+      "description": "APB write 0x55 to DATA"
+    },
+    {
+      "id": "SC2_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC2",
+      "description": "APB write 0xAA"
+    },
+    {
+      "id": "SC3_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC3",
+      "description": "Reset behaviour"
+    },
+    {
+      "id": "SC4_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC4",
+      "description": "APB write all-zeros"
+    },
+    {
+      "id": "SC5_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC5",
+      "description": "APB write maximum"
+    },
+    {
+      "id": "function_apb_write_data",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm1",
+      "description": "apb_write_data"
+    },
+    {
+      "id": "function_idle_or_read",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm2",
+      "description": "idle_or_read"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'PREADY', 'rule': 'Always asserted (1). 0-wait-state slave.'}"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'signal': 'PRDATA', 'rule': 'Valid in access phase for reads. Mirrors DATA when paddr==0.'}"
+    },
+    {
+      "id": "cycle_latency_apb_write",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.apb_write",
+      "source_ref": "cycle_model.latency.apb_write",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'DATA updates one cycle after access phase rising edge'}"
+    },
+    {
+      "id": "cycle_latency_apb_read",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.apb_read",
+      "source_ref": "cycle_model.latency.apb_read",
+      "description": "{'min_cycles': 0, 'max_cycles': 0, 'description': 'PRDATA is combinational from DATA in access phase'}"
+    },
+    {
+      "id": "cycle_pipeline_s0_decode",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Address decode and access-phase capture (psel & penable)."
+    },
+    {
+      "id": "cycle_pipeline_s1_update",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "On write, latch pwdata into DATA. gpio_out tracks DATA."
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "DATA update occurs on the rising edge that completes the ACCESS phase (PSEL=1, PENABLE=1, PWRITE=1)."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "gpio_out follows DATA combinationally \u2014 same cycle as DATA update."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "No backpressure \u2014 PREADY=1 always."
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "50"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'writes_per_cycle': 1, 'condition': 'APB master keeps PSEL/PENABLE asserted'}"
+    },
+    {
+      "id": "fsm_apb_phase_idle_to_setup_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.apb_phase.transitions[0]",
+      "source_ref": "fsm.apb_phase.transitions[0]",
+      "description": "psel == 1 and penable == 0"
+    },
+    {
+      "id": "fsm_apb_phase_setup_to_access_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.apb_phase.transitions[1]",
+      "source_ref": "fsm.apb_phase.transitions[1]",
+      "description": "psel == 1 and penable == 1"
+    },
+    {
+      "id": "fsm_apb_phase_access_to_idle_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.apb_phase.transitions[2]",
+      "source_ref": "fsm.apb_phase.transitions[2]",
+      "description": "psel == 0"
+    },
+    {
+      "id": "fsm_apb_phase_idle_to_idle_3",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.apb_phase.transitions[3]",
+      "source_ref": "fsm.apb_phase.transitions[3]",
+      "description": "psel == 0"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No error sources in this minimal demo', 'architectural_effect': 'PSLVERR always 0'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 23,
+    "scenario_bins": 5,
+    "transaction_bins": 2,
+    "protocol_bins": 2,
+    "state_transition_bins": 4,
+    "error_bins": 1
+  }
+}

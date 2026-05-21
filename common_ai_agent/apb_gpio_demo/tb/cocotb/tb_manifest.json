@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "apb_gpio_demo",
+  "top": "apb_gpio_demo",
+  "generated_at": "2026-05-21T06:25:01Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "apb_gpio_demo/yaml/apb_gpio_demo.ssot.yaml",
+  "equivalence_goals": "apb_gpio_demo/verify/equivalence_goals.json",
+  "rtl_contract": "apb_gpio_demo/rtl/rtl_contract.json",
+  "rtl_contract_source": "rtl_contract_json",
+  "clock": "PCLK",
+  "reset": "PRESETn",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "GPIO_WIDTH": 8,
+    "APB_ADDR_WIDTH": 4,
+    "APB_DATA_WIDTH": 32
+  },
+  "registers": {
+    "config": {
+      "register_width": 32,
+      "addr_width": 4,
+      "byte_addressable": true
+    },
+    "register_list": [
+      {
+        "name": "DATA",
+        "offset": 0,
+        "access": "rw",
+        "index": 0
+      }
+    ]
+  },
+  "state_observables": [
+    "gpio_data"
+  ],
+  "state_observable_aliases": {},
+  "rtl_signal_names": [
+    "DATA_q",
+    "PCLK",
+    "access_phase",
+    "data_addr",
+    "write_access"
+  ],
+  "ports": [
+    {
+      "name": "PCLK",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PRESETn",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PADDR",
+      "direction": "input",
+      "width": 4
+    },
+    {
+      "name": "PSEL",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PENABLE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWRITE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWDATA",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "PRDATA",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "PREADY",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "gpio_out",
+      "direction": "output",
+      "width": 8
+    }
+  ],
+  "port_widths": {
+    "PCLK": 1,
+    "PRESETn": 1,
+    "PADDR": 4,
+    "PSEL": 1,
+    "PENABLE": 1,
+    "PWRITE": 1,
+    "PWDATA": 32,
+    "PRDATA": 32,
+    "PREADY": 1,
+    "PSLVERR": 1,
+    "gpio_out": 8
+  },
+  "input_ports": [
+    "PADDR",
+    "PCLK",
+    "PENABLE",
+    "PRESETn",
+    "PSEL",
+    "PWDATA",
+    "PWRITE"
+  ],
+  "output_ports": [
+    "PRDATA",
+    "PREADY",
+    "PSLVERR",
+    "gpio_out"
+  ],
+  "inout_ports": [],
+  "input_map": {
+    "psel": "PSEL",
+    "penable": "PENABLE",
+    "pwrite": "PWRITE",
+    "paddr": "PADDR",
+    "pwdata": "PWDATA"
+  },
+  "sample_condition": "((PSEL) != 0) && ((PENABLE) != 0)",
+  "sample_inputs": [],
+  "outputs": [
+    {
+      "name": "pready_rule",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "pslverr_rule",
+      "port": "PSLVERR",
+      "width": 1
+    },
+    {
+      "name": "gpio_out_rule",
+      "port": "gpio_out",
+      "width": 8
+    },
+    {
+      "name": "PRDATA",
+      "port": "PRDATA",
+      "width": 32
+    },
+    {
+      "name": "PREADY",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "port": "PSLVERR",
+      "width": 1
+    },
+    {
+      "name": "gpio_out",
+      "port": "gpio_out",
+      "width": 8
+    }
+  ],
+  "special_outputs": {},
+  "transaction_kind": "FM1",
+  "per_goal_reset": true,
+  "cl_cosim": true,
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/apb_gpio_demo/rtl/apb_gpio_demo.sv"
+  ],
+  "goal_count": 21,
+  "module_goal_count": 1,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_APB_GPIO_DEMO",
+      "rtl_module": "apb_gpio_demo",
+      "rtl_file": "rtl/apb_gpio_demo.sv"
+    }
+  ]
+}

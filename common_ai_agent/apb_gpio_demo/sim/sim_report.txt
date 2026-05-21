@@ -1,0 +1,6 @@
+TESTS=1 PASS=1 FAIL=0
+results=apb_gpio_demo/sim/results.xml
+scoreboard=apb_gpio_demo/sim/scoreboard_events.jsonl
+coverage_functional=apb_gpio_demo/cov/coverage_functional.json
+waveforms=apb_gpio_demo/sim/apb_gpio_demo.vcd
+0 errors, 0 warnings
