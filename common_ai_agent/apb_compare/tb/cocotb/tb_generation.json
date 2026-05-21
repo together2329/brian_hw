@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_generation",
+  "status": "pass",
+  "ip": "apb_compare",
+  "generated_at": "2026-05-21T06:58:48Z",
+  "manifest": "apb_compare/tb/cocotb/tb_manifest.json",
+  "test": "apb_compare/tb/cocotb/test_apb_compare.py",
+  "runner": "apb_compare/tb/cocotb/test_runner.py",
+  "goals": 21,
+  "rtl_sources": 1
+}

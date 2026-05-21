@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "apb_compare",
+  "top": "apb_compare",
+  "generated_at": "2026-05-21T06:58:48Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "apb_compare/yaml/apb_compare.ssot.yaml",
+  "equivalence_goals": "apb_compare/verify/equivalence_goals.json",
+  "rtl_contract": "apb_compare/rtl/rtl_contract.json",
+  "rtl_contract_source": "rtl_contract_json",
+  "clock": "PCLK",
+  "reset": "PRESETn",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "APB_ADDR_WIDTH": 4,
+    "APB_DATA_WIDTH": 32
+  },
+  "registers": {
+    "config": {
+      "register_width": 32,
+      "addr_width": 4,
+      "byte_addressable": true
+    },
+    "register_list": [
+      {
+        "name": "VALUE",
+        "offset": 0,
+        "access": "rw",
+        "index": 0
+      },
+      {
+        "name": "REFERENCE",
+        "offset": 4,
+        "access": "rw",
+        "index": 1
+      }
+    ]
+  },
+  "state_observables": [
+    "value_q",
+    "reference_q"
+  ],
+  "state_observable_aliases": {},
+  "rtl_signal_names": [
+    "PCLK",
+    "access_phase",
+    "is_reference",
+    "is_value",
+    "reference_q",
+    "value_q",
+    "write_ref",
+    "write_value"
+  ],
+  "ports": [
+    {
+      "name": "PCLK",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PRESETn",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PADDR",
+      "direction": "input",
+      "width": 4
+    },
+    {
+      "name": "PSEL",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PENABLE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWRITE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWDATA",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "PRDATA",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "PREADY",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "match_o",
+      "direction": "output",
+      "width": 1
+    }
+  ],
+  "port_widths": {
+    "PCLK": 1,
+    "PRESETn": 1,
+    "PADDR": 4,
+    "PSEL": 1,
+    "PENABLE": 1,
+    "PWRITE": 1,
+    "PWDATA": 32,
+    "PRDATA": 32,
+    "PREADY": 1,
+    "PSLVERR": 1,
+    "match_o": 1
+  },
+  "input_ports": [
+    "PADDR",
+    "PCLK",
+    "PENABLE",
+    "PRESETn",
+    "PSEL",
+    "PWDATA",
+    "PWRITE"
+  ],
+  "output_ports": [
+    "PRDATA",
+    "PREADY",
+    "PSLVERR",
+    "match_o"
+  ],
+  "inout_ports": [],
+  "input_map": {
+    "psel": "PSEL",
+    "penable": "PENABLE",
+    "pwrite": "PWRITE",
+    "paddr": "PADDR",
+    "pwdata": "PWDATA"
+  },
+  "sample_condition": "((PSEL) != 0) && ((PENABLE) != 0)",
+  "sample_inputs": [],
+  "outputs": [
+    {
+      "name": "pready_rule",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "pslverr_rule",
+      "port": "PSLVERR",
+      "width": 1
+    },
+    {
+      "name": "match_rule",
+      "port": "match_o",
+      "width": 1
+    },
+    {
+      "name": "PRDATA",
+      "port": "PRDATA",
+      "width": 32
+    },
+    {
+      "name": "PREADY",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "port": "PSLVERR",
+      "width": 1
+    },
+    {
+      "name": "match_o",
+      "port": "match_o",
+      "width": 1
+    }
+  ],
+  "special_outputs": {},
+  "transaction_kind": "FM_WRITE",
+  "per_goal_reset": true,
+  "cl_cosim": true,
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/apb_compare/rtl/apb_compare.sv"
+  ],
+  "goal_count": 21,
+  "module_goal_count": 1,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_APB_COMPARE",
+      "rtl_module": "apb_compare",
+      "rtl_file": "rtl/apb_compare.sv"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "apb_compare",
+  "top": "apb_compare",
+  "generated_at": "2026-05-21T00:00:00Z",
+  "contract": {
+    "top": "apb_compare",
+    "transaction": "FM_WRITE",
+    "clock": "PCLK",
+    "reset": "PRESETn",
+    "reset_active": "low",
+    "sample_condition": "((PSEL) != 0) && ((PENABLE) != 0)",
+    "input_map": {
+      "psel": "PSEL",
+      "penable": "PENABLE",
+      "pwrite": "PWRITE",
+      "paddr": "PADDR",
+      "pwdata": "PWDATA"
+    },
+    "outputs": [
+      { "name": "pready_rule",  "port": "PREADY",  "expr": "1", "width": 1 },
+      { "name": "pslverr_rule", "port": "PSLVERR", "expr": "0", "width": 1 },
+      { "name": "match_rule",   "port": "match_o", "expr": "1 if (value_q == reference_q) else 0", "width": 1 }
+    ]
+  }
+}

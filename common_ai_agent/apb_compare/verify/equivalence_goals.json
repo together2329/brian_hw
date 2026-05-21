@@ -1,0 +1,1760 @@
+{
+  "ip": "apb_compare",
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "source_of_truth": {
+    "ssot": "apb_compare/yaml/apb_compare.ssot.yaml",
+    "functional_model": "apb_compare/model/functional_model.py",
+    "functional_model_exists": true,
+    "cycle_model_section": "cycle_model",
+    "decomposition": "apb_compare/model/decomposition.json",
+    "coverage_plan": "apb_compare/cov/fcov_plan.json",
+    "authority_contract": {
+      "rule": "LLM repair loops are allowed when a general criterion has objective machine evidence: PASS/FAIL/DIFF, coverage gap, lint diagnostic, assertion failure, stale evidence, traceability gap, or measured performance gap. Human gates own intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff.",
+      "general_evaluation_criteria": [
+        {
+          "id": "traceability",
+          "criterion": "Every generated artifact traces to SSOT requirement, function_model, cycle_model, interface, coverage, or quality_gates refs.",
+          "machine_evidence": [
+            "source refs in decomposition/equivalence goals",
+            "artifact manifests"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "functional_equivalence",
+          "criterion": "RTL observable behavior matches FunctionalModel results for every required transaction/scenario.",
+          "machine_evidence": [
+            "scoreboard_events.jsonl",
+            "fl_rtl_compare.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "module_equivalence",
+          "criterion": "Each behavior-owning RTL module has module-boundary evidence before top-level signoff.",
+          "machine_evidence": [
+            "scope.level=module scoreboard rows",
+            "module goal status"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "coverage_closure",
+          "criterion": "SSOT coverage goals are hit by passing RTL-observed scoreboard evidence.",
+          "machine_evidence": [
+            "fcov_plan.json",
+            "coverage.json",
+            "scoreboard coverage_refs"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "interface_protocol",
+          "criterion": "Ports, handshakes, ordering, reset, and error protocol obey SSOT io_list/cycle_model/interface contract.",
+          "machine_evidence": [
+            "protocol goals",
+            "assertion failures",
+            "waveform evidence"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "lint_compile",
+          "criterion": "DUT-only RTL compile/lint has zero unwaived errors, warnings, and style diagnostics.",
+          "machine_evidence": [
+            "rtl_compile.json",
+            "dut_lint.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "simulation_evidence",
+          "criterion": "Simulation results are fresh, bounded, non-stale, and tied to structured scoreboard goals.",
+          "machine_evidence": [
+            "results.xml",
+            "scoreboard_events.jsonl",
+            "stale_evidence checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "performance_cycle",
+          "criterion": "Cycle/performance targets from cycle_model/timing are measured or explicitly escalated.",
+          "machine_evidence": [
+            "latency/throughput measurements",
+            "CL/performance sweep reports"
+          ],
+          "llm_loop_allowed": "candidate_search_only"
+        },
+        {
+          "id": "debug_observability",
+          "criterion": "Waveforms and debug probes are sufficient to inspect reset, interface activity, state, outputs, and failures.",
+          "machine_evidence": [
+            "VCD/FST presence",
+            "debug_observability goals",
+            "waveform parser summary"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "maintainability",
+          "criterion": "Generated RTL/TB is structured by SSOT-owned modules, avoids fixed IP templates, and remains reviewable.",
+          "machine_evidence": [
+            "module contracts",
+            "dynamic todo plan",
+            "filelist/manifest checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "human_decision",
+          "criterion": "Intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff are human-owned.",
+          "machine_evidence": [
+            "human_gate questions/answers",
+            "approval state"
+          ],
+          "llm_loop_allowed": false
+        }
+      ],
+      "locked_artifacts": [
+        {
+          "name": "requirement",
+          "path": "apb_compare/req/",
+          "owner": "human",
+          "change_rule": "Human owns intent, scope, priority, tradeoffs, and final acceptance."
+        },
+        {
+          "name": "ssot_spec",
+          "path": "apb_compare/yaml/apb_compare.ssot.yaml",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Behavior, interface, coverage goal, and waiver changes require human gate."
+        },
+        {
+          "name": "functional_model",
+          "path": "apb_compare/model/functional_model.py",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "FunctionalModel is the golden oracle; sim-debug cannot change it to match RTL."
+        },
+        {
+          "name": "coverage_plan",
+          "path": "apb_compare/cov/fcov_plan.json",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "LLM may add tests to hit bins, but cannot weaken or delete bins without approval."
+        },
+        {
+          "name": "interface_contract",
+          "path": "apb_compare/yaml/apb_compare.ssot.yaml#io_list",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Protocol and port contract changes require human approval."
+        },
+        {
+          "name": "performance_target",
+          "path": "apb_compare/yaml/apb_compare.ssot.yaml#cycle_model",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "LLM may sweep candidates, but target/tradeoff changes require human approval."
+        }
+      ],
+      "llm_editable_artifacts": [
+        "apb_compare/rtl/",
+        "apb_compare/tb/",
+        "apb_compare/sim/",
+        "apb_compare/reports/",
+        "apb_compare/vectors/"
+      ],
+      "loopable_evidence_points": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "loopable_oracles": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "non_loopable_decisions": [
+        "change requirement intent or scope",
+        "change SSOT behavioral rule",
+        "change FunctionalModel golden semantics",
+        "change coverage goal or waiver",
+        "change interface contract",
+        "change performance target or architecture tradeoff",
+        "final signoff"
+      ]
+    }
+  },
+  "summary": {
+    "total": 21,
+    "required": 21,
+    "optional": 0,
+    "blocked": 0,
+    "unverified": 0,
+    "module_total": 1,
+    "module_required": 1,
+    "module_blocked": 0,
+    "module_unverified": 0
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM_WRITE",
+      "title": "Transaction apb_write matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "apb_compare_protocol_model",
+        "apb_compare_register_model",
+        "apb_compare_datapath_model",
+        "apb_compare_fsm_model",
+        "apb_compare_error_model"
+      ],
+      "coverage_refs": [
+        "function_apb_write",
+        "cycle_latency_apb_write"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "VALUE/REFERENCE register updates; match_o reflects new compare result",
+          "pready_rule",
+          "pslverr_rule",
+          "match_rule"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "Selected register updated",
+          "value_q",
+          "reference_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_IDLE",
+      "title": "Transaction idle_or_read matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[1]"
+      ],
+      "decomposition_refs": [
+        "apb_compare_protocol_model",
+        "apb_compare_register_model",
+        "apb_compare_datapath_model",
+        "apb_compare_fsm_model",
+        "apb_compare_error_model"
+      ],
+      "coverage_refs": [
+        "function_idle_or_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "idle_or_read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "pwrite == 0 or psel == 0 or penable == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "match_o reflects existing compare; PRDATA on read",
+          "pready_rule",
+          "pslverr_rule",
+          "match_rule",
+          "prdata_rule"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "value_q",
+          "reference_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC1",
+      "title": "Scenario SC1: Both registers zero \u2014 match=1 initially",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]"
+      ],
+      "decomposition_refs": [
+        "apb_compare",
+        "apb_compare_protocol_model",
+        "apb_compare_register_model",
+        "apb_compare_datapath_model",
+        "apb_compare_fsm_model",
+        "apb_compare_error_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC1",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "After reset, VALUE=REFERENCE=0, match_o=1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "match_o=1",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC2",
+      "title": "Scenario SC2: Write VALUE=0x55, REFERENCE stays 0 \u2014 no match",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "apb_compare",
+        "apb_compare_protocol_model",
+        "apb_compare_register_model",
+        "apb_compare_datapath_model",
+        "apb_compare_fsm_model",
+        "apb_compare_error_model"
+      ],
+      "coverage_refs": [
+        "SC2_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Write 0x55 to VALUE",
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1"
+        ],
+        "machine_spec": {
+          "timeline": [
+            {
+              "csr_write": {
+                "offset": 0,
+                "data": 85
+              }
+            }
+          ]
+        }
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "value_q=0x55, reference_q=0, match_o=0",
+          "VALUE/REFERENCE register updates; match_o reflects new compare result",
+          "pready_rule",
+          "pslverr_rule",
+          "match_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "Selected register updated",
+          "value_q",
+          "reference_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC3",
+      "title": "Scenario SC3: Write REFERENCE=0x55 \u2014 match",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]"
+      ],
+      "decomposition_refs": [
+        "apb_compare",
+        "apb_compare_protocol_model",
+        "apb_compare_register_model",
+        "apb_compare_datapath_model",
+        "apb_compare_fsm_model",
+        "apb_compare_error_model"
+      ],
+      "coverage_refs": [
+        "SC3_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Write 0x55 to VALUE then 0x55 to REFERENCE",
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1"
+        ],
+        "machine_spec": {
+          "timeline": [
+            {
+              "csr_write": {
+                "offset": 0,
+                "data": 85
+              }
+            },
+            {
+              "csr_write": {
+                "offset": 4,
+                "data": 85
+              }
+            }
+          ]
+        }
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Both 0x55, match_o=1",
+          "VALUE/REFERENCE register updates; match_o reflects new compare result",
+          "pready_rule",
+          "pslverr_rule",
+          "match_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "Selected register updated",
+          "value_q",
+          "reference_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC4",
+      "title": "Scenario SC4: Write both different \u2014 no match",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "apb_compare",
+        "apb_compare_protocol_model",
+        "apb_compare_register_model",
+        "apb_compare_datapath_model",
+        "apb_compare_fsm_model",
+        "apb_compare_error_model"
+      ],
+      "coverage_refs": [
+        "SC4_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Write 0xAA to VALUE then 0xBB to REFERENCE",
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1"
+        ],
+        "machine_spec": {
+          "timeline": [
+            {
+              "csr_write": {
+                "offset": 0,
+                "data": 170
+              }
+            },
+            {
+              "csr_write": {
+                "offset": 4,
+                "data": 187
+              }
+            }
+          ]
+        }
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "match_o=0",
+          "VALUE/REFERENCE register updates; match_o reflects new compare result",
+          "pready_rule",
+          "pslverr_rule",
+          "match_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "Selected register updated",
+          "value_q",
+          "reference_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC5",
+      "title": "Scenario SC5: Write both 0xFFFFFFFF \u2014 match all-ones",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[4]"
+      ],
+      "decomposition_refs": [
+        "apb_compare",
+        "apb_compare_protocol_model",
+        "apb_compare_register_model",
+        "apb_compare_datapath_model",
+        "apb_compare_fsm_model",
+        "apb_compare_error_model"
+      ],
+      "coverage_refs": [
+        "SC5_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Write 0xFFFFFFFF to both registers",
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1"
+        ],
+        "machine_spec": {
+          "timeline": [
+            {
+              "csr_write": {
+                "offset": 0,
+                "data": 4294967295
+              }
+            },
+            {
+              "csr_write": {
+                "offset": 4,
+                "data": 4294967295
+              }
+            }
+          ]
+        }
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "match_o=1 with max value",
+          "VALUE/REFERENCE register updates; match_o reflects new compare result",
+          "pready_rule",
+          "pslverr_rule",
+          "match_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "Selected register updated",
+          "value_q",
+          "reference_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "title": "Cycle/handshake rule handshake_0",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[0]"
+      ],
+      "decomposition_refs": [
+        "apb_compare_protocol_model",
+        "apb_compare_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_0",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'PREADY', 'rule': 'Always 1 (0-wait-state)'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'apb_write': {'min_cycles': 1, 'max_cycles': 1}, 'apb_read': {'min_cycles': 0, 'max_cycles': 0}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "title": "Cycle/handshake rule handshake_1",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[1]"
+      ],
+      "decomposition_refs": [
+        "apb_compare_protocol_model",
+        "apb_compare_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_1",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'match_o', 'rule': 'Combinational equality of value_q and reference_q'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'apb_write': {'min_cycles': 1, 'max_cycles': 1}, 'apb_read': {'min_cycles': 0, 'max_cycles': 0}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "title": "Ordering rule ordering_0",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]"
+      ],
+      "decomposition_refs": [
+        "apb_compare_protocol_model",
+        "apb_compare_datapath_model",
+        "apb_compare_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_0",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "VALUE/REFERENCE write happens on access-phase rising edge; match_o updates the same cycle."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'apb_write': {'min_cycles': 1, 'max_cycles': 1}, 'apb_read': {'min_cycles': 0, 'max_cycles': 0}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_VALUE",
+      "title": "Register access VALUE",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[0]"
+      ],
+      "decomposition_refs": [
+        "apb_compare_register_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed",
+        "SC2_executed",
+        "cycle_handshake_1",
+        "cycle_pipeline_s1_update",
+        "cycle_ordering_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'VALUE', 'offset': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'data', 'description': 'Value register', 'write_side_effects': ['PWDATA latched into value_q on write access phase.'], 'fields': [{'name': 'data', 'bits': [31, 0], 'access': 'rw', 'reset': 0, 'write_effect': 'Update value_q', 'description': 'Value'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_REFERENCE",
+      "title": "Register access REFERENCE",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[1]"
+      ],
+      "decomposition_refs": [
+        "apb_compare_register_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed",
+        "SC2_executed",
+        "SC3_executed",
+        "cycle_handshake_1",
+        "cycle_pipeline_s1_update",
+        "cycle_ordering_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'REFERENCE', 'offset': 4, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'data', 'description': 'Reference register', 'write_side_effects': ['PWDATA latched into reference_q on write access phase.'], 'fields': [{'name': 'data', 'bits': [31, 0], 'access': 'rw', 'reset': 0, 'write_effect': 'Update reference_q', 'description': 'Reference'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "title": "Error policy None",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[0]"
+      ],
+      "decomposition_refs": [
+        "apb_compare_protocol_model",
+        "apb_compare_error_model"
+      ],
+      "coverage_refs": [
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "None",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'PSLVERR always 0'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_APB_PHASE_IDLE_TO_ACCESS_0",
+      "title": "FSM transition apb_phase: IDLE -> ACCESS",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.apb_phase.transitions[0]"
+      ],
+      "decomposition_refs": [
+        "apb_compare_fsm_model"
+      ],
+      "coverage_refs": [
+        "function_idle_or_read",
+        "cycle_ordering_0",
+        "fsm_apb_phase_idle_to_access_0",
+        "fsm_apb_phase_access_to_idle_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_phase_IDLE_to_ACCESS_0",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "apb_phase state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+      "title": "FSM transition apb_phase: ACCESS -> IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.apb_phase.transitions[1]"
+      ],
+      "decomposition_refs": [
+        "apb_compare_fsm_model"
+      ],
+      "coverage_refs": [
+        "function_idle_or_read",
+        "cycle_ordering_0",
+        "fsm_apb_phase_idle_to_access_0",
+        "fsm_apb_phase_access_to_idle_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_phase_ACCESS_to_IDLE_1",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "psel == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "apb_phase state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_MODULE_APB_COMPARE",
+      "title": "Module apb_compare functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "apb_compare",
+        "rtl_file": "rtl/apb_compare.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.match_o",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline.s0_decode",
+        "cycle_model.pipeline.s1_update",
+        "cycle_model.reset",
+        "features.apb_csr_access",
+        "features.equality_compare",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_variables.reference_q",
+        "function_model.state_variables.value_q",
+        "function_model.transactions",
+        "function_model.transactions.FM_IDLE",
+        "function_model.transactions.FM_WRITE",
+        "function_model.transactions.fm_idle",
+        "function_model.transactions.fm_idle.inputs.input_0",
+        "function_model.transactions.fm_idle.output_rules.match_rule",
+        "function_model.transactions.fm_idle.output_rules.prdata_rule",
+        "function_model.transactions.fm_idle.output_rules.pready_rule",
+        "function_model.transactions.fm_idle.output_rules.pslverr_rule",
+        "function_model.transactions.fm_idle.outputs.output_0",
+        "function_model.transactions.fm_idle.preconditions.precondition_0",
+        "function_model.transactions.fm_idle.state_updates.reference_q",
+        "function_model.transactions.fm_idle.state_updates.value_q",
+        "function_model.transactions.fm_write",
+        "function_model.transactions.fm_write.inputs.input_0",
+        "function_model.transactions.fm_write.inputs.input_1",
+        "function_model.transactions.fm_write.output_rules.match_rule",
+        "function_model.transactions.fm_write.output_rules.pready_rule",
+        "function_model.transactions.fm_write.output_rules.pslverr_rule",
+        "function_model.transactions.fm_write.outputs.output_0",
+        "function_model.transactions.fm_write.preconditions.precondition_0",
+        "function_model.transactions.fm_write.preconditions.precondition_1",
+        "function_model.transactions.fm_write.preconditions.precondition_2",
+        "function_model.transactions.fm_write.side_effects.side_effect_0",
+        "function_model.transactions.fm_write.state_updates.reference_q",
+        "function_model.transactions.fm_write.state_updates.value_q",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "parameters.apb_addr_width",
+        "parameters.apb_data_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.reference",
+        "registers.register_list.value"
+      ],
+      "decomposition_refs": [
+        "apb_compare"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "apb_write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "VALUE/REFERENCE register updates; match_o reflects new compare result",
+          "pready_rule",
+          "pslverr_rule",
+          "match_rule"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "Selected register updated",
+          "value_q",
+          "reference_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_APB_READ",
+      "title": "Functional coverage bin cycle_latency_apb_read: {'min_cycles': 0, 'max_cycles': 0}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.apb_read"
+      ],
+      "decomposition_refs": [
+        "apb_compare",
+        "apb_compare_protocol_model",
+        "apb_compare_register_model",
+        "apb_compare_datapath_model",
+        "apb_compare_fsm_model",
+        "apb_compare_error_model"
+      ],
+      "coverage_refs": [
+        "cycle_latency_apb_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "{'min_cycles': 0, 'max_cycles': 0}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "VALUE/REFERENCE register updates; match_o reflects new compare result",
+          "pready_rule",
+          "pslverr_rule",
+          "match_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "Selected register updated",
+          "value_q",
+          "reference_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_DECODE",
+      "title": "Functional coverage bin cycle_pipeline_s0_decode: APB phase capture and address decode",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[0]"
+      ],
+      "decomposition_refs": [
+        "apb_compare",
+        "apb_compare_protocol_model",
+        "apb_compare_register_model",
+        "apb_compare_datapath_model",
+        "apb_compare_fsm_model",
+        "apb_compare_error_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s0_decode"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "APB phase capture and address decode"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "VALUE/REFERENCE register updates; match_o reflects new compare result",
+          "pready_rule",
+          "pslverr_rule",
+          "match_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "Selected register updated",
+          "value_q",
+          "reference_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "title": "Functional coverage bin cycle_backpressure_0: No backpressure.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure[0]"
+      ],
+      "decomposition_refs": [
+        "apb_compare",
+        "apb_compare_protocol_model",
+        "apb_compare_register_model",
+        "apb_compare_datapath_model",
+        "apb_compare_fsm_model",
+        "apb_compare_error_model"
+      ],
+      "coverage_refs": [
+        "cycle_backpressure_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "No backpressure."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "VALUE/REFERENCE register updates; match_o reflects new compare result",
+          "pready_rule",
+          "pslverr_rule",
+          "match_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "Selected register updated",
+          "value_q",
+          "reference_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "title": "Functional coverage bin cycle_perf_frequency_mhz: 50",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.frequency_mhz"
+      ],
+      "decomposition_refs": [
+        "apb_compare",
+        "apb_compare_protocol_model",
+        "apb_compare_register_model",
+        "apb_compare_datapath_model",
+        "apb_compare_fsm_model",
+        "apb_compare_error_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "50"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "VALUE/REFERENCE register updates; match_o reflects new compare result",
+          "pready_rule",
+          "pslverr_rule",
+          "match_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "Selected register updated",
+          "value_q",
+          "reference_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "title": "Functional coverage bin cycle_perf_throughput: {'writes_per_cycle': 1}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.throughput"
+      ],
+      "decomposition_refs": [
+        "apb_compare",
+        "apb_compare_protocol_model",
+        "apb_compare_register_model",
+        "apb_compare_datapath_model",
+        "apb_compare_fsm_model",
+        "apb_compare_error_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_throughput"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "{'writes_per_cycle': 1}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "VALUE/REFERENCE register updates; match_o reflects new compare result",
+          "pready_rule",
+          "pslverr_rule",
+          "match_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "Selected register updated",
+          "value_q",
+          "reference_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    }
+  ]
+}
