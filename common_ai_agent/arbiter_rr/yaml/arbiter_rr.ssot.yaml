@@ -223,6 +223,10 @@ cycle_model:
   # fairness checks observe rotation across multiple goals; per-goal reset
   # would lose this and break SC2/SC6/etc.
   state_accumulating: true
+  # Opt-in: cycle-accurate CL co-simulation via FunctionalModel.step().
+  # cocotb steps FL in lock-step with DUT each cycle and feeds cl_passed
+  # to the scoreboard as the authoritative oracle when FL & RTL agree.
+  cosim: true
   executable: "pymtl3"
   backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle."
   clock: "PCLK"

@@ -3,7 +3,7 @@
   "type": "generic_goal_scoreboard_cocotb_manifest",
   "ip": "arbiter_rr",
   "top": "arbiter_rr",
-  "generated_at": "2026-05-20T23:57:03Z",
+  "generated_at": "2026-05-21T01:59:42Z",
   "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
   "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
   "ssot": "arbiter_rr/yaml/arbiter_rr.ssot.yaml",
@@ -256,6 +256,7 @@
   "special_outputs": {},
   "transaction_kind": "FM1",
   "per_goal_reset": false,
+  "cl_cosim": true,
   "rtl_sources": [
     "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arbiter_rr/rtl/arbiter_rr_regs.sv",
     "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arbiter_rr/rtl/arbiter_rr_core.sv",

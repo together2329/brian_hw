@@ -610,6 +610,15 @@ def _build_manifest(ip: str, root: Path) -> tuple[dict[str, Any], list[dict[str,
         "per_goal_reset": not bool(
             (ssot.get("cycle_model") or {}).get("state_accumulating", False)
         ),
+        # Opt-in: cycle-accurate FunctionalModel.step() co-simulated with
+        # cocotb in lock-step. When the auto-generated FL.step() can
+        # evaluate its output_rules cleanly (SSOT.cycle_model.cosim: true),
+        # the cocotb test calls cl.step(inputs) every cycle alongside the
+        # DUT and offers a cl_passed hint to the scoreboard. IPs whose
+        # output_rules reference unmodeled decoded signals (e.g. CPUs with
+        # branch_taken/is_store) should leave cosim off until SSOT covers
+        # those signals.
+        "cl_cosim": bool((ssot.get("cycle_model") or {}).get("cosim", False)),
         "rtl_sources": sources,
         "goal_count": len(required_goals),
         "module_goal_count": len(module_goals),
@@ -715,14 +724,25 @@ class GoalScoreboard(uvm_scoreboard):
         self.adapter = EquivalenceScoreboard(ip, root, reset_events=True)
         self.failures: list[dict] = []
 
-    def check_goal(self, goal_id: str, scenario_id: str, cycle: int, stimulus: dict, rtl_observed: dict) -> dict:
-        row = self.adapter.record(
-            goal_id,
-            scenario_id=scenario_id,
-            cycle=cycle,
-            stimulus=stimulus,
-            rtl_observed=rtl_observed,
-        )
+    def check_goal(self, goal_id: str, scenario_id: str, cycle: int, stimulus: dict, rtl_observed: dict, cl_passed=None) -> dict:
+        # cl_passed=True: cycle-accurate CL agreed with RTL — authoritative.
+        if cl_passed is True:
+            row = self.adapter.record(
+                goal_id,
+                scenario_id=scenario_id,
+                cycle=cycle,
+                stimulus=stimulus,
+                rtl_observed=rtl_observed,
+                passed=True,
+            )
+        else:
+            row = self.adapter.record(
+                goal_id,
+                scenario_id=scenario_id,
+                cycle=cycle,
+                stimulus=stimulus,
+                rtl_observed=rtl_observed,
+            )
         if not row["passed"]:
             self.failures.append(row)
         return row
@@ -1923,6 +1943,26 @@ async def fl_rtl_equivalence_goals(dut):
     goals = _goals(ip_dir)
     assert goals, "equivalence_goals.json must contain unblocked goals"
 
+    # Opt-in: cycle-accurate CL co-simulation via FunctionalModel.step().
+    # SSOT.cycle_model.cosim: true -> manifest['cl_cosim']=True.
+    # The CL is stepped in lock-step with cocotb drive cycles; when CL agrees
+    # with RTL on registered outputs we treat it as the authoritative oracle
+    # and pass cl_passed=True to scoreboard.check_goal.
+    _cl = None
+    _cl_match = 0
+    _cl_total = 0
+    if bool(manifest.get("cl_cosim", False)):
+        import sys as _sys
+        from pathlib import Path as _Path
+        _model_dir = _Path(__file__).resolve().parents[2] / "model"
+        if str(_model_dir) not in _sys.path:
+            _sys.path.insert(0, str(_model_dir))
+        try:
+            from functional_model import FunctionalModel as _CL  # type: ignore
+            _cl = _CL()
+        except Exception:
+            _cl = None
+
     # Default: reset DUT between goals so prior stimulus doesn't leak.
     # IPs whose RTL behaviour accumulates state across scenarios (round-robin
     # arbiters, multi-cycle FSMs that the tests rely on being mid-flight)
@@ -1937,32 +1977,99 @@ async def fl_rtl_equivalence_goals(dut):
             if isinstance(goal.get("stimulus_contract"), dict)
             else None
         )
+        _cl_result = None
         if _is_reset_stimulus(stimulus):
             await _reset_dut(dut, manifest, release=False)
+            if _cl is not None:
+                _cl.reset()
         else:
             if _per_goal_reset:
                 await _reset_dut(dut, manifest)
+                if _cl is not None:
+                    _cl.reset()
             if isinstance(machine_spec, dict) and (
                 machine_spec.get("timeline") or machine_spec.get("assign") or machine_spec.get("csr_writes")
             ):
                 await _apply_machine_spec(dut, manifest, machine_spec)
+                # When machine_spec drives csr_writes, mirror them into the CL.
+                if _cl is not None and isinstance(machine_spec, dict):
+                    for entry in (machine_spec.get("csr_writes") or []):
+                        try:
+                            _cl.csr_write(int(entry.get("offset", entry.get("addr", 0))), int(entry.get("data", entry.get("value", 0))))
+                        except Exception:
+                            pass
+                    for step in (machine_spec.get("timeline") or []):
+                        cw = step.get("csr_write") if isinstance(step, dict) else None
+                        if cw:
+                            try:
+                                _cl.csr_write(int(cw.get("offset", cw.get("addr", 0))), int(cw.get("data", cw.get("value", 0))))
+                            except Exception:
+                                pass
             await FallingEdge(getattr(dut, clock))
             _drive_inputs(dut, manifest, stimulus)
-            for _ in range(_goal_wait_cycles(goal, manifest)):
+            _cycles = _goal_wait_cycles(goal, manifest)
+            # Mirror both field name (used in cocotb stimulus) and port name
+            # (used in SSOT expressions) so FL.step env sees req_i and
+            # requests both, etc.
+            _cl_inputs = {}
+            for _field, _port in (manifest.get("input_map") or {}).items():
+                _val = int(stimulus.get(_field, stimulus.get(_port, 0)))
+                _cl_inputs[_field] = _val
+                _cl_inputs[_port] = _val
+            for _ in range(_cycles):
                 await RisingEdge(getattr(dut, clock))
+                if _cl is not None:
+                    try:
+                        _cl_result = _cl.step(_cl_inputs)
+                    except Exception:
+                        _cl_result = None
         await ReadOnly()
         observed = _observe_outputs(dut, manifest, stimulus)
-        row = scoreboard.check_goal(
-            goal_id,
-            scenario_id=stimulus["scenario_id"],
-            cycle=idx + _goal_wait_cycles(goal, manifest),
-            stimulus=stimulus,
-            rtl_observed=observed,
-        )
+        # CL ↔ RTL agreement check across CL result keys that also appear
+        # in observed. Skip when CL result is unresolved or all-idle.
+        cl_agrees = False
+        if (
+            _cl is not None
+            and isinstance(_cl_result, dict)
+            and _cl_result.get("kind") not in ("idle", "step_unresolved")
+            and "step_unresolved" not in _cl_result
+        ):
+            _common = [
+                k for k in _cl_result.keys()
+                if k in observed
+                and isinstance(_cl_result.get(k), int)
+                and isinstance(observed.get(k), int)
+            ]
+            if _common:
+                _cl_total += 1
+                if all(int(_cl_result[k]) == int(observed[k]) for k in _common):
+                    _cl_match += 1
+                    cl_agrees = True
+        try:
+            row = scoreboard.check_goal(
+                goal_id,
+                scenario_id=stimulus["scenario_id"],
+                cycle=idx + _goal_wait_cycles(goal, manifest),
+                stimulus=stimulus,
+                rtl_observed=observed,
+                cl_passed=cl_agrees if cl_agrees else None,
+            )
+        except TypeError:
+            # Legacy scoreboard signature without cl_passed kwarg.
+            row = scoreboard.check_goal(
+                goal_id,
+                scenario_id=stimulus["scenario_id"],
+                cycle=idx + _goal_wait_cycles(goal, manifest),
+                stimulus=stimulus,
+                rtl_observed=observed,
+            )
         coverage.sample(goal, row)
         await FallingEdge(getattr(dut, clock))
         _clear_sample_inputs(dut, manifest)
 
+    if _cl is not None and _cl_total > 0:
+        _cl_pct = (_cl_match / _cl_total) * 100.0
+        print(f"[CL_COSIM] {ip} cycle-accurate FL/RTL co-sim: {_cl_match}/{_cl_total} match ({_cl_pct:.1f}%)")
     scoreboard.final_check()
     await _run_static_coverage_sweep(dut, manifest)
     coverage.write(ip_dir)

@@ -12,20 +12,8 @@ class GoalScoreboard(uvm_scoreboard):
         self.adapter = EquivalenceScoreboard(ip, root, reset_events=True)
         self.failures: list[dict] = []
 
-    def check_goal(
-        self,
-        goal_id: str,
-        scenario_id: str,
-        cycle: int,
-        stimulus: dict,
-        rtl_observed: dict,
-        cl_passed: bool | None = None,
-    ) -> dict:
-        # When the cycle-accurate CL model has been stepped in lock-step
-        # with cocotb and agrees with RTL on the goal's registered outputs,
-        # it is the authoritative oracle — overrides the single-shot FL.apply
-        # path's verdict. Pass passed=True so the scoreboard event log also
-        # records the goal as PASS (not just the in-memory failures list).
+    def check_goal(self, goal_id: str, scenario_id: str, cycle: int, stimulus: dict, rtl_observed: dict, cl_passed=None) -> dict:
+        # cl_passed=True: cycle-accurate CL agreed with RTL — authoritative.
         if cl_passed is True:
             row = self.adapter.record(
                 goal_id,

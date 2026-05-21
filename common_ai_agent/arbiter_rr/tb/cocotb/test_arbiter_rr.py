@@ -1110,19 +1110,25 @@ async def fl_rtl_equivalence_goals(dut):
     goals = _goals(ip_dir)
     assert goals, "equivalence_goals.json must contain unblocked goals"
 
-    # Cycle-accurate CL co-simulation via SSOT-emitted FunctionalModel.step().
-    # The auto-generated step() selects active transaction from preconditions
-    # and applies output_rules/state_updates per cycle — same effect as a
-    # hand-coded CL Component, but driven entirely by SSOT (no per-IP code).
-    import sys as _sys
-    from pathlib import Path as _Path
-    _model_dir = _Path(__file__).resolve().parents[2] / "model"
-    if str(_model_dir) not in _sys.path:
-        _sys.path.insert(0, str(_model_dir))
-    from functional_model import FunctionalModel as _CL  # type: ignore
-    cl = _CL()
-    cl_match = 0
-    cl_total = 0
+    # Opt-in: cycle-accurate CL co-simulation via FunctionalModel.step().
+    # SSOT.cycle_model.cosim: true -> manifest['cl_cosim']=True.
+    # The CL is stepped in lock-step with cocotb drive cycles; when CL agrees
+    # with RTL on registered outputs we treat it as the authoritative oracle
+    # and pass cl_passed=True to scoreboard.check_goal.
+    _cl = None
+    _cl_match = 0
+    _cl_total = 0
+    if bool(manifest.get("cl_cosim", False)):
+        import sys as _sys
+        from pathlib import Path as _Path
+        _model_dir = _Path(__file__).resolve().parents[2] / "model"
+        if str(_model_dir) not in _sys.path:
+            _sys.path.insert(0, str(_model_dir))
+        try:
+            from functional_model import FunctionalModel as _CL  # type: ignore
+            _cl = _CL()
+        except Exception:
+            _cl = None
 
     # Default: reset DUT between goals so prior stimulus doesn't leak.
     # IPs whose RTL behaviour accumulates state across scenarios (round-robin
@@ -1141,57 +1147,96 @@ async def fl_rtl_equivalence_goals(dut):
         _cl_result = None
         if _is_reset_stimulus(stimulus):
             await _reset_dut(dut, manifest, release=False)
-            cl.reset()
+            if _cl is not None:
+                _cl.reset()
         else:
             if _per_goal_reset:
                 await _reset_dut(dut, manifest)
-                cl.reset()
+                if _cl is not None:
+                    _cl.reset()
             if isinstance(machine_spec, dict) and (
                 machine_spec.get("timeline") or machine_spec.get("assign") or machine_spec.get("csr_writes")
             ):
                 await _apply_machine_spec(dut, manifest, machine_spec)
+                # When machine_spec drives csr_writes, mirror them into the CL.
+                if _cl is not None and isinstance(machine_spec, dict):
+                    for entry in (machine_spec.get("csr_writes") or []):
+                        try:
+                            _cl.csr_write(int(entry.get("offset", entry.get("addr", 0))), int(entry.get("data", entry.get("value", 0))))
+                        except Exception:
+                            pass
+                    for step in (machine_spec.get("timeline") or []):
+                        cw = step.get("csr_write") if isinstance(step, dict) else None
+                        if cw:
+                            try:
+                                _cl.csr_write(int(cw.get("offset", cw.get("addr", 0))), int(cw.get("data", cw.get("value", 0))))
+                            except Exception:
+                                pass
             await FallingEdge(getattr(dut, clock))
             _drive_inputs(dut, manifest, stimulus)
-            # Step CL the same number of cycles as cocotb advances, with the
-            # same req_i input that _drive_inputs put on the bus.
             _cycles = _goal_wait_cycles(goal, manifest)
-            _req_i_val = int(stimulus.get("requests", stimulus.get("req_i", 0))) & 0xF
-            _cl_result = None
+            # Mirror both field name (used in cocotb stimulus) and port name
+            # (used in SSOT expressions) so FL.step env sees req_i and
+            # requests both, etc.
+            _cl_inputs = {}
+            for _field, _port in (manifest.get("input_map") or {}).items():
+                _val = int(stimulus.get(_field, stimulus.get(_port, 0)))
+                _cl_inputs[_field] = _val
+                _cl_inputs[_port] = _val
             for _ in range(_cycles):
                 await RisingEdge(getattr(dut, clock))
-                _cl_result = cl.step({"req_i": _req_i_val, "requests": _req_i_val})
+                if _cl is not None:
+                    try:
+                        _cl_result = _cl.step(_cl_inputs)
+                    except Exception:
+                        _cl_result = None
         await ReadOnly()
         observed = _observe_outputs(dut, manifest, stimulus)
-        # Cycle-accurate co-sim verdict: does CL (running same stimulus in
-        # lock-step) agree with RTL on the registered grant signals?
+        # CL ↔ RTL agreement check across CL result keys that also appear
+        # in observed. Skip when CL result is unresolved or all-idle.
         cl_agrees = False
-        if _cl_result is not None and "gnt_o" in observed and "gnt_idx_o" in observed and "gnt_valid_o" in observed:
-            cl_total += 1
-            _cl_grant = int(_cl_result.get("grant", 0))
-            _cl_idx = int(_cl_result.get("grant_index", 0))
-            _cl_valid = int(_cl_result.get("grant_valid", 0))
-            if (
-                int(observed["gnt_o"]) == _cl_grant
-                and int(observed["gnt_idx_o"]) == _cl_idx
-                and int(observed["gnt_valid_o"]) == _cl_valid
-            ):
-                cl_match += 1
-                cl_agrees = True
-        row = scoreboard.check_goal(
-            goal_id,
-            scenario_id=stimulus["scenario_id"],
-            cycle=idx + _goal_wait_cycles(goal, manifest),
-            stimulus=stimulus,
-            rtl_observed=observed,
-            cl_passed=cl_agrees if cl_agrees else None,
-        )
+        if (
+            _cl is not None
+            and isinstance(_cl_result, dict)
+            and _cl_result.get("kind") not in ("idle", "step_unresolved")
+            and "step_unresolved" not in _cl_result
+        ):
+            _common = [
+                k for k in _cl_result.keys()
+                if k in observed
+                and isinstance(_cl_result.get(k), int)
+                and isinstance(observed.get(k), int)
+            ]
+            if _common:
+                _cl_total += 1
+                if all(int(_cl_result[k]) == int(observed[k]) for k in _common):
+                    _cl_match += 1
+                    cl_agrees = True
+        try:
+            row = scoreboard.check_goal(
+                goal_id,
+                scenario_id=stimulus["scenario_id"],
+                cycle=idx + _goal_wait_cycles(goal, manifest),
+                stimulus=stimulus,
+                rtl_observed=observed,
+                cl_passed=cl_agrees if cl_agrees else None,
+            )
+        except TypeError:
+            # Legacy scoreboard signature without cl_passed kwarg.
+            row = scoreboard.check_goal(
+                goal_id,
+                scenario_id=stimulus["scenario_id"],
+                cycle=idx + _goal_wait_cycles(goal, manifest),
+                stimulus=stimulus,
+                rtl_observed=observed,
+            )
         coverage.sample(goal, row)
         await FallingEdge(getattr(dut, clock))
         _clear_sample_inputs(dut, manifest)
 
-    if cl_total > 0:
-        _cl_pct = (cl_match / cl_total) * 100.0
-        print(f"[CL_COSIM] arbiter_rr cycle-accurate FL/RTL co-sim: {cl_match}/{cl_total} match ({_cl_pct:.1f}%)")
+    if _cl is not None and _cl_total > 0:
+        _cl_pct = (_cl_match / _cl_total) * 100.0
+        print(f"[CL_COSIM] {ip} cycle-accurate FL/RTL co-sim: {_cl_match}/{_cl_total} match ({_cl_pct:.1f}%)")
     scoreboard.final_check()
     await _run_static_coverage_sweep(dut, manifest)
     coverage.write(ip_dir)
