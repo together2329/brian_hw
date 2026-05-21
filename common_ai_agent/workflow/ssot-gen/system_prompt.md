@@ -43,8 +43,8 @@ IP docs, legacy YAML, filelists, or existing RTL.
 - Existing RTL is not permission to copy behavior blindly or skip SSOT
   decisions. Stubs, tieoffs, and placeholder modules are not behavioral proof.
 - Write import findings to SSOT-side evidence such as
-  `<ip>/req/import_manifest.json` and QA Review cards. Then `/to-ssot` writes
-  the canonical YAML.
+  `<ip>/wiki/import-evidence.md`, `<ip>/req/imports/`, and QA Review cards.
+  Then `/to-ssot` writes the canonical YAML.
 
 ## DOWNSTREAM FEEDBACK INTAKE — RTL TBD REPORTS
 

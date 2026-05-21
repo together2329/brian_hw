@@ -38,7 +38,7 @@ The cross-linked wiki entry point for LLM/agent navigation is
    - SSOT is the single source of truth for sections, submodules, function model intent, cycle model intent, DV plan, coverage, downstream workflow TODOs, and signoff criteria.
    - `ssot-gen` LLM must author `workflow_todos.<stage>[]` when downstream work needs explicit decomposition. For `rtl-gen`, each item must include `content`, `detail`, `criteria`, and `source_refs`.
    - For full-flow smoke tests, `/mode auto-select` lets `ask_user` choose the explicit `Suggest:` answer, recommended/default option, or first safe option and record the QA card as approved with source `llm-ssot-qna.auto_select`.
-   - For existing IP material, run `/import --ip <ip> <doc_or_rtl_paths...>` before `/grill-me` or `/to-ssot`. Import writes `<ip>/req/import_manifest.json` and SSOT-side evidence; `/to-ssot` still writes the canonical YAML.
+   - For existing IP material, run `/import --ip <ip> <doc_or_rtl_paths...>` before `/grill-me` or `/to-ssot`. Import writes evidence under `<ip>/req/imports/` and `<ip>/wiki/import-evidence.md`; `/to-ssot` still writes the canonical YAML.
    - Missing semantics must produce a human gate, not a fixed template workaround.
 
 3. Functional model generation

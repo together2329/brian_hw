@@ -10399,8 +10399,8 @@ def create_app():
         import_context_paths = [
             f"{ip}/wiki/index.md",
             f"{ip}/wiki/_graph.json",
-            f"{ip}/req/import_manifest.json",
             f"{ip}/wiki/import-evidence.md",
+            f"{ip}/req/imports/",
             *imported_paths[:24],
         ]
         seen_import_context: set[str] = set()
@@ -10419,7 +10419,7 @@ def create_app():
             "Goal: create IP-specific SSOT Q&A from the current evidence, not from a fixed template.",
             "This is a general-IP flow. Do not assume APB/register-only/simple peripheral structure unless evidence says so.",
             "Use the per-IP wiki as the navigation index. Follow relevant wiki links and graph nodes for import history, notes, requirements, SSOT, RTL, model, verification, and logs.",
-            "Do not stop at the import manifest. Inspect the manifest, imported markdown, wiki import index, existing SSOT draft, and any other relevant IP artifacts before deciding what needs human clarification.",
+            "Do not stop at a file list. Inspect imported markdown, wiki import evidence, existing SSOT draft, and any other relevant IP artifacts before deciding what needs human clarification.",
             "",
             "Truth ownership model:",
             "- Human owns requirement/spec/interface/FL golden model/coverage goals/performance targets/sign-off.",
@@ -10434,7 +10434,7 @@ def create_app():
             path_lines,
             "",
             "Required action:",
-            f"1. Read `{ip}/wiki/index.md`, `{ip}/wiki/_graph.json`, `{ip}/req/import_manifest.json`, `{ip}/wiki/import-evidence.md`, and `{ip}/yaml/{ip}.ssot.yaml` if they exist.",
+            f"1. Read `{ip}/wiki/index.md`, `{ip}/wiki/_graph.json`, `{ip}/wiki/import-evidence.md`, `{ip}/req/imports/`, and `{ip}/yaml/{ip}.ssot.yaml` if they exist.",
             f"2. Follow relevant wiki links and inspect relevant files under `{ip}/req`, `{ip}/doc`, `{ip}/rtl`, `{ip}/model`, `{ip}/tb`, `{ip}/sim`, `{ip}/lint`, and `{ip}/logs` when the index or evidence points there.",
             "3. Detect unresolved SSOT decisions, contradictions, assumptions, TBD/null/placeholders, vague imported facts, and any truth that needs human approval or concretization.",
             "4. Generate ONLY the questions needed for this IP. The question set may be 0, 1, 4, 20, or more depending on complexity.",
@@ -10473,7 +10473,7 @@ def create_app():
             f"- {ip}/wiki/import-evidence.md",
             f"- {ip}/wiki/log.md",
             f"- {ip}/wiki/notes.md",
-            f"- {ip}/req/import_manifest.json",
+            f"- {ip}/req/imports/",
             f"- relevant files linked by the wiki/import evidence under {ip}/req, {ip}/doc, {ip}/rtl, {ip}/model, {ip}/tb, {ip}/sim, {ip}/lint, and {ip}/logs",
             "Generation rule: reconcile current decisions with import history, wiki summaries, source excerpts, conflicts, and downstream TODO evidence.",
         ]
@@ -10631,7 +10631,7 @@ def create_app():
                 f"- IP: `{ip}`",
                 f"- Kind: `{kind}`",
                 f"- Last import: `{updated}`",
-                f"- Manifest: `{ip}/req/import_manifest.json`",
+                f"- Imported source directory: `{ip}/req/imports/`",
                 f"- Imported artifacts: {len(artifacts)}",
                 f"- Candidate facts: {len(candidates)}",
                 f"- Filled decisions: {len(filled)}",
@@ -10693,9 +10693,9 @@ def create_app():
                 "",
                 "## Agent usage",
                 "",
-                f"- Deep Interview should start from `{ip}/wiki/index.md` and `{ip}/wiki/_graph.json`, then read `{ip}/req/import_manifest.json`, this `[[import-evidence]]` page, `[[log]]`, `[[notes]]`, and any linked artifacts that look relevant.",
+                f"- Deep Interview should start from `{ip}/wiki/index.md` and `{ip}/wiki/_graph.json`, then read this `[[import-evidence]]` page, `[[log]]`, `[[notes]]`, `{ip}/req/imports/`, and any linked artifacts that look relevant.",
                 f"- Deep Interview should ask only the concretization questions needed after comparing import history, candidate facts, SSOT draft, requirements, RTL/model, and verification evidence.",
-                f"- To SSOT should use the wiki index, manifest, candidate facts, conflicts, and source excerpts as evidence, then write `{ip}/yaml/{ip}.ssot.yaml`.",
+                f"- To SSOT should use the wiki index, import evidence, candidate facts, conflicts, and source excerpts as evidence, then write `{ip}/yaml/{ip}.ssot.yaml`.",
             ])
             page.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
@@ -13044,10 +13044,9 @@ def create_app():
         # /to-ssot does NOT auto-import, does NOT flip an approve flag,
         # does NOT block on missing decisions, and does NOT use the
         # deterministic bridge or the 33-section template.
-        # It queues a Normal-mode LLM turn that reads the import
-        # manifest + imports + wiki + Q&A and writes the SSOT yaml
-        # directly with write_file / replace_in_file. Structure is
-        # derived from the imports — no canned template stamping.
+        # It queues a Normal-mode LLM turn that reads imports + wiki + Q&A
+        # and writes the SSOT yaml directly with write_file / replace_in_file.
+        # Structure is derived from evidence — no canned template stamping.
         spec = _render_approved_ssot_spec(ip, state) if state else f"[to-ssot] {ip}: no SSOT state yet."
         session = _canonical_session_string(ip)
         _append_session_message(session, "user", text)
@@ -13059,7 +13058,7 @@ def create_app():
         ready_msg = (
             f"[to-ssot] {ip} — queueing LLM SSOT write.\n"
             f"Target: {ssot_path}\n"
-            f"Sources: `{ip}/req/import_manifest.json`, `{ip}/req/imports/`, `{ip}/wiki/`."
+            f"Sources: `{ip}/req/imports/`, `{ip}/wiki/`, Web Q&A."
         )
         _append_session_message(session, "assistant", ready_msg)
         _append_workflow_history("ssot-gen", "assistant", ready_msg)
@@ -13079,11 +13078,10 @@ def create_app():
             f"  - IP_ROOT:      `{PROJECT_ROOT / ip}`\n"
             f"  - COMMON_AI_AGENT_HOME (read-only): `{SOURCE_ROOT}`\n\n"
             "Source-of-truth inputs (READ these first):\n"
-            f"  1. `{ip}/req/import_manifest.json`  — every imported doc.\n"
-            f"  2. `{ip}/req/imports/`               — converted markdown bodies.\n"
-            f"  3. `{ip}/wiki/index.md`, `_graph.json`, `import-evidence.md`, "
+            f"  1. `{ip}/req/imports/`               — uploaded/converted requirement evidence.\n"
+            f"  2. `{ip}/wiki/index.md`, `_graph.json`, `import-evidence.md`, "
             "`log.md`, `notes.md`  — accumulated wiki evidence.\n"
-            "  4. Web Q&A snapshot (already inline above in the [SSOT SPEC] block).\n\n"
+            "  3. Web Q&A snapshot (already inline above in the [SSOT SPEC] block).\n\n"
             "Rules for the write:\n"
             "  - Derive structure from the imports themselves. Do NOT stamp a "
             "33-section template; do NOT invent sections the imports don't "

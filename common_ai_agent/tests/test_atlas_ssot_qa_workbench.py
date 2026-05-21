@@ -15,6 +15,9 @@ if str(ROOT / "src") not in sys.path:
 WORKSPACE_JSX = ROOT / "frontend" / "atlas" / "workspace.jsx"
 DATA_JSX = ROOT / "frontend" / "atlas" / "data.jsx"
 ATLAS_UI_PY = ROOT / "src" / "atlas_ui.py"
+TO_SSOT_SKILL = ROOT / "workflow" / "ssot-gen" / "skills" / "to-ssot" / "SKILL.md"
+SSOT_SYSTEM_PROMPT = ROOT / "workflow" / "ssot-gen" / "system_prompt.md"
+COMMON_ENGINE_FLOW = ROOT / "workflow" / "COMMON_ENGINE_FLOW.md"
 
 
 def _register(client: TestClient, username: str = "alice") -> None:
@@ -61,6 +64,30 @@ def test_ssot_preview_uses_fresh_yaml_without_llm_narrator():
     assert "fetch('/api/ssot', { cache: 'no-store' })" in data_src
     assert "meta.mtime || 0" in workspace_src
     assert "meta.size || 0" in workspace_src
+
+
+def test_to_ssot_no_longer_reads_retired_import_manifest():
+    atlas_ui_src = ATLAS_UI_PY.read_text(encoding="utf-8")
+    gate_start = atlas_ui_src.index("def _handle_to_ssot_gate")
+    gate_end = atlas_ui_src.index("def _handle_repair_ssot_command", gate_start)
+    gate_src = atlas_ui_src[gate_start:gate_end]
+    spec_start = atlas_ui_src.index("def _render_approved_ssot_spec")
+    spec_end = atlas_ui_src.index("def _emit_ssot_approval_ready", spec_start)
+    spec_src = atlas_ui_src[spec_start:spec_end]
+    qna_start = atlas_ui_src.index("def _render_ssot_llm_qna_prompt")
+    qna_end = atlas_ui_src.index("def _render_approved_ssot_spec", qna_start)
+    qna_src = atlas_ui_src[qna_start:qna_end]
+
+    assert "import_manifest.json" not in gate_src
+    assert "import_manifest.json" not in spec_src
+    assert "import_manifest.json" not in qna_src
+    assert "`{ip}/req/imports/`" in gate_src
+    assert "{ip}/wiki/import-evidence.md" in spec_src
+    assert "`{ip}/req/imports/`" in qna_src
+
+    for path in (TO_SSOT_SKILL, SSOT_SYSTEM_PROMPT, COMMON_ENGINE_FLOW):
+        src = path.read_text(encoding="utf-8")
+        assert "import_manifest.json" not in src
 
 
 def test_ssot_qa_api_reports_remaining_required_decisions(tmp_path, monkeypatch):
