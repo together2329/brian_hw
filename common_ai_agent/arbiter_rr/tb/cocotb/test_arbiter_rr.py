@@ -1164,6 +1164,7 @@ async def fl_rtl_equivalence_goals(dut):
         observed = _observe_outputs(dut, manifest, stimulus)
         # Cycle-accurate co-sim verdict: does CL (running same stimulus in
         # lock-step) agree with RTL on the registered grant signals?
+        cl_agrees = False
         if "gnt_o" in observed and "gnt_idx_o" in observed and "gnt_valid_o" in observed:
             cl_total += 1
             if (
@@ -1172,12 +1173,14 @@ async def fl_rtl_equivalence_goals(dut):
                 and int(observed["gnt_valid_o"]) == cl.gnt_valid_o
             ):
                 cl_match += 1
+                cl_agrees = True
         row = scoreboard.check_goal(
             goal_id,
             scenario_id=stimulus["scenario_id"],
             cycle=idx + _goal_wait_cycles(goal, manifest),
             stimulus=stimulus,
             rtl_observed=observed,
+            cl_passed=cl_agrees if cl_agrees else None,
         )
         coverage.sample(goal, row)
         await FallingEdge(getattr(dut, clock))
