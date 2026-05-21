@@ -536,7 +536,12 @@
           "Assert all 4 requests simultaneously for 4 consecutive cycles",
           "arb_enabled == 1",
           "(req_i & req_mask) != 0 (at least one unmasked active request)"
-        ]
+        ],
+        "machine_spec": {
+          "assign": {
+            "requests": 15
+          }
+        }
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
@@ -612,7 +617,22 @@
           "Set REQ_MASK=0b0101, assert all requests",
           "arb_enabled == 1",
           "(req_i & req_mask) != 0 (at least one unmasked active request)"
-        ]
+        ],
+        "machine_spec": {
+          "timeline": [
+            {
+              "csr_write": {
+                "offset": 4,
+                "data": 5
+              }
+            },
+            {
+              "assign": {
+                "requests": 15
+              }
+            }
+          ]
+        }
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
@@ -687,7 +707,12 @@
         "constraints": [
           "Assert requests, then write CTRL.enable=0 via APB, then re-enable",
           "arb_enabled == 0 OR (req_i & req_mask) == 0"
-        ]
+        ],
+        "machine_spec": {
+          "assign": {
+            "requests": 15
+          }
+        }
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
@@ -841,7 +866,12 @@
           "Grant to requestor 3, then disable, then re-enable with all requests",
           "arb_enabled == 1",
           "(req_i & req_mask) != 0 (at least one unmasked active request)"
-        ]
+        ],
+        "machine_spec": {
+          "assign": {
+            "requests": 8
+          }
+        }
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",

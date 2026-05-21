@@ -658,18 +658,26 @@ test_requirements:
     - id: "SC2"
       name: "Round-robin fairness"
       stimulus: "Assert all 4 requests simultaneously for 4 consecutive cycles"
+      stimulus_machine_spec:
+        assign: { requests: 15 }
       expected: "Each requestor is granted exactly once in 4 cycles in rotation order starting from (last_winner+1)"
       checker: "Scoreboard verifies no requestor gets two grants before all others get one"
       coverage: ["FM1", "round_robin_rotation"]
     - id: "SC3"
       name: "Request masking"
       stimulus: "Set REQ_MASK=0b0101, assert all requests"
+      stimulus_machine_spec:
+        timeline:
+          - { csr_write: { offset: 0x04, data: 0x5 } }
+          - { assign: { requests: 15 } }
       expected: "Only requestors 0 and 2 participate; grants alternate between them"
       checker: "Scoreboard checks masked requestors never receive grant"
       coverage: ["FM1", "REQ_MASK"]
     - id: "SC4"
       name: "Enable/disable"
       stimulus: "Assert requests, then write CTRL.enable=0 via APB, then re-enable"
+      stimulus_machine_spec:
+        assign: { requests: 15 }
       expected: "Grants stop when disabled, resume when re-enabled; last_winner is preserved across disable period"
       checker: "Scoreboard checks gnt_o=0 during disabled, correct priority after re-enable"
       coverage: ["FM2", "CTRL.enable"]
@@ -684,6 +692,8 @@ test_requirements:
     - id: "SC6"
       name: "Last winner persistence across disable"
       stimulus: "Grant to requestor 3, then disable, then re-enable with all requests"
+      stimulus_machine_spec:
+        assign: { requests: 8 }
       expected: "Priority rotation resumes from (3+1)%4 = 0 after re-enable"
       checker: "Scoreboard checks first grant after re-enable goes to requestor 0"
       coverage: ["FM1", "FM2", "last_winner_freeze"]
