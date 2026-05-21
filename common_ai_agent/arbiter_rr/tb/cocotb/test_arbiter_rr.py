@@ -1110,6 +1110,22 @@ async def fl_rtl_equivalence_goals(dut):
     goals = _goals(ip_dir)
     assert goals, "equivalence_goals.json must contain unblocked goals"
 
+    # PoC: cycle-accurate CL co-simulation alongside scoreboard.
+    # CL is stepped in lock-step with cocotb drive cycles using the SAME
+    # req_i input. After RTL sample, we read CL outputs and compare against
+    # rtl_observed.gnt_o / gnt_valid_o / gnt_idx_o. The count of matching
+    # goals is the honest cycle-accurate FL/RTL PASS rate — independent of
+    # whatever the heuristic FL.apply path returned to the scoreboard.
+    import sys as _sys
+    from pathlib import Path as _Path
+    _model_dir = _Path(__file__).resolve().parents[2] / "model"
+    if str(_model_dir) not in _sys.path:
+        _sys.path.insert(0, str(_model_dir))
+    from cl_arbiter_rr import ArbiterRR_CL  # type: ignore
+    cl = ArbiterRR_CL()
+    cl_match = 0
+    cl_total = 0
+
     # Default: reset DUT between goals so prior stimulus doesn't leak.
     # IPs whose RTL behaviour accumulates state across scenarios (round-robin
     # arbiters, multi-cycle FSMs that the tests rely on being mid-flight)
@@ -1126,19 +1142,36 @@ async def fl_rtl_equivalence_goals(dut):
         )
         if _is_reset_stimulus(stimulus):
             await _reset_dut(dut, manifest, release=False)
+            cl.reset()
         else:
             if _per_goal_reset:
                 await _reset_dut(dut, manifest)
+                cl.reset()
             if isinstance(machine_spec, dict) and (
                 machine_spec.get("timeline") or machine_spec.get("assign") or machine_spec.get("csr_writes")
             ):
                 await _apply_machine_spec(dut, manifest, machine_spec)
             await FallingEdge(getattr(dut, clock))
             _drive_inputs(dut, manifest, stimulus)
-            for _ in range(_goal_wait_cycles(goal, manifest)):
+            # Step CL the same number of cycles as cocotb advances, with the
+            # same req_i input that _drive_inputs put on the bus.
+            _cycles = _goal_wait_cycles(goal, manifest)
+            _req_i_val = int(stimulus.get("requests", stimulus.get("req_i", 0))) & 0xF
+            for _ in range(_cycles):
                 await RisingEdge(getattr(dut, clock))
+                cl.step(_req_i_val)
         await ReadOnly()
         observed = _observe_outputs(dut, manifest, stimulus)
+        # Cycle-accurate co-sim verdict: does CL (running same stimulus in
+        # lock-step) agree with RTL on the registered grant signals?
+        if "gnt_o" in observed and "gnt_idx_o" in observed and "gnt_valid_o" in observed:
+            cl_total += 1
+            if (
+                int(observed["gnt_o"]) == cl.gnt_o
+                and int(observed["gnt_idx_o"]) == cl.gnt_idx_o
+                and int(observed["gnt_valid_o"]) == cl.gnt_valid_o
+            ):
+                cl_match += 1
         row = scoreboard.check_goal(
             goal_id,
             scenario_id=stimulus["scenario_id"],
@@ -1150,6 +1183,9 @@ async def fl_rtl_equivalence_goals(dut):
         await FallingEdge(getattr(dut, clock))
         _clear_sample_inputs(dut, manifest)
 
+    if cl_total > 0:
+        _cl_pct = (cl_match / cl_total) * 100.0
+        print(f"[CL_COSIM] arbiter_rr cycle-accurate FL/RTL co-sim: {cl_match}/{cl_total} match ({_cl_pct:.1f}%)")
     scoreboard.final_check()
     await _run_static_coverage_sweep(dut, manifest)
     coverage.write(ip_dir)
