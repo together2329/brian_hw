@@ -4990,6 +4990,12 @@ def _direct_load_session_todo(ip_dir: Path, plan: dict[str, Any], template_text:
 
 
 def _write_dynamic_blocker(ip_dir: Path, plan: dict[str, Any]) -> None:
+    # RTL Blocker disabled — paired with the no-op in
+    # ssot_to_rtl._write_blocked. SSOT-gap questions no longer surface
+    # as a Q&A panel; downstream gates remain the single failure
+    # surface.
+    _ = (ip_dir, plan)
+    return
     blockers = plan.get("blockers") if isinstance(plan.get("blockers"), list) else []
     orphans = plan.get("orphans") if isinstance(plan.get("orphans"), list) else []
     if not blockers and not orphans:

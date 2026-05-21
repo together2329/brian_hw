@@ -9987,6 +9987,151 @@ def create_app():
         except Exception:
             pass
 
+    def _full_ssot_tbd_template(ip: str, top_file: str, kind: str) -> dict[str, Any]:
+        """Comprehensive TBD skeleton covering every REQUIRED_SECTIONS key.
+
+        Each section ships with the right shape (dict vs list) and at least
+        one TBD-marked example so /new-ip immediately shows what needs to
+        be filled in. The Validation pane stays at 0/N until real content
+        replaces the TBDs — that's intentional, the template is meant as
+        a checklist, not a free pass through the gates.
+        """
+        return {
+            "top_module": {
+                "name": ip,
+                "file": top_file,
+                "type": "draft",
+                "description": kind or "TBD",
+                "version": "draft",
+            },
+            "sub_modules": [
+                {"name": "TBD", "role": "TBD", "file": "TBD"},
+            ],
+            "decomposition": {
+                "strategy": "TBD",
+                "notes": "TBD",
+            },
+            "parameters": [
+                {"name": "TBD", "type": "TBD", "default": "TBD", "description": "TBD"},
+            ],
+            "io_list": [
+                {"name": "TBD", "direction": "TBD", "width": "TBD", "clock_domain": "TBD", "description": "TBD"},
+            ],
+            "features": [
+                {"id": "F_TBD", "description": "TBD"},
+            ],
+            "dataflow": {
+                "stages": ["TBD"],
+                "notes": "TBD",
+            },
+            "function_model": {
+                "state_variables": [{"name": "TBD", "width": "TBD", "reset": "TBD"}],
+                "transactions": [{"id": "TX_TBD", "name": "TBD", "preconditions": ["TBD"], "outputs": ["TBD"], "side_effects": ["TBD"], "error_cases": ["TBD"]}],
+                "invariants": [{"name": "TBD", "expr": "TBD", "description": "TBD"}],
+            },
+            "cycle_model": {
+                "clock": "TBD",
+                "reset": "TBD",
+                "pipeline": ["TBD"],
+                "handshake_rules": ["TBD"],
+                "ordering": ["TBD"],
+                "observability": ["TBD"],
+                "executable": "TBD",
+            },
+            "rtl_contract": {
+                "sample_condition": "TBD",
+                "input_map": {"TBD": "TBD"},
+                "output_map": {"TBD": "TBD"},
+            },
+            "clock_reset_domains": [
+                {"name": "TBD", "clock": "TBD", "reset": "TBD", "polarity": "TBD"},
+            ],
+            "registers": [
+                {"name": "TBD", "address": "TBD", "access": "TBD", "fields": [{"name": "TBD", "bits": "TBD", "access": "TBD", "description": "TBD"}]},
+            ],
+            "memory": {
+                "blocks": [{"name": "TBD", "size": "TBD", "width": "TBD", "kind": "TBD"}],
+            },
+            "interrupts": [
+                {"name": "TBD", "source": "TBD", "polarity": "TBD", "mask_register": "TBD"},
+            ],
+            "fsm": [
+                {"name": "TBD", "states": ["TBD"], "transitions": [{"from": "TBD", "to": "TBD", "guard": "TBD"}]},
+            ],
+            "timing": {
+                "target_freq_mhz": "TBD",
+                "critical_paths": ["TBD"],
+            },
+            "power": {
+                "domains": ["TBD"],
+                "gating": "TBD",
+            },
+            "security": {
+                "threats": ["TBD"],
+                "mitigations": ["TBD"],
+            },
+            "error_handling": [
+                {"id": "ERR_TBD", "trigger": "TBD", "action": "TBD"},
+            ],
+            "debug_observability": [
+                {"signal": "TBD", "purpose": "TBD"},
+            ],
+            "integration": {
+                "parent_bus": "TBD",
+                "addressing": "TBD",
+                "external_signals": ["TBD"],
+            },
+            "dft": {
+                "scan_chain": "TBD",
+                "test_modes": ["TBD"],
+            },
+            "synthesis": {
+                "library": "TBD",
+                "constraints": ["TBD"],
+            },
+            "pnr": {
+                "floorplan_notes": "TBD",
+                "placement_hints": ["TBD"],
+            },
+            "test_requirements": [
+                {"id": "TR_TBD", "description": "TBD", "coverage_kind": "TBD"},
+            ],
+            "quality_gates": [
+                {"id": "QG_TBD", "criterion": "TBD", "status": "TBD"},
+            ],
+            "traceability": {
+                "requirements_to_features": {"REQ_TBD": ["F_TBD"]},
+                "features_to_tests": {"F_TBD": ["TR_TBD"]},
+            },
+            "workflow_todos": [
+                {"id": "TODO_TBD", "title": "TBD", "owner": "TBD", "status": "TBD"},
+            ],
+            "filelist": [
+                {"path": top_file, "role": "top"},
+            ],
+            "coding_rules": [
+                "TBD",
+            ],
+            "reuse_modules": [
+                {"name": "TBD", "source": "TBD"},
+            ],
+            "dir_structure": {
+                "rtl": "rtl/",
+                "tb": "tb/",
+                "sim": "sim/",
+                "yaml": "yaml/",
+                "wiki": "wiki/",
+            },
+            "generation_flow": {
+                "steps": ["ssot-gen", "fl-model-gen", "rtl-gen", "tb-gen", "sim", "coverage"],
+                "notes": "TBD",
+            },
+            "cdc_requirements": [
+                {"from_clock": "TBD", "to_clock": "TBD", "scheme": "TBD"},
+            ],
+            "custom": {},
+        }
+
     def _ensure_ssot_draft(ip: str, kind: str = "TBD") -> dict[str, Any]:
         # Default top file path follows the canonical convention
         # `rtl/<ip>.sv` so /new-ip scaffolds an SSOT that already has
@@ -9997,16 +10142,15 @@ def create_app():
         _default_top_file = f"rtl/{ip}.sv" if ip else "rtl/top.sv"
         doc = _load_ssot_draft(ip)
         if not doc:
-            doc = {
-                "top_module": {
-                    "name": ip,
-                    "file": _default_top_file,
-                    "type": "draft",
-                    "description": kind or "TBD",
-                    "version": "draft",
-                },
-                "custom": {},
-            }
+            doc = _full_ssot_tbd_template(ip, _default_top_file, kind)
+        # Pull every REQUIRED_SECTIONS key from the template so older drafts
+        # that pre-date the full template auto-upgrade on the next /new-ip
+        # or /ssot edit. setdefault guarantees existing real content is
+        # never clobbered by TBD stubs.
+        else:
+            _tpl = _full_ssot_tbd_template(ip, _default_top_file, kind)
+            for k, v in _tpl.items():
+                doc.setdefault(k, v)
         top = doc.setdefault("top_module", {})
         if isinstance(top, dict):
             top.setdefault("name", ip)
@@ -13840,7 +13984,10 @@ def create_app():
             _emit_workflow_result(msg, engine_alias)
 
             if surface.rtl_blocked:
-                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight", interactive=False, client_session=client_session)
+                # surface.message already contains the [SSOT QUESTION] /
+                # rtl_blocked.json explanation in the chat; skip the
+                # separate structured RTL Blocker Q&A panel so /ssot-rtl
+                # stops short with a single readable message.
                 return True
             for prompt in surface.queue_prompts:
                 _queue_prompt_for_session(client_session, prompt)
@@ -14140,7 +14287,11 @@ def create_app():
             _append_active_history("assistant", "```\n" + msg + "\n```")
             _emit_workflow_result(msg, alias)
             if blocked_doc:
-                _start_rtl_blocker_qna(ip, reason="automatic /ssot-rtl preflight", interactive=False, client_session=client_session)
+                # rtl_blocked.json present → the SSOT message above already
+                # surfaces the question. Stop here instead of opening a
+                # parallel Q&A panel or auto-queuing a repair (the repair
+                # path needs a clean SSOT to make sense).
+                pass
             elif gen_rc == 0 and (compile_rc != 0 or lint_rc != 0):
                 workflow = str(spec["workflow"])
                 template = str(spec.get("template") or alias)
