@@ -3374,13 +3374,12 @@ def create_app():
             info["todo_file"] = str(getattr(_cfg, "TODO_FILE", "") or "")
             info["history_file"] = str(getattr(_cfg, "HISTORY_FILE", "") or "")
             # Per-model pricing (USD / 1M tokens) — input / cache / output.
-            # get_active_pricing honors LLM_BASE_NAME env first, falling
-            # back to LLM_MODEL_NAME / config.MODEL_NAME, so the rate shown
-            # in the sidebar always matches the model actually in use.
+            # Try the displayed/runtime model first, then fall back to
+            # LLM_BASE_NAME for opaque deployment aliases.
             info["pricing"] = None
             try:
                 from lib.model_pricing import get_active_pricing
-                p = get_active_pricing()
+                p = get_active_pricing(str(info.get("model") or ""))
                 if p is not None:
                     info["pricing"] = {
                         "input": p.input, "cache": p.cache, "output": p.output,
@@ -12147,6 +12146,15 @@ def create_app():
             return "", "cursor-agent returned empty output"
         return text, ""
 
+    _DATA_IMAGE_BASE64_RE = re.compile(
+        r"data:(image/[A-Za-z0-9.+-]+)\s*[:;]\s*base64\s*,",
+        re.IGNORECASE,
+    )
+
+    def _normalize_markdown_data_image_uris(text: str) -> str:
+        """Normalize malformed doc-converter image data URIs in markdown."""
+        return _DATA_IMAGE_BASE64_RE.sub(r"data:\1;base64,", str(text or ""))
+
     def _describe_image(img: Path) -> str:
         """Describe an image for SSOT import evidence.
 
@@ -12227,10 +12235,16 @@ def create_app():
             img_path.write_bytes(blob)
             image_paths.append(img_path)
 
+        def _write_markdown(text: str) -> None:
+            md_target.write_text(
+                _normalize_markdown_data_image_uris(text),
+                encoding="utf-8",
+            )
+
         try:
             if suffix in _SSOT_IMPORT_PASSTHROUGH:
                 text = original_path.read_bytes().decode("utf-8", errors="replace")
-                md_target.write_text(text, encoding="utf-8")
+                _write_markdown(text)
                 return md_target, image_paths, ""
 
             if suffix == ".doc":
@@ -12271,22 +12285,22 @@ def create_app():
             if converter == "cursor-agent":
                 md_text, mk_err = _cursor_agent_convert(original_path)
                 if not mk_err and md_text:
-                    md_target.write_text(md_text, encoding="utf-8")
+                    _write_markdown(md_text)
                     md_written = True
             elif converter == "auto":
                 md_text, mk_err = _cursor_agent_convert(original_path)
                 if not mk_err and md_text:
-                    md_target.write_text(md_text, encoding="utf-8")
+                    _write_markdown(md_text)
                     md_written = True
                 else:
                     md_text, mk_err = _markitdown_convert(original_path)
                     if not mk_err and md_text:
-                        md_target.write_text(md_text, encoding="utf-8")
+                        _write_markdown(md_text)
                         md_written = True
             else:
                 md_text, mk_err = _markitdown_convert(original_path)
                 if not mk_err and md_text:
-                    md_target.write_text(md_text, encoding="utf-8")
+                    _write_markdown(md_text)
                     md_written = True
 
             # cursor-agent-only mode: skip per-format extraction so the
@@ -12299,10 +12313,7 @@ def create_app():
                 if not md_written:
                     try:
                         import pymupdf4llm  # type: ignore
-                        md_target.write_text(
-                            pymupdf4llm.to_markdown(str(original_path)),
-                            encoding="utf-8",
-                        )
+                        _write_markdown(pymupdf4llm.to_markdown(str(original_path)))
                         md_written = True
                     except Exception as exc:
                         if mk_err:
@@ -12340,7 +12351,7 @@ def create_app():
                                     if line:
                                         md_lines.append(line)
                         md_lines.append("")
-                    md_target.write_text("\n".join(md_lines), encoding="utf-8")
+                    _write_markdown("\n".join(md_lines))
                     md_written = True
                 n = 0
                 for slide in prs.slides:
@@ -12406,7 +12417,7 @@ def create_app():
                             md_lines.append(f"### {text}")
                         else:
                             md_lines.append(text)
-                    md_target.write_text("\n".join(md_lines), encoding="utf-8")
+                    _write_markdown("\n".join(md_lines))
                     md_written = True
 
                 # Always append the python-docx-rendered tables after the
@@ -12443,7 +12454,7 @@ def create_app():
             else:
                 if not md_written:
                     text = original_path.read_bytes().decode("utf-8", errors="replace")
-                    md_target.write_text(text, encoding="utf-8")
+                    _write_markdown(text)
                     md_written = True
 
             if image_paths:
@@ -16512,6 +16523,25 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         _emit_agent_event("context", used=tokens, max=max_tok)
     _main._textual_emit_context_fn = _ctx_update
     def _emit_token(in_tok, cache_tok, out_tok):
+        # Resolve display/runtime model first; pricing then tries this exact
+        # value before falling back to LLM_BASE_NAME for opaque deployments.
+        try:
+            import os as _os_cost
+            _model_now = (
+                _os_cost.getenv("LLM_ACTIVE_MODEL_NAME", "").strip()
+                or _os_cost.getenv("MODEL_NAME", "").strip()
+                or _os_cost.getenv("LLM_MODEL_NAME", "").strip()
+                or _os_cost.getenv("LLM_ACTIVE_BASE_NAME", "").strip()
+                or _os_cost.getenv("LLM_BASE_NAME", "").strip()
+            )
+            if not _model_now:
+                try:
+                    from src.llm_client import get_active_model as _gam
+                    _model_now = _gam() or ""
+                except Exception:
+                    _model_now = ""
+        except Exception:
+            _model_now = ""
         # Resolve pricing at LLM-call time so the rate matches the model
         # actually used for THIS call (LLM_ACTIVE_BASE_NAME / LLM_BASE_NAME
         # can pin the base model; otherwise fall back to MODEL_NAME /
@@ -16521,7 +16551,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         # current call's model.
         try:
             from lib.model_pricing import get_active_pricing
-            p = get_active_pricing()
+            p = get_active_pricing(_model_now)
         except Exception:
             p = None
         cost_delta = 0.0
@@ -16538,24 +16568,6 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                 (cache_tok or 0) * p.cache  +
                 (out_tok or 0)   * p.output
             ) / 1_000_000.0
-        # Resolve display model name for the frontend cost panel.
-        try:
-            import os as _os_cost
-            _model_now = (
-                _os_cost.getenv("LLM_ACTIVE_BASE_NAME", "").strip()
-                or _os_cost.getenv("LLM_BASE_NAME", "").strip()
-                or _os_cost.getenv("LLM_ACTIVE_BASE_MODEL", "").strip()
-                or _os_cost.getenv("LLM_BASE_MODEL", "").strip()
-                or _os_cost.getenv("LLM_MODEL_NAME", "").strip()
-            )
-            if not _model_now:
-                try:
-                    from src.llm_client import get_active_model as _gam
-                    _model_now = _gam() or ""
-                except Exception:
-                    _model_now = ""
-        except Exception:
-            _model_now = ""
         # Persist cumulative cost to disk so /healthz re-reads after
         # reload AND so the figure survives a backend restart. textual_ui
         # writes the same schema (in_tok / cache_tok / out_tok / sum_tok)

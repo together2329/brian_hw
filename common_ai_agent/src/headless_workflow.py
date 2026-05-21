@@ -1298,7 +1298,7 @@ try:
     cost = {}
     try:
         if usage and get_active_pricing is not None:
-            price = get_active_pricing()
+            price = get_active_pricing(req.get("model"))
             if price is not None:
                 in_tok = int(usage.get("input", 0) or 0)
                 out_tok = int(usage.get("output", 0) or 0)

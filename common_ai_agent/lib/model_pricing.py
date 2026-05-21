@@ -5,6 +5,7 @@ Source: https://docs.z.ai/guides/overview/pricing
 Update this file when pricing changes.
 """
 
+import os
 from typing import Dict, NamedTuple, Optional
 
 
@@ -56,22 +57,8 @@ _TABLE: Dict[str, Pricing] = {
 }
 
 
-def get_pricing(model_name: str) -> Optional[Pricing]:
-    """Return Pricing for model_name by longest prefix match, or None if unknown.
-
-    LLM_ACTIVE_BASE_NAME / LLM_BASE_NAME, when set, override model_name for
-    pricing lookup. Use these when the runtime model alias (e.g. a vendor-
-    specific deployment label) doesn't match a key in _TABLE but the
-    underlying base model does.
-    """
-    import os
-    base_override = (
-        os.getenv("LLM_ACTIVE_BASE_NAME", "").strip()
-        or os.getenv("LLM_BASE_NAME", "").strip()
-        or os.getenv("LLM_ACTIVE_BASE_MODEL", "").strip()
-        or os.getenv("LLM_BASE_MODEL", "").strip()
-    )
-    lookup_name = base_override or (model_name or "")
+def _lookup_pricing(model_name: str) -> Optional[Pricing]:
+    lookup_name = model_name or ""
     name = lookup_name.lower().split("/")[-1]  # strip provider prefix
     # Custom flat pricing: all GLM models → $1/$0/$1 per 1M when CUSTOM_PRICE=true
     if os.getenv("CUSTOM_PRICE", "false").lower() == "true":
@@ -96,12 +83,41 @@ def get_pricing(model_name: str) -> Optional[Pricing]:
     return best
 
 
-def get_active_pricing() -> Optional[Pricing]:
+def get_pricing(model_name: str, *, honor_env_override: bool = True) -> Optional[Pricing]:
+    """Return Pricing for model_name by longest prefix match, or None if unknown.
+
+    LLM_ACTIVE_BASE_NAME / LLM_BASE_NAME, when set, override model_name for
+    pricing lookup. Use these when the runtime model alias (e.g. a vendor-
+    specific deployment label) doesn't match a key in _TABLE but the
+    underlying base model does.
+    """
+    base_override = ""
+    if honor_env_override:
+        base_override = (
+            os.getenv("LLM_ACTIVE_BASE_NAME", "").strip()
+            or os.getenv("LLM_BASE_NAME", "").strip()
+            or os.getenv("LLM_ACTIVE_BASE_MODEL", "").strip()
+            or os.getenv("LLM_BASE_MODEL", "").strip()
+        )
+    lookup_name = base_override or (model_name or "")
+    return _lookup_pricing(lookup_name)
+
+
+def get_active_pricing(model_name: Optional[str] = None) -> Optional[Pricing]:
     """Resolve current model pricing without callers needing to know the
     name resolution rules. Honors LLM_ACTIVE_BASE_NAME / LLM_BASE_NAME
     first, then falls back to config.MODEL_NAME / LLM_MODEL_NAME.
+
+    When model_name is passed, try it first without env override. This keeps
+    thread-scoped worker runtimes and Azure deployments such as
+    `soc-sol-gpt-5.4` from being priced with a stale process-wide base model.
     """
-    import os
+    explicit = (model_name or "").strip()
+    if explicit:
+        matched = get_pricing(explicit, honor_env_override=False)
+        if matched is not None:
+            return matched
+
     base = (
         os.getenv("LLM_ACTIVE_BASE_NAME", "").strip()
         or os.getenv("LLM_BASE_NAME", "").strip()
@@ -109,12 +125,12 @@ def get_active_pricing() -> Optional[Pricing]:
         or os.getenv("LLM_BASE_MODEL", "").strip()
     )
     if base:
-        return get_pricing(base)
-    name = os.getenv("LLM_MODEL_NAME", "").strip()
+        return get_pricing(base, honor_env_override=False)
+    name = explicit or os.getenv("LLM_MODEL_NAME", "").strip()
     if not name:
         try:
             import config as _cfg  # type: ignore
             name = getattr(_cfg, "MODEL_NAME", "") or ""
         except Exception:
             name = ""
-    return get_pricing(name) if name else None
+    return get_pricing(name, honor_env_override=False) if name else None

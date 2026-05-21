@@ -304,7 +304,7 @@ class ParallelTodoDispatcher:
     def _price_score(self, worker: WorkerModel) -> tuple[float, str]:
         if worker.resolved_model in ("cursor-cli", "claude-cli"):
             return (0.0, worker.requested_model)
-        pricing = get_pricing(worker.pricing_model)
+        pricing = get_pricing(worker.pricing_model, honor_env_override=False)
         if pricing is None:
             return (1_000_000.0, worker.requested_model)
         return (float(pricing.input) + float(pricing.output), worker.requested_model)

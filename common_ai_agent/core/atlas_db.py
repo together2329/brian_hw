@@ -541,15 +541,29 @@ class AtlasDB:
     def _connect(self) -> sqlite3.Connection:
         """Open (or re-open) the SQLite connection."""
         if self._conn is None:
+            try:
+                timeout_s = float(os.environ.get("ATLAS_SQLITE_TIMEOUT", "30") or 30)
+            except Exception:
+                timeout_s = 30.0
             self._conn = sqlite3.connect(
                 self.db_path,
                 check_same_thread=False,
+                timeout=timeout_s,
             )
             self._conn.row_factory = sqlite3.Row
             # WAL mode allows concurrent reads + single queued writer (no reader/writer blocking).
-            # busy_timeout queues writers for up to 5 s instead of raising "database is locked".
-            self._conn.execute("PRAGMA journal_mode=WAL")
-            self._conn.execute("PRAGMA busy_timeout=5000")
+            # busy_timeout must be set before journal_mode because multiple
+            # worker processes can initialize the same DB at once.
+            self._conn.execute(f"PRAGMA busy_timeout={int(timeout_s * 1000)}")
+            deadline = time.monotonic() + timeout_s
+            while True:
+                try:
+                    self._conn.execute("PRAGMA journal_mode=WAL")
+                    break
+                except sqlite3.OperationalError as exc:
+                    if "database is locked" not in str(exc).lower() or time.monotonic() >= deadline:
+                        raise
+                    time.sleep(0.05)
         return self._conn
 
     def _execute(self, sql: str, parameters: tuple = ()) -> sqlite3.Cursor:
@@ -827,7 +841,12 @@ class AtlasDB:
         rows = conn.execute(f"PRAGMA table_info({table})").fetchall()
         if any(row["name"] == column for row in rows):
             return
-        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+        try:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+        except sqlite3.OperationalError as exc:
+            if "duplicate column name" in str(exc).lower():
+                return
+            raise
 
     def close(self):
         """Close the underlying connection."""

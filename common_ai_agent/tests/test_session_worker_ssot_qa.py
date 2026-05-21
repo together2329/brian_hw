@@ -21,6 +21,42 @@ def _payload(row):
     return raw or {}
 
 
+def test_session_worker_emits_tool_and_cost_events(tmp_path, monkeypatch):
+    from core.session_worker import SessionWorker
+
+    session = "brian/soc_ip/rtl-gen"
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("LLM_ACTIVE_MODEL_NAME", "soc-sol-gpt-5.4")
+    monkeypatch.setenv("MODEL_NAME", "soc-sol-gpt-5.4")
+    monkeypatch.setenv("LLM_ACTIVE_BASE_NAME", "glm-5.1")
+    import config as config_module
+    monkeypatch.setattr(config_module, "MODEL_NAME", "soc-sol-gpt-5.4", raising=False)
+    worker = SessionWorker(session, str(tmp_path / "atlas.db"))
+    try:
+        worker.emit_tool("▶ read_file  soc_ip/rtl/top.sv")
+        worker.emit_tool_result("read soc_ip/rtl/top.sv", "read_file")
+        worker.emit_token_usage(1000, 100, 200)
+
+        rows = worker.db.poll_messages(session, "out")
+        by_type = {row.get("msg_type"): _payload(row) for row in rows}
+
+        assert by_type["tool"]["text"].startswith("▶ read_file")
+        assert by_type["tool_result"]["tool"] == "read_file"
+        assert by_type["cost"]["model"] == "soc-sol-gpt-5.4"
+        assert by_type["cost"]["pricing"]["input"] == 2.5
+        assert by_type["cost"]["cost_usd_delta"] > 0
+        assert by_type["token_usage"]["cost_usd_delta"] == by_type["cost"]["cost_usd_delta"]
+
+        cost_file = tmp_path / ".session" / session / "cost.json"
+        ledger = json.loads(cost_file.read_text(encoding="utf-8"))
+        assert ledger["in_tok"] == 1000
+        assert ledger["cache_tok"] == 100
+        assert ledger["out_tok"] == 200
+        assert ledger["cost_usd"] == by_type["cost"]["cost_usd_delta"]
+    finally:
+        worker.close()
+
+
 def test_session_worker_record_ssot_qa_writes_pending_review_card(tmp_path, monkeypatch):
     from core.session_worker import SessionWorker
 

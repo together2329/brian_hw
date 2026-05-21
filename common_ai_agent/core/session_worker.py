@@ -416,10 +416,121 @@ class SessionWorker:
     def emit_flush(self) -> None:
         self.emit("flush", {})
 
+    def _active_model_name(self) -> str:
+        try:
+            import config as _cfg  # type: ignore
+            model = str(getattr(_cfg, "MODEL_NAME", "") or "").strip()
+            if model:
+                return model
+        except Exception:
+            pass
+        return (
+            os.environ.get("LLM_ACTIVE_MODEL_NAME", "").strip()
+            or os.environ.get("MODEL_NAME", "").strip()
+            or os.environ.get("LLM_MODEL_NAME", "").strip()
+            or os.environ.get("LLM_ACTIVE_BASE_NAME", "").strip()
+            or os.environ.get("LLM_BASE_NAME", "").strip()
+        )
+
+    def _persist_cost_ledger(
+        self,
+        *,
+        in_tok: int,
+        cache_tok: int,
+        out_tok: int,
+        cost_usd_delta: float,
+        model: str,
+    ) -> None:
+        session = self._normalize_session(self.session_id)
+        if not session:
+            return
+        try:
+            root = Path(os.environ.get("ATLAS_PROJECT_ROOT") or os.getcwd()).resolve()
+            cost_path = root / ".session" / session / "cost.json"
+            cost_path.parent.mkdir(parents=True, exist_ok=True)
+            existing: dict[str, Any] = {}
+            if cost_path.exists():
+                try:
+                    existing = json.loads(cost_path.read_text(encoding="utf-8", errors="replace"))
+                except Exception:
+                    existing = {}
+            cumulative_in = int(existing.get("in_tok", 0) or 0) + int(in_tok or 0)
+            cumulative_cache = int(existing.get("cache_tok", 0) or 0) + int(cache_tok or 0)
+            cumulative_out = int(existing.get("out_tok", 0) or 0) + int(out_tok or 0)
+            cumulative_cost = float(existing.get("cost_usd", 0) or 0) + float(cost_usd_delta or 0)
+            cost_path.write_text(
+                json.dumps({
+                    "in_tok": cumulative_in,
+                    "cache_tok": cumulative_cache,
+                    "out_tok": cumulative_out,
+                    "sum_tok": cumulative_in + cumulative_out,
+                    "cost_usd": cumulative_cost,
+                    "model": model,
+                    "updated_at": time.time(),
+                }, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+        except Exception:
+            pass
+
+    def emit_tool(self, text: str) -> None:
+        self.emit("tool", {"text": str(text or "")})
+
+    def emit_tool_result(self, obs: str, tool: str = "") -> None:
+        text = str(obs or "")
+        try:
+            max_chars = int(os.environ.get("WS_TOOL_RESULT_MAX_CHARS", "128000") or 128000)
+        except Exception:
+            max_chars = 128000
+        self.emit(
+            "tool_result",
+            {
+                "text": text[:max_chars],
+                "tool": str(tool or ""),
+                "truncated": len(text) > max_chars,
+            },
+        )
+
     def emit_token_usage(self, in_tok: int, cache_tok: int, out_tok: int) -> None:
+        model = self._active_model_name()
+        pricing_payload = None
+        cost_delta = 0.0
+        try:
+            from lib.model_pricing import get_active_pricing
+            price = get_active_pricing(model)
+        except Exception:
+            price = None
+        if price is not None:
+            billable_in = max(0, int(in_tok or 0) - int(cache_tok or 0))
+            cost_delta = (
+                billable_in * float(price.input)
+                + int(cache_tok or 0) * float(price.cache)
+                + int(out_tok or 0) * float(price.output)
+            ) / 1_000_000.0
+            pricing_payload = {
+                "input": float(price.input),
+                "cache": float(price.cache),
+                "output": float(price.output),
+            }
+        self._persist_cost_ledger(
+            in_tok=int(in_tok or 0),
+            cache_tok=int(cache_tok or 0),
+            out_tok=int(out_tok or 0),
+            cost_usd_delta=cost_delta,
+            model=model,
+        )
+        cost_payload = {
+            "input": int(in_tok or 0),
+            "cached": int(cache_tok or 0),
+            "output": int(out_tok or 0),
+            "cost_usd_delta": cost_delta,
+            "pricing": pricing_payload,
+            "model": model,
+        }
+        self.emit("cost", cost_payload)
         self.emit(
             "token_usage",
-            {"input": in_tok, "cached": cache_tok, "output": out_tok},
+            cost_payload,
         )
 
     def check_stop(self) -> bool:
@@ -663,6 +774,8 @@ def run_worker(session_id: str, db_path: str) -> int:
     agent._textual_emit_todo_fn = worker.emit_todo
     agent._textual_emit_flush_fn = worker.emit_flush
     agent._textual_emit_token_fn = worker.emit_token_usage
+    agent._textual_emit_tool_fn = worker.emit_tool
+    agent._textual_emit_tool_result_fn = worker.emit_tool_result
     agent._textual_esc_check_fn = worker.check_stop
     agent._textual_poll_human_input_fn = worker.poll_interrupt
     agent._textual_set_agent_running_fn = worker.set_agent_running

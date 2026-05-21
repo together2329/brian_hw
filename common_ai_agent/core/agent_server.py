@@ -927,10 +927,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             IterationTracker, detect_completion_signal,
         )
         from src.main import _parse_todo_markdown
-        from src.llm_client import (
-            chat_completion_stream, get_last_usage,
-            last_input_tokens, last_output_tokens,
-        )
+        import src.llm_client as _worker_llm_client
 
         try:
             config.reload_env()
@@ -1043,6 +1040,12 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         run_overrides: Dict[str, Any] = {
             "MODEL_NAME": effective_model,
             "LLM_MODEL_NAME": effective_model,
+            "ATLAS_SESSION_ID": active_session,
+            "ATLAS_ACTIVE_SESSION": active_session,
+            "ATLAS_IP_ID": ip,
+            "ATLAS_ACTIVE_IP": ip,
+            "ATLAS_WORKFLOW": workflow,
+            "ACTIVE_WORKSPACE": workflow,
         }
         if effective_effort:
             run_overrides.update({
@@ -1149,7 +1152,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                             + (f" effort={effective_effort}" if effective_effort else ""),
                             role="system",
                         )
-                        for chunk in chat_completion_stream(
+                        for chunk in _worker_llm_client.chat_completion_stream(
                             messages, stop=stop, caller_tag="worker", **call_kwargs,
                         ):
                             yield chunk
@@ -1223,6 +1226,72 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             except Exception:
                 return worker_text
 
+        def _worker_get_llm_tokens():
+            return (
+                int(getattr(_worker_llm_client, "last_input_tokens", 0) or 0),
+                int(getattr(_worker_llm_client, "last_output_tokens", 0) or 0),
+            )
+
+        def _worker_emit_tool_line(text: str) -> None:
+            entry.add_log("action", str(text or ""), role="assistant")
+
+        def _worker_emit_tool_result(obs, tool: str = "") -> None:
+            entry.add_log("observation", str(obs or "")[:2000], role="tool")
+
+        def _worker_emit_token(in_tok: int, cache_tok: int, out_tok: int) -> None:
+            model_name = str(getattr(run_cfg, "MODEL_NAME", "") or effective_model or "")
+            cost_delta = 0.0
+            try:
+                from lib.model_pricing import get_active_pricing
+                price = get_active_pricing(model_name)
+            except Exception:
+                price = None
+            if price is not None:
+                billable_in = max(0, int(in_tok or 0) - int(cache_tok or 0))
+                cost_delta = (
+                    billable_in * float(price.input)
+                    + int(cache_tok or 0) * float(price.cache)
+                    + int(out_tok or 0) * float(price.output)
+                ) / 1_000_000.0
+            try:
+                cost_file = str(getattr(run_cfg, "COST_FILE", "") or "")
+                if cost_file:
+                    cost_path = Path(cost_file)
+                    cost_path.parent.mkdir(parents=True, exist_ok=True)
+                    existing: Dict[str, Any] = {}
+                    if cost_path.exists():
+                        try:
+                            existing = json.loads(cost_path.read_text(encoding="utf-8", errors="replace"))
+                        except Exception:
+                            existing = {}
+                    cumulative_in = int(existing.get("in_tok", 0) or 0) + int(in_tok or 0)
+                    cumulative_cache = int(existing.get("cache_tok", 0) or 0) + int(cache_tok or 0)
+                    cumulative_out = int(existing.get("out_tok", 0) or 0) + int(out_tok or 0)
+                    cumulative_cost = float(existing.get("cost_usd", 0) or 0) + float(cost_delta or 0)
+                    cost_path.write_text(
+                        json.dumps({
+                            "in_tok": cumulative_in,
+                            "cache_tok": cumulative_cache,
+                            "out_tok": cumulative_out,
+                            "sum_tok": cumulative_in + cumulative_out,
+                            "cost_usd": cumulative_cost,
+                            "model": model_name,
+                            "updated_at": time.time(),
+                        }, indent=2, ensure_ascii=False),
+                        encoding="utf-8",
+                    )
+            except Exception:
+                pass
+            entry.add_log(
+                "cost",
+                (
+                    f"tokens input={int(in_tok or 0)} cached={int(cache_tok or 0)} "
+                    f"output={int(out_tok or 0)} cost_usd_delta={cost_delta:.8f} "
+                    f"model={model_name}"
+                ),
+                role="system",
+            )
+
         # ── Execute tool wrapper (bake in AVAILABLE_TOOLS like main.py does) ──
         def _execute_tool_fn(tool_name, args_str="", *, pre_parsed_kwargs=None):
             return _dispatch_tool(
@@ -1281,8 +1350,8 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             parse_todo_fn=_parse_todo_markdown,
             detect_completion_fn=detect_completion_signal,
             get_turn_id_fn=lambda: 0,
-            get_llm_usage_fn=get_last_usage,
-            get_llm_tokens_fn=lambda: (last_input_tokens, last_output_tokens),
+            get_llm_usage_fn=_worker_llm_client.get_last_usage,
+            get_llm_tokens_fn=_worker_get_llm_tokens,
             available_tools=filtered_available_tools(),
             # Optional subsystems — None for worker
             orchestrator=None,
@@ -1300,12 +1369,14 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             esc_check_fn=_esc_check,
             esc_start_fn=_esc_start,
             esc_stop_fn=_esc_stop,
-            # emit_* callbacks — route stream output to entry.add_log()
+            # emit_* callbacks — route live worker telemetry to entry.add_log()
             emit_content_fn=None,    # worker: stdout goes to log via _flush hook
             emit_reasoning_fn=None,
             emit_todo_fn=None,
             emit_flush_fn=None,
-            emit_token_fn=None,
+            emit_token_fn=_worker_emit_token,
+            emit_tool_fn=_worker_emit_tool_line,
+            emit_tool_result_fn=_worker_emit_tool_result,
         )
 
         # ── Build initial messages (resume from saved history if available) ──

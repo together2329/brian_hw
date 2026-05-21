@@ -145,3 +145,18 @@ def test_call_llm_does_not_raise_when_db_missing(tmp_path, monkeypatch):
 
     # Must still return the response even when DB write fails.
     assert result.status == "ok"
+
+
+def test_agent_server_worker_reads_llm_token_globals_from_module():
+    """Worker ReAct accounting must not import token ints by value."""
+    source = (
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        + "/core/agent_server.py"
+    )
+    text = open(source, encoding="utf-8").read()
+
+    assert "import src.llm_client as _worker_llm_client" in text
+    assert "last_input_tokens, last_output_tokens" not in text
+    assert 'getattr(_worker_llm_client, "last_input_tokens"' in text
+    assert "emit_tool_fn=_worker_emit_tool_line" in text
+    assert "emit_token_fn=_worker_emit_token" in text

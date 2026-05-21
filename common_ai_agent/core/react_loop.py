@@ -1098,24 +1098,24 @@ def run_react_agent_impl(
         # were already being emitted.
         if (_in_tok > 0 or _out_tok > 0):
             try:
-                from lib.model_pricing import get_pricing, get_active_pricing
+                from lib.model_pricing import get_active_pricing
                 # Match the same resolution chain as the live cost emit
                 # (atlas_ui._emit_token) so worker LLM calls land in
                 # atlas.db with the same per-1M rate the UI ledger uses.
-                # Reading cfg.MODEL_NAME alone missed dropdown switches
-                # to non-profile aliases like `sol-soc-gpt-5.4` /
-                # `gpt-5.3-codex` because _set_runtime_model only mutates
-                # cfg.MODEL_NAME on profile activation; the env vars
-                # always reflect the user's pick.
+                # Prefer the runtime cfg first: agent_server uses
+                # thread-scoped model overrides while process-wide env vars
+                # may still point at a different user's or older dropdown
+                # selection. get_active_pricing(model) still falls back to
+                # LLM_BASE_NAME for opaque Azure deployment names.
                 _model_name = (
-                    os.environ.get("LLM_ACTIVE_BASE_NAME", "").strip()
-                    or os.environ.get("LLM_BASE_NAME", "").strip()
-                    or os.environ.get("LLM_ACTIVE_BASE_MODEL", "").strip()
-                    or os.environ.get("LLM_BASE_MODEL", "").strip()
+                    (getattr(cfg, "MODEL_NAME", "") or "").strip()
+                    or os.environ.get("LLM_ACTIVE_MODEL_NAME", "").strip()
                     or os.environ.get("LLM_MODEL_NAME", "").strip()
-                    or (getattr(cfg, "MODEL_NAME", "") or "")
+                    or os.environ.get("MODEL_NAME", "").strip()
+                    or os.environ.get("LLM_ACTIVE_BASE_NAME", "").strip()
+                    or os.environ.get("LLM_BASE_NAME", "").strip()
                 )
-                _price = get_active_pricing() or (get_pricing(_model_name) if _model_name else None)
+                _price = get_active_pricing(_model_name)
                 _cost_usd = 0.0
                 if _price is not None:
                     _billable_in = max(0, _in_tok - _cr)
@@ -1132,17 +1132,25 @@ def run_react_agent_impl(
                 )
                 _workflow = (
                     os.environ.get("ATLAS_WORKFLOW", "")
+                    or (getattr(cfg, "ATLAS_WORKFLOW", "") or "")
                     or os.environ.get("ATLAS_WORKER_NAME", "")
+                    or (getattr(cfg, "ATLAS_WORKER_NAME", "") or "")
                     or os.environ.get("ACTIVE_WORKSPACE", "")
+                    or (getattr(cfg, "ACTIVE_WORKSPACE", "") or "")
                     or os.environ.get("ATLAS_DEFAULT_WORKFLOW", "")
+                    or (getattr(cfg, "ATLAS_DEFAULT_WORKFLOW", "") or "")
                     or "orchestrator"
                 )
                 with AtlasDB(_db_path) as _db:
                     _db.record_llm_call(
                         session_id=os.environ.get("ATLAS_SESSION_ID", "")
-                            or os.environ.get("ATLAS_ACTIVE_SESSION", ""),
+                            or (getattr(cfg, "ATLAS_SESSION_ID", "") or "")
+                            or os.environ.get("ATLAS_ACTIVE_SESSION", "")
+                            or (getattr(cfg, "ATLAS_ACTIVE_SESSION", "") or ""),
                         ip_id=os.environ.get("ATLAS_IP_ID", "")
-                            or os.environ.get("ATLAS_ACTIVE_IP", ""),
+                            or (getattr(cfg, "ATLAS_IP_ID", "") or "")
+                            or os.environ.get("ATLAS_ACTIVE_IP", "")
+                            or (getattr(cfg, "ATLAS_ACTIVE_IP", "") or ""),
                         workflow=_workflow,
                         model=_model_name,
                         provider=os.environ.get("ATLAS_PROVIDER", "")

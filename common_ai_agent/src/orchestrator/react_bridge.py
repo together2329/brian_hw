@@ -538,9 +538,9 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
                 # own (non-worker) LLM calls.
                 cost_usd = 0.0
                 try:
-                    from lib.model_pricing import get_pricing
+                    from lib.model_pricing import get_active_pricing
                     model_name = getattr(config, "MODEL_NAME", "") or ""
-                    price = get_pricing(model_name)
+                    price = get_active_pricing(model_name)
                     if price is not None:
                         billable_in = max(0, tokens_input - cache_read)
                         cost_usd = (
