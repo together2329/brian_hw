@@ -6242,6 +6242,51 @@ def create_app():
                             "usage":   spec.get("usage", f"/{canonical}"),
                         })
                 break
+        # Inline workflow slashes (handled in this file, not in the
+        # core registry) need to surface in the UI picker too — without
+        # this merge, /to-ssot, /ssot-rtl, /grill-me, etc. silently
+        # vanish from autocomplete even though typing them still works.
+        _INLINE_WORKFLOW_HINTS = {
+            "wf":              ("workflow",   "switch active workflow: /wf ssot-gen"),
+            "workflow":        ("",           "switch active workflow: /workflow ssot-gen"),
+            "ip":              ("use",        "switch active IP: /ip uart"),
+            "use":             ("",           "switch active IP: /use uart"),
+            "session":         ("",           "show or switch session: /session default"),
+            "new-ip":          ("ni",         "create a new IP block: /new-ip <name>"),
+            "import":          ("imp",        "import an external doc / spec into the active IP"),
+            "grill-me":        ("grill,g",    "Q&A the LLM with the active SSOT context"),
+            "to-ssot":         ("ssot,ts",    "approve grill answers → write SSOT yaml"),
+            "validate-yaml":   ("",           "validate the active SSOT yaml against schema"),
+            "ssot-fl-model":   ("sfm",        "generate functional / cycle model from SSOT"),
+            "ssot-equiv-goals":("equiv-goals,seg", "generate FL↔RTL equivalence goals"),
+            "repair-equiv":    ("repair-equivalence,reqv", "repair equivalence-goal failures"),
+            "ssot-rtl":        ("sr",         "generate RTL from SSOT"),
+            "repair-rtl":      ("rrtl",       "repair RTL gate failures"),
+            "lint":            ("l",          "run lint pass on the active IP"),
+            "tb":              ("",           "generate testbench (auto-select format)"),
+            "ssot-tb":         ("stb",        "generate cocotb testbench from SSOT"),
+            "ssot-tb-cocotb":  ("stb-cocotb", "generate cocotb testbench"),
+            "ssot-tb-uvm":     ("stb-uvm",    "generate UVM testbench"),
+            "ssot-tb-verilog": ("stb-verilog,ssot-tb-sv,stb-sv", "generate Verilog/SV testbench"),
+            "sim":             ("s",          "run simulation"),
+            "sim-debug":       ("sd",         "FL↔RTL mismatch debug pass"),
+            "coverage":        ("cov",        "run / iterate coverage"),
+            "goal-audit":      ("audit,ga",   "audit goal coverage and evidence"),
+            "signoff":         ("",           "final signoff review"),
+        }
+        for name, (alias_str, hint) in _INLINE_WORKFLOW_HINTS.items():
+            if name in seen:
+                continue
+            seen.add(name)
+            aliases = [a for a in alias_str.split(",") if a] if alias_str else []
+            cmds.append({
+                "cmd":     "/" + name,
+                "name":    name,
+                "aliases": aliases,
+                "hint":    hint,
+                "usage":   f"/{name}",
+            })
+
         cmds.sort(key=lambda c: c["name"])
         return JSONResponse({"commands": cmds})
 
@@ -13082,6 +13127,12 @@ def create_app():
             f"  2. `{ip}/wiki/index.md`, `_graph.json`, `import-evidence.md`, "
             "`log.md`, `notes.md`  — accumulated wiki evidence.\n"
             "  3. Web Q&A snapshot (already inline above in the [SSOT SPEC] block).\n\n"
+            "Canonical YAML shape required by SSOT Preview and gates:\n"
+            "  - Top level must be one YAML mapping. Do NOT wrap the document in `ssot:`, `sections:`, `spec:`, or markdown fences.\n"
+            "  - Use these exact top-level keys, in this order:\n"
+            "    top_module, sub_modules, decomposition, rtl_contract, parameters, io_list, features, dataflow, function_model, cycle_model, clock_reset_domains, cdc_requirements, rdc_requirements, registers, memory, interrupts, fsm, timing, power, security, error_handling, debug_observability, integration, dft, synthesis, pnr, coding_rules, reuse_modules, custom, dir_structure, filelist, test_requirements, quality_gates, traceability, workflow_todos, generation_flow.\n"
+            "  - Do NOT use legacy aliases such as `interface`, `bus_interface`, `register_map`, `clock_reset`, `errors`, `debug`, `dv_plan`, or `verification_plan` as top-level sections.\n"
+            "  - SSOT Preview reads: `top_module.description`, `io_list.interfaces[].ports[]`, `function_model.transactions[]`, `cycle_model.pipeline[]`, `cycle_model.scenarios[]` or `function_model.scenarios[]`, `registers.register_list[]`, `fsm.states/transitions`, and `test_requirements.scenarios[]`; fill those when evidence exists.\n\n"
             "Rules for the write:\n"
             "  - Derive structure from the imports themselves. Do NOT stamp a "
             "33-section template; do NOT invent sections the imports don't "
@@ -13096,6 +13147,8 @@ def create_app():
             "Execution requirement: this is a single Normal-mode write turn. "
             "Use write_file (or replace_in_file on an existing draft) to "
             "produce the yaml; do not call todo_write (Plan Mode only). "
+            f"After the write, run `python3 workflow/ssot-gen/scripts/repair_ssot_schema.py {ip} --mode engineering` "
+            f"and `bash workflow/ssot-gen/scripts/check_ssot_disk.sh {ip} --mode engineering`; fix any format failures before handoff. "
             "Emit `[SSOT HANDOFF]` once the yaml is on disk."
         )
         bridge.emit("agent_state", running=True)

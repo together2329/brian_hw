@@ -14121,6 +14121,14 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
     () => body.split('\n').map(line => line.replace(/^%[0-9A-Fa-f]{4,}\s?/, '')),
     [body],
   );
+  // Languages where `#` introduces a whole-line comment (markdown uses `#`
+  // for headings — keep those visible). When matched, whole-line `#` rows
+  // are skipped at render time so the preview shows actual data only;
+  // line numbers gap rather than renumber so jump-to-line stays accurate.
+  const isHashCommentLang = ['yaml', 'yml', 'python', 'py', 'bash', 'sh',
+    'shell', 'makefile', 'mk', 'toml', 'ini', 'conf', 'ruby', 'perl', 'tcl', 'r']
+    .includes(String(lang).toLowerCase());
+  const isCommentLine = (text) => isHashCommentLang && /^\s*#/.test(text);
   const tree = React.useMemo(() => _buildFoldTree(ranges), [ranges]);
 
   // Render the source as nested <details> + line-rows. Fold controls are
@@ -14128,6 +14136,7 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0 }) => {
   // line always remains in the body, so the preview stays faithful to the file.
   const renderLineRow = (ln) => {
     const text = srcLines[ln - 1] != null ? srcLines[ln - 1] : '';
+    if (isCommentLine(text)) return null;
     const html = highlightLine(text);
     const inSel = sel && ln >= sel.lo && ln <= sel.hi;
     return (
