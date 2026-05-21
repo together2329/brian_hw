@@ -55,6 +55,19 @@ def _tool_cfg(attr: str, default: int) -> int:
     return int(getattr(cfg, attr, default))
 
 
+_IP_SUBDIRS = frozenset({
+    "rtl", "yaml", "tb", "tc", "sim", "sdc", "lint", "doc", "wiki",
+    "req", "list", "model", "syn", "sta", "pnr", "cov", "verify",
+    "todo", "sta-post",
+})
+
+_NON_IP_ROOTS = frozenset({
+    ".codex", ".git", ".github", ".omx", ".pytest_cache", ".session",
+    "__pycache__", "core", "docs", "frontend", "logs", "prompts", "rules",
+    "scripts", "src", "tests", "tools", "workflow",
+})
+
+
 # ---------------------------------------------------------------------------
 # LLM arg coercion — JSON tool calls deliver every value as a string,
 # even for params with numeric / boolean defaults. The previous behavior
@@ -264,12 +277,57 @@ def get_file_access_summary() -> str:
     return "\n".join(lines)
 
 
+def _atlas_project_root() -> str:
+    return (
+        os.environ.get("ATLAS_PROJECT_ROOT", "")
+        or os.environ.get("PROJECT_ROOT", "")
+    )
+
+
+def _norm_rel_tool_path(path: str) -> str:
+    norm = str(path or "").replace("\\", "/").strip()
+    while norm.startswith("./"):
+        norm = norm[2:]
+    return norm
+
+
+def _atlas_ip_project_candidate(path: str) -> str:
+    """Return the ATLAS project-root path for IP-scoped relative tool paths.
+
+    ATLAS can run from COMMON_AI_AGENT_HOME while serving a different
+    --root. In that mode, paths like ``uart/yaml/uart.ssot.yaml`` and
+    ``yaml/uart.ssot.yaml`` must resolve under ATLAS_PROJECT_ROOT, even if
+    a stale duplicate exists under the server cwd.
+    """
+    if not path or os.path.isabs(path):
+        return ""
+    project_root = _atlas_project_root()
+    if not project_root:
+        return ""
+    norm = _norm_rel_tool_path(path)
+    parts = [p for p in norm.split("/") if p and p != "."]
+    if not parts or any(p == ".." for p in parts):
+        return ""
+
+    active_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
+    first = parts[0]
+    if active_ip and active_ip != "default":
+        if first == active_ip:
+            return os.path.join(project_root, *parts)
+        if first in _IP_SUBDIRS:
+            return os.path.join(project_root, active_ip, *parts)
+
+    if len(parts) >= 2 and parts[1] in _IP_SUBDIRS and first not in _NON_IP_ROOTS:
+        return os.path.join(project_root, *parts)
+    return ""
+
+
 def _resolve_asset_path(path):
     """Resolve a relative path against, in order:
-      1. cwd (preserves user-intended layouts)
-      2. ATLAS_PROJECT_ROOT (the directory atlas_ui serves files from)
-      3. ATLAS_PROJECT_ROOT / ATLAS_ACTIVE_IP (so the agent can write
-         `rtl/foo.sv` and have it resolve under the active IP)
+      1. ATLAS_PROJECT_ROOT for IP-scoped paths, including
+         `<ip>/<subdir>/...` and `<subdir>/...` when ATLAS_ACTIVE_IP is set
+      2. cwd for non-IP paths (preserves user-intended layouts)
+      3. ATLAS_PROJECT_ROOT for existing project-level paths
       4. COMMON_AI_AGENT_HOME (bundled-asset fallback — workflow/, rules/,
          and other install-anchored files referenced by prompts).
 
@@ -281,26 +339,19 @@ def _resolve_asset_path(path):
     # Absolute paths bypass the search entirely.
     if os.path.isabs(path):
         return path
-    # cwd wins if the file exists there (preserves user-intended layouts).
+    atlas_ip_candidate = _atlas_ip_project_candidate(path)
+    if atlas_ip_candidate:
+        return atlas_ip_candidate
+
+    # cwd wins for non-IP-scoped paths if the file exists there
+    # (preserves user-intended layouts).
     if os.path.exists(path):
         return path
-    project_root = (
-        os.environ.get("ATLAS_PROJECT_ROOT", "")
-        or os.environ.get("PROJECT_ROOT", "")
-    )
+    project_root = _atlas_project_root()
     if project_root:
         candidate = os.path.join(project_root, path)
         if os.path.exists(candidate):
             return candidate
-        active_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
-        if active_ip and active_ip != "default":
-            # Only prefix the IP when the agent's path doesn't already
-            # name it — `rtl/foo.sv` → `<ip>/rtl/foo.sv`, but
-            # `<ip>/rtl/foo.sv` is left alone.
-            if not path.startswith(active_ip + os.sep) and not path.startswith(active_ip + "/"):
-                ip_candidate = os.path.join(project_root, active_ip, path)
-                if os.path.exists(ip_candidate):
-                    return ip_candidate
     home = os.environ.get("COMMON_AI_AGENT_HOME", "")
     if home:
         candidate = os.path.join(home, path)
@@ -309,35 +360,26 @@ def _resolve_asset_path(path):
     return path
 
 
-_IP_SUBDIRS = frozenset({
-    "rtl", "yaml", "tb", "tc", "sim", "sdc", "lint", "doc", "wiki",
-    "req", "list", "model", "syn", "sta", "pnr", "cov", "verify",
-    "todo", "sta-post",
-})
-
-
 def _resolve_write_path(path):
     """Write-side counterpart to _resolve_asset_path.
 
-    Reads can rely on os.path.exists() to pick the right candidate; writes
-    cannot (the target file doesn't exist yet). Instead, when:
-      - the path is relative,
-      - an active IP is bound,
-      - the first segment is a known per-IP subdir (rtl/, yaml/, tb/, ...),
-      - the path is NOT already prefixed with the IP name,
-    we route the write under <PROJECT_ROOT>/<active_ip>/<path>.
+    Reads can often rely on os.path.exists() to pick a candidate; writes
+    cannot because the target may not exist yet. Relative IP paths always
+    route under ATLAS_PROJECT_ROOT:
+      - `<ip>/<subdir>/...` -> `<PROJECT_ROOT>/<ip>/<subdir>/...`
+      - `<subdir>/...` with ATLAS_ACTIVE_IP -> `<PROJECT_ROOT>/<active_ip>/<subdir>/...`
 
     Project-level paths (workflow/, .session/, anything outside the
     per-IP layout) fall through untouched and land in cwd.
     """
     if not path or os.path.isabs(path):
         return path
+    atlas_ip_candidate = _atlas_ip_project_candidate(path)
+    if atlas_ip_candidate:
+        return atlas_ip_candidate
     if os.path.exists(path):
         return path
-    project_root = (
-        os.environ.get("ATLAS_PROJECT_ROOT", "")
-        or os.environ.get("PROJECT_ROOT", "")
-    )
+    project_root = _atlas_project_root()
     if not project_root:
         return path
     active_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
@@ -345,8 +387,6 @@ def _resolve_write_path(path):
         return path
     norm = path.replace("\\", "/").lstrip("./")
     first = norm.split("/", 1)[0]
-    if first == active_ip:
-        return path  # already IP-scoped
     if first in _IP_SUBDIRS:
         return os.path.join(project_root, active_ip, norm)
     return path
@@ -925,10 +965,7 @@ def run_command(command, timeout=60):
         # `git status`, etc. always run from the active IP directory
         # the user explicitly set with --root + -ip. When no IP is
         # bound, fall back to PROJECT_ROOT alone.
-        _proj_root = (
-            os.environ.get("ATLAS_PROJECT_ROOT", "")
-            or os.environ.get("PROJECT_ROOT", "")
-        )
+        _proj_root = _atlas_project_root()
         _active_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
         _cmd_cwd = None
         if _proj_root:

@@ -1,0 +1,150 @@
+import sys
+from pathlib import Path
+
+import pytest
+
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from core import tools
+
+
+@pytest.mark.parametrize("subdir", sorted(tools._IP_SUBDIRS))
+def test_write_file_all_ip_subdirs_use_atlas_project_root(tmp_path, monkeypatch, subdir):
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    server_cwd = tmp_path / "common_ai_agent"
+    cwd_file = server_cwd / ip / subdir / "artifact.txt"
+    target = project_root / ip / subdir / "artifact.txt"
+    cwd_file.parent.mkdir(parents=True)
+    cwd_file.write_text("stale cwd artifact\n", encoding="utf-8")
+
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+    monkeypatch.setattr(tools, "_git_auto_commit", lambda *args, **kwargs: None)
+
+    result = tools.write_file(path=f"{ip}/{subdir}/artifact.txt", content=f"{subdir} root scoped\n")
+
+    assert str(target) in result
+    assert target.read_text(encoding="utf-8") == f"{subdir} root scoped\n"
+    assert cwd_file.read_text(encoding="utf-8") == "stale cwd artifact\n"
+
+
+def test_write_file_ip_prefixed_path_uses_atlas_project_root(tmp_path, monkeypatch):
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    server_cwd = tmp_path / "common_ai_agent"
+    project_file = project_root / ip / "yaml" / f"{ip}.ssot.yaml"
+    cwd_file = server_cwd / ip / "yaml" / f"{ip}.ssot.yaml"
+    project_file.parent.mkdir(parents=True)
+    cwd_file.parent.mkdir(parents=True)
+    project_file.write_text("project draft\n", encoding="utf-8")
+    cwd_file.write_text("stale cwd draft\n", encoding="utf-8")
+
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+    monkeypatch.setattr(tools, "_git_auto_commit", lambda *args, **kwargs: None)
+
+    result = tools.write_file(path=f"{ip}/yaml/{ip}.ssot.yaml", content="project updated\n")
+
+    assert str(project_file) in result
+    assert project_file.read_text(encoding="utf-8") == "project updated\n"
+    assert cwd_file.read_text(encoding="utf-8") == "stale cwd draft\n"
+
+
+def test_write_file_ip_subdir_path_uses_active_ip_under_atlas_project_root(tmp_path, monkeypatch):
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    server_cwd = tmp_path / "common_ai_agent"
+    cwd_file = server_cwd / "yaml" / f"{ip}.ssot.yaml"
+    target = project_root / ip / "yaml" / f"{ip}.ssot.yaml"
+    cwd_file.parent.mkdir(parents=True)
+    cwd_file.write_text("wrong cwd file\n", encoding="utf-8")
+
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+    monkeypatch.setattr(tools, "_git_auto_commit", lambda *args, **kwargs: None)
+
+    result = tools.write_file(path=f"yaml/{ip}.ssot.yaml", content="root scoped\n")
+
+    assert str(target) in result
+    assert target.read_text(encoding="utf-8") == "root scoped\n"
+    assert cwd_file.read_text(encoding="utf-8") == "wrong cwd file\n"
+
+
+def test_replace_tools_prefer_atlas_project_root_for_ip_paths(tmp_path, monkeypatch):
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    server_cwd = tmp_path / "common_ai_agent"
+    project_wiki = project_root / ip / "wiki" / "index.md"
+    cwd_wiki = server_cwd / ip / "wiki" / "index.md"
+    project_yaml = project_root / ip / "yaml" / f"{ip}.ssot.yaml"
+    cwd_yaml = server_cwd / ip / "yaml" / f"{ip}.ssot.yaml"
+    for path, text in (
+        (project_wiki, "root wiki old\n"),
+        (cwd_wiki, "cwd wiki old\n"),
+        (project_yaml, "line 1\nline 2\nline 3\n"),
+        (cwd_yaml, "cwd line 1\ncwd line 2\n"),
+    ):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+    monkeypatch.setattr(tools, "_git_auto_commit", lambda *args, **kwargs: None)
+
+    result = tools.replace_in_file(
+        path=f"{ip}/wiki/index.md",
+        old_text="root wiki old",
+        new_text="root wiki new",
+    )
+    assert str(project_wiki) in result
+    assert project_wiki.read_text(encoding="utf-8") == "root wiki new\n"
+    assert cwd_wiki.read_text(encoding="utf-8") == "cwd wiki old\n"
+
+    result = tools.replace_lines(
+        path=f"{ip}/yaml/{ip}.ssot.yaml",
+        start_line=2,
+        end_line=2,
+        new_content="line two replaced",
+    )
+    assert str(project_yaml) in result
+    assert project_yaml.read_text(encoding="utf-8") == "line 1\nline two replaced\nline 3\n"
+    assert cwd_yaml.read_text(encoding="utf-8") == "cwd line 1\ncwd line 2\n"
+
+
+def test_run_command_runs_inside_active_ip_under_atlas_project_root(tmp_path, monkeypatch):
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    server_cwd = tmp_path / "common_ai_agent"
+    (project_root / ip).mkdir(parents=True)
+    (server_cwd / ip).mkdir(parents=True)
+
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+
+    result = tools.run_command("pwd", timeout=5)
+
+    assert result == str(project_root / ip)
+
+
+def test_run_command_falls_back_to_atlas_project_root_without_active_ip_dir(tmp_path, monkeypatch):
+    project_root = tmp_path / "served_root"
+    server_cwd = tmp_path / "common_ai_agent"
+    project_root.mkdir(parents=True)
+    server_cwd.mkdir(parents=True)
+
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "missing_ip")
+
+    result = tools.run_command("pwd", timeout=5)
+
+    assert result == str(project_root)
