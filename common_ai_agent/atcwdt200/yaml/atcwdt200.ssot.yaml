@@ -760,30 +760,55 @@ test_requirements:
     - id: apb_register_access
       name: APB register read/write
       stimulus: Read VER, unlock and write CR, read CR and SR.
+      stimulus_machine_spec:
+        timeline:
+          - { csr_write: { offset: 0x18, data: 0x5aa5 } }    # WEN unlock
+          - { csr_write: { offset: 0x10, data: 0x000F } }    # CR.en=1,clk=1,inten=1,rsten=1
       expected: Register readback follows register map and protected write policy.
       checker: APB scoreboard.
       coverage: [function_model.transactions.apb_read, function_model.transactions.apb_write]
     - id: restart_command
       name: Restart command
       stimulus: Unlock, write RES magic 0xcafe while watchdog is running.
+      stimulus_machine_spec:
+        timeline:
+          - { csr_write: { offset: 0x18, data: 0x5aa5 } }    # WEN unlock
+          - { csr_write: { offset: 0x10, data: 0x0001 } }    # CR.en=1
+          - { wait_cycles: 2 }
+          - { csr_write: { offset: 0x18, data: 0x5aa5 } }    # WEN unlock again
+          - { csr_write: { offset: 0x14, data: 0xcafe } }    # RES restart
       expected: COUNTER clears and STATE returns to ST_INTTIME.
       checker: Counter/state monitor.
       coverage: [function_model.transactions.restart]
     - id: interrupt_timeout
       name: Interrupt timeout
       stimulus: Program CR.INTTIME, enable watchdog and interrupt, advance selected tick.
+      stimulus_machine_spec:
+        timeline:
+          - { csr_write: { offset: 0x18, data: 0x5aa5 } }    # WEN unlock
+          - { csr_write: { offset: 0x10, data: 0x0015 } }    # CR.en=1,inten=1,inttime=1
+          - { wait_cycles: 16 }
       expected: SR.INTZERO sets and wdt_int asserts when timeout is reached.
       checker: Timeout scoreboard.
       coverage: [function_model.transactions.watchdog_tick, interrupts.sources.WDT_INTZERO]
     - id: reset_timeout
       name: Reset timeout
       stimulus: Let watchdog advance from interrupt phase into reset phase with reset enabled.
+      stimulus_machine_spec:
+        timeline:
+          - { csr_write: { offset: 0x18, data: 0x5aa5 } }    # WEN unlock
+          - { csr_write: { offset: 0x10, data: 0x001D } }    # CR.en=1,inten=1,rsten=1,inttime=1
+          - { wait_cycles: 32 }
       expected: wdt_rst asserts and CR.EN clears on reset timeout.
       checker: Timeout/reset scoreboard.
       coverage: [fsm.watchdog, interrupts.sources.WDT_RSTZERO]
     - id: pause_and_extclk
       name: Pause and external clock behavior
       stimulus: Select external tick, toggle extclk, assert/deassert wdt_pause.
+      stimulus_machine_spec:
+        timeline:
+          - { csr_write: { offset: 0x18, data: 0x5aa5 } }    # WEN unlock
+          - { csr_write: { offset: 0x10, data: 0x0003 } }    # CR.en=1,clk=1 (extclk)
       expected: Counter advances only on approved ticks while pause is deasserted.
       checker: CDC/tick monitor.
       coverage: [cdc_requirements.crossings, cycle_model.handshake_rules]
