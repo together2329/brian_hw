@@ -272,9 +272,11 @@
     "required": 34,
     "optional": 0,
     "blocked": 0,
+    "unverified": 0,
     "module_total": 1,
     "module_required": 1,
-    "module_blocked": 0
+    "module_blocked": 0,
+    "module_unverified": 0
   },
   "goals": [
     {
@@ -316,9 +318,9 @@
           "gnt_valid_o == 1",
           "gnt_idx_o == selected_index (binary)",
           "last_winner updated to selected_index",
+          "grant_index",
           "grant",
-          "grant_valid",
-          "grant_index"
+          "grant_valid"
         ],
         "latency": "cycle_model latency/ordering must hold when applicable",
         "state_updates": [
@@ -346,7 +348,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_TRANSACTION_FM2",
@@ -414,7 +417,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC1",
@@ -442,22 +446,40 @@
         "fcov_grant_single"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC1",
+        "transaction_type": "arbitrate_grant",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Assert req_i[2] only, all others low, arbiter enabled, mask=all-enabled"
-        ]
+          "Assert req_i[2] only, all others low, arbiter enabled, mask=all-enabled",
+          "arb_enabled == 1",
+          "(req_i & req_mask) != 0 (at least one unmasked active request)"
+        ],
+        "machine_spec": {
+          "assign": {
+            "requests": 4
+          }
+        }
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "gnt_o[2] asserted on next cycle, gnt_valid_o=1, gnt_idx_o=2"
+          "gnt_o[2] asserted on next cycle, gnt_valid_o=1, gnt_idx_o=2",
+          "gnt_o is one-hot with exactly one bit set at selected_index",
+          "gnt_valid_o == 1",
+          "gnt_idx_o == selected_index (binary)",
+          "last_winner updated to selected_index",
+          "grant_index",
+          "grant",
+          "grant_valid"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "last_winner rotates to current winner so it gets lowest priority next cycle",
+          "Only one requestor is granted per cycle (one-hot invariant)",
+          "last_winner"
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -478,7 +500,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC2",
@@ -504,22 +527,35 @@
         "SC2_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC2",
+        "transaction_type": "arbitrate_grant",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Assert all 4 requests simultaneously for 4 consecutive cycles"
+          "Assert all 4 requests simultaneously for 4 consecutive cycles",
+          "arb_enabled == 1",
+          "(req_i & req_mask) != 0 (at least one unmasked active request)"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Each requestor is granted exactly once in 4 cycles in rotation order starting from (last_winner+1)"
+          "Each requestor is granted exactly once in 4 cycles in rotation order starting from (last_winner+1)",
+          "gnt_o is one-hot with exactly one bit set at selected_index",
+          "gnt_valid_o == 1",
+          "gnt_idx_o == selected_index (binary)",
+          "last_winner updated to selected_index",
+          "grant_index",
+          "grant",
+          "grant_valid"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "last_winner rotates to current winner so it gets lowest priority next cycle",
+          "Only one requestor is granted per cycle (one-hot invariant)",
+          "last_winner"
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -540,7 +576,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC3",
@@ -566,22 +603,35 @@
         "SC3_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC3",
+        "transaction_type": "arbitrate_grant",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Set REQ_MASK=0b0101, assert all requests"
+          "Set REQ_MASK=0b0101, assert all requests",
+          "arb_enabled == 1",
+          "(req_i & req_mask) != 0 (at least one unmasked active request)"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Only requestors 0 and 2 participate; grants alternate between them"
+          "Only requestors 0 and 2 participate; grants alternate between them",
+          "gnt_o is one-hot with exactly one bit set at selected_index",
+          "gnt_valid_o == 1",
+          "gnt_idx_o == selected_index (binary)",
+          "last_winner updated to selected_index",
+          "grant_index",
+          "grant",
+          "grant_valid"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "last_winner rotates to current winner so it gets lowest priority next cycle",
+          "Only one requestor is granted per cycle (one-hot invariant)",
+          "last_winner"
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -602,7 +652,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC4",
@@ -628,22 +679,33 @@
         "SC4_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC4",
+        "transaction_type": "no_grant_idle",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Assert requests, then write CTRL.enable=0 via APB, then re-enable"
+          "Assert requests, then write CTRL.enable=0 via APB, then re-enable",
+          "arb_enabled == 0 OR (req_i & req_mask) == 0"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Grants stop when disabled, resume when re-enabled; last_winner is preserved across disable period"
+          "Grants stop when disabled, resume when re-enabled; last_winner is preserved across disable period",
+          "gnt_o == 0",
+          "gnt_valid_o == 0",
+          "gnt_idx_o == 0",
+          "last_winner unchanged",
+          "grant",
+          "grant_valid",
+          "grant_index"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "last_winner is preserved unchanged when no grant is issued",
+          "last_winner"
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -664,7 +726,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC5",
@@ -690,22 +753,38 @@
         "SC5_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC5",
+        "transaction_type": "no_grant_idle",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Deassert all requests, arbiter enabled"
-        ]
+          "Deassert all requests, arbiter enabled",
+          "arb_enabled == 0 OR (req_i & req_mask) == 0"
+        ],
+        "machine_spec": {
+          "assign": {
+            "requests": 0
+          }
+        }
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "gnt_o=0, gnt_valid_o=0 on all cycles"
+          "gnt_o=0, gnt_valid_o=0 on all cycles",
+          "gnt_o == 0",
+          "gnt_valid_o == 0",
+          "gnt_idx_o == 0",
+          "last_winner unchanged",
+          "grant",
+          "grant_valid",
+          "grant_index"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "last_winner is preserved unchanged when no grant is issued",
+          "last_winner"
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -726,7 +805,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC6",
@@ -752,22 +832,35 @@
         "SC6_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC6",
+        "transaction_type": "arbitrate_grant",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Grant to requestor 3, then disable, then re-enable with all requests"
+          "Grant to requestor 3, then disable, then re-enable with all requests",
+          "arb_enabled == 1",
+          "(req_i & req_mask) != 0 (at least one unmasked active request)"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Priority rotation resumes from (3+1)%4 = 0 after re-enable"
+          "Priority rotation resumes from (3+1)%4 = 0 after re-enable",
+          "gnt_o is one-hot with exactly one bit set at selected_index",
+          "gnt_valid_o == 1",
+          "gnt_idx_o == selected_index (binary)",
+          "last_winner updated to selected_index",
+          "grant_index",
+          "grant",
+          "grant_valid"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "last_winner rotates to current winner so it gets lowest priority next cycle",
+          "Only one requestor is granted per cycle (one-hot invariant)",
+          "last_winner"
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -788,7 +881,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC7",
@@ -826,7 +920,8 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "Written values readable; STATUS reflects internal arbiter state"
+          "Written values readable; STATUS reflects internal arbiter state",
+          "Scenario expected result from SSOT"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [],
@@ -850,7 +945,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC8",
@@ -876,22 +972,35 @@
         "SC8_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC8",
+        "transaction_type": "arbitrate_grant",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "APB access to undefined offset (e.g. 0x0C)"
+          "APB access to undefined offset (e.g. 0x0C)",
+          "arb_enabled == 1",
+          "(req_i & req_mask) != 0 (at least one unmasked active request)"
         ]
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "PSLVERR=1, PRDATA=0"
+          "PSLVERR=1, PRDATA=0",
+          "gnt_o is one-hot with exactly one bit set at selected_index",
+          "gnt_valid_o == 1",
+          "gnt_idx_o == selected_index (binary)",
+          "last_winner updated to selected_index",
+          "grant_index",
+          "grant",
+          "grant_valid"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "last_winner rotates to current winner so it gets lowest priority next cycle",
+          "Only one requestor is granted per cycle (one-hot invariant)",
+          "last_winner"
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -912,7 +1021,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC9",
@@ -938,22 +1048,40 @@
         "SC9_executed"
       ],
       "stimulus_contract": {
-        "transaction_type": "SC9",
+        "transaction_type": "arbitrate_grant",
         "required_fields": [
           "scenario_id",
           "kind"
         ],
         "constraints": [
-          "Exhaustive walk of all 16 request vectors with all mask combinations"
-        ]
+          "Exhaustive walk of all 16 request vectors with all mask combinations",
+          "arb_enabled == 1",
+          "(req_i & req_mask) != 0 (at least one unmasked active request)"
+        ],
+        "machine_spec": {
+          "assign": {
+            "requests": 15
+          }
+        }
       },
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "gnt_o is always one-hot or zero; never multi-bit or invalid"
+          "gnt_o is always one-hot or zero; never multi-bit or invalid",
+          "gnt_o is one-hot with exactly one bit set at selected_index",
+          "gnt_valid_o == 1",
+          "gnt_idx_o == selected_index (binary)",
+          "last_winner updated to selected_index",
+          "grant_index",
+          "grant",
+          "grant_valid"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
-        "state_updates": [],
+        "state_updates": [
+          "last_winner rotates to current winner so it gets lowest priority next cycle",
+          "Only one requestor is granted per cycle (one-hot invariant)",
+          "last_winner"
+        ],
         "error_policy": ""
       },
       "pass_criteria": [
@@ -974,7 +1102,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_SCENARIO_SC10",
@@ -1012,7 +1141,8 @@
       "expected_contract": {
         "model_api": "FunctionalModel.apply",
         "observables": [
-          "All outputs zero during reset; arbitration resumes from last_winner=0 after deassertion"
+          "All outputs zero during reset; arbitration resumes from last_winner=0 after deassertion",
+          "Scenario expected result from SSOT"
         ],
         "latency": "cycle_model latency/handshake constraints apply to the scenario",
         "state_updates": [],
@@ -1036,7 +1166,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
@@ -1096,7 +1227,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
@@ -1156,7 +1288,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
@@ -1216,7 +1349,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
@@ -1276,7 +1410,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_TIMING_ORDERING_0",
@@ -1333,7 +1468,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_TIMING_ORDERING_1",
@@ -1390,7 +1526,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_TIMING_ORDERING_2",
@@ -1447,7 +1584,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_CTRL",
@@ -1516,7 +1654,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_REQ_MASK",
@@ -1586,7 +1725,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_REGISTER_STATUS",
@@ -1655,7 +1795,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_ERROR_NONE",
@@ -1712,7 +1853,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_ARB_FSM_IDLE_TO_EVAL_0",
@@ -1775,7 +1917,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_ARB_FSM_EVAL_TO_GRANT_1",
@@ -1850,7 +1993,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_ARB_FSM_GRANT_TO_IDLE_2",
@@ -1926,7 +2070,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_STATE_ARB_FSM_IDLE_TO_IDLE_3",
@@ -1988,7 +2133,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_DEBUG_OBSERVABILITY",
@@ -2046,7 +2192,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_MODULE_ARBITER_RR_CORE",
@@ -2076,6 +2223,10 @@
         "cycle_model.pipeline.s0_sample_req",
         "cycle_model.pipeline.s1_grant",
         "cycle_model.reset",
+        "dataflow",
+        "dataflow.sequence",
+        "dataflow.sequence.sequence_0",
+        "decomposition.units.arbitrate",
         "features",
         "features.enable_disable",
         "features.request_masking",
@@ -2148,9 +2299,9 @@
           "gnt_valid_o == 1",
           "gnt_idx_o == selected_index (binary)",
           "last_winner updated to selected_index",
+          "grant_index",
           "grant",
-          "grant_valid",
-          "grant_index"
+          "grant_valid"
         ],
         "latency": "cycle_model latency/ordering must hold at the module boundary",
         "state_updates": [
@@ -2178,7 +2329,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_COVERAGE_CCOV_SAMPLE_STAGE",
@@ -2221,9 +2373,9 @@
           "gnt_valid_o == 1",
           "gnt_idx_o == selected_index (binary)",
           "last_winner updated to selected_index",
+          "grant_index",
           "grant",
-          "grant_valid",
-          "grant_index"
+          "grant_valid"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2249,7 +2401,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_COVERAGE_CCOV_1CYCLE_LATENCY",
@@ -2292,9 +2445,9 @@
           "gnt_valid_o == 1",
           "gnt_idx_o == selected_index (binary)",
           "last_winner updated to selected_index",
+          "grant_index",
           "grant",
-          "grant_valid",
-          "grant_index"
+          "grant_valid"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2320,7 +2473,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_COVERAGE_CCOV_RESET_CLEAN",
@@ -2363,9 +2517,9 @@
           "gnt_valid_o == 1",
           "gnt_idx_o == selected_index (binary)",
           "last_winner updated to selected_index",
+          "grant_index",
           "grant",
-          "grant_valid",
-          "grant_index"
+          "grant_valid"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2391,7 +2545,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
@@ -2434,9 +2589,9 @@
           "gnt_valid_o == 1",
           "gnt_idx_o == selected_index (binary)",
           "last_winner updated to selected_index",
+          "grant_index",
           "grant",
-          "grant_valid",
-          "grant_index"
+          "grant_valid"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2462,7 +2617,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     },
     {
       "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
@@ -2505,9 +2661,9 @@
           "gnt_valid_o == 1",
           "gnt_idx_o == selected_index (binary)",
           "last_winner updated to selected_index",
+          "grant_index",
           "grant",
-          "grant_valid",
-          "grant_index"
+          "grant_valid"
         ],
         "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
         "state_updates": [
@@ -2533,7 +2689,8 @@
         ]
       },
       "blocked": false,
-      "blocker": ""
+      "blocker": "",
+      "unverified": false
     }
   ]
 }

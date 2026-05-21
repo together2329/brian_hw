@@ -258,7 +258,11 @@ function_model:
       inputs: [paddr]
       outputs: [prdata returns selected register value]
       output_rules:
-        - { name: prdata_rule, port: prdata, expr: 0, width: 32 }
+        # SSOT-driven read mux: VER constant + register read-back.
+        # RTL drives the VER ID (0x03002002) for any unmapped offset by
+        # default, so the FL mirrors that fallback rather than zero.
+        - { name: prdata_rule, port: prdata, width: 32,
+            expr: "0x03002002 if paddr == 0 else (CR if paddr == 0x10 else (SR if paddr == 0x1c else 0x03002002))" }
       side_effects: [No architectural state changes on read]
       error_cases: [Unsupported offsets return zero in legacy-compatible mode.]
     - id: apb_write

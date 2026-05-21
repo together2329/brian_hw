@@ -650,6 +650,8 @@ test_requirements:
     - id: "SC1"
       name: "Single requestor grant"
       stimulus: "Assert req_i[2] only, all others low, arbiter enabled, mask=all-enabled"
+      stimulus_machine_spec:
+        assign: { requests: 4 }
       expected: "gnt_o[2] asserted on next cycle, gnt_valid_o=1, gnt_idx_o=2"
       checker: "Scoreboard checks gnt_o is one-hot, index matches, valid asserted"
       coverage: ["FM1", "S0_SAMPLE_REQ", "S1_GRANT"]
@@ -674,6 +676,8 @@ test_requirements:
     - id: "SC5"
       name: "No requests idle"
       stimulus: "Deassert all requests, arbiter enabled"
+      stimulus_machine_spec:
+        assign: { requests: 0 }
       expected: "gnt_o=0, gnt_valid_o=0 on all cycles"
       checker: "Monitor checks outputs are zero"
       coverage: ["FM2"]
@@ -698,6 +702,8 @@ test_requirements:
     - id: "SC9"
       name: "One-hot grant invariant under all input combinations"
       stimulus: "Exhaustive walk of all 16 request vectors with all mask combinations"
+      stimulus_machine_spec:
+        assign: { requests: 15 }
       expected: "gnt_o is always one-hot or zero; never multi-bit or invalid"
       checker: "Assertion check on gnt_o one-hot property every cycle"
       coverage: ["FM1", "FM2", "one_hot_invariant"]
