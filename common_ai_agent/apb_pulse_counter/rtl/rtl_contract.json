@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "apb_pulse_counter",
+  "top": "apb_pulse_counter",
+  "generated_at": "2026-05-21T00:00:00Z",
+  "contract": {
+    "top": "apb_pulse_counter",
+    "transaction": "FM_PULSE",
+    "clock": "PCLK",
+    "reset": "PRESETn",
+    "reset_active": "low",
+    "sample_condition": "PRESETn == 1",
+    "input_map": {
+      "psel": "PSEL",
+      "penable": "PENABLE",
+      "pwrite": "PWRITE",
+      "paddr": "PADDR",
+      "pwdata": "PWDATA",
+      "pulse_in": "pulse_in"
+    },
+    "outputs": [
+      { "name": "pready_rule",    "port": "PREADY",    "expr": "1", "width": 1 },
+      { "name": "pslverr_rule",   "port": "PSLVERR",   "expr": "0", "width": 1 },
+      { "name": "count_out_rule", "port": "count_out", "expr": "count_q & 0xff", "width": 8 }
+    ]
+  }
+}

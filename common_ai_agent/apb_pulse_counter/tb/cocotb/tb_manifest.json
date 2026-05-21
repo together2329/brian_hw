@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "apb_pulse_counter",
+  "top": "apb_pulse_counter",
+  "generated_at": "2026-05-21T08:45:36Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "apb_pulse_counter/yaml/apb_pulse_counter.ssot.yaml",
+  "equivalence_goals": "apb_pulse_counter/verify/equivalence_goals.json",
+  "rtl_contract": "apb_pulse_counter/rtl/rtl_contract.json",
+  "rtl_contract_source": "rtl_contract_json",
+  "clock": "PCLK",
+  "reset": "PRESETn",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "APB_ADDR_WIDTH": 4,
+    "APB_DATA_WIDTH": 32,
+    "COUNTER_WIDTH": 8
+  },
+  "registers": {
+    "config": {
+      "register_width": 32,
+      "addr_width": 4,
+      "byte_addressable": true
+    },
+    "register_list": [
+      {
+        "name": "COUNT",
+        "offset": 0,
+        "access": "ro",
+        "index": 0
+      },
+      {
+        "name": "CLEAR",
+        "offset": 4,
+        "access": "rw",
+        "index": 1
+      }
+    ]
+  },
+  "state_observables": [
+    "count_q"
+  ],
+  "state_observable_aliases": {},
+  "rtl_signal_names": [
+    "PCLK",
+    "access_phase",
+    "clear_write",
+    "count_q",
+    "count_read",
+    "is_clear",
+    "is_count"
+  ],
+  "ports": [
+    {
+      "name": "PCLK",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PRESETn",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PADDR",
+      "direction": "input",
+      "width": 4
+    },
+    {
+      "name": "PSEL",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PENABLE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWRITE",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "PWDATA",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "PRDATA",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "PREADY",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "pulse_in",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "count_out",
+      "direction": "output",
+      "width": 8
+    }
+  ],
+  "port_widths": {
+    "PCLK": 1,
+    "PRESETn": 1,
+    "PADDR": 4,
+    "PSEL": 1,
+    "PENABLE": 1,
+    "PWRITE": 1,
+    "PWDATA": 32,
+    "PRDATA": 32,
+    "PREADY": 1,
+    "PSLVERR": 1,
+    "pulse_in": 1,
+    "count_out": 8
+  },
+  "input_ports": [
+    "PADDR",
+    "PCLK",
+    "PENABLE",
+    "PRESETn",
+    "PSEL",
+    "PWDATA",
+    "PWRITE",
+    "pulse_in"
+  ],
+  "output_ports": [
+    "PRDATA",
+    "PREADY",
+    "PSLVERR",
+    "count_out"
+  ],
+  "inout_ports": [],
+  "input_map": {
+    "psel": "PSEL",
+    "penable": "PENABLE",
+    "pwrite": "PWRITE",
+    "paddr": "PADDR",
+    "pwdata": "PWDATA",
+    "pulse_in": "pulse_in"
+  },
+  "sample_condition": "PRESETn == 1",
+  "sample_inputs": [],
+  "outputs": [
+    {
+      "name": "pready_rule",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "pslverr_rule",
+      "port": "PSLVERR",
+      "width": 1
+    },
+    {
+      "name": "count_out_rule",
+      "port": "count_out",
+      "width": 8
+    },
+    {
+      "name": "PRDATA",
+      "port": "PRDATA",
+      "width": 32
+    },
+    {
+      "name": "PREADY",
+      "port": "PREADY",
+      "width": 1
+    },
+    {
+      "name": "PSLVERR",
+      "port": "PSLVERR",
+      "width": 1
+    },
+    {
+      "name": "count_out",
+      "port": "count_out",
+      "width": 8
+    }
+  ],
+  "special_outputs": {},
+  "transaction_kind": "FM_PULSE",
+  "per_goal_reset": true,
+  "cl_cosim": true,
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/apb_pulse_counter/rtl/apb_pulse_counter.sv"
+  ],
+  "goal_count": 23,
+  "module_goal_count": 1,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_APB_PULSE_COUNTER",
+      "rtl_module": "apb_pulse_counter",
+      "rtl_file": "rtl/apb_pulse_counter.sv"
+    }
+  ]
+}

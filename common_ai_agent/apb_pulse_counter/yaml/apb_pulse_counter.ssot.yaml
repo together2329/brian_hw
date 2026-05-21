@@ -1,0 +1,346 @@
+# =============================================================================
+# apb_pulse_counter.ssot.yaml — APB-accessed pulse counter
+# Counts rising-edge equivalent (synchronous pulse_in samples) on an input
+# signal. APB CLEAR write resets the counter. Demonstrates input-driven
+# state evolution under cycle-accurate CL co-sim.
+# =============================================================================
+top_module:
+  name: apb_pulse_counter
+  file: rtl/apb_pulse_counter.sv
+  version: "1.0"
+  type: peripheral
+  description: "8-bit counter that increments each cycle pulse_in is high; APB CSR exposes COUNT (read) and CLEAR (write) at offset 4."
+  reference_spec: "ATLAS framework demo"
+  target:
+    technology: generic
+    clock_freq_mhz: 50
+
+decomposition:
+  units:
+    - { id: csr_decode, kind: control, source_refs: [registers.register_list], rtl_candidates: [apb_pulse_counter], verification_impact: [test_requirements.scenarios] }
+    - { id: counter,    kind: datapath, source_refs: [function_model.transactions], rtl_candidates: [apb_pulse_counter], verification_impact: [test_requirements.scenarios] }
+
+sub_modules:
+  - name: apb_pulse_counter
+    file: rtl/apb_pulse_counter.sv
+    ownership: manifest
+    ssot_gen: true
+    source_sections: [io_list, registers, function_model]
+    implements: [io_list.interfaces.apb_slave, registers.register_list, function_model.transactions]
+    register_refs: [registers.register_list]
+    function_model_refs: [function_model.transactions.FM_PULSE, function_model.transactions.FM_CLEAR, function_model.transactions.FM_IDLE]
+    description: "APB decode + 8-bit pulse counter."
+
+parameters:
+  - { name: APB_ADDR_WIDTH, default: 4,  type: int, description: "APB address width" }
+  - { name: APB_DATA_WIDTH, default: 32, type: int, description: "APB data width" }
+  - { name: COUNTER_WIDTH,  default: 8,  type: int, description: "Counter width" }
+
+io_list:
+  clock_domains:
+    - name: pclk
+      frequency_mhz: 50
+      description: "APB clock"
+      ports:
+        - { name: PCLK, width: 1, direction: input }
+  resets:
+    - name: presetn
+      polarity: active_low
+      sync_async: async_assert_sync_deassert
+      description: "APB reset"
+      ports:
+        - { name: PRESETn, width: 1, direction: input }
+  interfaces:
+    - name: apb_slave
+      type: APB-Lite
+      role: slave
+      clock_domain: pclk
+      reset_domain: presetn
+      description: "APB-Lite CSR"
+      protocol:
+        setup_phase: "PSEL=1, PENABLE=0"
+        access_phase: "PSEL=1, PENABLE=1, PREADY=1"
+      ports:
+        - { name: PADDR,   width: 4,  direction: input  }
+        - { name: PSEL,    width: 1,  direction: input  }
+        - { name: PENABLE, width: 1,  direction: input  }
+        - { name: PWRITE,  width: 1,  direction: input  }
+        - { name: PWDATA,  width: 32, direction: input  }
+        - { name: PRDATA,  width: 32, direction: output }
+        - { name: PREADY,  width: 1,  direction: output }
+        - { name: PSLVERR, width: 1,  direction: output }
+    - name: pulse_io
+      type: custom
+      clock_domain: pclk
+      reset_domain: presetn
+      description: "Pulse input and counter output"
+      ports:
+        - { name: pulse_in,  width: 1, direction: input,  description: "Synchronous pulse input; counter increments each cycle this is high" }
+        - { name: count_out, width: 8, direction: output, description: "Current counter value" }
+
+features:
+  - name: APB CSR access
+    trigger: "APB master read/write"
+    datapath: "COUNT @ 0x0 (R), CLEAR @ 0x4 (W)"
+    control: "0-wait-state PREADY"
+    output: "PRDATA returns COUNT on read"
+  - name: Pulse increment
+    trigger: "pulse_in == 1 on rising PCLK"
+    datapath: "count_q += 1 (wraps at 8-bit boundary)"
+    control: "Synchronous to PCLK"
+    output: "count_out tracks count_q"
+  - name: CSR clear
+    trigger: "APB write to CLEAR register (offset 4)"
+    datapath: "count_q <= 0"
+    control: "Has priority over pulse increment in the same cycle"
+    output: "count_out drops to 0"
+
+registers:
+  config:
+    register_width: 32
+    addr_width: 4
+    byte_addressable: true
+  bit_order: lsb0
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: ignore
+    rtl_requirement: "Reserved bits read zero"
+  register_list:
+    - name: COUNT
+      offset: 0x0
+      width: 32
+      access: ro
+      reset: 0x00000000
+      category: status
+      description: "Current counter value (read-only)"
+      fields:
+        - { name: count, bits: [7, 0], access: ro, reset: 0, description: "Counter value" }
+        - { name: reserved_31_8, bits: [31, 8], access: reserved, reset: 0, read_value: 0, write_effect: ignore, description: "Reserved" }
+    - name: CLEAR
+      offset: 0x4
+      width: 32
+      access: rw
+      reset: 0x00000000
+      category: command
+      description: "Write any value to clear the counter"
+      write_side_effects:
+        - "On access-phase write, counter resets to 0 regardless of pwdata."
+      fields:
+        - { name: cmd, bits: [0, 0], access: rw, reset: 0, write_effect: "Trigger clear", description: "Clear command (any write clears)" }
+        - { name: reserved_31_1, bits: [31, 1], access: reserved, reset: 0, read_value: 0, write_effect: ignore, description: "Reserved" }
+
+memory:
+  instances: []
+  note: "No FIFO/SRAM."
+
+interrupts:
+  sources: []
+  output: null
+  note: "No interrupts."
+
+fsm:
+  apb_phase:
+    states: [IDLE, ACCESS]
+    transitions:
+      - { from: IDLE,   to: ACCESS, condition: "psel == 1 and penable == 1" }
+      - { from: ACCESS, to: IDLE,   condition: "psel == 0" }
+
+rtl_contract:
+  transaction: FM_PULSE
+  clock: PCLK
+  reset: PRESETn
+  reset_active: low
+  sample_condition: "PRESETn == 1"
+  input_map:
+    psel: PSEL
+    penable: PENABLE
+    pwrite: PWRITE
+    paddr: PADDR
+    pwdata: PWDATA
+    pulse_in: pulse_in
+  output_map:
+    prdata: PRDATA
+    pready: PREADY
+    pslverr: PSLVERR
+    count_out: count_out
+
+function_model:
+  purpose: "Executable FL contract"
+  state_variables:
+    - { name: count_q, source: registers.COUNT.count, reset: 0, description: "Counter state (8-bit)" }
+  transactions:
+    - id: FM_CLEAR
+      name: apb_csr_clear
+      preconditions: ["psel == 1", "penable == 1", "pwrite == 1", "paddr == 4"]
+      inputs: [pwdata]
+      outputs: ["count_q -> 0, count_out -> 0"]
+      output_rules:
+        - { name: pready_rule,    port: PREADY,    expr: 1, width: 1 }
+        - { name: pslverr_rule,   port: PSLVERR,   expr: 0, width: 1 }
+        - { name: count_out_rule, port: count_out, expr: 0, width: 8 }
+      state_updates:
+        - { name: count_q, expr: 0, width: 8 }
+      side_effects: ["Counter cleared"]
+      error_cases: []
+    - id: FM_PULSE
+      name: pulse_increment
+      preconditions: ["pulse_in == 1", "(psel == 0 or penable == 0 or pwrite == 0 or paddr != 4)"]
+      inputs: [pulse_in]
+      outputs: ["count_q increments; count_out reflects new value"]
+      output_rules:
+        - { name: pready_rule,    port: PREADY,    expr: 1, width: 1 }
+        - { name: pslverr_rule,   port: PSLVERR,   expr: 0, width: 1 }
+        - { name: count_out_rule, port: count_out, expr: "(count_q + 1) & 0xff", width: 8 }
+      state_updates:
+        - { name: count_q, expr: "(count_q + 1) & 0xff", width: 8 }
+      side_effects: ["Counter incremented"]
+      error_cases: []
+    - id: FM_IDLE
+      name: idle_or_read
+      preconditions: ["pulse_in == 0", "(pwrite == 0 or psel == 0 or penable == 0 or paddr != 4)"]
+      inputs: [paddr]
+      outputs: ["count_q unchanged; PRDATA returns count_q on read of offset 0"]
+      output_rules:
+        - { name: pready_rule,    port: PREADY,    expr: 1, width: 1 }
+        - { name: pslverr_rule,   port: PSLVERR,   expr: 0, width: 1 }
+        - { name: count_out_rule, port: count_out, expr: "count_q & 0xff", width: 8 }
+        - { name: prdata_rule,    port: PRDATA,    width: 32,
+            expr: "count_q if (psel == 1 and penable == 1 and pwrite == 0 and paddr == 0) else 0" }
+      state_updates:
+        - { name: count_q, expr: count_q, width: 8 }
+      side_effects: []
+      error_cases: []
+  invariants:
+    - "PREADY=1 always, PSLVERR=0 always."
+    - "count_out always equals count_q (combinational mirror)."
+    - "CSR CLEAR has priority over pulse increment in the same cycle."
+
+cycle_model:
+  purpose: "Cycle contract"
+  executable: python
+  cosim: true
+  clock: PCLK
+  reset:
+    assertion: "PRESETn low clears count_q=0; count_out=0."
+    deassertion: "First rising PCLK enables increment/clear."
+  latency:
+    apb_write: { min_cycles: 1, max_cycles: 1 }
+    apb_read:  { min_cycles: 0, max_cycles: 0 }
+    pulse_increment: { min_cycles: 1, max_cycles: 1, description: "count_q updates one PCLK after pulse_in sample" }
+  handshake_rules:
+    - { signal: PREADY,   rule: "Always 1" }
+    - { signal: count_out, rule: "Tracks registered count_q combinationally" }
+  pipeline:
+    - { stage: S0_SAMPLE,  cycle: 0, action: "Sample pulse_in and APB access phase" }
+    - { stage: S1_UPDATE, cycle: 1, action: "Update count_q on rising edge based on clear / pulse / hold" }
+  ordering:
+    - "CSR CLEAR write takes priority over pulse increment in the same cycle."
+    - "count_out is combinational mirror of count_q."
+  backpressure: ["No backpressure."]
+  performance:
+    frequency_mhz: 50
+    throughput: { increments_per_cycle: 1, condition: "pulse_in high every cycle" }
+  observability:
+    - "count_out and PRDATA observable each cycle."
+
+clock_reset_domains:
+  domains:
+    - { name: PCLK, frequency_mhz: 50 }
+  reset_scheme:
+    signal: PRESETn
+    polarity: active_low
+    type: async_assert_sync_deassert
+
+dataflow:
+  sequence:
+    - { id: sequence_0, source: pulse_in, sink: count_q,  path: "pulse_in -> count_q (+1)" }
+    - { id: sequence_1, source: pwdata,    sink: count_q, path: "PWDATA via CLEAR -> count_q=0" }
+    - { id: sequence_2, source: count_q,   sink: count_out, path: "count_q -> count_out (combinational)" }
+
+power:
+  domains: [PD_MAIN]
+  modes: ["ON"]
+
+security:
+  classifications: []
+
+error_handling:
+  error_sources:
+    - { id: ERR_NONE, condition: "No error sources", architectural_effect: "PSLVERR always 0" }
+
+debug_observability:
+  signals:
+    - { name: count_q, source: function_model.state_variables.count_q, description: "Counter state" }
+
+dft:
+  scan: { enabled: false }
+
+synthesis:
+  target: { technology: generic, frequency_mhz: 50 }
+
+integration:
+  top_ports: [PCLK, PRESETn, PADDR, PSEL, PENABLE, PWRITE, PWDATA, PRDATA, PREADY, PSLVERR, pulse_in, count_out]
+
+quality_gates:
+  rtl_gen:
+    manifest_hygiene: "tb_manifest.rtl_sources must list every .sv file."
+
+test_requirements:
+  scenarios:
+    - id: SC1
+      name: "Reset state — count_out=0"
+      stimulus: "After reset, count_out=0"
+      expected: "count_out=0"
+      checker: "Verifies reset value."
+      coverage: [reset]
+    - id: SC2
+      name: "Single pulse — count=1"
+      stimulus: "Drive pulse_in=1 for 1 cycle"
+      stimulus_machine_spec:
+        assign: { pulse_in: 1 }
+      expected: "count_out=1 after pulse"
+      checker: "Verifies single increment."
+      coverage: [FM_PULSE]
+    - id: SC3
+      name: "Clear via APB write"
+      stimulus: "Write to CLEAR (offset 4) after some increments; hold pulse_in low so the clear is observable"
+      stimulus_machine_spec:
+        timeline:
+          - { assign: { pulse_in: 0 } }
+          - { csr_write: { offset: 0x4, data: 0x1 } }
+          - { assign: { pulse_in: 0 } }
+      expected: "count_q=0 after write"
+      checker: "Verifies CSR clear."
+      coverage: [FM_CLEAR]
+    - id: SC4
+      name: "No pulse — count holds"
+      stimulus: "pulse_in=0, no APB activity"
+      stimulus_machine_spec:
+        assign: { pulse_in: 0 }
+      expected: "count_q holds previous"
+      checker: "Verifies hold."
+      coverage: [FM_IDLE]
+    - id: SC5
+      name: "Pulse increment from zero"
+      stimulus: "Drive pulse_in=1 starting from count=0"
+      stimulus_machine_spec:
+        assign: { pulse_in: 1 }
+      expected: "count_out increments to 1"
+      checker: "Verifies basic increment path."
+      coverage: [FM_PULSE]
+  scoreboard_checks:
+    - "count_out mirrors count_q combinationally"
+    - "pulse_in=1 increments count_q"
+    - "CSR CLEAR write resets count_q to 0"
+    - "PREADY=1 always, PSLVERR=0 always"
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+    cycle:
+      target_pct: 100
+      model: cycle_model
+
+workflow_todos:
+  - { id: DEMO_DONE, description: "ATLAS demo - apb_pulse_counter", status: planned }

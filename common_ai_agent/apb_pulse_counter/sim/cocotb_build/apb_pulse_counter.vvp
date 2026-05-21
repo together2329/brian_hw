@@ -1,0 +1,135 @@
+#! /opt/homebrew/Cellar/icarus-verilog/12.0/bin/vvp
+:ivl_version "12.0 (stable)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision - 12;
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/system.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/vhdl_sys.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/vhdl_textio.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/v2005_math.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/va_math.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/v2009.vpi";
+S_0x13d605650 .scope package, "$unit" "$unit" 2 1;
+ .timescale -9 -12;
+S_0x13d6057c0 .scope module, "apb_pulse_counter" "apb_pulse_counter" 3 6;
+ .timescale -9 -12;
+    .port_info 0 /INPUT 1 "PCLK";
+    .port_info 1 /INPUT 1 "PRESETn";
+    .port_info 2 /INPUT 4 "PADDR";
+    .port_info 3 /INPUT 1 "PSEL";
+    .port_info 4 /INPUT 1 "PENABLE";
+    .port_info 5 /INPUT 1 "PWRITE";
+    .port_info 6 /INPUT 32 "PWDATA";
+    .port_info 7 /OUTPUT 32 "PRDATA";
+    .port_info 8 /OUTPUT 1 "PREADY";
+    .port_info 9 /OUTPUT 1 "PSLVERR";
+    .port_info 10 /INPUT 1 "pulse_in";
+    .port_info 11 /OUTPUT 8 "count_out";
+P_0x600000e28d80 .param/l "APB_ADDR_WIDTH" 0 3 7, +C4<00000000000000000000000000000100>;
+P_0x600000e28dc0 .param/l "APB_DATA_WIDTH" 0 3 8, +C4<00000000000000000000000000100000>;
+P_0x600000e28e00 .param/l "COUNTER_WIDTH" 0 3 9, +C4<00000000000000000000000000001000>;
+o0x130030130 .functor BUFZ 1, C4<z>; HiZ drive
+o0x130030070 .functor BUFZ 1, C4<z>; HiZ drive
+L_0x6000010208c0 .functor AND 1, o0x130030130, o0x130030070, C4<1>, C4<1>;
+o0x1300301c0 .functor BUFZ 1, C4<z>; HiZ drive
+L_0x600001020930 .functor AND 1, L_0x6000010208c0, o0x1300301c0, C4<1>, C4<1>;
+L_0x6000010209a0 .functor AND 1, L_0x600001020930, L_0x600000a2c320, C4<1>, C4<1>;
+L_0x600001020a10 .functor NOT 1, o0x1300301c0, C4<0>, C4<0>, C4<0>;
+L_0x600001020a80 .functor AND 1, L_0x6000010208c0, L_0x600001020a10, C4<1>, C4<1>;
+L_0x600001020af0 .functor AND 1, L_0x600001020a80, L_0x600000a2c1e0, C4<1>, C4<1>;
+L_0x600001020b60 .functor BUFZ 8, v0x60000092df80_0, C4<00000000>, C4<00000000>, C4<00000000>;
+o0x130030010 .functor BUFZ 4, C4<zzzz>; HiZ drive
+v0x60000092d170_0 .net "PADDR", 3 0, o0x130030010;  0 drivers
+o0x130030040 .functor BUFZ 1, C4<z>; HiZ drive
+v0x60000092d200_0 .net "PCLK", 0 0, o0x130030040;  0 drivers
+v0x60000092d290_0 .net "PENABLE", 0 0, o0x130030070;  0 drivers
+v0x60000092d320_0 .net "PRDATA", 31 0, L_0x600000a2c460;  1 drivers
+L_0x130068130 .functor BUFT 1, C4<1>, C4<0>, C4<0>, C4<0>;
+v0x60000092d3b0_0 .net "PREADY", 0 0, L_0x130068130;  1 drivers
+o0x130030100 .functor BUFZ 1, C4<z>; HiZ drive
+v0x60000092d440_0 .net "PRESETn", 0 0, o0x130030100;  0 drivers
+v0x60000092d4d0_0 .net "PSEL", 0 0, o0x130030130;  0 drivers
+L_0x130068178 .functor BUFT 1, C4<0>, C4<0>, C4<0>, C4<0>;
+v0x60000092d560_0 .net "PSLVERR", 0 0, L_0x130068178;  1 drivers
+o0x130030190 .functor BUFZ 32, C4<zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz>; HiZ drive
+v0x60000092d5f0_0 .net "PWDATA", 31 0, o0x130030190;  0 drivers
+v0x60000092d680_0 .net "PWRITE", 0 0, o0x1300301c0;  0 drivers
+v0x60000092d710_0 .net *"_ivl_10", 31 0, L_0x600000a2c280;  1 drivers
+L_0x1300680a0 .functor BUFT 1, C4<0000000000000000000000000000>, C4<0>, C4<0>, C4<0>;
+v0x60000092d7a0_0 .net *"_ivl_13", 27 0, L_0x1300680a0;  1 drivers
+L_0x1300680e8 .functor BUFT 1, C4<00000000000000000000000000000100>, C4<0>, C4<0>, C4<0>;
+v0x60000092d830_0 .net/2u *"_ivl_14", 31 0, L_0x1300680e8;  1 drivers
+v0x60000092d8c0_0 .net *"_ivl_18", 0 0, L_0x600001020930;  1 drivers
+v0x60000092d950_0 .net *"_ivl_2", 31 0, L_0x600000a2c140;  1 drivers
+v0x60000092d9e0_0 .net *"_ivl_22", 0 0, L_0x600001020a10;  1 drivers
+v0x60000092da70_0 .net *"_ivl_24", 0 0, L_0x600001020a80;  1 drivers
+L_0x1300681c0 .functor BUFT 1, C4<000000000000000000000000>, C4<0>, C4<0>, C4<0>;
+v0x60000092db00_0 .net/2u *"_ivl_32", 23 0, L_0x1300681c0;  1 drivers
+v0x60000092db90_0 .net *"_ivl_34", 31 0, L_0x600000a2c3c0;  1 drivers
+L_0x130068208 .functor BUFT 1, C4<00000000000000000000000000000000>, C4<0>, C4<0>, C4<0>;
+v0x60000092dc20_0 .net/2u *"_ivl_36", 31 0, L_0x130068208;  1 drivers
+L_0x130068010 .functor BUFT 1, C4<0000000000000000000000000000>, C4<0>, C4<0>, C4<0>;
+v0x60000092dcb0_0 .net *"_ivl_5", 27 0, L_0x130068010;  1 drivers
+L_0x130068058 .functor BUFT 1, C4<00000000000000000000000000000000>, C4<0>, C4<0>, C4<0>;
+v0x60000092dd40_0 .net/2u *"_ivl_6", 31 0, L_0x130068058;  1 drivers
+v0x60000092ddd0_0 .net "access_phase", 0 0, L_0x6000010208c0;  1 drivers
+v0x60000092de60_0 .net "clear_write", 0 0, L_0x6000010209a0;  1 drivers
+v0x60000092def0_0 .net "count_out", 7 0, L_0x600001020b60;  1 drivers
+v0x60000092df80_0 .var "count_q", 7 0;
+v0x60000092e010_0 .net "count_read", 0 0, L_0x600001020af0;  1 drivers
+v0x60000092e0a0_0 .net "is_clear", 0 0, L_0x600000a2c320;  1 drivers
+v0x60000092e130_0 .net "is_count", 0 0, L_0x600000a2c1e0;  1 drivers
+o0x130030580 .functor BUFZ 1, C4<z>; HiZ drive
+v0x60000092e1c0_0 .net "pulse_in", 0 0, o0x130030580;  0 drivers
+E_0x600002e2d840/0 .event negedge, v0x60000092d440_0;
+E_0x600002e2d840/1 .event posedge, v0x60000092d200_0;
+E_0x600002e2d840 .event/or E_0x600002e2d840/0, E_0x600002e2d840/1;
+L_0x600000a2c140 .concat [ 4 28 0 0], o0x130030010, L_0x130068010;
+L_0x600000a2c1e0 .cmp/eq 32, L_0x600000a2c140, L_0x130068058;
+L_0x600000a2c280 .concat [ 4 28 0 0], o0x130030010, L_0x1300680a0;
+L_0x600000a2c320 .cmp/eq 32, L_0x600000a2c280, L_0x1300680e8;
+L_0x600000a2c3c0 .concat [ 8 24 0 0], v0x60000092df80_0, L_0x1300681c0;
+L_0x600000a2c460 .functor MUXZ 32, L_0x130068208, L_0x600000a2c3c0, L_0x600001020af0, C4<>;
+S_0x13d604ca0 .scope module, "atlas_iverilog_vcd_dump" "atlas_iverilog_vcd_dump" 4 1;
+ .timescale -9 -12;
+    .scope S_0x13d6057c0;
+T_0 ;
+    %wait E_0x600002e2d840;
+    %load/vec4 v0x60000092d440_0;
+    %nor/r;
+    %flag_set/vec4 8;
+    %jmp/0xz  T_0.0, 8;
+    %pushi/vec4 0, 0, 8;
+    %assign/vec4 v0x60000092df80_0, 0;
+    %jmp T_0.1;
+T_0.0 ;
+    %load/vec4 v0x60000092de60_0;
+    %flag_set/vec4 8;
+    %jmp/0xz  T_0.2, 8;
+    %pushi/vec4 0, 0, 8;
+    %assign/vec4 v0x60000092df80_0, 0;
+    %jmp T_0.3;
+T_0.2 ;
+    %load/vec4 v0x60000092e1c0_0;
+    %flag_set/vec4 8;
+    %jmp/0xz  T_0.4, 8;
+    %load/vec4 v0x60000092df80_0;
+    %addi 1, 0, 8;
+    %assign/vec4 v0x60000092df80_0, 0;
+T_0.4 ;
+T_0.3 ;
+T_0.1 ;
+    %jmp T_0;
+    .thread T_0;
+    .scope S_0x13d604ca0;
+T_1 ;
+    %vpi_call/w 4 3 "$dumpfile", "apb_pulse_counter.vcd" {0 0 0};
+    %vpi_call/w 4 4 "$dumpvars", 32'sb00000000000000000000000000000000, S_0x13d6057c0 {0 0 0};
+    %end;
+    .thread T_1;
+# The file index is used to find the file name in the following table.
+:file_names 5;
+    "N/A";
+    "<interactive>";
+    "-";
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/apb_pulse_counter/rtl/apb_pulse_counter.sv";
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/apb_pulse_counter/sim/cocotb_build/atlas_iverilog_vcd_dump.v";
