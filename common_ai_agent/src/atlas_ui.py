@@ -15638,6 +15638,25 @@ def create_app():
             print(f"api_admin_usage error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)
 
+    @app.get("/api/user/dashboard")
+    async def api_user_dashboard(request: Request):
+        user = request.scope.get("user")
+        if not user:
+            return JSONResponse({"error": "login required"}, status_code=401)
+        try:
+            with AtlasDB() as db:
+                from core.atlas_user_dashboard import build_user_dashboard_payload
+                return JSONResponse(build_user_dashboard_payload(
+                    db,
+                    user,
+                    run_mode=os.environ.get("ATLAS_RUN_MODE", ""),
+                    exec_mode=os.environ.get("ATLAS_EXEC_MODE")
+                    or os.environ.get("ATLAS_DEFAULT_EXEC_MODE", ""),
+                ))
+        except Exception as e:
+            print(f"api_user_dashboard error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
     @app.post("/api/feedback")
     async def api_feedback_submit(request: Request):
         """Any logged-in user can drop a feedback message via /feedback
@@ -15724,6 +15743,139 @@ def create_app():
         except Exception as e:
             print(f"api_admin_delete_session error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/api/admin/permissions")
+    async def api_admin_permissions(request: Request):
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        try:
+            with AtlasDB() as db:
+                rows = db._fetchall(
+                    "SELECT p.id, p.ip_id, i.ip_name, p.grantee_user_id, u.username, "
+                    "       p.granted_by_user_id, gu.username AS granted_by_username, "
+                    "       p.permission, p.created_at, p.expires_at "
+                    "  FROM ip_permissions p "
+                    "  LEFT JOIN ip_blocks i ON i.id = p.ip_id "
+                    "  LEFT JOIN users u ON u.id = p.grantee_user_id "
+                    "  LEFT JOIN users gu ON gu.id = p.granted_by_user_id "
+                    " ORDER BY p.created_at DESC"
+                )
+            return JSONResponse({"permissions": [dict(r) for r in rows]})
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
+    @app.get("/api/admin/permissions/options")
+    async def api_admin_permissions_options(request: Request):
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        try:
+            with AtlasDB() as db:
+                ip_rows = db._fetchall(
+                    "SELECT i.id, i.ip_name, w.name AS workspace_name, w.owner_user_id, "
+                    "       ou.username AS owner_username "
+                    "  FROM ip_blocks i "
+                    "  LEFT JOIN workspaces w ON w.id = i.workspace_id "
+                    "  LEFT JOIN users ou ON ou.id = w.owner_user_id "
+                    " ORDER BY i.ip_name"
+                )
+                user_rows = db._fetchall(
+                    "SELECT id, username, display_name, role FROM users ORDER BY username"
+                )
+            return JSONResponse({
+                "ips": [dict(r) for r in ip_rows],
+                "users": [dict(r) for r in user_rows],
+                "levels": ["view", "import", "write", "admin"],
+            })
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
+    @app.post("/api/admin/permissions")
+    async def api_admin_permissions_grant(request: Request):
+        admin = _admin_required(request)
+        if admin is None:
+            return _admin_denied(request)
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        ip_id = str((body or {}).get("ip_id") or "").strip()
+        grantee = str((body or {}).get("grantee_user_id") or "").strip()
+        permission = str((body or {}).get("permission") or "").strip().lower()
+        expires_at = (body or {}).get("expires_at")
+        if not ip_id or not grantee or permission not in {"view", "import", "write", "admin"}:
+            return JSONResponse({"error": "ip_id, grantee_user_id, permission required"}, status_code=400)
+        try:
+            with AtlasDB() as db:
+                row = db.grant_ip_permission(
+                    ip_id=ip_id,
+                    grantee_user_id=grantee,
+                    permission=permission,
+                    granted_by_user_id=admin.get("id") or "",
+                    expires_at=expires_at if expires_at else None,
+                )
+            return JSONResponse({"permission": row})
+        except ValueError as exc:
+            return JSONResponse({"error": str(exc)}, status_code=400)
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
+    @app.delete("/api/admin/permissions")
+    async def api_admin_permissions_revoke(request: Request):
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        ip_id = str((body or {}).get("ip_id") or "").strip()
+        grantee = str((body or {}).get("grantee_user_id") or "").strip()
+        permission = (body or {}).get("permission")
+        if not ip_id or not grantee:
+            return JSONResponse({"error": "ip_id and grantee_user_id required"}, status_code=400)
+        try:
+            with AtlasDB() as db:
+                removed = db.revoke_ip_permission(ip_id, grantee, permission)
+            return JSONResponse({"revoked": removed})
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
+    @app.get("/api/admin/db/tables")
+    async def api_admin_db_tables(request: Request):
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        from core.atlas_admin_db import list_tables
+        try:
+            with AtlasDB() as db:
+                return JSONResponse(list_tables(db))
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
+    @app.get("/api/admin/db/preview")
+    async def api_admin_db_preview(request: Request, per_table: int = 3):
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        from core.atlas_admin_db import preview_all
+        try:
+            with AtlasDB() as db:
+                return JSONResponse(preview_all(db, per_table=per_table))
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
+    @app.get("/api/admin/db/table/{name}")
+    async def api_admin_db_table(name: str, request: Request,
+                                 limit: int = 50, offset: int = 0,
+                                 order: str = "desc"):
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        from core.atlas_admin_db import read_table
+        try:
+            with AtlasDB() as db:
+                payload, err = read_table(db, name, limit=limit, offset=offset, order=order)
+        except Exception as exc:
+            return JSONResponse({"error": str(exc)}, status_code=500)
+        if err:
+            return JSONResponse({"error": err}, status_code=400)
+        return JSONResponse(payload)
 
     @app.get("/admin")
     async def admin_page(request: Request):
