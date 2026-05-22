@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-22T02:18:21Z",
+  "generated_at": "2026-05-22T13:28:44Z",
   "root": "doc/wiki",
   "node_count": 80,
   "edge_count": 396,
@@ -1340,7 +1340,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 21841
+      "size_bytes": 21865
     },
     {
       "id": "interactive-ask-user-ip-discovery",
