@@ -219,18 +219,68 @@ def dispatch_workflow(
     the underlying dispatcher honours the canonical pipeline DAG and runs
     independent stages (e.g. lint / tb-gen / syn after rtl-gen) in parallel.
     """
-    bridge = _dispatch_workflow_bridge()
-    if bridge is None:
-        return (
-            {"ok": False, "error": "dispatch_workflow bridge not registered"},
-            "bridge unavailable",
-        )
     body = dict(payload or {})
     if orchestrator_run_id:
         body.setdefault("orchestrator_run_id", orchestrator_run_id)
         body.setdefault("trigger_source", "orchestrator_chat")
     if reason:
         body.setdefault("reason", reason)
+
+    bridge = _dispatch_workflow_bridge()
+    if bridge is None:
+        try:
+            from core import tools as core_tools  # type: ignore
+
+            direct = getattr(core_tools, "_dispatch_workflow_direct_fallback", None)
+            if callable(direct):
+                result, skip_reason = direct(
+                    workflow=workflow,
+                    ip=ip,
+                    stages=stages,
+                    payload=body,
+                    prompt=prompt,
+                    schedule=schedule,
+                    reason=reason,
+                    model=model,
+                    run_mode=run_mode,
+                    exec_mode=exec_mode,
+                )
+                if isinstance(result, dict):
+                    summary = _safe_json(
+                        {
+                            "ok": result.get("ok"),
+                            "source": result.get("source"),
+                            "workflow": result.get("workflow"),
+                            "status": result.get("status"),
+                            "error": (result.get("result") or {}).get("error")
+                            if isinstance(result.get("result"), dict)
+                            else None,
+                        }
+                    )
+                    return result, summary
+                if skip_reason:
+                    return (
+                        {
+                            "ok": False,
+                            "error": "dispatch_workflow bridge not registered",
+                            "direct_fallback": skip_reason,
+                        },
+                        f"bridge unavailable; {skip_reason}",
+                    )
+        except Exception as exc:
+            return (
+                {
+                    "ok": False,
+                    "error": "dispatch_workflow bridge not registered",
+                    "direct_fallback": f"{type(exc).__name__}: {exc}",
+                },
+                f"bridge unavailable; direct fallback failed: {type(exc).__name__}: {exc}",
+            )
+        return (
+            {"ok": False, "error": "dispatch_workflow bridge not registered"},
+            "bridge unavailable",
+        )
+
     result = bridge(
         workflow=workflow,
         ip=ip,

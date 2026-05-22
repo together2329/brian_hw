@@ -925,6 +925,67 @@ const ssotIpFromSession = (session) => {
 };
 
 const isSsotYamlPath = (path) => /\.ssot\.ya?ml$/i.test(String(path || ''));
+const KNOWN_WORKFLOW_PATH_SEGMENTS = new Set([
+  'default',
+  'orchestrator',
+  'ssot-gen',
+  'fl-model-gen',
+  'rtl-gen',
+  'lint',
+  'tb-gen',
+  'sim',
+  'sim_debug',
+  'coverage',
+  'syn',
+  'sta',
+  'pnr',
+  'sta-post',
+  'goal-audit',
+]);
+
+const persistAtlasPreviewPath = (path) => {
+  const value = String(path || '').trim();
+  try {
+    if (value) localStorage.setItem('atlasPreviewPath', value);
+    else localStorage.removeItem('atlasPreviewPath');
+  } catch (_) {}
+  try { window.ATLAS_PREVIEW_PATH = value; } catch (_) {}
+};
+
+const defaultPreviewPathForWorkflow = (ip, workflow) => {
+  const cleanIp = String(ip || '').trim();
+  if (!cleanIp) return '';
+  const wf = String(workflow || '').trim();
+  const stage = (window.PIPELINE_WORKFLOW_PRIMARY_STAGE && window.PIPELINE_WORKFLOW_PRIMARY_STAGE[wf]) || '';
+  if (window.pipelineDefaultWorkspacePath) {
+    try {
+      const path = window.pipelineDefaultWorkspacePath(cleanIp, wf, stage, []);
+      if (path) return path;
+    } catch (_) {}
+  }
+  if (wf === 'ssot-gen') return `${cleanIp}/yaml/${cleanIp}.ssot.yaml`;
+  if (wf === 'fl-model-gen') return `${cleanIp}/model/functional_model.py`;
+  if (wf === 'rtl-gen') return `${cleanIp}/rtl/rtl_authoring_status.md`;
+  if (wf === 'lint') return `${cleanIp}/lint/lint_report.txt`;
+  if (wf === 'tb-gen') return `${cleanIp}/tb/cocotb/test_${cleanIp}.py`;
+  if (wf === 'sim') return `${cleanIp}/sim/sim_summary.json`;
+  if (wf === 'coverage') return `${cleanIp}/sim/coverage_report.md`;
+  if (wf === 'sim_debug') return `${cleanIp}/sim/sim_debug_report.md`;
+  if (wf === 'syn') return `${cleanIp}/syn/syn_report.md`;
+  if (wf === 'sta') return `${cleanIp}/sta/sta_report.md`;
+  if (wf === 'pnr') return `${cleanIp}/pnr/pnr_report.md`;
+  if (wf === 'sta-post') return `${cleanIp}/sta/sta_post_report.md`;
+  if (wf === 'goal-audit') return `${cleanIp}/sim/fl_rtl_goal_audit.json`;
+  return '';
+};
+
+const previewPathLooksStaleForWorkspace = (path, ip) => {
+  const cleanIp = String(ip || '').trim();
+  const parts = String(path || '').split('/').filter(Boolean);
+  if (!cleanIp || parts.length === 0) return false;
+  if (parts[0] !== cleanIp) return false;
+  return parts.length >= 3 && KNOWN_WORKFLOW_PATH_SEGMENTS.has(parts[1]);
+};
 
 const ATLAS_ASYNC_RESOURCE_CACHES = {
   file: new Map(),
@@ -1862,24 +1923,23 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     try { localStorage.removeItem(qaHistoryScope.key); } catch (_) {}
   }, [qaHistoryScope.key]);
 
-  // Single-source-of-truth pivot: whenever the canonical (session_id, ip,
-  // workflow) triple resolves to a real IP, point the preview pane at
-  // that IP's SSOT yaml. Without this, /new-ip <new> leaves the preview
-  // pinned to the previous IP's file and the right pane disagrees with
-  // the chat about what we are actually editing. Skips overwriting paths
-  // the user explicitly chose in the file tree (anything outside the
-  // <ip>/yaml folder is preserved).
+  // Keep preview aligned with the active IP/workflow without clobbering
+  // deliberate file-tree selections. The stale shape we must repair is
+  // `<ip>/<workflow-or-default>/...`, which came from older namespace-scoped
+  // preview paths and does not match the file API rooted at the project.
   React.useEffect(() => {
     const ip = activeSsotIp();
     if (!ip) return;
-    const canonical = `${ip}/yaml/${ip}.ssot.yaml`;
-    if (previewPath === canonical) return;
+    const wf = workflow || workflowFromSession(currentSession || window.ACTIVE_SESSION || '') || defaultWorkflowForExecMode();
+    const canonical = defaultPreviewPathForWorkflow(ip, wf);
+    if (!canonical || previewPath === canonical) return;
     const cur = String(previewPath || '');
-    const looksLikeStaleSsot = !cur || /\/ssot\.yaml$/i.test(cur) || /^[A-Za-z0-9_]+\/yaml\/[^/]+\.ssot\.yaml$/.test(cur);
-    if (looksLikeStaleSsot) {
+    const looksLikeStaleSsot = /\/ssot\.yaml$/i.test(cur) || /^[A-Za-z0-9_]+\/yaml\/[^/]+\.ssot\.yaml$/.test(cur);
+    if (!cur || previewPathLooksStaleForWorkspace(cur, ip) || looksLikeStaleSsot) {
       setPreviewPath(canonical);
+      persistAtlasPreviewPath(canonical);
     }
-  }, [activeSsotIp, previewPath]);
+  }, [activeSsotIp, currentSession, previewPath, workflow]);
 
   // Inline-code chip click handlers — wired up from
   // _processInlineChips() in workspace.jsx-level. Path chips dispatch
@@ -1891,7 +1951,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       const path = String(ev?.detail?.path || '').trim();
       if (!path) return;
       setPreviewPath(path);
-      try { localStorage.setItem('atlasPreviewPath', path); } catch (_) {}
+      persistAtlasPreviewPath(path);
       // Snap to split-or-full view so the file is actually visible.
       setMainTab(t => (t === 'split' || t === 'preview') ? t : 'split');
     };
@@ -3725,6 +3785,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       </span>
     </div>
   );
+  const filePanelIp = activeIp || '';
+  const visibleFileTree = filePanelIp ? (window.FILE_TREE || []) : [];
+  const filePanelStatus = filePanelIp
+    ? (window.FILE_TREE_ERROR
+        ? `(file tree error — ${window.FILE_TREE_ERROR})`
+        : (window.FILE_TREE_LOADING ? '(loading file tree...)' : '(empty — select an IP or refresh)'))
+    : '(select IP_ID to show files)';
 
   return (
     <div style={{
@@ -3811,7 +3878,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             <span>▸ ip</span>
             <span style={{ flex: 1 }} />
             <span className="acc" style={{ textTransform: 'none', fontSize: 'var(--ui-control-font-size)', letterSpacing: 0 }}>
-              {(window.SCOPE_PATH || '').split('/').pop() || 'project root'}
+              {filePanelIp || 'select IP'}
             </span>
           </div>
           <div style={{
@@ -3822,7 +3889,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             <span className="mute" style={{ fontSize: 12 }}>dir</span>
             <span className="mute">›</span>
             <span className="acc" style={{ flex: 1, fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 500 }}>
-              {(window.SCOPE_PATH || '').split('/')[0] || 'select IP'}
+              {filePanelIp || 'select IP'}
             </span>
             {/* Sort toggle: name (A-Z, dirs first) ↔ recent (mtime DESC).
                 Click cycles between the two; the active one is accent-color. */}
@@ -3831,8 +3898,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 ? 'recent (most recently modified first) — click for A→Z'
                 : 'A→Z (dirs first) — click for recent')}
               onClick={() => {
+                if (!filePanelIp) return;
                 setFileSort(s => s === 'recent' ? 'name' : 'recent');
-                window.atlasData.refreshFileTree(window.SCOPE_PATH || '', { recursive: true });
+                window.atlasData.refreshFileTree(filePanelIp, { recursive: true });
               }}
               style={{
                 cursor: 'pointer',
@@ -3854,6 +3922,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 ? 'expanded — click to collapse all folders'
                 : 'top level only — click to expand all folders'}
               onClick={() => {
+                if (!filePanelIp) return;
                 setFileExpand(v => v === 'deep' ? 'shallow' : 'deep');
                 setCollapsedFileDirs(new Set());
               }}
@@ -3872,13 +3941,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
               title="refresh — pull the latest file list now"
               style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 13,
                        padding: '0 6px', fontWeight: 600, userSelect: 'none' }}
-              onClick={() => window.atlasData.refreshFileTree(window.SCOPE_PATH || '', { recursive: true })}
+              onClick={() => filePanelIp && window.atlasData.refreshFileTree(filePanelIp, { recursive: true })}
             >↻</span>
           </div>
           <div style={{ flex: 1, overflow: 'auto', padding: '4px 0' }}>
-            {window.FILE_TREE.length === 0 && (
-              <div className="mute" style={{ padding: '8px 10px', fontSize: 11 }}>
-                (empty — select an IP or refresh)
+            {visibleFileTree.length === 0 && (
+              <div
+                className={filePanelIp && window.FILE_TREE_ERROR ? '' : 'mute'}
+                style={{
+                  padding: '8px 10px',
+                  fontSize: 11,
+                  color: filePanelIp && window.FILE_TREE_ERROR ? 'var(--err)' : undefined,
+                  fontFamily: filePanelIp && window.FILE_TREE_ERROR ? 'var(--mono)' : undefined,
+                }}
+              >
+                {filePanelStatus}
               </div>
             )}
             {/* Sort: 'recent' = mtime DESC (most recent first, ignoring
@@ -3887,13 +3964,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                 first ordering. /api/files already returns mtime per
                 entry — sort happens client-side, no backend change. */}
             {(fileSort === 'recent'
-              ? [...window.FILE_TREE].sort((a, b) => (b.mtime || 0) - (a.mtime || 0))
-              : window.FILE_TREE
+              ? [...visibleFileTree].sort((a, b) => (b.mtime || 0) - (a.mtime || 0))
+              : visibleFileTree
             ).filter(n => {
               const relName = String(n.name || '').replace(/^\/+|\/+$/g, '');
               if (!relName) return false;
               if (fileExpand !== 'deep' && (n.depth || 0) > 0) return false;
-              const root = String(window.SCOPE_PATH || '').split('/').filter(Boolean)[0] || '';
+              const root = filePanelIp;
               const parts = relName.split('/').filter(Boolean);
               for (let idx = 1; idx < parts.length; idx += 1) {
                 const ancestor = [root, ...parts.slice(0, idx)].filter(Boolean).join('/');
@@ -3901,7 +3978,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
               }
               return true;
             }).map((n, i) => {
-              const baseScope = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
+              const baseScope = filePanelIp;
               const relName = String(n.name || '').replace(/^\/+|\/+$/g, '');
               const fullPath = (baseScope ? `${baseScope}/` : '') + relName;
               const displayName = relName.split('/').filter(Boolean).pop() || relName;
@@ -3915,7 +3992,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                     if (n.type === 'file') {
                       readAtlasAsyncResource('file', fullPath).catch(() => {});
                       setPreviewPath(fullPath);
-                      try { localStorage.setItem('atlasPreviewPath', fullPath); } catch (_) {}
+                      persistAtlasPreviewPath(fullPath);
                       setMainTab('split');
                     } else {
                       const wasDeep = fileExpand === 'deep';
@@ -3942,21 +4019,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           </div>
           {/* file tree footer */}
           <div style={{ borderTop: '1px solid var(--line)', padding: '6px 10px', fontSize: 10, color: 'var(--fg-mute)', display: 'flex', gap: 10 }}>
-            <span>{window.FILE_TREE.length} entries</span>
+            <span>{visibleFileTree.length} entries</span>
             <span className="mute">·</span>
             <span className="mute" title="Auto-refreshes on tool_result + every 5s">
-              {window.FILE_TREE_LAST_REFRESH
-                ? new Date(window.FILE_TREE_LAST_REFRESH).toLocaleTimeString()
-                : 'loading…'}
+              {window.FILE_TREE_LOADING
+                ? 'loading…'
+                : window.FILE_TREE_ERROR
+                  ? 'error'
+                  : window.FILE_TREE_LAST_REFRESH
+                    ? new Date(window.FILE_TREE_LAST_REFRESH).toLocaleTimeString()
+                    : 'not loaded'}
             </span>
             <span style={{ flex: 1 }} />
             <span className="mute"
               title={window.CONTEXT?.projectRoot || ''}>
-              {window.SCOPE_PATH
-                ? window.SCOPE_PATH
-                : (window.CONTEXT && window.CONTEXT.projectRoot
-                    ? window.CONTEXT.projectRoot.split('/').pop()
-                    : 'project root')}
+              {filePanelIp || 'select IP'}
             </span>
           </div>
         </div>

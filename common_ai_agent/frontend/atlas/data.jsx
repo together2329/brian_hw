@@ -303,6 +303,9 @@
   // periodically thereafter. Each is a plain array/object; consumers
   // re-read it on every render so updates are picked up.
   window.FILE_TREE = [];
+  window.FILE_TREE_LOADING = false;
+  window.FILE_TREE_ERROR = '';
+  window.FILE_TREE_EMPTY_REASON = 'select_ip';
   window.TODOS = [];
   window.SSOT_FILES = [];
   window.ATLAS_PROGRESS = null;
@@ -722,7 +725,26 @@
 
   async function refreshFileTree(path, opts) {
     const activeIp = activeIpFromSession();
-    const reqPath = activeIp || normalizeScopePath(path || '');
+    const reqPath = activeIp;
+    if (!reqPath) {
+      window.FILE_TREE = [];
+      window.FILE_TREE_LOADING = false;
+      window.FILE_TREE_ERROR = '';
+      window.FILE_TREE_EMPTY_REASON = 'select_ip';
+      window.FILE_TREE_TRUNCATED = false;
+      window.FILE_TREE_LAST_REFRESH = 0;
+      if (window.SCOPE_PATH) {
+        window.SCOPE_PATH = '';
+        try { localStorage.removeItem('atlasScopePath'); } catch (_) {}
+        window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
+      }
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FILE_TREE' }));
+      return;
+    }
+    window.FILE_TREE_LOADING = true;
+    window.FILE_TREE_ERROR = '';
+    window.FILE_TREE_EMPTY_REASON = '';
+    window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FILE_TREE' }));
     // When the user has narrowed to a sub-scope we go recursive so the
     // panel shows every file inside, not just the top level. At the
     // project root we keep it shallow (94 top-level entries already
@@ -734,8 +756,24 @@
     let recursive = (reqPath && reqPath.length > 0) ? '&recursive=1' : '';
     if (opts && opts.recursive === true) recursive = '&recursive=1';
     try {
-      const r = await fetch('/api/files?path=' + encodeURIComponent(reqPath) + recursive);
-      if (!r.ok) return;
+      const r = await fetch('/api/files?path=' + encodeURIComponent(reqPath) + recursive, {
+        cache: 'no-store',
+        credentials: 'include',
+      });
+      if (!r.ok) {
+        let message = r.statusText || `HTTP ${r.status}`;
+        try {
+          const d = await r.json();
+          message = d.error || d.detail || message;
+        } catch (_) {}
+        window.FILE_TREE = [];
+        window.FILE_TREE_ERROR = message;
+        window.FILE_TREE_EMPTY_REASON = '';
+        window.FILE_TREE_LOADING = false;
+        window.FILE_TREE_LAST_REFRESH = Date.now();
+        window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FILE_TREE' }));
+        return;
+      }
       const d = await r.json();
       if (Array.isArray(d.entries)) {
         // Trust backend canonical path (resolved + project-relative) so
@@ -750,9 +788,19 @@
         window.FILE_TREE = d.entries.map(e => asTreeNode(e, e.depth || 0));
         window.FILE_TREE_LAST_REFRESH = Date.now();
         window.FILE_TREE_TRUNCATED = !!d.truncated;
+        window.FILE_TREE_ERROR = '';
+        window.FILE_TREE_EMPTY_REASON = '';
+        window.FILE_TREE_LOADING = false;
         window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FILE_TREE' }));
       }
-    } catch (e) { /* server not reachable yet */ }
+    } catch (e) {
+      window.FILE_TREE = [];
+      window.FILE_TREE_ERROR = String(e && e.message || e || 'file tree request failed');
+      window.FILE_TREE_EMPTY_REASON = '';
+      window.FILE_TREE_LOADING = false;
+      window.FILE_TREE_LAST_REFRESH = Date.now();
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FILE_TREE' }));
+    }
   }
 
   async function refreshTodos() {
@@ -1052,10 +1100,18 @@
       const activeIp = sess.length >= 2 && sess[1] !== DEFAULT_WORKFLOW ? sess[1] : '';
       if (activeIp) {
         next = activeIp;
+      } else {
+        next = '';
       }
-      if (next === window.SCOPE_PATH) return;
+      if (next === window.SCOPE_PATH) {
+        if (!activeIp) refreshFileTree('', { recursive: true });
+        return;
+      }
       window.SCOPE_PATH = next;
-      try { localStorage.setItem('atlasScopePath', window.SCOPE_PATH); } catch (_) {}
+      try {
+        if (window.SCOPE_PATH) localStorage.setItem('atlasScopePath', window.SCOPE_PATH);
+        else localStorage.removeItem('atlasScopePath');
+      } catch (_) {}
       // Re-fetch the IP-rooted tree so folder clicks can fold/unfold locally.
       refreshFileTree(window.SCOPE_PATH, { recursive: true });
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));

@@ -9,6 +9,7 @@ import threading
 from pathlib import Path
 
 import pytest
+import yaml
 
 from src.headless_workflow import (
     FakeLLMProvider,
@@ -1887,7 +1888,7 @@ def test_fake_llm_headless_flow_reaches_goal_audit_pass(tmp_path: Path):
     assert coverage["status"] == "pass"
 
 
-def test_fake_llm_headless_flow_blocks_missing_cycle_model(tmp_path: Path):
+def test_fake_llm_headless_flow_repairs_missing_cycle_model(tmp_path: Path):
     ip = "missing_cycle_model_ip"
     req = _write_req(tmp_path, ip)
     runner = HeadlessWorkflowRunner(
@@ -1898,13 +1899,12 @@ def test_fake_llm_headless_flow_blocks_missing_cycle_model(tmp_path: Path):
 
     result = runner.run(ip=ip, requirement_path=req, stages=["ssot-gen", "fl-model-gen"])
 
-    assert result.status == "blocked"
-    question = tmp_path / "work" / ip / "questions" / "ssot_gen_missing_contract.json"
-    assert question.is_file()
-    gate = json.loads(question.read_text(encoding="utf-8"))
-    assert gate["status"] == "human_gate"
-    assert "cycle_model" in gate["decision_needed"]
-    assert not (tmp_path / "work" / ip / "model" / "functional_model.py").exists()
+    assert result.status == "pass", json.dumps(result.to_dict(), indent=2)
+    ip_dir = tmp_path / "work" / ip
+    ssot = yaml.safe_load((ip_dir / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    assert "cycle_model" in ssot
+    assert (ip_dir / "logs" / "validators" / "repair_ssot_schema.log").is_file()
+    assert (ip_dir / "model" / "functional_model.py").is_file()
 
 
 def test_headless_human_gate_artifact_created_for_ambiguous_requirement(tmp_path: Path):

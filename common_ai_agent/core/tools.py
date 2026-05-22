@@ -4180,11 +4180,13 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
         on_condition=on_condition if on_condition else None,
     )
 
-    if str(index) == "0":
-        return "Error: Todo indices are 1-based. To insert at the beginning, use index 1."
-
     if index is not None:
-        idx = int(index) - 1
+        try:
+            requested_index = int(index)
+        except (TypeError, ValueError):
+            return "Error: 'index' must be an integer."
+        requested_index = max(1, requested_index)
+        idx = requested_index - 1
         idx = max(0, min(idx, len(todo_tracker.todos)))
         todo_tracker.todos.insert(idx, new_item)
     else:
@@ -6403,6 +6405,158 @@ def wrapper_gen(top_name=None):
             f"the per-iface ports, then re-run.")
 
 
+_DIRECT_WORKFLOW_FALLBACKS = {
+    "ssot-gen",
+    "fl-model-gen",
+    "rtl-gen",
+    "lint",
+    "tb-gen",
+    "sim",
+    "coverage",
+    "sim_debug",
+    "syn",
+    "sta",
+    "pnr",
+    "sta-post",
+}
+
+
+def _normalize_dispatch_stages(stages):
+    if not stages:
+        return []
+    if isinstance(stages, str):
+        return [s.strip() for s in re.split(r"[,\s]+", stages) if s.strip()]
+    if isinstance(stages, (list, tuple)):
+        return [str(s).strip() for s in stages if str(s).strip()]
+    return [str(stages).strip()]
+
+
+def _direct_dispatch_target(workflow, stages):
+    workflow = str(workflow or "").strip()
+    stage_list = _normalize_dispatch_stages(stages)
+    if workflow:
+        if stage_list and any(s != workflow for s in stage_list):
+            return "", "direct fallback supports one concrete workflow only"
+        target = workflow
+    elif len(stage_list) == 1:
+        target = stage_list[0]
+    elif stage_list:
+        return "", "direct fallback supports one concrete workflow only"
+    else:
+        return "", "workflow is required"
+    if target not in _DIRECT_WORKFLOW_FALLBACKS:
+        return "", f"unknown direct workflow target: {target}"
+    return target, ""
+
+
+def _string_payload_value(payload, keys):
+    if not isinstance(payload, dict):
+        return ""
+    for key in keys:
+        value = payload.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
+
+
+def _build_direct_dispatch_task(target, scope, prompt, ip, payload, schedule, run_mode, exec_mode, reason):
+    body = payload if isinstance(payload, dict) else {}
+    task = str(prompt or "").strip() or _string_payload_value(
+        body,
+        (
+            "prompt",
+            "task",
+            "user_goal",
+            "goal",
+            "requirement",
+            "requirements",
+            "context",
+        ),
+    )
+    if not task:
+        subject = ip or scope or "current scope"
+        task = f"Run {target} for {subject}."
+
+    header = []
+    if ip:
+        header.append(f"IP: {ip}")
+    if scope:
+        header.append(f"Scope: {scope}")
+    if run_mode:
+        header.append(f"Run mode: {run_mode}")
+    if exec_mode:
+        header.append(f"Exec mode: {exec_mode}")
+    if schedule and schedule != "auto":
+        header.append(f"Schedule: {schedule}")
+    if reason:
+        header.append(f"Reason: {reason}")
+    if header:
+        return "\n".join(header + ["", task])
+    return task
+
+
+def _dispatch_workflow_direct_fallback(
+    workflow=None,
+    scope=None,
+    prompt=None,
+    ip=None,
+    stages=None,
+    payload=None,
+    schedule="auto",
+    model="",
+    run_mode="",
+    exec_mode="",
+    reason="",
+):
+    target, reject_reason = _direct_dispatch_target(workflow, stages)
+    if not target:
+        return None, reject_reason
+
+    try:
+        try:
+            from core.agent_client import worker_call
+        except Exception:
+            from agent_client import worker_call  # type: ignore
+
+        timeout_raw = os.environ.get("ATLAS_DIRECT_WORKER_TIMEOUT", "600")
+        try:
+            timeout = max(1, int(timeout_raw))
+        except ValueError:
+            timeout = 600
+        task = _build_direct_dispatch_task(
+            target=target,
+            scope=scope or "",
+            prompt=prompt or "",
+            ip=ip or "",
+            payload=payload,
+            schedule=schedule or "auto",
+            run_mode=run_mode or "",
+            exec_mode=exec_mode or "",
+            reason=reason or "",
+        )
+        result = worker_call(
+            worker=target,
+            task=task,
+            model=model or "",
+            workflow=target,
+            timeout=timeout,
+            show_log=False,
+        )
+        ok = isinstance(result, dict) and result.get("status") == "completed"
+        return {
+            "ok": ok,
+            "source": "direct_worker_fallback",
+            "workflow": target,
+            "worker": target,
+            "ip": ip or "",
+            "scope": scope or "",
+            "status": result.get("status") if isinstance(result, dict) else "",
+            "result": result,
+        }, ""
+    except Exception as exc:
+        return None, f"direct worker fallback failed: {type(exc).__name__}: {exc}"
+
+
 def dispatch_workflow(
     workflow=None,
     scope=None,
@@ -6456,11 +6610,30 @@ def dispatch_workflow(
                 return str(result)
         except Exception as exc:
             return f"[dispatch_workflow error: {exc}]"
+    direct_result, direct_skip_reason = _dispatch_workflow_direct_fallback(
+        workflow=workflow or "",
+        scope=scope or "",
+        prompt=prompt or "",
+        ip=ip or "",
+        stages=stages,
+        payload=payload,
+        schedule=schedule or "auto",
+        model=model or "",
+        run_mode=run_mode or "",
+        exec_mode=exec_mode or "",
+        reason=reason or "",
+    )
+    if direct_result is not None:
+        try:
+            return json.dumps(direct_result, indent=2, sort_keys=True)
+        except Exception:
+            return str(direct_result)
     parts = [f"⏵ Sub-workflow dispatch requested:",
              f"    workflow: {workflow}",
              f"    scope:    {scope or '(none)'}",
              f"    prompt:   {prompt or '(none)'}",
              "",
+             *([f"Direct worker fallback skipped: {direct_skip_reason}", ""] if direct_skip_reason else []),
              "Currently this is a manual handoff — switch with:",
              f"    /workflow {workflow}",
              *([f"    /scope {scope}"] if scope else []),

@@ -61,9 +61,10 @@ def test_ssot_rtl_surface_loads_dynamic_todos_for_llm_owned_rtl_work(tmp_path: P
     assert not surface.rtl_blocked
     assert f"/todo template ssot-rtl {ip}" in surface.queue_prompts
     queued = "\n".join(surface.queue_prompts)
-    assert f"{ip}/rtl/rtl_authoring_plan.json" in queued
-    assert f"{ip}/rtl/authoring_packets/" in queued
-    assert f"{ip}/rtl/rtl_authoring_status.md" in queued
+    assert "rtl/rtl_authoring_plan.json" in queued
+    assert "rtl/authoring_packets/" in queued
+    assert "rtl/rtl_authoring_status.md" in queued
+    assert f"do not prefix tool paths with {ip}/" in queued
     assert "Process module packets first" in queued
     assert "target_scale_present=False" in queued
     assert "deferred_human_qa_allowed=True" in queued

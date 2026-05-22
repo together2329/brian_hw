@@ -480,6 +480,16 @@ def _ensure_top_module(doc: dict[str, Any], state: dict[str, Any], ip: str) -> d
     top["name"] = top.get("name") or ip
     if not _is_live(top.get("description")) or _has_tbd(top.get("description")):
         top["description"] = decisions.get("purpose") or f"{ip} leaf IP generated from approved ATLAS Web SSOT requirements"
+    if not _is_live(top.get("file")) or _has_tbd(top.get("file")):
+        top_name = str(top.get("name") or ip).strip()
+        for item in doc.get("sub_modules") or []:
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("name") or "").strip() == top_name and _is_live(item.get("file")):
+                top["file"] = str(item.get("file")).strip()
+                break
+        else:
+            top["file"] = f"rtl/{ip}.sv"
     target = top.get("target") if isinstance(top.get("target"), dict) else {}
     target.setdefault("technology", "generic")
     target.setdefault("clock_freq_mhz", 100)
@@ -4168,6 +4178,7 @@ def main() -> int:
     ssot = _find_ssot(root, ns.ip)
     doc = _load_yaml(ssot)
     before_repair = dict(doc)
+    strict_downstream_issues = _validate_downstream_readiness(doc, ns.ip, root) if ns.strict_downstream else []
     state = _load_state(root, ns.ip)
     repaired = repair(doc, state, ns.ip)
     ssot.write_text(yaml.safe_dump(repaired, sort_keys=False, width=4096, allow_unicode=False), encoding="utf-8")
@@ -4179,7 +4190,7 @@ def main() -> int:
     print(f"[repair_ssot_schema] wrote {ssot.relative_to(root)}")
     print(f"[repair_ssot_schema] provenance: {sidecar.relative_to(root)}")
     print(f"[repair_ssot_schema] sections: {len([k for k in REQUIRED_ORDER if k in loaded])}/{len(REQUIRED_ORDER)}")
-    downstream_issues = _validate_downstream_readiness(loaded, ns.ip, root)
+    downstream_issues = strict_downstream_issues or _validate_downstream_readiness(loaded, ns.ip, root)
     blockers_path = root / ns.ip / "req" / "ssot_downstream_blockers.json"
     blockers_path.parent.mkdir(parents=True, exist_ok=True)
     blockers_path.write_text(

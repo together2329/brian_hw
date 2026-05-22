@@ -555,7 +555,11 @@ class LLMProvider(Protocol):
 def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
     excerpt = " ".join(requirement_text.split())[:240]
     doc = {
-        "top_module": {"name": ip},
+        "top_module": {
+            "name": ip,
+            "file": f"rtl/{ip}.sv",
+            "description": f"{ip} top-level wrapper for the sampled transaction rule.",
+        },
         "sub_modules": [
             {
                 "name": ip,
@@ -572,7 +576,7 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
                 "ownership": "manifest",
                 "implements": ["function_model.transactions", "cycle_model", "rtl_contract"],
                 "source_sections": ["function_model", "cycle_model", "rtl_contract", "fsm", "dataflow", "registers"],
-                "function_model_refs": ["function_model.transactions.FM_PRIMARY"],
+                "function_model_refs": ["function_model.transactions.FM_PRIMARY", "function_model.state_variables"],
                 "cycle_model_refs": ["cycle_model.pipeline"],
                 "dataflow_refs": ["dataflow.sequence", "dataflow.ordering"],
                 "register_refs": ["registers.architectural_state.accepted_count"],
@@ -1010,8 +1014,8 @@ module {ip}_core (
             accepted_count <= 8'd0;
         end else begin
             result_valid <= sample_condition_valid_ready;
+            result <= function_model_result;
             if (sample_condition_valid_ready) begin
-                result <= function_model_result;
                 accepted_count <= accepted_count + 8'd1;
             end
         end
@@ -1564,10 +1568,10 @@ class HeadlessWorkflowRunner:
     ) -> None:
         self.root = Path(root).resolve()
         self.model = model or os.getenv("ATLAS_HEADLESS_LLM_MODEL") or "glm-5.1"
-        self.run_mode = _normalize_run_mode(run_mode or os.getenv("ATLAS_RUN_MODE") or "signoff")
+        self.run_mode = _normalize_run_mode(run_mode) or "signoff"
         self.llm_provider = llm_provider or RealLLMProvider(required_model=os.getenv("ATLAS_HEADLESS_REQUIRED_MODEL", ""))
         self.require_glm51 = require_glm51
-        self.stage_engine = WorkflowStageEngine(self.root, source_root=SOURCE_ROOT)
+        self.stage_engine = WorkflowStageEngine(self.root, source_root=SOURCE_ROOT, run_mode=self.run_mode)
         self.stages: list[StageResult] = []
         self.ssot_repair_attempts = max(0, int(os.getenv("ATLAS_HEADLESS_SSOT_REPAIR_ATTEMPTS", "2")))
         self.rtl_repair_attempts = max(0, int(os.getenv("ATLAS_HEADLESS_RTL_REPAIR_ATTEMPTS", "2")))
@@ -1710,6 +1714,23 @@ class HeadlessWorkflowRunner:
         req_dir.mkdir(parents=True, exist_ok=True)
         for name in (f"{ip}_requirements.md", "requirements.md"):
             (req_dir / name).write_text(text, encoding="utf-8")
+        source_rel = f"{ip}/req/requirements.md"
+        target_rel = f"{ip}/req/{ip}_requirements.md"
+        _write_json(
+            req_dir / "approval_manifest.json",
+            {
+                "schema_version": 1,
+                "type": "requirement_approval_manifest",
+                "ip": ip,
+                "approved_by": "headless_runner",
+                "approved_at_utc": _utc(),
+                "decision_note": "headless requirement_path provided as approved test input",
+                "source": source_rel,
+                "source_sha256": _sha(text),
+                "target": target_rel,
+                "target_sha256": _sha(text),
+            },
+        )
         return text
 
     def _validate_req(self, ip: str, text: str) -> StageResult | None:

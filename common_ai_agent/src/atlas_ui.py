@@ -4804,32 +4804,99 @@ def create_app():
 
     @app.post("/api/ip/create")
     async def api_ip_create(request: Request):
-        """Legacy no-op for older Atlas frontends.
+        """Create the on-disk IP scaffold used by the workspace file tree.
 
-        IP creation/scaffolding is handled by `/new-ip <name>` so there is
-        exactly one path that creates `<PROJECT_ROOT>/<ip>/...`. Keeping
-        this endpoint as validation-only lets stale browser bundles proceed
-        to `/new-ip` without creating an extra empty IP root first.
+        `/new-ip <name>` still owns the chat-facing SSOT plan, but the UI
+        needs a synchronous HTTP path so `+ IP` cannot leave only a
+        `.session/<owner>/<ip>/...` namespace when the websocket prompt is
+        delayed or disconnected.
         """
         try:
             body = await request.json()
         except Exception:
             body = {}
         name = str((body or {}).get("name") or "").strip()
+        kind = str((body or {}).get("kind") or "TBD").strip() or "TBD"
         if not name:
             return JSONResponse({"error": "name required"}, status_code=400)
-        if "/" in name or "\\" in name or ".." in name:
+        if not _valid_ip_name(name) or "/" in name or "\\" in name or ".." in name:
             return JSONResponse({"error": "invalid name"}, status_code=400)
         target = (PROJECT_ROOT / name).resolve()
         try:
             target.relative_to(PROJECT_ROOT.resolve())
         except ValueError:
             return JSONResponse({"error": "outside project root"}, status_code=400)
+        if target.exists():
+            return JSONResponse({
+                "error": f'IP "{name}" already exists. Select it from IP_ID or choose another name.',
+                "ip": name,
+            }, status_code=409)
+        user = request.scope.get("user") or {}
+        username = normalize_session_name(str(user.get("username") or ""))
+        user_id = str(user.get("id") or "").strip()
+        multi_user_on = _multi_user_enabled()
+        if multi_user_on and (not username or not user_id):
+            return JSONResponse({"error": "login required"}, status_code=401)
+        session_namespace = f"{username}/{name}/ssot-gen" if username else ""
+        session_dir = (PROJECT_ROOT / ".session" / username / name / "ssot-gen") if username else None
+        db_session: dict[str, Any] = {}
+        workspace_row: dict[str, Any] = {}
+        ip_row: dict[str, Any] = {}
+        try:
+            target.mkdir(parents=True, exist_ok=True)
+            paths = _ensure_new_ip_structure(name)
+            _ensure_ssot_draft(name, kind)
+            if session_dir is not None:
+                session_dir.mkdir(parents=True, exist_ok=True)
+                conv = session_dir / "conversation.json"
+                if not conv.exists():
+                    conv.write_text("[]", encoding="utf-8")
+            if multi_user_on and session_namespace:
+                summary = {
+                    "kind": "atlas_ip_scaffold",
+                    "namespace": session_namespace,
+                    "owner": username,
+                    "ip": name,
+                    "workflow": "ssot-gen",
+                }
+                with AtlasDB() as db:
+                    workspace_row = db.upsert_workspace(
+                        PROJECT_ROOT.name or "default",
+                        owner_user_id=user_id,
+                        local_path=str(PROJECT_ROOT.resolve()),
+                    ) or {}
+                    ip_row = db.upsert_ip_block(
+                        str(workspace_row.get("id") or ""),
+                        name,
+                        ip_type=kind,
+                        ssot_path=f"{name}/yaml/{name}.ssot.yaml",
+                    ) or {}
+                    db_session = db.upsert_runtime_session(
+                        session_namespace,
+                        user_id,
+                        owner=username,
+                        ip=name,
+                        workflow="ssot-gen",
+                        workspace_id=str(workspace_row.get("id") or ""),
+                        ip_id=str(ip_row.get("id") or name),
+                        project_id=name,
+                        directory=str(session_dir) if session_dir is not None else "",
+                        title=f"{name} / ssot-gen",
+                        status="active",
+                        summary=summary,
+                    )
+        except Exception as exc:
+            return JSONResponse({"error": f"failed to scaffold IP: {exc}"}, status_code=500)
         return JSONResponse({"ok": True,
                              "ip": name,
-                             "created": False,
+                             "created": True,
                              "path": str(target.relative_to(PROJECT_ROOT.resolve())),
-                             "message": "IP scaffolding is handled by /new-ip"})
+                             "ssot_path": f"{name}/yaml/{name}.ssot.yaml",
+                             "paths": paths,
+                             "session": session_namespace,
+                             "session_uid": str(db_session.get("session_uid") or ""),
+                             "workspace_id": str(workspace_row.get("id") or ""),
+                             "ip_block_id": str(ip_row.get("id") or "")})
 
     def _resolve_ip_path(name: str) -> Path | tuple[None, JSONResponse]:
         """Validate a path-segment-style IP name and return its on-disk dir.
@@ -13613,8 +13680,21 @@ def create_app():
         # Approval gate allows scaffold/session creation and draft SSOT
         # accumulation only. Production SSOT canonicalization remains
         # blocked until explicit approval.
+        target = (PROJECT_ROOT / ip).resolve()
         try:
-            (PROJECT_ROOT / ip).mkdir(parents=True, exist_ok=True)
+            target.relative_to(PROJECT_ROOT.resolve())
+        except ValueError:
+            _emit_workflow_result(f"[SSOT PLAN] invalid IP path: {ip}", "new-ip")
+            return True
+        if target.exists():
+            _emit_workflow_result(
+                f"[SSOT PLAN] IP `{ip}` already exists.\n"
+                "Select it from IP_ID or use a different IP name.",
+                "new-ip",
+            )
+            return True
+        try:
+            target.mkdir(parents=True, exist_ok=True)
         except OSError as e:
             _emit_workflow_result(f"[SSOT PLAN] failed to scaffold {ip}: {e}", "new-ip")
             return True
@@ -14410,6 +14490,7 @@ def create_app():
                 alias=alias,
                 ip=ip,
                 template=template,
+                run_mode=os.environ.get("ATLAS_RUN_MODE", ""),
             )
             if not surface.handled:
                 return False
@@ -17882,6 +17963,17 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                           f"threads={len(_t.enumerate())}")
                 except Exception as e:
                     print(f"  [status] error: {e}")
+                try:
+                    from src.atlas_api_jobs import lazy_worker_snapshot
+                    snap = lazy_worker_snapshot()
+                    if not snap:
+                        print("  [workers] no lazy worker spawned yet")
+                    else:
+                        for w in snap:
+                            tag = "alive" if w["alive"] else f"dead(rc={w['returncode']})"
+                            print(f"  [workers] pid={w['pid']} {tag} url={w['url']}")
+                except Exception as e:
+                    print(f"  [workers] snapshot error: {e}")
             elif head in ("heal", "unstuck"):
                 try:
                     bridge.agent_running = False
@@ -17922,7 +18014,11 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         os.environ.get("ATLAS_SINGLE_MAIN_LOOP", "").strip().lower() not in ("", "0", "false", "no", "off")
         or os.environ.get("ATLAS_EXEC_MODE", "").strip().lower() == "single-worker"
     )
-    if _single_worker_mode:
+    _single_worker_eager = (
+        os.environ.get("ATLAS_SINGLE_WORKER_EAGER", "").strip().lower()
+        in ("1", "true", "yes", "on")
+    )
+    if _single_worker_mode and _single_worker_eager:
         os.environ["ATLAS_LAZY_WORKERS"] = "0"
         import urllib.request as _urllib_req
         _sw_port = 5601
@@ -17967,6 +18063,18 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                     pass
 
         _atexit.register(_terminate_single_worker)
+    elif _single_worker_mode:
+        # Lazy single-worker: defer the main.py worker spawn until the first
+        # job dispatch. WORKER_URL_DEFAULT is pinned to 5601 so that
+        # _worker_url_is_shared_default() returns True and the lazy
+        # spawn picks up --all-workflows, matching the eager path.
+        os.environ["ATLAS_LAZY_WORKERS"] = "1"
+        os.environ.setdefault("WORKER_URL_DEFAULT", "http://127.0.0.1:5601")
+        print(
+            "[single-worker] lazy mode: worker on port 5601 will spawn on "
+            "first job dispatch (set ATLAS_SINGLE_WORKER_EAGER=1 to spawn "
+            "at server startup like before)"
+        )
     else:
         os.environ.setdefault("ATLAS_LAZY_WORKERS", "1")
         print(

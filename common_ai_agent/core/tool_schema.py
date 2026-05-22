@@ -529,7 +529,12 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             },
             "prompt": {"type": "string", "description": "Optional worker task override", "default": ""},
             "reason": {"type": "string", "description": "Why the orchestrator is dispatching this work", "default": ""},
-            "schedule": {"type": "string", "enum": ["auto", "dag", "serial"], "default": "auto"},
+            "schedule": {
+                "type": "string",
+                "description": "Dispatch scheduling policy: auto, dag, or serial.",
+                "enum": ["auto", "dag", "serial"],
+                "default": "auto",
+            },
             "model": {"type": "string", "description": "Optional model override", "default": ""},
             "run_mode": {"type": "string", "description": "starter, engineering, or signoff", "default": ""},
             "exec_mode": {"type": "string", "description": "single-worker or orchestrator", "default": ""},

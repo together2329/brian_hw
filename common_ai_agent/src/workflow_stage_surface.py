@@ -124,13 +124,14 @@ def run_common_stage_surface(
     alias: str,
     ip: str,
     template: str = "",
+    run_mode: str = "",
 ) -> StageSurfaceResult:
     """Run a common stage and return UI-neutral side-effect instructions."""
     engine_alias = canonical_stage(alias)
     if engine_alias not in COMMON_ENGINE_STAGES:
         return StageSurfaceResult(handled=False, alias=engine_alias)
 
-    result = WorkflowStageEngine(project_root, source_root=source_root).run_stage(engine_alias, ip)
+    result = WorkflowStageEngine(project_root, source_root=source_root, run_mode=run_mode).run_stage(engine_alias, ip)
     workflow = STAGE_WORKFLOW.get(engine_alias, engine_alias)
     template = template or engine_alias
     surface = StageSurfaceResult(
@@ -150,7 +151,7 @@ def run_common_stage_surface(
             "/mode normal",
             "/wf rtl-gen",
             "/clear",
-            f"/ssot-rtl {ip}",
+            f"/todo template {template} {ip}",
             (
                 f"Implement RTL for {ip} from yaml/{ip}.ssot.yaml and the dynamic "
                 "RTL ledger stored at rtl/rtl_todo_plan.json and "

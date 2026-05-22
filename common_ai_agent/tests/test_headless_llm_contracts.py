@@ -77,8 +77,11 @@ def _base_ssot_doc(ip: str) -> dict:
 
 def _run_check_ssot(root: Path, ip: str, extra_args: list[str] | None = None) -> subprocess.CompletedProcess[str]:
     script = Path(__file__).resolve().parents[1] / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
+    args = list(extra_args or [])
+    if "--mode" not in args and not any(arg.startswith("--mode=") for arg in args):
+        args = ["--mode", "signoff", *args]
     return subprocess.run(
-        ["bash", str(script), ip, *(extra_args or [])],
+        ["bash", str(script), ip, *args],
         cwd=str(root),
         text=True,
         capture_output=True,
@@ -88,8 +91,11 @@ def _run_check_ssot(root: Path, ip: str, extra_args: list[str] | None = None) ->
 
 def _run_repair_ssot(root: Path, ip: str, extra_args: list[str] | None = None) -> subprocess.CompletedProcess[str]:
     script = Path(__file__).resolve().parents[1] / "workflow" / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
+    args = list(extra_args or [])
+    if "--mode" not in args and not any(arg.startswith("--mode=") for arg in args):
+        args = ["--mode", "signoff", *args]
     return subprocess.run(
-        ["python3", str(script), ip, "--root", str(root), *(extra_args or [])],
+        ["python3", str(script), ip, "--root", str(root), *args],
         cwd=str(Path(__file__).resolve().parents[1]),
         text=True,
         capture_output=True,
@@ -100,7 +106,7 @@ def _run_repair_ssot(root: Path, ip: str, extra_args: list[str] | None = None) -
 def _run_ssot_to_rtl(root: Path, ip: str) -> subprocess.CompletedProcess[str]:
     script = Path(__file__).resolve().parents[1] / "workflow" / "rtl-gen" / "scripts" / "ssot_to_rtl.py"
     return subprocess.run(
-        ["python3", str(script), ip, "--root", str(root)],
+        ["python3", str(script), ip, "--root", str(root), "--mode", "signoff"],
         cwd=str(Path(__file__).resolve().parents[1]),
         text=True,
         capture_output=True,

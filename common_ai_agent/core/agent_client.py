@@ -12,6 +12,7 @@ Usage from Commander's ReAct loop:
 """
 
 import json
+import os
 import time
 import urllib.request
 import urllib.error
@@ -26,6 +27,22 @@ _coordinator_cache: Dict[str, str] = {}
 _coordinator_cache_ts = 0.0
 _COORDINATOR_CACHE_TTL = 30.0  # seconds
 
+_DEFAULT_SINGLE_MAIN_LOOP_PORT = 5601
+_DEFAULT_WORKER_PORTS = {
+    "ssot-gen": 5621,
+    "fl-model-gen": 5622,
+    "rtl-gen": 5623,
+    "lint": 5624,
+    "tb-gen": 5625,
+    "sim": 5626,
+    "coverage": 5627,
+    "sim_debug": 5628,
+    "syn": 5629,
+    "sta": 5630,
+    "pnr": 5631,
+    "sta-post": 5632,
+}
+
 
 def set_coordinator(url: str = ""):
     """Set the coordinator URL for worker name resolution.
@@ -38,38 +55,113 @@ def set_coordinator(url: str = ""):
     _coordinator_url = url.rstrip("/") if url else ""
 
 
+def _truthy_env(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _normalize_exec_mode(value: str) -> str:
+    mode = str(value or "").strip().lower().replace("_", "-")
+    aliases = {
+        "s": "single-worker",
+        "single": "single-worker",
+        "single-worker": "single-worker",
+        "single worker": "single-worker",
+        "worker": "single-worker",
+        "serial": "single-worker",
+        "o": "orchestrator",
+        "orch": "orchestrator",
+        "orchestrator-mode": "orchestrator",
+        "multi-worker": "orchestrator",
+        "multi worker": "orchestrator",
+    }
+    return aliases.get(mode, mode)
+
+
+def _single_worker_mode_enabled() -> bool:
+    if os.environ.get("ATLAS_ORCHESTRATOR_MODE") is not None:
+        return not _truthy_env("ATLAS_ORCHESTRATOR_MODE")
+    if _truthy_env("ATLAS_SINGLE_MAIN_LOOP"):
+        return True
+    mode = _normalize_exec_mode(
+        os.environ.get("ATLAS_EXEC_MODE")
+        or os.environ.get("ATLAS_DEFAULT_EXEC_MODE")
+        or ""
+    )
+    return mode == "single-worker"
+
+
+def _workflow_env_suffix(workflow: str) -> str:
+    return str(workflow or "").strip().upper().replace("-", "_")
+
+
+def _workflow_specific_worker_url(workflow: str) -> str:
+    suffix = _workflow_env_suffix(workflow)
+    for key in (
+        f"ATLAS_WORKER_URL_{suffix}",
+        f"ATLAS_{suffix}_WORKER_URL",
+        f"WORKER_URL_{suffix}",
+    ):
+        url = os.environ.get(key, "").strip()
+        if url:
+            return url.rstrip("/")
+    return ""
+
+
+def _builtin_worker_url(worker: str) -> str:
+    workflow = str(worker or "").strip()
+    if not workflow:
+        return ""
+    if _single_worker_mode_enabled():
+        return f"http://127.0.0.1:{_DEFAULT_SINGLE_MAIN_LOOP_PORT}"
+    if workflow not in _DEFAULT_WORKER_PORTS:
+        return ""
+    specific = _workflow_specific_worker_url(workflow)
+    if specific:
+        return specific
+    default_url = os.environ.get("WORKER_URL_DEFAULT", "").strip()
+    if default_url:
+        return default_url.rstrip("/")
+    return f"http://127.0.0.1:{_DEFAULT_WORKER_PORTS[workflow]}"
+
+
 def _resolve_worker(worker: str) -> str:
     """Resolve a worker name to a URL.
     - If it's already a URL (starts with 'http'), return as-is.
     - If a coordinator is configured, query /workers and cache.
+    - If it is a canonical ATLAS workflow name, resolve to the worker port.
     - Otherwise return as-is (caller handles).
     """
-    if worker.startswith("http://") or worker.startswith("https://"):
+    worker = str(worker or "").strip()
+    if not worker:
         return worker
+    if worker.startswith("http://") or worker.startswith("https://"):
+        return worker.rstrip("/")
 
     global _coordinator_cache, _coordinator_cache_ts
 
-    if not _coordinator_url:
-        return worker  # No coordinator configured
-
-    # Check cache
-    now = time.time()
-    if worker in _coordinator_cache:
-        if (now - _coordinator_cache_ts) < _COORDINATOR_CACHE_TTL:
-            return _coordinator_cache[worker]
-
-    # Query coordinator
-    try:
-        resp = _get_json(f"{_coordinator_url}/workers", timeout=5)
-        workers = resp.get("workers", [])
-        _coordinator_cache = {}
-        for w in workers:
-            _coordinator_cache[w["name"]] = w["url"]
-        _coordinator_cache_ts = now
+    if _coordinator_url:
+        # Check cache
+        now = time.time()
         if worker in _coordinator_cache:
-            return _coordinator_cache[worker]
-    except Exception:
-        pass
+            if (now - _coordinator_cache_ts) < _COORDINATOR_CACHE_TTL:
+                return _coordinator_cache[worker].rstrip("/")
+
+        # Query coordinator
+        try:
+            resp = _get_json(f"{_coordinator_url}/workers", timeout=5)
+            workers = resp.get("workers", [])
+            _coordinator_cache = {}
+            for w in workers:
+                _coordinator_cache[w["name"]] = str(w["url"]).rstrip("/")
+            _coordinator_cache_ts = now
+            if worker in _coordinator_cache:
+                return _coordinator_cache[worker]
+        except Exception:
+            pass
+
+    builtin = _builtin_worker_url(worker)
+    if builtin:
+        return builtin
 
     return worker  # Fallback
 
@@ -198,13 +290,13 @@ def worker_status(worker: str = "http://localhost:8001", run_id: str = "") -> Di
     Returns:
         Dict with: run_id, status, started_at, completed_at, elapsed_ms, error
     """
-    worker = worker.rstrip("/")
+    worker = _resolve_worker(worker).rstrip("/")
     return _get_json(f"{worker}/status/{run_id}")
 
 
 def worker_cancel(worker: str = "http://localhost:8001", run_id: str = "") -> Dict:
     """Cancel a pending or running Worker task."""
-    worker = worker.rstrip("/")
+    worker = _resolve_worker(worker).rstrip("/")
     try:
         body = json.dumps({}).encode("utf-8")
         req = urllib.request.Request(
@@ -234,7 +326,7 @@ def worker_result(worker: str = "http://localhost:8001", run_id: str = "") -> Di
         Dict with: run_id, status, result, files_modified, files_examined,
                    iterations, execution_time_ms, error
     """
-    worker = worker.rstrip("/")
+    worker = _resolve_worker(worker).rstrip("/")
     return _get_json(f"{worker}/result/{run_id}")
 
 

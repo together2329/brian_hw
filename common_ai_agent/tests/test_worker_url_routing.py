@@ -235,6 +235,11 @@ class TestOrchestratorModePerWorkflowPorts(unittest.TestCase):
                 url = _resolve_worker_url(wf)
                 self.assertEqual(url, f"http://127.0.0.1:{port}")
 
+    def test_single_main_loop_zero_does_not_force_single_worker(self):
+        self._set_orchestrator()
+        os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "0"
+        self.assertEqual(_resolve_worker_url("ssot-gen"), "http://127.0.0.1:5621")
+
     def test_worker_url_default_overrides_builtin_orchestrator_ports(self):
         self._set_orchestrator()
         os.environ["WORKER_URL_DEFAULT"] = "http://127.0.0.1:9999"
@@ -272,7 +277,7 @@ class TestLazyWorkerStart(unittest.TestCase):
             "reasoning_effort": "high",
         }
 
-    def test_lazy_start_spawns_only_after_unreachable_health(self):
+    def test_lazy_start_skips_spawn_if_worker_becomes_ready_before_lock(self):
         class _Proc:
             pid = 123
 
@@ -281,6 +286,31 @@ class TestLazyWorkerStart(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             health = [
+                {"status": "unreachable", "error": "refused"},
+                {"status": "ok", "workflow": "rtl-gen", "model": "gpt-5.3-codex"},
+            ]
+            popen_calls = []
+
+            def _popen(cmd, **kwargs):
+                popen_calls.append((cmd, kwargs))
+                return _Proc()
+
+            with patch.object(_m, "_probe_worker_health", side_effect=health), \
+                 patch.object(_m.subprocess, "Popen", side_effect=_popen):
+                _m._ensure_lazy_worker(self._job(tmp))
+
+            self.assertEqual(len(popen_calls), 0)
+
+    def test_lazy_start_spawns_after_confirmed_unreachable_health(self):
+        class _Proc:
+            pid = 123
+
+            def poll(self):
+                return None
+
+        with tempfile.TemporaryDirectory() as tmp:
+            health = [
+                {"status": "unreachable", "error": "refused"},
                 {"status": "unreachable", "error": "refused"},
                 {"status": "ok", "workflow": "rtl-gen", "model": "gpt-5.3-codex"},
             ]

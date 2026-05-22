@@ -790,6 +790,17 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         result = todo_update(index=0, status="in_progress")
         self.assertIn("in progress", result)
 
+    def test_todo_add_zero_index_inserts_at_beginning(self):
+        """todo_add index 0 is clamped to the first position for compatibility."""
+        from core.tools import todo_add
+        self.tracker.add_todos([
+            {"content": "T1", "status": "pending"},
+            {"content": "T2", "status": "pending"},
+        ])
+        result = todo_add(content="Inserted", index=0)
+        self.assertNotIn("1-based", result)
+        self.assertEqual([todo.content for todo in self.tracker.todos], ["Inserted", "T1", "T2"])
+
     def test_out_of_range_error(self):
         """Out of range index returns error."""
         from core.tools import todo_update

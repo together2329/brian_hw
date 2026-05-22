@@ -803,10 +803,12 @@ def test_session_activate_policy_and_mode_sweep_keeps_namespace_todos_isolated(t
             assert session_row["summary"]["namespace"] == canonical
 
 
-def test_ip_create_endpoint_does_not_pre_scaffold_ip_root(tmp_path, monkeypatch):
+def test_ip_create_endpoint_scaffolds_once_and_rejects_duplicate(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
     monkeypatch.setenv("ATLAS_MULTI_USER", "1")
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
@@ -818,8 +820,33 @@ def test_ip_create_endpoint_does_not_pre_scaffold_ip_root(tmp_path, monkeypatch)
     response = client.post("/api/ip/create", json={"name": "gpio"})
 
     assert response.status_code == 200
-    assert response.json()["created"] is False
-    assert not (tmp_path / "gpio").exists()
+    assert response.json()["created"] is True
+    assert response.json()["session"] == "alice/gpio/ssot-gen"
+    assert (tmp_path / "gpio" / "yaml" / "gpio.ssot.yaml").is_file()
+    assert (tmp_path / ".session" / "alice" / "gpio" / "ssot-gen" / "conversation.json").is_file()
+
+    listed = client.get("/api/ip/list")
+    assert listed.status_code == 200, listed.text
+    assert {item["name"] for item in listed.json()["items"]} == {"gpio"}
+    assert listed.json()["items"][0]["workflows"] == ["ssot-gen"]
+
+    with AtlasDB() as db:
+        user = db.get_user_by_username("alice")
+        assert user is not None
+        session = db.get_session("alice/gpio/ssot-gen")
+        assert session is not None
+        assert session["user_id"] == user["id"]
+        assert session["owner"] == "alice"
+        assert session["ip"] == "gpio"
+        assert session["workflow"] == "ssot-gen"
+        assert session["summary"]["kind"] == "atlas_ip_scaffold"
+        ip_rows = db._fetchall("SELECT id, ip_name FROM ip_blocks WHERE ip_name = ?", ("gpio",))
+        assert len(ip_rows) == 1
+
+    duplicate = client.post("/api/ip/create", json={"name": "gpio"})
+
+    assert duplicate.status_code == 409
+    assert "already exists" in duplicate.json()["error"]
 
 
 def test_model_scoped_session_dirs_are_opt_in(tmp_path, monkeypatch):

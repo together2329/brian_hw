@@ -348,8 +348,16 @@ def _ref_leaf_strong_match(ref: str, owner_ref: str) -> bool:
     owner_parent, _, owner_leaf = owner_ref.rpartition(".")
     if not ref_parent or ref_parent.lower() != owner_parent.lower():
         return False
-    ref_parts = {part for part in re.split(r"[_\W]+", ref_leaf.lower()) if len(part) > 1}
-    owner_parts = {part for part in re.split(r"[_\W]+", owner_leaf.lower()) if len(part) > 1}
+
+    def leaf_parts(leaf: str) -> set[str]:
+        raw = [part for part in re.split(r"[_\W]+", leaf.lower()) if part]
+        parts = {part for part in raw if len(part) > 1}
+        if len(raw) > 1:
+            parts.update(part for part in raw if len(part) == 1)
+        return parts
+
+    ref_parts = leaf_parts(ref_leaf)
+    owner_parts = leaf_parts(owner_leaf)
     if not ref_parts or not owner_parts:
         return False
     return owner_parts.issubset(ref_parts) or ref_parts.issubset(owner_parts)

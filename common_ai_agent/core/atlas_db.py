@@ -597,11 +597,22 @@ class AtlasDB:
     and an RLock to serialize access across threads.
     """
 
+    # Process-wide serialization. Every AtlasDB(...) opens its own
+    # sqlite3 connection, so a per-instance lock cannot serialize
+    # writers across threads that each `with AtlasDB(...) as db:`. Without
+    # this class-level RLock, N concurrent writers all hit SQLite's WAL
+    # single-writer queue and compete on busy_timeout (30s). All
+    # instances now share `_WRITE_LOCK` as their `_lock`, so SQLite only
+    # ever sees one writer at a time per process. RLock is reentrant so
+    # nested method calls within the same thread are safe. Reads incur
+    # a tiny lock overhead but the SQLite call dominates.
+    _WRITE_LOCK = threading.RLock()
+
     def __init__(self, db_path: str = None):
         if db_path is None:
             db_path = os.environ.get("ATLAS_DB_PATH") or str(Path.home() / ".common_ai_agent" / "atlas.db")
         self.db_path = db_path
-        self._lock = threading.RLock()
+        self._lock = AtlasDB._WRITE_LOCK
         self._conn: Optional[sqlite3.Connection] = None
         # Ensure parent dir + schema exist on first instantiation.
         # SCHEMA_SQL is idempotent (CREATE TABLE IF NOT EXISTS).

@@ -625,6 +625,7 @@ class TestAtlasUiWorkerDispatchTemplateWorkflow(unittest.TestCase):
         try:
             from fastapi.testclient import TestClient
             import atlas_ui
+            import atlas_api_jobs
         except ImportError as e:
             self.skipTest(f"fastapi/atlas_ui unavailable: {e}")
 
@@ -638,6 +639,10 @@ class TestAtlasUiWorkerDispatchTemplateWorkflow(unittest.TestCase):
             resp.__exit__ = MagicMock(return_value=False)
             return resp
 
+        jobs, jobs_lock = atlas_api_jobs.get_jobs_state()
+        with jobs_lock:
+            jobs.clear()
+
         with patch.dict(os.environ, {"ATLAS_ADMIN_AUTH_MODE": "local"}):
             app = atlas_ui.create_app()
             with patch("urllib.request.urlopen", side_effect=mock_urlopen):
@@ -646,7 +651,7 @@ class TestAtlasUiWorkerDispatchTemplateWorkflow(unittest.TestCase):
 
         return response.json(), posted
 
-    def test_rtl_dispatch_defaults_to_ssot_rtl_template_and_ip(self):
+    def test_rtl_dispatch_defaults_to_dynamic_rtl_driver_and_ip(self):
         response, posted = self._dispatch({
             "workflow": "rtl-gen",
             "ip": "dma330",
@@ -655,7 +660,7 @@ class TestAtlasUiWorkerDispatchTemplateWorkflow(unittest.TestCase):
 
         self.assertTrue(response.get("ok"), response)
         self.assertEqual(posted.get("workflow"), "rtl-gen")
-        self.assertEqual(posted.get("template"), "ssot-rtl")
+        self.assertNotIn("template", posted)
         self.assertEqual(posted.get("ip"), "dma330")
 
     def test_dispatch_preserves_explicit_template(self):

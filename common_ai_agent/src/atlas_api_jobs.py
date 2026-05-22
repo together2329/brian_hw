@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import atexit
 import json
+import logging
+import logging.handlers
 import os
 import re
 import shlex
@@ -49,6 +51,68 @@ _SOURCE_ROOT = Path(__file__).resolve().parents[1]
 _LAZY_WORKER_LOCK = threading.Lock()
 _LAZY_WORKER_PROCS: dict[str, subprocess.Popen] = {}
 _LAZY_WORKER_ATEXIT_REGISTERED = False
+# Per-URL locks so concurrent dispatches to *different* worker URLs do
+# not serialize through a single global lock during cold-start storms.
+_LAZY_WORKER_URL_LOCKS: dict[str, threading.RLock] = {}
+# Bounds the number of simultaneous `python3 main.py --serve` spawns so
+# 12-way cold-start does not thrash import I/O and exhaust the 15s
+# ATLAS_LAZY_WORKER_START_TIMEOUT for every worker at once.
+_LAZY_WORKER_SPAWN_SEM = threading.Semaphore(
+    max(1, int(os.environ.get("ATLAS_LAZY_WORKER_SPAWN_PARALLEL", "4") or 4))
+)
+# Reaper thread state: detects workers that died after dispatch so the
+# associated `_jobs` entries can be marked failed instead of sitting in
+# "running" forever.
+_LAZY_WORKER_REAPER_STARTED = False
+_LAZY_WORKER_REAPER_INTERVAL = float(
+    os.environ.get("ATLAS_LAZY_WORKER_REAPER_INTERVAL", "5.0") or 5.0
+)
+# Short-lived cache for /health probes used by the UI fan-out at
+# /api/orchestrator/workers. Dispatch path still calls the uncached
+# probe so cold-start detection remains accurate.
+_HEALTH_CACHE_LOCK = threading.Lock()
+_HEALTH_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
+_HEALTH_CACHE_TTL = float(
+    os.environ.get("ATLAS_HEALTH_PROBE_CACHE_SEC", "1.5") or 1.5
+)
+
+
+def _dispatch_logger() -> logging.Logger:
+    """Module logger with stdout + rotating-file handlers.
+
+    Replaces the previous `print(..., flush=True)` calls in the dispatch
+    and lazy-worker paths. Keeps terminal visibility unchanged while
+    routing every event to `.session/atlas-dispatch.log` (5MB × 3
+    backups) so a slow tty cannot stall a dispatch thread on the
+    parent's stdout PIPE buffer.
+    """
+    log = logging.getLogger("atlas.dispatch")
+    if getattr(log, "_atlas_configured", False):
+        return log
+    log.setLevel(logging.INFO)
+    log.propagate = False
+    fmt = logging.Formatter("%(asctime)s %(message)s", datefmt="%H:%M:%S")
+    stream = logging.StreamHandler(sys.stdout)
+    stream.setFormatter(fmt)
+    log.addHandler(stream)
+    try:
+        log_dir = Path(os.environ.get("ATLAS_PROJECT_ROOT") or ".") / ".session"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        fh = logging.handlers.RotatingFileHandler(
+            log_dir / "atlas-dispatch.log",
+            maxBytes=5 * 1024 * 1024,
+            backupCount=3,
+            encoding="utf-8",
+        )
+        fh.setFormatter(fmt)
+        log.addHandler(fh)
+    except Exception:
+        pass
+    log._atlas_configured = True  # type: ignore[attr-defined]
+    return log
+
+
+_LOG = _dispatch_logger()
 
 
 def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
@@ -1573,7 +1637,7 @@ def _worker_url_is_shared_default(workflow: str, worker_url: str) -> bool:
 
 def _resolve_worker_url(workflow: str) -> str:
     """Same precedence as core.delegate_runner.HTTPWorkerDelegate."""
-    if os.environ.get("ATLAS_SINGLE_MAIN_LOOP") or _current_exec_mode() == "single-worker":
+    if _truthy_env("ATLAS_SINGLE_MAIN_LOOP") or _current_exec_mode() == "single-worker":
         return f"http://127.0.0.1:{_DEFAULT_SINGLE_MAIN_LOOP_PORT}"
     if workflow:
         url = _workflow_specific_worker_url(workflow)
@@ -1610,6 +1674,31 @@ def _local_worker_target(worker_url: str) -> tuple[str, int] | None:
     if parsed.port is None:
         return None
     return ("127.0.0.1" if host in {"localhost", "127.0.0.1"} else "::1", int(parsed.port))
+
+
+def _probe_worker_health_cached(worker_url: str, timeout: float = 1.0,
+                                ttl: float | None = None) -> dict[str, Any]:
+    """Cached variant for UI fan-out (/api/orchestrator/workers).
+
+    Multiple browser tabs polling every 3s would otherwise hammer each
+    of the 12 workers with redundant probes. Hold each result for
+    `ttl` seconds (default `_HEALTH_CACHE_TTL`, 1.5s). The dispatch
+    path uses `_probe_worker_health` directly to avoid stale results
+    during cold-start.
+    """
+    cache_ttl = _HEALTH_CACHE_TTL if ttl is None else float(ttl)
+    if cache_ttl <= 0:
+        return _probe_worker_health(worker_url, timeout=timeout)
+    key = worker_url.rstrip("/")
+    now = time.monotonic()
+    with _HEALTH_CACHE_LOCK:
+        hit = _HEALTH_CACHE.get(key)
+        if hit and (now - hit[0]) < cache_ttl:
+            return hit[1]
+    result = _probe_worker_health(worker_url, timeout=timeout)
+    with _HEALTH_CACHE_LOCK:
+        _HEALTH_CACHE[key] = (now, result)
+    return result
 
 
 def _probe_worker_health(worker_url: str, timeout: float = 1.0) -> dict[str, Any]:
@@ -1682,9 +1771,112 @@ def _terminate_lazy_workers() -> None:
     for _key, proc in procs:
         try:
             if proc.poll() is None:
+                _LOG.info(f"[lazy-worker] terminate pid={proc.pid} url={_key}")
                 proc.terminate()
         except Exception:
             pass
+
+
+def lazy_worker_snapshot() -> list[dict[str, Any]]:
+    """Cheap point-in-time view of lazy workers for the stdin status panel."""
+    with _LAZY_WORKER_LOCK:
+        items = list(_LAZY_WORKER_PROCS.items())
+    out: list[dict[str, Any]] = []
+    for url, proc in items:
+        rc = proc.poll()
+        out.append({
+            "url": url,
+            "pid": proc.pid,
+            "alive": rc is None,
+            "returncode": rc,
+        })
+    return out
+
+
+def _get_url_lock(url: str) -> threading.RLock:
+    """One lock per worker URL. Created on demand under the global
+    registry lock. Lets two cold-start dispatches to *different* worker
+    URLs run their Popen + ready-wait in parallel; same-URL dispatches
+    still serialize so we never double-spawn the same port."""
+    key = url.rstrip("/")
+    with _LAZY_WORKER_LOCK:
+        lock = _LAZY_WORKER_URL_LOCKS.get(key)
+        if lock is None:
+            lock = threading.RLock()
+            _LAZY_WORKER_URL_LOCKS[key] = lock
+        return lock
+
+
+def _mark_jobs_failed_for_worker(worker_url: str, reason: str) -> int:
+    """Mark any `_jobs` entries dispatched to a dead worker as error.
+
+    Returns the number of jobs that were transitioned out of `running`.
+    Used by the reaper when it notices `proc.poll() != None`.
+    """
+    key = worker_url.rstrip("/")
+    failed = 0
+    now = time.time()
+    with _jobs_lock:
+        for jid, job in _jobs.items():
+            if str(job.get("status") or "") != "running":
+                continue
+            if str(job.get("worker") or "").rstrip("/") != key:
+                continue
+            job["status"] = "error"
+            job["error"] = f"worker process died: {reason}"
+            job["finished_at"] = now
+            try:
+                _finish_job_db_run(job, "error", job["error"])
+            except Exception:
+                pass
+            failed += 1
+    return failed
+
+
+def _lazy_worker_reaper_loop() -> None:
+    """Background thread: poll lazy worker procs and reap dead ones.
+
+    Without this, a worker that crashes mid-job leaves its job stuck in
+    `_jobs[...]["status"] == "running"` forever because dispatch returns
+    successfully once `/run` accepts the POST. The next call to
+    `_ensure_lazy_worker` would respawn the worker but never reconcile
+    the orphaned job state.
+    """
+    while True:
+        try:
+            time.sleep(_LAZY_WORKER_REAPER_INTERVAL)
+            with _LAZY_WORKER_LOCK:
+                items = list(_LAZY_WORKER_PROCS.items())
+            for url, proc in items:
+                try:
+                    rc = proc.poll()
+                except Exception:
+                    rc = None
+                if rc is None:
+                    continue
+                with _LAZY_WORKER_LOCK:
+                    cur = _LAZY_WORKER_PROCS.get(url)
+                    if cur is proc:
+                        _LAZY_WORKER_PROCS.pop(url, None)
+                failed = _mark_jobs_failed_for_worker(url, f"rc={rc}")
+                _LOG.info(
+                    f"[lazy-worker] reap url={url} pid={proc.pid} rc={rc} "
+                    f"jobs_marked_error={failed}"
+                )
+        except Exception as exc:
+            _LOG.info(f"[lazy-worker] reaper error: {exc}")
+
+
+def _ensure_lazy_worker_reaper() -> None:
+    global _LAZY_WORKER_REAPER_STARTED
+    with _LAZY_WORKER_LOCK:
+        if _LAZY_WORKER_REAPER_STARTED:
+            return
+        _LAZY_WORKER_REAPER_STARTED = True
+    t = threading.Thread(
+        target=_lazy_worker_reaper_loop, name="atlas-lazy-reaper", daemon=True
+    )
+    t.start()
 
 
 def _register_lazy_worker_atexit() -> None:
@@ -1714,54 +1906,125 @@ def _ensure_lazy_worker(job: dict[str, Any]) -> None:
     host, port = target
     all_workflows = _worker_url_is_shared_default(workflow, worker_url)
     key = worker_url.rstrip("/")
-    with _LAZY_WORKER_LOCK:
-        proc = _LAZY_WORKER_PROCS.get(key)
-        if proc is not None and proc.poll() is None:
-            return
-        cmd = _lazy_worker_command(job=job, host=host, port=port, all_workflows=all_workflows)
-        env = os.environ.copy()
-        env["ATLAS_PROJECT_ROOT"] = str(job.get("project_root") or env.get("ATLAS_PROJECT_ROOT") or ".")
-        env["ATLAS_SOURCE_ROOT"] = str(_SOURCE_ROOT)
-        env.setdefault("ATLAS_WORKFLOW_ROOT", str(_WORKFLOW_ROOT))
-        env["ATLAS_EXEC_MODE"] = "orchestrator"
-        env["ATLAS_ORCHESTRATOR_MODE"] = "1"
-        env["ATLAS_SINGLE_MAIN_LOOP"] = "0"
-        py_path = str(_SOURCE_ROOT)
-        env["PYTHONPATH"] = f"{py_path}{os.pathsep}{env.get('PYTHONPATH', '')}".rstrip(os.pathsep)
-        log_dir = Path(str(job.get("project_root") or ".")) / ".session" / "workers"
-        try:
-            log_dir.mkdir(parents=True, exist_ok=True)
-            log_file = log_dir / f"{workflow or 'shared'}-{port}.log"
-            log_fh = log_file.open("ab")
-        except Exception:
-            log_fh = None
-        try:
-            proc = subprocess.Popen(
-                cmd,
-                cwd=str(job.get("project_root") or _SOURCE_ROOT),
-                env=env,
-                stdout=log_fh or subprocess.DEVNULL,
-                stderr=subprocess.STDOUT if log_fh else subprocess.DEVNULL,
-            )
-        finally:
-            if log_fh is not None:
-                try:
-                    log_fh.close()
-                except Exception:
-                    pass
-        _LAZY_WORKER_PROCS[key] = proc
-        _register_lazy_worker_atexit()
-    timeout_s = float(os.environ.get("ATLAS_LAZY_WORKER_START_TIMEOUT", "15") or "15")
-    deadline = time.monotonic() + max(1.0, timeout_s)
-    while time.monotonic() < deadline:
+    url_lock = _get_url_lock(key)
+    # Per-URL lock: same-URL spawns serialize (no double-spawn), but
+    # spawns to *different* URLs proceed in parallel. Re-check health
+    # under the lock — another thread for the same URL may have just
+    # finished spawning while we were queued.
+    with url_lock:
         health = _probe_worker_health(worker_url, timeout=0.7)
-        mismatch = _worker_workflow_mismatch(workflow, health)
-        if mismatch:
-            raise RuntimeError(f"lazy worker mismatch at {worker_url}: {mismatch}")
         if str(health.get("status") or "") == "ok":
             return
-        time.sleep(0.25)
-    raise RuntimeError(f"lazy worker did not become healthy at {worker_url}")
+        with _LAZY_WORKER_LOCK:
+            proc = _LAZY_WORKER_PROCS.get(key)
+        if proc is not None and proc.poll() is None:
+            # A prior call started the process; just wait on /health.
+            pass
+        else:
+            # Global spawn throttle: prevents 12-way import-storm cold
+            # starts from all exceeding ATLAS_LAZY_WORKER_START_TIMEOUT.
+            with _LAZY_WORKER_SPAWN_SEM:
+                cmd = _lazy_worker_command(
+                    job=job, host=host, port=port, all_workflows=all_workflows,
+                )
+                env = os.environ.copy()
+                env["ATLAS_PROJECT_ROOT"] = str(
+                    job.get("project_root") or env.get("ATLAS_PROJECT_ROOT") or "."
+                )
+                env["ATLAS_SOURCE_ROOT"] = str(_SOURCE_ROOT)
+                env.setdefault("ATLAS_WORKFLOW_ROOT", str(_WORKFLOW_ROOT))
+                env["ATLAS_EXEC_MODE"] = "orchestrator"
+                env["ATLAS_ORCHESTRATOR_MODE"] = "1"
+                env["ATLAS_SINGLE_MAIN_LOOP"] = "0"
+                py_path = str(_SOURCE_ROOT)
+                env["PYTHONPATH"] = (
+                    f"{py_path}{os.pathsep}{env.get('PYTHONPATH', '')}"
+                ).rstrip(os.pathsep)
+                log_dir = (
+                    Path(str(job.get("project_root") or "."))
+                    / ".session" / "workers"
+                )
+                try:
+                    log_dir.mkdir(parents=True, exist_ok=True)
+                    log_file = log_dir / f"{workflow or 'shared'}-{port}.log"
+                    log_fh = log_file.open("ab")
+                except Exception:
+                    log_fh = None
+                try:
+                    proc = subprocess.Popen(
+                        cmd,
+                        cwd=str(job.get("project_root") or _SOURCE_ROOT),
+                        env=env,
+                        stdout=log_fh or subprocess.DEVNULL,
+                        stderr=subprocess.STDOUT if log_fh else subprocess.DEVNULL,
+                    )
+                finally:
+                    if log_fh is not None:
+                        try:
+                            log_fh.close()
+                        except Exception:
+                            pass
+                with _LAZY_WORKER_LOCK:
+                    _LAZY_WORKER_PROCS[key] = proc
+                _register_lazy_worker_atexit()
+                _ensure_lazy_worker_reaper()
+                _LOG.info(
+                    f"[lazy-worker] spawn pid={proc.pid} url={key} "
+                    f"workflow={workflow or '-'} all_workflows={all_workflows} "
+                    f"job={job.get('id') or job.get('run_id') or '-'}"
+                )
+        timeout_s = float(
+            os.environ.get("ATLAS_LAZY_WORKER_START_TIMEOUT", "15") or "15"
+        )
+        deadline = time.monotonic() + max(1.0, timeout_s)
+        t0 = time.monotonic()
+        while time.monotonic() < deadline:
+            # If the proc died while we were waiting, surface that and
+            # let the reaper clean up. Avoids a confusing "timeout"
+            # after a fast crash.
+            with _LAZY_WORKER_LOCK:
+                cur = _LAZY_WORKER_PROCS.get(key)
+            if cur is not None and cur.poll() is not None:
+                rc = cur.poll()
+                _LOG.info(
+                    f"[lazy-worker] died-during-start url={worker_url} "
+                    f"pid={cur.pid} rc={rc}"
+                )
+                raise RuntimeError(
+                    f"lazy worker exited during start at {worker_url} (rc={rc})"
+                )
+            health = _probe_worker_health(worker_url, timeout=0.7)
+            mismatch = _worker_workflow_mismatch(workflow, health)
+            if mismatch:
+                _LOG.info(
+                    f"[lazy-worker] mismatch url={worker_url} reason={mismatch}"
+                )
+                raise RuntimeError(
+                    f"lazy worker mismatch at {worker_url}: {mismatch}"
+                )
+            if str(health.get("status") or "") == "ok":
+                _LOG.info(
+                    f"[lazy-worker] ready url={worker_url} "
+                    f"after={time.monotonic() - t0:.2f}s"
+                )
+                return
+            time.sleep(0.25)
+        # Timeout: terminate the partially-started proc so it does not
+        # become an orphan that races against the next dispatch.
+        with _LAZY_WORKER_LOCK:
+            stale = _LAZY_WORKER_PROCS.pop(key, None)
+        if stale is not None and stale.poll() is None:
+            try:
+                stale.terminate()
+            except Exception:
+                pass
+        _LOG.info(
+            f"[lazy-worker] timeout url={worker_url} after={timeout_s:.1f}s "
+            f"(partial proc terminated)"
+        )
+        raise RuntimeError(
+            f"lazy worker did not become healthy at {worker_url}"
+        )
 
 
 def _worker_launch_command(
@@ -1899,6 +2162,7 @@ def _workflow_prompt_with_stage_driver(
     if workflow == "ssot-gen" and any(term in custom_prompt.lower() for term in rtl_blocker_terms):
         return (
             f"answer the {ip}/rtl/rtl_blocked.json questions inline so SSOT-gen records them; "
+            f"then run /resolve-rtl-blockers {ip} --use-recommended-defaults; "
             f"then run /repair-ssot {ip}; "
             f"then python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. "
             "This is an RTL blocker repair pass; do not rewrite the IP from scratch.\n\n"
@@ -2037,6 +2301,11 @@ def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
         run_id = resp_data.get("run_id", "")
         if not run_id:
             raise RuntimeError(f"worker did not return run_id: {resp_data}")
+        _LOG.info(
+            f"[dispatch] job={job.get('job_id') or '-'} "
+            f"workflow={job.get('workflow') or '-'} "
+            f"-> {job['worker'].rstrip('/')} run_id={run_id}"
+        )
         with _jobs_lock:
             live = _jobs.get(job["job_id"], job)
             live["run_id"]     = run_id
@@ -2045,6 +2314,11 @@ def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
             live["error"]      = ""
             _record_job_db_running(live)
     except Exception as e:
+        _LOG.info(
+            f"[dispatch] FAIL job={job.get('job_id') or '-'} "
+            f"workflow={job.get('workflow') or '-'} "
+            f"worker={job.get('worker')} error={e}"
+        )
         with _jobs_lock:
             live = _jobs.get(job["job_id"], job)
             live["status"]      = "error"
@@ -4572,7 +4846,9 @@ def register_jobs_routes(
         workflows = list(_DEFAULT_WORKER_PORTS.keys())
 
         def _probe(url: str) -> dict[str, Any]:
-            return _probe_worker_health(url, timeout=2.0)
+            # Cached fan-out: with N UI tabs polling every 3s, this dropped
+            # probe traffic ~Nx without changing user-visible latency.
+            return _probe_worker_health_cached(url, timeout=2.0)
 
         async def _gather() -> list[dict[str, Any]]:
             loop = asyncio.get_event_loop()

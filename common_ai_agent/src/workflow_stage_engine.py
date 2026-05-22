@@ -110,6 +110,22 @@ def canonical_stage(stage: str) -> str:
     return STAGE_ALIASES.get((stage or "").strip().lstrip("/").lower(), stage)
 
 
+def _normalize_run_mode(value: Any) -> str:
+    mode = str(value or "").strip().lower().replace("_", "-")
+    aliases = {
+        "": "",
+        "starter": "starter",
+        "start": "starter",
+        "engineering": "engineering",
+        "engineer": "engineering",
+        "eng": "engineering",
+        "signoff": "signoff",
+        "sign-off": "signoff",
+        "full": "signoff",
+    }
+    return aliases.get(mode, "")
+
+
 def _utc() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
@@ -800,10 +816,16 @@ class StageEngineResult:
 class WorkflowStageEngine:
     """Run SSOT-derived workflow stages with disk-truth validators."""
 
-    def __init__(self, project_root: str | Path, source_root: str | Path | None = None) -> None:
+    def __init__(
+        self,
+        project_root: str | Path,
+        source_root: str | Path | None = None,
+        run_mode: str = "",
+    ) -> None:
         self.project_root = Path(project_root).resolve()
         self.source_root = Path(source_root).resolve() if source_root else SOURCE_ROOT
         self.workflow_root = self.source_root / "workflow"
+        self.run_mode = _normalize_run_mode(run_mode) or "signoff"
 
     def ip_dir(self, ip: str) -> Path:
         return self.project_root / safe_ip_name(ip)
@@ -1067,7 +1089,21 @@ class WorkflowStageEngine:
             )
         ]
         compile_rc = lint_rc = None
-        runs.append(self._run_tool("rtl_preflight", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=180))
+        runs.append(
+            self._run_tool(
+                "rtl_preflight",
+                [
+                    sys.executable,
+                    str(script),
+                    ip,
+                    "--root",
+                    str(self.project_root),
+                    "--mode",
+                    self.run_mode,
+                ],
+                timeout_s=180,
+            )
+        )
         if runs[-1].returncode == 0:
             compile_script = self.workflow_root / "rtl-gen" / "scripts" / "rtl_compile_report.py"
             lint_script = self.workflow_root / "lint" / "scripts" / "dut_lint_report.py"

@@ -374,9 +374,14 @@ const AtlasUserDashboard = ({
                 ) : ipInventoryRows.map((row) => {
                   const duplicate = Number(row.workspace_count || 0) > 1 || Number(row.ip_row_count || 0) > 1;
                   return (
-                    <tr key={`${row.ip}-${row.workspace_count}-${row.ip_row_count}`}>
+                    <tr
+                      key={`${row.ip}-${row.workspace_count}-${row.ip_row_count}`}
+                      onClick={() => openIp(row)}
+                      style={{ cursor: 'pointer' }}
+                      title={`Open ${row.ip || ''} workspace`}
+                    >
                       <td style={{ ...tdStyle, minWidth: 170, wordBreak: 'break-word' }}>
-                        <div style={{ fontWeight: 700 }}>{row.ip || '-'}</div>
+                        <div style={{ fontWeight: 700, color: 'var(--accent)' }}>{row.ip || '-'}</div>
                         <div style={metaStyle}>
                           {row.ip_type || row.permission || 'ip'}
                           {duplicate ? ` / ${fmt(row.ip_row_count)} rows across ${fmt(row.workspace_count)} workspaces` : ''}
@@ -388,7 +393,7 @@ const AtlasUserDashboard = ({
                       <td style={tdStyle}>{fmt(row.runs)}<div style={metaStyle}>{fmt(row.sessions)} sessions</div></td>
                       <td style={tdStyle}>{usd(row.cost)}<div style={metaStyle}>{fmt(row.calls)} calls</div></td>
                       <td style={tdStyle}>{ts(row.last_activity)}</td>
-                      <td style={tdStyle}>
+                      <td style={tdStyle} onClick={(e) => e.stopPropagation()}>
                         <button type="button" style={buttonStyle} onClick={() => openIp(row)}>Open</button>
                       </td>
                     </tr>
@@ -432,9 +437,14 @@ const AtlasUserDashboard = ({
               {needsRows.length === 0 ? (
                 <tr><td colSpan={4} style={{ ...tdStyle, ...emptyStyle }}>No attention items.</td></tr>
               ) : needsRows.map((row, idx) => (
-                <tr key={`${row.kind}-${row.session_id}-${idx}`}>
+                <tr
+                  key={`${row.kind}-${row.session_id}-${idx}`}
+                  onClick={() => row.ip && openIp(row)}
+                  style={{ cursor: row.ip ? 'pointer' : 'default' }}
+                  title={row.ip ? `Open ${row.ip} workspace` : ''}
+                >
                   <td style={tdStyle}><span style={statusBadgeStyle(row.severity === 'error' ? 'error' : 'warning')}>{row.kind}</span></td>
-                  <td style={tdStyle}>{row.ip || '-'}</td>
+                  <td style={tdStyle}><span style={row.ip ? { color: 'var(--accent)', fontWeight: 600 } : {}}>{row.ip || '-'}</span></td>
                   <td style={tdStyle}>{row.workflow || '-'}</td>
                   <td style={{ ...tdStyle, maxWidth: 320, whiteSpace: 'normal' }}>{row.title || row.detail || '-'}</td>
                 </tr>
@@ -463,8 +473,13 @@ const AtlasUserDashboard = ({
               ) : ipRows.map((row) => {
                 const width = `${Math.round((score(row) / maxIpScore) * 100)}%`;
                 return (
-                  <tr key={row.ip}>
-                    <td style={tdStyle}>{row.ip || '-'}</td>
+                  <tr
+                    key={row.ip}
+                    onClick={() => row.ip && openIp(row)}
+                    style={{ cursor: row.ip ? 'pointer' : 'default' }}
+                    title={row.ip ? `Open ${row.ip} workspace` : ''}
+                  >
+                    <td style={tdStyle}><span style={row.ip ? { color: 'var(--accent)', fontWeight: 600 } : {}}>{row.ip || '-'}</span></td>
                     <td style={{ ...tdStyle, minWidth: 170 }}>
                       <div style={barTrackStyle}><div style={barFillStyle(width)} /></div>
                       <div style={metaStyle}>{fmt(row.sessions)} sessions / {(row.workflows || []).join(', ') || 'default'}</div>

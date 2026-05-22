@@ -237,17 +237,30 @@ class Spinner:
 
     def _render(self):
         """Render the spinner on the current line (no newline)."""
+        if getattr(self.stream, "closed", False):
+            self._stop_event.set()
+            return
         line = self._render_line()
         # Portable: overwrite previous content with spaces then write new line
         pad = max(0, self._last_len - len(line))
-        self.stream.write(f"\r{line}{' ' * pad}")
-        self.stream.flush()
+        try:
+            self.stream.write(f"\r{line}{' ' * pad}")
+            self.stream.flush()
+        except (OSError, ValueError):
+            self._stop_event.set()
+            return
         self._last_len = len(line)
 
     def _clear_line(self):
         """Clear the spinner line portably (no \\033[2K)."""
-        self.stream.write(f"\r{' ' * (self._last_len + 4)}\r")
-        self.stream.flush()
+        if getattr(self.stream, "closed", False):
+            self._last_len = 0
+            return
+        try:
+            self.stream.write(f"\r{' ' * (self._last_len + 4)}\r")
+            self.stream.flush()
+        except (OSError, ValueError):
+            pass
         self._last_len = 0
 
     def _spin(self):

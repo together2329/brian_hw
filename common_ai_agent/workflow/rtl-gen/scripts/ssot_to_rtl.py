@@ -2741,13 +2741,32 @@ def _merge_existing_dynamic_blocker_questions(ip_dir: Path, questions: list[dict
 
 
 def _write_blocked(ip_dir: Path, ip: str, top: str, questions: list[dict]) -> None:
-    # RTL Blocker disabled — preflight no longer surfaces SSOT-gap
-    # questions to the chat. RTL gen proceeds even when SSOT is thin;
-    # compile / lint / equivalence gates catch the resulting issues
-    # downstream, which gives one consolidated failure surface instead
-    # of two competing ones (blocker Q&A vs gate failures).
-    _ = (ip_dir, ip, top, questions)
-    return
+    question_ids = {
+        str(question.get("id") or "")
+        for question in questions
+        if isinstance(question, dict)
+    }
+    next_action = "Answer SSOT questions or complete the RTL authoring evidence, then rerun /ssot-rtl."
+    if "RTL_RESOLVE_CONNECTION_CONTRACTS" in question_ids:
+        next_action = (
+            "Run prepare_rtl_human_review.py to review connection_contracts suggestions, "
+            "record approved wiring in SSOT, then rerun /ssot-rtl."
+        )
+    out = {
+        "schema_version": 1,
+        "type": "rtl_blocker",
+        "status": "blocked",
+        "owner": "ssot-gen",
+        "ip": ip,
+        "top": top,
+        "reason": "RTL preflight requires SSOT decision or LLM-authored RTL evidence.",
+        "questions": questions,
+        "next_action": next_action,
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+    path = ip_dir / "rtl" / "rtl_blocked.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(out, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def preflight(ip: str, root: Path, mode: str = "signoff") -> None:

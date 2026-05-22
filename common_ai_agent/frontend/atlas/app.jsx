@@ -1336,10 +1336,9 @@ const App = () => {
   const newSessionId = () => beginNameEntry('session');
 
   // Create a brand-new IP under the current user_session and switch
-  // to it. Mirrors the simplicity of `+ Session` but takes a name
-  // because IPs are named identifiers rather than disposable scratch
-  // owners. The actual on-disk .session/<sid>/<ip>/<wf>/ tree gets
-  // created by _setup_session on the next /wf or agent run.
+  // to it. IP creation must first scaffold <PROJECT_ROOT>/<ip>/...;
+  // otherwise the UI can show a session namespace that the file tree
+  // cannot read.
   const createIp = async (raw) => {
     if (!raw) return;
     const ip = normalizeSession(raw);
@@ -1347,27 +1346,22 @@ const App = () => {
       showNotice('Invalid IP name. Use only [A-Za-z0-9_.-].');
       return false;
     }
-    // IP names are scoped by owner. /api/session/list returns only the
-    // logged-in user's namespaces, so the duplicate guard stays local to
-    // this user and does not leak other users' IP names.
+    // The dropdown and file tree are backed by real PROJECT_ROOT IP
+    // directories. Do not treat a stale .session/<owner>/<ip>/... as
+    // proof that the IP exists; that is exactly the dead state this
+    // creation flow prevents.
     try {
-      const r = await fetch('/api/session/list', { cache: 'no-store' });
+      const r = await fetch('/api/ip/list', { cache: 'no-store' });
       if (r.ok) {
         const d = await r.json();
-        const taken = new Set();
-        for (const row of (Array.isArray(d.sessions) ? d.sessions : [])) {
-          const segs = String((row && row.session) || '').split('/').filter(Boolean);
-          if (segs.length >= 3) taken.add(segs[1]);
-        }
-        if (taken.has(ip)) {
-          showNotice(`IP "${ip}" already exists for this user.`);
+        const exists = (Array.isArray(d.items) ? d.items : [])
+          .some(item => String(item && item.name || '') === ip);
+        if (exists) {
+          showNotice(`IP "${ip}" already exists. Select it from IP_ID.`);
           return false;
         }
       }
     } catch (_) {}
-    // `/new-ip` is the single source of truth for IP scaffolding. Do not
-    // pre-create <PROJECT_ROOT>/<ip>/ here; doing both paths can produce
-    // duplicated scope prefixes such as gpio/gpio/...
     const authedOwner = normalizeSession(
       (window.ATLAS_USER && window.ATLAS_USER.username)
       || window.ATLAS_USER_SESSION_ID
@@ -1377,8 +1371,27 @@ const App = () => {
       || activeSessionId
       || 'default';
     const namespace = `${me}/${ip}/ssot-gen`;
+    try {
+      const createResponse = await fetch('/api/ip/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: ip, kind: 'TBD' }),
+      });
+      if (!createResponse.ok) {
+        let message = createResponse.statusText || `HTTP ${createResponse.status}`;
+        try {
+          const payload = await createResponse.json();
+          message = payload.error || payload.detail || message;
+        } catch (_) {}
+        showNotice(`Failed to create IP "${ip}": ${message}`);
+        return false;
+      }
+    } catch (e) {
+      showNotice(`Failed to create IP "${ip}": ${String(e && e.message || e)}`);
+      return false;
+    }
     // Local state first so the dropdown and scope reflect the new IP
-    // immediately while the WS round-trips run.
+    // immediately after the scaffold exists.
     setIpOptions(prev => Array.from(new Set([ip].concat(prev || []))));
     setActiveIp(ip);
     setActiveSessionId(me);
@@ -1405,9 +1418,9 @@ const App = () => {
       window.atlasData.setScopePath(ip);
     }
     try { window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' })); } catch (_) {}
-    // /api/session/activate synchronously loads ssot-gen now, so /new-ip
-    // can be queued directly without a redundant `/wf ssot-gen` racing
-    // behind it.
+    // /api/ip/create is the single creation path for +IP. Do not send
+    // `/new-ip` after this point: the server now rejects duplicate IP
+    // names, and this freshly-created IP would count as an existing one.
     try {
       const response = await fetch('/api/session/activate', {
         method: 'POST',
@@ -1424,17 +1437,6 @@ const App = () => {
       try {
         if (typeof window.backend.switchSession === 'function') window.backend.switchSession(namespace);
         else if (typeof window.backend.connect === 'function') window.backend.connect(namespace);
-      } catch (_) {}
-    }
-    if (window.backend && typeof window.backend.send === 'function') {
-      try {
-        window.backend.send({
-          type: 'prompt',
-          msg_id: makePromptMsgId(),
-          text: `/new-ip ${ip}`,
-          session: namespace,
-          ui_lang: window.ATLAS_UI_LANG || uiLang,
-        });
       } catch (_) {}
     }
     setTimeout(() => {

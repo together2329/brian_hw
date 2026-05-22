@@ -894,18 +894,6 @@ def test_orchestrator_chat_smoke_dispatches_worker_evidence_and_db_run(
                 jobs._jobs.clear()
 
 
-@pytest.mark.skip(
-    reason=(
-        "Pre-existing test infrastructure gap (verified on commit 496a44d1f, "
-        "pre-Phase-3). The ssot stage's _job_artifact_recovery shells out to "
-        "workflow/ssot-gen/scripts/check_ssot_disk.sh which validates the full "
-        "SSOT YAML schema. The mock worker's `_write_mock_stage_artifact` "
-        "writes a minimal `ip: <ip>\\nrequirements: []` YAML that the real "
-        "validator rejects, so every downstream stage chain-blocks. Fix needs "
-        "either: (a) the mock to emit a full schema-valid SSOT YAML, or "
-        "(b) per-test override of the recovery validator. Tracked separately."
-    )
-)
 def test_full_ip_pipeline_can_complete_all_stages_across_two_workers(
     tmp_path: Path,
     monkeypatch,
@@ -939,6 +927,18 @@ def test_full_ip_pipeline_can_complete_all_stages_across_two_workers(
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
+
+    real_recovery = jobs._job_artifact_recovery
+
+    def _mock_recovery(job: dict, project_root: Path) -> tuple[bool, str]:
+        stage = str(job.get("stage_id") or job.get("workflow") or "")
+        workflow = str(job.get("workflow") or "")
+        if stage == "ssot" or workflow == "ssot-gen":
+            ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+            return ssot_path.is_file(), f"test mock validated artifact: {ip}/yaml/{ip}.ssot.yaml"
+        return real_recovery(job, project_root)
+
+    monkeypatch.setattr(jobs, "_job_artifact_recovery", _mock_recovery)
 
     with _mock_worker("author") as (author_url, author_worker), _mock_worker("verify") as (verify_url, verify_worker):
         monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
