@@ -14,7 +14,7 @@
     "rtl/generic_counter_ip.sv"
   ],
   "todo_plan": "rtl/rtl_todo_plan.json",
-  "todo_plan_sha256": "pending_engine_refresh",
+  "todo_plan_sha256": "6becdbff5e7395b4aab45544394f19aa3b7a23785d478828c52adde77d06fb2e",
   "toolchain": {
     "compiler": "iverilog -g2012",
     "linter": "pyslang+verilator",
