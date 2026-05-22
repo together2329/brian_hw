@@ -688,6 +688,25 @@ function AdminPage() {
   const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString());
   const usd = (n) => (n == null ? '—' : `$${Number(n).toFixed(4)}`);
   const shortId = (value) => String(value || '').slice(0, 8) || '—';
+  const sessionDisplay = (rowOrId) => {
+    const row = rowOrId && typeof rowOrId === 'object' ? rowOrId : { session_id: rowOrId };
+    const sessionId = String(row.session_id || row.id || '').trim();
+    if (sessionId.includes('/')) return sessionId;
+    const label = String(row.session || '').trim();
+    return label || shortId(sessionId);
+  };
+  const keyPart = (value) => {
+    if (value === null || value === undefined || value === '') return 'empty';
+    try {
+      const text = typeof value === 'object' ? JSON.stringify(value) : String(value);
+      return text.replace(/\s+/g, ' ').slice(0, 120) || 'empty';
+    } catch (_) {
+      return 'value';
+    }
+  };
+  const rowKey = (scope, index, ...parts) => (
+    [scope, ...parts.map(keyPart), index].join(':')
+  );
   const firstVersion = (row, type) => {
     const items = (row.artifact_versions && row.artifact_versions[type]) || [];
     return items.length ? items[0] : null;
@@ -1218,8 +1237,8 @@ function AdminPage() {
                       <tbody>
                         {activeUserRows.length === 0 ? (
                           <tr><td colSpan={6} style={{ ...tdStyle, ...emptyStateStyle }}>No active user focus in filter.</td></tr>
-                        ) : activeUserRows.map((row) => (
-                          <tr key={row.id || row.username}>
+                        ) : activeUserRows.map((row, index) => (
+                          <tr key={rowKey('active-user', index, row.id, row.username)}>
                             <td style={tdStyle}>{row.username || 'unknown'}</td>
                             <td style={tdStyle}>{row.active_ip || '—'}</td>
                             <td style={tdStyle}>{row.active_workflow || '—'}</td>
@@ -1250,10 +1269,10 @@ function AdminPage() {
                       <tbody>
                         {ipWorkloadRows.length === 0 ? (
                           <tr><td colSpan={5} style={{ ...tdStyle, ...emptyStateStyle }}>No IP workload in filter.</td></tr>
-                        ) : ipWorkloadRows.map((row) => {
+                        ) : ipWorkloadRows.map((row, index) => {
                           const width = `${Math.round((workloadScore(row) / maxIpScore) * 100)}%`;
                           return (
-                            <tr key={row.name}>
+                            <tr key={rowKey('ip-workload', index, row.name)}>
                               <td style={tdStyle}>{row.name}</td>
                               <td style={{ ...tdStyle, minWidth: 120 }}>
                                 <div style={barTrackStyle}><div style={barFillStyle(width, 'cost')} /></div>
@@ -1287,10 +1306,10 @@ function AdminPage() {
                       <tbody>
                         {workflowWorkloadRows.length === 0 ? (
                           <tr><td colSpan={5} style={{ ...tdStyle, ...emptyStateStyle }}>No workflow load in filter.</td></tr>
-                        ) : workflowWorkloadRows.map((row) => {
+                        ) : workflowWorkloadRows.map((row, index) => {
                           const width = `${Math.round((workloadScore(row) / maxWorkflowScore) * 100)}%`;
                           return (
-                            <tr key={row.name}>
+                            <tr key={rowKey('workflow-workload', index, row.name)}>
                               <td style={tdStyle}>{row.name}</td>
                               <td style={{ ...tdStyle, minWidth: 120 }}>
                                 <div style={barTrackStyle}><div style={barFillStyle(width)} /></div>
@@ -1325,13 +1344,18 @@ function AdminPage() {
                       <tbody>
                         {recentSessionRows.length === 0 ? (
                           <tr><td colSpan={6} style={{ ...tdStyle, ...emptyStateStyle }}>No sessions in filter.</td></tr>
-                        ) : recentSessionRows.map((row) => (
-                          <tr key={row.id}>
+                        ) : recentSessionRows.map((row, index) => (
+                          <tr key={rowKey('recent-session', index, row.id, row.owner_username, row.ip, row.workflow)}>
                             <td style={tdStyle}>{row.owner_username || row.user_id || 'unknown'}</td>
                             <td style={tdStyle}>{row.ip || row.project_id || '—'}</td>
                             <td style={tdStyle}>{row.workflow || row.latest_workflow || '—'}</td>
                             <td style={tdStyle}>{row.status || '—'}</td>
-                            <td style={{ ...tdStyle, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 11 }}>{shortId(row.id)}</td>
+                            <td
+                              style={{ ...tdStyle, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 11, maxWidth: 260, wordBreak: 'break-word' }}
+                              title={row.id || ''}
+                            >
+                              {sessionDisplay(row)}
+                            </td>
                             <td style={tdStyle}>{formatDate(row.updated_at)}</td>
                           </tr>
                         ))}
@@ -1356,8 +1380,8 @@ function AdminPage() {
                       <tbody>
                         {topCostRows.length === 0 ? (
                           <tr><td colSpan={5} style={{ ...tdStyle, ...emptyStateStyle }}>No cost data in filter.</td></tr>
-                        ) : topCostRows.map((row) => (
-                          <tr key={`${row.session_id}-${row.ip}-${row.workflow}-${row.workspace}`}>
+                        ) : topCostRows.map((row, index) => (
+                          <tr key={rowKey('top-cost', index, row.session_id, row.ip, row.workflow, row.workspace)}>
                             <td style={tdStyle}>{row.ip || 'unknown'}</td>
                             <td style={tdStyle}>{row.workspace || 'default'}</td>
                             <td style={tdStyle}>{row.workflow || '—'}</td>
@@ -1383,8 +1407,8 @@ function AdminPage() {
                       <tbody>
                         {topToolRows.length === 0 ? (
                           <tr><td colSpan={4} style={{ ...tdStyle, ...emptyStateStyle }}>No tool data in filter.</td></tr>
-                        ) : topToolRows.map((row) => (
-                          <tr key={`${row.session_id}-${row.ip}-${row.workflow}-${row.tool_name}`}>
+                        ) : topToolRows.map((row, index) => (
+                          <tr key={rowKey('top-tool', index, row.session_id, row.ip, row.workflow, row.tool_name)}>
                             <td style={tdStyle}>{row.tool_name || '—'}</td>
                             <td style={tdStyle}>{row.ip || 'unknown'}</td>
                             <td style={tdStyle}>{fmt(row.failed_calls)}</td>
@@ -1409,8 +1433,8 @@ function AdminPage() {
                       <tbody>
                         {topRejectedTodos.length === 0 ? (
                           <tr><td colSpan={4} style={{ ...tdStyle, ...emptyStateStyle }}>No rejected todos in filter.</td></tr>
-                        ) : topRejectedTodos.map((row) => (
-                          <tr key={row.todo_id}>
+                        ) : topRejectedTodos.map((row, index) => (
+                          <tr key={rowKey('top-rejected-todo', index, row.todo_id, row.ip, row.workflow)}>
                             <td style={{ ...tdStyle, maxWidth: 260, whiteSpace: 'normal' }}>{row.content || shortId(row.todo_id)}</td>
                             <td style={tdStyle}>{row.ip || 'unknown'}</td>
                             <td style={tdStyle}>{fmt(row.rejected_count)}</td>
@@ -1435,8 +1459,8 @@ function AdminPage() {
                       <tbody>
                         {topHumanRows.length === 0 ? (
                           <tr><td colSpan={4} style={{ ...tdStyle, ...emptyStateStyle }}>No human input in filter.</td></tr>
-                        ) : topHumanRows.map((row) => (
-                          <tr key={`${row.session_id}-${row.ip}-${row.workflow}-${row.username}`}>
+                        ) : topHumanRows.map((row, index) => (
+                          <tr key={rowKey('top-human', index, row.session_id, row.ip, row.workflow, row.username)}>
                             <td style={tdStyle}>{row.username || 'unknown'}</td>
                             <td style={tdStyle}>{row.ip || 'unknown'}</td>
                             <td style={tdStyle}>{row.workflow || '—'}</td>
@@ -1472,8 +1496,8 @@ function AdminPage() {
                         <td colSpan={9} style={{ ...tdStyle, ...emptyStateStyle }}>No users found.</td>
                       </tr>
                     ) : (
-                      filteredUsers.map((u) => (
-                        <tr key={u.id}>
+                      filteredUsers.map((u, index) => (
+                        <tr key={rowKey('user', index, u.id, u.username)}>
                           <td style={tdStyle}>{u.username}</td>
                           <td style={tdStyle}>{u.email || '—'}</td>
                           <td style={tdStyle}>{u.display_name || '—'}</td>
@@ -1531,8 +1555,8 @@ function AdminPage() {
                         <td colSpan={9} style={{ ...tdStyle, ...emptyStateStyle }}>No sessions found.</td>
                       </tr>
                     ) : (
-                      filteredSessions.map((s) => (
-                        <tr key={s.id}>
+                      filteredSessions.map((s, index) => (
+                        <tr key={rowKey('session', index, s.id, s.user_id, s.ip, s.workflow)}>
                           <td style={tdStyle}>{s.title || '—'}</td>
                           <td style={tdStyle}>{s.ip || s.project_id || '—'}</td>
                           <td style={tdStyle}>{s.workflow || s.latest_workflow || '—'}</td>
@@ -1600,10 +1624,10 @@ function AdminPage() {
                         <td colSpan={9} style={{ ...tdStyle, ...emptyStateStyle }}>No usage data yet.</td>
                       </tr>
                     ) : (
-                      filteredUsage.flatMap((u) => {
+                      filteredUsage.flatMap((u, index) => {
                         const expanded = expandedUsage === u.user_id;
                         const rows = [
-                          <tr key={u.user_id}
+                          <tr key={rowKey('usage', index, u.user_id, u.username)}
                               style={{ cursor: 'pointer' }}
                               onClick={() => setExpandedUsage(expanded ? null : u.user_id)}
                               title={expanded ? 'click to collapse' : 'click to see model + tool breakdown'}>
@@ -1623,7 +1647,7 @@ function AdminPage() {
                         ];
                         if (expanded) {
                           rows.push(
-                            <tr key={u.user_id + '-detail'}>
+                            <tr key={rowKey('usage-detail', index, u.user_id, u.username)}>
                               <td colSpan={9} style={{ ...tdStyle, background: '#10141a', padding: '12px 16px' }}>
                                 <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap' }}>
                                   <div style={{ minWidth: 260 }}>
@@ -1636,8 +1660,8 @@ function AdminPage() {
                                     ) : (
                                       <table style={{ fontSize: 12, borderCollapse: 'collapse' }}>
                                         <tbody>
-                                          {u.models.slice(0, 8).map(m => (
-                                            <tr key={m.model_id}>
+                                          {u.models.slice(0, 8).map((m, modelIndex) => (
+                                            <tr key={rowKey('usage-model', modelIndex, u.user_id, m.model_id)}>
                                               <td style={{ padding: '2px 10px 2px 0' }}>{m.model_id}</td>
                                               <td style={{ padding: '2px 10px', textAlign: 'right', opacity: 0.7 }}>{fmt(m.calls)} calls</td>
                                               <td style={{ padding: '2px 10px', textAlign: 'right', opacity: 0.7 }}>{fmt(m.tokens)} tok</td>
@@ -1658,8 +1682,8 @@ function AdminPage() {
                                     ) : (
                                       <table style={{ fontSize: 12, borderCollapse: 'collapse' }}>
                                         <tbody>
-                                          {u.tools.slice(0, 10).map(t => (
-                                            <tr key={t.tool_name}>
+                                          {u.tools.slice(0, 10).map((t, toolIndex) => (
+                                            <tr key={rowKey('usage-tool', toolIndex, u.user_id, t.tool_name)}>
                                               <td style={{ padding: '2px 12px 2px 0' }}>{t.tool_name}</td>
                                               <td style={{ padding: '2px 0', textAlign: 'right', opacity: 0.7 }}>{fmt(t.calls)}</td>
                                             </tr>
@@ -1714,12 +1738,12 @@ function AdminPage() {
                           <td colSpan={8} style={{ ...tdStyle, ...emptyStateStyle }}>No cost data yet.</td>
                         </tr>
                       ) : (
-                        filteredCostContexts.map((row) => (
-                          <tr key={`${row.session_id || ''}-${row.ip}-${row.workspace}`}>
+                        filteredCostContexts.map((row, index) => (
+                          <tr key={rowKey('cost-context', index, row.session_id, row.ip, row.workspace, row.username)}>
                             <td style={tdStyle}>{row.ip || 'unknown'}</td>
                             <td style={tdStyle}>{row.workspace || 'default'}</td>
                             <td style={tdStyle} title={row.session_id || ''}>
-                              {row.session || shortId(row.session_id)}
+                              {sessionDisplay(row)}
                             </td>
                             <td style={tdStyle}>{row.username || 'unknown'}</td>
                             <td style={tdStyle}>{fmt(row.calls)}</td>
@@ -1757,8 +1781,8 @@ function AdminPage() {
                           <td colSpan={6} style={{ ...tdStyle, ...emptyStateStyle }}>No daily cost data yet.</td>
                         </tr>
                       ) : (
-                        filteredDateCosts.map((row) => (
-                          <tr key={`${row.day}-${row.session_id || ''}-${row.ip}-${row.workspace}`}>
+                        filteredDateCosts.map((row, index) => (
+                          <tr key={rowKey('date-cost', index, row.day, row.session_id, row.ip, row.workspace)}>
                             <td style={tdStyle}>{row.day || 'unknown'}</td>
                             <td style={tdStyle}>{row.ip || 'unknown'}</td>
                             <td style={tdStyle}>{row.workspace || 'default'}</td>
@@ -1797,8 +1821,8 @@ function AdminPage() {
                         <td colSpan={10} style={{ ...tdStyle, ...emptyStateStyle }}>No todo usage data yet.</td>
                       </tr>
                     ) : (
-                      filteredTodoUsage.map((row) => (
-                        <tr key={row.todo_id}>
+                      filteredTodoUsage.map((row, index) => (
+                        <tr key={rowKey('todo-usage', index, row.todo_id, row.ip, row.workflow)}>
                           <td style={tdStyle}>{row.ip || 'unknown'}</td>
                           <td style={tdStyle}>{row.workspace || 'default'}</td>
                           <td style={tdStyle}>{row.workflow || '—'}</td>
@@ -1843,8 +1867,8 @@ function AdminPage() {
                         <td colSpan={6} style={{ ...tdStyle, ...emptyStateStyle }}>No todo flow events yet.</td>
                       </tr>
                     ) : (
-                      filteredTodoFlow.map((row) => (
-                        <tr key={row.event_id}>
+                      filteredTodoFlow.map((row, index) => (
+                        <tr key={rowKey('todo-flow', index, row.event_id, row.todo_id, row.event_type)}>
                           <td style={tdStyle}>{formatDate(row.created_at)}</td>
                           <td style={tdStyle}>{row.ip || 'unknown'}</td>
                           <td style={tdStyle}>{row.workflow || '—'}</td>
@@ -1886,8 +1910,8 @@ function AdminPage() {
                         <td colSpan={10} style={{ ...tdStyle, ...emptyStateStyle }}>No trace events yet.</td>
                       </tr>
                     ) : (
-                      filteredTraceEvents.map((row) => (
-                        <tr key={row.event_id}>
+                      filteredTraceEvents.map((row, index) => (
+                        <tr key={rowKey('trace-event', index, row.event_id, row.correlation_id, row.event_type)}>
                           <td style={tdStyle}>{formatDate(row.created_at)}</td>
                           <td style={tdStyle}>{row.event_type || '—'}</td>
                           <td style={tdStyle}>{row.ip || 'unknown'}</td>
@@ -1932,8 +1956,8 @@ function AdminPage() {
                         <td colSpan={11} style={{ ...tdStyle, ...emptyStateStyle }}>No tool usage data yet.</td>
                       </tr>
                     ) : (
-                      filteredToolUsage.map((row) => (
-                        <tr key={`${row.session_id}-${row.ip}-${row.workflow}-${row.tool_name}`}>
+                      filteredToolUsage.map((row, index) => (
+                        <tr key={rowKey('tool-usage', index, row.session_id, row.ip, row.workflow, row.tool_name)}>
                           <td style={tdStyle}>{row.tool_name || '—'}</td>
                           <td style={tdStyle}>{fmt(row.calls)}</td>
                           <td style={tdStyle}>{fmt(row.failed_calls)}</td>
@@ -1945,7 +1969,7 @@ function AdminPage() {
                           <td style={tdStyle}>{row.ip || 'unknown'}</td>
                           <td style={tdStyle}>{row.workspace || 'default'}</td>
                           <td style={tdStyle}>{row.workflow || '—'}</td>
-                          <td style={tdStyle} title={row.session_id || ''}>{row.session || shortId(row.session_id)}</td>
+                          <td style={tdStyle} title={row.session_id || ''}>{sessionDisplay(row)}</td>
                           <td style={tdStyle}>{row.username || 'unknown'}</td>
                         </tr>
                       ))
@@ -1982,8 +2006,8 @@ function AdminPage() {
                         </td>
                       </tr>
                     ) : (
-                      filteredRtlRunHistory.map((row) => (
-                        <tr key={`${row.run_id}-${row.rtl_version_id}`}>
+                      filteredRtlRunHistory.map((row, index) => (
+                        <tr key={rowKey('rtl-run', index, row.run_id, row.rtl_version_id, row.ip, row.workflow)}>
                           <td style={tdStyle}>{formatDate(row.started_at || row.created_at)}</td>
                           <td style={tdStyle}>{row.ip || 'unknown'}</td>
                           <td style={tdStyle}>{row.workspace || 'default'}</td>
@@ -2042,8 +2066,8 @@ function AdminPage() {
                         </td>
                       </tr>
                     ) : (
-                      filteredArtifactVersions.map((row) => (
-                        <tr key={row.artifact_version_id}>
+                      filteredArtifactVersions.map((row, index) => (
+                        <tr key={rowKey('artifact-version', index, row.artifact_version_id, row.artifact_type, row.ip)}>
                           <td style={tdStyle}>{formatDate(row.created_at)}</td>
                           <td style={tdStyle}>{row.ip || 'unknown'}</td>
                           <td style={tdStyle}>{row.workspace || 'default'}</td>
@@ -2092,8 +2116,8 @@ function AdminPage() {
                         </td>
                       </tr>
                     ) : (
-                      filteredRunArtifactSets.map((row) => (
-                        <tr key={row.run_id}>
+                      filteredRunArtifactSets.map((row, index) => (
+                        <tr key={rowKey('run-artifact-set', index, row.run_id, row.ip, row.workflow)}>
                           <td style={tdStyle}>{formatDate(row.started_at || row.created_at)}</td>
                           <td style={tdStyle}>{row.ip || 'unknown'}</td>
                           <td style={tdStyle}>{row.workspace || 'default'}</td>
@@ -2139,10 +2163,10 @@ function AdminPage() {
                         <td colSpan={11} style={{ ...tdStyle, ...emptyStateStyle }}>No human intervention data yet.</td>
                       </tr>
                     ) : (
-                      filteredInterventions.map((row) => (
-                        <tr key={`${row.session_id}-${row.ip}-${row.workflow}-${row.username}`}>
+                      filteredInterventions.map((row, index) => (
+                        <tr key={rowKey('intervention', index, row.session_id, row.ip, row.workflow, row.username)}>
                           <td style={tdStyle}>{row.username || 'unknown'}</td>
-                          <td style={tdStyle} title={row.session_id || ''}>{row.session || shortId(row.session_id)}</td>
+                          <td style={tdStyle} title={row.session_id || ''}>{sessionDisplay(row)}</td>
                           <td style={tdStyle}>{row.ip || 'unknown'}</td>
                           <td style={tdStyle}>{row.workspace || 'default'}</td>
                           <td style={tdStyle}>{row.workflow || '—'}</td>
@@ -2182,10 +2206,10 @@ function AdminPage() {
                         </td>
                       </tr>
                     ) : (
-                      filteredFeedback.map((f) => {
+                      filteredFeedback.map((f, index) => {
                         const open = f.status !== 'resolved';
                         return (
-                          <tr key={f.id} style={open ? { background: '#191c22' } : { opacity: 0.65 }}>
+                          <tr key={rowKey('feedback', index, f.id, f.user_id, f.created_at)} style={open ? { background: '#191c22' } : { opacity: 0.65 }}>
                             <td style={tdStyle}>{formatDate(f.created_at)}</td>
                             <td style={tdStyle}>{f.username || f.user_id.slice(0, 8)}</td>
                             <td style={tdStyle}>
@@ -2252,11 +2276,11 @@ function AdminPage() {
                       {dbError ? `Error: ${dbError}` : 'Loading…'}
                     </div>
                   ) : (
-                    dbTables.map((t) => {
+                    dbTables.map((t, index) => {
                       const active = dbSelectedTable === t.name;
                       return (
                         <button
-                          key={t.name}
+                          key={rowKey('db-table', index, t.name)}
                           onClick={() => setDbSelectedTable(t.name)}
                           style={{
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -2324,8 +2348,8 @@ function AdminPage() {
                         ) : (
                           dbOverview
                             .filter((t) => !dbHideEmpty || (t.total && t.total > 0))
-                            .map((t) => (
-                              <div key={t.name} style={tableWrapStyle}>
+                            .map((t, index) => (
+                              <div key={rowKey('db-overview', index, t.name)} style={tableWrapStyle}>
                                 <div style={{
                                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                   padding: '8px 14px', background: '#1c252f',

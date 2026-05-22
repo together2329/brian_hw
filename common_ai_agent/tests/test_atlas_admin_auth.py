@@ -41,6 +41,52 @@ def test_admin_username_registers_with_admin_role(tmp_path, monkeypatch):
     assert "ATLAS Admin" in page.text
 
 
+def test_standalone_admin_login_uses_admin_cookie(tmp_path, monkeypatch):
+    import src.atlas_admin as atlas_admin
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_ADMIN_USERS", "admin")
+    monkeypatch.chdir(tmp_path)
+
+    client = TestClient(atlas_admin.create_admin_app(PROJECT_ROOT))
+
+    registered = client.post(
+        "/api/auth/register",
+        json={"username": "admin", "password": "pw"},
+    )
+    assert registered.status_code == 200, registered.text
+    assert client.cookies.get("atlas_admin_session")
+    assert client.cookies.get("atlas_session") is None
+
+    users = client.get("/api/admin/users")
+    assert users.status_code == 200, users.text
+
+
+def test_standalone_admin_accepts_main_cookie_fallback(tmp_path, monkeypatch):
+    import src.atlas_admin as atlas_admin
+    from core.atlas_auth import GuestAuth, hash_password
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_ADMIN_USERS", "admin")
+    monkeypatch.chdir(tmp_path)
+
+    with AtlasDB() as db:
+        user = db.create_user(
+            "admin",
+            "admin",
+            hash_password("pw"),
+            role="admin",
+        )
+    main_auth = GuestAuth(AtlasDB())
+    client = TestClient(atlas_admin.create_admin_app(PROJECT_ROOT))
+    client.cookies.set("atlas_session", main_auth._sign(user["id"]))
+
+    users = client.get("/api/admin/users")
+    assert users.status_code == 200, users.text
+    assert client.cookies.get("atlas_admin_session") is None
+
+
 def test_admin_dashboard_serves_login_shell_without_login(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 

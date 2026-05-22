@@ -117,6 +117,163 @@ def test_session_activate_records_db_control_plane_namespace(tmp_path, monkeypat
         assert listed["alice/spi_core/orchestrator"]["workflow"] == "orchestrator"
 
 
+def test_session_activate_owner_alias_keeps_db_user_id_distinct(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    response = client.post(
+        "/api/session/activate",
+        json={"owner": "alice", "ip": "spi_core", "workflow": "rtl-gen"},
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["active_session"] == "alice/spi_core/rtl-gen"
+    assert payload["namespace"] == "alice/spi_core/rtl-gen"
+    assert payload["owner"] == "alice"
+    assert payload["session_id"] == "alice"
+    assert payload["db_session_id"] == "alice/spi_core/rtl-gen"
+    user_id = client.get("/api/users/me").json()["user"]["id"]
+    with AtlasDB() as db:
+        session = db.get_session("alice/spi_core/rtl-gen")
+        assert session is not None
+        assert session["user_id"] == user_id
+        assert session["user_id"] != session["id"]
+
+
+def test_healthz_context_cost_is_scoped_to_active_namespace(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    alpha = _activate(client, "alice", "ip_alpha", "rtl-gen")
+    assert alpha.status_code == 200, alpha.text
+    alpha_cost = tmp_path / ".session" / "alice" / "ip_alpha" / "rtl-gen" / "cost.json"
+    alpha_cost.write_text(
+        json.dumps({
+            "in_tok": 100,
+            "cache_tok": 10,
+            "out_tok": 20,
+            "sum_tok": 120,
+            "cost_usd": 0.01,
+            "last_in_tok": 100,
+            "last_cache_tok": 10,
+            "last_out_tok": 20,
+        }),
+        encoding="utf-8",
+    )
+
+    beta = _activate(client, "alice", "ip_beta", "rtl-gen")
+    assert beta.status_code == 200, beta.text
+    beta_cost = tmp_path / ".session" / "alice" / "ip_beta" / "rtl-gen" / "cost.json"
+    beta_cost.write_text(
+        json.dumps({
+            "in_tok": 200,
+            "cache_tok": 30,
+            "out_tok": 40,
+            "sum_tok": 240,
+            "cost_usd": 0.02,
+            "last_in_tok": 200,
+            "last_cache_tok": 30,
+            "last_out_tok": 40,
+        }),
+        encoding="utf-8",
+    )
+
+    beta_health = client.get("/healthz")
+    assert beta_health.status_code == 200, beta_health.text
+    assert beta_health.json()["active_session"] == "alice/ip_beta/rtl-gen"
+    assert beta_health.json()["tokens"] == 200
+    assert beta_health.json()["tokens_in"] == 200
+    assert beta_health.json()["cost_usd"] == 0.02
+
+    alpha_again = _activate(client, "alice", "ip_alpha", "rtl-gen")
+    assert alpha_again.status_code == 200, alpha_again.text
+    alpha_health = client.get("/healthz")
+    assert alpha_health.status_code == 200, alpha_health.text
+    assert alpha_health.json()["active_session"] == "alice/ip_alpha/rtl-gen"
+    assert alpha_health.json()["tokens"] == 100
+    assert alpha_health.json()["tokens_in"] == 100
+    assert alpha_health.json()["cost_usd"] == 0.01
+
+    empty = _activate(client, "alice", "ip_empty", "rtl-gen")
+    assert empty.status_code == 200, empty.text
+    empty_health = client.get("/healthz")
+    assert empty_health.status_code == 200, empty_health.text
+    assert empty_health.json()["active_session"] == "alice/ip_empty/rtl-gen"
+    assert empty_health.json()["tokens"] == 0
+    assert empty_health.json()["tokens_in"] == 0
+    assert empty_health.json()["cost_usd"] == 0.0
+
+
+def test_ip_list_requires_login_in_multiuser_mode(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+
+    response = client.get("/api/ip/list")
+
+    assert response.status_code == 401, response.text
+    assert response.json().get("items", []) == []
+
+
+def test_websocket_session_switch_rebinds_without_disconnect(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    with client.websocket_connect("/ws/agent?session_id=alice/ip_alpha/rtl-gen") as ws:
+        assert ws.receive_json()["type"] == "hello"
+        ws.send_json({
+            "type": "session_switch",
+            "session_id": "alice/ip_beta/tb-gen",
+        })
+        switched = ws.receive_json()
+        assert switched["type"] == "session_switched"
+        assert switched["session_id"] == "alice/ip_beta/tb-gen"
+        ws.send_json({
+            "type": "session_switch",
+            "session_id": "bob/ip_beta/tb-gen",
+        })
+        rejected = ws.receive_json()
+        assert rejected["type"] == "error"
+        assert "forbidden" in rejected["message"]
+
+
 def test_session_activate_preserves_running_worker_when_requested(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 

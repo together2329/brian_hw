@@ -4,7 +4,7 @@
  *   backend.mode                     always 'live'
  *   backend.subscribe(type, cb)      → unsubscribe()
  *   backend.send(obj)                publish a message to backend
- *   backend.connect() / disconnect()
+ *   backend.connect() / disconnect() / switchSession()
  *
  * Opens a WebSocket to /ws/agent (relative to current host) and forwards
  * messages both ways. The mock fallback was removed — Atlas always talks
@@ -165,6 +165,15 @@
     }
     _rawSend(msg);
   }
+  function liveSwitchSession(sessionId) {
+    const targetSessionId = String(sessionId || '').trim();
+    if (!targetSessionId) return;
+    currentSessionId = targetSessionId;
+    if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+      liveConnect(targetSessionId);
+    }
+    _rawSend({ type: 'session_switch', session_id: targetSessionId });
+  }
   function liveDisconnect() {
     clearTimeout(reconnectTimer);
     wsEpoch += 1;
@@ -189,6 +198,7 @@
     subscribe,
     send: liveSend,
     connect: (sessionId) => liveConnect(sessionId || ''),
+    switchSession: liveSwitchSession,
     disconnect: liveDisconnect,
     getConnectionState: () => connectionState,
     // Test/debug hook — lets UI code synthesize events in tests.

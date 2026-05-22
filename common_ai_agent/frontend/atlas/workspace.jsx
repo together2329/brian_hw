@@ -884,7 +884,9 @@ function resolveActiveSession() {
     }
     try {
       const stored = localStorage.getItem('atlasActiveSession') || '';
-      if (stored) return normalizeUiSession(stored) || stored;
+      const normalizedStored = normalizeUiSession(stored) || stored;
+      const storedOwner = (normalizedStored.split('/').filter(Boolean)[0] || '');
+      if (normalizedStored && (!username || storedOwner === username)) return normalizedStored;
     } catch (_) {}
     return normalizeUiSession(`${username}/default/${urlWf}`) || `${username}/default/${urlWf}`;
   } catch (_) {
@@ -1336,8 +1338,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     activeSessionRef.current = sid;
     setActiveSession(sid);
     try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
-    if (window.backend && typeof window.backend.connect === 'function') {
-      try { window.backend.connect(sid); } catch (_) {}
+    if (window.backend) {
+      try {
+        if (typeof window.backend.switchSession === 'function') window.backend.switchSession(sid);
+        else if (typeof window.backend.connect === 'function') window.backend.connect(sid);
+      } catch (_) {}
     }
     if (window.atlasData && window.atlasData.refreshSessionState) {
       window.atlasData.refreshSessionState(sid, false);
@@ -1413,19 +1418,20 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   }, []);
 
   const handleSwitchSession = React.useCallback(async (sessionId) => {
+    const owner = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '') || sessionId;
     const current = normalizeUiSession(activeSession || window.ACTIVE_SESSION || '');
     const suffix = current.split('/').slice(1).join('/');
-    const newNamespace = suffix ? `${sessionId}/${suffix}` : sessionId;
+    const newNamespace = suffix ? `${owner}/${suffix}` : owner;
 
     try {
-      await fetch('/api/sessions/' + encodeURIComponent(sessionId) + '/activate', { method: 'POST' });
+      await fetch('/api/sessions/' + encodeURIComponent(owner) + '/activate', { method: 'POST' });
     } catch (_) {}
 
-    window.history.replaceState(null, '', '/?session_id=' + encodeURIComponent(sessionId));
+    window.history.replaceState(null, '', '/?session_id=' + encodeURIComponent(owner));
 
     if (window.backend) {
-      if (window.backend.disconnect) window.backend.disconnect();
-      if (window.backend.connect) window.backend.connect(newNamespace);
+      if (window.backend.switchSession) window.backend.switchSession(newNamespace);
+      else if (window.backend.connect) window.backend.connect(newNamespace);
     }
 
     window.ACTIVE_SESSION = newNamespace;
@@ -1440,7 +1446,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       window.atlasData.refreshSessionState(newNamespace);
     }
 
-    window.dispatchEvent(new CustomEvent('atlas-session-switched', { detail: { sessionId, namespace: newNamespace } }));
+    window.dispatchEvent(new CustomEvent('atlas-session-switched', { detail: { sessionId: owner, namespace: newNamespace } }));
   }, [activeSession]);
 
   const switchIntent = (i) => {
@@ -1481,7 +1487,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     refreshFeed(intent, next);
     const sid = activateSession(window.SCOPE_PATH || '', next || '');
     const parts = (activeSession || window.ACTIVE_SESSION || '').split('/');
-    const owner = parts[0] || 'default';
+    const owner = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '') || parts[0] || 'default';
     const ip = window.SCOPE_PATH || parts[1] || 'default';
     let activated = false;
     try {
@@ -1489,7 +1495,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          session_id: owner,
+          owner,
           ip: ip,
           workflow: next || 'default',
         }),
@@ -1497,8 +1503,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       activated = !!(res && res.ok);
     } catch (_) {}
     if (window.backend) {
-      if (window.backend.disconnect) window.backend.disconnect();
-      if (window.backend.connect) window.backend.connect(sid);
+      if (window.backend.switchSession) window.backend.switchSession(sid);
+      else if (window.backend.connect) window.backend.connect(sid);
       if (!activated) sendPrompt(next ? `/wf ${next}` : '/workflow default', sid);
     }
   };

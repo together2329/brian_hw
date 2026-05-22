@@ -3502,42 +3502,15 @@ def create_app():
             try:
                 import json as _json
                 from pathlib import Path as _P
-                _sess = os.environ.get("ATLAS_PROJECT_ROOT") or os.getcwd()
+                _sess = str(PROJECT_ROOT)
                 _sess_str = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/")
                 _candidates = []
                 if _sess_str:
-                    # Canonical 3-part path: .session/<sess_id>/<ip>/<workflow>/cost.json
-                    # (matches what _emit_token writes on every LLM call)
+                    # Canonical 3-part path:
+                    # .session/<owner>/<ip>/<workflow>/cost.json. Do not
+                    # fall back to workflow/default ledgers here; context and
+                    # cost must follow the active namespace exactly.
                     _candidates.append(_P(_sess) / ".session" / _sess_str / "cost.json")
-                _candidates += [
-                    _P(_sess) / ".session" / (info["workspace"] or "default") / "cost.json",
-                    _P(_sess) / ".session" / "default" / "cost.json",
-                ]
-                def _merge_cost_rows(rows):
-                    merged = {
-                        "in_tok": 0,
-                        "cache_tok": 0,
-                        "out_tok": 0,
-                        "sum_tok": 0,
-                        "cost_usd": 0.0,
-                        "model": "",
-                        "updated_at": 0,
-                    }
-                    for row in rows:
-                        if not isinstance(row, dict):
-                            continue
-                        merged["in_tok"] += int(row.get("in_tok", row.get("input", 0)) or 0)
-                        merged["cache_tok"] += int(row.get("cache_tok", row.get("cached", 0)) or 0)
-                        merged["out_tok"] += int(row.get("out_tok", row.get("output", 0)) or 0)
-                        merged["sum_tok"] += int(row.get("sum_tok", 0) or 0)
-                        merged["cost_usd"] += float(row.get("cost_usd", 0) or 0)
-                        updated = float(row.get("updated_at", 0) or 0)
-                        if updated >= float(merged.get("updated_at", 0) or 0):
-                            merged["updated_at"] = updated
-                            merged["model"] = row.get("model", merged.get("model", "")) or merged.get("model", "")
-                    if not merged["sum_tok"]:
-                        merged["sum_tok"] = merged["in_tok"] + merged["out_tok"]
-                    return merged
 
                 def _read_cost_file(c):
                     try:
@@ -3551,32 +3524,6 @@ def create_app():
                             d = _read_cost_file(c)
                             if d is not None:
                                 return d
-                    # If the active workflow has no ledger yet, show a useful
-                    # UI total instead of $0.0000. Aggregate same-IP ledgers
-                    # first, then fall back to every session ledger under
-                    # .session. This makes cost visible while users move
-                    # between ssot-gen / rtl-gen / orchestrator / pipeline.
-                    root = _P(_sess) / ".session"
-                    aggregate_candidates = []
-                    parts = [p for p in _sess_str.split("/") if p]
-                    if len(parts) >= 2:
-                        ip_name = parts[-2]
-                        aggregate_candidates.extend(root.glob(f"*/{ip_name}/*/cost.json"))
-                    if len(parts) >= 1:
-                        aggregate_candidates.extend((root / parts[0]).glob("*/*/cost.json"))
-                    aggregate_candidates.extend(root.glob("*/*/*/cost.json"))
-                    seen = set()
-                    rows = []
-                    for c in aggregate_candidates:
-                        key = str(c)
-                        if key in seen or not c.exists():
-                            continue
-                        seen.add(key)
-                        d = _read_cost_file(c)
-                        if d is not None:
-                            rows.append(d)
-                    if rows:
-                        return _merge_cost_rows(rows)
                     return None
                 d = await asyncio.to_thread(_pick_cost)
                 if d is not None:
@@ -3610,6 +3557,12 @@ def create_app():
                             + tc        * info["pricing"]["cache"]  / 1_000_000
                             + to        * info["pricing"]["output"] / 1_000_000
                         )
+                else:
+                    info["tokens_in"] = 0
+                    info["tokens_cache"] = 0
+                    info["tokens_out"] = 0
+                    info["tokens"] = 0
+                    info["cost_usd"] = 0.0
             except Exception:
                 pass
         else:
@@ -5018,6 +4971,8 @@ def create_app():
         requested = normalize_session_name(str(session_id or ""))
         owner = (requested.split("/", 1)[0] if requested else "") or username
         multi_user_on = _multi_user_enabled()
+        if multi_user_on and not username:
+            return JSONResponse({"error": "login required", "items": [], "count": 0}, status_code=401)
         if multi_user_on and username and owner and owner != username:
             return JSONResponse({"error": "session owner mismatch", "items": []}, status_code=403)
         session_root = (PROJECT_ROOT / ".session" / owner).resolve() if owner else None
@@ -16565,6 +16520,42 @@ def create_app():
                     continue
                 set_atlas_bridge_session_id(session.session_id)
                 t = msg.get("type")
+                if t in ("session_switch", "client_session_switch"):
+                    _session_raw = str(
+                        msg.get("session_id")
+                        or msg.get("session")
+                        or msg.get("namespace")
+                        or ""
+                    ).strip()
+                    _session = _authorize_ws_session(_session_raw)
+                    if not _session:
+                        await websocket.send_json({
+                            "type": "error",
+                            "message": f"invalid or forbidden session: {_session_raw!r}",
+                        })
+                        continue
+                    if _session != session.session_id:
+                        bridge.bind_client(websocket, _session)
+                        session = bridge.get_client_session(websocket)
+                        if session is None:
+                            continue
+                        set_atlas_bridge_session_id(session.session_id)
+                        try:
+                            if bridge._using_processes():
+                                _setup_session_proxy(_session, mirror_env=False, apply_main=False)
+                            else:
+                                _setup_session_proxy(_session)
+                        except Exception as exc:
+                            await websocket.send_json({
+                                "type": "error",
+                                "message": f"session setup failed: {exc}",
+                            })
+                            continue
+                    await websocket.send_json({
+                        "type": "session_switched",
+                        "session_id": session.session_id,
+                    })
+                    continue
                 if t in ("prompt", "send") and msg.get("text"):
                     _txt = msg["text"].strip()
                     _session_raw = str(msg.get("session") or "").strip()
@@ -17149,6 +17140,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         _emit_agent_event(
             "cost",
             input=in_tok, cached=cache_tok, output=out_tok,
+            context_used=in_tok,
             cost_usd_delta=cost_delta,
             pricing={"input": p.input, "cache": p.cache, "output": p.output} if p else None,
             model=_model_now,

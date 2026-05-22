@@ -465,6 +465,10 @@ class SessionWorker:
                     "out_tok": cumulative_out,
                     "sum_tok": cumulative_in + cumulative_out,
                     "cost_usd": cumulative_cost,
+                    "last_in_tok": int(in_tok or 0),
+                    "last_cache_tok": int(cache_tok or 0),
+                    "last_out_tok": int(out_tok or 0),
+                    "last_at": time.time(),
                     "model": model,
                     "updated_at": time.time(),
                 }, indent=2, ensure_ascii=False),
@@ -520,6 +524,7 @@ class SessionWorker:
             model=model,
         )
         cost_payload = {
+            "session_id": self.session_id,
             "input": int(in_tok or 0),
             "cached": int(cache_tok or 0),
             "output": int(out_tok or 0),

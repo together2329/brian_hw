@@ -889,6 +889,19 @@
         window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
       }
       window.CONTEXT = Object.assign({}, _prev, {
+        ...(() => {
+          const nextActiveSession = String(d.active_session || '').trim();
+          const prevActiveSession = String(_prev.activeSession || '').trim();
+          const scopeChanged = !!(nextActiveSession && prevActiveSession && nextActiveSession !== prevActiveSession);
+          const keep = (value) => (scopeChanged ? 0 : value);
+          return {
+            tokens: (d.tokens != null) ? Number(d.tokens || 0) : keep(Number(_prev.tokens || 0)),
+            tokensIn: (d.tokens_in != null) ? Number(d.tokens_in || 0) : keep(Number(_prev.tokensIn || 0)),
+            tokensCache: (d.tokens_cache != null) ? Number(d.tokens_cache || 0) : keep(Number(_prev.tokensCache || 0)),
+            tokensOut: (d.tokens_out != null) ? Number(d.tokens_out || 0) : keep(Number(_prev.tokensOut || 0)),
+            costUsd: (d.cost_usd != null) ? Number(d.cost_usd || 0) : keep(Number(_prev.costUsd || 0)),
+          };
+        })(),
         frontend:    d.frontend  || '',
         model:       d.model     || _prev.model || '—',
         baseModel:   d.base_model || '',
@@ -907,14 +920,6 @@
         cwd:         d.cwd || '',
         pricing:     d.pricing || null,    // {input, cache, output} USD/1M
         chatFeedSummary: window.ATLAS_CHAT_FEED_SUMMARY !== false,
-        // Token counts: only seed from /healthz when cost.json is on
-        // disk (d.tokens_* is non-null). Otherwise PRESERVE whatever
-        // the live WS 'cost' subscription has accumulated this session
-        // — the 5s healthz poll used to wipe these to 0 every cycle.
-        tokensIn:    (d.tokens_in    != null) ? d.tokens_in    : (_prev.tokensIn    || 0),
-        tokensCache: (d.tokens_cache != null) ? d.tokens_cache : (_prev.tokensCache || 0),
-        tokensOut:   (d.tokens_out   != null) ? d.tokens_out   : (_prev.tokensOut   || 0),
-        costUsd:     (d.cost_usd     != null) ? d.cost_usd     : (_prev.costUsd     || 0),
       });
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' }));
     } catch (e) { /* ignore */ }
@@ -1068,6 +1073,17 @@
         setTimeout(attach, 200);
         return;
       }
+      const eventMatchesActiveSession = (m) => {
+        const eventSession = normalizeSessionName(
+          (m && (m.session_id || m.session || m.namespace)) || ''
+        );
+        const activeSession = normalizeSessionName(
+          window.ACTIVE_SESSION
+          || (window.CONTEXT && (window.CONTEXT.activeSession || window.CONTEXT.active_session))
+          || ''
+        );
+        return !eventSession || !activeSession || eventSession === activeSession;
+      };
       // 'hello' fires on every WS connect (initial + every reconnect
       // after a transient drop). Re-run /healthz so the UI's session/
       // ip/workflow chips and URL params re-sync to whatever the
@@ -1116,6 +1132,7 @@
         dispatchAtlasFileChanged(path, (m && m.tool) || '');
       });
       window.backend.subscribe('context', (m) => {
+        if (!eventMatchesActiveSession(m)) return;
         let changed = false;
         if (typeof m.used === 'number') {
           window.CONTEXT.tokens = m.used;
@@ -1143,10 +1160,15 @@
       // Live cost — agent fires per-LLM-call. We accumulate into CONTEXT
       // so the sidebar reflects spend without waiting for the 5 s poll.
       window.backend.subscribe('cost', (m) => {
+        if (!eventMatchesActiveSession(m)) return;
         const ctx = window.CONTEXT;
         ctx.tokensIn    = (ctx.tokensIn    || 0) + (m.input  || 0);
         ctx.tokensCache = (ctx.tokensCache || 0) + (m.cached || 0);
         ctx.tokensOut   = (ctx.tokensOut   || 0) + (m.output || 0);
+        const promptTokens = Number(m.context_used ?? m.used ?? m.input ?? 0);
+        if (promptTokens > 0) ctx.tokens = promptTokens;
+        const maxTokens = Number(m.max || m.max_context || m.maxTokens || 0);
+        if (maxTokens > 0) ctx.maxTokens = maxTokens;
         // Backend now resolves pricing at LLM-call time (honors
         // LLM_BASE_NAME env) and ships both the USD delta and the pricing
         // it used. Prefer those over the page-load pricing snapshot so the

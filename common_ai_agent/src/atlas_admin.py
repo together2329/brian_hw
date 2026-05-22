@@ -3,8 +3,9 @@ ATLAS admin server — standalone process serving /admin + /api/admin/*.
 
 Reads from the same DB (~/.common_ai_agent/atlas.db) and shares the
 HMAC cookie secret (~/.common_ai_agent/atlas_cookie_secret) with the
-main atlas_ui backend, so a user logged in via the main UI's
-/api/auth/login can hit this admin server with the same cookie.
+main atlas_ui backend. The standalone admin server accepts the main UI
+cookie as an SSO fallback, but direct admin login writes a separate
+atlas_admin_session cookie so it does not overwrite the main UI session.
 
 Why a separate process:
   • main backend can be exposed on 0.0.0.0 for LAN access while admin
@@ -67,11 +68,15 @@ def create_admin_app(project_root: Path):
 
     app = FastAPI(title="ATLAS Admin")
 
-    auth = GuestAuth(AtlasDB())
+    auth = GuestAuth(
+        AtlasDB(),
+        cookie_name="atlas_admin_session",
+        fallback_cookie_names=("atlas_session",),
+    )
     app.state.auth = auth
     app.add_middleware(AuthMiddleware, auth=auth)
-    # Lets admins log in directly on the admin port if they want a
-    # dedicated cookie jar (login/register/logout endpoints).
+    # Lets admins log in directly on the admin port without clobbering
+    # the main UI's atlas_session cookie.
     create_auth_endpoints(app, auth)
 
     def _admin_required(request: Request):

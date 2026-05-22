@@ -2210,7 +2210,10 @@ function HierarchyList({ activeIp, onSelect }) {
     let dead = false;
     (async () => {
       try {
-        const sessionId = window.ATLAS_USER_SESSION_ID || (window.ACTIVE_SESSION || '').split('/')[0] || '';
+        const sessionId = (window.ATLAS_USER && window.ATLAS_USER.username)
+          || window.ATLAS_USER_SESSION_ID
+          || (window.ACTIVE_SESSION || '').split('/')[0]
+          || '';
         const url = sessionId ? `/api/ip/list?session_id=${encodeURIComponent(sessionId)}` : '/api/ip/list';
         const r = await fetch(url);
         const j = await r.json().catch(() => ({}));
@@ -2438,7 +2441,10 @@ function StageStatusRail({ activeIp, onSelectIp, state, simpleSummary, selectedS
     let dead = false;
     (async () => {
       try {
-        const sessionId = window.ATLAS_USER_SESSION_ID || (window.ACTIVE_SESSION || '').split('/')[0] || '';
+        const sessionId = (window.ATLAS_USER && window.ATLAS_USER.username)
+          || window.ATLAS_USER_SESSION_ID
+          || (window.ACTIVE_SESSION || '').split('/')[0]
+          || '';
         const url = sessionId ? `/api/ip/list?session_id=${encodeURIComponent(sessionId)}` : '/api/ip/list';
         const r = await fetch(url);
         const j = await r.json().catch(() => ({}));
@@ -2789,7 +2795,8 @@ window.AtlasPipeline = function AtlasPipeline() {
   // whatever workflow the user happened to be on previously.
   React.useEffect(() => {
     let dead = false;
-    const ownerId = (typeof window.ATLAS_USER_SESSION_ID === 'string' && window.ATLAS_USER_SESSION_ID)
+    const ownerId = ((window.ATLAS_USER && window.ATLAS_USER.username) || '')
+      || (typeof window.ATLAS_USER_SESSION_ID === 'string' && window.ATLAS_USER_SESSION_ID)
       || (() => { try { return localStorage.getItem('atlasUserSessionId') || ''; } catch (_) { return ''; } })()
       || 'default';
     if (typeof window.activateAtlasNamespace === 'function') {
@@ -2809,9 +2816,12 @@ window.AtlasPipeline = function AtlasPipeline() {
       if (window.atlasData && typeof window.atlasData.setActiveSession === 'function') {
         window.atlasData.setActiveSession(namespace);
       }
-      if (window.backend && typeof window.backend.disconnect === 'function' && typeof window.backend.connect === 'function') {
-        window.backend.disconnect();
-        setTimeout(() => window.backend.connect(namespace), 0);
+      if (window.backend) {
+        if (typeof window.backend.switchSession === 'function') {
+          window.backend.switchSession(namespace);
+        } else if (typeof window.backend.connect === 'function') {
+          window.backend.connect(namespace);
+        }
       }
       window.dispatchEvent(new CustomEvent('atlas-session-switched', {
         detail: { sessionId: ownerId, namespace, ip: ip || 'default', workflow: 'orchestrator' },
@@ -2821,7 +2831,7 @@ window.AtlasPipeline = function AtlasPipeline() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        session_id: ownerId,
+        owner: ownerId,
         ip: ip || 'default',
         workflow: 'orchestrator',
         preserve_running: window.ATLAS_EXEC_MODE === 'orchestrator',
@@ -3204,14 +3214,15 @@ window.AtlasPipeline = function AtlasPipeline() {
             currentTarget={chatTarget}
             onSelectTarget={(wf) => {
               setChatTarget(wf || 'orchestrator');
-              const ownerId = (typeof window.ATLAS_USER_SESSION_ID === 'string' && window.ATLAS_USER_SESSION_ID)
+              const ownerId = ((window.ATLAS_USER && window.ATLAS_USER.username) || '')
+                || (typeof window.ATLAS_USER_SESSION_ID === 'string' && window.ATLAS_USER_SESSION_ID)
                 || (() => { try { return localStorage.getItem('atlasUserSessionId') || ''; } catch (_) { return ''; } })()
                 || 'default';
               fetch('/api/session/activate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  session_id: ownerId,
+                  owner: ownerId,
                   ip: ip || 'default',
                   workflow: wf || 'orchestrator',
                   preserve_running: window.ATLAS_EXEC_MODE === 'orchestrator',

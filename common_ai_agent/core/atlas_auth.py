@@ -315,9 +315,20 @@ class GuestAuth:
     """HMAC-signed cookie authentication. Class name kept for compatibility;
     no longer creates guest users (legacy auto-guest path removed)."""
 
-    def __init__(self, db: AtlasDB, cookie_secret: Optional[str] = None):
+    def __init__(
+        self,
+        db: AtlasDB,
+        cookie_secret: Optional[str] = None,
+        cookie_name: Optional[str] = None,
+        fallback_cookie_names: tuple[str, ...] = (),
+    ):
         self.db = db
         self.cookie_secret = cookie_secret or _default_cookie_secret()
+        self.cookie_name = cookie_name or _COOKIE_NAME
+        self.fallback_cookie_names = tuple(
+            name for name in fallback_cookie_names
+            if name and name != self.cookie_name
+        )
 
     def _sign(self, user_id: str) -> str:
         sig = hmac.new(self.cookie_secret.encode(), user_id.encode(), hashlib.sha256).hexdigest()[:16]
@@ -337,7 +348,7 @@ class GuestAuth:
         if response is None:
             return
         response.set_cookie(
-            key=_COOKIE_NAME,
+            key=self.cookie_name,
             value=self._sign(user_id),
             httponly=True,
             secure=False,
@@ -348,19 +359,20 @@ class GuestAuth:
     def _clear_cookie(self, response) -> None:
         if response is None:
             return
-        response.delete_cookie(key=_COOKIE_NAME)
+        response.delete_cookie(key=self.cookie_name)
 
     def get_user_from_cookie(self, request) -> Optional[Dict[str, Any]]:
         """Extract and verify user from request cookies."""
         if request is None:
             return None
-        cookie_value = request.cookies.get(_COOKIE_NAME)
-        if not cookie_value:
-            return None
-        user_id = self._verify(cookie_value)
-        if not user_id:
-            return None
-        return self.db.get_user(user_id)
+        for cookie_name in (self.cookie_name, *self.fallback_cookie_names):
+            cookie_value = request.cookies.get(cookie_name)
+            if not cookie_value:
+                continue
+            user_id = self._verify(cookie_value)
+            if user_id:
+                return self.db.get_user(user_id)
+        return None
 
     def ensure_bootstrap_role(self, user: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """Apply configured bootstrap admin role to an existing user."""

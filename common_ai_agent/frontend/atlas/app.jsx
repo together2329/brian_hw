@@ -306,6 +306,9 @@ const App = () => {
     try { return (norm && norm(value || '')) || ''; }
     catch (_) { return ''; }
   }, []);
+  const loggedInOwner = React.useCallback(() => (
+    normalizeSession((window.ATLAS_USER && window.ATLAS_USER.username) || '')
+  ), [normalizeSession]);
 
   const splitSessionNamespace = React.useCallback((session) => {
     const sid = normalizeSession(session);
@@ -591,16 +594,19 @@ const App = () => {
           }
           const activeForBackend = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
           if (activeForBackend) {
-            if (window.backend && typeof window.backend.disconnect === 'function' && typeof window.backend.connect === 'function') {
-              window.backend.disconnect();
-              setTimeout(() => window.backend.connect(activeForBackend), 0);
+            if (window.backend) {
+              if (typeof window.backend.switchSession === 'function') {
+                window.backend.switchSession(activeForBackend);
+              } else if (typeof window.backend.connect === 'function') {
+                window.backend.connect(activeForBackend);
+              }
             }
             const parsed = splitSessionNamespace(activeForBackend);
             fetch('/api/session/activate', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                session_id: parsed.sessionId || username,
+                owner: username || parsed.sessionId,
                 ip: parsed.ipId || 'default',
                 workflow: parsed.workflow || 'default',
               }),
@@ -735,11 +741,14 @@ const App = () => {
   }, [normalizeSession, splitActiveNamespace]);
 
   const namespaceFor = React.useCallback((sessionId, ipId, workflow) => {
-    const owner = normalizeSession(sessionId) || normalizeSession(window.ATLAS_USER_SESSION_ID || '') || 'default';
+    const owner = loggedInOwner()
+      || normalizeSession(sessionId)
+      || normalizeSession(window.ATLAS_USER_SESSION_ID || '')
+      || 'default';
     const ip = normalizeSession(ipId || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
     const wf = normalizeSession(workflow || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
     return `${owner}/${ip}/${wf}`;
-  }, [normalizeSession]);
+  }, [loggedInOwner, normalizeSession]);
 
   const activateBackendWorkflow = React.useCallback((workflow, session) => {
     // Empty input is the only true skip — `default` and `user` are
@@ -798,7 +807,7 @@ const App = () => {
 
   const activateNamespace = React.useCallback((sessionId, ipId, workflow, syncWorkflow = true, opts = {}) => {
     userPickAtRef.current = Date.now();
-    const owner = normalizeSession(sessionId) || 'default';
+    const owner = loggedInOwner() || normalizeSession(sessionId) || 'default';
     const ip = normalizeSession(ipId || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
     const wf = normalizeSession(workflow || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
     const preserveRunning = !!(opts && opts.preserveRunning);
@@ -830,9 +839,12 @@ const App = () => {
         detail: { sessionId: owner, namespace, ip, workflow: wf },
       }));
     } catch (_) {}
-    if (prev !== namespace && window.backend && typeof window.backend.disconnect === 'function' && typeof window.backend.connect === 'function') {
-      window.backend.disconnect();
-      setTimeout(() => window.backend.connect(namespace), 0);
+    if (prev !== namespace && window.backend) {
+      if (typeof window.backend.switchSession === 'function') {
+        window.backend.switchSession(namespace);
+      } else if (typeof window.backend.connect === 'function') {
+        window.backend.connect(namespace);
+      }
     }
     if (window.atlasData && typeof window.atlasData.setUserSessionId === 'function') {
       window.atlasData.setUserSessionId(owner);
@@ -860,7 +872,7 @@ const App = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            session_id: owner || 'default',
+            owner: owner || 'default',
             ip: ip || 'default',
             workflow: wf || 'default',
             preserve_running: preserveRunning,
@@ -881,7 +893,7 @@ const App = () => {
     };
     _activateAndDispatch();
     return namespace;
-  }, [activateBackendWorkflow, namespaceFor, normalizeSession, setAgentRunningState, splitSessionNamespace, syncNamespaceUrl]);
+  }, [activateBackendWorkflow, loggedInOwner, namespaceFor, normalizeSession, setAgentRunningState, splitSessionNamespace, syncNamespaceUrl]);
 
   React.useEffect(() => {
     window.activateAtlasNamespace = activateNamespace;
@@ -905,10 +917,10 @@ const App = () => {
   );
 
   const refreshTopTargets = React.useCallback(async () => {
-    const nextSessionIds = new Set(['default']);
-    const currentUserSession = normalizeSession(window.ATLAS_USER_SESSION_ID || activeSessionId);
+    const currentUserSession = loggedInOwner()
+      || normalizeSession(window.ATLAS_USER_SESSION_ID || activeSessionId);
+    const nextSessionIds = new Set([currentUserSession || 'default']);
     const holdActivation = atlasShouldHoldDashboardActivation();
-    if (currentUserSession) nextSessionIds.add(currentUserSession);
     const nextIps = new Set([WORKFLOW_DEFAULT]);
     const acceptIp = (id) => id && (id === WORKFLOW_DEFAULT || !RESERVED_IP_NAMES.has(id));
     try {
@@ -919,7 +931,9 @@ const App = () => {
           const raw = (row && row.session) || '';
           const segments = String(raw).split('/').filter(Boolean);
           const parsed = splitSessionNamespace(raw);
-          if (parsed.sessionId) nextSessionIds.add(parsed.sessionId);
+          if (parsed.sessionId && (!currentUserSession || parsed.sessionId === currentUserSession)) {
+            nextSessionIds.add(parsed.sessionId);
+          }
           // Only surface an IP if the on-disk namespace explicitly
           // names an owner (i.e. 3-segment <owner>/<ip>/<wf>). Legacy
           // 2-segment <ip>/<wf> trees parse to {sessionId:'default'},
@@ -942,7 +956,7 @@ const App = () => {
     // matches the user's mental model: "IP_ID lists IPs the backend
     // is running over, nothing more."
     try {
-      const ipOwner = normalizeSession(activeSessionId || currentUserSession || '');
+      const ipOwner = normalizeSession(currentUserSession || '');
       const ipUrl = '/api/ip/list' + (ipOwner ? `?session_id=${encodeURIComponent(ipOwner)}` : '');
       const r2 = await fetch(ipUrl, { cache: 'no-store' });
       if (r2.ok) {
@@ -953,9 +967,21 @@ const App = () => {
       }
     } catch (_) {}
 
-    const liveNamespace = holdActivation
+    let liveNamespace = holdActivation
       ? ''
       : (normalizeSession(window.ACTIVE_SESSION || activeNamespace) || namespaceFor(currentUserSession, activeIp, currentWorkflow()));
+    if (liveNamespace && currentUserSession) {
+      const liveParts = splitSessionNamespace(liveNamespace);
+      if (liveParts.sessionId && liveParts.sessionId !== currentUserSession) {
+        liveNamespace = namespaceFor(
+          currentUserSession,
+          liveParts.ipId || activeIp || WORKFLOW_DEFAULT,
+          liveParts.workflow || currentWorkflow() || WORKFLOW_DEFAULT
+        );
+        window.ACTIVE_SESSION = liveNamespace;
+        try { localStorage.setItem('atlasActiveSession', liveNamespace); } catch (_) {}
+      }
+    }
     if (!liveNamespace) {
       setSessionIdOptions(Array.from(nextSessionIds).sort((a, b) => {
         if (a === currentUserSession) return -1;
@@ -977,7 +1003,9 @@ const App = () => {
       return;
     }
     const parsedLive = splitSessionNamespace(liveNamespace);
-    if (parsedLive.sessionId) nextSessionIds.add(parsedLive.sessionId);
+    if (parsedLive.sessionId && (!currentUserSession || parsedLive.sessionId === currentUserSession)) {
+      nextSessionIds.add(parsedLive.sessionId);
+    }
     // Don't auto-include parsedLive.ipId: when the user deletes a
     // session on disk (rm -rf .session/<owner>/<ip>/<wf>) the
     // localStorage cached ACTIVE_SESSION still parses to the dead
@@ -1002,10 +1030,10 @@ const App = () => {
     // Expose for inline-code-chip click validation in workspace.jsx so
     // only IPs that actually exist on disk become clickable.
     window.IP_OPTIONS = sortedIps;
-    setActiveSessionId(parsedLive.sessionId || currentUserSession || 'default');
+    setActiveSessionId(currentUserSession || parsedLive.sessionId || 'default');
     setActiveNamespace(liveNamespace);
     setActiveIp(parsedLive.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsedLive.ipId || WORKFLOW_DEFAULT));
-  }, [activeIp, activeNamespace, activeSessionId, currentWorkflow, namespaceFor, normalizeSession, splitSessionNamespace]);
+  }, [activeIp, activeNamespace, activeSessionId, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, splitSessionNamespace]);
 
   React.useEffect(() => {
     let timer = null;
@@ -1081,7 +1109,7 @@ const App = () => {
         namespace = requestedSession || ctxSession;
       }
       const parsed = splitSessionNamespace(namespace);
-      const owner = parsed.sessionId || activeSessionId || 'default';
+      const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
       const ipSeg = parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT);
       const wfSeg = parsed.workflow || WORKFLOW_DEFAULT;
       const canonicalNamespace = namespaceFor(owner, ipSeg, wfSeg);
@@ -1116,7 +1144,7 @@ const App = () => {
       window.removeEventListener('atlas-conversation-loaded', syncCurrent);
       window.removeEventListener('atlas-data-changed', syncCurrent);
     };
-  }, [activeIp, activeNamespace, activeSessionId, currentWorkflow, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace]);
+  }, [activeIp, activeNamespace, activeSessionId, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace]);
 
   React.useEffect(() => {
     // Don't fire the URL/localStorage → backend handshake before we
@@ -1155,7 +1183,7 @@ const App = () => {
       const parsed = currentNamespace
         ? splitSessionNamespace(currentNamespace)
         : { sessionId: '', ipId: '', workflow: '' };
-      const owner = normalizeSession(parsed.sessionId || sessionId);
+      const owner = loggedInOwner() || normalizeSession(parsed.sessionId || sessionId);
       const nextIp = parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT);
       const nextWorkflow = parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT;
       const nextNamespace = currentNamespace || namespaceFor(owner, nextIp, nextWorkflow);
@@ -1172,10 +1200,16 @@ const App = () => {
     };
     window.addEventListener('atlas-session-switched', onSwitch);
     return () => window.removeEventListener('atlas-session-switched', onSwitch);
-  }, [activeIp, activeNamespace, currentWorkflow, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace, syncNamespaceUrl]);
+  }, [activeIp, activeNamespace, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace, syncNamespaceUrl]);
 
   const selectSessionId = (rawSessionId) => {
-    const owner = normalizeSession(rawSessionId) || 'default';
+    const authOwner = loggedInOwner();
+    const requestedOwner = normalizeSession(rawSessionId) || 'default';
+    if (authOwner && requestedOwner !== authOwner) {
+      showNotice('User is fixed by login. Use IP/workflow to switch scope.');
+      return;
+    }
+    const owner = authOwner || requestedOwner;
     const parsed = splitActiveNamespace();
     const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
     const wf = parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT;
@@ -1190,7 +1224,7 @@ const App = () => {
     const parsed = splitActiveNamespace();
     const cur = parsed.workflow || currentWorkflow();
     const wf = isWorkflowSegment(cur) ? cur : WORKFLOW_DEFAULT;
-    const owner = parsed.sessionId || activeSessionId || 'default';
+    const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
     activateNamespace(owner, ip, wf, true);
   };
 
@@ -1204,7 +1238,7 @@ const App = () => {
     const ok = preserveRunning || confirmStopForWorkflowSwitch(wf);
     if (!ok) return;
     const parsed = splitActiveNamespace();
-    const owner = parsed.sessionId || activeSessionId || 'default';
+    const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
     const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
     activateNamespace(owner, ip, wf, true, { preserveRunning });
   };
@@ -1218,7 +1252,12 @@ const App = () => {
     if (!raw) return;
     const owner = normalizeSession(raw);
     if (!owner) {
-      showNotice('Invalid session_id. Use only [A-Za-z0-9_.-].');
+      showNotice('Invalid user. Use only [A-Za-z0-9_.-].');
+      return false;
+    }
+    const authOwner = loggedInOwner();
+    if (authOwner && owner !== authOwner) {
+      showNotice('User is fixed by login. Use IP/workflow to switch scope.');
       return false;
     }
     setSessionIdOptions(prev => Array.from(new Set([owner].concat(prev || []))));
@@ -1243,11 +1282,9 @@ const App = () => {
       showNotice('Invalid IP name. Use only [A-Za-z0-9_.-].');
       return false;
     }
-    // IP names are globally unique across all sessions — two different
-    // sessions cannot both own an IP called "gpio_pad". /api/session/list
-    // is the per-owner namespace walk; aggregate across every row to
-    // catch collisions in OTHER sessions even though those won't show
-    // up in the current dropdown.
+    // IP names are scoped by owner. /api/session/list returns only the
+    // logged-in user's namespaces, so the duplicate guard stays local to
+    // this user and does not leak other users' IP names.
     try {
       const r = await fetch('/api/session/list', { cache: 'no-store' });
       if (r.ok) {
@@ -1258,7 +1295,7 @@ const App = () => {
           if (segs.length >= 3) taken.add(segs[1]);
         }
         if (taken.has(ip)) {
-          showNotice(`IP "${ip}" already exists in another session — IP names must be globally unique.`);
+          showNotice(`IP "${ip}" already exists for this user.`);
           return false;
         }
       }
@@ -1285,6 +1322,7 @@ const App = () => {
     window.ACTIVE_SESSION = namespace;
     window.CONTEXT = Object.assign({}, window.CONTEXT || {}, {
       active_session: namespace,
+      owner: me,
       session_id: me,
       ip_id: ip,
       ip,
@@ -1309,11 +1347,14 @@ const App = () => {
       await fetch('/api/session/activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: me, ip, workflow: 'ssot-gen' }),
+        body: JSON.stringify({ owner: me, ip, workflow: 'ssot-gen' }),
       });
     } catch (_) {}
-    if (window.backend && typeof window.backend.connect === 'function') {
-      try { window.backend.connect(namespace); } catch (_) {}
+    if (window.backend) {
+      try {
+        if (typeof window.backend.switchSession === 'function') window.backend.switchSession(namespace);
+        else if (typeof window.backend.connect === 'function') window.backend.connect(namespace);
+      } catch (_) {}
     }
     if (window.backend && typeof window.backend.send === 'function') {
       try {
@@ -1402,7 +1443,7 @@ const App = () => {
       const workflow = normalizeSession(detail.workflow || '');
       if (!workflow) return;
       const parsed = splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace || '');
-      const owner = normalizeSession(
+      const owner = loggedInOwner() || normalizeSession(
         detail.sessionId ||
         parsed.sessionId ||
         activeSessionId ||
@@ -1452,6 +1493,7 @@ const App = () => {
     confirmStopForWorkflowSwitch,
     currentWorkflow,
     execMode,
+    loggedInOwner,
     normalizeSession,
     splitSessionNamespace,
   ]);
@@ -1502,7 +1544,7 @@ const App = () => {
     const current = currentNamespace
       ? splitSessionNamespace(currentNamespace)
       : { sessionId: '', ipId: '', workflow: '' };
-    const owner = normalizeSession(
+    const owner = loggedInOwner() || normalizeSession(
       parsed.sessionId ||
       current.sessionId ||
       activeSessionId ||
@@ -1527,7 +1569,7 @@ const App = () => {
     activateNamespace(owner, ip, workflow, true, {
       preserveRunning: execMode === 'orchestrator',
     });
-  }, [activeIp, activeNamespace, activeSessionId, activateNamespace, currentWorkflow, execMode, normalizeSession, splitSessionNamespace]);
+  }, [activeIp, activeNamespace, activeSessionId, activateNamespace, currentWorkflow, execMode, loggedInOwner, normalizeSession, splitSessionNamespace]);
 
   React.useEffect(() => {
     document.documentElement.setAttribute('data-dir', dir);
@@ -1642,6 +1684,8 @@ const App = () => {
         </div>
       : <div className="app" data-dir={dir} data-theme={theme} />;
   }
+
+  const ownerEditable = !loggedInOwner();
 
   return (
     <div className="app" data-dir={dir} data-theme={theme}>
@@ -1771,27 +1815,30 @@ const App = () => {
         </div>
       )}
       <div className="dir-switcher">
-        <label className="dir-select-wrap" title={`Select user/browser session_id. Active namespace: .session/${normalizeSession(activeNamespace) || 'default'}`}>
-          <span>session_id</span>
+        <label className="dir-select-wrap" title={`Select user owner. Active namespace: .session/${normalizeSession(activeNamespace) || 'default'}`}>
+          <span>user</span>
           <select
             className="dir-select"
+            disabled={!ownerEditable}
             value={activeSessionId || 'default'}
             onChange={e => selectSessionId(e.currentTarget.value)}>
             {sessionIdOptions.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </label>
-        <button className="dir-btn"
-                title="Create a fresh browser/user session_id and keep the selected IP/workflow"
-                onClick={newSessionId}>+ Session</button>
-        {nameEntry && nameEntry.kind === 'session' && (
+        {ownerEditable && (
+          <button className="dir-btn"
+                  title="Create a local user owner and keep the selected IP/workflow"
+                  onClick={newSessionId}>+ User</button>
+        )}
+        {ownerEditable && nameEntry && nameEntry.kind === 'session' && (
           <form className="dir-name-entry"
                 data-esc-local="true"
-                title="New session_id: letters, digits, underscore, dash, or dot"
+                title="New user owner: letters, digits, underscore, dash, or dot"
                 onSubmit={(e) => { e.preventDefault(); commitNameEntry(); }}>
             <input ref={nameEntryInputRef}
                    className="dir-name-input"
-                   aria-label="New session_id"
-                   placeholder="session_id"
+                   aria-label="New user owner"
+                   placeholder="user"
                    value={nameEntry.value}
                    onChange={e => setNameEntry({ kind: 'session', value: e.currentTarget.value })}
                    onKeyDown={e => {
@@ -1802,11 +1849,11 @@ const App = () => {
                    }} />
             <button type="submit" className="dir-name-action">OK</button>
             <button type="button" className="dir-name-action"
-                    aria-label="Cancel new session_id"
+                    aria-label="Cancel new user owner"
                     onClick={() => setNameEntry(null)}>×</button>
           </form>
         )}
-        <label className="dir-select-wrap" title="Select ip_id. The current workflow is appended to session_id/ip_id/workflow.">
+        <label className="dir-select-wrap" title="Select ip_id. Namespace is user/ip_id/workflow.">
           <span>ip_id</span>
           <select
             className="dir-select ip"
@@ -1826,7 +1873,7 @@ const App = () => {
           </select>
         </label>
         <button className="dir-btn"
-                title="Create a new IP under the current session and switch to it (ssot-gen workflow)"
+                title="Create a new IP under the current user and switch to it (ssot-gen workflow)"
                 onClick={() => beginNameEntry('ip')}>+ IP</button>
         {nameEntry && nameEntry.kind === 'ip' && (
           <form className="dir-name-entry"

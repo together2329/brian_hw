@@ -62,9 +62,10 @@ def register_sessions_routes(
     @app.post("/api/session/activate")
     async def api_session_activate(req: Request):
         """Frontend → backend handshake to keep the canonical
-        (session_id, ip, workflow) triple in sync.
+        (owner, ip, workflow) namespace triple in sync.
 
-        Body: {"session_id": str, "ip": str, "workflow": str}
+        Body: {"owner": str, "ip": str, "workflow": str}
+        Legacy {"session_id": str} is still accepted as the owner field.
         Each field is optional; missing/empty values default to "default".
         Updates ATLAS_ACTIVE_SESSION and ATLAS_ACTIVE_IP env vars so all
         path resolvers in this process pivot to the same triple.
@@ -76,7 +77,14 @@ def register_sessions_routes(
             body = await req.json()
         except Exception:
             body = {}
-        sid = str((body or {}).get("session_id") or "").strip() or "default"
+        body = body or {}
+        sid = str(
+            body.get("owner")
+            or body.get("owner_id")
+            or body.get("session_owner")
+            or body.get("session_id")
+            or ""
+        ).strip() or "default"
         ip = str((body or {}).get("ip") or "").strip() or "default"
         wf = str((body or {}).get("workflow") or "").strip() or "default"
         raw_preserve = (body or {}).get("preserve_running")
@@ -88,15 +96,17 @@ def register_sessions_routes(
             else str(raw_preserve or "").strip().lower() in ("1", "true", "yes", "on")
         )
         # Sanitize — refuse exotic path chars to avoid traversal.
-        for label, val in (("session_id", sid), ("ip", ip), ("workflow", wf)):
+        for label, val in (("owner", sid), ("ip", ip), ("workflow", wf)):
             if not re.match(r"^[A-Za-z][A-Za-z0-9_-]*$", val):
                 return JSONResponse(
                     {"error": f"invalid {label}: {val!r}"},
                     status_code=400,
                 )
-        owner = _request_username(req)
+        request_owner = _request_username(req)
         multi_user_on = _multi_user_enabled()
-        if multi_user_on and owner and sid != owner:
+        if multi_user_on and not request_owner:
+            return JSONResponse({"error": "login required"}, status_code=401)
+        if multi_user_on and request_owner and sid != request_owner:
             return JSONResponse({"error": "session owner mismatch"}, status_code=403)
         sid = _session_owner_with_model(sid)
         canonical = f"{sid}/{ip}/{wf}"
@@ -278,7 +288,10 @@ def register_sessions_routes(
         return JSONResponse({
             "ok": True,
             "active_session": canonical,
+            "namespace": canonical,
+            "owner": sid,
             "session_id": sid,
+            "db_session_id": canonical,
             "ip": ip,
             "workflow": wf,
             "halted": halted,
@@ -508,6 +521,8 @@ def register_sessions_routes(
         out = []
         owner = _request_username(request)
         multi_user_on = _multi_user_enabled()
+        if multi_user_on and not owner:
+            return JSONResponse({"error": "login required", "sessions": [], "count": 0}, status_code=401)
         if root.is_dir():
             for p in sorted(root.rglob("conversation.json")):
                 try:
