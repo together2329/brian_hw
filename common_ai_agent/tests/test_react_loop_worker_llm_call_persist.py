@@ -153,6 +153,54 @@ def test_react_loop_persist_block_resolves_workflow_from_active_workspace(
     assert dict(rows[0])["workflow"] == "ssot-gen"
 
 
+def test_token_accounting_prefers_bridge_session_over_global_env(monkeypatch):
+    from core.atlas_multiuser import (
+        reset_atlas_bridge_session_id,
+        set_atlas_bridge_session_id,
+    )
+    from core.react_loop import _atlas_runtime_session_context
+
+    monkeypatch.setenv("ATLAS_ACTIVE_SESSION", "brian/ip_brian/rtl-gen")
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "ip_brian")
+    monkeypatch.setenv("ATLAS_WORKFLOW", "rtl-gen")
+
+    cfg = SimpleNamespace(
+        ATLAS_ACTIVE_SESSION="brian/ip_brian/rtl-gen",
+        ATLAS_ACTIVE_IP="ip_brian",
+        ATLAS_WORKFLOW="rtl-gen",
+    )
+    token = set_atlas_bridge_session_id("20766/ip_207/ssot-gen")
+    try:
+        session_id, ip_id, workflow = _atlas_runtime_session_context(
+            cfg,
+            "rtl-gen",
+        )
+    finally:
+        reset_atlas_bridge_session_id(token)
+
+    assert session_id == "20766/ip_207/ssot-gen"
+    assert ip_id == "ip_207"
+    assert workflow == "ssot-gen"
+
+
+def test_token_accounting_keeps_legacy_session_id_fallback(monkeypatch):
+    from core.react_loop import _atlas_runtime_session_context
+
+    monkeypatch.delenv("ATLAS_ACTIVE_SESSION", raising=False)
+    monkeypatch.setenv("ATLAS_SESSION_ID", "sess-ssotgen-001")
+    monkeypatch.setenv("ATLAS_IP_ID", "ip-ssotgen-001")
+    monkeypatch.setenv("ATLAS_WORKFLOW", "ssot-gen")
+
+    session_id, ip_id, workflow = _atlas_runtime_session_context(
+        SimpleNamespace(),
+        "ssot-gen",
+    )
+
+    assert session_id == "sess-ssotgen-001"
+    assert ip_id == "ip-ssotgen-001"
+    assert workflow == "ssot-gen"
+
+
 def test_react_loop_source_contains_persist_block():
     """Pin that the persistence block is wired into react_loop.py — if a
     refactor moves it, the test enforces an explicit decision."""
@@ -166,3 +214,4 @@ def test_react_loop_source_contains_persist_block():
     )
     assert 'call_role="worker"' in source
     assert "ATLAS_DB_PATH" in source
+    assert "_atlas_runtime_session_context" in source

@@ -19,6 +19,109 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from lib.display import Color
 
 
+_ATLAS_DEFAULT_SESSION_PLACEHOLDERS = {
+    "",
+    "default",
+    "default/default",
+    "default/default/default",
+}
+
+
+def _atlas_normalized_session(value: Any) -> str:
+    """Return a safe Atlas session namespace, excluding default placeholders."""
+    try:
+        from core.session_names import normalize_session_name
+        session = normalize_session_name(str(value or ""))
+    except Exception:
+        session = str(value or "").strip().strip("/")
+    if session in _ATLAS_DEFAULT_SESSION_PLACEHOLDERS:
+        return ""
+    return session
+
+
+def _atlas_main_active_session() -> str:
+    for module_name in ("main", "src.main"):
+        try:
+            module = __import__(module_name, fromlist=["_get_active_session_str"])
+        except Exception:
+            continue
+        fn = getattr(module, "_get_active_session_str", None)
+        if not callable(fn):
+            continue
+        try:
+            session = _atlas_normalized_session(fn())
+        except Exception:
+            session = ""
+        if session:
+            return session
+    return ""
+
+
+def _atlas_runtime_workflow(cfg: Any) -> str:
+    return (
+        os.environ.get("ATLAS_WORKFLOW", "")
+        or (getattr(cfg, "ATLAS_WORKFLOW", "") or "")
+        or os.environ.get("ATLAS_WORKER_NAME", "")
+        or (getattr(cfg, "ATLAS_WORKER_NAME", "") or "")
+        or os.environ.get("ACTIVE_WORKSPACE", "")
+        or (getattr(cfg, "ACTIVE_WORKSPACE", "") or "")
+        or os.environ.get("ATLAS_DEFAULT_WORKFLOW", "")
+        or (getattr(cfg, "ATLAS_DEFAULT_WORKFLOW", "") or "")
+        or "orchestrator"
+    )
+
+
+def _atlas_runtime_session_context(
+    cfg: Any,
+    fallback_workflow: str = "",
+) -> tuple[str, str, str]:
+    """Resolve the session/ip/workflow used for Atlas token accounting.
+
+    In multi-user Atlas, process-wide env vars can point at another browser
+    user's most recent activation. The bridge context is per agent thread, so
+    it must win whenever present.
+    """
+    try:
+        from core.atlas_multiuser import get_atlas_bridge_session_id
+        session_id = _atlas_normalized_session(get_atlas_bridge_session_id())
+    except Exception:
+        session_id = ""
+
+    if not session_id:
+        session_id = _atlas_main_active_session()
+
+    if not session_id:
+        for candidate in (
+            os.environ.get("ATLAS_ACTIVE_SESSION", ""),
+            getattr(cfg, "ATLAS_ACTIVE_SESSION", "") or "",
+            os.environ.get("ATLAS_SESSION_ID", ""),
+            getattr(cfg, "ATLAS_SESSION_ID", "") or "",
+        ):
+            session_id = _atlas_normalized_session(candidate)
+            if session_id:
+                break
+
+    parts = [part for part in session_id.split("/") if part]
+    ip_id = ""
+    workflow = fallback_workflow or _atlas_runtime_workflow(cfg)
+    if len(parts) >= 3:
+        ip_id = parts[1]
+        workflow = parts[2] or workflow
+    elif len(parts) == 2:
+        ip_id = parts[0]
+        workflow = parts[1] or workflow
+
+    if not ip_id:
+        ip_id = (
+            os.environ.get("ATLAS_IP_ID", "")
+            or (getattr(cfg, "ATLAS_IP_ID", "") or "")
+            or os.environ.get("ATLAS_ACTIVE_IP", "")
+            or (getattr(cfg, "ATLAS_ACTIVE_IP", "") or "")
+        )
+
+    return session_id, ip_id, workflow
+
+
 # ---------------------------------------------------------------------------
 # Pure stream-display helpers (extracted from the nested closures in main.py)
 # ---------------------------------------------------------------------------
@@ -1130,27 +1233,15 @@ def run_react_agent_impl(
                     os.environ.get("ATLAS_DB_PATH")
                     or str(_Path.home() / ".common_ai_agent" / "atlas.db")
                 )
-                _workflow = (
-                    os.environ.get("ATLAS_WORKFLOW", "")
-                    or (getattr(cfg, "ATLAS_WORKFLOW", "") or "")
-                    or os.environ.get("ATLAS_WORKER_NAME", "")
-                    or (getattr(cfg, "ATLAS_WORKER_NAME", "") or "")
-                    or os.environ.get("ACTIVE_WORKSPACE", "")
-                    or (getattr(cfg, "ACTIVE_WORKSPACE", "") or "")
-                    or os.environ.get("ATLAS_DEFAULT_WORKFLOW", "")
-                    or (getattr(cfg, "ATLAS_DEFAULT_WORKFLOW", "") or "")
-                    or "orchestrator"
+                _workflow = _atlas_runtime_workflow(cfg)
+                _session_id, _ip_id, _workflow = _atlas_runtime_session_context(
+                    cfg,
+                    _workflow,
                 )
                 with AtlasDB(_db_path) as _db:
                     _db.record_llm_call(
-                        session_id=os.environ.get("ATLAS_SESSION_ID", "")
-                            or (getattr(cfg, "ATLAS_SESSION_ID", "") or "")
-                            or os.environ.get("ATLAS_ACTIVE_SESSION", "")
-                            or (getattr(cfg, "ATLAS_ACTIVE_SESSION", "") or ""),
-                        ip_id=os.environ.get("ATLAS_IP_ID", "")
-                            or (getattr(cfg, "ATLAS_IP_ID", "") or "")
-                            or os.environ.get("ATLAS_ACTIVE_IP", "")
-                            or (getattr(cfg, "ATLAS_ACTIVE_IP", "") or ""),
+                        session_id=_session_id,
+                        ip_id=_ip_id,
                         workflow=_workflow,
                         model=_model_name,
                         provider=os.environ.get("ATLAS_PROVIDER", "")

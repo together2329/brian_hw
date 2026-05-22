@@ -523,10 +523,10 @@ class _MultiUserBridge:
         return self._active_session()
 
     def get_input(self, prompt: str = "") -> str:
-        return self._active_session().get_input(prompt)
+        return self._context_session().get_input(prompt)
 
     def poll_interrupt(self) -> str | None:
-        return self._active_session().poll_interrupt()
+        return self._context_session().poll_interrupt()
 
     def emit(self, msg_type: str, **payload: Any) -> None:
         session_id = payload.get("session_id")
@@ -724,10 +724,10 @@ class _MultiUserBridge:
         self._active_session().request_stop()
 
     def check_stop(self) -> bool:
-        return self._active_session().check_stop()
+        return self._context_session().check_stop()
 
     def msg_id_seen(self, msg_id: str) -> bool:
-        return self._active_session().msg_id_seen(msg_id)
+        return self._context_session().msg_id_seen(msg_id)
 
     async def next_event(self, timeout: float = 0.05) -> tuple[dict[str, Any] | None, str | None]:
         loop = asyncio.get_event_loop()

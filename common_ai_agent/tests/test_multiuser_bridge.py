@@ -211,6 +211,26 @@ def test_question_flow_uses_context_session_not_latest_active():
     assert bridge.get_session("user-a").pending_ask_user_events() == []
 
 
+def test_agent_io_uses_context_session_not_latest_active():
+    bridge = _MultiUserBridge()
+    bridge.activate_session("user-b")
+    bridge.queue_prompt_for_session("user-a", "prompt-a")
+    bridge.queue_prompt_for_session("user-b", "prompt-b")
+    bridge.submit_interrupt_for_session("user-a", "interrupt-a")
+    bridge.request_stop_for_session("user-a")
+
+    token = set_atlas_bridge_session_id("user-a")
+    try:
+        assert bridge.get_input() == "prompt-a"
+        assert bridge.poll_interrupt() == "interrupt-a"
+        assert bridge.check_stop() is True
+        assert bridge.check_stop() is False
+    finally:
+        reset_atlas_bridge_session_id(token)
+
+    assert bridge.get_input() == "prompt-b"
+
+
 if __name__ == "__main__":
     test_session_isolation()
     test_client_binding()
