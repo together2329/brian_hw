@@ -812,6 +812,18 @@ const normalizeArchitectSession = (session) => {
   catch (_) { return ''; }
 };
 
+const architectEventMatchesActiveSession = (m, opts = {}) => {
+  const eventSession = normalizeArchitectSession((m && (m.session_id || m.session || m.namespace)) || '');
+  const activeSession = normalizeArchitectSession(
+    window.ACTIVE_SESSION
+    || (window.CONTEXT && (window.CONTEXT.activeSession || window.CONTEXT.active_session))
+    || ''
+  );
+  if (!activeSession) return !opts.requireSession;
+  if (!eventSession) return !opts.requireSession;
+  return eventSession === activeSession;
+};
+
 // Pipeline strip shared by V6 grid + V7 diagram. Same logic as the
 // upstream zip; lives here because soc-shared.jsx doesn't ship it.
 window.PIPELINE_STAGES = [
@@ -1575,13 +1587,17 @@ window.SocArchitect = function SocArchitect() {
       refreshTimerRef.current = setTimeout(() => { refreshSoc(); }, 500);
     };
     const unsubA = window.backend.subscribe('tool_result', (m) => {
+      if (!architectEventMatchesActiveSession(m, { requireSession: true })) return;
       const t = (m.text || '');
       // Only refresh when the tool result mentions a path that looks
       // like an SSOT mutation. Keeps unrelated tool calls (Read, grep)
       // from spamming the endpoint.
       if (/\.ssot\.yaml|\.sv\b|\bsim\/|\brtl\//.test(t)) schedule();
     });
-    const unsubB = window.backend.subscribe('flush', schedule);
+    const unsubB = window.backend.subscribe('flush', (m) => {
+      if (!architectEventMatchesActiveSession(m, { requireSession: true })) return;
+      schedule();
+    });
     return () => {
       try { unsubA(); } catch (_) {}
       try { unsubB(); } catch (_) {}
@@ -3519,9 +3535,11 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
     if (!window.backend || typeof window.backend.subscribe !== 'function') return;
     const subs = [];
     subs.push(window.backend.subscribe('token', (m) => {
+      if (!architectEventMatchesActiveSession(m, { requireSession: true })) return;
       bufRef.current += (m.text || '');
     }));
     subs.push(window.backend.subscribe('reasoning', (m) => {
+      if (!architectEventMatchesActiveSession(m, { requireSession: true })) return;
       const t = (m.text || '').trim(); if (!t) return;
       setFeed(l => {
         const last = l[l.length - 1];
@@ -3532,6 +3550,7 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
       });
     }));
     subs.push(window.backend.subscribe('tool', (m) => {
+      if (!architectEventMatchesActiveSession(m, { requireSession: true })) return;
       const t = (m.text || '').trim(); if (!t) return;
       // Park any pending tokens before the tool entry.
       const buf = bufRef.current;
@@ -3540,6 +3559,7 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
       setFeed(l => [...l, { kind: 'action', text: t }]);
     }));
     subs.push(window.backend.subscribe('tool_result', (m) => {
+      if (!architectEventMatchesActiveSession(m, { requireSession: true })) return;
       const t = (m.text || '').trim(); if (!t) return;
       setFeed(l => [...l, { kind: 'obs', text: t.slice(0, 1200), tool: m.tool || '' }]);
     }));
@@ -3548,13 +3568,21 @@ window.ArchitectChat = function ArchitectChat({ view, selModule, selCluster, onD
       if (buf.trim()) setFeed(l => [...l, { kind: 'agent', text: buf }]);
       bufRef.current = '';
     };
-    subs.push(window.backend.subscribe('flush', park));
-    subs.push(window.backend.subscribe('done', () => { park(); setStreaming(false); }));
+    subs.push(window.backend.subscribe('flush', (m) => {
+      if (!architectEventMatchesActiveSession(m, { requireSession: true })) return;
+      park();
+    }));
+    subs.push(window.backend.subscribe('done', (m) => {
+      if (!architectEventMatchesActiveSession(m, { requireSession: true })) return;
+      park(); setStreaming(false);
+    }));
     subs.push(window.backend.subscribe('agent_state', (m) => {
+      if (!architectEventMatchesActiveSession(m, { requireSession: true })) return;
       if (m.running === false) { park(); setStreaming(false); }
       else if (m.running === true) setStreaming(true);
     }));
     subs.push(window.backend.subscribe('error', (m) => {
+      if (!architectEventMatchesActiveSession(m, { requireSession: true })) return;
       setFeed(l => [...l, { kind: 'agent', text: `[error] ${m.message || ''}` }]);
       setStreaming(false);
     }));

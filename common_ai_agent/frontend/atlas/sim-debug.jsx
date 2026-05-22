@@ -13,6 +13,24 @@ const normalizeProjectSourcePath = (rawPath) => {
   return raw.replace(/^\/+/, '');
 };
 
+const normalizeAtlasEventSession = (session) => {
+  const norm = (window.atlasData && window.atlasData.normalizeSessionName) || window.normalizeAtlasSessionName;
+  try { return norm ? norm(session || '') : ''; }
+  catch (_) { return ''; }
+};
+
+const atlasEventMatchesActiveSession = (m, opts = {}) => {
+  const eventSession = normalizeAtlasEventSession((m && (m.session_id || m.session || m.namespace)) || '');
+  const activeSession = normalizeAtlasEventSession(
+    window.ACTIVE_SESSION
+    || (window.CONTEXT && (window.CONTEXT.activeSession || window.CONTEXT.active_session))
+    || ''
+  );
+  if (!activeSession) return !opts.requireSession;
+  if (!eventSession) return !opts.requireSession;
+  return eventSession === activeSession;
+};
+
 const isDumpScopeName = (name) => {
   const n = String(name || '');
   return n === 'iverilog_dump' || n === 'atlas_iverilog_vcd_dump' || /_vcd_dump$/.test(n);
@@ -1168,6 +1186,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
     if (!window.backend) return;
     const subs = [];
     subs.push(window.backend.subscribe('token', (m) => {
+      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
       const t = m.text || '';
       if (!t || t === '\x00') return;
       _streamBuf.current += t;
@@ -1180,6 +1199,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
       });
     }));
     subs.push(window.backend.subscribe('reasoning', (m) => {
+      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
       const t = (m.text || '').trim(); if (!t) return;
       setChatFeed(f => {
         const last = f[f.length - 1];
@@ -1203,13 +1223,21 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
       }
       _streamBuf.current = '';
     };
-    subs.push(window.backend.subscribe('flush', park));
-    subs.push(window.backend.subscribe('done', () => { park(); setChatStreaming(false); }));
+    subs.push(window.backend.subscribe('flush', (m) => {
+      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
+      park();
+    }));
+    subs.push(window.backend.subscribe('done', (m) => {
+      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
+      park(); setChatStreaming(false);
+    }));
     subs.push(window.backend.subscribe('agent_state', (m) => {
+      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
       if (m.running === false) { park(); setChatStreaming(false); }
       else if (m.running === true) setChatStreaming(true);
     }));
     subs.push(window.backend.subscribe('slash_output', (m) => {
+      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
       const t = m.text || ''; if (!t) return;
       // de-dupe vs streaming buffer
       if (_streamBuf.current && _streamBuf.current.indexOf(t) >= 0) return;
@@ -1217,6 +1245,7 @@ window.SimDebug = ({ view = 'debug', initialTab = '' } = {}) => {
       _streamBuf.current = '';
     }));
     subs.push(window.backend.subscribe('error', (m) => {
+      if (!atlasEventMatchesActiveSession(m, { requireSession: true })) return;
       setChatFeed(f => [...f, { kind: 'sys', text: `[error] ${m.message || ''}`, ts: Date.now() }]);
       setChatStreaming(false);
     }));

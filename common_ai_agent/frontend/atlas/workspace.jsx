@@ -868,6 +868,12 @@ const normalizeUiSession = (session) => {
   catch (_) { return ''; }
 };
 
+const healthMatchesCurrentUser = (payload) => {
+  const current = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '');
+  const response = normalizeUiSession((payload && payload.user_session) || '');
+  return !(current && response && current !== response);
+};
+
 // URL `?ip=` wins over localStorage on the READ direction so deep links
 // like /?ip=cmux_url_test pick up the requested IP even when a previous
 // session left `validator/default/default` in localStorage.
@@ -1591,7 +1597,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       fetch('/healthz', { cache: 'no-store' })
         .then(r => r.ok ? r.json() : null)
         .then(j => {
-          if (cancelled || !j) return;
+          if (cancelled || !j || !healthMatchesCurrentUser(j)) return;
           setWorkspaceTelemetry(prev => ({
             ...prev,
             tokensIn: j.tokens_in != null ? Number(j.tokens_in || 0) : Number(prev.tokensIn || 0),
@@ -2758,6 +2764,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       setStreamText(streamBufferRef.current);
     };
     subs.push(window.backend.subscribe('token', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
       const t = m.text || '';
       if (!t || t === '\x00') return;
       awaitingRunStartRef.current = false;
@@ -2786,6 +2793,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       });
     };
     subs.push(window.backend.subscribe('reasoning', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
       const t = (m.text || '').trim();
       if (!t) return;
       awaitingRunStartRef.current = false;
@@ -2801,6 +2809,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // chat for messages/tool_result only.
     // Tool call header: agent is about to invoke a tool.
     subs.push(window.backend.subscribe('tool', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
       const t = (m.text || '').trim();
       if (!t) return;
       awaitingRunStartRef.current = false;
@@ -2846,6 +2855,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     }));
     // Tool observation: the result the agent just received from the tool.
     subs.push(window.backend.subscribe('tool_result', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
       const t = (m.text || '').trim();
       if (!t) return;
       awaitingRunStartRef.current = false;
@@ -2924,6 +2934,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // the user types "y" to confirm). Sync the UI pill so it doesn't
     // stay stuck on PLAN while the agent is already executing writes.
     subs.push(window.backend.subscribe('mode_change', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
       const target = (m.mode || '').toLowerCase();
       if (target === 'normal' || target === 'plan') {
         setIntent(target);
@@ -2936,6 +2947,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // AND the feed's last agent entry (edge case: flush already parked the
     // buffer and cleared it before this event arrived).
     subs.push(window.backend.subscribe('slash_output', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
       const t = m.text || '';
       if (!t) return;
       const shown = _unwrapAtlasOutputFence(t);
@@ -2957,9 +2969,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       streamBufferRef.current = '';
       setStreamText('');
     }));
-    subs.push(window.backend.subscribe('flush', parkBuffer));
-    subs.push(window.backend.subscribe('done', turnEnd));
+    subs.push(window.backend.subscribe('flush', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
+      parkBuffer();
+    }));
+    subs.push(window.backend.subscribe('done', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
+      turnEnd();
+    }));
     subs.push(window.backend.subscribe('agent_state', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
       if (m.running === false) {
         if (awaitingRunStartRef.current && !backendRunStartedRef.current) return;
         turnEnd();
@@ -2970,6 +2989,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       }
     }));
     subs.push(window.backend.subscribe('error', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
       setFeed(l => [...l, { kind: 'agent', text: `[error] ${m.message || ''}`, createdAt: Date.now() }]);
       streamBufferRef.current = '';
       setStreamText('');
@@ -2983,6 +3003,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // the user sees N tabs (☐/☒ marker per tab + a final ✔ Submit tab),
     // fills each, then submits all answers in one round-trip.
     subs.push(window.backend.subscribe('ask_user', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
       const flowId = m.flow_id;
       if (!flowId) return;
       activateAskUserSession(m.session, m.ip, m.workflow);
@@ -3080,6 +3101,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       }
     }));
     subs.push(window.backend.subscribe('ssot_approval_ready', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
       if (!m || !m.ip) return;
       const payload = { ...m, createdAt: Date.now() };
       setSsotApproval(payload);
@@ -3095,6 +3117,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       setStreaming(false);
     }));
     const closeAskUser = (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
       const flowId = m && m.flow_id;
       if (!flowId) return;
       setQaState(s => {
@@ -3106,7 +3129,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     };
     subs.push(window.backend.subscribe('ask_user_answered', closeAskUser));
     subs.push(window.backend.subscribe('ask_user_closed', closeAskUser));
-    subs.push(window.backend.subscribe('ssot_qa_updated', (m) => refreshSsotQa(m && m.session)));
+    subs.push(window.backend.subscribe('ssot_qa_updated', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
+      refreshSsotQa(m && m.session);
+    }));
     // /new-ip and other backend-driven pivots ask the UI to switch
     // namespace without a manual dropdown click. activateAtlasNamespace
     // is exported by app.jsx at mount time.
@@ -15570,7 +15596,7 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
       fetch('/healthz', { cache: 'no-store' })
         .then(r => r.ok ? r.json() : null)
         .then(j => {
-          if (!j) return;
+          if (!j || !healthMatchesCurrentUser(j)) return;
           syncContext({
             model: j.model || j.base_model || '',
             maxTokens: j.max_context,

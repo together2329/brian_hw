@@ -36,6 +36,7 @@ _SESSION_PRIVATE_BROADCAST_TYPES = {
     "todo",
     "todo_line",
     "token",
+    "token_usage",
     "tool",
     "tool_result",
     "worker_exited",

@@ -472,6 +472,12 @@
   }
   window.normalizeAtlasSessionName = normalizeSessionName;
 
+  function healthMatchesCurrentUser(payload) {
+    const current = normalizeSessionName((window.ATLAS_USER && window.ATLAS_USER.username) || '');
+    const response = normalizeSessionName((payload && payload.user_session) || '');
+    return !(current && response && current !== response);
+  }
+
   function readUrlNamespace() {
     let params;
     try { params = new URLSearchParams(window.location.search || ''); }
@@ -833,6 +839,7 @@
       const r = await fetch('/healthz');
       if (!r.ok) return;
       const d = await r.json();
+      if (!healthMatchesCurrentUser(d)) return;
       // First-visit seed of the per-user session id. /healthz now
       // carries the IPv4-derived user_session, so we don't need a
       // separate /api/whoami round-trip on boot. Also seed
@@ -1126,6 +1133,7 @@
         refreshWorkflows();
       });
       window.backend.subscribe('todo_line', (m) => {
+        if (!eventMatchesActiveSession(m, { requireSession: true })) return;
         const raw = Array.isArray(m && m.todos)
           ? m.todos
           : (m && m.todo_state && Array.isArray(m.todo_state.todos) ? m.todo_state.todos : null);
@@ -1136,6 +1144,7 @@
         setTimeout(refreshTodos, 300);
       });
       window.backend.subscribe('tool_result', (m) => {
+        if (!eventMatchesActiveSession(m, { requireSession: true })) return;
         // Coalesce into one fetch per ~250 ms — see _refFiles etc.
         _refFiles(); _refSsot(); _refTodos();
         refreshProgress();
@@ -1152,6 +1161,7 @@
       // and broadcast a window event so the open preview pane /
       // full SSOT view can self-reload if they were viewing this path.
       window.backend.subscribe('file_changed', (m) => {
+        if (!eventMatchesActiveSession(m, { requireSession: true })) return;
         _refFiles(); _refSsot();
         const path = (m && m.path) ? String(m.path) : '';
         dispatchAtlasFileChanged(path, (m && m.tool) || '');
@@ -1253,7 +1263,8 @@
       // Every flush (end of a slash result, end of an iteration's tokens)
       // is a cheap excuse to resync state so /todo clear, /clear, etc.
       // reflect immediately instead of waiting for the next 5 s poll.
-      window.backend.subscribe('flush', () => {
+      window.backend.subscribe('flush', (m) => {
+        if (!eventMatchesActiveSession(m, { requireSession: true })) return;
         refreshTodos();
         refreshProgress();
       });

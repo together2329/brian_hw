@@ -2807,7 +2807,13 @@ def create_app():
         strict_session_routing=_strict_routing,
         single_worker_per_owner=_single_worker_per_owner,
     )
-    app.add_event_handler("shutdown", bridge.stop_all_processes)
+    add_event_handler = getattr(app, "add_event_handler", None)
+    if not callable(add_event_handler):
+        add_event_handler = getattr(getattr(app, "router", None), "add_event_handler", None)
+    if callable(add_event_handler):
+        add_event_handler("shutdown", bridge.stop_all_processes)
+    else:
+        app.on_event("shutdown")(bridge.stop_all_processes)
     # Register the bridge so the ReAct loop's orchestrator chat
     # injector (built lazily inside main.py / agent_server.py before
     # this point) can resolve sessions for the chat watermark.
