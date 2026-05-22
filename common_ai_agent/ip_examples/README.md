@@ -1,8 +1,9 @@
-# Generated IP Examples
+# IP Examples
 
-This folder collects generated IP example outputs that are not tracked as part of
-the source/test fixture tree.
+This folder collects IP example and checkpoint directories generated or used by
+the ATLAS hardware workflow.
 
-The example contents are intentionally ignored by the parent repository because
-they are generated artifacts. Keep canonical tracked fixtures at their existing
-paths unless the corresponding references and tests are updated together.
+It contains both canonical tracked fixtures and ignored generated run outputs.
+The folder-level ignore keeps new transient artifacts out of the parent
+repository by default; use an explicit force-add only when a new fixture file is
+intended to be versioned.

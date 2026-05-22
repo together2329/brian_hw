@@ -1,14 +1,19 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-22T01:46:38Z",
+  "generated_at": "2026-05-22T01:57:12Z",
   "root": "doc/wiki",
-  "node_count": 72,
-  "edge_count": 366,
+  "node_count": 76,
+  "edge_count": 376,
   "tags": {
     "atcdmac100": [
       "atcdmac100-document-flow-ui-honesty-20260518"
     ],
+    "atcwdt200": [
+      "atcwdt200-flow-debugging-lessons",
+      "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
+    ],
     "atlas": [
+      "atlas-dag-ip-flow-runbook",
       "atlas-e2e-validation-20260519"
     ],
     "atlas-ui": [
@@ -25,7 +30,18 @@
     "audit": [
       "orchestrator-verification-report"
     ],
+    "cocotb": [
+      "atcwdt200-flow-debugging-lessons"
+    ],
+    "cycle-model": [
+      "atlas-dag-ip-flow-runbook"
+    ],
+    "dag": [
+      "atlas-dag-ip-flow-runbook"
+    ],
     "debugging": [
+      "atcwdt200-flow-debugging-lessons",
+      "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
       "pl330-real-orchestrator-ui-lessons-20260517"
     ],
     "dma": [
@@ -51,6 +67,12 @@
     ],
     "import": [
       "ssot-conversion-flow-20260519"
+    ],
+    "ip-flow": [
+      "atlas-dag-ip-flow-runbook"
+    ],
+    "lint": [
+      "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
     ],
     "llm-loop": [
       "orchestrator-llm-loop-phase3"
@@ -83,6 +105,7 @@
       "orchestrator-llm-loop-phase3"
     ],
     "pipeline": [
+      "atlas-dag-ip-flow-runbook",
       "atlas-pipeline-worker-workspace-jump"
     ],
     "pl330": [
@@ -108,19 +131,36 @@
     "reviewed": [
       "orchestrator-loop-on-react-loop-plan"
     ],
+    "rtl-audit": [
+      "atcwdt200-flow-debugging-lessons"
+    ],
     "rtl-gen": [
+      "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
       "atlas-e2e-validation-20260519",
       "pl330-real-orchestrator-ui-lessons-20260517"
+    ],
+    "scoreboard": [
+      "atcwdt200-flow-debugging-lessons"
     ],
     "signoff": [
       "atcdmac100-document-flow-ui-honesty-20260518"
     ],
+    "sim": [
+      "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
+    ],
     "ssot": [
+      "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
       "ssot-conversion-flow-20260519"
     ],
     "ssot-gen": [
       "atlas-e2e-validation-20260519",
       "ssot-conversion-flow-20260519"
+    ],
+    "tb-gen": [
+      "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
+    ],
+    "timeline": [
+      "atlas-dag-ip-flow-runbook"
     ],
     "to-ssot": [
       "ssot-conversion-flow-20260519"
@@ -158,8 +198,11 @@
       "arm-m0-min-current-status",
       "arm-m0-min-pipeline-run",
       "atcuart100-pipeline-run",
+      "atcwdt200-flow-debugging-lessons",
       "atcwdt200-pipeline-run-20260517",
+      "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
       "atlas-browser-control-runbook",
+      "atlas-dag-ip-flow-runbook",
       "atlas-new-ip-recipe",
       "atlas-pipeline-db-state",
       "atlas-pipeline-screen",
@@ -183,6 +226,7 @@
       "gpio-serial-pipeline-run",
       "human-review-and-escalation",
       "index",
+      "interactive-ask-user-ip-discovery",
       "ip-edge-inputs-20260519",
       "karpathy-llm-wiki-pattern",
       "log",
@@ -399,6 +443,29 @@
       "size_bytes": 13171
     },
     {
+      "id": "atcwdt200-flow-debugging-lessons",
+      "title": "ATCWDT200 Flow Debugging Lessons",
+      "type": "reference",
+      "tags": [
+        "atcwdt200",
+        "rtl-audit",
+        "cocotb",
+        "scoreboard",
+        "debugging"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-17 07:19:24.949000+00:00",
+      "summary": "- `derive_rtl_todos.py --audit-rtl` strips comments before matching evidence terms. - Put required terms into real implementation paths, not comments. - Prefer semantic closure: - CSR terms through decode/mask/read mux (`CR_FIELDS_x7ff`, `prdata_rule`). - output terms through real output equations (`wdt_int`, `wdt_rst`). - FSM/counter terms through…",
+      "path": "doc/wiki/atcwdt200-flow-debugging-lessons.md",
+      "size_bytes": 2832
+    },
+    {
       "id": "atcwdt200-pipeline-run-20260517",
       "title": "atcwdt200 - Andes Watchdog Timer Pipeline Run (2026-05-17)",
       "type": "reference",
@@ -423,6 +490,32 @@
       "size_bytes": 6493
     },
     {
+      "id": "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
+      "title": "ATCWDT200 SSOT RTL TB Flow 시행착오 2026-05-17",
+      "type": "reference",
+      "tags": [
+        "atcwdt200",
+        "ssot",
+        "rtl-gen",
+        "tb-gen",
+        "sim",
+        "lint",
+        "debugging"
+      ],
+      "related": [],
+      "outgoing": [
+        "atcwdt200-flow-debugging-lessons"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-17 07:19:09.155000+00:00",
+      "summary": "- 목표: `/Users/brian/Desktop/andes/atcwdt200` reference evidence를 요구사항으로 삼아, RTL engineer user 관점에서 SSOT Q&A -> SSOT -> FL/CL/equiv -> RTL -> TB -> sim -> lint 흐름을 끝까지 실행. - IP: `atcwdt200`, APB-like watchdog timer. - Canonical flow reference: `doc/wiki/full-flow-pipeline.md`.",
+      "path": "doc/wiki/atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17.md",
+      "size_bytes": 4722
+    },
+    {
       "id": "atlas-browser-control-runbook",
       "title": "ATLAS Browser Control Runbook",
       "type": "reference",
@@ -443,6 +536,32 @@
       "summary": "This page is the concrete handoff for agents that must operate the visible ATLAS UI, not just call backend scripts. Use it when the user asks for \"web browser\", \"ATLAS UI\", \"I want to see it\", or visible click/type validation.",
       "path": "doc/wiki/atlas-browser-control-runbook.md",
       "size_bytes": 12012
+    },
+    {
+      "id": "atlas-dag-ip-flow-runbook",
+      "title": "ATLAS DAG IP Flow Runbook",
+      "type": "reference",
+      "tags": [
+        "atlas",
+        "dag",
+        "pipeline",
+        "ip-flow",
+        "cycle-model",
+        "timeline"
+      ],
+      "related": [],
+      "outgoing": [
+        "full-flow-pipeline",
+        "workflow-ownership-and-boundaries"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-21 22:57:40+09:00",
+      "summary": "DAG means **Directed Acyclic Graph**.",
+      "path": "doc/wiki/atlas-dag-ip-flow-runbook.md",
+      "size_bytes": 5036
     },
     {
       "id": "atlas-e2e-validation-20260519",
@@ -900,6 +1019,7 @@
         "atcdmac100-document-flow-ui-honesty-20260518",
         "atcuart100-pipeline-run",
         "atcwdt200-pipeline-run-20260517",
+        "atlas-dag-ip-flow-runbook",
         "atlas-e2e-validation-20260519",
         "atlas-pipeline-db-state",
         "atlas-pipeline-screen",
@@ -910,6 +1030,7 @@
         "gpio-serial-pipeline-run",
         "human-review-and-escalation",
         "index",
+        "interactive-ask-user-ip-discovery",
         "log",
         "octa-ddr-spi-orch-run-20260517",
         "orchestrator-chat-only-product-plan",
@@ -1043,6 +1164,7 @@
         "common-ai-agent-map",
         "gpio-serial-pipeline-run",
         "index",
+        "interactive-ask-user-ip-discovery",
         "octa-ddr-spi-orch-run-20260517",
         "orchestrator-worker-handoff",
         "orchestrator-workflow-bring-up-20260517",
@@ -1099,6 +1221,8 @@
         "auth-cookie-expiry-20260519",
         "ssot-import-multi-format-20260519",
         "ssot-conversion-flow-20260519",
+        "atlas-dag-ip-flow-runbook",
+        "interactive-ask-user-ip-discovery",
         "ssot-qa-workbench",
         "ssot-gen-pass-pipeline",
         "full-flow-pipeline",
@@ -1121,6 +1245,8 @@
         "round2-retry-budget-cross-workflow-routing-20260517",
         "atcuart100-pipeline-run",
         "atcwdt200-pipeline-run-20260517",
+        "atcwdt200-flow-debugging-lessons",
+        "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
         "dma-real-sim-debug-knowhow",
         "workflow-improvement-candidates"
       ],
@@ -1134,7 +1260,27 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 20936
+      "size_bytes": 21841
+    },
+    {
+      "id": "interactive-ask-user-ip-discovery",
+      "title": "Interactive Ask User IP Discovery",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "workflow-ownership-and-boundaries",
+        "human-review-and-escalation",
+        "full-flow-pipeline"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Use the interactive `ask_user` flow when validating real SSOT discovery UX. Headless, CI, and pipeline runs may execute the same workflow logic, but they do not represent the real human Q&A surface.",
+      "path": "doc/wiki/interactive-ask-user-ip-discovery.md",
+      "size_bytes": 3502
     },
     {
       "id": "ip-edge-inputs-20260519",
@@ -2225,6 +2371,7 @@
         "arm-m0-min-pipeline-run",
         "atcuart100-pipeline-run",
         "atcwdt200-pipeline-run-20260517",
+        "atlas-dag-ip-flow-runbook",
         "atlas-pipeline-screen",
         "common-ai-agent-map",
         "deterministic-emit-stages",
@@ -2233,6 +2380,7 @@
         "gpio-serial-pipeline-run",
         "human-review-and-escalation",
         "index",
+        "interactive-ask-user-ip-discovery",
         "karpathy-llm-wiki-pattern",
         "log",
         "multi-user-worker-conflicts",
