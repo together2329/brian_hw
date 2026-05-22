@@ -17764,11 +17764,52 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     uvicorn.run(app, host=host, port=port, log_level="warning", loop="asyncio", http="h11")
 
 
+def _launch_admin_server(admin_port: str, admin_host: str) -> subprocess.Popen:
+    """Launch the standalone admin server next to the main Atlas UI."""
+    import atexit
+
+    port_text = str(admin_port or "3002").strip() or "3002"
+    try:
+        port = int(port_text)
+    except ValueError:
+        sys.exit(f"--admin: expected optional port number, got {admin_port!r}")
+
+    admin_script = Path(__file__).resolve().with_name("atlas_admin.py")
+    proc = subprocess.Popen(
+        [
+            sys.executable,
+            str(admin_script),
+            "--port",
+            str(port),
+            "--host",
+            str(admin_host or "127.0.0.1"),
+            "--root",
+            str(SOURCE_ROOT),
+        ],
+        cwd=str(SOURCE_ROOT),
+        env=os.environ.copy(),
+    )
+    atexit.register(lambda p=proc: (p.terminate() if p.poll() is None else None))
+    print(
+        f"\n  [admin] launched standalone admin server -> "
+        f"http://{admin_host or '127.0.0.1'}:{port}/admin",
+        flush=True,
+    )
+    return proc
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(prog="atlas_ui",
                                   description="Atlas frontend for common_ai_agent")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--admin", nargs="?", const="3002", default=None,
+                    metavar="PORT",
+                    help="Also launch the standalone admin server "
+                         "(default port: 3002).")
+    ap.add_argument("--admin-host", default="127.0.0.1",
+                    help="Bind host for --admin (default: 127.0.0.1). "
+                         "Use 0.0.0.0 only when admin should be LAN-reachable.")
     ap.add_argument("--root", default=None,
                     help="Project root directory the backend serves "
                          "(.session/, IPs, file tree, …). Defaults to the "
@@ -17885,6 +17926,8 @@ def main() -> None:
             _set_runtime_reasoning_effort(_normalize_reasoning_effort(orchestrator_effort))
         except ValueError:
             print(f"[atlas_ui] ignoring unknown reasoning effort: {orchestrator_effort}", file=sys.stderr)
+    if args.admin:
+        _launch_admin_server(args.admin, args.admin_host)
     run_atlas_ui(port=args.port, host=args.host)
 
 
