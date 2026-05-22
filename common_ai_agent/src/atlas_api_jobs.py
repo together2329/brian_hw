@@ -50,6 +50,63 @@ def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
 
 _WORKFLOW_ROOT = _resolve_workflow_root()
 
+
+def _workflow_root_for_project(project_root: Path) -> Path:
+    local = _resolve_workflow_root(project_root)
+    if (local / "ssot-gen").is_dir():
+        return local
+    return _WORKFLOW_ROOT
+
+
+def _configured_ip_root(project_root: Path, ip: str) -> Path | None:
+    raw = os.environ.get("ATLAS_IP_ROOT", "").strip()
+    if not raw:
+        return None
+    try:
+        root = Path(raw).expanduser().resolve()
+    except Exception:
+        return None
+    if not root.is_dir():
+        return None
+    if root.name == ip:
+        return root
+    yaml_dir = root / "yaml"
+    if yaml_dir.is_dir():
+        for name in (f"{ip}.ssot.yaml", f"{ip}_ssot.yaml", f"{ip}.ssot.yml"):
+            if (yaml_dir / name).is_file():
+                return root
+    nested = root / ip
+    if nested.is_dir():
+        return nested
+    try:
+        root.relative_to(project_root.resolve())
+    except Exception:
+        return None
+    return None
+
+
+def _ip_dir_for(project_root: Path, ip: str) -> Path:
+    configured = _configured_ip_root(project_root, ip)
+    if configured is not None:
+        return configured
+    direct = project_root / ip
+    if direct.exists():
+        return direct
+    examples = project_root / "ip_examples" / ip
+    if examples.exists():
+        return examples
+    return direct
+
+
+def _tool_project_root_for_ip(project_root: Path, ip: str) -> Path:
+    ip_dir = _ip_dir_for(project_root, ip)
+    try:
+        if ip_dir.resolve() != (project_root / ip).resolve() and ip_dir.parent.is_dir():
+            return ip_dir.parent
+    except Exception:
+        pass
+    return project_root
+
 _PIPELINE_STAGES = [
     {"id": "ssot",        "workflow": "ssot-gen",     "label": "SSOT gen"},
     {"id": "fl-model",    "workflow": "fl-model-gen", "label": "FL model"},
@@ -906,7 +963,10 @@ def _file_tree_manifest(
             data = path.read_bytes()
         except OSError:
             continue
-        rel = path.relative_to(project_root).as_posix()
+        try:
+            rel = path.relative_to(project_root).as_posix()
+        except ValueError:
+            rel = path.as_posix()
         digest = hashlib.sha256(data).hexdigest()
         size = len(data)
         manifest.append({"path": rel, "sha256": digest, "size_bytes": size})
@@ -921,14 +981,18 @@ def _file_tree_manifest(
     primary_path = ""
     for candidate in primary_candidates:
         if candidate.is_file():
-            primary_path = candidate.relative_to(project_root).as_posix()
+            try:
+                primary_path = candidate.relative_to(project_root).as_posix()
+            except ValueError:
+                primary_path = candidate.as_posix()
             break
     return manifest, tree_hasher.hexdigest(), primary_path
 
 
 def _rtl_artifact_manifest(project_root: Path, ip: str) -> tuple[list[dict[str, Any]], str, str]:
-    rtl_root = project_root / ip / "rtl"
-    filelist = project_root / ip / "list" / f"{ip}.f"
+    ip_dir = _ip_dir_for(project_root, ip)
+    rtl_root = ip_dir / "rtl"
+    filelist = ip_dir / "list" / f"{ip}.f"
     return _file_tree_manifest(
         project_root,
         [rtl_root],
@@ -942,8 +1006,9 @@ def _stage_artifact_manifest(
     ip: str,
     artifact_type: str,
 ) -> tuple[list[dict[str, Any]], str, str, str]:
+    ip_dir = _ip_dir_for(project_root, ip)
     if artifact_type == "ssot":
-        root = project_root / ip / "yaml"
+        root = ip_dir / "yaml"
         primary = (
             root / f"{ip}.ssot.yaml",
             root / f"{ip}.ssot.yml",
@@ -958,7 +1023,7 @@ def _stage_artifact_manifest(
         )
         return manifest, digest, primary_path, f"{ip}/yaml"
     if artifact_type == "tb":
-        root = project_root / ip / "tb"
+        root = ip_dir / "tb"
         primary = (
             root / "run_tests.py",
             root / "cocotb" / "run_tests.py",
@@ -1955,8 +2020,11 @@ def _refresh_rtl_authoring_provenance_for_job(job: dict[str, Any], project_root:
     ip = str(job.get("ip") or "").strip()
     if not ip or ".." in ip or "/" in ip or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
         return False
-    provenance_path = project_root / ip / "rtl" / "rtl_authoring_provenance.json"
-    filelist_path = project_root / ip / "list" / f"{ip}.f"
+    ip_dir = _ip_dir_for(project_root, ip)
+    if not ip_dir.is_dir():
+        return False
+    provenance_path = ip_dir / "rtl" / "rtl_authoring_provenance.json"
+    filelist_path = ip_dir / "list" / f"{ip}.f"
     if provenance_path.is_file() and filelist_path.is_file():
         return False
     if job.get("_rtl_provenance_refresh_attempted"):
@@ -1969,7 +2037,7 @@ def _refresh_rtl_authoring_provenance_for_job(job: dict[str, Any], project_root:
             from headless_workflow import HeadlessWorkflowRunner  # type: ignore[no-redef]
 
         runner = HeadlessWorkflowRunner(
-            root=str(project_root),
+            root=str(_tool_project_root_for_ip(project_root, ip)),
             model=str(job.get("model") or ""),
             run_mode=str(job.get("run_mode") or _current_run_mode()),
         )
@@ -1997,7 +2065,7 @@ def _job_artifact_recovery(
     ip = str(job.get("ip") or "").strip()
     if not ip or ".." in ip or "/" in ip:
         return False, ""
-    ip_dir = project_root / ip
+    ip_dir = _ip_dir_for(project_root, ip)
     if not ip_dir.is_dir():
         return False, ""
     stage    = str(job.get("stage_id") or job.get("workflow") or "").strip()
@@ -2011,13 +2079,13 @@ def _job_artifact_recovery(
         ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
         if not ssot_path.is_file():
             return False, ""
-        checker = _WORKFLOW_ROOT / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
+        checker = _workflow_root_for_project(project_root) / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
         if not checker.is_file():
             return False, f"SSOT checker missing: {checker}"
         try:
             proc = subprocess.run(
                 ["bash", str(checker), ip, "--mode", _current_run_mode()],
-                cwd=str(project_root),
+                cwd=str(_tool_project_root_for_ip(project_root, ip)),
                 text=True,
                 encoding="utf-8",
                 errors="replace",
@@ -2199,7 +2267,7 @@ def _job_artifact_failure(
     ip = str(job.get("ip") or "").strip()
     if not ip or ".." in ip or "/" in ip:
         return False, ""
-    ip_dir = project_root / ip
+    ip_dir = _ip_dir_for(project_root, ip)
     if not ip_dir.is_dir():
         return False, ""
     stage = str(job.get("stage_id") or job.get("workflow") or "").strip()
@@ -2271,12 +2339,19 @@ def _job_artifact_failure(
                     return True, f"unreadable RTL source: {ip}/{rel}"
             if placeholder_hits:
                 return True, "placeholder RTL markers: " + ", ".join(placeholder_hits[:6])
-        checker = _WORKFLOW_ROOT / "rtl-gen" / "scripts" / "check_rtl_disk.sh"
-        if checker.is_file():
+        has_rtl_evidence = (
+            rtl_dir.is_dir()
+            or (ip_dir / "list" / f"{ip}.f").is_file()
+            or (ip_dir / "rtl" / "rtl_compile.json").is_file()
+            or (ip_dir / "lint" / "dut_lint.json").is_file()
+            or (ip_dir / "logs" / "stage_engine" / "ssot-rtl.json").is_file()
+        )
+        checker = _workflow_root_for_project(project_root) / "rtl-gen" / "scripts" / "check_rtl_disk.sh"
+        if has_rtl_evidence and checker.is_file():
             try:
                 proc = subprocess.run(
                     ["bash", str(checker), ip],
-                    cwd=str(project_root),
+                    cwd=str(_tool_project_root_for_ip(project_root, ip)),
                     text=True,
                     encoding="utf-8",
                     errors="replace",
@@ -2578,7 +2653,7 @@ def register_jobs_routes(
         session_name = normalize_session_name(session_name or (f"{ip}/{workflow}" if ip else workflow))
         if not session_name:
             raise ValueError("invalid session namespace")
-        scope_path = str((pr / ip).resolve()) if ip else str(pr)
+        scope_path = str(_ip_dir_for(pr, ip).resolve()) if ip else str(pr)
         try:
             rel_scope = str(Path(scope_path).relative_to(pr))
         except Exception:
@@ -2948,7 +3023,7 @@ def register_jobs_routes(
         if cached and (_t.monotonic() - cached[0]) < _STATE_CACHE_TTL:
             return JSONResponse(cached[1])
 
-        ip_dir = pr / ip
+        ip_dir = _ip_dir_for(pr, ip)
         run_mode = _current_run_mode()
         exec_mode = _current_exec_mode()
         provenance_summary = _provenance_summary(ip_dir, run_mode)
@@ -3908,7 +3983,7 @@ def register_jobs_routes(
             return {"ok": False, "error": f"invalid or missing ip {ip_name!r}"}
 
         pr = project_root()
-        ip_dir = pr / ip_name
+        ip_dir = _ip_dir_for(pr, ip_name)
         with _jobs_lock:
             ip_jobs = [dict(j) for j in _jobs.values() if j.get("ip") == ip_name]
 

@@ -77,6 +77,8 @@ lobby-screenshot.png
 
 # Local grouped artifacts
 artifacts/local/
+artifacts/runtime/.deep_test/
+common_ai_agent/.rag/
 
 # Node.js
 node_modules/

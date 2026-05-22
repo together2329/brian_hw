@@ -500,6 +500,7 @@ def test_real_arm_m0_min_pipeline_state_is_complete_after_req_approval(
 
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
     monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_IP_ROOT", str(PROJECT_ROOT / "ip_examples" / "arm_m0_min"))
     monkeypatch.chdir(PROJECT_ROOT)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", PROJECT_ROOT)
 
