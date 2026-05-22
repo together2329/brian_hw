@@ -16288,6 +16288,13 @@ def create_app():
         slash. Stored in the `feedback` table and surfaced in the admin
         dashboard's Feedback tab."""
         user = request.scope.get("user")
+        cookie_user = auth.get_user_from_cookie(request)
+        if cookie_user is not None:
+            user = cookie_user
+        elif user and str(user.get("id") or "") == "local-admin":
+            # Local admin mode synthesizes this identity for admin surfaces.
+            # Feedback rows need a real submitter so admin attribution stays useful.
+            user = None
         if not user:
             return JSONResponse({"error": "login required"}, status_code=401)
         try:
