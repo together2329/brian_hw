@@ -68,6 +68,8 @@ def test_ssot_qa_workbench_has_first_class_actions_and_no_history_panel():
     assert "ADD_DATA_URI_TAGS: ['img']" in src
     assert "_sanitizePrismLanguageClasses(node)" in src
     assert "/^data[:;]/i.test(lang)" in src
+    assert "const files = Array.from(ev.target.files || []);" in src
+    assert src.count("const files = Array.from(e.target.files || []);") >= 2
 
 
 def test_ssot_preview_uses_fresh_yaml_without_llm_narrator():

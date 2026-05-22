@@ -6477,7 +6477,7 @@ const SsotQaBoard = ({
             accept=".pdf,.pptx,.docx,.html,.htm,.md,.txt,.rst,.yaml,.yml,.json,.sv,.svh,.v,.vh,.py,.csv,.tsv,.xml,.f,.sdc,.tcl,.rpt,.log,.h,.c,.cpp,.png,.jpg,.jpeg,.gif,.webp,.bmp,.svg,.tif,.tiff"
             style={{ display: 'none' }}
             onChange={(ev) => {
-              const files = ev.target.files;
+              const files = Array.from(ev.target.files || []);
               ev.target.value = '';
               uploadImportFiles(files);
             }}
@@ -12013,7 +12013,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
           accept=".pdf,.pptx,.docx,.html,.htm,.md,.txt,.rst,.yaml,.yml,.json,.sv,.svh,.v,.vh,.py,.csv,.tsv,.xml,.f,.sdc,.tcl,.rpt,.log,.h,.c,.cpp,.png,.jpg,.jpeg,.gif,.webp,.bmp,.svg,.tif,.tiff"
           style={{ display: 'none' }}
           onChange={e => {
-            const files = e.target.files;
+            const files = Array.from(e.target.files || []);
             e.target.value = '';
             handleImportDocFiles(files);
           }}
@@ -12162,7 +12162,7 @@ const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }) => {
             accept=".pdf,.pptx,.docx,.html,.htm,.md,.txt,.rst,.yaml,.yml,.json,.sv,.svh,.v,.vh,.py,.csv,.tsv,.xml,.f,.sdc,.tcl,.rpt,.log,.h,.c,.cpp,.png,.jpg,.jpeg,.gif,.webp,.bmp,.svg,.tif,.tiff"
             style={{ display: 'none' }}
             onChange={e => {
-              const files = e.target.files;
+              const files = Array.from(e.target.files || []);
               e.target.value = '';
               handleImportDocFiles(files);
             }}
