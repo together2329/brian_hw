@@ -1369,17 +1369,18 @@ class SlashCommandRegistry:
     def _memory_store(self):
         import config as _cfg
         from lib.memory import MemorySystem
-        return MemorySystem(memory_dir=getattr(_cfg, "MEMORY_DIR", ".memory"))
+        user = MemorySystem.active_user_from_env()
+        return MemorySystem(memory_dir=getattr(_cfg, "MEMORY_DIR", ".memory"), user=user)
 
     def _memory_usage(self) -> str:
         return "\n".join([
             "Usage:",
-            "  /memory                         show global + current workflow rules",
-            "  /memory all                     show all workflow rules",
-            "  /memory add <rule>              add global rule",
-            "  /memory remove <n>              remove global rule",
-            "  /memory clear                   clear global rules",
-            "  /memory workflow add <rule>     add rule to current workflow",
+            "  /memory                         show this user's global + current workflow rules",
+            "  /memory all                     show this user's all workflow rules",
+            "  /memory add|a <rule>            add this user's global rule",
+            "  /memory remove|rm|r <n>         remove the shown numbered rule",
+            "  /memory clear                   clear all of this user's memory rules",
+            "  /memory workflow add <rule>     add this user's rule to current workflow",
             "  /memory workflow <wf> add <rule>",
             "  /memory workflow remove <n>",
             "  /memory workflow <wf> remove <n>",
@@ -1392,48 +1393,22 @@ class SlashCommandRegistry:
         lines = [
             "Memory rules (highest priority)",
             "Memory is injected above project/workflow/default rules.",
+            f"User: {getattr(memory, 'user', '') or 'global'}",
             f"Active workflow: {active}",
-            f"File: {memory.memory_rules_file}",
+            f"Source: {memory.storage_label() if hasattr(memory, 'storage_label') else memory.memory_rules_file}",
             "",
         ]
 
-        if show_all:
-            data = memory.list_rules()
-            global_rules = data.get("global", [])
-            workflows = data.get("workflows", {})
-        else:
-            target = workflow or active
-            data = memory.list_rules(workflow=target)
-            global_rules = data.get("global", [])
-            wf_data = data.get("workflow", {})
-            workflows = {wf_data.get("name", target): wf_data.get("rules", [])}
-
-        lines.append("Global:")
-        if global_rules:
-            for idx, rule in enumerate(global_rules, 1):
-                lines.append(f"  {idx}. {rule}")
-        else:
-            lines.append("  (none)")
-
-        if show_all:
-            lines.append("")
-            lines.append("Workflows:")
-            if workflows:
-                for wf_name, rules in sorted(workflows.items()):
-                    lines.append(f"  [{wf_name}]")
-                    for idx, rule in enumerate(rules, 1):
-                        lines.append(f"    {idx}. {rule}")
-            else:
-                lines.append("  (none)")
-        else:
-            wf_name, rules = next(iter(workflows.items()))
-            lines.append("")
-            lines.append(f"Workflow [{wf_name}]:")
-            if rules:
-                for idx, rule in enumerate(rules, 1):
-                    lines.append(f"  {idx}. {rule}")
-            else:
-                lines.append("  (none)")
+        target = workflow or active
+        items = memory.flat_rules(workflow=target, show_all=show_all) if hasattr(memory, "flat_rules") else []
+        if not items:
+            lines.append("(none)")
+            return "\n".join(lines)
+        for idx, item in enumerate(items, 1):
+            scope = str(item.get("scope") or "global")
+            wf_name = str(item.get("workflow") or "")
+            label = "global" if scope == "global" else f"workflow:{wf_name or '-'}"
+            lines.append(f"{idx}. [{label}] {item.get('rule') or ''}")
 
         return "\n".join(lines)
 
@@ -1461,24 +1436,24 @@ class SlashCommandRegistry:
         if cmd in ("help", "-h", "--help"):
             return self._memory_usage()
 
-        if cmd in ("add", "set"):
+        if cmd in ("add", "a", "set"):
             rule = " ".join(parts[1:]).strip()
             if not rule:
                 return self._memory_usage()
             idx = memory.add_rule(rule)
             return f"Added global memory rule #{idx}.\n\n{self._format_memory_listing(memory)}"
 
-        if cmd in ("remove", "rm", "delete", "del"):
+        if cmd in ("remove", "rm", "r", "delete", "del"):
             if len(parts) < 2 or not parts[1].isdigit():
                 return self._memory_usage()
-            ok = memory.remove_rule(int(parts[1]))
+            ok = memory.remove_flat_rule(int(parts[1]), workflow=self._current_workflow_name())
             if not ok:
-                return f"Global memory rule #{parts[1]} not found."
-            return f"Removed global memory rule #{parts[1]}.\n\n{self._format_memory_listing(memory)}"
+                return f"Memory rule #{parts[1]} not found."
+            return f"Removed memory rule #{parts[1]}.\n\n{self._format_memory_listing(memory)}"
 
         if cmd == "clear":
-            removed = memory.clear_rules()
-            return f"Cleared {removed} global memory rule(s).\n\n{self._format_memory_listing(memory)}"
+            removed = memory.clear_all_rules()
+            return f"Cleared {removed} memory rule(s).\n\n{self._format_memory_listing(memory)}"
 
         if cmd in ("workflow", "wf"):
             active = self._current_workflow_name()
@@ -1486,7 +1461,7 @@ class SlashCommandRegistry:
             if not rest:
                 return self._format_memory_listing(memory, workflow=active)
 
-            actions = {"list", "show", "add", "set", "remove", "rm", "delete", "del", "clear"}
+            actions = {"list", "show", "add", "a", "set", "remove", "rm", "r", "delete", "del", "clear"}
             if rest[0].lower() in actions:
                 workflow = active
                 action = rest[0].lower()
@@ -1499,7 +1474,7 @@ class SlashCommandRegistry:
             if action in ("list", "show"):
                 return self._format_memory_listing(memory, workflow=workflow)
 
-            if action in ("add", "set"):
+            if action in ("add", "a", "set"):
                 rule = " ".join(action_args).strip()
                 if not rule:
                     return self._memory_usage()
@@ -1509,7 +1484,7 @@ class SlashCommandRegistry:
                     f"{self._format_memory_listing(memory, workflow=workflow)}"
                 )
 
-            if action in ("remove", "rm", "delete", "del"):
+            if action in ("remove", "rm", "r", "delete", "del"):
                 if not action_args or not action_args[0].isdigit():
                     return self._memory_usage()
                 ok = memory.remove_rule(int(action_args[0]), workflow=workflow)

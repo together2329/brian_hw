@@ -148,6 +148,22 @@ CREATE TABLE IF NOT EXISTS feedback (
 CREATE INDEX IF NOT EXISTS idx_feedback_user ON feedback(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback(status, created_at);
 
+-- user_memory_rules (per-user system-prompt rules managed by /memory)
+CREATE TABLE IF NOT EXISTS user_memory_rules (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    scope TEXT DEFAULT 'global',
+    workflow TEXT DEFAULT '',
+    rule TEXT NOT NULL,
+    position INT DEFAULT 0,
+    created_at REAL,
+    updated_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_user_memory_rules_user_scope
+    ON user_memory_rules(user_id, scope, workflow, position);
+CREATE INDEX IF NOT EXISTS idx_user_memory_rules_updated
+    ON user_memory_rules(updated_at);
+
 -- session_queue (IPC between Atlas UI and agent workers)
 CREATE TABLE IF NOT EXISTS session_queue (
     id TEXT PRIMARY KEY,
@@ -684,6 +700,13 @@ class AtlasDB:
             "messages": {"session_id": "TEXT", "created_at": "REAL"},
             "parts": {"message_id": "TEXT"},
             "feedback": {"user_id": "TEXT", "status": "TEXT", "created_at": "REAL"},
+            "user_memory_rules": {
+                "user_id": "TEXT",
+                "scope": "TEXT DEFAULT 'global'",
+                "workflow": "TEXT DEFAULT ''",
+                "position": "INT DEFAULT 0",
+                "updated_at": "REAL",
+            },
             "session_queue": {
                 "session_id": "TEXT",
                 "direction": "TEXT",
@@ -888,6 +911,14 @@ class AtlasDB:
             """CREATE INDEX IF NOT EXISTS idx_trace_events_chat_room
                   ON trace_events(event_type, ip_id, created_at)"""
         )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_user_memory_rules_user_scope
+                  ON user_memory_rules(user_id, scope, workflow, position)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_user_memory_rules_updated
+                  ON user_memory_rules(updated_at)"""
+        )
 
     @staticmethod
     def _ensure_column(
@@ -973,6 +1004,25 @@ class AtlasDB:
             return None
         return self._row_to_dict(row, "users")
 
+    def ensure_user_by_username(
+        self,
+        username: str,
+        display_name: str = None,
+        role: str = "user",
+    ) -> Dict[str, Any]:
+        """Return an existing user or create a lightweight local user row."""
+        name = str(username or "").strip()
+        if not name:
+            raise ValueError("username required")
+        existing = self.get_user_by_username(name)
+        if existing is not None:
+            return existing
+        return self.create_user(
+            username=name,
+            display_name=display_name or name,
+            role=role or "user",
+        )
+
     def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
         """Get user by normalized email. Returns user dict or None."""
         normalized = self._normalize_email(email)
@@ -1038,6 +1088,177 @@ class AtlasDB:
             (password_hash, now, user_id),
         )
         return self.get_user(user_id)
+
+    # ---------- User Memory Rules ----------
+
+    @staticmethod
+    def _normalize_memory_workflow(workflow: str = None) -> str:
+        text = str(workflow or "").strip().strip("/")
+        if not text:
+            return ""
+        parts = [part for part in text.split("/") if part]
+        return parts[-1] if parts else ""
+
+    def add_user_memory_rule(
+        self,
+        user_id: str,
+        rule: str,
+        workflow: str = None,
+    ) -> Dict[str, Any]:
+        """Add a per-user prompt memory rule and return the inserted row."""
+        uid = str(user_id or "").strip()
+        text = str(rule or "").strip()
+        if not uid:
+            raise ValueError("user_id required")
+        if not text:
+            raise ValueError("memory rule cannot be empty")
+        workflow_name = self._normalize_memory_workflow(workflow)
+        scope = "workflow" if workflow_name else "global"
+        now = self._now()
+        row = self._fetchone(
+            """
+            SELECT COALESCE(MAX(position), 0) + 1 AS next_position
+              FROM user_memory_rules
+             WHERE user_id = ? AND scope = ? AND workflow = ?
+            """,
+            (uid, scope, workflow_name),
+        )
+        position = int(row["next_position"] if row is not None and row["next_position"] else 1)
+        rid = self._new_id()
+        self._execute(
+            """
+            INSERT INTO user_memory_rules
+            (id, user_id, scope, workflow, rule, position, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (rid, uid, scope, workflow_name, text, position, now, now),
+        )
+        return self.get_user_memory_rule(rid) or {
+            "id": rid,
+            "user_id": uid,
+            "scope": scope,
+            "workflow": workflow_name,
+            "rule": text,
+            "position": position,
+            "created_at": now,
+            "updated_at": now,
+        }
+
+    def get_user_memory_rule(self, rule_id: str) -> Optional[Dict[str, Any]]:
+        """Return one memory rule by id."""
+        row = self._fetchone(
+            """
+            SELECT r.*, u.username, u.display_name
+              FROM user_memory_rules r
+              LEFT JOIN users u ON u.id = r.user_id
+             WHERE r.id = ?
+            """,
+            (str(rule_id or "").strip(),),
+        )
+        return dict(row) if row else None
+
+    def list_user_memory_rules(
+        self,
+        user_id: str,
+        workflow: str = None,
+        include_global: bool = True,
+        include_all_workflows: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """List memory rules visible to a user for prompt injection/listing."""
+        uid = str(user_id or "").strip()
+        if not uid:
+            return []
+        workflow_name = self._normalize_memory_workflow(workflow)
+        clauses = ["r.user_id = ?"]
+        values: list[Any] = [uid]
+        if include_all_workflows:
+            pass
+        elif workflow_name:
+            if include_global:
+                clauses.append(
+                    "((r.scope = 'global' AND r.workflow = '') OR "
+                    "(r.scope = 'workflow' AND r.workflow = ?))"
+                )
+                values.append(workflow_name)
+            else:
+                clauses.append("r.scope = 'workflow' AND r.workflow = ?")
+                values.append(workflow_name)
+        else:
+            clauses.append("r.scope = 'global' AND r.workflow = ''")
+        where = " WHERE " + " AND ".join(clauses)
+        rows = self._fetchall(
+            f"""
+            SELECT r.*, u.username, u.display_name
+              FROM user_memory_rules r
+              LEFT JOIN users u ON u.id = r.user_id
+             {where}
+             ORDER BY
+               CASE r.scope WHEN 'global' THEN 0 ELSE 1 END,
+               r.workflow COLLATE NOCASE,
+               r.position ASC,
+               r.created_at ASC
+            """,
+            tuple(values),
+        )
+        return [dict(row) for row in rows]
+
+    def list_all_user_memory_rules(self, limit: int = 500) -> List[Dict[str, Any]]:
+        """Admin list of all per-user memory rules."""
+        rows = self._fetchall(
+            """
+            SELECT r.*, u.username, u.display_name, u.role
+              FROM user_memory_rules r
+              LEFT JOIN users u ON u.id = r.user_id
+             ORDER BY r.updated_at DESC, r.created_at DESC
+             LIMIT ?
+            """,
+            (int(limit),),
+        )
+        return [dict(row) for row in rows]
+
+    def delete_user_memory_rule(self, user_id: str, rule_id: str) -> bool:
+        """Delete one memory rule owned by user_id."""
+        before = self._fetchone(
+            "SELECT COUNT(*) AS cnt FROM user_memory_rules WHERE id = ? AND user_id = ?",
+            (str(rule_id or "").strip(), str(user_id or "").strip()),
+        )
+        if int(before["cnt"] if before is not None else 0) <= 0:
+            return False
+        self._execute(
+            "DELETE FROM user_memory_rules WHERE id = ? AND user_id = ?",
+            (str(rule_id or "").strip(), str(user_id or "").strip()),
+        )
+        return True
+
+    def clear_user_memory_rules(
+        self,
+        user_id: str,
+        workflow: str = None,
+        all_scopes: bool = False,
+    ) -> int:
+        """Clear a user's memory rules. Defaults to global scope only."""
+        uid = str(user_id or "").strip()
+        if not uid:
+            return 0
+        workflow_name = self._normalize_memory_workflow(workflow)
+        clauses = ["user_id = ?"]
+        values: list[Any] = [uid]
+        if all_scopes:
+            pass
+        elif workflow_name:
+            clauses.append("scope = 'workflow' AND workflow = ?")
+            values.append(workflow_name)
+        else:
+            clauses.append("scope = 'global' AND workflow = ''")
+        where = " WHERE " + " AND ".join(clauses)
+        before = self._fetchone(
+            f"SELECT COUNT(*) AS cnt FROM user_memory_rules{where}",
+            tuple(values),
+        )
+        removed = int(before["cnt"] if before is not None else 0)
+        if removed:
+            self._execute(f"DELETE FROM user_memory_rules{where}", tuple(values))
+        return removed
 
     # ---------- Sessions ----------
 

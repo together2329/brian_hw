@@ -636,9 +636,10 @@ if getattr(config, 'ENABLE_WEB_TOOLS', False):
 # Moved to llm_client.py
 
 # --- Global Memory System ---
-# Initialize memory system if enabled
+# Initialize memory system if enabled. ENABLE_MEMORY_RULES keeps explicit
+# /memory rules injectable even when auto preference extraction is off.
 memory_system = None
-if config.ENABLE_MEMORY:
+if getattr(config, "ENABLE_MEMORY", False) or getattr(config, "ENABLE_MEMORY_RULES", True):
     try:
         memory_system = MemorySystem(memory_dir=config.MEMORY_DIR)
         # Success message will be shown during chat_loop startup
@@ -2817,7 +2818,12 @@ def chat_loop():
             # Auto-extract preferences from user input (Mem0-style)
             if memory_system is not None and config.ENABLE_MEMORY and config.ENABLE_AUTO_EXTRACT:
                 try:
-                    result = memory_system.auto_extract_and_update(user_input)
+                    active_memory = (
+                        memory_system.for_user(_get_active_session_str())
+                        if hasattr(memory_system, "for_user")
+                        else memory_system
+                    )
+                    result = active_memory.auto_extract_and_update(user_input)
                     if result.get("actions"):
                         for action in result["actions"]:
                             if action["action"] == "ADD":

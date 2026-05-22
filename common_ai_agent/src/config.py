@@ -1615,6 +1615,11 @@ EMBEDDING_DIMENSION = int(_emb_dim_env) if _emb_dim_env else None
 # Enable/Disable memory system
 ENABLE_MEMORY = os.getenv("ENABLE_MEMORY", "false").lower() in ("true", "1", "yes")
 
+# Keep explicit /memory rules active even when automatic preference
+# extraction is disabled. /memory writes user-scoped prompt rules, not
+# inferred long-term preferences.
+ENABLE_MEMORY_RULES = os.getenv("ENABLE_MEMORY_RULES", "true").lower() in ("true", "1", "yes")
+
 # Memory directory (relative to home directory)
 MEMORY_DIR = os.getenv("MEMORY_DIR", ".memory")
 

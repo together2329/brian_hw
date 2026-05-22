@@ -70,7 +70,11 @@ def changed_paths_from_tool_result(tool: str, text: str) -> list[str]:
             candidates.append(path)
 
     for m in re.finditer(
-        r"(?:wrote to|wrote|updated|created|deleted)\s+['\"`]([^'\"`]+)['\"`]",
+        r"(?:"
+        r"wrote to|wrote|updated|created|deleted|"
+        r"(?:successfully\s+)?replaced\s+(?:in|to)|"
+        r"replaced\s+\d+\s+occurrence(?:\(s\)|s)?\s+in"
+        r")\s+['\"`]([^'\"`]+)['\"`]",
         text_s,
         re.IGNORECASE,
     ):

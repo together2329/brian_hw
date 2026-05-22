@@ -107,6 +107,7 @@ class SessionProcessManager:
         effective_db = self._resolve_db_path(db_path)
         env["ATLAS_ACTIVE_SESSION"] = session_key
         env["ATLAS_DEFAULT_SESSION_ID"] = owner
+        env["ATLAS_MEMORY_USER"] = owner
         env["ATLAS_ACTIVE_IP"] = ip_name
         env["ATLAS_DEFAULT_WORKFLOW"] = workflow
         env["ACTIVE_WORKSPACE"] = workflow

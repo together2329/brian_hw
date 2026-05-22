@@ -13,6 +13,16 @@ function AdminPage() {
   const [artifactVersions, setArtifactVersions] = React.useState([]);
   const [runArtifactSets, setRunArtifactSets] = React.useState([]);
   const [feedback, setFeedback] = React.useState([]);
+  const [memoryRules, setMemoryRules] = React.useState([]);
+  const [inputHistory, setInputHistory] = React.useState([]);
+  const [adminChatMessages, setAdminChatMessages] = React.useState([
+    {
+      role: 'assistant',
+      content: 'Ask about feedback, user inputs, tool calls, cost, daily usage, models, workflows, IPs, or memory rules.',
+    },
+  ]);
+  const [adminChatDraft, setAdminChatDraft] = React.useState('');
+  const [adminChatLoading, setAdminChatLoading] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
   const [authStatus, setAuthStatus] = React.useState(null);
@@ -110,6 +120,8 @@ function AdminPage() {
       setRtlRunHistory(usageData.rtl_run_history || []);
       setArtifactVersions(usageData.artifact_versions || []);
       setRunArtifactSets(usageData.run_artifact_sets || []);
+      setMemoryRules(usageData.memory_rules || []);
+      setInputHistory(usageData.input_history || []);
       setFeedback(fbData.feedback || []);
     } catch (e) {
       setError(String(e));
@@ -227,6 +239,8 @@ function AdminPage() {
     setArtifactVersions([]);
     setRunArtifactSets([]);
     setFeedback([]);
+    setMemoryRules([]);
+    setInputHistory([]);
     setLoading(false);
   };
 
@@ -332,6 +346,34 @@ function AdminPage() {
       alert('Failed to delete session: ' + e);
     } finally {
       setDeleting(null);
+    }
+  };
+
+  const handleAdminChatSubmit = async (ev) => {
+    ev.preventDefault();
+    const text = String(adminChatDraft || '').trim();
+    if (!text || adminChatLoading) return;
+    setAdminChatDraft('');
+    setAdminChatMessages((prev) => [...prev, { role: 'user', content: text }]);
+    setAdminChatLoading(true);
+    try {
+      const r = await fetch('/api/admin/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text }),
+      });
+      let body = {};
+      try { body = await r.json(); } catch (_) {}
+      if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
+      setAdminChatMessages((prev) => [...prev, {
+        role: 'assistant',
+        content: body.answer || 'No matching DB rows.',
+        sections: body.sections || [],
+      }]);
+    } catch (e) {
+      setAdminChatMessages((prev) => [...prev, { role: 'assistant', content: `Error: ${String(e)}` }]);
+    } finally {
+      setAdminChatLoading(false);
     }
   };
 
@@ -782,6 +824,8 @@ function AdminPage() {
     ...rtlRunHistory,
     ...artifactVersions,
     ...runArtifactSets,
+    ...memoryRules,
+    ...inputHistory,
     ...sessionContextRows,
     ...userFocusContextRows,
   ];
@@ -793,6 +837,8 @@ function AdminPage() {
       ...allContextRows,
       ...usage,
       ...feedback,
+      ...memoryRules,
+      ...inputHistory,
     ], 'username'),
   };
   const filteredUsers = users.filter((row) => (
@@ -825,6 +871,14 @@ function AdminPage() {
   const filteredRtlRunHistory = rtlRunHistory.filter(rowMatches);
   const filteredArtifactVersions = artifactVersions.filter(rowMatches);
   const filteredRunArtifactSets = runArtifactSets.filter(rowMatches);
+  const filteredMemoryRules = memoryRules.filter((row) => (
+    inRange(row)
+    && valueMatches(filters.user, row.username)
+    && !filters.ip
+    && !filters.workspace
+    && valueMatches(filters.workflow, row.workflow)
+  ));
+  const filteredInputHistory = inputHistory.filter(rowMatches);
   const filteredFeedback = feedback.filter((row) => (
     inRange(row)
     && valueMatches(filters.user, row.username)
@@ -924,6 +978,8 @@ function AdminPage() {
     rejectedTodos: sum(filteredTodoUsage, 'rejected_count'),
     openTodos: filteredTodoUsage.filter((row) => !['approved', 'completed'].includes(String(row.status || '').toLowerCase())).length,
     humanInputs: sum(filteredInterventions, 'intervention_count'),
+    inputRows: filteredInputHistory.length,
+    memoryRules: filteredMemoryRules.length,
     rtlRuns: filteredRtlRunHistory.length,
     artifactVersions: filteredArtifactVersions.length,
     runArtifactSets: filteredRunArtifactSets.length,
@@ -1064,8 +1120,17 @@ function AdminPage() {
               <button style={tabStyle(activeTab === 'human')} onClick={() => setActiveTab('human')}>
                 Human ({filteredInterventions.length})
               </button>
+              <button style={tabStyle(activeTab === 'inputs')} onClick={() => setActiveTab('inputs')}>
+                Inputs ({filteredInputHistory.length})
+              </button>
+              <button style={tabStyle(activeTab === 'memory')} onClick={() => setActiveTab('memory')}>
+                Memory ({filteredMemoryRules.length})
+              </button>
               <button style={tabStyle(activeTab === 'feedback')} onClick={() => setActiveTab('feedback')}>
                 Feedback ({filteredFeedback.filter(f => f.status !== 'resolved').length}/{filteredFeedback.length})
+              </button>
+              <button style={tabStyle(activeTab === 'admin-chat')} onClick={() => setActiveTab('admin-chat')}>
+                Admin Chat
               </button>
               <button style={tabStyle(activeTab === 'raw-db')} onClick={() => setActiveTab('raw-db')}>
                 Raw DB
@@ -1206,6 +1271,14 @@ function AdminPage() {
                   <div style={metricCardStyle()}>
                     <div style={metricLabelStyle}>Human Inputs</div>
                     <div style={metricValueStyle}>{fmt(overview.humanInputs)}</div>
+                  </div>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>Input History</div>
+                    <div style={metricValueStyle}>{fmt(overview.inputRows)}</div>
+                  </div>
+                  <div style={metricCardStyle()}>
+                    <div style={metricLabelStyle}>Memory Rules</div>
+                    <div style={metricValueStyle}>{fmt(overview.memoryRules)}</div>
                   </div>
                   <div style={metricCardStyle(overview.pendingHuman ? 'danger' : 'default')}>
                     <div style={metricLabelStyle}>Ask User Pending</div>
@@ -2184,6 +2257,82 @@ function AdminPage() {
               </div>
             )}
 
+            {activeTab === 'inputs' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>When</th>
+                      <th style={thStyle}>User</th>
+                      <th style={thStyle}>Source</th>
+                      <th style={thStyle}>IP</th>
+                      <th style={thStyle}>Workflow</th>
+                      <th style={{ ...thStyle, width: '46%' }}>Input</th>
+                      <th style={thStyle}>Session</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredInputHistory.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} style={{ ...tdStyle, ...emptyStateStyle }}>No user input history yet.</td>
+                      </tr>
+                    ) : (
+                      filteredInputHistory.map((row, index) => (
+                        <tr key={rowKey('input-history', index, row.input_id, row.session_id, row.created_at)}>
+                          <td style={tdStyle}>{formatDate(row.created_at)}</td>
+                          <td style={tdStyle}>{row.username || 'unknown'}</td>
+                          <td style={tdStyle}>{row.source || '—'}</td>
+                          <td style={tdStyle}>{row.ip || 'unknown'}</td>
+                          <td style={tdStyle}>{row.workflow || '—'}</td>
+                          <td style={{ ...tdStyle, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                            {row.content || payloadText(row.payload)}
+                          </td>
+                          <td style={tdStyle} title={row.session_id || ''}>{sessionDisplay(row)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'memory' && (
+              <div style={tableWrapStyle}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr>
+                      <th style={thStyle}>Updated</th>
+                      <th style={thStyle}>User</th>
+                      <th style={thStyle}>Scope</th>
+                      <th style={thStyle}>Workflow</th>
+                      <th style={thStyle}>#</th>
+                      <th style={{ ...thStyle, width: '54%' }}>Rule</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredMemoryRules.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} style={{ ...tdStyle, ...emptyStateStyle }}>No memory rules yet.</td>
+                      </tr>
+                    ) : (
+                      filteredMemoryRules.map((row, index) => (
+                        <tr key={rowKey('memory-rule', index, row.id, row.user_id, row.position)}>
+                          <td style={tdStyle}>{formatDate(row.updated_at || row.created_at)}</td>
+                          <td style={tdStyle}>{row.username || 'unknown'}</td>
+                          <td style={tdStyle}>{row.scope || 'global'}</td>
+                          <td style={tdStyle}>{row.workflow || '—'}</td>
+                          <td style={tdStyle}>{row.position || index + 1}</td>
+                          <td style={{ ...tdStyle, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                            {row.rule || '—'}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
             {activeTab === 'feedback' && (
               <div style={tableWrapStyle}>
                 <table style={tableStyle}>
@@ -2253,6 +2402,111 @@ function AdminPage() {
                     )}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {activeTab === 'admin-chat' && (
+              <div style={{ ...tableWrapStyle, padding: 0, overflow: 'hidden' }}>
+                <div style={{
+                  padding: '12px 14px',
+                  borderBottom: '1px solid #2a3540',
+                  background: '#1c252f',
+                  color: '#f0c674',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}>
+                  Admin Chat · DB-backed activity Q&A
+                </div>
+                <div style={{
+                  minHeight: 360,
+                  maxHeight: 560,
+                  overflowY: 'auto',
+                  padding: 14,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                }}>
+                  {adminChatMessages.map((msg, index) => (
+                    <div
+                      key={rowKey('admin-chat', index, msg.role, msg.content)}
+                      style={{
+                        alignSelf: msg.role === 'user' ? 'flex-end' : 'stretch',
+                        maxWidth: msg.role === 'user' ? '74%' : '100%',
+                        background: msg.role === 'user' ? '#22303d' : '#141a21',
+                        color: '#d6dde6',
+                        border: '1px solid #2a3540',
+                        borderRadius: 6,
+                        padding: '10px 12px',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#8893a3', marginBottom: 5 }}>
+                        {msg.role === 'user' ? 'Admin' : 'Atlas DB'}
+                      </div>
+                      <div>{msg.content}</div>
+                      {(msg.sections || []).length > 0 && (
+                        <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                          {msg.sections.map((section, sectionIndex) => (
+                            <details key={rowKey('admin-chat-section', sectionIndex, section.title)} style={{ borderTop: '1px solid #2a3540', paddingTop: 8 }}>
+                              <summary style={{ cursor: 'pointer', color: '#f0c674', fontSize: 12 }}>
+                                {section.title} ({(section.rows || []).length})
+                              </summary>
+                              <pre style={{
+                                margin: '8px 0 0',
+                                padding: 10,
+                                background: '#0f141a',
+                                color: '#a3aebb',
+                                overflowX: 'auto',
+                                fontSize: 11,
+                              }}>{JSON.stringify(section.rows || [], null, 2)}</pre>
+                            </details>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {adminChatLoading && (
+                    <div style={{ color: '#8893a3', fontSize: 12 }}>Querying atlas.db…</div>
+                  )}
+                </div>
+                <form onSubmit={handleAdminChatSubmit} style={{
+                  display: 'flex',
+                  gap: 8,
+                  padding: 12,
+                  borderTop: '1px solid #2a3540',
+                  background: '#141a21',
+                }}>
+                  <input
+                    value={adminChatDraft}
+                    onChange={(e) => setAdminChatDraft(e.target.value)}
+                    placeholder="Ask: daily usage, model usage, workflow/IP usage, feedback, memory, input history…"
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      background: '#0f141a',
+                      border: '1px solid #2a3540',
+                      color: '#d6dde6',
+                      borderRadius: 4,
+                      padding: '8px 10px',
+                      fontFamily: 'inherit',
+                      fontSize: 13,
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={adminChatLoading || !String(adminChatDraft || '').trim()}
+                    style={{
+                      ...headerButtonStyle,
+                      minWidth: 72,
+                      opacity: adminChatLoading || !String(adminChatDraft || '').trim() ? 0.55 : 1,
+                    }}
+                  >
+                    Ask
+                  </button>
+                </form>
               </div>
             )}
 

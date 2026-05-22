@@ -1042,6 +1042,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             "LLM_MODEL_NAME": effective_model,
             "ATLAS_SESSION_ID": active_session,
             "ATLAS_ACTIVE_SESSION": active_session,
+            "ATLAS_MEMORY_USER": active_session.split("/", 1)[0] if active_session else "",
             "ATLAS_IP_ID": ip,
             "ATLAS_ACTIVE_IP": ip,
             "ATLAS_WORKFLOW": workflow,
@@ -1057,10 +1058,13 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         run_cfg = _RunCfg(_snapshot_config_module(), run_overrides)
 
         worker_memory_system = None
-        if getattr(run_cfg, "ENABLE_MEMORY", False):
+        if getattr(run_cfg, "ENABLE_MEMORY", False) or getattr(run_cfg, "ENABLE_MEMORY_RULES", True):
             try:
                 from lib.memory import MemorySystem
-                worker_memory_system = MemorySystem(memory_dir=getattr(run_cfg, "MEMORY_DIR", ".memory"))
+                worker_memory_system = MemorySystem(
+                    memory_dir=getattr(run_cfg, "MEMORY_DIR", ".memory"),
+                    user=active_session,
+                )
             except Exception as e:
                 entry.add_log("system", f"memory unavailable: {e}", role="system")
 

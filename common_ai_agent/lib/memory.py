@@ -6,6 +6,7 @@ Zero-dependency (stdlib only).
 """
 import json
 import os
+import re
 import tempfile
 import time
 from contextlib import contextmanager
@@ -26,14 +27,25 @@ class MemorySystem:
     Storage: JSON files in ~/.memory/
     """
 
-    def __init__(self, memory_dir: str = ".memory"):
+    def __init__(self, memory_dir: str = ".memory", user: Optional[str] = None):
         """
         Initialize memory system.
 
         Args:
             memory_dir: Directory name (relative to home)
+            user: Optional Atlas user/owner. When set, memories are
+                  stored below <memory_dir>/users/<user>/.
         """
-        self.memory_dir = Path.home() / memory_dir
+        base_dir = Path(memory_dir).expanduser()
+        if not base_dir.is_absolute():
+            base_dir = Path.home() / base_dir
+        self.base_memory_dir = base_dir
+        self.user = self._normalize_user(user)
+        self.memory_dir = (
+            self.base_memory_dir / "users" / self.user
+            if self.user
+            else self.base_memory_dir
+        )
         self.preferences_file = self.memory_dir / "preferences.json"
         self.project_context_file = self.memory_dir / "project_context.json"
         self.memory_rules_file = self.memory_dir / "rules.json"
@@ -41,9 +53,56 @@ class MemorySystem:
         self._preferences: Dict[str, Any] = {}
         self._project_context: Dict[str, Any] = {}
         self._memory_rules: Dict[str, Any] = {"global": [], "workflows": {}}
+        self._db_path = (
+            os.environ.get("ATLAS_MEMORY_DB_PATH")
+            or os.environ.get("ATLAS_DB_PATH")
+            or ""
+        )
 
         self._ensure_initialized()
         self._load()
+
+    @staticmethod
+    def _normalize_user(value: Optional[str]) -> str:
+        """Normalize Atlas session/user strings into a filesystem-safe user key."""
+        raw = str(value or "").strip().strip("/")
+        if not raw:
+            return ""
+        parts = [part for part in raw.split("/") if part]
+        owner = parts[0] if parts else raw
+        if owner in {"default", "anonymous"}:
+            return ""
+        # Session-per-model owners are stored as <user>__<model_slug>;
+        # memory is per human user, not per model.
+        if "__" in owner:
+            owner = owner.split("__", 1)[0]
+        safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", owner).strip("._-")
+        return safe[:80]
+
+    @staticmethod
+    def active_user_from_env() -> str:
+        """Resolve the current Atlas memory user from process environment."""
+        for key in ("ATLAS_MEMORY_USER", "ATLAS_ACTIVE_SESSION", "ATLAS_USER_SESSION_ID", "ATLAS_DEFAULT_SESSION_ID"):
+            user = MemorySystem._normalize_user(os.environ.get(key, ""))
+            if user:
+                return user
+        return ""
+
+    def for_user(self, user: Optional[str]) -> "MemorySystem":
+        """Return a MemorySystem bound to the requested user."""
+        normalized = self._normalize_user(user)
+        if normalized == self.user:
+            self._load()
+            return self
+        return MemorySystem(memory_dir=str(self.base_memory_dir), user=normalized)
+
+    def for_active_user(self) -> "MemorySystem":
+        """Return a MemorySystem bound to the active Atlas user, if any."""
+        active = self.active_user_from_env()
+        if not active:
+            self._load()
+            return self
+        return self.for_user(active)
 
     def _ensure_initialized(self):
         """Create memory directory and files if they don't exist"""
@@ -169,6 +228,81 @@ class MemorySystem:
                         workflows[name] = normalized
 
         return {"global": global_rules, "workflows": workflows}
+
+    def _db_rules_enabled(self) -> bool:
+        backend = os.environ.get("ATLAS_MEMORY_BACKEND", "db").strip().lower()
+        return bool(self.user and self._db_path and backend not in {"file", "json", "off", "0", "false"})
+
+    def storage_label(self) -> str:
+        """Human-readable rule storage source for UI/slash output."""
+        if self._db_rules_enabled():
+            return f"AtlasDB:{self._db_path}"
+        return str(self.memory_rules_file)
+
+    def _open_db_user(self):
+        """Open AtlasDB and resolve the current memory user."""
+        if not self._db_rules_enabled():
+            return None, None
+        from core.atlas_db import AtlasDB
+
+        db = AtlasDB(self._db_path)
+        user = db.ensure_user_by_username(self.user)
+        return db, user
+
+    @staticmethod
+    def _rules_from_db_rows(rows: List[Dict[str, Any]], workflow_name: Optional[str] = None) -> Dict[str, Any]:
+        result: Dict[str, Any] = {}
+        global_rules = [
+            str(row.get("rule") or "").strip()
+            for row in rows
+            if row.get("scope") == "global" and str(row.get("rule") or "").strip()
+        ]
+        result["global"] = global_rules
+        if workflow_name:
+            workflow_rules = [
+                str(row.get("rule") or "").strip()
+                for row in rows
+                if row.get("scope") == "workflow"
+                and row.get("workflow") == workflow_name
+                and str(row.get("rule") or "").strip()
+            ]
+            result["workflow"] = {"name": workflow_name, "rules": workflow_rules}
+            return result
+        workflows: Dict[str, List[str]] = {}
+        for row in rows:
+            if row.get("scope") != "workflow":
+                continue
+            name = str(row.get("workflow") or "").strip()
+            rule = str(row.get("rule") or "").strip()
+            if name and rule:
+                workflows.setdefault(name, []).append(rule)
+        result["workflows"] = {name: workflows[name] for name in sorted(workflows)}
+        return result
+
+    def _flat_file_rules(self, workflow: Optional[str] = None, show_all: bool = False) -> List[Dict[str, Any]]:
+        workflow_name = self._normalize_workflow_name(workflow)
+        current = self._normalize_memory_rules(self._memory_rules)
+        items: List[Dict[str, Any]] = []
+        for index, rule in enumerate(current.get("global", []), 1):
+            items.append({
+                "scope": "global",
+                "workflow": "",
+                "rule": rule,
+                "scope_index": index,
+            })
+        workflows = current.get("workflows", {})
+        names = sorted(workflows) if show_all else ([workflow_name] if workflow_name else [])
+        for name in names:
+            if not name:
+                continue
+            for index, rule in enumerate(workflows.get(name, []), 1):
+                items.append({
+                    "scope": "workflow",
+                    "workflow": name,
+                    "rule": rule,
+                    "scope_index": index,
+                })
+        return items
 
     # ========== Preferences Management ==========
 
@@ -325,6 +459,15 @@ class MemorySystem:
             raise ValueError("memory rule cannot be empty")
 
         workflow_name = self._normalize_workflow_name(workflow)
+        if self._db_rules_enabled():
+            db, user = self._open_db_user()
+            try:
+                row = db.add_user_memory_rule(user["id"], rule_text, workflow=workflow_name)
+                return int(row.get("position") or 1)
+            finally:
+                if db is not None:
+                    db.close()
+
         with self._file_lock(self.memory_rules_file):
             current = self._normalize_memory_rules(self._read_json_file(self.memory_rules_file))
             if workflow_name:
@@ -339,6 +482,23 @@ class MemorySystem:
     def list_rules(self, workflow: Optional[str] = None, include_global: bool = True) -> Dict[str, Any]:
         """List memory rules for the requested scope."""
         workflow_name = self._normalize_workflow_name(workflow)
+        if self._db_rules_enabled():
+            db, user = self._open_db_user()
+            try:
+                rows = db.list_user_memory_rules(
+                    user["id"],
+                    workflow=workflow_name,
+                    include_global=include_global,
+                    include_all_workflows=workflow_name is None,
+                )
+                data = self._rules_from_db_rows(rows, workflow_name=workflow_name)
+                if not include_global:
+                    data.pop("global", None)
+                return data
+            finally:
+                if db is not None:
+                    db.close()
+
         current = self._normalize_memory_rules(self._memory_rules)
         result: Dict[str, Any] = {}
         if include_global:
@@ -361,6 +521,29 @@ class MemorySystem:
         if index < 1:
             return False
         workflow_name = self._normalize_workflow_name(workflow)
+        if self._db_rules_enabled():
+            db, user = self._open_db_user()
+            try:
+                rows = db.list_user_memory_rules(
+                    user["id"],
+                    workflow=workflow_name,
+                    include_global=False if workflow_name else True,
+                    include_all_workflows=False,
+                )
+                scoped = [
+                    row for row in rows
+                    if (
+                        (workflow_name and row.get("scope") == "workflow" and row.get("workflow") == workflow_name)
+                        or (not workflow_name and row.get("scope") == "global")
+                    )
+                ]
+                if index > len(scoped):
+                    return False
+                return db.delete_user_memory_rule(user["id"], scoped[index - 1]["id"])
+            finally:
+                if db is not None:
+                    db.close()
+
         with self._file_lock(self.memory_rules_file):
             current = self._normalize_memory_rules(self._read_json_file(self.memory_rules_file))
             if workflow_name:
@@ -379,6 +562,18 @@ class MemorySystem:
     def clear_rules(self, workflow: Optional[str] = None) -> int:
         """Clear global or workflow-scoped memory rules. Returns removed count."""
         workflow_name = self._normalize_workflow_name(workflow)
+        if self._db_rules_enabled():
+            db, user = self._open_db_user()
+            try:
+                return db.clear_user_memory_rules(
+                    user["id"],
+                    workflow=workflow_name,
+                    all_scopes=False,
+                )
+            finally:
+                if db is not None:
+                    db.close()
+
         with self._file_lock(self.memory_rules_file):
             current = self._normalize_memory_rules(self._read_json_file(self.memory_rules_file))
             if workflow_name:
@@ -392,14 +587,68 @@ class MemorySystem:
             self._atomic_write_json(self.memory_rules_file, current)
             return removed
 
+    def flat_rules(self, workflow: Optional[str] = None, show_all: bool = False) -> List[Dict[str, Any]]:
+        """Return a flat ordered list for /memory display and numbered removal."""
+        workflow_name = self._normalize_workflow_name(workflow)
+        if self._db_rules_enabled():
+            db, user = self._open_db_user()
+            try:
+                return db.list_user_memory_rules(
+                    user["id"],
+                    workflow=workflow_name,
+                    include_global=True,
+                    include_all_workflows=show_all,
+                )
+            finally:
+                if db is not None:
+                    db.close()
+        return self._flat_file_rules(workflow=workflow_name, show_all=show_all)
+
+    def remove_flat_rule(self, index: int, workflow: Optional[str] = None, show_all: bool = False) -> bool:
+        """Remove a rule by the flat 1-based index shown by /memory."""
+        if index < 1:
+            return False
+        items = self.flat_rules(workflow=workflow, show_all=show_all)
+        if index > len(items):
+            return False
+        item = items[index - 1]
+        if self._db_rules_enabled():
+            db, user = self._open_db_user()
+            try:
+                return db.delete_user_memory_rule(user["id"], str(item.get("id") or ""))
+            finally:
+                if db is not None:
+                    db.close()
+        return self.remove_rule(
+            int(item.get("scope_index") or 0),
+            workflow=item.get("workflow") if item.get("scope") == "workflow" else None,
+        )
+
+    def clear_all_rules(self) -> int:
+        """Clear all global and workflow memory rules for this memory scope."""
+        if self._db_rules_enabled():
+            db, user = self._open_db_user()
+            try:
+                return db.clear_user_memory_rules(user["id"], all_scopes=True)
+            finally:
+                if db is not None:
+                    db.close()
+        with self._file_lock(self.memory_rules_file):
+            current = self._normalize_memory_rules(self._read_json_file(self.memory_rules_file))
+            removed = len(current.get("global", [])) + sum(
+                len(rules) for rules in current.get("workflows", {}).values()
+            )
+            current = {"global": [], "workflows": {}}
+            self._memory_rules = current
+            self._atomic_write_json(self.memory_rules_file, current)
+            return removed
+
     def format_rules_for_prompt(self, workflow: Optional[str] = None) -> str:
         """Format global plus active-workflow memory rules for prompt injection."""
         workflow_name = self._normalize_workflow_name(workflow)
-        current = self._normalize_memory_rules(self._memory_rules)
-        global_rules = current.get("global", [])
-        workflow_rules = []
-        if workflow_name:
-            workflow_rules = current.get("workflows", {}).get(workflow_name, [])
+        listed = self.list_rules(workflow=workflow_name, include_global=True)
+        global_rules = listed.get("global", [])
+        workflow_rules = listed.get("workflow", {}).get("rules", []) if workflow_name else []
 
         if not global_rules and not workflow_rules:
             return ""
@@ -456,13 +705,15 @@ class MemorySystem:
         with self._file_lock(self.memory_rules_file):
             self._memory_rules = {"global": [], "workflows": {}}
             self._atomic_write_json(self.memory_rules_file, self._memory_rules)
+        if self._db_rules_enabled():
+            self.clear_all_rules()
 
     def export_to_dict(self) -> Dict[str, Any]:
         """Export all memories as dictionary"""
         return {
             "preferences": self._preferences,
             "project_context": self._project_context,
-            "rules": self._memory_rules,
+            "rules": self.list_rules(),
         }
 
     def import_from_dict(self, data: Dict[str, Any]):
@@ -481,6 +732,14 @@ class MemorySystem:
 
         if "rules" in data:
             rules = self._normalize_memory_rules(data["rules"])
+            if self._db_rules_enabled():
+                self.clear_all_rules()
+                for rule in rules.get("global", []):
+                    self.add_rule(rule)
+                for workflow, workflow_rules in rules.get("workflows", {}).items():
+                    for rule in workflow_rules:
+                        self.add_rule(rule, workflow=workflow)
+                return
             with self._file_lock(self.memory_rules_file):
                 self._memory_rules = rules
                 self._atomic_write_json(self.memory_rules_file, rules)

@@ -246,6 +246,7 @@
     { cmd: '/scope',   alias: 'sc', hint: '(client) confine agent to a directory: /scope <path>' },
     { cmd: '/cd',      alias: 'cd', hint: '(client) alias for /scope' },
     { cmd: '/session', alias: 'ss', hint: '(client) show or switch session: /session default' },
+    { cmd: '/memory', alias: 'mem', hint: "show or edit this user's prompt memory rules" },
     { cmd: '/feedback', alias: 'fb', hint: '(client) send admin-visible feedback: /feedback <message>' },
   ];
 
@@ -790,6 +791,10 @@
             hint: '(client) send admin-visible feedback: /feedback <message>',
             desc: '(client) send admin-visible feedback: /feedback <message>',
             usage: '/feedback <message>' },
+          { cmd: '/memory', alias: 'mem',
+            hint: "show or edit this user's prompt memory rules",
+            desc: "show or edit this user's prompt memory rules",
+            usage: '/memory add <rule>' },
         ];
         const present = new Set(live.map(c => c.cmd));
         for (const c of clientOnly) {
@@ -1068,7 +1073,7 @@
       let m;
       while ((m = rx.exec(source)) !== null) add(m[1]);
     };
-    scan(/(?:wrote to|wrote|updated|created|deleted)\s+['"`]([^'"`]+)['"`]/gi);
+    scan(/(?:wrote to|wrote|updated|created|deleted|(?:successfully\s+)?replaced\s+(?:in|to)|replaced\s+\d+\s+occurrence(?:\(s\)|s)?\s+in)\s+['"`]([^'"`]+)['"`]/gi);
     scan(/(?:wrote file|updated file|created file|deleted file|target_file|file_path|path)\s*[:=]\s*['"`]?([^\s,'"`)\]]+)/gi, `${toolText}\n${body}`);
     scan(/^\*\*\*\s+(?:Update|Add|Delete)\s+File:\s+(.+?)\s*$/gmi);
     scan(/^(?:[MADRCU]|\?\?)\s+(.+?)\s*$/gm);
@@ -1170,8 +1175,10 @@
       window.backend.subscribe('file_changed', (m) => {
         if (!eventMatchesActiveSession(m, { requireSession: true })) return;
         _refFiles(); _refSsot();
-        const path = (m && m.path) ? String(m.path) : '';
-        dispatchAtlasFileChanged(path, (m && m.tool) || '');
+        const paths = Array.isArray(m && m.paths)
+          ? m.paths
+          : ((m && m.path) ? [m.path] : []);
+        paths.forEach(path => dispatchAtlasFileChanged(String(path || ''), (m && m.tool) || ''));
       });
       window.backend.subscribe('context', (m) => {
         if (!eventMatchesActiveSession(m, { requireSession: true })) return;

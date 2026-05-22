@@ -122,6 +122,18 @@ def test_changed_paths_from_write_replace_results():
     assert paths == ["gpio/rtl/gpio.sv"]
 
     paths = changed_paths_from_tool_result(
+        "replace_in_file",
+        "Successfully replaced in 'gpio/yaml/gpio.ssot.yaml'\n",
+    )
+    assert paths == ["gpio/yaml/gpio.ssot.yaml"]
+
+    paths = changed_paths_from_tool_result(
+        "replace_in_file",
+        "Replaced 8 occurrences in 'gpio/yaml/gpio.ssot.yaml'\n",
+    )
+    assert paths == ["gpio/yaml/gpio.ssot.yaml"]
+
+    paths = changed_paths_from_tool_result(
         "replace_lines",
         "Update(gpio/rtl/gpio_ctrl.sv)\n@@\n-old\n+new\n",
     )

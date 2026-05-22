@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from core.atlas_admin_chat import answer_admin_question
 from core.atlas_admin_usage import build_admin_usage_payload
 from core.atlas_db import AtlasDB
 
@@ -141,6 +142,39 @@ def test_message_cost_dual_writes_to_llm_calls(tmp_path: Path) -> None:
     assert calls[0]["tokens_input"] == 1200
     assert calls[0]["tokens_output"] == 300
     assert calls[0]["tokens_reasoning"] == 80
+
+
+def test_admin_usage_reports_memory_rules_and_user_inputs(tmp_path: Path) -> None:
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        user = db.create_user("input_user", "Input User")
+        session = db.create_session(user["id"], "Input Session", project_id="axi")
+        msg = db.save_message(session["id"], "user")
+        db.save_part(msg["id"], session["id"], "text", text="build the AXI block")
+        db.add_user_memory_rule(user["id"], "Always use strict SSOT")
+
+        usage = build_admin_usage_payload(db)
+
+    assert usage["memory_rules"][0]["username"] == "input_user"
+    assert usage["memory_rules"][0]["rule"] == "Always use strict SSOT"
+    assert usage["input_history"][0]["username"] == "input_user"
+    assert usage["input_history"][0]["content"] == "build the AXI block"
+
+
+def test_admin_chat_answers_memory_and_input_questions_from_db(tmp_path: Path) -> None:
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        user = db.create_user("chat_user", "Chat User")
+        session = db.create_session(user["id"], "Chat Session", project_id="timer")
+        msg = db.save_message(session["id"], "user")
+        db.save_part(msg["id"], session["id"], "text", text="check timer usage")
+        db.add_user_memory_rule(user["id"], "Use timer-specific reset rules")
+
+        answer = answer_admin_question(db, "show memory and user input history")
+
+    assert "Memory rules: 1 total" in answer["answer"]
+    assert "User input history: 1 recent" in answer["answer"]
+    section_titles = [section["title"] for section in answer["sections"]]
+    assert "Memory Rules" in section_titles
+    assert "Latest User Inputs" in section_titles
 
 
 def test_admin_usage_prefers_llm_calls_for_cost_context(tmp_path: Path) -> None:

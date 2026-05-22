@@ -9434,7 +9434,19 @@ def create_app():
         else:
             try:
                 from core.slash_commands import get_registry as _get_slash_registry
-                result = _get_slash_registry().execute(raw)
+                _old_memory_user = os.environ.get("ATLAS_MEMORY_USER")
+                _owner_for_memory = normalize_session_name(
+                    str(getattr(client_session, "session_id", "") or "")
+                ).split("/", 1)[0]
+                if _owner_for_memory:
+                    os.environ["ATLAS_MEMORY_USER"] = _owner_for_memory
+                try:
+                    result = _get_slash_registry().execute(raw)
+                finally:
+                    if _old_memory_user is None:
+                        os.environ.pop("ATLAS_MEMORY_USER", None)
+                    else:
+                        os.environ["ATLAS_MEMORY_USER"] = _old_memory_user
             except Exception as exc:
                 _emit_slash_output(client_session, f"Error executing {raw.split(None, 1)[0]}: {exc}")
                 return True
@@ -10179,7 +10191,24 @@ def create_app():
         # and the ssot scaffold helpers), so it would otherwise look
         # like a silent update from the frontend's perspective.
         try:
-            bridge.emit("file_changed", path=str(path), tool="ssot_save")
+            target_session = ""
+            try:
+                target_session = normalize_session_name(str(_ssot_session_for_ip(ip) or ""))
+            except Exception:
+                try:
+                    target_session = normalize_session_name(str(_canonical_session_string(ip, "ssot-gen") or ""))
+                except Exception:
+                    target_session = ""
+            payload = {
+                "path": str(path),
+                "tool": "ssot_save",
+                "ip": ip,
+                "workflow": "ssot-gen",
+            }
+            if target_session:
+                payload["session"] = target_session
+                payload["session_id"] = target_session
+            bridge.emit("file_changed", **payload)
         except Exception:
             pass
 
@@ -16180,6 +16209,9 @@ def create_app():
         _atlas_active_session_cv.set(session)
         if mirror_env:
             os.environ["ATLAS_ACTIVE_SESSION"] = session
+            owner = session.split("/", 1)[0].strip()
+            if owner:
+                os.environ["ATLAS_MEMORY_USER"] = owner
         if not apply_main:
             return
         try:
@@ -16293,6 +16325,28 @@ def create_app():
                 return JSONResponse(build_admin_usage_payload(db))
         except Exception as e:
             print(f"api_admin_usage error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/admin/chat")
+    async def api_admin_chat(request: Request):
+        """DB-backed admin Q&A for usage, memory, feedback, and user inputs."""
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        question = str((body or {}).get("message") or (body or {}).get("question") or "").strip()
+        if not question:
+            return JSONResponse({"error": "message required"}, status_code=400)
+        if len(question) > 2000:
+            return JSONResponse({"error": "message too long"}, status_code=413)
+        try:
+            with AtlasDB() as db:
+                from core.atlas_admin_chat import answer_admin_question
+                return JSONResponse(answer_admin_question(db, question))
+        except Exception as e:
+            print(f"api_admin_chat error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)
 
     @app.get("/api/user/dashboard")

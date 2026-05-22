@@ -52,6 +52,45 @@ def _json_any(value: Any) -> Any:
     return value
 
 
+def _input_payload_text(payload: Any) -> str:
+    """Extract a compact human-readable input from a trace payload."""
+    data = _json_any(payload)
+    if data is None:
+        return ""
+    if isinstance(data, str):
+        return data.strip()
+    if isinstance(data, dict):
+        for key in ("content", "answer", "text", "message", "question"):
+            value = data.get(key)
+            if value:
+                return str(value).strip()
+        answers = data.get("answers")
+        if isinstance(answers, list):
+            parts = []
+            for item in answers:
+                if isinstance(item, dict):
+                    q = str(item.get("question") or item.get("header") or "").strip()
+                    a = str(item.get("answer") or item.get("value") or "").strip()
+                    if q and a:
+                        parts.append(f"{q}: {a}")
+                    elif a:
+                        parts.append(a)
+                elif item:
+                    parts.append(str(item).strip())
+            return "\n".join(part for part in parts if part)
+        return json.dumps(data, ensure_ascii=False)
+    if isinstance(data, list):
+        return "\n".join(str(item).strip() for item in data if str(item).strip())
+    return str(data).strip()
+
+
+def _payload_role(payload: Any) -> str:
+    data = _json_any(payload)
+    if isinstance(data, dict):
+        return str(data.get("role") or "").strip().lower()
+    return ""
+
+
 def _cost_context(row: dict[str, Any]) -> dict[str, str]:
     ip_name = _text(row.get("ip_name"))
     workspace_name = _text(row.get("workspace_name"))
@@ -412,9 +451,76 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
          ORDER BY intervention_count DESC, last_intervention_at DESC
         """
     )]
+    input_rows = [dict(r) for r in db._fetchall(
+        """
+        WITH message_inputs AS (
+            SELECT m.id AS input_id, 'message.user' AS source,
+                   m.session_id, '' AS workflow, '' AS workspace_id, '' AS ip_id,
+                   '' AS actor_user_id, m.created_at,
+                   GROUP_CONCAT(NULLIF(p.text, ''), char(10)) AS content,
+                   NULL AS payload
+              FROM messages m
+              LEFT JOIN parts p ON p.message_id = m.id AND p.type = 'text'
+             WHERE m.role = 'user'
+             GROUP BY m.id
+        ),
+        trace_inputs AS (
+            SELECT e.id AS input_id, e.event_type AS source,
+                   e.session_id, e.workflow, e.workspace_id, e.ip_id,
+                   e.actor_user_id, e.created_at,
+                   '' AS content, e.payload
+              FROM trace_events e
+             WHERE e.event_type IN (
+                   'ask_user.answered',
+                   'chat_message',
+                   'ssot_qa.answered',
+                   'ssot_qa.approved',
+                   'human.intervention'
+             )
+        ),
+        all_inputs AS (
+            SELECT * FROM message_inputs
+            UNION ALL
+            SELECT * FROM trace_inputs
+        ),
+        scoped AS (
+            SELECT ai.*,
+                   COALESCE(NULLIF(ai.workflow, ''), r.workflow, '') AS resolved_workflow,
+                   COALESCE(NULLIF(ai.workspace_id, ''), r.workspace_id, '') AS resolved_workspace_id,
+                   COALESCE(NULLIF(ai.ip_id, ''), r.ip_id, '') AS resolved_ip_id
+              FROM all_inputs ai
+              LEFT JOIN workflow_runs r ON r.id = (
+                   SELECT rr.id
+                     FROM workflow_runs rr
+                    WHERE rr.session_id = ai.session_id
+                      AND (rr.started_at IS NULL OR ai.created_at >= rr.started_at)
+                      AND (rr.ended_at IS NULL OR ai.created_at <= rr.ended_at)
+                    ORDER BY rr.started_at DESC, rr.created_at DESC
+                    LIMIT 1
+              )
+        )
+        SELECT sc.input_id, sc.source, sc.session_id, sc.actor_user_id,
+               sc.content, sc.payload, sc.created_at,
+               COALESCE(ua.username, u.username) AS username,
+               COALESCE(ua.id, u.id) AS user_id,
+               s.project_id, s.directory, s.title,
+               sc.resolved_workflow AS workflow,
+               w.name AS workspace_name, w.local_path AS workspace_path,
+               i.ip_name
+          FROM scoped sc
+          LEFT JOIN sessions s ON s.id = sc.session_id
+          LEFT JOIN users u ON u.id = s.user_id
+          LEFT JOIN users ua ON ua.id = sc.actor_user_id
+          LEFT JOIN workspaces w ON w.id = sc.resolved_workspace_id
+          LEFT JOIN ip_blocks i ON i.id = sc.resolved_ip_id
+         ORDER BY sc.created_at DESC
+         LIMIT 500
+        """
+    )]
     rtl_history_rows = db.list_rtl_run_history()
     artifact_version_rows = db.list_artifact_versions()
     run_artifact_set_rows = db.list_run_artifact_version_sets()
+    memory_rule_rows = db.list_all_user_memory_rules(limit=500)
 
     models_by_user: dict[str, list[dict[str, Any]]] = {}
     for row in models_rows:
@@ -584,6 +690,43 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
             "last_intervention_at": row.get("last_intervention_at"),
         })
 
+    input_history = []
+    for row in input_rows:
+        if row.get("source") == "chat_message":
+            role = _payload_role(row.get("payload"))
+            if role and role != "user":
+                continue
+        context = _cost_context(row)
+        content = _text(row.get("content")) or _input_payload_text(row.get("payload"))
+        input_history.append({
+            **context,
+            "input_id": row.get("input_id") or "",
+            "source": row.get("source") or "",
+            "session_id": row.get("session_id") or "",
+            "user_id": row.get("user_id") or "",
+            "username": row.get("username") or "unknown",
+            "workflow": row.get("workflow") or "",
+            "content": content,
+            "payload": _json_any(row.get("payload")),
+            "created_at": row.get("created_at"),
+        })
+
+    memory_rules = []
+    for row in memory_rule_rows:
+        memory_rules.append({
+            "id": row.get("id") or "",
+            "user_id": row.get("user_id") or "",
+            "username": row.get("username") or "unknown",
+            "display_name": row.get("display_name") or "",
+            "role": row.get("role") or "",
+            "scope": row.get("scope") or "global",
+            "workflow": row.get("workflow") or "",
+            "rule": row.get("rule") or "",
+            "position": row.get("position") or 0,
+            "created_at": row.get("created_at"),
+            "updated_at": row.get("updated_at"),
+        })
+
     rtl_run_history = []
     for row in rtl_history_rows:
         context = _cost_context(row)
@@ -694,6 +837,8 @@ def build_admin_usage_payload(db) -> dict[str, Any]:
         "trace_events": trace_events,
         "tool_usage": tool_usage,
         "interventions": interventions,
+        "input_history": input_history,
+        "memory_rules": memory_rules,
         "rtl_run_history": rtl_run_history,
         "artifact_versions": artifact_versions,
         "run_artifact_sets": run_artifact_sets,

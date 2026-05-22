@@ -171,6 +171,43 @@ class TestPromptFormatting(unittest.TestCase):
         self.assertIn("Use shift operators", formatted)
         self.assertNotIn("Ask TBD questions first", formatted)
 
+    def test_user_memory_rules_are_isolated(self):
+        """Atlas users get separate rule files under the same memory root."""
+        alice = MemorySystem(memory_dir=self.temp_dir, user="alice/axi/ssot-gen")
+        bob = MemorySystem(memory_dir=self.temp_dir, user="bob/axi/ssot-gen")
+
+        alice.add_rule("Alice rule")
+        bob.add_rule("Bob rule")
+
+        self.assertEqual(alice.list_rules()["global"], ["Alice rule"])
+        self.assertEqual(bob.list_rules()["global"], ["Bob rule"])
+        self.assertNotIn("Bob rule", alice.format_all_for_prompt())
+        self.assertIn("users/alice/rules.json", alice.memory_rules_file.as_posix())
+
+    def test_active_user_memory_is_used_for_prompt_override(self):
+        """Prompt injection follows ATLAS_ACTIVE_SESSION's user segment."""
+        alice = MemorySystem(memory_dir=self.temp_dir, user="alice")
+        bob = MemorySystem(memory_dir=self.temp_dir, user="bob")
+        alice.add_rule("Use Alice-specific rule")
+        bob.add_rule("Use Bob-specific rule")
+
+        old_session = os.environ.get("ATLAS_ACTIVE_SESSION")
+        try:
+            os.environ["ATLAS_ACTIVE_SESSION"] = "alice/new_axi/ssot-gen"
+            base = MemorySystem(memory_dir=self.temp_dir)
+            from core.prompt_builder import build_memory_override
+
+            prompt = build_memory_override(base, workflow="ssot-gen")
+        finally:
+            if old_session is None:
+                os.environ.pop("ATLAS_ACTIVE_SESSION", None)
+            else:
+                os.environ["ATLAS_ACTIVE_SESSION"] = old_session
+
+        self.assertIn("User memory scope: alice", prompt)
+        self.assertIn("Use Alice-specific rule", prompt)
+        self.assertNotIn("Use Bob-specific rule", prompt)
+
     def test_memory_rules_export_import_and_clear(self):
         """Rules participate in export/import and can be cleared by scope."""
         self.memory.add_rule("Global rule")
@@ -186,6 +223,41 @@ class TestPromptFormatting(unittest.TestCase):
             self.assertEqual(other.list_rules(workflow="rtl-gen")["workflow"]["rules"], [])
         finally:
             shutil.rmtree(other_dir, ignore_errors=True)
+
+    def test_db_backed_user_memory_rules(self):
+        """When ATLAS_DB_PATH is set, per-user rules come from AtlasDB."""
+        from core.atlas_db import AtlasDB
+
+        db_path = os.path.join(self.temp_dir, "atlas.db")
+        old_db = os.environ.get("ATLAS_DB_PATH")
+        old_backend = os.environ.get("ATLAS_MEMORY_BACKEND")
+        try:
+            os.environ["ATLAS_DB_PATH"] = db_path
+            os.environ.pop("ATLAS_MEMORY_BACKEND", None)
+            alice = MemorySystem(memory_dir=self.temp_dir, user="alice")
+            bob = MemorySystem(memory_dir=self.temp_dir, user="bob")
+            alice.add_rule("Alice DB rule")
+            bob.add_rule("Bob DB rule")
+
+            with AtlasDB(db_path) as db:
+                alice_user = db.get_user_by_username("alice")
+                bob_user = db.get_user_by_username("bob")
+                assert alice_user is not None
+                assert bob_user is not None
+                assert db.list_user_memory_rules(alice_user["id"])[0]["rule"] == "Alice DB rule"
+                assert db.list_user_memory_rules(bob_user["id"])[0]["rule"] == "Bob DB rule"
+
+            self.assertIn("Alice DB rule", alice.format_all_for_prompt())
+            self.assertNotIn("Bob DB rule", alice.format_all_for_prompt())
+        finally:
+            if old_db is None:
+                os.environ.pop("ATLAS_DB_PATH", None)
+            else:
+                os.environ["ATLAS_DB_PATH"] = old_db
+            if old_backend is None:
+                os.environ.pop("ATLAS_MEMORY_BACKEND", None)
+            else:
+                os.environ["ATLAS_MEMORY_BACKEND"] = old_backend
 
 
 class TestImportExport(unittest.TestCase):

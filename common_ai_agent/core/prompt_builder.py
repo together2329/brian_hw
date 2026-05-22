@@ -46,19 +46,27 @@ def build_memory_override(memory_system: Any, workflow: Optional[str] = None) ->
     """Build the high-priority memory block injected above other rules."""
     if memory_system is None:
         return ""
+    effective_memory = memory_system
+    try:
+        if hasattr(memory_system, "for_active_user"):
+            effective_memory = memory_system.for_active_user()
+    except Exception:
+        effective_memory = memory_system
     workflow_name = workflow if workflow is not None else active_workflow_name()
     try:
-        memory_context = memory_system.format_all_for_prompt(workflow=workflow_name)
+        memory_context = effective_memory.format_all_for_prompt(workflow=workflow_name)
     except TypeError:
-        memory_context = memory_system.format_all_for_prompt()
+        memory_context = effective_memory.format_all_for_prompt()
     if not memory_context:
         return ""
 
     scope = workflow_name or "global"
+    user_scope = getattr(effective_memory, "user", "") or "global"
     return "\n".join([
         MEMORY_OVERRIDE_START,
         "Priority: apply these memory entries before project rules, workflow rules, workspace prompts, and default coding rules.",
         "Conflict rule: when a memory entry conflicts with any project/workflow/default rule, the memory entry wins.",
+        f"User memory scope: {user_scope}",
         f"Active workflow scope: {scope}",
         "",
         memory_context,

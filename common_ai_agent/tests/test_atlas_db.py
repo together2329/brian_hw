@@ -275,6 +275,35 @@ class TestWSConnections:
         assert db.get_ws_connections(user_id=user["id"]) == []
 
 
+class TestUserMemoryRules:
+    def test_user_memory_rules_are_user_scoped(self, db):
+        alice = db.create_user("alice_mem", "Alice")
+        bob = db.create_user("bob_mem", "Bob")
+
+        db.add_user_memory_rule(alice["id"], "Alice global")
+        db.add_user_memory_rule(alice["id"], "Alice RTL", workflow="rtl-gen")
+        db.add_user_memory_rule(bob["id"], "Bob global")
+
+        alice_rules = db.list_user_memory_rules(alice["id"], workflow="rtl-gen")
+        bob_rules = db.list_user_memory_rules(bob["id"], workflow="rtl-gen")
+
+        assert [row["rule"] for row in alice_rules] == ["Alice global", "Alice RTL"]
+        assert [row["rule"] for row in bob_rules] == ["Bob global"]
+
+    def test_user_memory_rule_admin_list_and_clear(self, db):
+        user = db.ensure_user_by_username("rule_admin")
+        first = db.add_user_memory_rule(user["id"], "Global one")
+        second = db.add_user_memory_rule(user["id"], "Workflow one", workflow="ssot-gen")
+
+        listed = db.list_all_user_memory_rules()
+        assert {row["id"] for row in listed} >= {first["id"], second["id"]}
+        assert any(row["username"] == "rule_admin" for row in listed)
+
+        assert db.delete_user_memory_rule(user["id"], first["id"]) is True
+        assert db.clear_user_memory_rules(user["id"], all_scopes=True) == 1
+        assert db.list_user_memory_rules(user["id"], include_all_workflows=True) == []
+
+
 class TestConcurrency:
     def test_concurrent_session_creation(self, db):
         user = db.create_user("concurrent", "Concurrent User")
