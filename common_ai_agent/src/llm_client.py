@@ -367,7 +367,7 @@ def _normalize_reasoning_effort(mode) -> str:
     return mode if mode in ('none', 'low', 'medium', 'high', 'xhigh') else 'medium'
 
 
-def _get_responses_reasoning_mode() -> str:
+def _get_responses_reasoning_mode(reasoning_effort: str = None) -> str:
     """Return normalized Responses API ``reasoning.effort``.
 
     OpenAI accepts (as of GPT-5.2/5.4/5.5):
@@ -378,7 +378,7 @@ def _get_responses_reasoning_mode() -> str:
     ``REASONING_MODE`` is only this app's local config name; the API field is
     always ``reasoning.effort``.
     """
-    mode = getattr(config, 'REASONING_MODE', getattr(config, 'REASONING_EFFORT', 'medium'))
+    mode = reasoning_effort or getattr(config, 'REASONING_MODE', getattr(config, 'REASONING_EFFORT', 'medium'))
     return _normalize_reasoning_effort(mode)
 
 
@@ -392,9 +392,9 @@ def _deepseek_reasoning_effort_for_chat(effort: str) -> str:
     return ''
 
 
-def _apply_chat_reasoning_controls(data: dict, model: str, url: str) -> tuple[str, str]:
+def _apply_chat_reasoning_controls(data: dict, model: str, url: str, reasoning_effort: str = None) -> tuple[str, str]:
     """Apply provider-specific reasoning controls for Chat Completions."""
-    effort = _get_responses_reasoning_mode()
+    effort = _get_responses_reasoning_mode(reasoning_effort)
     model_lower = (model or '').lower()
     url_lower = (url or '').lower()
 
@@ -423,6 +423,14 @@ def _apply_chat_reasoning_controls(data: dict, model: str, url: str) -> tuple[st
         if effort == 'none':
             return effort, "GLM thinking.type=disabled"
         return effort, f"GLM thinking.type={thinking_type}; no provider effort tier"
+
+    if 'kimi' in model_lower or 'moonshot' in model_lower or 'kimi.com' in url_lower or 'moonshot.ai' in url_lower:
+        thinking_type = "disabled" if effort == 'none' else "enabled"
+        data["thinking"] = {"type": thinking_type}
+        data.pop("reasoning_effort", None)
+        if effort == 'none':
+            return effort, "Kimi thinking.type=disabled"
+        return effort, "Kimi thinking.type=enabled; no provider effort tier"
 
     return effort, "local config only; not sent in chat/completions body"
 
@@ -1113,6 +1121,7 @@ def _build_responses_request_body(
     tools: List[Dict] = None,
     max_output_tokens: int = None,
     base_url: str = None,
+    reasoning_effort: str = None,
 ) -> dict:
     """
     Build a complete Responses API request body from Chat Completions-style messages.
@@ -1185,7 +1194,7 @@ def _build_responses_request_body(
     # Enable reasoning for reasoning-capable models (GPT-5.x, o-series)
     _is_reasoning_model = _is_reasoning_model_for_name(model)
     if _is_reasoning_model:
-        reasoning_mode = _get_responses_reasoning_mode()
+        reasoning_mode = _get_responses_reasoning_mode(reasoning_effort)
         if reasoning_mode in ('none', 'low', 'medium', 'high', 'xhigh'):
             reasoning = {"effort": reasoning_mode}
             if getattr(config, 'RESPONSES_REASONING_SUMMARY', True) and _supports_reasoning_summary(model):
@@ -3288,7 +3297,7 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
             yield '\n'
 
 
-def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=False, caller_tag=None, suppress_spinner=False, tools=None):
+def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=False, caller_tag=None, suppress_spinner=False, tools=None, reasoning_effort=None):
     """
     Sends a chat completion request to the LLM using urllib.
     Yields content chunks from the SSE stream.
@@ -3645,6 +3654,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             tools=tools,
             max_output_tokens=compute_safe_max_tokens() if config.MAX_OUTPUT_TOKENS > 0 else None,
             base_url=url,
+            reasoning_effort=reasoning_effort,
         )
 
         if config.DEBUG_MODE:
@@ -3713,7 +3723,9 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         data["tools"] = tools
         data["tool_choice"] = "auto"
 
-    _chat_effort_cfg, _chat_effort_note = _apply_chat_reasoning_controls(data, resolved_model, url)
+    _chat_effort_cfg, _chat_effort_note = _apply_chat_reasoning_controls(
+        data, resolved_model, url, reasoning_effort
+    )
 
     # Debug: Log request details
     if config.DEBUG_MODE:

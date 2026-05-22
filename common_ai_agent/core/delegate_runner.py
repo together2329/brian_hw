@@ -43,7 +43,9 @@ class DelegateRunner:
         }
 
     def run(self, backend: str, task: str, context: str = "",
-            workflow_name: str = "", model_override: Optional[str] = None) -> str:
+            workflow_name: str = "", model_override: Optional[str] = None,
+            system_prompt: Optional[str] = None, allowed_tools: Any = None,
+            reasoning_effort: str = "", custom_agent_name: str = "") -> str:
         """
         Execute task via the specified backend.
 
@@ -53,6 +55,10 @@ class DelegateRunner:
             context: Parent agent context
             workflow_name: Workflow to load config from (any name, dynamic)
             model_override: Optional model/profile already activated by caller
+            system_prompt: Optional custom system prompt to merge into the delegate.
+            allowed_tools: Optional allow-list for this delegated run.
+            reasoning_effort: Optional reasoning effort override.
+            custom_agent_name: Optional display/name metadata for logs.
 
         Returns:
             Result string from the backend
@@ -68,7 +74,18 @@ class DelegateRunner:
         delegate = cls(project_root=self.project_root)
         if backend == "sub-agent":
             return delegate.run(task, context, workflow_name=workflow_name,
-                                model_override=model_override)
+                                model_override=model_override,
+                                system_prompt=system_prompt,
+                                allowed_tools=allowed_tools,
+                                reasoning_effort=reasoning_effort,
+                                custom_agent_name=custom_agent_name)
+        if backend == "http-worker":
+            return delegate.run(task, context, workflow_name=workflow_name,
+                                model_override=model_override,
+                                system_prompt=system_prompt,
+                                allowed_tools=allowed_tools,
+                                reasoning_effort=reasoning_effort,
+                                custom_agent_name=custom_agent_name)
         return delegate.run(task, context, workflow_name=workflow_name)
 
     @staticmethod
@@ -93,31 +110,45 @@ class SubAgentDelegate:
         self.project_root = project_root or Path.cwd()
 
     def run(self, task: str, context: str = "", workflow_name: str = "",
-            model_override: Optional[str] = None) -> str:
+            model_override: Optional[str] = None,
+            system_prompt: Optional[str] = None, allowed_tools: Any = None,
+            reasoning_effort: str = "", custom_agent_name: str = "") -> str:
         """Execute task via sub-agent with workspace config."""
+        from contextlib import nullcontext
         from core.agent_runner import run_agent_session
+        from core.custom_agents import parse_allowed_tools, runtime_overrides_for_effort
+        import config
 
         # Build system prompt from workflow config if specified
-        system_prompt = None
+        workflow_prompt = None
         if workflow_name:
-            system_prompt = self._build_workflow_prompt(workflow_name)
+            workflow_prompt = self._build_workflow_prompt(workflow_name)
+        if system_prompt and workflow_prompt:
+            system_prompt = f"{workflow_prompt.rstrip()}\n\n{system_prompt.strip()}"
+        elif workflow_prompt:
+            system_prompt = workflow_prompt
 
         # Build full prompt with context
         full_prompt = task
         if context:
             full_prompt = f"[Context from primary agent]\n{context}\n\n[Task]\n{task}"
 
-        result = run_agent_session(
-            agent_name="execute",
-            prompt=full_prompt,
-            system_prompt=system_prompt,
-            parent_context=context,
-            compress_result=True,
-            max_result_chars=8000,
-            verbose=False,
-            workflow_name=workflow_name,
-            model_override=model_override,
-        )
+        parsed_allowed = parse_allowed_tools(allowed_tools)
+        model_ctx = config.scoped_model_runtime(model_override) if model_override else nullcontext()
+        with model_ctx, config.scoped_runtime_extra(runtime_overrides_for_effort(reasoning_effort)):
+            active_model = getattr(config, "MODEL_NAME", model_override) if model_override else None
+            result = run_agent_session(
+                agent_name="execute",
+                prompt=full_prompt,
+                allowed_tools=set(parsed_allowed) if parsed_allowed else None,
+                system_prompt=system_prompt,
+                parent_context=context,
+                compress_result=True,
+                max_result_chars=8000,
+                verbose=False,
+                workflow_name=workflow_name,
+                model_override=active_model,
+            )
 
         if result.status == "error":
             return f"[Sub-agent error] {result.error or result.output}"
@@ -173,12 +204,20 @@ class HTTPWorkerDelegate:
     def __init__(self, project_root: Optional[Path] = None):
         self.project_root = project_root or Path.cwd()
 
-    def run(self, task: str, context: str = "", workflow_name: str = "") -> str:
+    def run(self, task: str, context: str = "", workflow_name: str = "",
+            model_override: Optional[str] = None,
+            system_prompt: Optional[str] = None, allowed_tools: Any = None,
+            reasoning_effort: str = "", custom_agent_name: str = "") -> str:
         """POST /run on the matching HTTP worker; block until /result; return summary."""
         try:
             from core.agent_client import worker_call
         except Exception as e:
             return f"[http-worker delegate: agent_client unavailable: {e}]"
+        try:
+            from core.custom_agents import current_owner_user_id
+            custom_agent_owner_id = current_owner_user_id()
+        except Exception:
+            custom_agent_owner_id = ""
 
         worker_url = self._resolve_worker_url(workflow_name)
         # Stitch context into the task prompt the same way SubAgentDelegate
@@ -192,8 +231,13 @@ class HTTPWorkerDelegate:
             resp = worker_call(
                 worker=worker_url,
                 task=full_task,
-                model="",
+                model=model_override or "",
                 workflow=workflow_name or "",
+                system_prompt=system_prompt or "",
+                allowed_tools=allowed_tools,
+                reasoning_effort=reasoning_effort or "",
+                custom_agent=custom_agent_name or "",
+                custom_agent_owner_id=custom_agent_owner_id,
                 timeout=timeout,
                 poll_interval=2.0,
                 show_log=False,

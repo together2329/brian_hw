@@ -91,6 +91,12 @@ const QA_HISTORY_LIMIT = 50;
 const QA_HISTORY_LEGACY_STORAGE_KEY = 'atlasQaHistory';
 const QA_HISTORY_STORAGE_PREFIX = 'atlasQaHistory:';
 const WORKFLOW_REPORT_TABS = {
+  orchestrator: {
+    label: 'orchestrator',
+    title: 'Orchestrator',
+    folders: [],
+    paths: () => [],
+  },
   lint: {
     label: 'lint report',
     title: 'Lint Report',
@@ -874,6 +880,15 @@ const healthMatchesCurrentUser = (payload) => {
   return !(current && response && current !== response);
 };
 
+const atlasUiExecMode = () => String(
+  window.ATLAS_EXEC_MODE
+  || window.ATLAS_DEFAULT_EXEC_MODE
+  || (window.ATLAS_BOOT_CONFIG && window.ATLAS_BOOT_CONFIG.exec_mode)
+  || ''
+).trim().toLowerCase();
+const atlasUiOrchestratorMode = () => atlasUiExecMode() === 'orchestrator';
+const defaultWorkflowForExecMode = () => atlasUiOrchestratorMode() ? 'orchestrator' : null;
+
 // URL `?ip=` wins over localStorage on the READ direction so deep links
 // like /?ip=cmux_url_test pick up the requested IP even when a previous
 // session left `validator/default/default` in localStorage.
@@ -881,7 +896,9 @@ function resolveActiveSession() {
   try {
     const url = new URLSearchParams(window.location.search);
     const urlIp = String(url.get('ip') || url.get('ip_id') || '').trim();
-    const urlWf = String(url.get('workflow') || url.get('wf') || '').trim() || 'orchestrator';
+    const urlWf = String(url.get('workflow') || url.get('wf') || '').trim()
+      || defaultWorkflowForExecMode()
+      || 'default';
     const username = (window.ATLAS_USER && window.ATLAS_USER.username)
       || window.ATLAS_USER_SESSION_ID
       || 'validator';
@@ -1255,15 +1272,17 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   //   intent: 'normal' | 'plan'   (top-level — shift+tab to swap)
   //   workflow: null | 'ssot' | 'rtl_gen' | 'lint' | 'tb_gen'
   const [intent, setIntent] = React.useState('normal');
-  const [workflow, setWorkflow] = React.useState(null);
+  const [workflow, setWorkflow] = React.useState(() => defaultWorkflowForExecMode());
 
   React.useEffect(() => {
     const nextWorkflow = String(activeWorkflow || '').trim();
     const known = (window.FLOW_STAGES || []).some(s => s && s.id === nextWorkflow);
     if (!nextWorkflow || nextWorkflow === 'default') {
-      setWorkflow(null);
+      setWorkflow(defaultWorkflowForExecMode());
     } else if (known) {
       setWorkflow(nextWorkflow);
+    } else {
+      setWorkflow(defaultWorkflowForExecMode());
     }
   }, [activeWorkflow]);
 
@@ -1471,7 +1490,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // canonical session API. The API path performs the workspace setup
     // synchronously; stale queued `/wf` prompts are avoided because they
     // can land late during fast workflow sweeps.
-    const next = workflow === w ? null : w;
+    const currentWorkflow = workflow || '';
+    const next = currentWorkflow === w ? defaultWorkflowForExecMode() : w;
+    const sessionWorkflow = workflowFromSession(activeSession || window.ACTIVE_SESSION || '');
+    if ((next || '') === currentWorkflow && !(next === 'orchestrator' && sessionWorkflow !== 'orchestrator')) return;
     const runningNow = streamingRef.current || window.ATLAS_AGENT_RUNNING === true;
     if (runningNow) {
       const label = next || 'default';
@@ -1488,9 +1510,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       window.ATLAS_AGENT_RUNNING = false;
       window.dispatchEvent(new CustomEvent('atlas-agent-running', { detail: { running: false } }));
     } catch (_) {}
-    setWorkflow(next);
+    setWorkflow(next || null);
     window.CONTEXT = Object.assign({}, window.CONTEXT || {}, { workspace: next || '' });
-    refreshFeed(intent, next);
+    refreshFeed(intent, next || null);
     const sid = activateSession(window.SCOPE_PATH || '', next || '');
     const parts = (activeSession || window.ACTIVE_SESSION || '').split('/');
     const owner = normalizeUiSession((window.ATLAS_USER && window.ATLAS_USER.username) || '') || parts[0] || 'default';
@@ -1511,7 +1533,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     if (window.backend) {
       if (window.backend.switchSession) window.backend.switchSession(sid);
       else if (window.backend.connect) window.backend.connect(sid);
-      if (!activated) sendPrompt(next ? `/wf ${next}` : '/workflow default', sid);
+      if (!activated && next !== 'orchestrator') {
+        sendPrompt(next ? `/wf ${next}` : '/workflow default', sid);
+      }
     }
   };
   const [input, setInput] = React.useState('');
@@ -2028,9 +2052,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         const nextWorkflow = activeWorkflow || backendWorkflow;
         const known = (window.FLOW_STAGES || []).some(s => s.id === nextWorkflow);
         if (!nextWorkflow || nextWorkflow === 'default') {
-          setWorkflow(null);
+          setWorkflow(defaultWorkflowForExecMode());
         } else if (known) {
           setWorkflow(nextWorkflow);
+        } else {
+          setWorkflow(defaultWorkflowForExecMode());
         }
       }
       if (ev.detail === 'SCOPE_PATH') {
@@ -2053,7 +2079,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       setActiveSession(sid);
       try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
       const nextWorkflow = workflowFromSession(sid);
-      setWorkflow(nextWorkflow && nextWorkflow !== 'default' ? nextWorkflow : null);
+      setWorkflow(nextWorkflow && nextWorkflow !== 'default' ? nextWorkflow : defaultWorkflowForExecMode());
       if (window.atlasData && window.atlasData.refreshSessionState) {
         window.atlasData.refreshSessionState(sid, false);
       }
@@ -3748,7 +3774,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           </div>
           <div style={{ padding: '6px 12px 4px', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-mute)', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>workflow</span>
-            <span className="mute" style={{ fontSize: 9, textTransform: 'none', letterSpacing: 0 }}>· optional · click to toggle</span>
+            <span className="mute" style={{ fontSize: 9, textTransform: 'none', letterSpacing: 0 }}>
+              {atlasUiOrchestratorMode() ? '· orchestrator first' : '· optional · click to toggle'}
+            </span>
           </div>
           <div style={{ paddingBottom: 4 }}>
             {window.FLOW_STAGES.map((s, i) => {
@@ -14985,6 +15013,139 @@ const CoverageReportSummary = ({ ip, onSelectPath, onOpenDiagnostic }) => {
   );
 };
 
+const OrchestratorWorkflowPane = ({ activeIp }) => {
+  const [snapshot, setSnapshot] = React.useState({ orchestrator: {}, workers: [] });
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const ip = String(activeIp || window.SCOPE_PATH || '').trim();
+
+  const refresh = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const query = ip && ip !== 'default' ? `?ip=${encodeURIComponent(ip)}` : '';
+      const r = await fetch(`/api/orchestrator/workers${query}`, { cache: 'no-store' });
+      if (!r.ok) throw new Error(`workers ${r.status}`);
+      const j = await r.json();
+      setSnapshot(j || { orchestrator: {}, workers: [] });
+      setError('');
+    } catch (e) {
+      setError(e && e.message ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
+  }, [ip]);
+
+  React.useEffect(() => {
+    let dead = false;
+    const run = async () => {
+      if (dead) return;
+      await refresh();
+    };
+    run();
+    const t = setInterval(run, 3000);
+    return () => { dead = true; clearInterval(t); };
+  }, [refresh]);
+
+  const orch = snapshot.orchestrator || {};
+  const workers = Array.isArray(snapshot.workers) ? snapshot.workers : [];
+  const running = workers.filter(w => Number(w.running_count || 0) > 0);
+  const mismatch = workers.filter(w => w.status === 'mismatch');
+  const down = workers.filter(w => w.status && w.status !== 'ok' && w.status !== 'mismatch');
+  const stateColor = (w) => {
+    if (w.status === 'mismatch') return 'var(--warn)';
+    if (w.status === 'ok' && Number(w.running_count || 0) > 0) return 'var(--accent)';
+    if (w.status === 'ok') return 'var(--ok)';
+    return 'var(--err)';
+  };
+  const stateLabel = (w) => {
+    if (w.status === 'mismatch') return 'mismatch';
+    if (w.status !== 'ok') return w.status || 'down';
+    if (Number(w.running_count || 0) > 0) return 'running';
+    return 'idle';
+  };
+
+  return (
+    <div style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: '300px minmax(0, 1fr)', overflow: 'hidden' }}>
+      <div style={{
+        minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column',
+        borderRight: '1px solid var(--line)', background: 'var(--panel)',
+      }}>
+        <div style={{ padding: '12px', borderBottom: '1px solid var(--line)' }}>
+          <div style={{ fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Orchestrator</div>
+          <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, marginTop: 4 }}>
+            {orch.model || 'gpt-5.5'} · {orch.reasoning_effort || 'xhigh'} · {orch.enabled ? 'on' : 'off'}
+          </div>
+        </div>
+        <div style={{ padding: 10, borderBottom: '1px solid var(--line)', display: 'grid', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '90px minmax(0, 1fr)', gap: 8, fontFamily: 'var(--mono)', fontSize: 11 }}>
+            <span className="mute">IP</span>
+            <span className="trunc">{ip || 'global'}</span>
+            <span className="mute">target</span>
+            <span className="trunc" style={{ color: orch.active_target ? 'var(--accent)' : 'var(--fg-mute)' }}>
+              {orch.active_target || 'idle'}
+            </span>
+            <span className="mute">last</span>
+            <span className="trunc">{orch.last_kind || '-'}</span>
+            <span className="mute">workers</span>
+            <span>{running.length} running · {mismatch.length} mismatch · {down.length} down</span>
+          </div>
+          <button className="btn" type="button" onClick={refresh} disabled={loading} style={{ padding: '3px 8px', fontSize: 10, justifySelf: 'start' }}>
+            {loading ? 'refreshing' : 'refresh'}
+          </button>
+          {error && (
+            <div style={{ color: 'var(--err)', fontFamily: 'var(--mono)', fontSize: 10 }}>{error}</div>
+          )}
+        </div>
+        <div style={{ padding: 10, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, lineHeight: 1.5 }}>
+          <div>profile · {orch.profile || '-'}</div>
+          <div>mode · {orch.mode || '-'}</div>
+          <div>corr · {orch.active_corr || '-'}</div>
+        </div>
+      </div>
+      <div style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'minmax(120px, 1.1fr) 90px minmax(140px, 1fr) minmax(90px, 0.8fr) minmax(120px, 1fr)',
+          gap: 10, padding: '8px 12px', borderBottom: '1px solid var(--line)',
+          color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, textTransform: 'uppercase',
+        }}>
+          <span>workflow</span>
+          <span>state</span>
+          <span>model</span>
+          <span>effort</span>
+          <span>url</span>
+        </div>
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          {workers.map(w => {
+            const reasons = Array.isArray(w.mismatch_reasons) ? w.mismatch_reasons.join('\n') : '';
+            return (
+              <div key={w.workflow}
+                   title={reasons || w.error || w.url || ''}
+                   style={{
+                     display: 'grid',
+                     gridTemplateColumns: 'minmax(120px, 1.1fr) 90px minmax(140px, 1fr) minmax(90px, 0.8fr) minmax(120px, 1fr)',
+                     gap: 10, padding: '7px 12px', borderBottom: '1px solid var(--line-2)',
+                     alignItems: 'center', fontFamily: 'var(--mono)', fontSize: 11,
+                     background: orch.active_target === w.workflow ? 'var(--select)' : 'transparent',
+                   }}>
+                <span className="trunc" style={{ fontWeight: 700 }}>{w.workflow}</span>
+                <span style={{ color: stateColor(w) }}>{stateLabel(w)}</span>
+                <span className="trunc">{w.expected_model || w.model || w.worker_health_model || '-'}</span>
+                <span className="trunc">{w.expected_reasoning_effort || w.reasoning_effort || '-'}</span>
+                <span className="trunc" style={{ color: 'var(--fg-mute)' }}>{w.url || '-'}</span>
+              </div>
+            );
+          })}
+          {!workers.length && (
+            <div style={{ padding: 16, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 11 }}>
+              No worker status loaded.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const WorkflowReportPane = ({ workflow, activeIp }) => {
   const meta = WORKFLOW_REPORT_TABS[workflow] || null;
   const inferredIp = React.useMemo(() => {
@@ -15055,6 +15216,10 @@ const WorkflowReportPane = ({ workflow, activeIp }) => {
     setFocusLine(line || 0);
     readAtlasAsyncResource('file', diagPath, true).catch(() => {});
   }, []);
+
+  if (workflow === 'orchestrator') {
+    return <OrchestratorWorkflowPane activeIp={activeIp} />;
+  }
 
   if (!meta) {
     return (
@@ -15781,7 +15946,7 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
               onChange={(ev) => updateModel(ev.currentTarget.value)}>
               {modelOptions.filter(opt => opt.model && !opt.model.toLowerCase().startsWith('default')).map(opt => (
                 <option key={opt.key} value={opt.key}>
-                  {opt.model}
+                  {opt.label ? `${opt.label} · ${opt.model}` : opt.model}
                 </option>
               ))}
             </select>

@@ -4414,15 +4414,179 @@ def cursor_agent(task="", yolo="false", mode=""):
 # Background Agent Tools (v2 Architecture)
 # ============================================================
 
+def _custom_agent_dict(definition):
+    from core.custom_agents import as_public_dict, custom_agent_dir
+    data = as_public_dict(definition)
+    if getattr(definition, "owner_user_id", ""):
+        data["storage"] = "db"
+        data["owner_user_id"] = definition.owner_user_id
+        data["scope"] = getattr(definition, "scope", "private") or "private"
+    else:
+        data["storage"] = "file"
+        data["path"] = str(custom_agent_dir() / f"{definition.name}.json")
+    return data
+
+
+def custom_agent_save(name="", system_prompt="", base_agent="explore",
+                      allowed_tools="", description="", model="",
+                      reasoning_effort="", effort="", scope="private"):
+    """
+    Save or update a reusable custom agent definition for the active Atlas user.
+
+    When an Atlas DB user is active, definitions are stored per-user in DB.
+    Legacy project-local file storage remains available without a DB user.
+    They can be run with background_task(agent="<name>", prompt="...").
+    """
+    try:
+        from core.custom_agents import custom_agent_dir, current_owner_user_id, save_custom_agent
+
+        owner_user_id = current_owner_user_id()
+        definition = save_custom_agent(
+            name=name,
+            system_prompt=system_prompt,
+            base_agent=base_agent,
+            allowed_tools=allowed_tools,
+            description=description,
+            model=model,
+            reasoning_effort=reasoning_effort or effort,
+            owner_user_id=owner_user_id,
+            scope=scope or "private",
+        )
+        data = _custom_agent_dict(definition)
+        location = (
+            f"Storage: db (owner_user_id={definition.owner_user_id}, scope={definition.scope})"
+            if definition.owner_user_id
+            else f"Path: {custom_agent_dir() / (definition.name + '.json')}"
+        )
+        return (
+            f"Custom agent saved: {definition.name}\n"
+            f"{location}\n"
+            f"Base agent: {definition.base_agent}\n"
+            f"Allowed tools: {definition.allowed_tools or '(base default)'}\n"
+            f"Model: {definition.model or '(default)'}\n"
+            f"Reasoning effort: {definition.reasoning_effort or '(default)'}\n"
+            f"JSON: {json.dumps(data, ensure_ascii=False)}"
+        )
+    except Exception as e:
+        return f"Error saving custom agent: {e}"
+
+
+def custom_agent_list():
+    """List custom agents visible to the active Atlas user."""
+    try:
+        from core.custom_agents import custom_agent_dir, current_owner_user_id, list_custom_agents
+
+        owner_user_id = current_owner_user_id()
+        agents = [
+            _custom_agent_dict(agent)
+            for agent in list_custom_agents(owner_user_id=owner_user_id)
+        ]
+        if not agents:
+            if owner_user_id:
+                return "No custom agents found for the current user."
+            return f"No custom agents found in {custom_agent_dir()}."
+        return json.dumps({
+            "storage": "db" if owner_user_id else "file",
+            "owner_user_id": owner_user_id,
+            "path": str(custom_agent_dir()),
+            "agents": agents,
+        }, indent=2, ensure_ascii=False)
+    except Exception as e:
+        return f"Error listing custom agents: {e}"
+
+
+def _compose_agent_system_prompt(base_agent: str, custom_prompt: str) -> str:
+    custom_prompt = str(custom_prompt or "").strip()
+    if not custom_prompt:
+        return ""
+    try:
+        from core.agent_runner import _load_agent_prompt
+        base_prompt = _load_agent_prompt(base_agent)
+    except Exception:
+        base_prompt = f"You are a {base_agent} agent. Use the ReAct format."
+    return (
+        f"{base_prompt.rstrip()}\n\n"
+        "## Custom Agent Instructions\n"
+        f"{custom_prompt}"
+    )
+
+
+def _resolve_background_agent(agent, *, base_agent="", system_prompt="",
+                              allowed_tools="", model="", reasoning_effort=""):
+    from core.custom_agents import (
+        BASE_AGENTS,
+        current_owner_user_id,
+        load_custom_agent,
+        parse_allowed_tools,
+        runtime_overrides_for_effort,
+        validate_base_agent,
+        validate_agent_name,
+    )
+
+    valid_agents = set(BASE_AGENTS)
+    requested = str(agent or "explore").strip() or "explore"
+    owner_user_id = current_owner_user_id()
+    custom = load_custom_agent(requested, owner_user_id=owner_user_id)
+
+    dynamic_prompt = str(system_prompt or "").strip()
+    resolved_allowed_tools = parse_allowed_tools(allowed_tools)
+    resolved_model = str(model or "").strip()
+    resolved_effort = str(reasoning_effort or "").strip()
+    display_agent = requested
+
+    if custom:
+        runner_agent = custom.base_agent
+        prompts = [custom.system_prompt]
+        if dynamic_prompt:
+            prompts.append(dynamic_prompt)
+        dynamic_prompt = "\n\n".join(prompts)
+        if resolved_allowed_tools is None:
+            resolved_allowed_tools = custom.allowed_tools
+        resolved_model = resolved_model or custom.model
+        resolved_effort = resolved_effort or custom.reasoning_effort
+    elif requested in valid_agents:
+        runner_agent = requested
+    elif dynamic_prompt:
+        runner_agent = validate_base_agent(base_agent or "explore")
+        try:
+            display_agent = validate_agent_name(requested, allow_reserved=True)
+        except ValueError:
+            display_agent = runner_agent
+    else:
+        return {
+            "error": f"invalid agent '{requested}'",
+            "valid_agents": sorted(valid_agents),
+        }
+
+    merged_system_prompt = _compose_agent_system_prompt(runner_agent, dynamic_prompt)
+    allowed_set = set(resolved_allowed_tools) if resolved_allowed_tools is not None else None
+    runtime_extra = runtime_overrides_for_effort(resolved_effort)
+    return {
+        "display_agent": display_agent,
+        "runner_agent": runner_agent,
+        "system_prompt": merged_system_prompt or None,
+        "allowed_tools": allowed_set,
+        "allowed_tools_list": resolved_allowed_tools,
+        "model": resolved_model,
+        "reasoning_effort": resolved_effort,
+        "runtime_extra": runtime_extra,
+        "is_custom": bool(custom or dynamic_prompt),
+        "owner_user_id": owner_user_id,
+    }
+
+
 def background_task(agent="explore", prompt="", context="", foreground="true",
-                    delegate="", workflow=""):
+                    delegate="", workflow="", system_prompt="",
+                    allowed_tools="", base_agent="", model="",
+                    reasoning_effort="", effort=""):
     """
     Launch an agent to handle a sub-task.
 
     Runs in foreground (synchronous) by default. Set foreground="false" for background execution.
 
     Args:
-        agent: Agent type - "explore" (read-only research), "execute" (full access), "review" (read-only verification)
+        agent: Agent type - "explore" (read-only research), "execute" (full access),
+               "review" (read-only verification), or a saved custom agent name.
         prompt: Clear description of what the agent should do
         context: Optional context from current conversation to pass to the agent
         foreground: "true" (default) for synchronous execution, "false" for background
@@ -4436,6 +4600,12 @@ def background_task(agent="explore", prompt="", context="", foreground="true",
                   delegate. With delegate="http-worker" the worker
                   loads the matching workspace; in-process sub-agent
                   loads the system prompt from `workflow/<name>/`.
+        system_prompt: Optional one-off custom instructions. Appended to the
+                       base agent prompt so ReAct/tool rules stay intact.
+        allowed_tools: Optional comma-separated tool allow-list for this run.
+        base_agent: Base agent to use for one-off custom prompts.
+        model: Optional model/profile override for this sub-agent/worker.
+        reasoning_effort: Optional reasoning effort override.
 
     Returns:
         Foreground: Direct result from the agent.
@@ -4453,24 +4623,43 @@ def background_task(agent="explore", prompt="", context="", foreground="true",
         if not getattr(_cfg, 'ENABLE_SUB_AGENTS', False):
             return "Error: Sub-agents are disabled. Set ENABLE_SUB_AGENTS=true in .config to enable background_task."
 
-        valid_agents = {"explore", "execute", "review"}
-
         # Auto-fix: if agent looks like a prompt (not a valid agent name), shift args
-        if agent not in valid_agents and not prompt:
+        from core.custom_agents import BASE_AGENTS, current_owner_user_id, load_custom_agent
+        valid_agents = set(BASE_AGENTS)
+        owner_user_id = current_owner_user_id()
+        has_custom_agent = bool(load_custom_agent(str(agent or ""), owner_user_id=owner_user_id))
+        if agent not in valid_agents and not has_custom_agent and not prompt and not system_prompt:
             # LLM passed prompt as first arg: background_task("do something...")
             prompt = agent
             agent = "explore"  # default agent
-        elif agent not in valid_agents and prompt:
+        elif agent not in valid_agents and not has_custom_agent and prompt and not system_prompt:
             context = f"{agent}\n{context}" if context else agent
             agent = "explore"
 
         if not prompt:
             return "Error: 'prompt' is required. Usage: background_task(agent=\"explore\", prompt=\"your task description here\")"
 
-        if agent not in valid_agents:
-            return f"Error: Invalid agent type '{agent}'. Must be one of: {', '.join(sorted(valid_agents))}"
+        resolved = _resolve_background_agent(
+            agent,
+            base_agent=base_agent,
+            system_prompt=system_prompt,
+            allowed_tools=allowed_tools,
+            model=model,
+            reasoning_effort=reasoning_effort or effort,
+        )
+        if resolved.get("error"):
+            return (
+                f"Error: Invalid agent type '{agent}'. Must be one of: "
+                f"{', '.join(resolved['valid_agents'])}, or a saved custom agent visible to this user."
+            )
 
         is_foreground = str(foreground).lower() in ("true", "1", "yes")
+        display_agent = resolved["display_agent"]
+        runner_agent = resolved["runner_agent"]
+        resolved_system_prompt = resolved["system_prompt"]
+        resolved_allowed_tools = resolved["allowed_tools"]
+        resolved_model = resolved["model"]
+        resolved_effort = resolved["reasoning_effort"]
 
         # ── Delegate routing (http-worker etc.) ─────────────────────────
         # When `delegate` is non-empty, route through DelegateRunner
@@ -4485,12 +4674,21 @@ def background_task(agent="explore", prompt="", context="", foreground="true",
                 if delegate not in runner.list_backends():
                     return (f"Error: Invalid delegate '{delegate}'. "
                             f"Available: {', '.join(runner.list_backends())}")
-                out = runner.run(backend=delegate, task=prompt,
-                                 context=context, workflow_name=workflow)
+                out = runner.run(
+                    backend=delegate,
+                    task=prompt,
+                    context=context,
+                    workflow_name=workflow,
+                    model_override=resolved_model or None,
+                    system_prompt=resolved_system_prompt,
+                    allowed_tools=resolved["allowed_tools_list"],
+                    reasoning_effort=resolved_effort,
+                    custom_agent_name=display_agent if resolved["is_custom"] else "",
+                )
                 from lib.display import Color
-                print(f"\n  {Color.CYAN}◀ {delegate}/{workflow or '?'} → primary{Color.RESET}")
+                print(f"\n  {Color.CYAN}◀ {delegate}/{workflow or display_agent or '?'} → primary{Color.RESET}")
                 return (
-                    f"=== Foreground Delegate Result: {delegate} (workflow={workflow or '-'}) ===\n"
+                    f"=== Foreground Delegate Result: {delegate} (workflow={workflow or '-'}, agent={display_agent}) ===\n"
                     f"{out}\n"
                     f"=== End ==="
                 )
@@ -4501,14 +4699,21 @@ def background_task(agent="explore", prompt="", context="", foreground="true",
             # Foreground: synchronous execution
             import sys
             import config as _cfg
+            from contextlib import nullcontext
             from core.agent_runner import run_agent_session
 
-            result = run_agent_session(
-                agent_name=agent,
-                prompt=prompt,
-                parent_context=context,
-                verbose=_cfg.DEBUG_MODE,
-            )
+            model_ctx = _cfg.scoped_model_runtime(resolved_model) if resolved_model else nullcontext()
+            with model_ctx, _cfg.scoped_runtime_extra(resolved["runtime_extra"]):
+                active_model = getattr(_cfg, "MODEL_NAME", resolved_model) if resolved_model else None
+                result = run_agent_session(
+                    agent_name=runner_agent,
+                    prompt=prompt,
+                    model_override=active_model,
+                    allowed_tools=resolved_allowed_tools,
+                    system_prompt=resolved_system_prompt,
+                    parent_context=context,
+                    verbose=_cfg.DEBUG_MODE,
+                )
 
             # Sync sub-agent completion to primary todo tracker
             _sync_subagent_todo(result.output)
@@ -4517,14 +4722,15 @@ def background_task(agent="explore", prompt="", context="", foreground="true",
             from lib.display import Color
             output_chars = len(result.output)
             output_tokens = output_chars // 4  # rough estimate
-            print(f"\n  {Color.CYAN}◀ {agent} → primary{Color.RESET} ({result.status}, {result.execution_time_ms}ms, ~{output_tokens:,} tok)")
+            print(f"\n  {Color.CYAN}◀ {display_agent} → primary{Color.RESET} ({result.status}, {result.execution_time_ms}ms, ~{output_tokens:,} tok)")
             if result.status == "error" and result.error:
                 print(f"  {Color.RED}  error: {result.error}{Color.RESET}")
             if result.files_modified:
                 print(f"  {Color.DIM}  modified: {result.files_modified}{Color.RESET}")
 
             return (
-                f"=== Foreground Agent Result: {agent} ===\n"
+                f"=== Foreground Agent Result: {display_agent} ===\n"
+                f"Base agent: {runner_agent}\n"
                 f"Status: {result.status} | {result.execution_time_ms}ms | {result.iterations} iterations\n"
                 f"Files examined: {result.files_examined}\n"
                 f"Files modified: {result.files_modified}\n\n"
@@ -4536,14 +4742,19 @@ def background_task(agent="explore", prompt="", context="", foreground="true",
             manager = get_background_manager()
 
             task_id = manager.launch(
-                agent=agent,
+                agent=runner_agent,
                 prompt=prompt,
                 parent_context=context,
+                model_override=resolved_model or None,
+                allowed_tools=resolved_allowed_tools,
+                system_prompt=resolved_system_prompt,
+                reasoning_effort=resolved_effort,
             )
 
             return (
                 f"Background task launched: {task_id}\n"
-                f"Agent: {agent}\n"
+                f"Agent: {display_agent}\n"
+                f"Base agent: {runner_agent}\n"
                 f"Prompt: {prompt[:100]}...\n\n"
                 f"Use background_output(task_id=\"{task_id}\") to get results when ready."
             )
@@ -6882,6 +7093,8 @@ AVAILABLE_TOOLS = {
     # "rag_status": rag_status,
     # "rag_clear": rag_clear,
     # Background Agent Tools (v2)
+    "custom_agent_save": custom_agent_save,
+    "custom_agent_list": custom_agent_list,
     "background_task": background_task,
     "background_output": background_output,
     "background_cancel": background_cancel,

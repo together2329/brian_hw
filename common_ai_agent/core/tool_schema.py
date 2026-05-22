@@ -369,6 +369,55 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
     ),
 
     # ── Sub-Agents ────────────────────────────────────────────────────────────
+    "custom_agent_save": _fn(
+        "custom_agent_save",
+        (
+            "Create or update a reusable custom sub-agent definition for the active Atlas user. "
+            "Definitions are stored per-user in DB when a user is active, with legacy "
+            ".atlas/custom_agents/<name>.json file fallback, and can be "
+            "run with background_task(agent='<name>', prompt='...')."
+        ),
+        {
+            "name": {
+                "type": "string",
+                "description": "Custom agent name, e.g. my_reviewer. Must start with a letter.",
+            },
+            "base_agent": {
+                "type": "string",
+                "enum": ["explore", "execute", "review"],
+                "description": "Base behavior/tool posture for this custom agent.",
+                "default": "explore",
+            },
+            "system_prompt": {
+                "type": "string",
+                "description": "Custom instructions appended to the base agent prompt.",
+            },
+            "allowed_tools": {
+                "type": "string",
+                "description": "Optional comma-separated tool allow-list. Empty means base default tools.",
+                "default": "",
+            },
+            "description": {"type": "string", "description": "Optional human-readable purpose.", "default": ""},
+            "model": {"type": "string", "description": "Optional model/profile override.", "default": ""},
+            "reasoning_effort": {
+                "type": "string",
+                "description": "Optional effort override: none, low, medium, high, xhigh.",
+                "default": "",
+            },
+            "scope": {
+                "type": "string",
+                "enum": ["private", "shared", "system"],
+                "description": "Visibility scope. Default private keeps it isolated to the current user.",
+                "default": "private",
+            },
+        },
+        required=["name", "base_agent", "system_prompt"],
+    ),
+    "custom_agent_list": _fn(
+        "custom_agent_list",
+        "List reusable custom agents visible to the active Atlas user.",
+        {},
+    ),
     "background_task": _fn(
         "background_task",
         (
@@ -377,6 +426,8 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "  • 'explore' — read-only investigation: search code, read docs, analyze structure\n"
             "  • 'execute' — make changes: write/edit files, run commands, implement features\n"
             "  • 'review'  — check quality: verify correctness, run tests, review output\n"
+            "  • '<custom name>' — saved custom agent visible to this user\n"
+            "Optional system_prompt enables a one-off custom agent prompt without saving it.\n"
             "Returns a task_id immediately. Use background_output(task_id) to get results.\n"
             "Use background_list() to see all running tasks.\n"
             "Example: background_task(agent='explore', prompt='Find all files that import module X and list line numbers')"
@@ -384,10 +435,23 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         {
             "agent": {
                 "type": "string",
-                "enum": ["explore", "execute", "review"],
-                "description": "Sub-agent type: 'explore' (read-only), 'execute' (make changes), 'review' (verify)",
+                "description": "Sub-agent type or saved custom agent name.",
             },
             "prompt": {"type": "string", "description": "Detailed task description for the sub-agent. Be specific about what to find/do/verify."},
+            "context": {"type": "string", "description": "Optional context to pass to the agent.", "default": ""},
+            "foreground": {"type": "string", "description": "true for sync result, false for async task id.", "default": "true"},
+            "delegate": {"type": "string", "description": "Optional delegate backend, e.g. http-worker.", "default": ""},
+            "workflow": {"type": "string", "description": "Optional workflow name for delegate/worker.", "default": ""},
+            "system_prompt": {"type": "string", "description": "Optional one-off custom instructions.", "default": ""},
+            "allowed_tools": {"type": "string", "description": "Optional comma-separated tool allow-list.", "default": ""},
+            "base_agent": {
+                "type": "string",
+                "enum": ["explore", "execute", "review"],
+                "description": "Base agent for one-off custom system_prompt when agent is not saved.",
+                "default": "explore",
+            },
+            "model": {"type": "string", "description": "Optional model/profile override.", "default": ""},
+            "reasoning_effort": {"type": "string", "description": "Optional effort override.", "default": ""},
         },
         required=["agent", "prompt"],
     ),
@@ -427,6 +491,15 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "worker": {"type": "string", "description": "Worker URL (e.g. http://localhost:8001)"},
             "task": {"type": "string", "description": "Task description string for the Worker"},
             "model": {"type": "string", "description": "Model override (empty = worker default)", "default": ""},
+            "reasoning_effort": {"type": "string", "description": "Optional reasoning effort override.", "default": ""},
+            "system_prompt": {"type": "string", "description": "Optional custom worker prompt instructions.", "default": ""},
+            "allowed_tools": {"type": "string", "description": "Optional comma-separated tool allow-list.", "default": ""},
+            "custom_agent": {"type": "string", "description": "Optional saved custom agent name to load on the worker.", "default": ""},
+            "custom_agent_owner_id": {
+                "type": "string",
+                "description": "Optional Atlas DB user id for worker-side custom agent lookup.",
+                "default": "",
+            },
             "timeout": {"type": "integer", "description": "Max seconds to wait (default 600)", "default": 600},
             "poll_interval": {"type": "number", "description": "Seconds between status polls (default 2.0)", "default": 2.0},
             "show_log": {"type": "boolean", "description": "Print Worker log to console (default true)", "default": True},

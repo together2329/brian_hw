@@ -48,12 +48,15 @@ def runner(db):
 
 @pytest.fixture
 def ctx(db, runner, tmp_path):
-    run = db.create_orchestrator_run(user_id="u1", ip_id="ip1", session_id="s1")
+    run = db.create_orchestrator_run(
+        user_id="u1", ip_id="ip1", workspace_id="ws1", session_id="s1"
+    )
     return OrchestratorContext(
         run_id=run["id"],
         user_id="u1",
         ip_id="ip1",
         ip_name="ipA",
+        workspace_id="ws1",
         session_id="s1",
         project_root=tmp_path,
         runner=runner,
@@ -120,7 +123,7 @@ class TestProductionLlmCall:
 
         rows = db._fetchall(
             "SELECT run_id, tokens_input, tokens_output, cache_read_tokens, "
-            "cache_write_tokens, ip_id, session_id "
+            "cache_write_tokens, workspace_id, ip_id, session_id "
             "FROM llm_calls WHERE run_id = ?",
             (ctx.run_id,),
         )
@@ -130,5 +133,6 @@ class TestProductionLlmCall:
         assert row["tokens_output"] == 77
         assert row["cache_read_tokens"] == 5
         assert row["cache_write_tokens"] == 4
+        assert row["workspace_id"] == "ws1"
         assert row["ip_id"] == "ip1"
         assert row["session_id"] == "s1"

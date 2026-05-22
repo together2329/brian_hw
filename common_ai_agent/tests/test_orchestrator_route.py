@@ -65,6 +65,8 @@ def stub_runner(monkeypatch):
 
 
 def test_chat_returns_run_id_and_started_status(tmp_path, monkeypatch, stub_runner):
+    from core.atlas_db import AtlasDB
+
     client = _make_client(tmp_path, monkeypatch)
     resp = client.post(
         "/api/pipeline/orchestrator/chat",
@@ -79,6 +81,22 @@ def test_chat_returns_run_id_and_started_status(tmp_path, monkeypatch, stub_runn
     assert len(stub_runner.calls) == 1
     assert stub_runner.calls[0]["ip_name"] == "ipA"
     assert stub_runner.calls[0]["message_text"] == "create ipA and run to green"
+    assert stub_runner.calls[0]["model"] == "gpt-5.5"
+    assert stub_runner.calls[0]["reasoning_effort"] == "xhigh"
+    assert stub_runner.calls[0]["session_id"] == "u/ipA/orchestrator"
+    assert stub_runner.calls[0]["workspace_id"]
+    assert body["model"] == "gpt-5.5"
+    assert body["reasoning_effort"] == "xhigh"
+
+    db = AtlasDB(str(tmp_path / "atlas.db"))
+    try:
+        session = db.get_session(stub_runner.calls[0]["session_id"])
+        assert session is not None
+        assert session["user_id"] == stub_runner.calls[0]["user_id"]
+        assert session["ip"] == "ipA"
+        assert session["workflow"] == "orchestrator"
+    finally:
+        db.close()
 
 
 def test_second_chat_to_same_ip_is_appended(tmp_path, monkeypatch, stub_runner):

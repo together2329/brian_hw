@@ -108,6 +108,8 @@ _ALLOW_EMPTY_ENV_KEYS = frozenset({
 _MODEL_DROPDOWN_KEYS = ('LLM_MODEL_NAME', 'LLM_MODEL_NAME_2', 'LLM_MODEL_NAME_3')
 _BASE_MODEL_DROPDOWN_KEYS = ('LLM_BASE_NAME', 'LLM_BASE_NAME_2', 'LLM_BASE_NAME_3')
 _LEGACY_MODEL_DROPDOWN_KEYS = ('LLM_BASE_MODEL', 'LLM_BASE_MODEL_2', 'LLM_BASE_MODEL_3')
+_PROFILE_MODEL_DROPDOWN_PREFIX = "profile:"
+_RAW_MODEL_DROPDOWN_PREFIX = "model:"
 
 # mtime cache: path -> last seen mtime. reload_env() only does I/O when at
 # least one .env file has changed since the previous successful reload.
@@ -333,6 +335,25 @@ def _apply_model_dropdown_selection() -> None:
     ):
         return
     selected_key = _canonical_model_dropdown_key(os.getenv("LLM_SELECTED_MODEL_KEY", ""))
+    if selected_key.startswith(_PROFILE_MODEL_DROPDOWN_PREFIX):
+        profile = selected_key[len(_PROFILE_MODEL_DROPDOWN_PREFIX):].strip()
+        apply_profile = globals().get("_apply_profile")
+        if profile and callable(apply_profile) and apply_profile(profile):
+            return
+    if selected_key.startswith(_RAW_MODEL_DROPDOWN_PREFIX):
+        model = selected_key[len(_RAW_MODEL_DROPDOWN_PREFIX):].strip()
+        if model:
+            globals()['MODEL_NAME'] = model
+            os.environ['LLM_MODEL_NAME'] = model
+            os.environ['MODEL_NAME'] = model
+            os.environ['LLM_ACTIVE_MODEL_NAME'] = model
+            os.environ['LLM_ACTIVE_BASE_NAME'] = model
+            os.environ['LLM_ACTIVE_BASE_MODEL'] = model
+            is_open = globals().get("is_opencode_model")
+            activate_oauth = globals().get("activate_opencode_oauth")
+            if callable(is_open) and is_open(model) and callable(activate_oauth):
+                activate_oauth(model)
+            return
     model = ""
     if selected_key in _MODEL_DROPDOWN_KEYS:
         model = _model_dropdown_value(_MODEL_DROPDOWN_KEYS.index(selected_key))

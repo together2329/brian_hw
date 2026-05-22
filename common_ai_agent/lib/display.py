@@ -362,7 +362,12 @@ class EscapeWatcher:
         except ImportError:
             return  # Not a Unix terminal
 
-        fd = sys.stdin.fileno()
+        try:
+            if not sys.stdin.isatty():
+                return
+            fd = sys.stdin.fileno()
+        except Exception:
+            return
         try:
             cls._old_settings = termios.tcgetattr(fd)
         except termios.error:

@@ -1,0 +1,593 @@
+# =====================================================================
+# dma_prompt_ip — APB DMA Controller SSOT (engineering draft)
+# =====================================================================
+ip_name: dma_prompt_ip
+version: "0.1.0"
+created: "2025-01-01"
+description: >
+  Simple DMA controller with APB slave register interface.
+  Supports single-block memory-to-memory transfers programmed via
+  ctrl, status, src_addr, dst_addr, and length registers.
+  Asserts irq on transfer completion or error.
+
+# ------------------------------------------------------------------
+# Top Module
+# ------------------------------------------------------------------
+top_module:
+  name: dma_prompt_ip
+  file: rtl/dma_prompt_ip.sv
+  version: "0.1.0"
+  type: peripheral
+  description: APB DMA controller top-level wrapper
+  target:
+    technology: generic
+    clock_freq_hz: 100_000_000
+    reset: synchronous_active_low
+
+# ------------------------------------------------------------------
+# Parameters
+# ------------------------------------------------------------------
+parameters:
+  - name: ADDR_WIDTH
+    type: integer
+    default: 32
+    description: Address bus width
+  - name: DATA_WIDTH
+    type: integer
+    default: 32
+    description: Data bus width
+  - name: MAX_BURST
+    type: integer
+    default: 256
+    description: Maximum transfer length in words
+
+# ------------------------------------------------------------------
+# IO List
+# ------------------------------------------------------------------
+io_list:
+  # Clock / Reset
+  - name: clk
+    direction: input
+    width: 1
+    description: System clock
+  - name: rst_n
+    direction: input
+    width: 1
+    description: Active-low synchronous reset
+
+  # APB Slave Interface
+  - name: psel
+    direction: input
+    width: 1
+    description: APB peripheral select
+  - name: penable
+    direction: input
+    width: 1
+    description: APB enable
+  - name: pwrite
+    direction: input
+    width: 1
+    description: APB write indicator
+  - name: paddr
+    direction: input
+    width: "{{ADDR_WIDTH}}"
+    description: APB address bus
+  - name: pwdata
+    direction: input
+    width: "{{DATA_WIDTH}}"
+    description: APB write data bus
+  - name: prdata
+    direction: output
+    width: "{{DATA_WIDTH}}"
+    description: APB read data bus
+  - name: pready
+    direction: output
+    width: 1
+    description: APB ready (always 1 — no wait states)
+  - name: pslverr
+    direction: output
+    width: 1
+    description: APB slave error
+
+  # DMA Master Interface (memory bus)
+  - name: m_req
+    direction: output
+    width: 1
+    description: DMA master bus request
+  - name: m_grant
+    direction: input
+    width: 1
+    description: DMA master bus grant
+  - name: m_addr
+    direction: output
+    width: "{{ADDR_WIDTH}}"
+    description: DMA master address
+  - name: m_wdata
+    direction: output
+    width: "{{DATA_WIDTH}}"
+    description: DMA master write data
+  - name: m_rdata
+    direction: input
+    width: "{{DATA_WIDTH}}"
+    description: DMA master read data
+  - name: m_we
+    direction: output
+    width: 1
+    description: DMA master write enable
+  - name: m_valid
+    direction: input
+    width: 1
+    description: DMA master data valid
+
+  # Interrupt
+  - name: irq
+    direction: output
+    width: 1
+    description: DMA completion/error interrupt
+
+# ------------------------------------------------------------------
+# Features
+# ------------------------------------------------------------------
+features:
+  - id: apb_slave
+    description: AMBA APB v2.0 slave register interface with psel/penable/pwrite/paddr/pwdata/prdata/pready/pslverr
+  - id: single_block_transfer
+    description: Memory-to-memory single-block DMA transfer
+  - id: irq_on_done
+    description: Interrupt asserted on transfer complete or error
+  - id: status_polling
+    description: Status register provides busy/done/error bits for polling
+
+# ------------------------------------------------------------------
+# Sub-Modules
+# ------------------------------------------------------------------
+sub_modules:
+  - name: apb_if
+    file: rtl/dma_prompt_ip.sv
+    implements: apb_slave
+    ownership: manifest
+    function_model_refs: [apb_write, apb_read]
+    register_refs: [reg_ctrl, reg_status, reg_src, reg_dst, reg_length]
+    description: APB slave decode and register read/write logic
+
+  - name: dma_engine
+    file: rtl/dma_prompt_ip.sv
+    implements: single_block_transfer
+    ownership: manifest
+    function_model_refs: [dma_start, dma_transfer, dma_done, dma_error]
+    cycle_model_refs: [dma_cycle]
+    fsm_refs: [dma_fsm]
+    dataflow_refs: [dma_dataflow]
+    description: DMA transfer engine with FSM control
+
+  - name: irq_ctrl
+    file: rtl/dma_prompt_ip.sv
+    implements: irq_on_done
+    ownership: manifest
+    function_model_refs: [irq_assert, irq_clear]
+    description: Interrupt generation and clear logic
+
+# ------------------------------------------------------------------
+# Dataflow
+# ------------------------------------------------------------------
+dataflow:
+  - id: dma_dataflow
+    description: Memory-to-memory DMA transfer data path
+    stages:
+      - name: fetch
+        description: Read data from source address via master interface
+        input_ports: [m_rdata, m_valid]
+        output_ports: [m_req, m_addr]
+      - name: transfer
+        description: Forward data to destination via master interface
+        input_ports: []
+        output_ports: [m_wdata, m_we, m_addr]
+
+# ------------------------------------------------------------------
+# Function Model
+# ------------------------------------------------------------------
+function_model:
+  transactions:
+    - name: reset
+      description: Synchronous reset clears all registers and FSM
+      output_rules:
+        - port: prdata
+          expr: "0"
+          width: "{{DATA_WIDTH}}"
+          condition: always
+        - port: irq
+          expr: "0"
+          width: 1
+          condition: always
+        - port: m_req
+          expr: "0"
+          width: 1
+          condition: always
+        - port: pslverr
+          expr: "0"
+          width: 1
+          condition: always
+      state_updates:
+        - state: dma_state
+          expr: "IDLE"
+        - state: reg_ctrl
+          expr: "0"
+        - state: reg_status
+          expr: "0"
+        - state: current_count
+          expr: "0"
+
+    - name: apb_write
+      description: APB write to register file when psel && penable && pwrite
+      output_rules:
+        - port: pready
+          expr: "1"
+          width: 1
+        - port: pslverr
+          expr: "invalid_addr ? 1 : 0"
+          width: 1
+      state_updates:
+        - state: "reg[paddr[3:0]]"
+          expr: pwdata
+          condition: "psel && penable && pwrite && !invalid_addr"
+
+    - name: apb_read
+      description: APB read from register file when psel && penable && !pwrite
+      output_rules:
+        - port: prdata
+          expr: "reg[paddr[3:0]]"
+          width: "{{DATA_WIDTH}}"
+        - port: pready
+          expr: "1"
+          width: 1
+        - port: pslverr
+          expr: "invalid_addr ? 1 : 0"
+          width: 1
+
+    - name: dma_start
+      description: Start DMA when ctrl.enable is written 1 and status.busy is 0
+      output_rules:
+        - port: m_req
+          expr: "1"
+          width: 1
+      state_updates:
+        - state: dma_state
+          expr: "FETCH"
+          condition: "reg_ctrl.enable && !reg_status.busy"
+        - state: current_src
+          expr: reg_src
+        - state: current_dst
+          expr: reg_dst
+        - state: current_count
+          expr: reg_length
+
+    - name: dma_transfer
+      description: Per-word transfer: read from src, write to dst
+      output_rules:
+        - port: m_addr
+          expr: "dma_state == FETCH ? current_src : current_dst"
+          width: "{{ADDR_WIDTH}}"
+        - port: m_we
+          expr: "dma_state == PUSH ? 1 : 0"
+          width: 1
+        - port: m_wdata
+          expr: fetch_data_reg
+          width: "{{DATA_WIDTH}}"
+      state_updates:
+        - state: current_src
+          expr: "current_src + 1"
+          condition: "dma_state == FETCH && m_valid"
+        - state: current_dst
+          expr: "current_dst + 1"
+          condition: "dma_state == PUSH"
+        - state: current_count
+          expr: "current_count - 1"
+          condition: "dma_state == PUSH"
+
+    - name: dma_done
+      description: Transfer completes when current_count reaches 0
+      output_rules:
+        - port: m_req
+          expr: "0"
+          width: 1
+      state_updates:
+        - state: dma_state
+          expr: "IDLE"
+          condition: "current_count == 0"
+        - state: reg_status.done
+          expr: "1"
+        - state: reg_status.busy
+          expr: "0"
+
+    - name: dma_error
+      description: Slave error or bus timeout
+      output_rules:
+        - port: m_req
+          expr: "0"
+          width: 1
+      state_updates:
+        - state: dma_state
+          expr: "IDLE"
+          condition: error_detected
+        - state: reg_status.error
+          expr: "1"
+        - state: reg_status.busy
+          expr: "0"
+
+    - name: irq_assert
+      description: Assert irq when status.done or status.error transitions to 1
+      output_rules:
+        - port: irq
+          expr: "1"
+          width: 1
+          condition: "reg_status.done || reg_status.error"
+
+    - name: irq_clear
+      description: Clear irq by writing 1 to ctrl.irq_clear
+      output_rules:
+        - port: irq
+          expr: "0"
+          width: 1
+      state_updates:
+        - state: irq_pending
+          expr: "0"
+          condition: "reg_ctrl.irq_clear"
+
+# ------------------------------------------------------------------
+# Cycle Model
+# ------------------------------------------------------------------
+cycle_model:
+  - id: dma_cycle
+    description: Cycle-accurate DMA transfer model
+    phases:
+      - name: APB_SETUP
+        cycles: 1
+        description: APB write to ctrl register to start transfer
+      - name: REQ_ARBITRATION
+        cycles_min: 1
+        cycles_max: 4
+        description: Wait for bus grant
+      - name: FETCH_WORD
+        cycles: 1
+        description: Read one word from source
+      - name: PUSH_WORD
+        cycles: 1
+        description: Write one word to destination
+      - name: CHECK_COUNT
+        cycles: 1
+        description: Decrement counter, loop or finish
+      - name: DONE_IRQ
+        cycles: 1
+        description: Assert irq and return to IDLE
+
+# ------------------------------------------------------------------
+# Registers
+# ------------------------------------------------------------------
+registers:
+  - name: reg_ctrl
+    offset: "0x00"
+    width: "{{DATA_WIDTH}}"
+    access: rw
+    description: DMA control register
+    fields:
+      - name: enable
+        bit_range: "[0]"
+        reset: "0"
+        description: Write 1 to start DMA transfer
+      - name: irq_clear
+        bit_range: "[1]"
+        reset: "0"
+        description: Write 1 to clear pending interrupt
+      - name: soft_reset
+        bit_range: "[2]"
+        reset: "0"
+        description: Write 1 to soft-reset DMA engine
+
+  - name: reg_status
+    offset: "0x04"
+    width: "{{DATA_WIDTH}}"
+    access: ro
+    description: DMA status register
+    fields:
+      - name: busy
+        bit_range: "[0]"
+        reset: "0"
+        description: DMA transfer in progress
+      - name: done
+        bit_range: "[1]"
+        reset: "0"
+        description: Transfer completed
+      - name: error
+        bit_range: "[2]"
+        reset: "0"
+        description: Transfer error
+
+  - name: reg_src
+    offset: "0x08"
+    width: "{{DATA_WIDTH}}"
+    access: rw
+    description: Source address for DMA transfer
+    fields:
+      - name: src_addr
+        bit_range: "[{{ADDR_WIDTH-1}}:0]"
+        reset: "0"
+        description: Source byte address
+
+  - name: reg_dst
+    offset: "0x0C"
+    width: "{{DATA_WIDTH}}"
+    access: rw
+    description: Destination address for DMA transfer
+    fields:
+      - name: dst_addr
+        bit_range: "[{{ADDR_WIDTH-1}}:0]"
+        reset: "0"
+        description: Destination byte address
+
+  - name: reg_length
+    offset: "0x10"
+    width: "{{DATA_WIDTH}}"
+    access: rw
+    description: Transfer length in words
+    fields:
+      - name: length
+        bit_range: "[{{ADDR_WIDTH-1}}:0]"
+        reset: "0"
+        description: Number of words to transfer
+
+# ------------------------------------------------------------------
+# Interrupts
+# ------------------------------------------------------------------
+interrupts:
+  - name: irq
+    trigger: level_high
+    description: Asserted when DMA transfer completes or encounters an error; cleared by writing ctrl.irq_clear
+    sources:
+      - reg_status.done
+      - reg_status.error
+
+# ------------------------------------------------------------------
+# FSM
+# ------------------------------------------------------------------
+fsm:
+  - id: dma_fsm
+    description: Main DMA transfer state machine
+    states:
+      - name: IDLE
+        description: No transfer active; waiting for enable
+        transitions:
+          - next: FETCH
+            condition: "reg_ctrl.enable && !reg_status.busy"
+      - name: FETCH
+        description: Read word from source address
+        transitions:
+          - next: PUSH
+            condition: m_valid
+          - next: ERROR
+            condition: error_detected
+      - name: PUSH
+        description: Write word to destination address
+        transitions:
+          - next: FETCH
+            condition: "current_count > 1"
+          - next: DONE
+            condition: "current_count == 1"
+          - next: ERROR
+            condition: error_detected
+      - name: DONE
+        description: Transfer complete; set status.done, assert irq
+        transitions:
+          - next: IDLE
+            condition: "1"
+      - name: ERROR
+        description: Error during transfer; set status.error, assert irq
+        transitions:
+          - next: IDLE
+            condition: "1"
+
+# ------------------------------------------------------------------
+# Custom / Assumptions
+# ------------------------------------------------------------------
+custom:
+  assumptions:
+    - "APB bus uses no wait states (pready always 1)"
+    - "Single master bus for DMA — no arbitration beyond simple req/grant"
+    - "Transfer length is in words (DATA_WIDTH bits each)"
+    - "No scatter-gather; single contiguous block transfer"
+    - "Interrupt is level-triggered active-high"
+    - "pslverr asserted only for unmapped register addresses"
+  decisions:
+    - key: apb_version
+      value: "AMBA APB v2.0"
+    - key: data_width
+      value: 32
+    - key: addr_width
+      value: 32
+
+# ------------------------------------------------------------------
+# Test Requirements
+# ------------------------------------------------------------------
+test_requirements:
+  - id: tr_apb_rw
+    description: Verify APB read/write to all five registers
+    stimulus:
+      - "APB write ctrl=0x01 → verify enable bit set"
+      - "APB write src=0x1000, dst=0x2000, length=4"
+      - "APB read each register → verify written values"
+    expected:
+      - "prdata matches last written value for each register"
+      - "pready == 1 on every access"
+      - "pslverr == 0 for valid addresses"
+    checkers:
+      - "prdata vs expected register value"
+      - "pslverr assertion for unmapped address"
+    coverage:
+      - "Toggle all register fields"
+      - "Read and write each register"
+
+  - id: tr_dma_basic
+    description: Basic 4-word memory-to-memory DMA transfer
+    stimulus:
+      - "Write src=0x1000, dst=0x2000, length=4"
+      - "Write ctrl.enable=1"
+      - "Provide m_grant=1, m_valid=1 on each cycle"
+    expected:
+      - "m_req asserted after enable"
+      - "4 read cycles from 0x1000..0x1003"
+      - "4 write cycles to 0x2000..0x2003"
+      - "reg_status.done == 1 after transfer"
+      - "irq == 1 after transfer"
+    checkers:
+      - "m_addr matches expected src/dst addresses in order"
+      - "m_we toggles correctly (0 for fetch, 1 for push)"
+      - "irq assertion at end"
+    coverage:
+      - "FSM traverses IDLE→FETCH→PUSH→DONE→IDLE"
+      - "All status bits observed"
+
+  - id: tr_irq_clear
+    description: Verify interrupt clear via ctrl.irq_clear
+    stimulus:
+      - "Complete a DMA transfer so irq=1"
+      - "Write ctrl.irq_clear=1"
+    expected:
+      - "irq == 0 after irq_clear write"
+      - "reg_status.done remains 1"
+    checkers:
+      - "irq deassertion"
+
+  - id: tr_pslverr
+    description: Verify pslverr for unmapped register address
+    stimulus:
+      - "APB read at paddr=0x14 (unmapped)"
+    expected:
+      - "pslverr == 1"
+      - "prdata == 0"
+    checkers:
+      - "pslverr assertion"
+
+# ------------------------------------------------------------------
+# Quality Gates
+# ------------------------------------------------------------------
+quality_gates:
+  - name: yaml_valid
+    criteria: "SSOT YAML parses without error"
+  - name: register_map_complete
+    criteria: "All 5 registers (ctrl, status, src, dst, length) defined with offsets and fields"
+  - name: apb_ports_complete
+    criteria: "All 8 APB signals present in io_list (psel, penable, pwrite, paddr, pwdata, prdata, pready, pslverr)"
+  - name: irq_defined
+    criteria: "irq output port and interrupt description present"
+  - name: fsm_complete
+    criteria: "DMA FSM covers IDLE, FETCH, PUSH, DONE, ERROR with transitions"
+
+# ------------------------------------------------------------------
+# Workflow TODOs
+# ------------------------------------------------------------------
+workflow_todos:
+  - task: "RTL implementation of dma_prompt_ip top module"
+    owner: rtl-gen
+    depends_on: ssot-gen
+  - task: "Testbench for APB register access and DMA transfer"
+    owner: tb-gen
+    depends_on: rtl-gen

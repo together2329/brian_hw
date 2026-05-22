@@ -9,7 +9,7 @@
     login: { subtitle: 'Sign in', action: 'Login' },
     register: { subtitle: 'Create account', action: 'Register' },
     'find-id': { subtitle: 'Find ID', action: 'Find ID' },
-    'reset-request': { subtitle: 'Reset password', action: 'Send reset' },
+    'reset-request': { subtitle: 'Reset password', action: 'Send code' },
     'reset-confirm': { subtitle: 'Set new password', action: 'Update password' },
   };
 
@@ -20,9 +20,12 @@
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [resetToken, setResetToken] = useState('');
+    const [verificationCode, setVerificationCode] = useState('');
+    const [resetWithCode, setResetWithCode] = useState(false);
     const [authStatus, setAuthStatus] = useState({
       recovery_enabled: false,
       email_required: false,
+      email_verification_enabled: false,
     });
     const [busy, setBusy] = useState(false);
     const [err, setErr] = useState(null);
@@ -43,6 +46,7 @@
         const token = params.get('reset_token') || params.get('token');
         if (token) {
           setResetToken(token);
+          setResetWithCode(false);
           setMode('reset-confirm');
         }
       } catch (_) {}
@@ -53,6 +57,7 @@
       setMode(nextMode);
       setErr(null);
       setNotice(null);
+      if (nextMode !== 'reset-confirm') setResetWithCode(false);
     }
 
     async function readDetail(response) {
@@ -74,6 +79,39 @@
       return r.json();
     }
 
+    async function requestEmailCode(purpose) {
+      setBusy(true);
+      setErr(null);
+      setNotice(null);
+      try {
+        const payload = { purpose };
+        if (purpose === 'register') {
+          if (!username.trim()) throw new Error('username required');
+          if (!email.trim()) throw new Error('email required');
+          payload.username = username.trim();
+          payload.email = email.trim();
+        } else if (purpose === 'recover_id') {
+          if (!email.trim()) throw new Error('email required');
+          payload.email = email.trim();
+        } else {
+          if (!identifier.trim()) throw new Error('username or email required');
+          payload.identifier = identifier.trim();
+        }
+        const data = await postJSON('/api/auth/email-code', payload);
+        if (data.verification_code) setVerificationCode(data.verification_code);
+        const target = data.email_hint ? ` to ${data.email_hint}` : '';
+        setNotice(data.email_sent ? `Verification code sent${target}.` : 'Verification code prepared.');
+        if (purpose === 'reset_password') {
+          setResetWithCode(true);
+          setMode('reset-confirm');
+        }
+      } catch (ex) {
+        setErr(String(ex && ex.message || ex));
+      } finally {
+        setBusy(false);
+      }
+    }
+
     async function submit(e) {
       if (e) e.preventDefault();
       setBusy(true);
@@ -87,12 +125,24 @@
           if (mode === 'register' && authStatus.email_required && !email.trim()) {
             throw new Error('email required');
           }
+          if (mode === 'register' && authStatus.email_verification_enabled && !verificationCode.trim()) {
+            const data = await postJSON('/api/auth/email-code', {
+              purpose: 'register',
+              username: username.trim(),
+              email: email.trim(),
+            });
+            if (data.verification_code) setVerificationCode(data.verification_code);
+            const target = data.email_hint ? ` to ${data.email_hint}` : '';
+            setNotice(data.email_sent ? `Verification code sent${target}.` : 'Verification code prepared.');
+            return;
+          }
           const payload = {
             username: username.trim(),
             password,
             display_name: username.trim(),
           };
           if (mode === 'register' && email.trim()) payload.email = email.trim();
+          if (mode === 'register' && verificationCode.trim()) payload.verification_code = verificationCode.trim();
           await postJSON(`/api/auth/${mode}`, payload);
           onAuth && onAuth();
           return;
@@ -100,7 +150,20 @@
 
         if (mode === 'find-id') {
           if (!email.trim()) throw new Error('email required');
-          const data = await postJSON('/api/auth/recover/id', { email: email.trim() });
+          if (!verificationCode.trim()) {
+            const data = await postJSON('/api/auth/email-code', {
+              purpose: 'recover_id',
+              email: email.trim(),
+            });
+            if (data.verification_code) setVerificationCode(data.verification_code);
+            const target = data.email_hint ? ` to ${data.email_hint}` : '';
+            setNotice(data.email_sent ? `Verification code sent${target}.` : 'Verification code prepared.');
+            return;
+          }
+          const data = await postJSON('/api/auth/recover/id', {
+            email: email.trim(),
+            verification_code: verificationCode.trim(),
+          });
           if (Array.isArray(data.usernames) && data.usernames.length) {
             setNotice(`User ID: ${data.usernames.join(', ')}`);
           } else {
@@ -111,27 +174,33 @@
 
         if (mode === 'reset-request') {
           if (!identifier.trim()) throw new Error('username or email required');
-          const data = await postJSON('/api/auth/recover/password', { identifier: identifier.trim() });
-          if (data.reset_token) {
-            setResetToken(data.reset_token);
-            switchMode('reset-confirm');
-            setNotice('Debug reset token loaded. Set a new password.');
-          } else {
-            setNotice(data.email_sent ? 'Check your email for the reset link.' : 'If the account exists, the password reset request was prepared.');
-          }
+          await requestEmailCode('reset_password');
           return;
         }
 
         if (mode === 'reset-confirm') {
-          if (!resetToken.trim() || !password) {
-            throw new Error('token and password required');
+          if (resetWithCode) {
+            if (!identifier.trim() || !verificationCode.trim() || !password) {
+              throw new Error('username/email, verification code, and password required');
+            }
+            await postJSON('/api/auth/reset/password', {
+              identifier: identifier.trim(),
+              verification_code: verificationCode.trim(),
+              password,
+            });
+          } else {
+            if (!resetToken.trim() || !password) {
+              throw new Error('token and password required');
+            }
+            await postJSON('/api/auth/reset/password', {
+              token: resetToken.trim(),
+              password,
+            });
           }
-          await postJSON('/api/auth/reset/password', {
-            token: resetToken.trim(),
-            password,
-          });
           setPassword('');
           setResetToken('');
+          setVerificationCode('');
+          setResetWithCode(false);
           switchMode('login');
           setNotice('Password updated. Login with the new password.');
         }
@@ -144,6 +213,7 @@
 
     const recoveryEnabled = !!authStatus.recovery_enabled;
     const emailRequired = !!authStatus.email_required;
+    const emailVerificationEnabled = !!authStatus.email_verification_enabled;
     const accent = mode === 'register' ? 'var(--green, #22c55e)' : 'var(--accent)';
     const copy = modeCopy[mode] || modeCopy.login;
 
@@ -186,9 +256,31 @@
           {mode === 'register' && (
             <label style={fieldStyle}>
               <span style={labelTextStyle}>Email{emailRequired ? '' : ' (optional)'}</span>
-              <input type="email" autoComplete="email"
-                     value={email}
-                     onChange={e => setEmail(e.target.value)}
+              <span style={inlineFieldStyle}>
+                <input type="email" autoComplete="email"
+                       value={email}
+                       onChange={e => setEmail(e.target.value)}
+                       disabled={busy}
+                       style={{ ...inputStyle, flex: 1 }} />
+                {emailVerificationEnabled && (
+                  <button type="button"
+                          onClick={() => requestEmailCode('register')}
+                          disabled={busy}
+                          style={smallBtnStyle}>
+                    Code
+                  </button>
+                )}
+              </span>
+            </label>
+          )}
+
+          {mode === 'register' && emailVerificationEnabled && (
+            <label style={fieldStyle}>
+              <span style={labelTextStyle}>Verification Code</span>
+              <input type="text" autoComplete="one-time-code"
+                     inputMode="numeric"
+                     value={verificationCode}
+                     onChange={e => setVerificationCode(e.target.value)}
                      disabled={busy}
                      style={inputStyle} />
             </label>
@@ -197,10 +289,30 @@
           {mode === 'find-id' && (
             <label style={fieldStyle}>
               <span style={labelTextStyle}>Email</span>
-              <input ref={userRef}
-                     type="email" autoComplete="email"
-                     value={email}
-                     onChange={e => setEmail(e.target.value)}
+              <span style={inlineFieldStyle}>
+                <input ref={userRef}
+                       type="email" autoComplete="email"
+                       value={email}
+                       onChange={e => setEmail(e.target.value)}
+                       disabled={busy}
+                       style={{ ...inputStyle, flex: 1 }} />
+                <button type="button"
+                        onClick={() => requestEmailCode('recover_id')}
+                        disabled={busy}
+                        style={smallBtnStyle}>
+                  Code
+                </button>
+              </span>
+            </label>
+          )}
+
+          {mode === 'find-id' && (
+            <label style={fieldStyle}>
+              <span style={labelTextStyle}>Verification Code</span>
+              <input type="text" autoComplete="one-time-code"
+                     inputMode="numeric"
+                     value={verificationCode}
+                     onChange={e => setVerificationCode(e.target.value)}
                      disabled={busy}
                      style={inputStyle} />
             </label>
@@ -218,7 +330,31 @@
             </label>
           )}
 
-          {mode === 'reset-confirm' && (
+          {mode === 'reset-confirm' && resetWithCode && (
+            <label style={fieldStyle}>
+              <span style={labelTextStyle}>Username or Email</span>
+              <input ref={userRef}
+                     type="text" autoComplete="username"
+                     value={identifier}
+                     onChange={e => setIdentifier(e.target.value)}
+                     disabled={busy}
+                     style={inputStyle} />
+            </label>
+          )}
+
+          {mode === 'reset-confirm' && resetWithCode && (
+            <label style={fieldStyle}>
+              <span style={labelTextStyle}>Verification Code</span>
+              <input type="text" autoComplete="one-time-code"
+                     inputMode="numeric"
+                     value={verificationCode}
+                     onChange={e => setVerificationCode(e.target.value)}
+                     disabled={busy}
+                     style={inputStyle} />
+            </label>
+          )}
+
+          {mode === 'reset-confirm' && !resetWithCode && (
             <label style={fieldStyle}>
               <span style={labelTextStyle}>Reset Token</span>
               <input ref={userRef}
@@ -282,6 +418,7 @@
   }
 
   const fieldStyle = { display: 'flex', flexDirection: 'column', gap: 4 };
+  const inlineFieldStyle = { display: 'flex', gap: 8, alignItems: 'stretch' };
   const labelTextStyle = { fontSize: 11, opacity: 0.7 };
   const inputStyle = {
     background: 'var(--bg)',
@@ -298,6 +435,18 @@
     padding: '9px 14px',
     fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
     letterSpacing: 0.3,
+  };
+  const smallBtnStyle = {
+    border: '1px solid var(--line)',
+    borderRadius: 6,
+    padding: '0 10px',
+    minWidth: 58,
+    background: 'var(--bg)',
+    color: 'var(--accent)',
+    fontFamily: 'inherit',
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: 'pointer',
   };
   const linkBtnStyle = {
     background: 'transparent',

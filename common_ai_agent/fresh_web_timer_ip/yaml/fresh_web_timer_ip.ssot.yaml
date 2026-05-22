@@ -1,0 +1,1349 @@
+top_module:
+  name: fresh_web_timer_ip
+  file: rtl/fresh_web_timer_ip.sv
+  version: '1.0'
+  type: peripheral
+  description: 32-bit general-purpose timer peripheral with APB4 register interface. Supports free-running, periodic auto-reload, and one-shot operating modes with a programmable prescaler, compare/match output, and level-sensitive interrupt.
+  reference_spec: null
+  target:
+    technology: generic
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+sub_modules:
+- name: fresh_web_timer_ip_control
+  file: rtl/fresh_web_timer_ip_control.sv
+  ownership: manifest
+  ssot_gen: true
+  description: Control/protocol sequencing derived from function_model and cycle_model
+  cycle_model_refs:
+  - cycle_model
+  source_sections:
+  - cycle_model
+  - registers
+  register_refs:
+  - registers.register_list
+- name: fresh_web_timer_ip_datapath
+  file: rtl/fresh_web_timer_ip_datapath.sv
+  ownership: manifest
+  ssot_gen: true
+  description: Counter, prescaler, and compare datapath logic
+  function_model_refs:
+  - function_model.transactions.TM_TICK
+  - function_model.state_variables
+  cycle_model_refs:
+  - cycle_model.pipeline.T1_PRESCALE
+  - cycle_model.pipeline.T2_COUNTER
+  - cycle_model.pipeline.T3_COMPARE
+  dataflow_refs:
+  - dataflow.counter_path
+  - dataflow.prescaler_path
+  - dataflow
+  source_sections:
+  - function_model
+  - cycle_model
+  - dataflow
+  - features
+  feature_refs:
+  - features
+- name: fresh_web_timer_ip_status
+  file: rtl/fresh_web_timer_ip_status.sv
+  ownership: manifest
+  ssot_gen: true
+  description: Status, interrupt, match flag, and debug observability logic
+  function_model_refs:
+  - function_model.transactions.TM_MATCH
+  - function_model.state_variables.match_flag
+  cycle_model_refs:
+  - cycle_model.pipeline.T4_OUTPUT
+  register_refs:
+  - registers.register_list.INTSTAT
+  - registers.register_list.INTEN
+  - registers.register_list
+  source_sections:
+  - function_model
+  - cycle_model
+  - registers
+  - interrupts
+  - debug_observability
+- name: fresh_web_timer_ip_core
+  file: rtl/fresh_web_timer_ip_core.sv
+  ownership: manifest
+  ssot_gen: true
+  description: Primary behavior owner for function_model transactions and state updates
+  function_model_refs:
+  - function_model.transactions.TM_TICK
+  - function_model.transactions.TM_MATCH
+  - function_model.transactions.TM_IDLE
+  - function_model.state_variables
+  feature_refs:
+  - features
+  source_sections:
+  - features
+  - dataflow
+  - fsm
+  - decomposition
+  - test_requirements
+  dataflow_refs:
+  - dataflow
+  fsm_refs:
+  - fsm
+  decomposition_refs:
+  - decomposition
+  test_refs:
+  - test_requirements
+- name: fresh_web_timer_ip
+  file: rtl/fresh_web_timer_ip.sv
+  ownership: manifest
+  ssot_gen: true
+  description: Top-level integration module matching SSOT top_module
+  wiring_only: true
+  implements:
+  - top_module
+  - integration
+  source_sections:
+  - top_module
+  - io_list
+  - decomposition
+  - integration
+  decomposition_refs:
+  - decomposition
+  dataflow_refs:
+  - dataflow
+decomposition:
+  strategy: manifest_owned_leaf_decomposition
+  owners:
+  - module: fresh_web_timer_ip_control
+    file: rtl/fresh_web_timer_ip_control.sv
+    responsibility: Control/protocol sequencing derived from function_model and cycle_model
+    source_sections:
+    - function_model
+    - cycle_model
+    - io_list
+  - module: fresh_web_timer_ip_datapath
+    file: rtl/fresh_web_timer_ip_datapath.sv
+    responsibility: Datapath or payload transformation derived from approved features
+    source_sections:
+    - function_model
+    - cycle_model
+    - io_list
+  - module: fresh_web_timer_ip_status
+    file: rtl/fresh_web_timer_ip_status.sv
+    responsibility: Status, error, interrupt, and debug observability derived from SSOT
+    source_sections:
+    - function_model
+    - cycle_model
+    - io_list
+  - module: fresh_web_timer_ip_core
+    file: rtl/fresh_web_timer_ip_core.sv
+    responsibility: Primary behavior owner for function_model transactions and state updates
+    source_sections:
+    - function_model
+    - cycle_model
+    - io_list
+  - module: fresh_web_timer_ip
+    file: rtl/fresh_web_timer_ip.sv
+    responsibility: Top-level integration module matching SSOT top_module
+    source_sections:
+    - top_module
+    - io_list
+    - decomposition
+    - integration
+  integration_policy: Top-level wiring must be backed by integration.connections or sub_modules[].connections before signoff.
+  source_refs:
+  - sub_modules
+  - function_model
+  - cycle_model
+  - integration
+rtl_contract:
+  owner: ssot-gen
+  type: ssot_derived_rule_contract
+  transaction: TM_MATCH
+  clock: pclk
+  reset: presetn
+  reset_active: low
+  sample_condition: '1'
+  input_map:
+    paddr: paddr
+    psel: psel
+    penable: penable
+    pwrite: pwrite
+    pwdata: pwdata
+    pstrb: pstrb
+  output_map:
+    prdata: prdata
+    pready: pready
+    pslverr: pslverr
+    timer_match: timer_match
+    timer_irq: timer_irq
+  contract_invariants:
+  - RTL-visible behavior implements the referenced function_model transaction.
+  - Input sampling and output observation follow cycle_model handshake and latency rules.
+  output_rules:
+  - name: timer_match
+    port: timer_match
+    expr: '1'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: timer_irq
+    port: timer_irq
+    expr: '1'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+    repair_note: Removed self-referential output fallback; transaction precondition/sample_condition owns rule applicability.
+  unresolved_expression_refs:
+  - TIMER_WIDTH
+  - registers
+parameters:
+- name: TIMER_WIDTH
+  default: 32
+  type: int
+  description: Counter width in bits
+  drives:
+  - fresh_web_timer_ip.sv
+- name: PRESCALE_WIDTH
+  default: 16
+  type: int
+  description: Prescaler counter width in bits
+  drives:
+  - fresh_web_timer_ip.sv
+io_list:
+  clock_domains:
+  - name: pclk
+    frequency_mhz: 100
+    description: APB peripheral clock
+    ports:
+    - name: pclk
+      width: 1
+      direction: input
+      description: Peripheral clock
+  resets:
+  - name: presetn
+    polarity: active_low
+    sync_async: async_assert_sync_deassert
+    description: Peripheral reset
+    ports:
+    - name: presetn
+      width: 1
+      direction: input
+      description: Active-low async reset
+  interfaces:
+  - name: apb_slave
+    type: APB4
+    role: slave
+    clock_domain: pclk
+    reset_domain: presetn
+    description: Register access and control interface
+    protocol:
+      setup_phase: psel=1, penable=0 captures address/control.
+      access_phase: psel=1, penable=1 completes when pready=1.
+      read_rule: prdata is valid in the completing access phase for reads.
+      write_rule: pwdata/pstrb are sampled in the completing access phase for writes.
+      error_rule: pslverr asserted with pready=1 only for illegal/unsupported access.
+    ports:
+    - name: paddr
+      width: 12
+      direction: input
+      description: APB address
+    - name: psel
+      width: 1
+      direction: input
+      description: APB select
+    - name: penable
+      width: 1
+      direction: input
+      description: APB enable
+    - name: pwrite
+      width: 1
+      direction: input
+      description: APB write
+    - name: pwdata
+      width: 32
+      direction: input
+      description: APB write data
+    - name: pstrb
+      width: 4
+      direction: input
+      description: APB strobes
+    - name: prdata
+      width: 32
+      direction: output
+      description: APB read data
+    - name: pready
+      width: 1
+      direction: output
+      description: APB ready
+    - name: pslverr
+      width: 1
+      direction: output
+      description: APB error
+  - name: timer_outputs
+    type: custom
+    clock_domain: pclk
+    reset_domain: presetn
+    description: Timer compare/match output and interrupt
+    protocol:
+      match_output: timer_match asserts when counter equals compare value and timer is enabled.
+      interrupt: timer_irq asserts when match interrupt is enabled and pending; deasserts on W1C clear.
+    ports:
+    - name: timer_match
+      width: 1
+      direction: output
+      description: Timer compare/match output
+    - name: timer_irq
+      width: 1
+      direction: output
+      description: Timer interrupt (level)
+    role: target
+features:
+- name: free_running_mode
+  trigger: CTRL.enable=1 and CTRL.mode=FREE_RUN
+  datapath: Counter increments from 0 on each (prescaled) clock tick. Wraps to 0 at (2^TIMER_WIDTH - 1) and continues.
+  control: CTRL.enable gates counting. psel/penable register writes update CTRL.VALUE snapshot.
+  output: timer_match pulses for one cycle when counter == CMP. timer_irq asserts when match and INTEN enabled.
+- name: periodic_auto_reload_mode
+  trigger: CTRL.enable=1 and CTRL.mode=PERIODIC
+  datapath: Counter increments from 0. When counter == CMP, counter reloads to LOAD on next tick, timer_match pulses, and interrupt fires.
+  control: Same as free-running; reload uses LOAD register.
+  output: timer_match pulses on match; counter resets to LOAD on tick after match.
+- name: one_shot_mode
+  trigger: CTRL.enable=1 and CTRL.mode=ONE_SHOT
+  datapath: Counter increments from 0. When counter == CMP, counting stops (CTRL.enable auto-clears), timer_match pulses, and interrupt fires.
+  control: CTRL.enable auto-clears on match. Software must re-arm.
+  output: timer_match pulses once; counter holds at CMP value.
+- name: prescaler
+  trigger: CTRL.prescale_enable=1
+  datapath: PRESCALE register divides pclk by PRESCALE+1 before advancing counter.
+  control: PRESCALE register writable via APB.
+  output: Slower counter advancement.
+dataflow:
+  counter_path:
+    source: LOAD register (APB-writable) or 0
+    increment: On each prescaled tick when CTRL.enable=1
+    compare: Counter value compared against CMP register each cycle
+  match_path:
+    condition: counter == CMP and CTRL.enable == 1
+    output_pulse: timer_match asserted for one cycle
+    interrupt: timer_irq asserted if INTEN.match_en == 1
+  reload_path:
+    modes: PERIODIC only
+    action: On tick after match, counter loaded from LOAD register
+  one_shot_stop:
+    condition: counter == CMP and CTRL.mode == ONE_SHOT
+    action: CTRL.enable auto-clears; counter holds at CMP value
+  prescaler_path:
+    source: PRESCALE register
+    action: Internal prescale counter increments each pclk; when prescale_counter == PRESCALE, advance main counter and reset prescale_counter
+function_model:
+  purpose: Executable behavioral contract for the timer IP. Describes counter advancement, mode transitions, match detection, and interrupt generation.
+  state_variables:
+  - name: counter
+    source: registers.VALUE.data
+    reset: 0
+    description: Current counter value
+  - name: prescale_counter
+    source: null
+    reset: 0
+    description: Internal prescaler tick counter
+  - name: enable
+    source: registers.CTRL.enable
+    reset: 0
+    description: Timer enable bit
+  - name: mode
+    source: registers.CTRL.mode
+    reset: 0
+    description: 'Operating mode: 0=FREE_RUN, 1=PERIODIC, 2=ONE_SHOT'
+  - name: prescale_enable
+    source: registers.CTRL.prescale_enable
+    reset: 0
+    description: Prescaler enable bit
+  - name: match_flag
+    source: registers.INTSTAT.match
+    reset: 0
+    description: Match event pending flag
+  transactions:
+  - id: TM_TICK
+    name: timer_tick
+    preconditions:
+    - enable == 1
+    - prescale_enable == 0 or (prescale_enable == 1 and prescale_counter == registers.PRESCALE.data)
+    preconditions_expr: enable == 1 and (prescale_enable == 0 or prescale_counter == registers.PRESCALE.data)
+    inputs: []
+    output_rules: []
+    state_updates:
+    - name: counter
+      expr: 0 if (mode == 2 and counter == registers.CMP.data) else (0 if counter == (1 << TIMER_WIDTH) - 1 else counter + 1)
+      width: TIMER_WIDTH
+    - name: prescale_counter
+      expr: 0 if prescale_counter == registers.PRESCALE.data else prescale_counter + 1
+      width: PRESCALE_WIDTH
+    side_effects:
+    - updates only SSOT-declared architectural state, status, events, or output handoff state
+    outputs:
+    - observable outputs/status match the approved SSOT behavior
+    - state: counter
+      expr: 0 if (mode == 2 and counter == registers.CMP.data) else (0 if counter == (1 << TIMER_WIDTH) - 1 else counter + 1)
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: prescale_counter
+      expr: 0 if prescale_counter == registers.PRESCALE.data else prescale_counter + 1
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+  - id: TM_MATCH
+    name: match_detect
+    preconditions:
+    - counter == registers.CMP.data
+    - enable == 1
+    preconditions_expr: counter == registers.CMP.data and enable == 1
+    inputs: []
+    output_rules:
+    - name: timer_match
+      expr: '1'
+      width: 1
+      port: timer_match
+    - name: timer_irq
+      expr: '1'
+      width: 1
+      port: timer_irq
+      repair_note: Removed self-referential output fallback; transaction precondition/sample_condition owns rule applicability.
+    state_updates:
+    - name: match_flag
+      expr: '1'
+      width: 1
+    - name: enable
+      expr: 0 if mode == 2 else enable
+      width: 1
+    - name: counter
+      expr: registers.LOAD.data if mode == 1 else counter
+      width: TIMER_WIDTH
+    side_effects:
+    - timer_match pulse is one cycle wide
+    - In PERIODIC mode, counter reloads from LOAD on next tick after match
+    - In ONE_SHOT mode, enable auto-clears on match
+    outputs:
+    - observable outputs/status match the approved SSOT behavior
+    - name: timer_match
+      port: timer_match
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: timer_irq
+      port: timer_irq
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: match_flag
+      expr: '1'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: enable
+      expr: 0 if mode == 2 else enable
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: counter
+      expr: registers.LOAD.data if mode == 1 else counter
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+  - id: TM_IDLE
+    name: idle_cycle
+    preconditions:
+    - transaction is accepted under cycle_model rules
+    preconditions_expr: 'True'
+    inputs: []
+    output_rules:
+    - name: timer_match
+      expr: '0'
+      width: 1
+      port: timer_match
+    state_updates: []
+    side_effects:
+    - updates only SSOT-declared architectural state, status, events, or output handoff state
+    outputs:
+    - observable outputs/status match the approved SSOT behavior
+    - name: timer_match
+      port: timer_match
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+  invariants:
+  - counter never exceeds (2^TIMER_WIDTH - 1)
+  - timer_irq asserts only when match_flag == 1 and registers.INTEN.match_en == 1
+  - match_flag is cleared only by W1C write to INTSTAT.match
+  - PSEL/PENABLE register writes take effect immediately on APB access phase
+  reference_model_hint: tb-gen should implement a Python reference model from this section.
+  derived_signals:
+  - name: apb_access
+    expr: psel and penable
+    width: 1
+    description: APB access phase helper derived from psel and penable.
+    source: repair_ssot_schema.apb_helper
+  - name: apb_valid_write
+    expr: psel and penable and pwrite
+    width: 1
+    description: APB write access helper derived from psel, penable, and pwrite.
+    source: repair_ssot_schema.apb_helper
+  - name: apb_valid_read
+    expr: psel and penable and not pwrite
+    width: 1
+    description: APB read access helper derived from psel, penable, and pwrite.
+    source: repair_ssot_schema.apb_helper
+  - name: addr
+    expr: paddr
+    width: 12
+    description: Register address helper derived from the APB paddr input.
+    source: repair_ssot_schema.apb_helper
+  - name: wmask
+    expr: ((0x000000FF if (pstrb & 0x1) != 0 else 0) | (0x0000FF00 if (pstrb & 0x2) != 0 else 0) | (0x00FF0000 if (pstrb & 0x4) != 0 else 0) | (0xFF000000 if (pstrb & 0x8) != 0 else 0))
+    width: 32
+    description: APB byte-lane write mask expanded from pstrb.
+    source: repair_ssot_schema.apb_helper
+  - name: legal_addr
+    expr: (addr == 0) or (addr == 4) or (addr == 8) or (addr == 12) or (addr == 16) or (addr == 20) or (addr == 24)
+    width: 1
+    description: APB legal address decode derived from registers.register_list offsets.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_ctrl
+    expr: apb_valid_write and (addr == 0)
+    width: 1
+    description: APB write decode helper for register CTRL.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_ctrl
+    expr: apb_valid_read and (addr == 0)
+    width: 1
+    description: APB read decode helper for register CTRL.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_load
+    expr: apb_valid_write and (addr == 4)
+    width: 1
+    description: APB write decode helper for register LOAD.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_load
+    expr: apb_valid_read and (addr == 4)
+    width: 1
+    description: APB read decode helper for register LOAD.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_value
+    expr: apb_valid_write and (addr == 8)
+    width: 1
+    description: APB write decode helper for register VALUE.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_value
+    expr: apb_valid_read and (addr == 8)
+    width: 1
+    description: APB read decode helper for register VALUE.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_cmp
+    expr: apb_valid_write and (addr == 12)
+    width: 1
+    description: APB write decode helper for register CMP.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_cmp
+    expr: apb_valid_read and (addr == 12)
+    width: 1
+    description: APB read decode helper for register CMP.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_prescale
+    expr: apb_valid_write and (addr == 16)
+    width: 1
+    description: APB write decode helper for register PRESCALE.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_prescale
+    expr: apb_valid_read and (addr == 16)
+    width: 1
+    description: APB read decode helper for register PRESCALE.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_intstat
+    expr: apb_valid_write and (addr == 20)
+    width: 1
+    description: APB write decode helper for register INTSTAT.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_intstat
+    expr: apb_valid_read and (addr == 20)
+    width: 1
+    description: APB read decode helper for register INTSTAT.
+    source: repair_ssot_schema.apb_helper
+  - name: intstat_w1c
+    expr: ((pwdata & gpio_mask) if wr_intstat else 0)
+    width: 32
+    description: W1C write mask helper for register INTSTAT.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_inten
+    expr: apb_valid_write and (addr == 24)
+    width: 1
+    description: APB write decode helper for register INTEN.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_inten
+    expr: apb_valid_read and (addr == 24)
+    width: 1
+    description: APB read decode helper for register INTEN.
+    source: repair_ssot_schema.apb_helper
+  - name: read_mux
+    expr: (0 if addr == 0 else (0 if addr == 4 else (0 if addr == 8 else (0 if addr == 12 else (0 if addr == 16 else (0 if addr == 20 else (0 if addr == 24 else 0)))))))
+    width: 32
+    description: APB read data mux derived from registers.register_list offsets and function_model state variables.
+    source: repair_ssot_schema.apb_helper
+cycle_model:
+  purpose: Cycle/handshake contract for the timer IP. APB is zero-wait-state; counter/match timing is cycle-accurate.
+  executable: python
+  backend_policy: Pure-Python deterministic stepper. FunctionalModel is the behavioral oracle.
+  clock: pclk
+  reset:
+    assertion: presetn low asynchronously clears counter, prescale_counter, match_flag, enable; all registers reset.
+    deassertion: State usable on the first rising edge after synchronized deassertion.
+  latency:
+    register_read:
+      min_cycles: 0
+      max_cycles: 1
+      description: 'Zero-wait-state APB read: pready=1 same cycle as access phase.'
+    register_write:
+      min_cycles: 0
+      max_cycles: 1
+      description: 'Zero-wait-state APB write: pready=1 same cycle as access phase.'
+    match_to_irq:
+      min_cycles: 1
+      max_cycles: 1
+      description: timer_irq asserts on the next rising edge after match detection.
+  handshake_rules:
+  - signal: pready
+    rule: Always 1 for implemented addresses; no wait states.
+  - signal: pslverr
+    rule: Asserted with pready=1 for reads/writes to unimplemented addresses.
+  pipeline:
+  - stage: T0_REGISTER
+    cycle: 0
+    action: APB setup/access phase samples or returns register data.
+  - stage: T1_PRESCALE
+    cycle: 0
+    action: Prescale counter increments on every rising pclk when prescaler enabled.
+  - stage: T2_COUNTER
+    cycle: 0
+    action: Counter increments when prescale tick fires and enable=1.
+  - stage: T3_COMPARE
+    cycle: 0
+    action: Counter compared against CMP; match detected combinationally.
+  - stage: T4_OUTPUT
+    cycle: 1
+    action: timer_match pulse and timer_irq update on next rising edge after match.
+  ordering:
+  - Counter increment and compare happen in the same cycle; match output is registered.
+  - APB register writes to CTRL.enable or LOAD take effect on the next counter tick, not the same cycle as the write.
+  backpressure: []
+  cosim: true
+  state_accumulating: true
+  observability:
+  - Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario.
+  performance:
+    frequency_mhz: 100
+    throughput:
+      sustained_beats_per_cycle: 1
+      condition: No backpressure on the active interface
+    outstanding:
+      max: 1
+      description: Default one accepted operation until the SSOT declares deeper buffering
+    depth:
+      pipeline_stages: 3
+      queue_depth: 1
+      description: Default accept/evaluate/observe cycle model depth
+clock_reset_domains:
+  domains:
+  - name: pclk
+    frequency_mhz: 100
+    description: APB peripheral clock
+  reset_scheme:
+    signal: presetn
+    polarity: active_low
+    type: async_assert_sync_deassert
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain \u2014 no CDC required"
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: No reset domain crossings
+registers:
+  config:
+    register_width: 32
+    addr_width: 12
+    byte_addressable: true
+    num_channels: 1
+  bit_order: lsb0
+  bits_format: '[msb, lsb]'
+  reserved_field_policy:
+    read_value: 0
+    write_effect: ignore
+    rtl_requirement: Reserved fields read as zero and do not allocate storage.
+  register_list:
+  - name: CTRL
+    offset: 0
+    width: 32
+    access: rw
+    reset: 0
+    category: control
+    description: Timer control register
+    write_side_effects:
+    - Writing enable=1 starts the counter on the next clock edge.
+    - Writing enable=0 stops the counter immediately.
+    - Mode bits take effect on the next counter tick.
+    fields:
+    - name: enable
+      bits:
+      - 0
+      - 0
+      access: rw
+      reset: 0
+      write_effect: Start/stop counter
+      description: Timer enable
+    - name: mode
+      bits:
+      - 2
+      - 1
+      access: rw
+      reset: 0
+      write_effect: Set operating mode
+      description: 0=FREE_RUN, 1=PERIODIC, 2=ONE_SHOT
+    - name: prescale_enable
+      bits:
+      - 3
+      - 3
+      access: rw
+      reset: 0
+      write_effect: Enable/disable prescaler
+      description: Prescaler enable
+    - name: reserved_31_4
+      bits:
+      - 31
+      - 4
+      access: reserved
+      reset: 0
+      read_value: 0
+      write_effect: ignore
+      description: Reserved
+  - name: LOAD
+    offset: 4
+    width: 32
+    access: rw
+    reset: 0
+    category: control
+    description: Reload value for periodic mode
+    fields:
+    - name: load_value
+      bits:
+      - 31
+      - 0
+      access: rw
+      reset: 0
+      write_effect: Set periodic reload value
+      description: Counter reload value
+  - name: VALUE
+    offset: 8
+    width: 32
+    access: ro
+    reset: 0
+    category: status
+    description: Current counter value (read-only snapshot)
+    fields:
+    - name: counter_value
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      description: Current counter value
+  - name: CMP
+    offset: 12
+    width: 32
+    access: rw
+    reset: 4294967295
+    category: control
+    description: Compare/match value
+    fields:
+    - name: compare_value
+      bits:
+      - 31
+      - 0
+      access: rw
+      reset: 4294967295
+      write_effect: Set match threshold
+      description: Compare value (match when counter == this)
+  - name: PRESCALE
+    offset: 16
+    width: 32
+    access: rw
+    reset: 0
+    category: control
+    description: Prescaler divisor value. Counter advances when prescale_counter reaches this value. 0 means no prescaling (divide by 1).
+    fields:
+    - name: prescale_value
+      bits:
+      - 15
+      - 0
+      access: rw
+      reset: 0
+      write_effect: Set prescale divisor
+      description: Prescale divisor (0=divide-by-1)
+    - name: reserved_31_16
+      bits:
+      - 31
+      - 16
+      access: reserved
+      reset: 0
+      read_value: 0
+      write_effect: ignore
+      description: Reserved
+  - name: INTSTAT
+    offset: 20
+    width: 32
+    access: rw
+    reset: 0
+    category: status
+    description: Interrupt status register (W1C for match bit)
+    write_side_effects:
+    - Writing 1 to match bit clears the pending match interrupt.
+    fields:
+    - name: match
+      bits:
+      - 0
+      - 0
+      access: rw
+      reset: 0
+      write_effect: 'W1C: write 1 to clear match interrupt'
+      description: Match interrupt pending
+    - name: reserved_31_1
+      bits:
+      - 31
+      - 1
+      access: reserved
+      reset: 0
+      read_value: 0
+      write_effect: ignore
+      description: Reserved
+  - name: INTEN
+    offset: 24
+    width: 32
+    access: rw
+    reset: 0
+    category: control
+    description: Interrupt enable register
+    fields:
+    - name: match_en
+      bits:
+      - 0
+      - 0
+      access: rw
+      reset: 0
+      write_effect: Enable/disable match interrupt
+      description: Match interrupt enable
+    - name: reserved_31_1
+      bits:
+      - 31
+      - 1
+      access: reserved
+      reset: 0
+      read_value: 0
+      write_effect: ignore
+      description: Reserved
+memory:
+  instances: []
+  note: "No SRAM/FIFO \u2014 timer uses only registers."
+interrupts:
+  sources:
+  - name: MATCH_IRQ
+    bit: 0
+    type: level
+    enable_reg: INTEN.match_en
+    status_reg: INTSTAT.match
+    clear: W1C
+    description: Timer match interrupt
+  output:
+    signal: timer_irq
+    polarity: active_high
+    type: level
+fsm:
+  timer_control:
+    states:
+    - DISABLED
+    - COUNTING
+    - MATCHED
+    transitions:
+    - from: DISABLED
+      to: COUNTING
+      condition: CTRL.enable written to 1
+    - from: COUNTING
+      to: MATCHED
+      condition: counter == CMP
+    - from: MATCHED
+      to: COUNTING
+      condition: mode == FREE_RUN or mode == PERIODIC
+    - from: MATCHED
+      to: DISABLED
+      condition: mode == ONE_SHOT
+    - from: COUNTING
+      to: DISABLED
+      condition: CTRL.enable written to 0
+    - from: MATCHED
+      to: DISABLED
+      condition: CTRL.enable written to 0
+    note: Conceptual FSM for verification; may be implemented as implicit state in RTL.
+timing:
+  target_clocks:
+  - name: pclk
+    frequency_mhz: 100
+    duty_cycle: 0.5
+    uncertainty_ns: 0.1
+  latency_budget:
+    register_access_cycles:
+      min: 1
+      max: 2
+      measured_from: psel && penable
+      measured_to: pready
+    match_to_irq_cycles:
+      min: 1
+      max: 1
+      measured_from: counter == CMP
+      measured_to: timer_irq assertion
+  throughput:
+    sustained_ticks_per_cycle: 1
+    conditions: Prescaler disabled or prescale counter at terminal count
+  timing_exceptions: []
+  io_delays:
+    inputs:
+    - ports: paddr, psel, penable, pwrite, pwdata, pstrb
+      clock: pclk
+      delay_ns: 0.2
+      source: system-level timing budget
+    outputs:
+    - ports: prdata, pready, pslverr, timer_match, timer_irq
+      clock: pclk
+      delay_ns: 0.2
+      source: system-level timing budget
+  false_paths:
+  - from: presetn
+    to: all_registers
+    reason: async reset assertion
+  multicycle_paths: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports:
+    - sta/out/setup.rpt
+    - sta/out/hold.rpt
+power:
+  domains:
+  - name: PD_CORE
+    voltage: nominal
+    clock_domains:
+    - pclk
+    isolation: not_required_single_domain
+  clock_gating:
+    required: false
+    rationale: No explicit low-power mode in this IP revision
+  reset_retention:
+    retention_required: false
+  power_states:
+  - name: true
+    entry: reset deasserted
+    exit: reset asserted
+    guarantees:
+    - All behavior active
+  upf_required: false
+security:
+  classification: non_secure_control_ip
+  assets:
+  - name: register_map
+    protection: APB access control is external to this IP
+  threat_model:
+  - threat: illegal register write
+    mitigation: RO/W1C access policy in registers.register_list
+  privilege_model: External bus fabric enforces privilege; this IP implements no internal privilege levels
+  safety_goals:
+  - No silent timer overflow
+  - Match interrupt is software-visible
+error_handling:
+  error_sources:
+  - id: ERR_APB_UNIMPLEMENTED
+    condition: APB access to unimplemented address offset
+    architectural_effect: pslverr=1, pready=1, prdata=0
+  propagation:
+  - pslverr reflects only unimplemented address accesses in this revision.
+  recovery:
+  - action: No persistent error state for APB errors; transaction completes with pslverr.
+    clears: []
+    preserves:
+    - all registers
+debug_observability:
+  waveform_must_probe:
+  - counter (function_model counter)
+  - enable, mode
+  - timer_match, timer_irq
+  - match_flag
+  status_outputs:
+  - name: VALUE
+    description: Current counter value via APB read
+  trace_events:
+  - name: timer_start
+    trigger: CTRL.enable 0->1
+  - name: timer_match
+    trigger: counter == CMP and enable == 1
+  - name: timer_stop
+    trigger: CTRL.enable 1->0
+  debug_registers: []
+integration:
+  bus_attachment:
+    control: APB4 slave
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: SoC interconnect
+    illegal_access_response: pslverr for unimplemented addresses
+  dependencies:
+    external_modules: []
+    external_clocks:
+    - pclk
+    external_resets:
+    - presetn
+  integration_notes:
+  - SoC APB decoder asserts psel for this peripheral's address range.
+  - SoC interrupt controller samples timer_irq as active-high level.
+  connections: []
+  connection_contract_status: missing machine-readable module wiring; child RTL drafts may proceed from owner packets, but top integration/signoff must stay blocked until SSOT authors integration.connections or sub_modules[].connections with module/port/signal records
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: presetn controllable in test mode
+    clocks:
+    - pclk
+  observability:
+    required_internal_points:
+    - counter
+    - enable
+    - match_flag
+  mbist_required: false
+  notes: No SRAM macro; DFT limited to scan and timer value observability.
+synthesis:
+  dialect: systemverilog_2012
+  top_module: fresh_web_timer_ip
+  technology:
+    pdk: sky130
+    standard_cell_library: sky130_fd_sc_hd
+    liberty_corner: ss_100C_1v40
+  constraints:
+  - No inferred latches
+  - All flops reset according to clock_reset_domains.reset_scheme
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 100
+  required_outputs:
+  - syn/out/fresh_web_timer_ip.json
+  - syn/out/area.rpt
+  - syn/out/timing_summary.rpt
+  tool_flow: yosys
+  target_technology: sky130_fd_sc_hd
+  target_library: sky130_fd_sc_hd
+  liberty_env_var: SKY130_LIB
+  corner:
+    name: sky130_fd_sc_hd__ss_100C_1v40
+    process: ss
+    temperature_c: 100
+    voltage_v: 1.4
+  library_policy: Use the SKY130_LIB environment variable to locate the SS corner Liberty file for the declared sky130_fd_sc_hd target library; synthesis and STA must stop if the file is unreadable or does not match the declared corner.
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: met3
+    vertical: met2
+  cts_buf_list:
+  - sky130_fd_sc_hd__clkbuf_4
+  - sky130_fd_sc_hd__clkbuf_8
+  routing:
+    signal_layers:
+      min: met1
+      max: met5
+    drc_waivers: []
+coding_rules:
+  verilog_style: systemverilog_2012
+  file_extension: .sv
+  conventions:
+  - "nonblocking (<=) in sequential always @(posedge clk \u2026)"
+  - blocking (=) in combinational always @(*)
+  - 'No latches: every combinational branch assigns all outputs'
+  - 'Active-low async reset: always @(posedge clk or negedge rst_n) with if (!rst_n)'
+  - Parameterize widths (no hardcoded numbers)
+  - 'ALLOW: input logic / output logic ANSI ports and internal single-driver logic'
+  - 'BANNED: typedef / enum / always_ff / always_comb / always_latch / package / endpackage / import / interface / modport / function / endfunction / task / endtask / for / while / *_pkg.sv'
+  - Use localparam state encoding with logic state/next_state signals
+  lint_waivers:
+  - 'UNUSEDSIGNAL: explicit approved tie-offs only'
+reuse_modules: []
+custom:
+  ip: fresh_web_timer_ip
+  version: '1.0'
+  note: "No custom extensions"
+dir_structure:
+  output_dirs:
+    rtl: rtl/
+    sim: sim/
+    docs: docs/
+  yaml_dir: yaml/
+filelist:
+  rtl:
+  - rtl/fresh_web_timer_ip_control.sv
+  - rtl/fresh_web_timer_ip_datapath.sv
+  - rtl/fresh_web_timer_ip_status.sv
+  - rtl/fresh_web_timer_ip_core.sv
+  - rtl/fresh_web_timer_ip.sv
+  sim:
+  - sim/tb_top.sv
+  docs:
+  - docs/README.md
+  headers:
+  - rtl/fresh_web_timer_ip_param.vh
+  tb:
+  - tb/cocotb/test_fresh_web_timer_ip.py
+  - tb/cocotb/test_runner.py
+  - tb/cocotb/scoreboard.py
+  coverage:
+  - cov/coverage.json
+test_requirements:
+  scenarios:
+  - id: SC01
+    name: reset contract
+    stimulus: Assert and release the declared reset while all external interfaces remain idle.
+    expected: Architectural state, status, outputs, and debug observability match function_model reset outputs.
+    checker: Reset checker compares all declared reset-visible state against function_model and cycle_model reset rules.
+    coverage:
+    - function_model.reset
+    - cycle_model.reset
+  - id: SC02
+    name: primary approved behavior
+    stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.
+    expected: Externally observable result/status/side effects match the function_model primary transaction.
+    checker: FL-vs-RTL scoreboard compares observable outputs and state updates from the locked function_model.
+    coverage:
+    - function_model.primary
+    - features
+    - dataflow
+  - id: SC03
+    name: cycle handshake and backpressure
+    stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.
+    expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.
+    checker: Protocol monitor and scoreboard check cycle_model.handshake_rules, ordering, and latency budget.
+    coverage:
+    - cycle_model.handshake_rules
+    - cycle_model.ordering
+    - backpressure
+  - id: SC04
+    name: error and recovery policy
+    stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.
+    expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.
+    checker: Negative checker compares error result and recovery state against function_model error_cases.
+    coverage:
+    - error_handling.error_sources
+    - function_model.error_cases
+  - id: SC05
+    name: debug and trace observability
+    stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.
+    expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.
+    checker: Waveform/trace checker validates debug_observability entries and traceability.yaml_to_output rows.
+    coverage:
+    - debug_observability
+    - traceability
+  - id: SC06
+    name: function_model transaction TM_TICK
+    stimulus: Drive preconditions for function_model transaction `TM_TICK`.
+    expected: Outputs and side effects match `TM_TICK` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.TM_TICK
+  - id: SC07
+    name: function_model transaction TM_MATCH
+    stimulus: Drive preconditions for function_model transaction `TM_MATCH`.
+    expected: Outputs and side effects match `TM_MATCH` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.TM_MATCH
+  - id: SC08
+    name: function_model transaction TM_IDLE
+    stimulus: Drive preconditions for function_model transaction `TM_IDLE`.
+    expected: Outputs and side effects match `TM_IDLE` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.TM_IDLE
+  scoreboard_checks: 8
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+      description: Timer behavioral coverage.
+      bins:
+      - id: FCOV_TIMER_TICK
+        source_ref: function_model.transactions.TM_TICK
+        class: transaction
+        description: Timer tick observed
+      - id: FCOV_TIMER_MATCH
+        source_ref: function_model.transactions.TM_MATCH
+        class: transaction
+        description: Match detection observed
+    cycle:
+      target_pct: 100
+      model: cycle_model
+      description: Cycle-accurate timing coverage.
+      bins:
+      - id: CCOV_APB_READ
+        source_ref: cycle_model.pipeline.T0_REGISTER
+        class: pipeline_stage
+        description: APB read cycle
+      - id: CCOV_APB_WRITE
+        source_ref: cycle_model.pipeline.T0_REGISTER
+        class: pipeline_stage
+        description: APB write cycle
+      - id: CCOV_COUNTER_ADVANCE
+        source_ref: cycle_model.pipeline.T2_COUNTER
+        class: pipeline_stage
+        description: Counter advance cycle
+      - id: CCOV_MATCH_OUTPUT
+        source_ref: cycle_model.pipeline.T4_OUTPUT
+        class: pipeline_stage
+        description: Match output cycle
+      - id: CCOV_FSM_ALL_TRANSITIONS
+        source_ref: fsm.timer_control.transitions
+        class: state_transition
+        description: All declared FSM transitions exercised
+    functional: Function + cycle coverage must both close.
+    code: line >= 90%, branch >= 85%
+    scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence
+quality_gates:
+  ssot:
+    pass: All canonical sections present, no TBD placeholders.
+    evidence:
+    - check_ssot_disk.sh PASS
+  rtl:
+    pass: RTL implements function_model and cycle_model, compiles and lints clean.
+    evidence:
+    - rtl compile report
+    - dut lint report
+  rtl_gen:
+    profile: standard
+    pass: RTL compiles, lints, and matches function_model/cycle_model behavior.
+    evidence:
+    - rtl compile report
+    - lint report
+    - FL-vs-RTL scoreboard
+  dv:
+    pass: Every SSOT test_requirements scenario has an executable checker and FL-vs-RTL equivalence goal
+    evidence:
+    - verify/equivalence_goals.json
+    - sim/scoreboard_events.jsonl
+    - tb/cocotb tests
+    - scenario implementation map
+  coverage:
+    pass: SSOT-declared functional/code coverage goals pass.
+    evidence:
+    - cov/coverage.json
+  eda:
+    pass: Synthesis meets timing/area targets.
+    evidence:
+    - syn report
+  signoff:
+    pass: SSOT, FL/equivalence, RTL, lint, DV, sim, coverage, and EDA gates pass with fresh artifacts
+    evidence:
+    - ATLAS progress signoff PASS
+traceability:
+  yaml_to_output:
+  - yaml: top_module.name
+    output: ALL files (module name)
+  - yaml: parameters
+    output: fresh_web_timer_ip.sv parameter declarations
+  - yaml: io_list.interfaces
+    output: fresh_web_timer_ip.sv port list
+  - yaml: registers.register_list
+    output: fresh_web_timer_ip.sv register decode logic + docs
+  - yaml: function_model
+    output: fresh_web_timer_ip.sv counter/match logic + tb scoreboard
+  - yaml: cycle_model
+    output: fresh_web_timer_ip.sv timing + waveform checks
+  - yaml: timing
+    output: sdc/fresh_web_timer_ip.sdc
+  - yaml: fsm
+    output: fresh_web_timer_ip.sv state machine
+  - yaml: test_requirements.scenarios
+    output: sim/tb_top.sv + tc/fresh_web_timer_ip_scenarios.py
+  - yaml: function_model/cycle_model/test_requirements
+    output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
+  - yaml: security
+    output: Threat mitigations and negative tests
+  - yaml: error_handling
+    output: Fault RTL paths and DV error scenarios
+  - yaml: debug_observability
+    output: VCD probes and sim_debug inspection
+  - yaml: quality_gates
+    output: ATLAS progress/signoff criteria
+workflow_todos:
+  ssot-gen:
+  - id: SSOT_VALIDATE
+    content: Validate the SSOT YAML
+    detail: Run verify_ssot.py in engineering mode to confirm no blockers.
+    command: /validate-yaml fresh_web_timer_ip
+    script: $ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py
+    run_command: python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" fresh_web_timer_ip --root "$ATLAS_PROJECT_ROOT" --mode engineering
+    instructions:
+    - Run verify_ssot.py after the final SSOT write.
+    - Fix any blockers before handoff.
+    criteria:
+    - verify_ssot.py returns zero blockers.
+    source_refs:
+    - fresh_web_timer_ip/yaml/fresh_web_timer_ip.ssot.yaml
+    priority: high
+    required: true
+  fl-model-gen: []
+  rtl-gen:
+  - id: RTL_TIMER_CORE
+    content: Implement timer counter, prescaler, and match logic
+    detail: Translate function_model (TM_TICK, TM_MATCH, TM_IDLE) and cycle_model pipeline into rtl/fresh_web_timer_ip.sv.
+    command: /ssot-rtl fresh_web_timer_ip
+    script: $ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py
+    run_command: python3 "$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py" fresh_web_timer_ip --root "$ATLAS_PROJECT_ROOT" --audit-rtl
+    instructions:
+    - Implement APB4 register decode for CTRL, LOAD, VALUE, CMP, PRESCALE, INTSTAT, INTEN.
+    - Implement prescaler counter that gates main counter ticks.
+    - Implement match compare and one-cycle timer_match pulse.
+    - Implement timer_irq as level output gated by INTEN.match_en and INTSTAT.match.
+    - Implement ONE_SHOT auto-clear of enable on match.
+    - Implement PERIODIC reload from LOAD on match.
+    criteria:
+    - RTL compiles without errors.
+    - All function_model transactions observable in RTL behavior.
+    - All registers readable/writable via APB.
+    source_refs:
+    - function_model.transactions
+    - cycle_model.pipeline
+    - registers.register_list
+    owner_module: fresh_web_timer_ip
+    owner_file: rtl/fresh_web_timer_ip.sv
+    priority: high
+    required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+generation_flow:
+  steps:
+  - name: verify_ssot
+    command: python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" fresh_web_timer_ip --root "$ATLAS_PROJECT_ROOT" --mode ${ATLAS_RUN_MODE:-signoff}
+    description: Validate SSOT structure, Preview fields, and quality gates at the selected Run Mode
+  - name: handoff_fl_model
+    command: /ssot-fl-model fresh_web_timer_ip
+    description: Generate FunctionalModel, decomposition, and FCOV plan from SSOT
+  - name: handoff_equivalence_goals
+    command: /ssot-equiv-goals fresh_web_timer_ip
+    description: Derive FL-vs-RTL equivalence goals before TB generation
+  - name: handoff_rtl
+    command: /ssot-rtl fresh_web_timer_ip
+    description: Generate RTL from validated SSOT
+  - name: handoff_tb
+    command: /ssot-tb-cocotb fresh_web_timer_ip
+    description: Generate cocotb/pyuvm verification from validated SSOT
+  - name: handoff_sim_debug
+    command: /wf sim_debug
+    description: Run simulation, waveform, and coverage inspection
+...

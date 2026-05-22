@@ -3728,7 +3728,8 @@ body[data-resize-cursor="col"] {
   text-align: left;
 }
 .pipe-orchestra-worker:hover { border-color: rgba(242,182,50,0.4); }
-.pipe-orchestra-worker[data-state="down"]    { opacity: 0.55; border-color: rgba(229,115,115,0.4); }
+.pipe-orchestra-worker[data-state="down"],
+.pipe-orchestra-worker[data-state="mismatch"] { opacity: 0.55; border-color: rgba(229,115,115,0.4); }
 .pipe-orchestra-worker[data-state="running"] {
   border-color: rgba(242,182,50,0.7);
   background: rgba(242,182,50,0.05);
@@ -3787,7 +3788,8 @@ body[data-resize-cursor="col"] {
   color: var(--fg-mute);
 }
 .pipe-orchestra-worker[data-state="running"] .pipe-orchestra-worker-state { color: #f2b632; }
-.pipe-orchestra-worker[data-state="down"]    .pipe-orchestra-worker-state { color: #e57373; }
+.pipe-orchestra-worker[data-state="down"]    .pipe-orchestra-worker-state,
+.pipe-orchestra-worker[data-state="mismatch"] .pipe-orchestra-worker-state { color: #e57373; }
 .pipe-orchestra-worker-trace {
   font-size: 9px;
   color: var(--fg-mute);
@@ -4476,8 +4478,8 @@ body[data-resize-cursor="col"] {
    actions on the canvas + the orchestrator chat panel instead. */
 .pipe-col-center > .pipe-dispatch-rail { display: none; }
 
-/* Hide worker cards that are unreachable or down — Active Workers only. */
-.worker-card[data-flow="down"] { display: none; }
+/* Keep unreachable/mismatched workers visible so config drift is obvious. */
+.worker-card[data-flow="down"] { display: flex; }
 
 /* ── Enhanced detail cards (Pipeline Image phase 2 footer) ────────────── */
 .enh-cards-grid {

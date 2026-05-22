@@ -264,9 +264,35 @@
     { id: 'sta-post',     label: 'sta-post',     cmd: '/wf sta-post',     color: 'var(--warn)',   glyph: 'PS' },
   ];
 
+  const ORCHESTRATOR_FLOW_STAGE = {
+    id: 'orchestrator',
+    label: 'orchestrator',
+    cmd: '/workflow orchestrator',
+    color: 'var(--cyan)',
+    glyph: 'OR',
+  };
+
+  function atlasExecMode() {
+    return String(
+      window.ATLAS_EXEC_MODE
+      || window.ATLAS_DEFAULT_EXEC_MODE
+      || (window.ATLAS_BOOT_CONFIG && window.ATLAS_BOOT_CONFIG.exec_mode)
+      || ''
+    ).trim().toLowerCase();
+  }
+
+  function flowStagesForExecMode(stages) {
+    const base = Array.isArray(stages) ? stages : DEFAULT_FLOW_STAGES;
+    const deduped = base.filter((s) => s && s.id !== ORCHESTRATOR_FLOW_STAGE.id);
+    if (atlasExecMode() === 'orchestrator') {
+      return [ORCHESTRATOR_FLOW_STAGE].concat(deduped);
+    }
+    return deduped;
+  }
+
   // Workflow stage badges. Seed the canonical IP flow immediately so the
   // left workflow rail is visible even before /api/workspaces returns.
-  window.FLOW_STAGES = DEFAULT_FLOW_STAGES.slice();
+  window.FLOW_STAGES = flowStagesForExecMode(DEFAULT_FLOW_STAGES);
 
   // Question flows for ask_user. Dynamic flows are pushed in by
   // workspace.jsx's `ask_user` WS subscription, so we only need an
@@ -986,7 +1012,7 @@
             glyph: p.glyph,
           };
         });
-      window.FLOW_STAGES = live.length ? live : DEFAULT_FLOW_STAGES.slice();
+      window.FLOW_STAGES = flowStagesForExecMode(live.length ? live : DEFAULT_FLOW_STAGES);
       const activeWorkflow = activeWorkflowFromSession();
       const backendActive = normalizeSessionName(d.active || '');
       window.CONTEXT.workspace = (backendActive && backendActive !== 'default') ? backendActive : (activeWorkflow || backendActive || '');
@@ -999,6 +1025,10 @@
     refreshFileTree, refreshTodos, refreshSsotList, refreshHealth,
     refreshSlashCommands, refreshWorkflows, refreshSessionState, sessionFor,
     refreshProgress, normalizeSessionName,
+    refreshWorkflowStagesForPolicy: () => {
+      window.FLOW_STAGES = flowStagesForExecMode(window.FLOW_STAGES || DEFAULT_FLOW_STAGES);
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FLOW_STAGES' }));
+    },
     setUserSessionId: (sessionId) => {
       const sid = normalizeSessionName(sessionId);
       if (!sid || sid.includes('/')) return window.ATLAS_USER_SESSION_ID || '';
@@ -1035,6 +1065,11 @@
       return refreshSessionState(sid);
     },
   };
+
+  window.addEventListener('atlas-run-policy-changed', () => {
+    window.FLOW_STAGES = flowStagesForExecMode(window.FLOW_STAGES || DEFAULT_FLOW_STAGES);
+    window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FLOW_STAGES' }));
+  });
 
   // ── Bootstrap ───────────────────────────────────────────────────
   // Coalesce a burst of WS events into a single API hit per resource.

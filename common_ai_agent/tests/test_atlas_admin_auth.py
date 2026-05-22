@@ -11,7 +11,7 @@ if str(PROJECT_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 
-def test_admin_username_registers_with_admin_role(tmp_path, monkeypatch):
+def test_default_admin_login_creates_fixed_admin(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
@@ -22,9 +22,15 @@ def test_admin_username_registers_with_admin_role(tmp_path, monkeypatch):
 
     client = TestClient(atlas_ui.create_app())
 
-    registered = client.post(
-        "/api/auth/register",
+    wrong = client.post(
+        "/api/auth/login",
         json={"username": "admin", "password": "pw"},
+    )
+    assert wrong.status_code == 401, wrong.text
+
+    registered = client.post(
+        "/api/auth/login",
+        json={"username": "admin", "password": "1151"},
     )
     assert registered.status_code == 200, registered.text
     assert registered.json()["user"]["role"] == "admin"
@@ -41,6 +47,25 @@ def test_admin_username_registers_with_admin_role(tmp_path, monkeypatch):
     assert "ATLAS Admin" in page.text
 
 
+def test_default_admin_username_cannot_be_registered_with_custom_password(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_ADMIN_USERS", "admin")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+
+    response = client.post(
+        "/api/auth/register",
+        json={"username": "admin", "password": "pw"},
+    )
+    assert response.status_code == 409, response.text
+    assert response.json()["detail"] == "default admin account is fixed"
+
+
 def test_standalone_admin_login_uses_admin_cookie(tmp_path, monkeypatch):
     import src.atlas_admin as atlas_admin
 
@@ -51,8 +76,8 @@ def test_standalone_admin_login_uses_admin_cookie(tmp_path, monkeypatch):
     client = TestClient(atlas_admin.create_admin_app(PROJECT_ROOT))
 
     registered = client.post(
-        "/api/auth/register",
-        json={"username": "admin", "password": "pw"},
+        "/api/auth/login",
+        json={"username": "admin", "password": "1151"},
     )
     assert registered.status_code == 200, registered.text
     assert client.cookies.get("atlas_admin_session")

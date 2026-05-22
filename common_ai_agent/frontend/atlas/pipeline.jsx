@@ -1045,6 +1045,7 @@ function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
     return { dir: 'none', color: 'muted', label: k };
   };
   const dataFlow = (w, ev) => {
+    if (w.status === 'mismatch') return 'down';
     if (w.status !== 'ok') return 'down';
     if (w.running_count > 0) return 'dispatch';
     if (ev && ev.kind === 'run_completed') return 'return';
@@ -1057,6 +1058,7 @@ function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
     return '·';
   };
   const stateLabel = (w) => {
+    if (w.status === 'mismatch') return 'mismatch';
     if (w.status !== 'ok') return 'unreachable';
     if (w.running_count > 0) return `run #${w.running && w.running[0] && w.running[0].run_id ? w.running[0].run_id.slice(-6) : '?'}`;
     return 'idle';
@@ -1086,6 +1088,7 @@ function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
           const arrow = kindArrow(ev && ev.kind);
           const live = w.running_count > 0;
           const reachable = w.status === 'ok';
+          const mismatch = w.status === 'mismatch';
           const sel = currentTarget === w.workflow;
           const flow = dataFlow(w, ev);
           const opensWorkspace = window.PIPELINE_WORKSPACE_WORKFLOWS
@@ -1094,7 +1097,7 @@ function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
             <button key={w.workflow}
                     className="pipe-orchestra-worker worker-card"
                     data-flow={flow}
-                    data-state={reachable ? (live ? 'running' : 'idle') : 'down'}
+                    data-state={mismatch ? 'mismatch' : (reachable ? (live ? 'running' : 'idle') : 'down')}
                     data-selected={sel ? 'yes' : 'no'}
                     onClick={() => {
                       if (opensWorkspace && window.openPipelineWorkflowWorkspace) {
@@ -1105,7 +1108,9 @@ function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
                     }}
                     title={opensWorkspace
                       ? `Open ${w.workflow} workspace and history`
-                      : `Click to set chat target to ${w.workflow}`}>
+                      : (mismatch && w.mismatch_reasons && w.mismatch_reasons.length
+                          ? w.mismatch_reasons.join('\n')
+                          : `Click to set chat target to ${w.workflow}`)}>
               <span className="worker-card-arrow pipe-orchestra-arrow">
                 {flowArrow(flow)}
               </span>
@@ -2576,7 +2581,12 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }) {
       await fetch('/api/pipeline/orchestrator/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, ip }),
+        body: JSON.stringify({
+          message: text,
+          ip,
+          session: window.ACTIVE_SESSION || '',
+          session_id: window.ATLAS_DB_SESSION_ID || window.ACTIVE_SESSION || '',
+        }),
       });
       setDraft('');
     } catch (_) {} finally {

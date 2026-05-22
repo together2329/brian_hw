@@ -35,6 +35,35 @@ if str(PROJECT_ROOT) not in sys.path:
 if str(PROJECT_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
+_WORKFLOWS = [
+    "SSOT_GEN", "FL_MODEL_GEN", "RTL_GEN", "LINT", "TB_GEN",
+    "SIM", "COVERAGE", "SIM_DEBUG", "SYN", "STA", "PNR", "STA_POST",
+]
+
+
+@pytest.fixture(autouse=True)
+def _isolate_worker_env(monkeypatch):
+    """Keep mock-worker tests independent of repo .env and live workers."""
+    for suffix in _WORKFLOWS:
+        for key in (
+            f"ATLAS_WORKER_URL_{suffix}",
+            f"ATLAS_{suffix}_WORKER_URL",
+            f"WORKER_URL_{suffix}",
+            f"ATLAS_WORKER_MODEL_{suffix}",
+            f"ATLAS_{suffix}_MODEL",
+            f"WORKER_MODEL_{suffix}",
+            f"ATLAS_WORKER_REASONING_EFFORT_{suffix}",
+            f"ATLAS_WORKER_REASONING_{suffix}",
+            f"ATLAS_{suffix}_REASONING_EFFORT",
+            f"ATLAS_{suffix}_EFFORT",
+            f"WORKER_REASONING_EFFORT_{suffix}",
+        ):
+            monkeypatch.setenv(key, "")
+    monkeypatch.setenv("WORKER_URL_DEFAULT", "http://127.0.0.1:9")
+    monkeypatch.setenv("ATLAS_LAZY_WORKERS", "0")
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODEL", "")
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_REASONING_EFFORT", "")
+
 
 def _free_port() -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -246,6 +275,10 @@ def _agent_server_worker(monkeypatch, calls: list[dict]) -> Iterator[str]:
         project_root: str = "",
         artifact_versions=None,
         reasoning_effort: str = "",
+        custom_system_prompt: str = "",
+        custom_allowed_tools=None,
+        custom_agent: str = "",
+        custom_agent_owner_id: str = "",
     ) -> None:
         entry.status = "running"
         entry.started_at = time.time()
@@ -451,7 +484,16 @@ def test_pipeline_dispatch_can_drive_real_agent_server_worker_endpoints(
             time.sleep(0.2)
 
         assert {row["stage_id"] for row in rows} == {"rtl", "lint"}
-        assert all(row["status"] == "completed" for row in rows)
+        assert all(row["status"] == "completed" for row in rows), [
+            {
+                "stage_id": row.get("stage_id"),
+                "status": row.get("status"),
+                "error": row.get("error"),
+                "run_id": row.get("run_id"),
+                "worker": row.get("worker"),
+            }
+            for row in rows
+        ]
         assert [call["workflow"] for call in worker_calls] == ["rtl-gen", "lint"]
         lint_call = worker_calls[1]
         assert lint_call["rtl_version_id"]
@@ -694,12 +736,15 @@ def test_orchestrator_worker_status_exposes_default_model_bindings(
     assert resp.status_code == 200, resp.text
     body = resp.json()
     assert body["orchestrator"]["model"] == "gpt-5.5"
+    assert body["orchestrator"]["reasoning_effort"] == "xhigh"
     models = {item["workflow"]: item["model"] for item in body["workers"]}
+    defaults = {item["workflow"]: item["default_model"] for item in body["workers"]}
     assert models["ssot-gen"] == "gpt-5.5"
     assert models["rtl-gen"] == "gpt-5.3-codex"
     assert models["tb-gen"] == "deepseek"
     assert models["sim_debug"] == "kimi"
     assert models["lint"] == "deepseek"
+    assert defaults == models
     toolchains = {item["workflow"]: item.get("toolchain") for item in body["workers"]}
     assert toolchains["lint"] == "pyslang + verilator"
     assert toolchains["coverage"] == "verilator coverage + VCD"
@@ -742,6 +787,111 @@ def test_job_dispatch_keeps_llm_model_separate_from_lint_toolchain(
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
+
+
+def test_orchestrator_chat_smoke_dispatches_worker_evidence_and_db_run(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core.atlas_db import AtlasDB
+    from src.orchestrator.loop import RunOutcome
+    from src.orchestrator import runner as runner_mod
+    from src.orchestrator import tools as orch_tools
+    from src.orchestrator.runner import OrchestratorRunner
+
+    ip = "orch_smoke_ip"
+    (tmp_path / ip / "rtl").mkdir(parents=True)
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    smoke_errors = []
+
+    class _SmokeLoop:
+        def __init__(self, db, ctx, message):
+            self.db = db
+            self.ctx = ctx
+            self.message = message
+
+        def run(self):
+            try:
+                result, _summary = orch_tools.dispatch_workflow(
+                    workflow="lint",
+                    ip=ip,
+                    reason="smoke test dispatch",
+                    orchestrator_run_id=self.ctx.run_id,
+                )
+                assert result["ok"] is True
+                jobs._refresh_tracked_jobs(tmp_path)
+                self.db.update_orchestrator_run(
+                    self.ctx.run_id,
+                    status="completed",
+                    final_state="completed",
+                    ended=True,
+                )
+                return RunOutcome(status="completed", final_state="completed", steps_taken=1)
+            except Exception as exc:
+                smoke_errors.append(repr(exc))
+                self.db.update_orchestrator_run(
+                    self.ctx.run_id,
+                    status="error",
+                    final_state=repr(exc),
+                    ended=True,
+                )
+                raise
+
+    with _mock_worker("lint") as (worker_url, worker):
+        monkeypatch.setenv("WORKER_URL_LINT", worker_url)
+        client = _make_client(tmp_path, monkeypatch)
+        db = AtlasDB(str(tmp_path / "atlas.db"))
+        runner = OrchestratorRunner(
+            db,
+            max_workers=1,
+            loop_factory=lambda db_, ctx, msg: _SmokeLoop(db_, ctx, msg),
+        )
+        runner_mod.set_runner_for_test(runner)
+        try:
+            resp = client.post("/api/pipeline/orchestrator/chat", json={
+                "ip": ip,
+                "message": "run lint smoke",
+            })
+            assert resp.status_code == 200, resp.text
+            body = resp.json()
+            assert body["model"] == "gpt-5.5"
+            assert body["reasoning_effort"] == "xhigh"
+
+            with runner._lock:
+                active_futures = [entry[1] for entry in runner._active.values()]
+            if active_futures:
+                active_futures[0].result(timeout=5)
+            assert not smoke_errors
+            assert db.get_orchestrator_run(body["run_id"])["status"] == "completed"
+
+            for _ in range(30):
+                detail = client.get(f"/api/orchestrator/runs/{body['run_id']}")
+                assert detail.status_code == 200, detail.text
+                if detail.json()["run"]["status"] == "completed":
+                    break
+                time.sleep(0.1)
+            else:
+                raise AssertionError("orchestrator smoke run did not complete")
+
+            assert len(worker.runs_for_workflow("lint")) == 1
+            assert (tmp_path / ip / "lint" / "dut_lint.json").is_file()
+            rows = db._fetchall(
+                "SELECT workflow, status, model_profile FROM workflow_runs WHERE workflow = ?",
+                ("lint",),
+            )
+            assert rows
+            run = db._row_to_dict(rows[-1], "workflow_runs")
+            assert run["status"] == "completed"
+            assert run["model_profile"] == "deepseek"
+        finally:
+            runner.shutdown(wait=False)
+            runner_mod.set_runner_for_test(None)
+            db.close()
+            with jobs._jobs_lock:
+                jobs._jobs.clear()
 
 
 @pytest.mark.skip(

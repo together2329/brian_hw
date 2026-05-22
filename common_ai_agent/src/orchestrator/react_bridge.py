@@ -30,6 +30,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 from src.orchestrator import tools as orch_tools
 from src.orchestrator.budgets import BudgetTracker
 from src.orchestrator.classify import classify_failure
+from src.orchestrator.profile import ORCHESTRATOR_MODEL, ORCHESTRATOR_REASONING_EFFORT
 from src.orchestrator.prompts import SYSTEM_PROMPT, build_system_prompt, tool_schemas
 from src.orchestrator.ui_formatter import format_tool_call
 
@@ -521,7 +522,11 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
         content_buf: list[str] = []
         try:
             for chunk in llm_client.chat_completion_stream(
-                messages=messages, stop=stop, tools=schemas,
+                messages=messages,
+                stop=stop,
+                tools=schemas,
+                model=ORCHESTRATOR_MODEL,
+                reasoning_effort=ORCHESTRATOR_REASONING_EFFORT,
             ):
                 if isinstance(chunk, str):
                     content_buf.append(chunk)
@@ -539,7 +544,7 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
                 cost_usd = 0.0
                 try:
                     from lib.model_pricing import get_active_pricing
-                    model_name = getattr(config, "MODEL_NAME", "") or ""
+                    model_name = ORCHESTRATOR_MODEL
                     price = get_active_pricing(model_name)
                     if price is not None:
                         billable_in = max(0, tokens_input - cache_read)
@@ -553,9 +558,10 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
                 db.record_llm_call(
                     session_id=ctx.session_id or "",
                     run_id=ctx.run_id,
+                    workspace_id=getattr(ctx, "workspace_id", "") or "",
                     ip_id=ctx.ip_id or "",
                     workflow="orchestrator",
-                    model=getattr(config, "MODEL_NAME", "") or "",
+                    model=ORCHESTRATOR_MODEL,
                     provider=getattr(config, "API_PROVIDER", "") or "",
                     call_role="orchestrator",
                     tokens_input=tokens_input,
@@ -773,6 +779,10 @@ class OrchestratorReactLoop:
         import config as _global_cfg
         import types
         cfg_overrides = {
+            "MODEL_NAME": ORCHESTRATOR_MODEL,
+            "LLM_MODEL_NAME": ORCHESTRATOR_MODEL,
+            "REASONING_MODE": ORCHESTRATOR_REASONING_EFFORT,
+            "REASONING_EFFORT": ORCHESTRATOR_REASONING_EFFORT,
             "ENABLE_NATIVE_TOOL_CALLS": True,
             # Background orchestrator never asks for human-typed input mid-stream.
             "ENABLE_HUMAN_IN_THE_LOOP": False,

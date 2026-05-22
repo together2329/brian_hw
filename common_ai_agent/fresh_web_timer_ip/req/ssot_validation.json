@@ -1,0 +1,16 @@
+{
+  "schema_version": "ssot_validation.v2",
+  "ip": "fresh_web_timer_ip",
+  "mode": "engineering",
+  "ssot": "fresh_web_timer_ip/yaml/fresh_web_timer_ip.ssot.yaml",
+  "ok": true,
+  "blockers": [],
+  "warnings": [],
+  "check_ssot_disk": {
+    "ok": true,
+    "returncode": 0,
+    "stdout": "[check_ssot_disk] PASS: fresh_web_timer_ip/yaml/fresh_web_timer_ip.ssot.yaml = 44619B, 34 sections, 0 TBDs, mode=engineering\n",
+    "stderr": ""
+  },
+  "preview_contract": "strict"
+}

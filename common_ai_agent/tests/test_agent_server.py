@@ -149,6 +149,36 @@ class TestAgentServerUnit(unittest.TestCase):
         self.assertEqual(entry.status, "completed", entry.result)
         self.assertIn("demo_ip/yaml/demo_ip.ssot.yaml", entry.result["files_modified"])
 
+    def test_worker_reports_final_answer_turn_as_iteration(self):
+        from core import react_loop
+
+        entry = self.server_mod._create_run("answer directly")
+        old_workflow = self.server_mod._SERVER_WORKFLOW
+        old_persistence = self.server_mod._PERSISTENCE_ENABLED
+        self.server_mod._SERVER_WORKFLOW = ""
+        self.server_mod._PERSISTENCE_ENABLED = False
+
+        def fake_run_react_agent_impl(*, messages, tracker, **_kwargs):
+            # Completion breaks before react_loop increments tracker.current.
+            self.assertEqual(tracker.current, 0)
+            return (
+                messages
+                + [
+                    {"role": "assistant", "content": "Final Answer: direct done"},
+                ],
+                "normal",
+            )
+
+        try:
+            with patch.object(react_loop, "run_react_agent_impl", side_effect=fake_run_react_agent_impl):
+                self.server_mod._run_react_task(entry, "answer directly", model="test-model")
+        finally:
+            self.server_mod._SERVER_WORKFLOW = old_workflow
+            self.server_mod._PERSISTENCE_ENABLED = old_persistence
+
+        self.assertEqual(entry.status, "completed", entry.result)
+        self.assertEqual(entry.result["iterations"], 1)
+
     def test_extract_direct_slash_commands_from_stage_driver_prompt(self):
         task = (
             "run /ssot-cycle-model demo_ip and /ssot-dual-fcov demo_ip; "

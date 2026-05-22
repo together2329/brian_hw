@@ -89,6 +89,7 @@ class OrchestratorRunner:
         user_id: str,
         ip_id: str,
         ip_name: str,
+        workspace_id: str = "",
         session_id: str = "",
         chat_message_id: str = "",
         message_text: str = "",
@@ -133,6 +134,7 @@ class OrchestratorRunner:
                     user_id=user_id,
                     ip_id=ip_id,
                     ip_name=ip_name,
+                    workspace_id=workspace_id or str(existing.get("workspace_id") or ""),
                     session_id=session_id,
                     initial_user_message=message_text,
                 )
@@ -142,6 +144,7 @@ class OrchestratorRunner:
             run = self._db.create_orchestrator_run(
                 user_id=user_id,
                 ip_id=ip_id,
+                workspace_id=workspace_id,
                 session_id=session_id,
                 chat_message_id=chat_message_id,
                 model=model,
@@ -155,6 +158,7 @@ class OrchestratorRunner:
                 user_id=user_id,
                 ip_id=ip_id,
                 ip_name=ip_name,
+                workspace_id=workspace_id,
                 session_id=session_id,
                 initial_user_message=message_text,
             )
@@ -208,6 +212,7 @@ class OrchestratorRunner:
         user_id: str,
         ip_id: str,
         ip_name: str,
+        workspace_id: str,
         session_id: str,
         initial_user_message: str,
     ) -> RunOutcome:
@@ -216,6 +221,7 @@ class OrchestratorRunner:
             user_id=user_id,
             ip_id=ip_id,
             ip_name=ip_name,
+            workspace_id=workspace_id,
             session_id=session_id,
             runner=self,
         )

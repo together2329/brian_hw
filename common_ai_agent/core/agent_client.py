@@ -15,7 +15,7 @@ import json
 import time
 import urllib.request
 import urllib.error
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 
 # ── Public API ────────────────────────────────────────────────
@@ -81,6 +81,11 @@ def worker_call(
     todos: list = None,
     template: str = "",
     workflow: str = "",
+    reasoning_effort: str = "",
+    system_prompt: str = "",
+    allowed_tools: Any = None,
+    custom_agent: str = "",
+    custom_agent_owner_id: str = "",
     timeout: int = 600,
     poll_interval: float = 2.0,
     show_log: bool = True,
@@ -95,6 +100,11 @@ def worker_call(
         worker: Worker URL (e.g. "http://localhost:8001") or name (e.g. 'lint_worker')
         task: Task description string
         model: Model override (empty = worker default)
+        reasoning_effort: Optional reasoning effort override for this run
+        system_prompt: Optional custom system prompt to append to the worker prompt
+        allowed_tools: Optional custom tool allow-list
+        custom_agent: Optional custom agent name for worker logs/metadata
+        custom_agent_owner_id: Optional Atlas DB owner id for worker-side custom agent lookup
         timeout: Max seconds to wait (default 600 = 10 min)
         poll_interval: Seconds between status polls
         show_log: If True, prints Worker's ReAct log entries to console
@@ -108,7 +118,14 @@ def worker_call(
 
     # ── Step 1: POST /run ──────────────────────────────
     try:
-        run_id = _post_run(worker, task, model, timeout, todos, template, workflow)
+        run_id = _post_run(
+            worker, task, model, timeout, todos, template, workflow,
+            reasoning_effort=reasoning_effort,
+            system_prompt=system_prompt,
+            allowed_tools=allowed_tools,
+            custom_agent=custom_agent,
+            custom_agent_owner_id=custom_agent_owner_id,
+        )
     except Exception as e:
         return {
             "status": "error",
@@ -353,7 +370,10 @@ def _get_json(url: str, timeout: int = 10) -> Dict:
 
 
 def _post_run(worker: str, task: str, model: str, timeout: int,
-              todos: list = None, template: str = "", workflow: str = "") -> str:
+              todos: list = None, template: str = "", workflow: str = "",
+              reasoning_effort: str = "", system_prompt: str = "",
+              allowed_tools: Any = None, custom_agent: str = "",
+              custom_agent_owner_id: str = "") -> str:
     """POST /run and return run_id."""
     data = {"task": task}
     if model:
@@ -364,6 +384,16 @@ def _post_run(worker: str, task: str, model: str, timeout: int,
         data["template"] = template
     if workflow:
         data["workflow"] = workflow
+    if reasoning_effort:
+        data["reasoning_effort"] = reasoning_effort
+    if system_prompt:
+        data["system_prompt"] = system_prompt
+    if allowed_tools:
+        data["allowed_tools"] = allowed_tools
+    if custom_agent:
+        data["custom_agent"] = custom_agent
+    if custom_agent_owner_id:
+        data["custom_agent_owner_id"] = custom_agent_owner_id
     resp = _post_json(f"{worker}/run", data, timeout=30)
     return resp.get("run_id", "")
 

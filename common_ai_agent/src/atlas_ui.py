@@ -160,6 +160,9 @@ _MODEL_OPTION_KEYS = ("LLM_MODEL_NAME", "LLM_MODEL_NAME_2", "LLM_MODEL_NAME_3")
 _BASE_MODEL_OPTION_KEYS = ("LLM_BASE_NAME", "LLM_BASE_NAME_2", "LLM_BASE_NAME_3")
 _LEGACY_MODEL_OPTION_KEYS = ("LLM_BASE_MODEL", "LLM_BASE_MODEL_2", "LLM_BASE_MODEL_3")
 _RUNTIME_MODEL_OPTION_KEY = "__runtime_model__"
+_MODEL_CATALOG_ENV_KEYS = ("LLM_MODEL_CATALOG", "LLM_MODEL_CHOICES", "ATLAS_MODEL_CATALOG")
+_PROFILE_MODEL_OPTION_PREFIX = "profile:"
+_RAW_MODEL_OPTION_PREFIX = "model:"
 
 _atlas_active_session_cv = contextvars.ContextVar("atlas_active_session", default="")
 _atlas_active_ip_cv = contextvars.ContextVar("atlas_active_ip", default="")
@@ -301,6 +304,87 @@ def _canonical_model_option_key(key: str) -> str:
     return raw
 
 
+def _env_value(env_file: dict[str, str], key: str) -> str:
+    return (env_file.get(key, os.environ.get(key, "")) or "").strip()
+
+
+def _profile_from_env_values(name: str, env_file: dict[str, str]) -> dict[str, str]:
+    profile = str(name or "").strip()
+    if not profile:
+        return {}
+    pfx = f"PROFILE_{profile}_"
+    model = _env_value(env_file, pfx + "MODEL")
+    if not model:
+        return {}
+    return {
+        "name": profile,
+        "model": model,
+        "base_url": _env_value(env_file, pfx + "BASE_URL") or _env_value(env_file, "LLM_BASE_URL"),
+        "api_key": _env_value(env_file, pfx + "API_KEY") or _env_value(env_file, "LLM_API_KEY"),
+    }
+
+
+def _profile_name_from_option_key(key: str) -> str:
+    raw = _canonical_model_option_key(key)
+    if raw.startswith(_PROFILE_MODEL_OPTION_PREFIX):
+        return raw[len(_PROFILE_MODEL_OPTION_PREFIX):].strip()
+    return ""
+
+
+def _is_model_slot_key(key: str) -> bool:
+    raw = _canonical_model_option_key(key)
+    return any(raw in group for group in (_MODEL_OPTION_KEYS, _BASE_MODEL_OPTION_KEYS, _LEGACY_MODEL_OPTION_KEYS))
+
+
+def _split_model_catalog(raw: str) -> list[str]:
+    return [
+        part.strip()
+        for part in re.split(r"[,\n]+", str(raw or ""))
+        if part.strip()
+    ]
+
+
+def _catalog_model_option_rows(env_file: dict[str, str]) -> list[dict[str, str]]:
+    raw_catalog = next((_env_value(env_file, key) for key in _MODEL_CATALOG_ENV_KEYS if _env_value(env_file, key)), "")
+    rows: list[dict[str, str]] = []
+    for raw_item in _split_model_catalog(raw_catalog):
+        label = ""
+        target = raw_item
+        if "=" in raw_item:
+            label, target = [part.strip() for part in raw_item.split("=", 1)]
+        if not target:
+            continue
+
+        profile_name = ""
+        if target.startswith(_PROFILE_MODEL_OPTION_PREFIX):
+            profile_name = target[len(_PROFILE_MODEL_OPTION_PREFIX):].strip()
+        elif _profile_from_env_values(target, env_file):
+            profile_name = target
+
+        if profile_name:
+            profile = _profile_from_env_values(profile_name, env_file)
+            if not profile:
+                continue
+            row = {
+                "key": f"{_PROFILE_MODEL_OPTION_PREFIX}{profile_name}",
+                "model": profile["model"],
+                "profile": profile_name,
+            }
+            if label and label != profile["model"]:
+                row["label"] = label
+            rows.append(row)
+            continue
+
+        model = target[len(_RAW_MODEL_OPTION_PREFIX):].strip() if target.startswith(_RAW_MODEL_OPTION_PREFIX) else target
+        if not model or model.lower().startswith("default"):
+            continue
+        row = {"key": f"{_RAW_MODEL_OPTION_PREFIX}{model}", "model": model}
+        if label and label != model:
+            row["label"] = label
+        rows.append(row)
+    return rows
+
+
 def _model_option_index(key: str) -> int | None:
     raw = _canonical_model_option_key(key)
     for group in (_MODEL_OPTION_KEYS, _BASE_MODEL_OPTION_KEYS, _LEGACY_MODEL_OPTION_KEYS):
@@ -397,10 +481,20 @@ def _model_option_rows(active_model: str = "") -> list[dict[str, str]]:
 
     rows: list[dict[str, str]] = []
     seen_models: set[str] = set()
+    seen_keys: set[str] = set()
+    for row in _catalog_model_option_rows(env_file):
+        model = row.get("model", "")
+        key = row.get("key", "")
+        if not model or not key or key in seen_keys or model in seen_models:
+            continue
+        seen_keys.add(key)
+        seen_models.add(model)
+        rows.append(row)
     for index, key in enumerate(display_keys):
         model = _model_option_value(env_file, index)
         if not model or model in seen_models or model.lower().startswith("default"):
             continue
+        seen_keys.add(key)
         seen_models.add(model)
         rows.append({"key": key, "model": model})
     selected = ""
@@ -463,7 +557,10 @@ def _set_runtime_model(model: str, selected_key: str = "") -> None:
             continue
         applied = False
         try:
-            if callable(getattr(mod, "set_active_profile", None)) and mod.set_active_profile(model):
+            profile_name = _profile_name_from_option_key(selected_key)
+            if profile_name and callable(getattr(mod, "set_active_profile", None)) and mod.set_active_profile(profile_name):
+                applied = True
+            elif callable(getattr(mod, "set_active_profile", None)) and mod.set_active_profile(model):
                 applied = True
             elif callable(getattr(mod, "_profile_name_for_model", None)):
                 profile_name = mod._profile_name_for_model(model)
@@ -496,6 +593,12 @@ def _set_runtime_model(model: str, selected_key: str = "") -> None:
 
 def _apply_selected_model_from_env() -> str:
     selected_key = _canonical_model_option_key(os.environ.get("LLM_SELECTED_MODEL_KEY", ""))
+    selected_row = next((row for row in _model_option_rows() if row.get("key") == selected_key), None)
+    if selected_row:
+        model = str(selected_row.get("model") or "")
+        if model:
+            _set_runtime_model(model, selected_key)
+            return model
     selected_index = _model_option_index(selected_key)
     if selected_index is not None:
         model = _model_option_value({}, selected_index)
@@ -3371,29 +3474,42 @@ def create_app():
 
         model = selected["model"]
         try:
-            _persist_env_values({
-                selected["key"]: model,
+            persist_updates = {
                 "LLM_SELECTED_MODEL_KEY": selected["key"],
                 "LLM_ACTIVE_MODEL_NAME": model,
                 "LLM_ACTIVE_BASE_NAME": model,
-            })
+            }
+            if _is_model_slot_key(selected["key"]):
+                persist_updates[selected["key"]] = model
+            profile_name = _profile_name_from_option_key(selected["key"])
+            if profile_name:
+                persist_updates["LLM_PROFILE"] = profile_name
+            _persist_env_values(persist_updates)
             _refresh_config_after_persist()
             _set_runtime_model(model, selected["key"])
-            updated_options = _model_option_rows(model)
+            active_model = model
+            if _cfg_model is not None:
+                active_model = str(getattr(_cfg_model, "MODEL_NAME", "") or active_model)
+            active_model = os.environ.get("LLM_MODEL_NAME", active_model) or active_model
+            _persist_env_values({
+                "LLM_ACTIVE_MODEL_NAME": active_model,
+                "LLM_ACTIVE_BASE_NAME": active_model,
+            })
+            updated_options = _model_option_rows(active_model)
             updated_selected_key = next(
                 (row["key"] for row in updated_options if row.get("selected") == "true"),
                 selected["key"],
             )
             bridge.emit(
                 "context",
-                model=model,
+                model=active_model,
                 model_options=updated_options,
                 selected_model_key=updated_selected_key,
                 session_id=_request_active_session_for_user(request),
             )
             return JSONResponse({
                 "ok": True,
-                "model": model,
+                "model": active_model,
                 "selected_model_key": updated_selected_key,
                 "model_options": updated_options,
             })
@@ -16395,6 +16511,7 @@ def create_app():
                                 status_code=413)
         try:
             import uuid as _uuid
+            email_sent = False
             with AtlasDB() as db:
                 fid = _uuid.uuid4().hex
                 db._execute(
@@ -16402,7 +16519,12 @@ def create_app():
                     "VALUES (?, ?, ?, 'open', ?)",
                     (fid, user["id"], content, time.time()),
                 )
-            return JSONResponse({"ok": True, "id": fid})
+                try:
+                    from core.atlas_auth import send_feedback_email
+                    email_sent = send_feedback_email(db, user, fid, content)
+                except Exception:
+                    email_sent = False
+            return JSONResponse({"ok": True, "id": fid, "email_sent": email_sent})
         except Exception as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
 
@@ -17801,6 +17923,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         or os.environ.get("ATLAS_EXEC_MODE", "").strip().lower() == "single-worker"
     )
     if _single_worker_mode:
+        os.environ["ATLAS_LAZY_WORKERS"] = "0"
         import urllib.request as _urllib_req
         _sw_port = 5601
         _sw_env = {**os.environ}
@@ -17845,7 +17968,12 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
 
         _atexit.register(_terminate_single_worker)
     else:
-        print("[orchestrator-mode] expecting external 12-worker fleet on 5621-5632")
+        os.environ.setdefault("ATLAS_LAZY_WORKERS", "1")
+        print(
+            "[orchestrator-mode] lazy worker start enabled; "
+            "workflow workers launch on first dispatch "
+            "(set ATLAS_LAZY_WORKERS=0 to require an external fleet)"
+        )
 
     uvicorn.run(app, host=host, port=port, log_level="warning", loop="asyncio", http="h11")
 
@@ -17927,8 +18055,9 @@ def main() -> None:
                     help="Execution topology. Accepted values:\n"
                          "  s | single | single-worker  → spawn one child "
                          "main.py worker on port 5601 (local single-user).\n"
-                         "  o | orch | orchestrator      → expect an external "
-                         "12-worker fleet on 5621-5632 (dispatch only).\n"
+                         "  o | orch | orchestrator      → dispatch through "
+                         "workflow workers; local workers are lazy-started "
+                         "on first use unless ATLAS_LAZY_WORKERS=0.\n"
                          "Falls back to ATLAS_EXEC_MODE / "
                          "ATLAS_SINGLE_MAIN_LOOP / ATLAS_ORCHESTRATOR_MODE "
                          "env vars when omitted; final fallback is "
@@ -18001,23 +18130,50 @@ def main() -> None:
     _sync_env_to_context()
     os.environ.setdefault("ATLAS_DEFAULT_SESSION_ID", args.session_id)
     os.environ.setdefault("ATLAS_DEFAULT_WORKFLOW", args.workflow)
-    orchestrator_model = (
-        (args.model or "").strip()
-        or os.environ.get("ATLAS_ORCHESTRATOR_MODEL", "").strip()
-        or os.environ.get("ATLAS_MODEL", "").strip()
-    )
-    if orchestrator_model:
-        _set_runtime_model(orchestrator_model)
-    orchestrator_effort = (
-        (args.effort or "").strip()
-        or os.environ.get("ATLAS_ORCHESTRATOR_REASONING_EFFORT", "").strip()
-        or os.environ.get("ATLAS_REASONING_EFFORT", "").strip()
-    )
-    if orchestrator_effort:
+    if os.environ.get("ATLAS_EXEC_MODE") == "orchestrator":
+        from src.orchestrator.profile import (
+            ORCHESTRATOR_MODEL,
+            ORCHESTRATOR_REASONING_EFFORT,
+            orchestrator_env,
+        )
+
+        os.environ.update(orchestrator_env())
+        _set_runtime_model(ORCHESTRATOR_MODEL)
+        _set_runtime_reasoning_effort(ORCHESTRATOR_REASONING_EFFORT)
+        if args.model and args.model.strip() != ORCHESTRATOR_MODEL:
+            print(
+                f"[atlas_ui] orchestrator model is fixed at {ORCHESTRATOR_MODEL}; "
+                f"ignoring --model {args.model!r}",
+                file=sys.stderr,
+            )
         try:
-            _set_runtime_reasoning_effort(_normalize_reasoning_effort(orchestrator_effort))
+            _arg_effort_norm = _normalize_reasoning_effort(args.effort) if args.effort else ""
         except ValueError:
-            print(f"[atlas_ui] ignoring unknown reasoning effort: {orchestrator_effort}", file=sys.stderr)
+            _arg_effort_norm = (args.effort or "").strip()
+        if args.effort and _arg_effort_norm != ORCHESTRATOR_REASONING_EFFORT:
+            print(
+                f"[atlas_ui] orchestrator reasoning effort is fixed at "
+                f"{ORCHESTRATOR_REASONING_EFFORT}; ignoring --effort {args.effort!r}",
+                file=sys.stderr,
+            )
+    else:
+        orchestrator_model = (
+            (args.model or "").strip()
+            or os.environ.get("ATLAS_ORCHESTRATOR_MODEL", "").strip()
+            or os.environ.get("ATLAS_MODEL", "").strip()
+        )
+        if orchestrator_model:
+            _set_runtime_model(orchestrator_model)
+        orchestrator_effort = (
+            (args.effort or "").strip()
+            or os.environ.get("ATLAS_ORCHESTRATOR_REASONING_EFFORT", "").strip()
+            or os.environ.get("ATLAS_REASONING_EFFORT", "").strip()
+        )
+        if orchestrator_effort:
+            try:
+                _set_runtime_reasoning_effort(_normalize_reasoning_effort(orchestrator_effort))
+            except ValueError:
+                print(f"[atlas_ui] ignoring unknown reasoning effort: {orchestrator_effort}", file=sys.stderr)
     if args.admin:
         _launch_admin_server(args.admin, args.admin_host or args.host)
     run_atlas_ui(port=args.port, host=args.host)

@@ -33,6 +33,7 @@ class OrchestratorContext:
     user_id: str
     ip_id: str
     ip_name: str
+    workspace_id: str = ""
     session_id: str = ""
     project_root: Optional[Path] = None
     runner: Any = None  # OrchestratorRunner — opt-in waker provider

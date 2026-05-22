@@ -12,6 +12,7 @@ import sys
 import time
 import uuid
 import threading
+from contextlib import nullcontext
 from concurrent.futures import ThreadPoolExecutor, Future
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
@@ -71,6 +72,9 @@ class BackgroundManager:
         prompt: str,
         parent_context: str = "",
         model_override: Optional[str] = None,
+        allowed_tools: Optional[set] = None,
+        system_prompt: Optional[str] = None,
+        reasoning_effort: str = "",
         max_iterations: Optional[int] = None,
     ) -> str:
         """
@@ -102,6 +106,9 @@ class BackgroundManager:
             prompt,
             parent_context,
             model_override,
+            allowed_tools,
+            system_prompt,
+            reasoning_effort,
             max_iterations,
         )
         task._future = future
@@ -201,23 +208,33 @@ class BackgroundManager:
         prompt: str,
         parent_context: str,
         model_override: Optional[str],
+        allowed_tools: Optional[set],
+        system_prompt: Optional[str],
+        reasoning_effort: str,
         max_iterations: Optional[int],
     ):
         """Thread에서 실행되는 agent runner"""
         try:
             import config
             from core.agent_runner import run_agent_session
+            from core.custom_agents import runtime_overrides_for_effort
 
             max_iter = max_iterations or getattr(config, 'BACKGROUND_MAX_ITERATIONS', 15)
+            runtime_extra = runtime_overrides_for_effort(reasoning_effort)
+            model_ctx = config.scoped_model_runtime(model_override) if model_override else nullcontext()
 
-            result = run_agent_session(
-                agent_name=agent,
-                prompt=prompt,
-                model_override=model_override,
-                max_iterations=max_iter,
-                parent_context=parent_context,
-                verbose=getattr(config, 'DEBUG_MODE', False),
-            )
+            with model_ctx, config.scoped_runtime_extra(runtime_extra):
+                active_model = getattr(config, "MODEL_NAME", model_override) if model_override else None
+                result = run_agent_session(
+                    agent_name=agent,
+                    prompt=prompt,
+                    model_override=active_model,
+                    allowed_tools=allowed_tools,
+                    system_prompt=system_prompt,
+                    max_iterations=max_iter,
+                    parent_context=parent_context,
+                    verbose=getattr(config, 'DEBUG_MODE', False),
+                )
 
             with self._lock:
                 task = self._tasks.get(task_id)

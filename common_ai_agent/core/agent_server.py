@@ -717,7 +717,9 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                     workflow: str = "", session_name: str = "",
                     ip: str = "", rtl_version_id: str = "",
                     project_root: str = "", artifact_versions: Any = None,
-                    reasoning_effort: str = "") -> None:
+                    reasoning_effort: str = "", system_prompt: str = "",
+                    allowed_tools: Any = None, custom_agent: str = "",
+                    custom_agent_owner_id: str = "") -> None:
     """
     Execute a full ReAct loop using run_react_agent_impl from core/react_loop.py.
 
@@ -733,6 +735,29 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
     _on_status_change()
     entry.add_log("system", "ReAct loop starting (full run_react_agent_impl)...", role="system")
     _trace_runtime_prev = None
+    custom_system_prompt = str(system_prompt or "").strip()
+    custom_agent_name = str(custom_agent or "").strip()
+    custom_allowed_tools = allowed_tools
+    if custom_agent_name and not custom_system_prompt:
+        try:
+            from core.custom_agents import current_owner_user_id, load_custom_agent
+            owner_user_id = str(custom_agent_owner_id or "").strip() or current_owner_user_id()
+            definition = load_custom_agent(
+                custom_agent_name,
+                owner_user_id=owner_user_id,
+                root=project_root or None,
+            )
+            if definition:
+                custom_system_prompt = definition.system_prompt
+                custom_allowed_tools = custom_allowed_tools or definition.allowed_tools
+                model = model or definition.model
+                reasoning_effort = reasoning_effort or definition.reasoning_effort
+        except Exception as exc:
+            entry.add_log(
+                "system",
+                f"WARNING: custom agent '{custom_agent_name}' load failed: {exc}",
+                role="system",
+            )
 
     _ws_hook_registry = None  # populated by workspace activation if script_hooks defined
 
@@ -923,6 +948,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         from core.tools import AVAILABLE_TOOLS, filtered_available_tools
         from core.tool_dispatcher import dispatch_tool as _dispatch_tool
         from core.parallel_executor import execute_actions_parallel as _execute_actions_parallel_impl
+        from core.custom_agents import parse_allowed_tools
         from lib.iteration_control import (
             IterationTracker, detect_completion_signal,
         )
@@ -1068,12 +1094,35 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             except Exception as e:
                 entry.add_log("system", f"memory unavailable: {e}", role="system")
 
+        parsed_allowed_tools = parse_allowed_tools(custom_allowed_tools)
+        allowed_tool_set = None
+        if parsed_allowed_tools and "*" not in parsed_allowed_tools:
+            allowed_tool_set = set(parsed_allowed_tools)
+        effective_available_tools = filtered_available_tools()
+        if allowed_tool_set is not None:
+            effective_available_tools = {
+                name: func for name, func in effective_available_tools.items()
+                if name in allowed_tool_set
+            }
+            entry.add_log(
+                "system",
+                f"Custom worker tool allow-list active: {', '.join(sorted(effective_available_tools))}",
+                role="system",
+            )
+        if custom_system_prompt:
+            entry.add_log(
+                "system",
+                f"Custom worker prompt active"
+                + (f" ({custom_agent_name})" if custom_agent_name else ""),
+                role="system",
+            )
+
         native_tools = None
         if getattr(run_cfg, "ENABLE_NATIVE_TOOL_CALLS", False):
             try:
                 from core.tool_schema import get_tool_schemas
                 native_tools = get_tool_schemas(
-                    list(AVAILABLE_TOOLS.keys()),
+                    list(effective_available_tools.keys()),
                     compact=getattr(run_cfg, "TOOL_SCHEMA_COMPACT", False),
                 )
             except Exception as e:
@@ -1092,19 +1141,27 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                 "Without \"Final Answer:\" the coordinator sees an empty result.\n"
             )
             try:
+                prompt_allowed_tools = (
+                    sorted(effective_available_tools.keys())
+                    if allowed_tool_set is not None else allowed_tools
+                )
                 prompt = build_system_prompt(
                     messages,
                     cfg=run_cfg,
-                    allowed_tools=allowed_tools,
+                    allowed_tools=prompt_allowed_tools,
                     agent_mode=agent_mode,
                     context=PromptContext(
                         memory_system=worker_memory_system,
                         todo_tracker=run_todo_tracker,
                     ),
                 )
+                custom_block = (
+                    "\n\n## Custom Worker Instructions\n" + custom_system_prompt
+                    if custom_system_prompt else ""
+                )
                 if isinstance(prompt, str):
                     return apply_memory_override(
-                        worker_guidance + "\n" + prompt,
+                        worker_guidance + "\n" + prompt + custom_block,
                         worker_memory_system,
                         workflow=workflow,
                     )
@@ -1112,7 +1169,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                     # CACHE_OPTIMIZATION_MODE
                     if "static" in prompt:
                         prompt["static"] = apply_memory_override(
-                            worker_guidance + "\n" + prompt.get("static", ""),
+                            worker_guidance + "\n" + prompt.get("static", "") + custom_block,
                             worker_memory_system,
                             workflow=workflow,
                         )
@@ -1305,7 +1362,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             return _dispatch_tool(
                 tool_name, args_str,
                 pre_parsed_kwargs=pre_parsed_kwargs,
-                available_tools=filtered_available_tools(),
+                available_tools=effective_available_tools,
                 global_timeout=int(os.getenv("AGENT_SERVER_TOOL_TIMEOUT", "300")),
             )
 
@@ -1360,7 +1417,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             get_turn_id_fn=lambda: 0,
             get_llm_usage_fn=_worker_llm_client.get_last_usage,
             get_llm_tokens_fn=_worker_get_llm_tokens,
-            available_tools=filtered_available_tools(),
+            available_tools=effective_available_tools,
             # Optional subsystems — None for worker
             orchestrator=None,
             procedural_memory=None,
@@ -1451,6 +1508,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                 entry.add_log("context", followup_context[:1200], role="system")
 
         # ── Run the full ReAct loop ──
+        initial_message_count = len(messages)
         updated_messages, final_agent_mode = run_react_agent_impl(
             messages=messages,
             tracker=tracker,
@@ -1603,6 +1661,12 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                 else:
                     final_output = content[-2000:]  # Last 2k chars
                 break
+        new_assistant_turns = sum(
+            1
+            for msg in updated_messages[initial_message_count:]
+            if msg.get("role") == "assistant"
+        )
+        reported_iterations = max(int(getattr(tracker, "current", 0) or 0), new_assistant_turns)
 
         # Silent-fail detection: producing workflows that emit 0 file writes
         # are almost always misclassified as "completed" — surface them as errors.
@@ -1626,16 +1690,16 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                     f"action-leak: workflow={wf_norm} emitted unexecuted "
                     "Action text with 0 file writes"
                 )
-            elif tracker.current == 0:
+            elif reported_iterations == 0:
                 terminal_status = "error"
                 silent_fail_reason = (
                     f"silent-fail: workflow={wf_norm} produced 0 tool calls "
                     f"and 0 file writes"
                 )
-            elif tracker.current >= 3:
+            elif reported_iterations >= 3:
                 terminal_status = "error"
                 silent_fail_reason = (
-                    f"silent-fail: workflow={wf_norm} ran {tracker.current} "
+                    f"silent-fail: workflow={wf_norm} ran {reported_iterations} "
                     f"tool calls but wrote 0 files"
                 )
 
@@ -1646,7 +1710,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
             "result": final_output[:10000],
             "files_modified": list(set(files_modified)),
             "files_examined": list(set(files_examined)),
-            "iterations": tracker.current,
+            "iterations": reported_iterations,
             "todos_summary": _build_todos_summary(todos or [], entry),
         }
         if silent_fail_reason:
@@ -1657,7 +1721,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         _on_status_change()
         elapsed = round(entry.finished_at - entry.started_at, 2)
         done_msg = (
-            f"Completed in {elapsed}s, {tracker.current} iterations, "
+            f"Completed in {elapsed}s, {reported_iterations} iterations, "
             f"{len(files_modified)} files modified."
         )
         if silent_fail_reason:
@@ -1740,6 +1804,9 @@ def create_app():
             task: str
             model: str = ""
             reasoning_effort: str = ""
+            system_prompt: str = ""
+            allowed_tools: Optional[List[str]] = None
+            custom_agent: str = ""
             todos: Optional[List[Any]] = None
             template: str = ""    # todo template name — loaded from workflow or CWD
             workflow: str = ""    # workflow name (e.g. "rtl-gen") — activates workspace
@@ -1777,6 +1844,7 @@ def create_app():
             running_runs = [
                 {
                     "run_id": r.run_id,
+                    "model": r.model,
                     "iter": getattr(r, "iter_count", None) or getattr(r, "iter", None),
                     "started_at": getattr(r, "started_at", None),
                 }
@@ -1802,6 +1870,17 @@ def create_app():
         ).strip()
         if model_name:
             body["model"] = model_name
+            body["startup_model"] = model_name
+        running_models = sorted({str(r.get("model") or "") for r in running_runs if r.get("model")})
+        if running_models:
+            body["running_models"] = running_models
+        effort = (
+            os.environ.get("REASONING_EFFORT", "")
+            or os.environ.get("REASONING_MODE", "")
+            or os.environ.get("ATLAS_REASONING_EFFORT", "")
+        ).strip()
+        if effort:
+            body["reasoning_effort"] = effort
         provider = os.environ.get("LLM_PROFILE", "").strip()
         if provider:
             body["profile"] = provider
@@ -1973,6 +2052,14 @@ def create_app():
         todos = request.get("todos")
         template = str(request.get("template", ""))
         workflow = str(request.get("workflow", ""))
+        custom_system_prompt = str(
+            request.get("system_prompt", request.get("custom_system_prompt", ""))
+        ).strip()
+        custom_agent = str(request.get("custom_agent", request.get("agent", ""))).strip()
+        custom_agent_owner_id = str(
+            request.get("custom_agent_owner_id", request.get("owner_user_id", ""))
+        ).strip()
+        custom_allowed_tools = request.get("allowed_tools", request.get("custom_allowed_tools"))
         session_raw = str(request.get("session", ""))
         session_name = normalize_session_name(session_raw)
         context = str(request.get("context", ""))
@@ -2098,7 +2185,8 @@ def create_app():
             _run_react_task(
                 entry, task, model, todos, context, workflow, session_name,
                 template_ip, rtl_version_id, project_root, artifact_versions,
-                reasoning_effort,
+                reasoning_effort, custom_system_prompt, custom_allowed_tools,
+                custom_agent, custom_agent_owner_id,
             )
             return entry.result
         acquired = _concurrency_semaphore.acquire(blocking=False)
@@ -2113,7 +2201,8 @@ def create_app():
                 _run_react_task(
                     entry, task, model, todos, context, workflow, session_name,
                     template_ip, rtl_version_id, project_root, artifact_versions,
-                    reasoning_effort,
+                    reasoning_effort, custom_system_prompt, custom_allowed_tools,
+                    custom_agent, custom_agent_owner_id,
                 )
                 try:
                     from core.orchestrator_trace import record_trace

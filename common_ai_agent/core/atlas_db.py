@@ -7,6 +7,7 @@ Replaces JSON file storage with concurrent-safe SQLite.
 Zero external dependencies — uses only Python stdlib sqlite3.
 """
 
+import hmac
 import json
 import os
 import sqlite3
@@ -48,6 +49,24 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
     ON users(email) WHERE email IS NOT NULL AND email != '';
 CREATE INDEX IF NOT EXISTS idx_users_password_reset_token
     ON users(password_reset_token_hash) WHERE password_reset_token_hash IS NOT NULL;
+
+-- auth_email_codes
+CREATE TABLE IF NOT EXISTS auth_email_codes (
+    id TEXT PRIMARY KEY,
+    purpose TEXT NOT NULL,
+    email TEXT NOT NULL,
+    code_hash TEXT NOT NULL,
+    username TEXT,
+    identifier TEXT,
+    created_at REAL,
+    expires_at REAL,
+    used_at REAL,
+    attempts INT DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_auth_email_codes_lookup
+    ON auth_email_codes(purpose, email, created_at);
+CREATE INDEX IF NOT EXISTS idx_auth_email_codes_expiry
+    ON auth_email_codes(expires_at, used_at);
 
 -- sessions
 CREATE TABLE IF NOT EXISTS sessions (
@@ -163,6 +182,28 @@ CREATE INDEX IF NOT EXISTS idx_user_memory_rules_user_scope
     ON user_memory_rules(user_id, scope, workflow, position);
 CREATE INDEX IF NOT EXISTS idx_user_memory_rules_updated
     ON user_memory_rules(updated_at);
+
+-- custom_agents (per-user reusable sub-agent / worker prompts)
+CREATE TABLE IF NOT EXISTS custom_agents (
+    id TEXT PRIMARY KEY,
+    owner_user_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    scope TEXT DEFAULT 'private',
+    base_agent TEXT NOT NULL,
+    system_prompt TEXT NOT NULL,
+    allowed_tools TEXT,
+    model TEXT DEFAULT '',
+    reasoning_effort TEXT DEFAULT '',
+    description TEXT DEFAULT '',
+    created_at REAL,
+    updated_at REAL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_custom_agents_owner_name
+    ON custom_agents(owner_user_id, name);
+CREATE INDEX IF NOT EXISTS idx_custom_agents_scope_name
+    ON custom_agents(scope, name);
+CREATE INDEX IF NOT EXISTS idx_custom_agents_updated
+    ON custom_agents(updated_at);
 
 -- session_queue (IPC between Atlas UI and agent workers)
 CREATE TABLE IF NOT EXISTS session_queue (
@@ -524,6 +565,7 @@ _JSON_COLUMNS = {
     "sessions": {"summary"},
     "messages": {"error"},
     "parts": {"tool_input", "patch_files"},
+    "custom_agents": {"allowed_tools"},
     "ws_connections": set(),
     "session_queue": {"payload"},
     "artifact_versions": {"manifest", "metadata"},
@@ -707,6 +749,19 @@ class AtlasDB:
                 "position": "INT DEFAULT 0",
                 "updated_at": "REAL",
             },
+            "custom_agents": {
+                "owner_user_id": "TEXT",
+                "name": "TEXT",
+                "scope": "TEXT DEFAULT 'private'",
+                "base_agent": "TEXT",
+                "system_prompt": "TEXT",
+                "allowed_tools": "TEXT",
+                "model": "TEXT DEFAULT ''",
+                "reasoning_effort": "TEXT DEFAULT ''",
+                "description": "TEXT DEFAULT ''",
+                "created_at": "REAL",
+                "updated_at": "REAL",
+            },
             "session_queue": {
                 "session_id": "TEXT",
                 "direction": "TEXT",
@@ -850,6 +905,14 @@ class AtlasDB:
             """CREATE INDEX IF NOT EXISTS idx_users_password_reset_token
                   ON users(password_reset_token_hash) WHERE password_reset_token_hash IS NOT NULL"""
         )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_auth_email_codes_lookup
+                  ON auth_email_codes(purpose, email, created_at)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_auth_email_codes_expiry
+                  ON auth_email_codes(expires_at, used_at)"""
+        )
         self._ensure_column(conn, "workflow_todos", "notes", "TEXT")
         self._ensure_column(conn, "rtl_versions", "artifact_version_id", "TEXT")
         self._ensure_column(conn, "workflow_runs", "rtl_version_id", "TEXT")
@@ -918,6 +981,18 @@ class AtlasDB:
         conn.execute(
             """CREATE INDEX IF NOT EXISTS idx_user_memory_rules_updated
                   ON user_memory_rules(updated_at)"""
+        )
+        conn.execute(
+            """CREATE UNIQUE INDEX IF NOT EXISTS idx_custom_agents_owner_name
+                  ON custom_agents(owner_user_id, name)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_custom_agents_scope_name
+                  ON custom_agents(scope, name)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_custom_agents_updated
+                  ON custom_agents(updated_at)"""
         )
 
     @staticmethod
@@ -1089,6 +1164,120 @@ class AtlasDB:
         )
         return self.get_user(user_id)
 
+    def create_auth_email_code(
+        self,
+        purpose: str,
+        email: str,
+        code_hash: str,
+        expires_at: float,
+        username: str = "",
+        identifier: str = "",
+    ) -> Dict[str, Any]:
+        """Store a one-time email verification code for an auth flow."""
+        normalized = self._normalize_email(email)
+        if not normalized:
+            raise ValueError("email required")
+        clean_purpose = str(purpose or "").strip().lower()
+        if not clean_purpose:
+            raise ValueError("purpose required")
+        code_id = self._new_id()
+        now = self._now()
+        with self._lock:
+            conn = self._connect()
+            conn.execute(
+                """
+                UPDATE auth_email_codes
+                   SET used_at = ?
+                 WHERE purpose = ? AND email = ? AND used_at IS NULL
+                """,
+                (now, clean_purpose, normalized),
+            )
+            conn.execute(
+                """
+                INSERT INTO auth_email_codes
+                (id, purpose, email, code_hash, username, identifier,
+                 created_at, expires_at, used_at, attempts)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, 0)
+                """,
+                (
+                    code_id,
+                    clean_purpose,
+                    normalized,
+                    code_hash,
+                    str(username or "").strip(),
+                    str(identifier or "").strip(),
+                    now,
+                    float(expires_at),
+                ),
+            )
+            conn.commit()
+        return {
+            "id": code_id,
+            "purpose": clean_purpose,
+            "email": normalized,
+            "code_hash": code_hash,
+            "username": str(username or "").strip(),
+            "identifier": str(identifier or "").strip(),
+            "created_at": now,
+            "expires_at": float(expires_at),
+            "used_at": None,
+            "attempts": 0,
+        }
+
+    def consume_auth_email_code(
+        self,
+        purpose: str,
+        email: str,
+        code_hash: str,
+        max_attempts: int = 6,
+        now: float = None,
+    ) -> bool:
+        """Consume the latest active email code if the hash matches."""
+        normalized = self._normalize_email(email)
+        clean_purpose = str(purpose or "").strip().lower()
+        if not normalized or not clean_purpose or not code_hash:
+            return False
+        now = self._now() if now is None else float(now)
+        max_attempts = max(1, int(max_attempts or 6))
+        with self._lock:
+            conn = self._connect()
+            row = conn.execute(
+                """
+                SELECT *
+                  FROM auth_email_codes
+                 WHERE purpose = ?
+                   AND email = ?
+                   AND used_at IS NULL
+                   AND expires_at >= ?
+                 ORDER BY created_at DESC
+                 LIMIT 1
+                """,
+                (clean_purpose, normalized, now),
+            ).fetchone()
+            if row is None:
+                return False
+            attempts = int(row["attempts"] or 0)
+            if attempts >= max_attempts:
+                conn.execute(
+                    "UPDATE auth_email_codes SET used_at = ? WHERE id = ?",
+                    (now, row["id"]),
+                )
+                conn.commit()
+                return False
+            if hmac.compare_digest(str(row["code_hash"] or ""), str(code_hash)):
+                conn.execute(
+                    "UPDATE auth_email_codes SET used_at = ? WHERE id = ?",
+                    (now, row["id"]),
+                )
+                conn.commit()
+                return True
+            conn.execute(
+                "UPDATE auth_email_codes SET attempts = attempts + 1 WHERE id = ?",
+                (row["id"],),
+            )
+            conn.commit()
+            return False
+
     # ---------- User Memory Rules ----------
 
     @staticmethod
@@ -1259,6 +1448,214 @@ class AtlasDB:
         if removed:
             self._execute(f"DELETE FROM user_memory_rules{where}", tuple(values))
         return removed
+
+    # ---------- Custom Agents ----------
+
+    @staticmethod
+    def _normalize_custom_agent_scope(scope: str = None) -> str:
+        normalized = str(scope or "private").strip().lower()
+        return normalized if normalized in {"private", "shared", "system"} else "private"
+
+    def upsert_custom_agent(
+        self,
+        owner_user_id: str,
+        name: str,
+        base_agent: str,
+        system_prompt: str,
+        allowed_tools: Any = None,
+        model: str = "",
+        reasoning_effort: str = "",
+        description: str = "",
+        scope: str = "private",
+    ) -> Dict[str, Any]:
+        """Create or update a reusable custom agent owned by one user."""
+        owner = str(owner_user_id or "").strip()
+        agent_name = str(name or "").strip()
+        base = str(base_agent or "explore").strip() or "explore"
+        prompt = str(system_prompt or "").strip()
+        normalized_scope = self._normalize_custom_agent_scope(scope)
+        if not owner:
+            raise ValueError("owner_user_id required")
+        if not agent_name:
+            raise ValueError("custom agent name required")
+        if not prompt:
+            raise ValueError("system_prompt required")
+        if normalized_scope in {"shared", "system"}:
+            owner_row = self.get_user(owner)
+            if not owner_row or str(owner_row.get("role") or "").strip().lower() != "admin":
+                normalized_scope = "private"
+
+        now = self._now()
+        existing = self._fetchone(
+            "SELECT * FROM custom_agents WHERE owner_user_id = ? AND name = ?",
+            (owner, agent_name),
+        )
+        allowed_json = self._dump_json(allowed_tools)
+        if existing is None:
+            agent_id = self._new_id()
+            created_at = now
+            self._execute(
+                """
+                INSERT INTO custom_agents
+                (id, owner_user_id, name, scope, base_agent, system_prompt,
+                 allowed_tools, model, reasoning_effort, description, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    agent_id,
+                    owner,
+                    agent_name,
+                    normalized_scope,
+                    base,
+                    prompt,
+                    allowed_json,
+                    str(model or "").strip(),
+                    str(reasoning_effort or "").strip(),
+                    str(description or "").strip(),
+                    created_at,
+                    now,
+                ),
+            )
+        else:
+            agent_id = str(existing["id"])
+            self._execute(
+                """
+                UPDATE custom_agents
+                   SET scope = ?,
+                       base_agent = ?,
+                       system_prompt = ?,
+                       allowed_tools = ?,
+                       model = ?,
+                       reasoning_effort = ?,
+                       description = ?,
+                       updated_at = ?
+                 WHERE id = ?
+                """,
+                (
+                    normalized_scope,
+                    base,
+                    prompt,
+                    allowed_json,
+                    str(model or "").strip(),
+                    str(reasoning_effort or "").strip(),
+                    str(description or "").strip(),
+                    now,
+                    agent_id,
+                ),
+            )
+        return self.get_custom_agent(owner, agent_name, include_shared=False) or {
+            "id": agent_id,
+            "owner_user_id": owner,
+            "name": agent_name,
+            "scope": normalized_scope,
+            "base_agent": base,
+            "system_prompt": prompt,
+            "allowed_tools": allowed_tools,
+            "model": str(model or "").strip(),
+            "reasoning_effort": str(reasoning_effort or "").strip(),
+            "description": str(description or "").strip(),
+            "created_at": now,
+            "updated_at": now,
+        }
+
+    def get_custom_agent(
+        self,
+        owner_user_id: str,
+        name: str,
+        include_shared: bool = True,
+    ) -> Optional[Dict[str, Any]]:
+        """Return an owner's custom agent, falling back to shared/system names."""
+        owner = str(owner_user_id or "").strip()
+        agent_name = str(name or "").strip()
+        if not owner or not agent_name:
+            return None
+        row = self._fetchone(
+            """
+            SELECT a.*, u.username, u.display_name
+              FROM custom_agents a
+              LEFT JOIN users u ON u.id = a.owner_user_id
+             WHERE a.owner_user_id = ? AND a.name = ?
+             LIMIT 1
+            """,
+            (owner, agent_name),
+        )
+        if row is None and include_shared:
+            row = self._fetchone(
+                """
+                SELECT a.*, u.username, u.display_name
+                  FROM custom_agents a
+                  LEFT JOIN users u ON u.id = a.owner_user_id
+                 WHERE a.name = ? AND a.scope IN ('system', 'shared')
+                 ORDER BY CASE a.scope WHEN 'system' THEN 0 ELSE 1 END,
+                          a.updated_at DESC
+                 LIMIT 1
+                """,
+                (agent_name,),
+            )
+        return self._row_to_dict(row, "custom_agents") if row else None
+
+    def list_custom_agents(
+        self,
+        owner_user_id: str,
+        include_shared: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """List custom agents visible to one user."""
+        owner = str(owner_user_id or "").strip()
+        if not owner:
+            return []
+        if include_shared:
+            rows = self._fetchall(
+                """
+                SELECT a.*, u.username, u.display_name
+                  FROM custom_agents a
+                  LEFT JOIN users u ON u.id = a.owner_user_id
+                 WHERE a.owner_user_id = ? OR a.scope IN ('system', 'shared')
+                   AND NOT EXISTS (
+                         SELECT 1
+                           FROM custom_agents owned
+                          WHERE owned.owner_user_id = ?
+                            AND owned.name = a.name
+                       )
+                 ORDER BY CASE WHEN a.owner_user_id = ? THEN 0 ELSE 1 END,
+                          a.scope COLLATE NOCASE,
+                          a.name COLLATE NOCASE
+                """,
+                (owner, owner, owner),
+            )
+        else:
+            rows = self._fetchall(
+                """
+                SELECT a.*, u.username, u.display_name
+                  FROM custom_agents a
+                  LEFT JOIN users u ON u.id = a.owner_user_id
+                 WHERE a.owner_user_id = ?
+                 ORDER BY a.name COLLATE NOCASE
+                """,
+                (owner,),
+            )
+        return [self._row_to_dict(row, "custom_agents") for row in rows]
+
+    def delete_custom_agent(self, owner_user_id: str, name_or_id: str) -> bool:
+        """Delete one custom agent owned by user by name or id."""
+        owner = str(owner_user_id or "").strip()
+        key = str(name_or_id or "").strip()
+        if not owner or not key:
+            return False
+        before = self._fetchone(
+            """
+            SELECT COUNT(*) AS cnt
+              FROM custom_agents
+             WHERE owner_user_id = ? AND (name = ? OR id = ?)
+            """,
+            (owner, key, key),
+        )
+        if int(before["cnt"] if before is not None else 0) <= 0:
+            return False
+        self._execute(
+            "DELETE FROM custom_agents WHERE owner_user_id = ? AND (name = ? OR id = ?)",
+            (owner, key, key),
+        )
+        return True
 
     # ---------- Sessions ----------
 

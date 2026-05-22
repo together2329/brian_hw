@@ -292,10 +292,15 @@ const App = () => {
     'ssot-gen', 'sta', 'sta-post', 'syn', 'tb-gen',
   ]), []);
   const WORKFLOW_DEFAULT = 'default';
-  const WORKFLOW_OPTIONS = React.useMemo(
-    () => [WORKFLOW_DEFAULT].concat(Array.from(TOP_WORKFLOWS).sort()),
-    [TOP_WORKFLOWS]
-  );
+  const WORKFLOW_OPTIONS = React.useMemo(() => {
+    const sorted = Array.from(TOP_WORKFLOWS)
+      .filter(wf => wf !== 'orchestrator')
+      .sort();
+    if (execMode === 'orchestrator') {
+      return ['orchestrator', WORKFLOW_DEFAULT].concat(sorted);
+    }
+    return [WORKFLOW_DEFAULT].concat(sorted);
+  }, [TOP_WORKFLOWS, execMode]);
   const isWorkflowSegment = React.useCallback((value) => {
     const wf = String(value || '');
     return wf === WORKFLOW_DEFAULT || TOP_WORKFLOWS.has(wf);
@@ -570,8 +575,12 @@ const App = () => {
             const currentParts = currentNs
               ? splitSessionNamespace(currentNs)
               : { sessionId: '', ipId: '', workflow: '' };
+            const defaultWorkflow = execMode === 'orchestrator' ? 'orchestrator' : WORKFLOW_DEFAULT;
+            const savedWorkflow = (!ownerMismatch && currentParts.workflow && currentParts.workflow !== WORKFLOW_DEFAULT)
+              ? currentParts.workflow
+              : '';
             const nextIp = requestedIp || (!ownerMismatch ? currentParts.ipId : '') || WORKFLOW_DEFAULT;
-            const nextWf = requestedWf || (!ownerMismatch ? currentParts.workflow : '') || WORKFLOW_DEFAULT;
+            const nextWf = requestedWf || savedWorkflow || defaultWorkflow;
             const nextNs = `${username}/${nextIp}/${nextWf}`;
             window.ACTIVE_SESSION = nextNs;
             localStorage.setItem('atlasActiveSession', nextNs);
@@ -742,10 +751,13 @@ const App = () => {
   }, [bootDisplayDone]);
 
   const currentWorkflow = React.useCallback(() => {
-    return splitActiveNamespace().workflow
+    const wf = splitActiveNamespace().workflow
       || normalizeSession(window.CONTEXT && window.CONTEXT.workspace)
-      || WORKFLOW_DEFAULT;
-  }, [normalizeSession, splitActiveNamespace]);
+      || '';
+    if ((!wf || wf === WORKFLOW_DEFAULT) && execMode === 'orchestrator') return 'orchestrator';
+    if (wf === 'orchestrator' && execMode !== 'orchestrator') return WORKFLOW_DEFAULT;
+    return wf || WORKFLOW_DEFAULT;
+  }, [execMode, normalizeSession, splitActiveNamespace]);
 
   const namespaceFor = React.useCallback((sessionId, ipId, workflow) => {
     const owner = loggedInOwner()
@@ -934,6 +946,16 @@ const App = () => {
       }
     };
   }, [activateNamespace]);
+
+  React.useEffect(() => {
+    if (authState !== 'authed' || execMode !== 'orchestrator') return;
+    const parsed = splitActiveNamespace();
+    const parsedWf = parsed.workflow || WORKFLOW_DEFAULT;
+    if (parsedWf === 'orchestrator') return;
+    const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
+    const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
+    activateNamespace(owner, ip, 'orchestrator', true, { preserveRunning: true });
+  }, [authState, execMode, activeNamespace, activeIp, activeSessionId, activateNamespace, loggedInOwner, splitActiveNamespace]);
 
   // Synthetic / reserved namespace segments that should never show
   // up in the ip_id dropdown. 'soc' is the SoC architect placeholder,
@@ -1275,11 +1297,12 @@ const App = () => {
   // backend prompt, TODO file and workspace config.
   const selectWorkflow = (rawWf) => {
     const wf = normalizeSession(rawWf) || WORKFLOW_DEFAULT;
-    if (wf === (currentWorkflow() || WORKFLOW_DEFAULT)) return;
+    const parsed = splitActiveNamespace();
+    const parsedWf = parsed.workflow || WORKFLOW_DEFAULT;
+    if (wf === (currentWorkflow() || WORKFLOW_DEFAULT) && !(wf === 'orchestrator' && parsedWf !== 'orchestrator')) return;
     const preserveRunning = execMode === 'orchestrator';
     const ok = preserveRunning || confirmStopForWorkflowSwitch(wf);
     if (!ok) return;
-    const parsed = splitActiveNamespace();
     const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
     const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
     activateNamespace(owner, ip, wf, true, { preserveRunning });

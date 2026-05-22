@@ -15,14 +15,18 @@ get_jobs_state() -> tuple[dict, threading.Lock]
 """
 from __future__ import annotations
 
+import atexit
 import json
 import os
 import re
 import shlex
 import hashlib
 import subprocess
+import sys
 import threading
 import time
+import urllib.parse
+import urllib.request
 import xml.etree.ElementTree as ET
 import uuid
 from pathlib import Path
@@ -32,10 +36,19 @@ from fastapi import FastAPI
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
+from src.orchestrator.profile import (
+    ORCHESTRATOR_MODEL,
+    ORCHESTRATOR_REASONING_EFFORT,
+    orchestrator_profile_name,
+)
+
 # ── Module-level state ──────────────────────────────────────────────
 _jobs_lock = threading.Lock()
 _jobs: dict[str, dict[str, Any]] = {}   # job_id (uuid hex) → job metadata
 _SOURCE_ROOT = Path(__file__).resolve().parents[1]
+_LAZY_WORKER_LOCK = threading.Lock()
+_LAZY_WORKER_PROCS: dict[str, subprocess.Popen] = {}
+_LAZY_WORKER_ATEXIT_REGISTERED = False
 
 
 def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
@@ -278,6 +291,44 @@ def _worker_model_for(workflow: str) -> str:
         or os.environ.get(f"WORKER_MODEL_{suffix}", "")
         or _WORKER_MODEL_DEFAULTS.get(wf, "")
     )
+
+
+def _recent_chat_context_for_ip(
+    db: Any,
+    *,
+    ip_name: str,
+    owner_user_ids: list[str],
+    limit: int = 8,
+) -> list[dict[str, Any]]:
+    """Return recent chat rows for one IP and owner identity.
+
+    Older DB rows may have been written with the login name in
+    ``workspaces.owner_user_id`` / ``trace_events.actor_user_id`` before Atlas
+    started using canonical DB UUIDs.  Read both identities, scoped by IP name
+    and workspace owner, so worker prompts keep the user's latest requirement
+    without crossing into another user's workspace for the same IP name.
+    """
+    ip = str(ip_name or "").strip()
+    owners = [str(item or "").strip() for item in owner_user_ids if str(item or "").strip()]
+    owners = list(dict.fromkeys(owners))
+    if not ip or not owners:
+        return []
+    placeholders = ",".join("?" for _ in owners)
+    rows = db._fetchall(
+        f"""
+        SELECT te.*
+          FROM trace_events te
+          JOIN ip_blocks i ON i.id = te.ip_id
+          JOIN workspaces w ON w.id = i.workspace_id
+         WHERE te.event_type = 'chat_message'
+           AND i.ip_name = ?
+           AND w.owner_user_id IN ({placeholders})
+         ORDER BY te.created_at DESC, te.id DESC
+         LIMIT ?
+        """,
+        tuple([ip, *owners, int(limit)]),
+    )
+    return [db._row_to_dict(row, "trace_events") for row in rows]
 
 
 def _worker_reasoning_effort_for(workflow: str) -> str:
@@ -1490,24 +1541,227 @@ _DEFAULT_WORKER_PORTS: dict[str, int] = {
 }
 
 
+def _worker_model_default_for(workflow: str) -> str:
+    return _WORKER_MODEL_DEFAULTS.get(str(workflow or "").strip(), "")
+
+
+def _worker_reasoning_effort_default_for(workflow: str) -> str:
+    return _WORKER_REASONING_EFFORT_DEFAULTS.get(str(workflow or "").strip(), "")
+
+
+def _workflow_specific_worker_url(workflow: str) -> str:
+    if not workflow:
+        return ""
+    suffix = _workflow_env_suffix(workflow)
+    for key in (
+        f"ATLAS_WORKER_URL_{suffix}",
+        f"ATLAS_{suffix}_WORKER_URL",
+        f"WORKER_URL_{suffix}",
+    ):
+        url = os.environ.get(key)
+        if url:
+            return url
+    return ""
+
+
+def _worker_url_is_shared_default(workflow: str, worker_url: str) -> bool:
+    default_url = os.environ.get("WORKER_URL_DEFAULT", "").strip().rstrip("/")
+    if not default_url or not worker_url:
+        return False
+    return not _workflow_specific_worker_url(workflow) and worker_url.rstrip("/") == default_url
+
+
 def _resolve_worker_url(workflow: str) -> str:
     """Same precedence as core.delegate_runner.HTTPWorkerDelegate."""
     if os.environ.get("ATLAS_SINGLE_MAIN_LOOP") or _current_exec_mode() == "single-worker":
         return f"http://127.0.0.1:{_DEFAULT_SINGLE_MAIN_LOOP_PORT}"
     if workflow:
-        suffix = _workflow_env_suffix(workflow)
-        for key in (
-            f"ATLAS_WORKER_URL_{suffix}",
-            f"ATLAS_{suffix}_WORKER_URL",
-            f"WORKER_URL_{suffix}",
-        ):
-            url = os.environ.get(key)
-            if url:
-                return url
+        url = _workflow_specific_worker_url(workflow)
+        if url:
+            return url
+        default_url = os.environ.get("WORKER_URL_DEFAULT")
+        if default_url:
+            return default_url
         port = _DEFAULT_WORKER_PORTS.get(str(workflow).strip())
         if port:
             return f"http://127.0.0.1:{port}"
     return os.environ.get("WORKER_URL_DEFAULT", "http://localhost:8001")
+
+
+def _lazy_workers_enabled() -> bool:
+    raw = (
+        os.environ.get("ATLAS_LAZY_WORKERS")
+        or os.environ.get("ATLAS_WORKER_LAZY_START")
+        or ""
+    ).strip().lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
+def _local_worker_target(worker_url: str) -> tuple[str, int] | None:
+    try:
+        parsed = urllib.parse.urlparse(worker_url)
+    except Exception:
+        return None
+    if parsed.scheme not in {"http", "https"}:
+        return None
+    host = (parsed.hostname or "").strip().lower()
+    if host not in {"127.0.0.1", "localhost", "::1"}:
+        return None
+    if parsed.port is None:
+        return None
+    return ("127.0.0.1" if host in {"localhost", "127.0.0.1"} else "::1", int(parsed.port))
+
+
+def _probe_worker_health(worker_url: str, timeout: float = 1.0) -> dict[str, Any]:
+    try:
+        req = urllib.request.Request(
+            f"{worker_url.rstrip('/')}/health",
+            headers={"Accept": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            health = json.loads(response.read().decode("utf-8"))
+        if not isinstance(health, dict):
+            return {"status": "unreachable", "error": "non-dict health response"}
+        status = str(health.get("status") or "").strip().lower()
+        if health.get("ok") is True or status in {"ok", "healthy", "ready"}:
+            health["status"] = "ok"
+        return health
+    except Exception as exc:
+        return {"status": "unreachable", "error": str(exc)[:160]}
+
+
+def _worker_workflow_mismatch(workflow: str, health: dict[str, Any]) -> str:
+    if str(health.get("status") or "") != "ok":
+        return ""
+    if health.get("all_workflows") is True:
+        return ""
+    bound = str(health.get("workflow") or "").strip()
+    requested = str(workflow or "").strip()
+    if bound and requested and bound != requested:
+        return f"bound workflow {bound!r} cannot run {requested!r}"
+    return ""
+
+
+def _lazy_worker_command(
+    *,
+    job: dict[str, Any],
+    host: str,
+    port: int,
+    all_workflows: bool,
+) -> list[str]:
+    cmd = [
+        sys.executable,
+        str(_SOURCE_ROOT / "src" / "main.py"),
+        "--serve",
+        "--host",
+        host,
+        "--port",
+        str(port),
+    ]
+    if all_workflows:
+        cmd.extend(["--all-workflows", "--worker-name", "atlas-shared"])
+    else:
+        workflow = str(job.get("workflow") or "")
+        cmd.extend(["--workflow", workflow, "--worker-name", workflow])
+    session_name = str(job.get("session") or "").strip()
+    if session_name:
+        cmd.extend(["--session", session_name])
+    model = str(job.get("model") or "").strip()
+    if model:
+        cmd.extend(["--model", model])
+    effort = str(job.get("reasoning_effort") or "").strip()
+    if effort:
+        cmd.extend(["--effort", effort])
+    return cmd
+
+
+def _terminate_lazy_workers() -> None:
+    with _LAZY_WORKER_LOCK:
+        procs = list(_LAZY_WORKER_PROCS.items())
+        _LAZY_WORKER_PROCS.clear()
+    for _key, proc in procs:
+        try:
+            if proc.poll() is None:
+                proc.terminate()
+        except Exception:
+            pass
+
+
+def _register_lazy_worker_atexit() -> None:
+    global _LAZY_WORKER_ATEXIT_REGISTERED
+    if _LAZY_WORKER_ATEXIT_REGISTERED:
+        return
+    _LAZY_WORKER_ATEXIT_REGISTERED = True
+    atexit.register(_terminate_lazy_workers)
+
+
+def _ensure_lazy_worker(job: dict[str, Any]) -> None:
+    if not _lazy_workers_enabled():
+        return
+    workflow = str(job.get("workflow") or "").strip()
+    worker_url = str(job.get("worker") or "").strip()
+    if not worker_url:
+        return
+    health = _probe_worker_health(worker_url, timeout=0.7)
+    mismatch = _worker_workflow_mismatch(workflow, health)
+    if mismatch:
+        raise RuntimeError(f"worker mismatch at {worker_url}: {mismatch}")
+    if str(health.get("status") or "") == "ok":
+        return
+    target = _local_worker_target(worker_url)
+    if target is None:
+        return
+    host, port = target
+    all_workflows = _worker_url_is_shared_default(workflow, worker_url)
+    key = worker_url.rstrip("/")
+    with _LAZY_WORKER_LOCK:
+        proc = _LAZY_WORKER_PROCS.get(key)
+        if proc is not None and proc.poll() is None:
+            return
+        cmd = _lazy_worker_command(job=job, host=host, port=port, all_workflows=all_workflows)
+        env = os.environ.copy()
+        env["ATLAS_PROJECT_ROOT"] = str(job.get("project_root") or env.get("ATLAS_PROJECT_ROOT") or ".")
+        env["ATLAS_SOURCE_ROOT"] = str(_SOURCE_ROOT)
+        env.setdefault("ATLAS_WORKFLOW_ROOT", str(_WORKFLOW_ROOT))
+        env["ATLAS_EXEC_MODE"] = "orchestrator"
+        env["ATLAS_ORCHESTRATOR_MODE"] = "1"
+        env["ATLAS_SINGLE_MAIN_LOOP"] = "0"
+        py_path = str(_SOURCE_ROOT)
+        env["PYTHONPATH"] = f"{py_path}{os.pathsep}{env.get('PYTHONPATH', '')}".rstrip(os.pathsep)
+        log_dir = Path(str(job.get("project_root") or ".")) / ".session" / "workers"
+        try:
+            log_dir.mkdir(parents=True, exist_ok=True)
+            log_file = log_dir / f"{workflow or 'shared'}-{port}.log"
+            log_fh = log_file.open("ab")
+        except Exception:
+            log_fh = None
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                cwd=str(job.get("project_root") or _SOURCE_ROOT),
+                env=env,
+                stdout=log_fh or subprocess.DEVNULL,
+                stderr=subprocess.STDOUT if log_fh else subprocess.DEVNULL,
+            )
+        finally:
+            if log_fh is not None:
+                try:
+                    log_fh.close()
+                except Exception:
+                    pass
+        _LAZY_WORKER_PROCS[key] = proc
+        _register_lazy_worker_atexit()
+    timeout_s = float(os.environ.get("ATLAS_LAZY_WORKER_START_TIMEOUT", "15") or "15")
+    deadline = time.monotonic() + max(1.0, timeout_s)
+    while time.monotonic() < deadline:
+        health = _probe_worker_health(worker_url, timeout=0.7)
+        mismatch = _worker_workflow_mismatch(workflow, health)
+        if mismatch:
+            raise RuntimeError(f"lazy worker mismatch at {worker_url}: {mismatch}")
+        if str(health.get("status") or "") == "ok":
+            return
+        time.sleep(0.25)
+    raise RuntimeError(f"lazy worker did not become healthy at {worker_url}")
 
 
 def _worker_launch_command(
@@ -1719,6 +1973,7 @@ def _default_todo_template_for_job(workflow: str, stage_id: str, ip: str) -> str
 def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
     try:
         import urllib.request as _u
+        _ensure_lazy_worker(job)
         context = job["prompt"].split("\n\n", 1)[0]
         if job.get("rtl_version_id"):
             context += (
@@ -3448,6 +3703,55 @@ def register_jobs_routes(
         except Exception:
             return ""
 
+    def _orchestrator_db_session_for_request(
+        db: Any,
+        request: Request,
+        *,
+        body: dict[str, Any],
+        db_user_id: str,
+        workspace_id: str,
+        ip_id: str,
+        ip: str,
+        project_root: Path,
+    ) -> str:
+        owner = _request_username(request)
+        raw_session = normalize_session_name(str(
+            body.get("session")
+            or body.get("namespace")
+            or body.get("active_session")
+            or body.get("session_id")
+            or ""
+        ))
+        session_row = db.get_session_for_user(db_user_id, raw_session) if raw_session else None
+        session_id = str((session_row or {}).get("id") or "")
+        if not session_id:
+            owner_tokens = {owner, db_user_id, "default", "local-admin", ""}
+            if raw_session and ("/" in raw_session or raw_session not in owner_tokens):
+                session_id = raw_session
+            else:
+                session_id = _default_job_session(request, ip, "orchestrator")
+        session = db.upsert_runtime_session(
+            session_id,
+            db_user_id,
+            owner=owner or db_user_id,
+            workspace_id=workspace_id,
+            ip_id=ip_id,
+            ip=ip,
+            workflow="orchestrator",
+            project_id=ip,
+            directory=str(project_root),
+            title=f"{ip} orchestrator",
+            status="active",
+            summary={
+                "ip": ip,
+                "workflow": "orchestrator",
+                "exec_mode": "orchestrator",
+                "source": "pipeline_orchestrator_chat",
+                "project_root": str(project_root),
+            },
+        )
+        return str(session.get("id") or session_id)
+
     @app.post("/api/pipeline/dispatch")
     async def api_pipeline_dispatch(request: Request):
         try:
@@ -3688,23 +3992,39 @@ def register_jobs_routes(
             ip_row = db.upsert_ip_block(
                 workspace["id"], ip, ssot_path=f"{ip}/yaml/{ip}.ssot.yaml"
             )
+            try:
+                db_session_id = _orchestrator_db_session_for_request(
+                    db,
+                    request,
+                    body=body,
+                    db_user_id=db_user_id,
+                    workspace_id=str(workspace["id"] or ""),
+                    ip_id=str(ip_row["id"] or ""),
+                    ip=ip,
+                    project_root=pr,
+                )
+            except ValueError as exc:
+                return JSONResponse({"error": str(exc)}, status_code=403)
 
         runner = get_runner(_atlas_job_db_path(pr))
         outcome = runner.submit_or_attach(
             user_id=db_user_id,
             ip_id=ip_row["id"],
             ip_name=ip,
-            session_id=str(body.get("session_id") or ""),
+            workspace_id=str(workspace["id"] or ""),
+            session_id=db_session_id,
             chat_message_id=str(body.get("chat_message_id") or ""),
             message_text=message,
-            model=str(body.get("model") or ""),
-            reasoning_effort=str(body.get("reasoning_effort") or ""),
+            model=ORCHESTRATOR_MODEL,
+            reasoning_effort=ORCHESTRATOR_REASONING_EFFORT,
         )
         return JSONResponse({
             "ok": True,
             "ip": ip,
             "run_id": outcome.run_id,
             "status": outcome.status,
+            "model": ORCHESTRATOR_MODEL,
+            "reasoning_effort": ORCHESTRATOR_REASONING_EFFORT,
         })
 
     @app.get("/api/orchestrator/runs/{run_id}")
@@ -3838,6 +4158,8 @@ def register_jobs_routes(
         )
 
         _raw_owner = _active_tool_owner()
+        owner_display_id = normalize_session_name(_raw_owner) or "local-admin"
+        owner_user_id = _raw_owner
         chat_context = ""
         try:
             from core.atlas_db import AtlasDB
@@ -3845,17 +4167,18 @@ def register_jobs_routes(
             pr_for_chat = project_root()
             with AtlasDB(_atlas_job_db_path(pr_for_chat)) as db:
                 owner_user_id = _canonical_user_id(db, _raw_owner)
-                workspace = db.upsert_workspace(
+                db.upsert_workspace(
                     pr_for_chat.name or "default",
                     owner_user_id=owner_user_id,
                     local_path=str(pr_for_chat),
                 )
-                ip_row = db.upsert_ip_block(
-                    workspace["id"],
-                    ip_name,
-                    ssot_path=f"{ip_name}/yaml/{ip_name}.ssot.yaml",
+                rows = _recent_chat_context_for_ip(
+                    db,
+                    ip_name=ip_name,
+                    owner_user_ids=[owner_user_id, _raw_owner],
+                    limit=8,
                 )
-                rows = list(reversed(db.list_chat_messages(ip_row["id"], limit=8)))
+                rows = list(reversed(rows))
             rendered: list[str] = []
             for row in rows:
                 payload_row = row.get("payload") if isinstance(row, dict) else {}
@@ -3874,7 +4197,8 @@ def register_jobs_routes(
             ip=ip_name,
             stage_ids=selected_stage_ids,
             workflows=[stage["workflow"] for stage in resolved],
-            user_id=owner_user_id,
+            user_id=owner_display_id,
+            db_user_id=owner_user_id,
         )
         if conflicts:
             payload = _dedupe_payload(conflicts, ip=ip_name)
@@ -3885,7 +4209,8 @@ def register_jobs_routes(
                 "run_mode": run_mode_resolved,
                 "exec_mode": exec_mode_resolved,
                 "stages": resolved,
-                "user_id": owner_user_id,
+                "user_id": owner_display_id,
+                "db_user_id": owner_user_id,
             })
             return payload
 
@@ -3919,7 +4244,7 @@ def register_jobs_routes(
             if reason_text:
                 stage_prompt += f"\n\n[Orchestrator dispatch reason]\n{reason_text}"
             session = (
-                f"{_pipeline_session_prefix_for_owner(owner_user_id, ip_name, pipeline_id)}/"
+                f"{_pipeline_session_prefix_for_owner(owner_display_id, ip_name, pipeline_id)}/"
                 f"{idx + 1:02d}-{stage_workflow}"
             )
             dep_stage_ids = _pipeline_stage_dependencies(
@@ -3942,7 +4267,7 @@ def register_jobs_routes(
                 pipeline_schedule=dispatch_schedule,
                 run_mode=run_mode_resolved,
                 exec_mode=exec_mode_resolved,
-                user_id=owner_user_id,
+                user_id=owner_display_id,
                 db_user_id=owner_user_id,
                 trigger_source=trigger_source_resolved,
                 orchestrator_run_id=orchestrator_run_id_resolved,
@@ -3955,7 +4280,8 @@ def register_jobs_routes(
             "source": "dispatch_workflow_tool",
             "pipeline_id": pipeline_id,
             "pipeline_run_id": pipeline_id,
-            "user_id": owner_user_id,
+            "user_id": owner_display_id,
+            "db_user_id": owner_user_id,
             "ip": ip_name,
             "schedule": dispatch_schedule,
             "requested_schedule": req_schedule,
@@ -4238,7 +4564,6 @@ def register_jobs_routes(
     @app.get("/api/orchestrator/workers")
     async def api_orchestrator_workers(request: Request):
         import asyncio
-        import urllib.request
 
         params = dict(request.query_params)
         ip = (params.get("ip") or "").strip()
@@ -4247,19 +4572,7 @@ def register_jobs_routes(
         workflows = list(_DEFAULT_WORKER_PORTS.keys())
 
         def _probe(url: str) -> dict[str, Any]:
-            try:
-                req = urllib.request.Request(f"{url.rstrip('/')}/health",
-                                             headers={"Accept": "application/json"})
-                with urllib.request.urlopen(req, timeout=2.0) as r:
-                    import json as _json
-                    health = _json.loads(r.read())
-                    if isinstance(health, dict):
-                        status = str(health.get("status") or "").strip().lower()
-                        if health.get("ok") is True or status in {"ok", "healthy", "ready"}:
-                            health["status"] = "ok"
-                    return health
-            except Exception as exc:
-                return {"status": "unreachable", "error": str(exc)[:120]}
+            return _probe_worker_health(url, timeout=2.0)
 
         async def _gather() -> list[dict[str, Any]]:
             loop = asyncio.get_event_loop()
@@ -4272,19 +4585,55 @@ def register_jobs_routes(
                 health = await t
                 running = health.get("running") if isinstance(health, dict) else []
                 running_list = running if isinstance(running, list) else []
+                health_status = str(health.get("status", "unreachable"))
+                default_model = _worker_model_default_for(wf)
                 expected_model = _worker_model_for(wf)
+                default_effort = _worker_reasoning_effort_default_for(wf)
                 expected_effort = _worker_reasoning_effort_for(wf)
+                bound_workflow = health.get("workflow")
+                workflow_mismatch = _worker_workflow_mismatch(wf, health)
+                health_model = str(health.get("model") or "").strip()
+                running_models = [
+                    str(item).strip()
+                    for item in (health.get("running_models") or [])
+                    if str(item).strip()
+                ]
+                model_mismatch = (
+                    health_status == "ok"
+                    and bool(expected_model)
+                    and bool(health_model)
+                    and health_model != expected_model
+                    and expected_model not in running_models
+                )
+                mismatch_reasons = []
+                if workflow_mismatch:
+                    mismatch_reasons.append(workflow_mismatch)
+                if model_mismatch:
+                    mismatch_reasons.append(
+                        f"health model {health_model!r} differs from configured dispatch model {expected_model!r}"
+                    )
+                status = "mismatch" if mismatch_reasons else health_status
                 out.append({
                     "workflow": wf,
                     "url": url,
-                    "status": health.get("status", "unreachable"),
-                    "bound_workflow": health.get("workflow"),
+                    "status": status,
+                    "health_status": health_status,
+                    "bound_workflow": bound_workflow,
+                    "all_workflows": bool(health.get("all_workflows")),
+                    "default_model": default_model,
                     "expected_model": expected_model,
+                    "configured_model": expected_model,
+                    "default_reasoning_effort": default_effort,
                     "expected_reasoning_effort": expected_effort,
+                    "configured_reasoning_effort": expected_effort,
                     "model": expected_model or health.get("model"),
                     "reasoning_effort": expected_effort,
                     "worker_health_model": health.get("model"),
+                    "worker_running_models": running_models,
                     "worker_health_reasoning_effort": health.get("reasoning_effort"),
+                    "workflow_mismatch": bool(workflow_mismatch),
+                    "model_mismatch": bool(model_mismatch),
+                    "mismatch_reasons": mismatch_reasons,
                     "toolchain": _workflow_toolchain_for(wf),
                     "profile": health.get("profile"),
                     "uptime_s": health.get("uptime_s"),
@@ -4329,12 +4678,9 @@ def register_jobs_routes(
                 "active_target": orch_active_target,
                 "active_corr": orch_active_corr,
                 "last_kind": orch_last_kind,
-                "model": os.environ.get("ATLAS_ORCHESTRATOR_MODEL", "")
-                         or _worker_model_for("orchestrator")
-                         or None,
-                "reasoning_effort": os.environ.get("ATLAS_ORCHESTRATOR_REASONING_EFFORT", "")
-                                    or _worker_reasoning_effort_for("orchestrator")
-                                    or None,
+                "model": ORCHESTRATOR_MODEL,
+                "reasoning_effort": ORCHESTRATOR_REASONING_EFFORT,
+                "profile": orchestrator_profile_name(),
             },
             "workers": workers,
             "count": len(workers),

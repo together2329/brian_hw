@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -62,3 +63,33 @@ def test_workers_route_returns_12_workers(tmp_path: Path, monkeypatch) -> None:
     assert workflow_names == set(_EXPECTED_WORKFLOWS), (
         f"workflow mismatch: got {workflow_names}"
     )
+
+
+def test_workers_route_marks_workflow_and_model_mismatch(tmp_path: Path, monkeypatch) -> None:
+    import urllib.request
+
+    monkeypatch.setenv("WORKER_URL_RTL_GEN", "http://127.0.0.1:9988")
+    monkeypatch.setenv("ATLAS_WORKER_MODEL_RTL_GEN", "gpt-5.3-codex")
+
+    def _fake_urlopen(req, timeout=None):
+        url = getattr(req, "full_url", str(req))
+        body = {"status": "unreachable"}
+        if "9988" in url:
+            body = {"status": "ok", "workflow": "lint", "model": "glm-5.1"}
+        mock_resp = MagicMock()
+        mock_resp.read.return_value = json.dumps(body).encode("utf-8")
+        mock_resp.__enter__ = lambda s: s
+        mock_resp.__exit__ = MagicMock(return_value=False)
+        return mock_resp
+
+    monkeypatch.setattr(urllib.request, "urlopen", _fake_urlopen)
+
+    client = _make_client(tmp_path, monkeypatch)
+    resp = client.get("/api/orchestrator/workers?ip=pl330")
+    assert resp.status_code == 200, resp.text
+    rtl = next(item for item in resp.json()["workers"] if item["workflow"] == "rtl-gen")
+    assert rtl["status"] == "mismatch"
+    assert rtl["workflow_mismatch"] is True
+    assert rtl["model_mismatch"] is True
+    assert rtl["bound_workflow"] == "lint"
+    assert rtl["worker_health_model"] == "glm-5.1"

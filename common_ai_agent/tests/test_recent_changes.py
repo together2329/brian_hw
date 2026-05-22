@@ -1482,9 +1482,16 @@ class TestAtlasPipelineOrchestratorNamespace(unittest.TestCase):
 
         self.assertIn("'orchestrator'", src)
         self.assertIn("'orchestrator'", data_src)
-        self.assertIn("savedScreen === 'pipeline'", src)
-        self.assertIn("? 'orchestrator'", src)
-        self.assertIn("activateNamespace(activeSessionId, activeIp || WORKFLOW_DEFAULT, targetWorkflow, true)", src)
+        self.assertIn("const TOP_WORKFLOWS", src)
+        self.assertIn("return ['orchestrator', WORKFLOW_DEFAULT].concat(sorted);", src)
+        self.assertIn("wf === 'orchestrator' && execMode !== 'orchestrator'", src)
+        self.assertIn("wfParam || normalizeSession(parsed.workflow", src)
+        self.assertIn("const defaultWorkflow = execMode === 'orchestrator' ? 'orchestrator' : WORKFLOW_DEFAULT;", src)
+        self.assertIn("activateNamespace(owner, ip, 'orchestrator', true, { preserveRunning: true });", src)
+        self.assertIn("activeWorkflow={currentWorkflow()}", src)
+        self.assertIn("parsedWf !== 'orchestrator'", src)
+        self.assertIn("const ORCHESTRATOR_FLOW_STAGE", data_src)
+        self.assertIn("return [ORCHESTRATOR_FLOW_STAGE].concat(deduped);", data_src)
 
 
 class TestGlmCacheDebugOutput(unittest.TestCase):
@@ -1591,6 +1598,26 @@ class TestReasoningEffortRouting(unittest.TestCase):
             effort, note = _apply_chat_reasoning_controls(data, "glm-5.1", "https://api.z.ai/api/paas/v4/chat/completions")
             self.assertEqual(effort, "none")
             self.assertEqual(data["thinking"], {"type": "disabled", "clear_thinking": False})
+            self.assertIn("disabled", note)
+
+        with patch("src.llm_client.config") as mock_config:
+            mock_config.REASONING_MODE = "high"
+            mock_config.REASONING_EFFORT = "high"
+            data = {"reasoning_effort": "stale"}
+            effort, note = _apply_chat_reasoning_controls(data, "kimi-2.6", "https://api.kimi.com/coding/v1/chat/completions")
+            self.assertEqual(effort, "high")
+            self.assertEqual(data["thinking"], {"type": "enabled"})
+            self.assertNotIn("reasoning_effort", data)
+            self.assertIn("no provider effort tier", note)
+
+        with patch("src.llm_client.config") as mock_config:
+            mock_config.REASONING_MODE = "none"
+            mock_config.REASONING_EFFORT = "none"
+            data = {"reasoning_effort": "stale"}
+            effort, note = _apply_chat_reasoning_controls(data, "kimi-2.6", "https://api.moonshot.ai/v1/chat/completions")
+            self.assertEqual(effort, "none")
+            self.assertEqual(data["thinking"], {"type": "disabled"})
+            self.assertNotIn("reasoning_effort", data)
             self.assertIn("disabled", note)
 
 

@@ -121,7 +121,7 @@ def test_approved_bridge_writes_audit_clean_requirements(tmp_path):
             "test_expectation": "Cover pass, fail, backpressure, reset, and accepted_count state transitions.",
         },
     }
-    doc = bridge._doc("smbus", state)
+    doc = bridge._doc(tmp_path, "smbus", state)
 
     req = bridge._write_requirements(tmp_path, "smbus", state, doc)
     text = req.read_text(encoding="utf-8")
@@ -131,7 +131,7 @@ def test_approved_bridge_writes_audit_clean_requirements(tmp_path):
         assert marker.lower() not in text.lower()
 
 
-def test_dma330_doc_starts_with_rtl_gen_gate_and_deferred_connections():
+def test_dma330_doc_starts_with_rtl_gen_gate_and_deferred_connections(tmp_path):
     bridge = _load_bridge()
     state = {
         "kind": "DMA controller",
@@ -144,7 +144,7 @@ def test_dma330_doc_starts_with_rtl_gen_gate_and_deferred_connections():
         },
     }
 
-    doc = bridge._doc("dma330", state)
+    doc = bridge._doc(tmp_path, "dma330", state)
 
     assert doc["quality_gates"]["rtl_gen"]["profile"] == "production"
     assert doc["quality_gates"]["rtl_gen"]["pass"]
@@ -340,7 +340,7 @@ def test_machine_rules_are_deduped_and_validated_per_marker():
     assert [rule["name"] for rule in machine["state_updates"]] == ["accepted_count"]
 
 
-def test_valid_ready_sample_condition_uses_accept_phase_in_ssot_contract():
+def test_valid_ready_sample_condition_uses_accept_phase_in_ssot_contract(tmp_path):
     bridge = _load_bridge()
     state = {
         "kind": "valid-ready datapath",
@@ -355,14 +355,14 @@ def test_valid_ready_sample_condition_uses_accept_phase_in_ssot_contract():
         },
     }
 
-    doc = bridge._doc("vr_block", state)
+    doc = bridge._doc(tmp_path, "vr_block", state)
     primary = next(tx for tx in doc["function_model"]["transactions"] if tx["id"] == "FM_PRIMARY")
 
     assert primary["sample_condition"] == "(valid) and ready"
     assert doc["rtl_contract"]["sample_condition"] == "(valid) and ready"
 
 
-def test_machine_rule_ternary_keywords_do_not_become_ports():
+def test_machine_rule_ternary_keywords_do_not_become_ports(tmp_path):
     bridge = _load_bridge()
     state = {
         "kind": "decoded instruction execute block",
@@ -376,7 +376,7 @@ def test_machine_rule_ternary_keywords_do_not_become_ports():
         },
     }
 
-    doc = bridge._doc("thumb_exec", state)
+    doc = bridge._doc(tmp_path, "thumb_exec", state)
     ports = {
         port["name"]
         for intf in doc["io_list"]["interfaces"]

@@ -304,6 +304,100 @@ class TestUserMemoryRules:
         assert db.list_user_memory_rules(user["id"], include_all_workflows=True) == []
 
 
+class TestCustomAgents:
+    def test_custom_agents_are_user_scoped(self, db):
+        alice = db.create_user("alice_agent", "Alice")
+        bob = db.create_user("bob_agent", "Bob")
+
+        db.upsert_custom_agent(
+            owner_user_id=alice["id"],
+            name="risk_audit",
+            base_agent="review",
+            system_prompt="Alice prompt",
+            allowed_tools=["read_file"],
+        )
+        db.upsert_custom_agent(
+            owner_user_id=bob["id"],
+            name="risk_audit",
+            base_agent="explore",
+            system_prompt="Bob prompt",
+            allowed_tools=["grep_file"],
+        )
+
+        alice_agent = db.get_custom_agent(alice["id"], "risk_audit")
+        bob_agent = db.get_custom_agent(bob["id"], "risk_audit")
+
+        assert alice_agent["owner_user_id"] == alice["id"]
+        assert alice_agent["base_agent"] == "review"
+        assert alice_agent["system_prompt"] == "Alice prompt"
+        assert alice_agent["allowed_tools"] == ["read_file"]
+        assert bob_agent["owner_user_id"] == bob["id"]
+        assert bob_agent["base_agent"] == "explore"
+        assert bob_agent["system_prompt"] == "Bob prompt"
+        assert bob_agent["allowed_tools"] == ["grep_file"]
+
+    def test_custom_agent_shared_scope_is_visible_without_overriding_owner(self, db):
+        admin = db.create_user("admin_agent", "Admin", role="admin")
+        alice = db.create_user("alice_shared_agent", "Alice")
+
+        db.upsert_custom_agent(
+            owner_user_id=admin["id"],
+            name="shared_review",
+            base_agent="review",
+            system_prompt="Shared prompt",
+            scope="shared",
+        )
+        db.upsert_custom_agent(
+            owner_user_id=alice["id"],
+            name="shared_review",
+            base_agent="explore",
+            system_prompt="Alice private prompt",
+            scope="private",
+        )
+
+        own_agent = db.get_custom_agent(alice["id"], "shared_review")
+        visible_to_other = db.get_custom_agent(admin["id"], "shared_review")
+
+        assert own_agent["owner_user_id"] == alice["id"]
+        assert own_agent["system_prompt"] == "Alice private prompt"
+        assert visible_to_other["owner_user_id"] == admin["id"]
+        assert visible_to_other["system_prompt"] == "Shared prompt"
+
+    def test_non_admin_custom_agent_scope_is_forced_private(self, db):
+        alice = db.create_user("alice_scope_agent", "Alice")
+
+        saved = db.upsert_custom_agent(
+            owner_user_id=alice["id"],
+            name="not_shared",
+            base_agent="review",
+            system_prompt="Private despite requested sharing",
+            scope="shared",
+        )
+
+        assert saved["scope"] == "private"
+
+    def test_custom_agent_delete_is_owner_bound(self, db):
+        alice = db.create_user("alice_delete_agent", "Alice")
+        bob = db.create_user("bob_delete_agent", "Bob")
+
+        db.upsert_custom_agent(
+            owner_user_id=alice["id"],
+            name="cleanup",
+            base_agent="review",
+            system_prompt="Alice prompt",
+        )
+        db.upsert_custom_agent(
+            owner_user_id=bob["id"],
+            name="cleanup",
+            base_agent="review",
+            system_prompt="Bob prompt",
+        )
+
+        assert db.delete_custom_agent(alice["id"], "cleanup") is True
+        assert db.get_custom_agent(alice["id"], "cleanup", include_shared=False) is None
+        assert db.get_custom_agent(bob["id"], "cleanup", include_shared=False)["system_prompt"] == "Bob prompt"
+
+
 class TestConcurrency:
     def test_concurrent_session_creation(self, db):
         user = db.create_user("concurrent", "Concurrent User")

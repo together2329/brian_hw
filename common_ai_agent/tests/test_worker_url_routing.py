@@ -2,6 +2,7 @@
 import importlib
 import os
 import sys
+import tempfile
 import types
 import unittest
 from unittest.mock import patch
@@ -49,6 +50,7 @@ try:
     _DEFAULT_SINGLE_MAIN_LOOP_PORT = _m._DEFAULT_SINGLE_MAIN_LOOP_PORT
     _DEFAULT_WORKER_PORTS = _m._DEFAULT_WORKER_PORTS
 except Exception:
+    _m = None  # type: ignore
     _resolve_worker_url = None  # type: ignore
     _DEFAULT_SINGLE_MAIN_LOOP_PORT = 5601
     _DEFAULT_WORKER_PORTS = {}
@@ -232,6 +234,90 @@ class TestOrchestratorModePerWorkflowPorts(unittest.TestCase):
             with self.subTest(workflow=wf):
                 url = _resolve_worker_url(wf)
                 self.assertEqual(url, f"http://127.0.0.1:{port}")
+
+    def test_worker_url_default_overrides_builtin_orchestrator_ports(self):
+        self._set_orchestrator()
+        os.environ["WORKER_URL_DEFAULT"] = "http://127.0.0.1:9999"
+        self.assertEqual(_resolve_worker_url("rtl-gen"), "http://127.0.0.1:9999")
+
+    def test_per_workflow_url_overrides_worker_url_default(self):
+        self._set_orchestrator()
+        os.environ["WORKER_URL_DEFAULT"] = "http://127.0.0.1:9999"
+        os.environ["WORKER_URL_RTL_GEN"] = "http://127.0.0.1:9988"
+        self.assertEqual(_resolve_worker_url("rtl-gen"), "http://127.0.0.1:9988")
+
+
+@unittest.skipIf(_resolve_worker_url is None, "atlas_api_jobs could not be imported")
+class TestLazyWorkerStart(unittest.TestCase):
+    def setUp(self):
+        os.environ["ATLAS_LAZY_WORKERS"] = "1"
+        os.environ["ATLAS_EXEC_MODE"] = "orchestrator"
+        os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "0"
+        _m._LAZY_WORKER_PROCS.clear()
+
+    def tearDown(self):
+        os.environ.pop("ATLAS_LAZY_WORKERS", None)
+        os.environ.pop("ATLAS_EXEC_MODE", None)
+        os.environ.pop("ATLAS_SINGLE_MAIN_LOOP", None)
+        _m._LAZY_WORKER_PROCS.clear()
+
+    def _job(self, root: str, worker: str = "http://127.0.0.1:5623") -> dict:
+        return {
+            "job_id": "job-1",
+            "worker": worker,
+            "workflow": "rtl-gen",
+            "session": "u/ip/rtl-gen",
+            "project_root": root,
+            "model": "gpt-5.3-codex",
+            "reasoning_effort": "high",
+        }
+
+    def test_lazy_start_spawns_only_after_unreachable_health(self):
+        class _Proc:
+            pid = 123
+
+            def poll(self):
+                return None
+
+        with tempfile.TemporaryDirectory() as tmp:
+            health = [
+                {"status": "unreachable", "error": "refused"},
+                {"status": "ok", "workflow": "rtl-gen", "model": "gpt-5.3-codex"},
+            ]
+            popen_calls = []
+
+            def _popen(cmd, **kwargs):
+                popen_calls.append((cmd, kwargs))
+                return _Proc()
+
+            with patch.object(_m, "_probe_worker_health", side_effect=health), \
+                 patch.object(_m.subprocess, "Popen", side_effect=_popen):
+                _m._ensure_lazy_worker(self._job(tmp))
+
+            self.assertEqual(len(popen_calls), 1)
+            cmd = popen_calls[0][0]
+            self.assertIn("--workflow", cmd)
+            self.assertIn("rtl-gen", cmd)
+            self.assertIn("--model", cmd)
+            self.assertIn("gpt-5.3-codex", cmd)
+
+    def test_lazy_start_does_not_spawn_for_remote_url(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(_m, "_probe_worker_health", return_value={"status": "unreachable"}), \
+                 patch.object(_m.subprocess, "Popen") as popen:
+                _m._ensure_lazy_worker(self._job(tmp, worker="http://10.0.0.5:5623"))
+            popen.assert_not_called()
+
+    def test_lazy_start_rejects_existing_wrong_workflow(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(
+                _m,
+                "_probe_worker_health",
+                return_value={"status": "ok", "workflow": "lint", "model": "gpt-5.3-codex"},
+            ), patch.object(_m.subprocess, "Popen") as popen:
+                with self.assertRaisesRegex(RuntimeError, "worker mismatch"):
+                    _m._ensure_lazy_worker(self._job(tmp))
+            popen.assert_not_called()
 
 
 if __name__ == "__main__":

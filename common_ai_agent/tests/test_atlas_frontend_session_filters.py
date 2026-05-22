@@ -34,3 +34,17 @@ def test_agent_stream_events_require_matching_session_id():
     assert workspace_src.count("workspaceEventMatchesActiveSession(m, { requireSession: true })") >= 14
     assert sim_debug_src.count("atlasEventMatchesActiveSession(m, { requireSession: true })") >= 7
     assert architect_src.count("architectEventMatchesActiveSession(m, { requireSession: true })") >= 7
+
+
+def test_orchestrator_exec_mode_pins_orchestrator_workflow_first():
+    data_src = (PROJECT_ROOT / "frontend" / "atlas" / "data.jsx").read_text(encoding="utf-8")
+    workspace_src = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text(encoding="utf-8")
+
+    assert "const ORCHESTRATOR_FLOW_STAGE" in data_src
+    assert "return [ORCHESTRATOR_FLOW_STAGE].concat(deduped);" in data_src
+    assert "atlas-run-policy-changed" in data_src
+    assert "refreshWorkflowStagesForPolicy" in data_src
+    assert "orchestrator: {" in workspace_src
+    assert "const next = currentWorkflow === w ? defaultWorkflowForExecMode() : w;" in workspace_src
+    assert "next !== 'orchestrator'" in workspace_src
+    assert "return <OrchestratorWorkflowPane activeIp={activeIp} />;" in workspace_src
