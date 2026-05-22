@@ -89,6 +89,34 @@ def test_multiuser_session_ip_workflow_dirs_and_ip_visibility(tmp_path, monkeypa
     assert not (tmp_path / ".session" / "bob" / "ip_stolen").exists()
 
 
+def test_ip_list_hides_orphan_session_dirs_without_db_session(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    response = _activate(client, "alice", "owned_ip", "rtl-gen")
+    assert response.status_code == 200, response.text
+
+    orphan = tmp_path / ".session" / "alice" / "stale_orphan_ip" / "ssot-gen"
+    orphan.mkdir(parents=True)
+    (orphan / "conversation.json").write_text("[]", encoding="utf-8")
+
+    listed = client.get("/api/ip/list?session_id=alice")
+
+    assert listed.status_code == 200, listed.text
+    body = listed.json()
+    assert body["source"] == "db_sessions"
+    assert {item["name"] for item in body["items"]} == {"owned_ip"}
+
+
 def test_session_activate_records_db_control_plane_namespace(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
     from core.atlas_db import AtlasDB

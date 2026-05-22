@@ -5067,6 +5067,42 @@ def create_app():
             return JSONResponse({"error": "session owner mismatch", "items": []}, status_code=403)
         session_root = (PROJECT_ROOT / ".session" / owner).resolve() if owner else None
         try:
+            if multi_user_on:
+                user_id = str(user.get("id") or "").strip()
+                if not user_id:
+                    return JSONResponse({"error": "login required", "items": [], "count": 0}, status_code=401)
+                try:
+                    model_owner = _session_owner_with_model(username)
+                except Exception:
+                    model_owner = username
+                allowed_owners = {value for value in (username, model_owner) if value}
+                with AtlasDB() as db:
+                    session_rows = db.list_sessions(user_id)
+                for row in session_rows:
+                    namespace = normalize_session_name(
+                        str(row.get("namespace") or row.get("id") or "")
+                    )
+                    parts = [part for part in namespace.split("/") if part]
+                    if len(parts) < 3 or parts[0] not in allowed_owners:
+                        continue
+                    name = parts[1]
+                    workflow = parts[2]
+                    mtime = float(row.get("updated_at") or row.get("created_at") or 0.0)
+                    ip_dir = (session_root / name) if session_root is not None else None
+                    try:
+                        if ip_dir is not None and ip_dir.is_dir():
+                            mtime = max(mtime, ip_dir.stat().st_mtime)
+                    except OSError:
+                        pass
+                    _add_item(name, workflows=[workflow], mtime=mtime)
+                items = sorted(by_name.values(), key=lambda x: (-x["mtime"], x["name"]))
+                return JSONResponse({
+                    "project_root": str(PROJECT_ROOT),
+                    "session_id": owner or "",
+                    "items": items,
+                    "count": len(items),
+                    "source": "db_sessions",
+                })
             if not multi_user_on:
                 for entry in PROJECT_ROOT.iterdir():
                     if _looks_like_project_ip(entry):
