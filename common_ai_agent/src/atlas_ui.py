@@ -17807,8 +17807,8 @@ def main() -> None:
                     metavar="PORT",
                     help="Also launch the standalone admin server "
                          "(default port: 3002).")
-    ap.add_argument("--admin-host", default="127.0.0.1",
-                    help="Bind host for --admin (default: 127.0.0.1). "
+    ap.add_argument("--admin-host", default=None,
+                    help="Bind host for --admin. Defaults to --host. "
                          "Use 0.0.0.0 only when admin should be LAN-reachable.")
     ap.add_argument("--root", default=None,
                     help="Project root directory the backend serves "
@@ -17927,7 +17927,7 @@ def main() -> None:
         except ValueError:
             print(f"[atlas_ui] ignoring unknown reasoning effort: {orchestrator_effort}", file=sys.stderr)
     if args.admin:
-        _launch_admin_server(args.admin, args.admin_host)
+        _launch_admin_server(args.admin, args.admin_host or args.host)
     run_atlas_ui(port=args.port, host=args.host)
 
 
