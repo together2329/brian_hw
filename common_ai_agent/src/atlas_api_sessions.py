@@ -54,6 +54,10 @@ def register_sessions_routes(
         Callable that creates and returns an AtlasDB context-manager instance.
     """
 
+    def _multi_user_enabled() -> bool:
+        raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
+        return raw not in ("0", "false", "no", "off")
+
     # ── /api/session/activate ──────────────────────────────────────
     @app.post("/api/session/activate")
     async def api_session_activate(req: Request):
@@ -91,7 +95,7 @@ def register_sessions_routes(
                     status_code=400,
                 )
         owner = _request_username(req)
-        multi_user_on = os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on")
+        multi_user_on = _multi_user_enabled()
         if multi_user_on and owner and sid != owner:
             return JSONResponse({"error": "session owner mismatch"}, status_code=403)
         sid = _session_owner_with_model(sid)
@@ -503,7 +507,7 @@ def register_sessions_routes(
         root = PROJECT_ROOT / ".session"
         out = []
         owner = _request_username(request)
-        multi_user_on = os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on")
+        multi_user_on = _multi_user_enabled()
         if root.is_dir():
             for p in sorted(root.rglob("conversation.json")):
                 try:

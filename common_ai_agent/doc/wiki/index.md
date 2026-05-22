@@ -84,7 +84,7 @@ regression.
 
 ## Reference Runs (working examples on real IPs)
 
-Reloadable snapshots live in [`ref_ip_flow/`](../../ref_ip_flow/README.md)
+Reloadable snapshots live in [`ip_examples/ref_ip_flow/`](../../ip_examples/ref_ip_flow/README.md)
 — each run is portable (IP artifacts + ATLAS sessions + seeds) so it can
 be loaded on a different machine and inspected without recreating the DB.
 

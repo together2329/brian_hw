@@ -99,6 +99,13 @@ def test_user_dashboard_is_scoped_per_user(tmp_path, monkeypatch):
     with AtlasDB() as db:
         _seed_call(db, "alice", "spi_core", "rtl-gen", 0.12, tokens=240)
         _seed_call(db, "bob", "uart_core", "ssot-gen", 0.03, tokens=60)
+        alice_user = db.get_user_by_username("alice")
+        alice_workspace = db.upsert_workspace(
+            owner_user_id=alice_user["id"],
+            name="alice-extra-ws",
+            local_path="/repo/alice-extra",
+        )
+        db.upsert_ip_block(alice_workspace["id"], "idle_core", ip_type="rtl", status="active")
 
     alice_response = alice.get("/api/user/dashboard")
     assert alice_response.status_code == 200, alice_response.text
@@ -110,6 +117,13 @@ def test_user_dashboard_is_scoped_per_user(tmp_path, monkeypatch):
     assert round(alice_body["metrics"]["total_cost_usd"], 4) == 0.12
     assert alice_body["metrics"]["llm_calls"] == 1
     assert [row["ip"] for row in alice_body["ip_workload"]] == ["spi_core"]
+    assert {row["ip"] for row in alice_body["ip_inventory"]} == {"idle_core", "spi_core"}
+    idle_row = next(row for row in alice_body["ip_inventory"] if row["ip"] == "idle_core")
+    assert idle_row["status"] == "active"
+    assert idle_row["last_workflow"] == ""
+    assert idle_row["workflows"] == []
+    assert idle_row["runs"] == 0
+    assert idle_row["calls"] == 0
     assert [row["workflow"] for row in alice_body["workflow_progress"]] == ["rtl-gen"]
     assert all(row["ip"] != "uart_core" for row in alice_body["cost_by_context"])
 
@@ -122,6 +136,7 @@ def test_user_dashboard_is_scoped_per_user(tmp_path, monkeypatch):
     assert round(bob_body["metrics"]["total_cost_usd"], 4) == 0.03
     assert bob_body["metrics"]["llm_calls"] == 1
     assert [row["ip"] for row in bob_body["ip_workload"]] == ["uart_core"]
+    assert {row["ip"] for row in bob_body["ip_inventory"]} == {"uart_core"}
     assert [row["workflow"] for row in bob_body["workflow_progress"]] == ["ssot-gen"]
     assert all(row["ip"] != "spi_core" for row in bob_body["cost_by_context"])
 

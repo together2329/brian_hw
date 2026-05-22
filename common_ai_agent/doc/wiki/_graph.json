@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-05-22T01:57:12Z",
+  "generated_at": "2026-05-22T02:18:21Z",
   "root": "doc/wiki",
-  "node_count": 76,
-  "edge_count": 376,
+  "node_count": 80,
+  "edge_count": 396,
   "tags": {
     "atcdmac100": [
       "atcdmac100-document-flow-ui-honesty-20260518"
@@ -14,7 +14,8 @@
     ],
     "atlas": [
       "atlas-dag-ip-flow-runbook",
-      "atlas-e2e-validation-20260519"
+      "atlas-e2e-validation-20260519",
+      "ssot-rtl-flow-verify-20260519"
     ],
     "atlas-ui": [
       "atcdmac100-document-flow-ui-honesty-20260518",
@@ -30,14 +31,24 @@
     "audit": [
       "orchestrator-verification-report"
     ],
+    "baseline": [
+      "hardcoded-strip-honest-baseline-20260520"
+    ],
     "cocotb": [
       "atcwdt200-flow-debugging-lessons"
     ],
+    "cosim": [
+      "multi-cycle-production-wiring-20260520"
+    ],
     "cycle-model": [
-      "atlas-dag-ip-flow-runbook"
+      "atlas-dag-ip-flow-runbook",
+      "multi-cycle-production-wiring-20260520"
     ],
     "dag": [
       "atlas-dag-ip-flow-runbook"
+    ],
+    "db-sync": [
+      "ssot-rtl-flow-verify-20260519"
     ],
     "debugging": [
       "atcwdt200-flow-debugging-lessons",
@@ -59,8 +70,12 @@
     "grill-me": [
       "ssot-conversion-flow-20260519"
     ],
+    "hardcoded": [
+      "hardcoded-strip-honest-baseline-20260520"
+    ],
     "honesty": [
-      "atcdmac100-document-flow-ui-honesty-20260518"
+      "atcdmac100-document-flow-ui-honesty-20260518",
+      "hardcoded-strip-honest-baseline-20260520"
     ],
     "implementation": [
       "orchestrator-llm-loop-phase3"
@@ -119,6 +134,9 @@
     "product-flow": [
       "orchestrator-chat-only-product-plan"
     ],
+    "production": [
+      "multi-cycle-production-wiring-20260520"
+    ],
     "react-loop": [
       "orchestrator-loop-on-react-loop-plan"
     ],
@@ -137,27 +155,41 @@
     "rtl-gen": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
       "atlas-e2e-validation-20260519",
-      "pl330-real-orchestrator-ui-lessons-20260517"
+      "pl330-real-orchestrator-ui-lessons-20260517",
+      "ssot-rtl-flow-verify-20260519"
     ],
     "scoreboard": [
-      "atcwdt200-flow-debugging-lessons"
+      "atcwdt200-flow-debugging-lessons",
+      "hardcoded-strip-honest-baseline-20260520",
+      "silent-pass-exposure-tb-stimulus-gap-20260520"
     ],
     "signoff": [
       "atcdmac100-document-flow-ui-honesty-20260518"
+    ],
+    "silent-green": [
+      "silent-pass-exposure-tb-stimulus-gap-20260520"
     ],
     "sim": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
     ],
     "ssot": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
-      "ssot-conversion-flow-20260519"
+      "multi-cycle-production-wiring-20260520",
+      "ssot-conversion-flow-20260519",
+      "ssot-rtl-flow-verify-20260519"
     ],
     "ssot-gen": [
       "atlas-e2e-validation-20260519",
       "ssot-conversion-flow-20260519"
     ],
+    "stimulus": [
+      "silent-pass-exposure-tb-stimulus-gap-20260520"
+    ],
     "tb-gen": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
+    ],
+    "testbench": [
+      "silent-pass-exposure-tb-stimulus-gap-20260520"
     ],
     "timeline": [
       "atlas-dag-ip-flow-runbook"
@@ -170,7 +202,11 @@
       "e2e-orchestrator-validation-plan"
     ],
     "verification": [
-      "orchestrator-verification-report"
+      "hardcoded-strip-honest-baseline-20260520",
+      "multi-cycle-production-wiring-20260520",
+      "orchestrator-verification-report",
+      "silent-pass-exposure-tb-stimulus-gap-20260520",
+      "ssot-rtl-flow-verify-20260519"
     ],
     "worker": [
       "atlas-pipeline-worker-workspace-jump"
@@ -224,6 +260,7 @@
       "golden-todo-evidence",
       "gpio-orchestrator-multiworker-run",
       "gpio-serial-pipeline-run",
+      "hardcoded-strip-honest-baseline-20260520",
       "human-review-and-escalation",
       "index",
       "interactive-ask-user-ip-discovery",
@@ -231,6 +268,7 @@
       "karpathy-llm-wiki-pattern",
       "log",
       "mini-cpu-rerun-20260517",
+      "multi-cycle-production-wiring-20260520",
       "multi-user-worker-conflicts",
       "multi-user-worker-isolation",
       "octa-ddr-spi-orch-run-20260517",
@@ -247,11 +285,13 @@
       "rtl-gen-ssot-contract",
       "rtl-version-run-history",
       "run-mode-and-provenance-policy",
+      "silent-pass-exposure-tb-stimulus-gap-20260520",
       "single-main-loop-restore-20260519",
       "ssot-conversion-flow-20260519",
       "ssot-gen-pass-pipeline",
       "ssot-import-multi-format-20260519",
       "ssot-qa-workbench",
+      "ssot-rtl-flow-verify-20260519",
       "stage-gate-strictness-20260519",
       "systematic-quality-gates-20260521",
       "trace-jsonl-rotation-20260519",
@@ -603,7 +643,11 @@
       "tags": [],
       "related": [],
       "outgoing": [],
-      "incoming": [],
+      "incoming": [
+        "hardcoded-strip-honest-baseline-20260520",
+        "multi-cycle-production-wiring-20260520",
+        "silent-pass-exposure-tb-stimulus-gap-20260520"
+      ],
       "broken_refs": [],
       "updated": "",
       "summary": "How to add a new IP to ATLAS with cycle-accurate FL/RTL co-simulation. Validated with four demo IPs in 2026-05-21 that each reached 100% honest PASS on the first sim after ~1.25 SSOT iterations.",
@@ -677,7 +721,7 @@
       "updated": "",
       "summary": "`◫ Pipeline` is a top-level ATLAS screen that turns the 14-stage common_ai_agent flow into a click-to-run + glance-to-read situation board. It replaced the mock `◫ Architect` screen on 2026-05-16 (see [[log]] entry).",
       "path": "doc/wiki/atlas-pipeline-screen.md",
-      "size_bytes": 20747
+      "size_bytes": 20765
     },
     {
       "id": "atlas-pipeline-worker-workspace-jump",
@@ -746,7 +790,11 @@
       "tags": [],
       "related": [],
       "outgoing": [],
-      "incoming": [],
+      "incoming": [
+        "hardcoded-strip-honest-baseline-20260520",
+        "multi-cycle-production-wiring-20260520",
+        "silent-pass-exposure-tb-stimulus-gap-20260520"
+      ],
       "broken_refs": [],
       "updated": "",
       "summary": "Every opt-in flag and per-IP semantic switch in ATLAS, with the IPs that use it and the behavior change it triggers. Maintained alongside the new IP recipe (`atlas-new-ip-recipe.md`).",
@@ -947,7 +995,8 @@
       ],
       "incoming": [
         "flow-fixes-r3-verify-20260519",
-        "index"
+        "index",
+        "ssot-rtl-flow-verify-20260519"
       ],
       "broken_refs": [],
       "updated": "",
@@ -967,7 +1016,9 @@
         "atlas-browser-control-runbook"
       ],
       "incoming": [
-        "index"
+        "index",
+        "single-main-loop-restore-20260519",
+        "ssot-rtl-flow-verify-20260519"
       ],
       "broken_refs": [],
       "updated": "",
@@ -989,11 +1040,10 @@
       ],
       "incoming": [
         "flow-fixes-r2-verify-20260519",
-        "index"
-      ],
-      "broken_refs": [
+        "index",
         "ssot-rtl-flow-verify-20260519"
       ],
+      "broken_refs": [],
       "updated": "",
       "summary": "Live UI verification of five landed fixes (commits f17e66c41, 207f87c19, acb1c849e, 7709566d9 plus the partial DB-path unification). Verifier: `verifier-cmux`. Environment: ATLAS UI `127.0.0.1:62196`, model `gpt-5.5`, effort `xhigh`, restarted to pick up Python source changes.",
       "path": "doc/wiki/flow-fixes-verify-20260519.md",
@@ -1146,6 +1196,36 @@
       "summary": "GPIO smoke run used to validate that the common engine blocks on real evidence gaps instead of reporting a green result from a soft cocotb pass.",
       "path": "doc/wiki/gpio-serial-pipeline-run.md",
       "size_bytes": 6401
+    },
+    {
+      "id": "hardcoded-strip-honest-baseline-20260520",
+      "title": "Hardcoded Strip Honest Baseline 2026-05-20",
+      "type": "reference",
+      "tags": [
+        "verification",
+        "baseline",
+        "hardcoded",
+        "scoreboard",
+        "honesty"
+      ],
+      "related": [
+        "atlas-new-ip-recipe",
+        "atlas-ssot-flag-reference",
+        "systematic-quality-gates-20260521"
+      ],
+      "outgoing": [
+        "atlas-new-ip-recipe",
+        "atlas-ssot-flag-reference",
+        "systematic-quality-gates-20260521"
+      ],
+      "incoming": [
+        "systematic-quality-gates-20260521"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Historical context page for removing hardcoded or pass-shaped assumptions from the SSOT-to-scoreboard baseline.",
+      "path": "doc/wiki/hardcoded-strip-honest-baseline-20260520.md",
+      "size_bytes": 1177
     },
     {
       "id": "human-review-and-escalation",
@@ -1363,7 +1443,7 @@
       "updated": "",
       "summary": "- [[atlas-e2e-validation-20260519]] E2E validation: single-worker dispatch PARTIAL (LLM slow), parallel dispatch PARTIAL PASS (65ms simultaneous launch), orchestrator chat PASS (trigger_source + orchestrator_run_id linkage verified). All three executed live via http://127.0.0.1:62196 with glm-5.1 orchestrator + deepseek-v4-pro / kimi-k2-thinking…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 76364
+      "size_bytes": 76454
     },
     {
       "id": "mini-cpu-rerun-20260517",
@@ -1382,6 +1462,36 @@
       "summary": "Purpose: rerun the existing `mini_cpu` artifact as a CPU-class regression and separate SSOT/workflow blockers from RTL/sim failures.",
       "path": "doc/wiki/mini-cpu-rerun-20260517.md",
       "size_bytes": 3878
+    },
+    {
+      "id": "multi-cycle-production-wiring-20260520",
+      "title": "Multi-Cycle Production Wiring 2026-05-20",
+      "type": "reference",
+      "tags": [
+        "cycle-model",
+        "cosim",
+        "ssot",
+        "production",
+        "verification"
+      ],
+      "related": [
+        "atlas-new-ip-recipe",
+        "atlas-ssot-flag-reference",
+        "systematic-quality-gates-20260521"
+      ],
+      "outgoing": [
+        "atlas-new-ip-recipe",
+        "atlas-ssot-flag-reference",
+        "systematic-quality-gates-20260521"
+      ],
+      "incoming": [
+        "systematic-quality-gates-20260521"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Historical context page for the production wiring that made cycle-accurate FL/RTL co-simulation practical for stateful IPs.",
+      "path": "doc/wiki/multi-cycle-production-wiring-20260520.md",
+      "size_bytes": 1127
     },
     {
       "id": "multi-user-worker-conflicts",
@@ -1570,7 +1680,8 @@
         "orchestrator-chat-only-product-plan",
         "orchestrator-chat-ux",
         "orchestrator-loop-on-react-loop-plan",
-        "orchestrator-verification-report"
+        "orchestrator-verification-report",
+        "single-main-loop-restore-20260519"
       ],
       "broken_refs": [],
       "updated": "2026-05-18",
@@ -1613,7 +1724,7 @@
       "updated": "2026-05-18",
       "summary": "> **Architectural decision LOCKED (2026-05-18)**: the orchestrator loop will > run on top of `core/react_loop.py::run_react_agent_impl` via dependency > injection (Option B in the chat). The custom mini-loop in > `src/orchestrator/loop.py` is treated as a **temporary scaffold** to be > removed once the migration lands — not a permanent surface. Reason: >…",
       "path": "doc/wiki/orchestrator-loop-on-react-loop-plan.md",
-      "size_bytes": 39530
+      "size_bytes": 39620
     },
     {
       "id": "orchestrator-verification-report",
@@ -1961,6 +2072,7 @@
         "index",
         "pl330-real-orchestrator-ui-lessons-20260517",
         "ssot-gen-pass-pipeline",
+        "ssot-rtl-flow-verify-20260519",
         "workflow-improvement-candidates"
       ],
       "broken_refs": [],
@@ -2019,29 +2131,56 @@
       "size_bytes": 14306
     },
     {
+      "id": "silent-pass-exposure-tb-stimulus-gap-20260520",
+      "title": "Silent Pass Exposure TB Stimulus Gap 2026-05-20",
+      "type": "reference",
+      "tags": [
+        "testbench",
+        "scoreboard",
+        "stimulus",
+        "silent-green",
+        "verification"
+      ],
+      "related": [
+        "atlas-new-ip-recipe",
+        "atlas-ssot-flag-reference",
+        "systematic-quality-gates-20260521"
+      ],
+      "outgoing": [
+        "atlas-new-ip-recipe",
+        "atlas-ssot-flag-reference",
+        "systematic-quality-gates-20260521"
+      ],
+      "incoming": [
+        "systematic-quality-gates-20260521"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Historical context page for the testbench and stimulus gaps that could produce silent-green results.",
+      "path": "doc/wiki/silent-pass-exposure-tb-stimulus-gap-20260520.md",
+      "size_bytes": 1164
+    },
+    {
       "id": "single-main-loop-restore-20260519",
       "title": "Single main-loop restoration verify (2026-05-19)",
       "type": "reference",
       "tags": [],
       "related": [
-        "[['flow-fixes-r3-verify-20260519']]",
-        "[['orchestrator-llm-loop-phase3']]"
+        "flow-fixes-r3-verify-20260519",
+        "orchestrator-llm-loop-phase3"
       ],
       "outgoing": [
-        "[['flow-fixes-r3-verify-20260519']]",
-        "[['orchestrator-llm-loop-phase3']]"
+        "flow-fixes-r3-verify-20260519",
+        "orchestrator-llm-loop-phase3"
       ],
       "incoming": [
         "index"
       ],
-      "broken_refs": [
-        "[['flow-fixes-r3-verify-20260519']]",
-        "[['orchestrator-llm-loop-phase3']]"
-      ],
+      "broken_refs": [],
       "updated": "",
       "summary": "검증 목표: ATLAS_SINGLE_MAIN_LOOP=1 로 atlas_ui를 띄우면 단일 main-loop worker (port 5601, --all-workflows) 가 자동 spawn되어 모든 워크플로우(SSOT, RTL, …) 를 순차적으로 받아 처리한다는 것을 cmux Chrome 으로 end-to-end 확인.",
       "path": "doc/wiki/single-main-loop-restore-20260519.md",
-      "size_bytes": 8765
+      "size_bytes": 8757
     },
     {
       "id": "ssot-conversion-flow-20260519",
@@ -2152,6 +2291,40 @@
       "size_bytes": 1576
     },
     {
+      "id": "ssot-rtl-flow-verify-20260519",
+      "title": "SSOT RTL Flow Verify 2026-05-19",
+      "type": "reference",
+      "tags": [
+        "atlas",
+        "ssot",
+        "rtl-gen",
+        "verification",
+        "db-sync"
+      ],
+      "related": [
+        "flow-fixes-verify-20260519",
+        "flow-fixes-r2-verify-20260519",
+        "flow-fixes-r3-verify-20260519",
+        "rtl-gen-ssot-contract",
+        "workflow-ownership-and-boundaries"
+      ],
+      "outgoing": [
+        "flow-fixes-verify-20260519",
+        "flow-fixes-r2-verify-20260519",
+        "flow-fixes-r3-verify-20260519",
+        "rtl-gen-ssot-contract",
+        "workflow-ownership-and-boundaries"
+      ],
+      "incoming": [
+        "flow-fixes-verify-20260519"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Historical cross-link target for the May 19 SSOT-to-RTL product-flow verification work. The detailed evidence lives in the three flow-fix verification pages:",
+      "path": "doc/wiki/ssot-rtl-flow-verify-20260519.md",
+      "size_bytes": 1589
+    },
+    {
       "id": "stage-gate-strictness-20260519",
       "title": "Stage Gate Strictness Audit — 2026-05-19",
       "type": "reference",
@@ -2176,12 +2349,12 @@
         "hardcoded-strip-honest-baseline-20260520",
         "silent-pass-exposure-tb-stimulus-gap-20260520"
       ],
-      "incoming": [],
-      "broken_refs": [
-        "multi-cycle-production-wiring-20260520",
+      "incoming": [
         "hardcoded-strip-honest-baseline-20260520",
+        "multi-cycle-production-wiring-20260520",
         "silent-pass-exposure-tb-stimulus-gap-20260520"
       ],
+      "broken_refs": [],
       "updated": "",
       "summary": "**Date**: 2026-05-21",
       "path": "doc/wiki/systematic-quality-gates-20260521.md",
@@ -2199,7 +2372,7 @@
       "updated": "",
       "summary": "`core/orchestrator_trace.py` writes an append-only `trace.jsonl` per IP under `<ip>/orchestrator/trace.jsonl`. There is **no rotation policy** in the current implementation. This audit measures actual growth rates and assesses risk.",
       "path": "doc/wiki/trace-jsonl-rotation-20260519.md",
-      "size_bytes": 3489
+      "size_bytes": 3507
     },
     {
       "id": "triple-llm-rv32i-experiment",
@@ -2222,7 +2395,7 @@
       "updated": "",
       "summary": "Reference page for the side-by-side test of three LLM providers running the same SSOT input through the entire common_ai_agent pipeline (`ssot-gen → fl-model-gen → cl-model-gen → equiv-goals → rtl-gen → tb-gen → sim → sim-debug → lint → coverage → goal-audit`).",
       "path": "doc/wiki/triple-llm-rv32i-experiment.md",
-      "size_bytes": 8814
+      "size_bytes": 8940
     },
     {
       "id": "ui-design-references",
@@ -2390,6 +2563,7 @@
         "ssot-conversion-flow-20260519",
         "ssot-gen-pass-pipeline",
         "ssot-qa-workbench",
+        "ssot-rtl-flow-verify-20260519",
         "ui-design-references"
       ],
       "broken_refs": [],

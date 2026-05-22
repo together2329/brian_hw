@@ -169,6 +169,15 @@ _plan_mode_cv = contextvars.ContextVar("plan_mode", default="false")
 def _active_session_value() -> str:
     current = (_atlas_active_session_cv.get() or "").strip()
     env_value = (os.environ.get("ATLAS_ACTIVE_SESSION", "") or "").strip()
+    try:
+        from core.atlas_multiuser import get_atlas_bridge_session_id
+        bridge_session = (get_atlas_bridge_session_id() or "").strip()
+    except Exception:
+        bridge_session = ""
+    if bridge_session and bridge_session not in {"default", "default/default", "default/default/default"}:
+        return bridge_session
+    if env_value and env_value not in {"default", "default/default", "default/default/default"} and env_value != current:
+        return env_value
     # FastAPI request tasks can inherit the startup contextvar value
     # ("default/default/default"). /api/session/activate mirrors the real
     # active namespace into os.environ for cross-task visibility, so do not
@@ -497,6 +506,16 @@ def _apply_selected_model_from_env() -> str:
 def _active_ip_value() -> str:
     current = (_atlas_active_ip_cv.get() or "").strip()
     env_value = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
+    try:
+        from core.atlas_multiuser import get_atlas_bridge_session_id
+        bridge_session = (get_atlas_bridge_session_id() or "").strip()
+    except Exception:
+        bridge_session = ""
+    bridge_parts = [part for part in bridge_session.split("/") if part]
+    if len(bridge_parts) >= 3 and bridge_parts[-2] != "default":
+        return bridge_parts[-2]
+    if env_value and env_value != "default" and env_value != current:
+        return env_value
     if current and (current != "default" or not env_value):
         return current
     return env_value or current
@@ -2744,6 +2763,11 @@ def create_app():
     _use_proc = _multi_user_env and _proc_raw not in ("0", "false", "no", "off")
     _strict_raw = os.environ.get("ATLAS_STRICT_SESSION_ROUTING", "0").strip().lower()
     _strict_routing = _strict_raw in ("1", "true", "yes", "on")
+
+    def _multi_user_enabled() -> bool:
+        raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
+        return raw not in ("0", "false", "no", "off")
+
     if _multi_user_env:
         print(f"[atlas] Multi-user enabled (process_per_session={'on' if _use_proc else 'off'})")
     # single_user collapses every WS-bound session_id onto "default" so
@@ -3354,7 +3378,7 @@ def create_app():
         # Identity is now derived from the authenticated user (cookie).
         # Single-user vs multi-user only affects whether multiple distinct
         # users can run concurrently — login is required either way.
-        _multi_user_on = os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on")
+        _multi_user_on = _multi_user_enabled()
         info["multi_user"] = _multi_user_on
         user = request.scope.get("user")
         info["user_session"] = (user.get("username") if user else None)
@@ -3448,9 +3472,16 @@ def create_app():
             info["active_workflow"] = (
                 os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
             )
-            info["session_dir"] = str(getattr(_cfg, "SESSION_DIR", "") or "")
-            info["todo_file"] = str(getattr(_cfg, "TODO_FILE", "") or "")
-            info["history_file"] = str(getattr(_cfg, "HISTORY_FILE", "") or "")
+            active_session_path = normalize_session_name(str(info.get("active_session") or ""))
+            if active_session_path:
+                session_dir = PROJECT_ROOT / ".session" / active_session_path
+                info["session_dir"] = str(session_dir)
+                info["todo_file"] = str(session_dir / "todo.json")
+                info["history_file"] = str(session_dir / "conversation.json")
+            else:
+                info["session_dir"] = str(getattr(_cfg, "SESSION_DIR", "") or "")
+                info["todo_file"] = str(getattr(_cfg, "TODO_FILE", "") or "")
+                info["history_file"] = str(getattr(_cfg, "HISTORY_FILE", "") or "")
             # Per-model pricing (USD / 1M tokens) — input / cache / output.
             # Try the displayed/runtime model first, then fall back to
             # LLM_BASE_NAME for opaque deployment aliases.
@@ -4986,7 +5017,7 @@ def create_app():
         username = normalize_session_name(str(user.get("username") or ""))
         requested = normalize_session_name(str(session_id or ""))
         owner = (requested.split("/", 1)[0] if requested else "") or username
-        multi_user_on = os.environ.get("ATLAS_MULTI_USER", "").strip().lower() in ("1", "true", "yes", "on")
+        multi_user_on = _multi_user_enabled()
         if multi_user_on and username and owner and owner != username:
             return JSONResponse({"error": "session owner mismatch", "items": []}, status_code=403)
         session_root = (PROJECT_ROOT / ".session" / owner).resolve() if owner else None
@@ -10622,16 +10653,22 @@ def create_app():
             return nested[0]
         return ""
 
+    def _session_ip_from_namespace(session: str) -> str:
+        session = normalize_session_name(str(session or ""))
+        parts = [p for p in session.split("/") if p]
+        if len(parts) >= 3 and _valid_ip_name(parts[-2]) and parts[-2] != "default":
+            return parts[-2]
+        if len(parts) == 1 and _valid_ip_name(parts[0]) and parts[0] != "default" and _ssot_state_path(parts[0]).is_file():
+            return parts[0]
+        return ""
+
     def _active_ssot_ip() -> str:
         env_ip = str(_active_ip_value() or "").strip()
         if _valid_ip_name(env_ip) and env_ip != "default":
             return env_ip
-        session = normalize_session_name(str(_active_session_value() or ""))
-        parts = [p for p in session.split("/") if p]
-        if len(parts) >= 2 and parts[-1] == "ssot-gen" and _valid_ip_name(parts[-2]) and parts[-2] != "default":
-            return parts[-2]
-        if len(parts) == 1 and _valid_ip_name(parts[0]) and parts[0] != "default" and _ssot_state_path(parts[0]).is_file():
-            return parts[0]
+        session_ip = _session_ip_from_namespace(str(_active_session_value() or ""))
+        if session_ip:
+            return session_ip
         root_ip = _infer_ip_from_project_root()
         if _valid_ip_name(root_ip):
             return root_ip
@@ -10655,10 +10692,13 @@ def create_app():
             return tok
         return ""
 
-    def _command_ip(args: str = "") -> str:
+    def _command_ip(args: str = "", client_session: Any | None = None) -> str:
         explicit = _first_ip_token(args)
         if _valid_ip_name(explicit):
             return explicit
+        session_ip = _session_ip_from_namespace(getattr(client_session, "session_id", ""))
+        if _valid_ip_name(session_ip):
+            return session_ip
         return _active_ssot_ip()
 
     def _ip_root(ip: str) -> Path:
@@ -13370,7 +13410,7 @@ def create_app():
         cmd, args = _split_slash(text)
         if cmd not in ("ip", "use"):  # `/use` retained as alias
             return False
-        ip = _command_ip(args)
+        ip = _command_ip(args, client_session=client_session)
         if not _valid_ip_name(ip):
             _emit_workflow_result(
                 "[IP] no active IP found\n"
@@ -13485,7 +13525,7 @@ def create_app():
         cmd, args = _split_slash(text)
         if cmd not in ("to-ssot", "ssot", "ts"):
             return False
-        ip = _command_ip(args)
+        ip = _command_ip(args, client_session=client_session)
         if not _valid_ip_name(ip):
             _emit_workflow_result(
                 "[SSOT GATE] no active IP found\n"
@@ -13624,7 +13664,7 @@ def create_app():
         cmd, args = _split_slash(text)
         if cmd not in ("repair-ssot", "rs"):
             return False
-        ip = _command_ip(args)
+        ip = _command_ip(args, client_session=client_session)
         if not _valid_ip_name(ip):
             _emit_workflow_result(
                 "[repair-ssot] no active IP found\nOpen/select an IP or run /new-ip <ip_name> first.",
@@ -13813,7 +13853,7 @@ def create_app():
         cmd, args = _split_slash(text)
         if cmd not in ("repair-rtl", "rrtl"):
             return False
-        ip = _command_ip(args)
+        ip = _command_ip(args, client_session=client_session)
         if not _valid_ip_name(ip):
             _emit_workflow_result(
                 "[repair-rtl] no active IP found\nOpen/select an IP or run /new-ip <ip_name> first.",
@@ -13886,7 +13926,7 @@ def create_app():
         cmd, args = _split_slash(text)
         if cmd not in ("repair-equiv", "repair-equivalence", "reqv"):
             return False
-        ip = _command_ip(args)
+        ip = _command_ip(args, client_session=client_session)
         if not _valid_ip_name(ip):
             _emit_workflow_result(
                 "[repair-equiv] no active IP found\nOpen/select an IP or run /new-ip <ip_name> first.",
@@ -14027,7 +14067,7 @@ def create_app():
         spec = _STAGE_RUNNERS.get(alias)
         if not spec:
             return False
-        ip = _command_ip(args)
+        ip = _command_ip(args, client_session=client_session)
         if not _valid_ip_name(ip):
             _emit_workflow_result(
                 f"[{alias}] no active IP found\nOpen/select an IP or run /new-ip <ip_name> first.",
@@ -16425,8 +16465,7 @@ def create_app():
                 return
             raise
         session_id = websocket.query_params.get("session_id", "")
-        _multi_raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
-        _multi_user = _multi_raw not in ("0", "false", "no", "off")
+        _multi_user = _multi_user_enabled()
 
         class _WebSocketCookieRequest:
             def __init__(self, cookies: dict):

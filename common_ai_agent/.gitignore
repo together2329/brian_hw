@@ -75,6 +75,9 @@ current_todos.json
 .playwright-mcp/
 lobby-screenshot.png
 
+# Local grouped artifacts
+artifacts/local/
+
 # Node.js
 node_modules/
 package-lock.json

@@ -12,7 +12,7 @@ implementation. This audit measures actual growth rates and assesses risk.
 |---|---|---|
 | dma_scratch_orch_live_20260519b | 314 | 78,866 |
 | pl330realverify | 111 | 28,452 |
-| _unknown | 103 | 23,702 |
+| artifacts/runtime/_unknown | 103 | 23,702 |
 | dma_scratch_ui_live_20260519a | 82 | 20,843 |
 | simple_uart_tx | 53 | 13,305 |
 | all others (33 files) | 171 | 43,544 |

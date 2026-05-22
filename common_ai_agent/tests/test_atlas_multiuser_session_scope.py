@@ -168,6 +168,7 @@ def test_session_activate_policy_and_mode_sweep_keeps_namespace_todos_isolated(t
     monkeypatch.setenv("ATLAS_MULTI_USER", "1")
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
     monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
     monkeypatch.delenv("ATLAS_RUN_MODE", raising=False)
     monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
     monkeypatch.delenv("AGENT_MODE_OVERRIDE", raising=False)
@@ -226,8 +227,8 @@ def test_session_activate_policy_and_mode_sweep_keeps_namespace_todos_isolated(t
             seen = [ws.receive_json() for _ in range(3)]
 
         assert os.environ["PLAN_MODE"] == expected_plan_mode
+        assert any(msg.get("type") == "agent_received" for msg in seen)
         assert any(msg.get("type") == "mode_change" for msg in seen)
-        assert any(msg.get("type") == "slash_output" for msg in seen)
         assert bridge_session._inbox.empty()
 
         health = client.get("/healthz")
@@ -311,15 +312,50 @@ def test_multiuser_and_process_isolation_default_on(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
     monkeypatch.delenv("ATLAS_MULTI_USER", raising=False)
     monkeypatch.delenv("ATLAS_MULTI_USER_PROC", raising=False)
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
+    root_only_ip = tmp_path / "root_only_ip"
+    (root_only_ip / "rtl").mkdir(parents=True)
+    (root_only_ip / "yaml").mkdir()
+    (root_only_ip / "yaml" / "root_only_ip.ssot.yaml").write_text(
+        "ip: root_only_ip\n",
+        encoding="utf-8",
+    )
+
     app = atlas_ui.create_app()
+    alice = TestClient(app)
+    bob = TestClient(app)
+    _register(alice, "alice")
+    _register(bob, "bob")
 
     assert app.state.bridge._single_user is False
     assert app.state.bridge._process_manager is not None
+
+    assert _activate(alice, "alice", "ip_alpha", "sta").status_code == 200
+    assert _activate(bob, "bob", "ip_beta", "sta").status_code == 200
+
+    alice_ips = alice.get("/api/ip/list")
+    assert alice_ips.status_code == 200, alice_ips.text
+    assert {item["name"] for item in alice_ips.json()["items"]} == {"ip_alpha"}
+
+    bob_ips = bob.get("/api/ip/list")
+    assert bob_ips.status_code == 200, bob_ips.text
+    assert {item["name"] for item in bob_ips.json()["items"]} == {"ip_beta"}
+
+    alice_reading_bob_ips = alice.get("/api/ip/list?session_id=bob")
+    assert alice_reading_bob_ips.status_code == 403
+
+    alice_sessions = alice.get("/api/session/list")
+    assert alice_sessions.status_code == 200, alice_sessions.text
+    assert {row["session"] for row in alice_sessions.json()["sessions"]} == {"alice/ip_alpha/sta"}
+
+    bob_sessions = bob.get("/api/session/list")
+    assert bob_sessions.status_code == 200, bob_sessions.text
+    assert {row["session"] for row in bob_sessions.json()["sessions"]} == {"bob/ip_beta/sta"}
 
 
 def test_websocket_binds_full_session_namespace(tmp_path, monkeypatch):
@@ -411,6 +447,34 @@ def test_websocket_slash_command_executes_without_agent_prompt(tmp_path, monkeyp
     assert session.agent_running is True
     assert session.agent_alive is False
     assert session._inbox.empty()
+
+
+def test_no_arg_stage_slash_uses_websocket_session_ip(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ACTIVE_SESSION", "default/default/default")
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "default")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    session_id = "alice/ip_alpha/rtl-gen"
+    with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
+        assert ws.receive_json()["type"] == "hello"
+        ws.send_json({"type": "prompt", "text": "/ssot-rtl", "msg_id": "ssot-rtl-1"})
+        seen = [ws.receive_json() for _ in range(6)]
+
+    outputs = [msg.get("text", "") for msg in seen if msg.get("type") == "slash_output"]
+    assert outputs
+    assert "ip_alpha/yaml/ip_alpha.ssot.yaml" in outputs[0]
+    assert "default/yaml/default.ssot.yaml" not in outputs[0]
 
 
 def test_multiuser_can_be_disabled(tmp_path, monkeypatch):

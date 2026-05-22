@@ -33,12 +33,12 @@ both questions with a single shared SSOT input:
 - Pipeline: 3-stage IF / ID-EX / MEM-WB, in-order, single-issue.
 - Register file: 32 × 32-bit (`x0..x31`, `x0` hardwired zero).
 - Bus: registered-ready synchronous I-bus + D-bus (no AHB/AXI).
-- Three sandboxes under `_runspaces/triple_llm_test/`:
+- Three sandboxes under `artifacts/runtime/_runspaces/triple_llm_test/`:
   - `codex/` — `gpt-5.3-codex` (opencode/Codex OAuth)
   - `claude/` — `claude-cli`
   - `cursor/` — `cursor-cli`
 - All three start from the same `requirements.md` (top-level copy at
-  `_runspaces/triple_llm_test/requirements.md`, distributed into each
+  `artifacts/runtime/_runspaces/triple_llm_test/requirements.md`, distributed into each
   sandbox `<prov>/rv32i_min/req/requirements.md`).
 - **No manual fixes between stages.** If the model breaks the headless
   contract, the run blocks at that stage and the failure is part of
@@ -48,9 +48,9 @@ both questions with a single shared SSOT input:
 
 ```
 ATLAS_RUN_REAL_LLM_TDD=1 python3 src/headless_workflow.py \
-  --root _runspaces/triple_llm_test/<prov> \
+  --root artifacts/runtime/_runspaces/triple_llm_test/<prov> \
   --ip rv32i_min \
-  --req _runspaces/triple_llm_test/<prov>/rv32i_min/req/requirements.md \
+  --req artifacts/runtime/_runspaces/triple_llm_test/<prov>/rv32i_min/req/requirements.md \
   --stages ssot-gen,fl-model-gen,cl-model-gen,equiv-goals,rtl-gen,tb-gen,sim,sim-debug,lint,coverage,goal-audit \
   --model <model> \
   --provider real
@@ -61,10 +61,10 @@ Three runs launched in parallel (background tasks
 
 ## Comparison harness
 
-`_runspaces/triple_llm_test/compare_runs.py` reads each provider's
+`artifacts/runtime/_runspaces/triple_llm_test/compare_runs.py` reads each provider's
 `run.json` plus the per-stage evidence (`yaml/`, `model/`, `rtl/`,
 `lint/`, `sim/`, `cov/`, `verify/`, `logs/`) and writes a side-by-side
-markdown to `_runspaces/triple_llm_test/COMPARISON.md`. Captures:
+markdown to `artifacts/runtime/_runspaces/triple_llm_test/COMPARISON.md`. Captures:
 
 - Overall outcome and per-stage status (`pass`/`fail`/`blocked`/`human_gate`).
 - SSOT size + section count.
@@ -154,7 +154,7 @@ correctly surfaced by `dut_compile`/`dut_lint` evidence.
 | claude | `ssot-gen` blocked | Phase 1 | provider envelope incompatibility (parked: provider-aware shim) |
 | cursor | `ssot-gen` blocked | Phase 1 | same as claude |
 
-See `_runspaces/triple_llm_test/COMPARISON.md` for the
+See `artifacts/runtime/_runspaces/triple_llm_test/COMPARISON.md` for the
 machine-generated artifact digest. The cumulative progression above is
 not visible in `compare_runs.py` because each codex resume rewrites
 `codex/rv32i_min/logs/headless_run.json` with only the latest stage

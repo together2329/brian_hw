@@ -3,8 +3,8 @@ title: Single main-loop restoration verify (2026-05-19)
 date: 2026-05-19
 status: PASS (with one fix landed mid-verify)
 related:
-  - [[flow-fixes-r3-verify-20260519]]
-  - [[orchestrator-llm-loop-phase3]]
+  - flow-fixes-r3-verify-20260519
+  - orchestrator-llm-loop-phase3
 ---
 
 # Single main-loop restoration — cmux verify (May-12-style)

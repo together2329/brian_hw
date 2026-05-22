@@ -1,7 +1,7 @@
 """Unit tests for src/orchestrator/react_bridge.py.
 
 These formalize the structural checks the Step 1 spike at
-``_runspaces/orchestrator_react_spike.py`` ran ad-hoc. They guard the four
+``artifacts/runtime/_runspaces/orchestrator_react_spike.py`` ran ad-hoc. They guard the four
 review findings the plan calls out (P0 tool-replace, P1 no-src.main, P1
 yield_run-separate, P2 ctx-bound injector) plus the P2 parallel-step-ordering
 assertion that the spike did not exercise.
@@ -73,6 +73,7 @@ EXPECTED_CALLABLES = {
     "ask_user",
     "write_handoff",
     "mark_downstream_stale",
+    "import_document",
 }
 
 
@@ -82,7 +83,7 @@ class TestNoMainImport:
         # not informative — assert it's NOT loaded as a side effect of the
         # bridge's own imports.
         # (We can't unimport reliably mid-process; the spike script that runs
-        # `python3 _runspaces/orchestrator_react_spike.py` is the authoritative
+        # `python3 artifacts/runtime/_runspaces/orchestrator_react_spike.py` is the authoritative
         # green-field check.)
         import src.orchestrator.react_bridge  # noqa: F401
 
@@ -96,7 +97,7 @@ class TestNoMainImport:
 
 
 class TestAvailableToolsReplaced:
-    def test_exactly_eight_orchestrator_callables(self, bridge):
+    def test_exactly_nine_orchestrator_callables(self, bridge):
         assert set(bridge.deps.available_tools.keys()) == EXPECTED_CALLABLES
 
     def test_no_generic_agent_tools_leaked(self, bridge):
@@ -217,8 +218,8 @@ class TestYieldRunInterception:
         assert final["status"] == "running"
 
 
-class TestSystemPromptEmbedsNineSchemas:
-    def test_system_prompt_contains_all_nine_tool_names(self, bridge):
+class TestSystemPromptEmbedsTenSchemas:
+    def test_system_prompt_contains_all_ten_tool_names(self, bridge):
         prompt = bridge.deps.build_prompt_fn(
             messages=[{"role": "user", "content": "hi"}],
             allowed_tools=set(bridge.deps.available_tools.keys()),

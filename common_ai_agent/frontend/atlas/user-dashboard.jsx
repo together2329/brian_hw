@@ -60,8 +60,30 @@ const AtlasUserDashboard = ({
     return text.length > 24 ? `${text.slice(0, 21)}...` : text;
   };
   const score = (row) => Number(row.cost || 0) || Number(row.calls || 0) || Number(row.sessions || row.runs || 0);
+  const listText = (items, fallback = '-') => {
+    const values = (Array.isArray(items) ? items : []).filter(Boolean);
+    if (values.length === 0) return fallback;
+    if (values.length <= 2) return values.join(', ');
+    return `${values.slice(0, 2).join(', ')} +${values.length - 2}`;
+  };
+  const workflowValue = (row) => {
+    const last = String((row && row.last_workflow) || '').trim();
+    if (last) return last;
+    const values = (Array.isArray(row && row.workflows) ? row.workflows : [])
+      .map((value) => String(value || '').trim())
+      .filter(Boolean);
+    return values.find((value) => value !== 'default') || values[0] || '';
+  };
+  const workflowText = (row) => workflowValue(row) || '-';
+  const workspaceText = (row) => listText(row.workspaces, listText(row.workspace_paths));
+  const rowHealth = (row) => {
+    if (Number(row.failed || 0) > 0) return 'failed';
+    if (Number(row.running || 0) > 0) return 'running';
+    return row.status || 'active';
+  };
   const current = data && data.current ? data.current : {};
   const metrics = data && data.metrics ? data.metrics : {};
+  const ipInventoryRows = data && Array.isArray(data.ip_inventory) ? data.ip_inventory : [];
   const ipRows = data && Array.isArray(data.ip_workload) ? data.ip_workload : [];
   const workflowRows = data && Array.isArray(data.workflow_progress) ? data.workflow_progress : [];
   const sessionRows = data && Array.isArray(data.recent_sessions) ? data.recent_sessions : [];
@@ -189,6 +211,9 @@ const AtlasUserDashboard = ({
     borderCollapse: 'collapse',
     fontSize: 12,
   };
+  const tableScrollStyle = {
+    overflowX: 'auto',
+  };
   const thStyle = {
     textAlign: 'left',
     padding: '9px 12px',
@@ -247,6 +272,18 @@ const AtlasUserDashboard = ({
 
   const openSession = (row) => {
     if (onActivateSession) onActivateSession(row);
+    if (onOpenScreen) onOpenScreen('workspace');
+  };
+  const openIp = (row) => {
+    if (onActivateSession) {
+      const workflow = workflowValue(row);
+      const payload = {
+        id: row.session_id || '',
+        ip: row.ip,
+      };
+      if (workflow) payload.workflow = workflow;
+      onActivateSession(payload);
+    }
     if (onOpenScreen) onOpenScreen('workspace');
   };
 
@@ -312,6 +349,56 @@ const AtlasUserDashboard = ({
       </div>
 
       <div style={panelGridStyle}>
+        <div style={panelWideStyle}>
+          <div style={panelHeaderStyle}>
+            <div style={panelTitleStyle}>IP Inventory</div>
+            <div style={metaStyle}>{fmt(metrics.ip_count)} visible IPs</div>
+          </div>
+          <div style={tableScrollStyle}>
+            <table style={tableStyle}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>IP</th>
+                  <th style={thStyle}>Status</th>
+                  <th style={thStyle}>Workspace</th>
+                  <th style={thStyle}>Workflow</th>
+                  <th style={thStyle}>Runs</th>
+                  <th style={thStyle}>Cost</th>
+                  <th style={thStyle}>Updated</th>
+                  <th style={thStyle}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {ipInventoryRows.length === 0 ? (
+                  <tr><td colSpan={8} style={{ ...tdStyle, ...emptyStyle }}>No visible IPs yet.</td></tr>
+                ) : ipInventoryRows.map((row) => {
+                  const duplicate = Number(row.workspace_count || 0) > 1 || Number(row.ip_row_count || 0) > 1;
+                  return (
+                    <tr key={`${row.ip}-${row.workspace_count}-${row.ip_row_count}`}>
+                      <td style={{ ...tdStyle, minWidth: 170, wordBreak: 'break-word' }}>
+                        <div style={{ fontWeight: 700 }}>{row.ip || '-'}</div>
+                        <div style={metaStyle}>
+                          {row.ip_type || row.permission || 'ip'}
+                          {duplicate ? ` / ${fmt(row.ip_row_count)} rows across ${fmt(row.workspace_count)} workspaces` : ''}
+                        </div>
+                      </td>
+                      <td style={tdStyle}><span style={statusBadgeStyle(rowHealth(row))}>{rowHealth(row)}</span></td>
+                      <td style={{ ...tdStyle, minWidth: 160, wordBreak: 'break-word' }}>{workspaceText(row)}</td>
+                      <td style={tdStyle}>{workflowText(row)}</td>
+                      <td style={tdStyle}>{fmt(row.runs)}<div style={metaStyle}>{fmt(row.sessions)} sessions</div></td>
+                      <td style={tdStyle}>{usd(row.cost)}<div style={metaStyle}>{fmt(row.calls)} calls</div></td>
+                      <td style={tdStyle}>{ts(row.last_activity)}</td>
+                      <td style={tdStyle}>
+                        <button type="button" style={buttonStyle} onClick={() => openIp(row)}>Open</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <div style={panelStyle}>
           <div style={panelHeaderStyle}>
             <div style={panelTitleStyle}>Current Focus</div>

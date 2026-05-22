@@ -262,6 +262,144 @@ def _aggregate_ip_workload(sessions: list[dict[str, Any]], contexts: list[dict[s
     return rows
 
 
+def _ip_inventory(
+    db: Any,
+    user_id: str,
+    sessions: list[dict[str, Any]],
+    contexts: list[dict[str, Any]],
+    runs: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    grouped: dict[str, dict[str, Any]] = {}
+
+    def ensure(ip_name: str) -> dict[str, Any]:
+        ip = _text(ip_name) or "unknown"
+        return grouped.setdefault(ip, {
+            "ip": ip,
+            "ip_ids": set(),
+            "workspace_ids": set(),
+            "workspaces": set(),
+            "workspace_paths": set(),
+            "permissions": set(),
+            "ip_type": "",
+            "status": "",
+            "ssot_path": "",
+            "sessions": 0,
+            "runs": 0,
+            "running": 0,
+            "failed": 0,
+            "calls": 0,
+            "cost": 0.0,
+            "tokens": 0,
+            "workflows": set(),
+            "last_workflow": "",
+            "last_status": "",
+            "last_activity": 0,
+        })
+
+    try:
+        ip_rows = db.list_accessible_ip_blocks(user_id, "view")
+    except Exception:
+        ip_rows = []
+
+    for row in ip_rows:
+        item = ensure(row.get("ip_name"))
+        if row.get("id"):
+            item["ip_ids"].add(_text(row.get("id")))
+        if row.get("workspace_id"):
+            item["workspace_ids"].add(_text(row.get("workspace_id")))
+        if row.get("workspace_name"):
+            item["workspaces"].add(_text(row.get("workspace_name")))
+        if row.get("workspace_path"):
+            item["workspace_paths"].add(_text(row.get("workspace_path")))
+        if row.get("permission"):
+            item["permissions"].add(_text(row.get("permission")))
+        if not item["ip_type"] and row.get("ip_type"):
+            item["ip_type"] = _text(row.get("ip_type"))
+        if not item["ssot_path"] and row.get("ssot_path"):
+            item["ssot_path"] = _text(row.get("ssot_path"))
+        if _num(row.get("updated_at")) >= _num(item["last_activity"]):
+            item["status"] = _text(row.get("status")) or item["status"]
+            item["last_activity"] = _num(row.get("updated_at"))
+
+    for session in sessions:
+        ip = _session_ip(session)
+        item = ensure(ip)
+        item["sessions"] += 1
+        workflow = _session_workflow(session)
+        if workflow:
+            item["workflows"].add(workflow)
+        if _num(session.get("updated_at")) >= _num(item["last_activity"]):
+            item["last_activity"] = _num(session.get("updated_at"))
+            item["last_workflow"] = workflow
+            item["last_status"] = _text(session.get("status"))
+
+    for row in contexts:
+        item = ensure(row.get("ip"))
+        item["calls"] += _int(row.get("calls"))
+        item["cost"] += _num(row.get("cost"))
+        item["tokens"] += _int(row.get("tokens"))
+        workflow = _text(row.get("workflow"))
+        if workflow:
+            item["workflows"].add(workflow)
+        if _num(row.get("last_activity")) >= _num(item["last_activity"]):
+            item["last_activity"] = _num(row.get("last_activity"))
+            if workflow:
+                item["last_workflow"] = workflow
+
+    for run in runs:
+        item = ensure(run.get("ip"))
+        status = _text(run.get("status")).lower()
+        workflow = _text(run.get("workflow"))
+        item["runs"] += 1
+        if workflow:
+            item["workflows"].add(workflow)
+        if status in {"running", "in_progress", "queued"}:
+            item["running"] += 1
+        elif status in {"failed", "fail", "error", "blocked", "cancelled", "canceled"}:
+            item["failed"] += 1
+        last_at = _num(run.get("started_at") or run.get("created_at") or run.get("updated_at"))
+        if last_at >= _num(item["last_activity"]):
+            item["last_activity"] = last_at
+            if workflow:
+                item["last_workflow"] = workflow
+            item["last_status"] = status
+
+    rows: list[dict[str, Any]] = []
+    for item in grouped.values():
+        rows.append({
+            "ip": item["ip"],
+            "ip_type": item["ip_type"],
+            "status": item["status"] or item["last_status"] or "active",
+            "ssot_path": item["ssot_path"],
+            "permission": ", ".join(sorted(item["permissions"])) or "",
+            "workspaces": sorted(w for w in item["workspaces"] if w),
+            "workspace_paths": sorted(w for w in item["workspace_paths"] if w),
+            "workspace_count": len(item["workspace_ids"]),
+            "ip_row_count": len(item["ip_ids"]),
+            "sessions": item["sessions"],
+            "runs": item["runs"],
+            "running": item["running"],
+            "failed": item["failed"],
+            "calls": item["calls"],
+            "cost": item["cost"],
+            "tokens": item["tokens"],
+            "workflows": sorted(w for w in item["workflows"] if w),
+            "last_workflow": item["last_workflow"],
+            "last_status": item["last_status"],
+            "last_activity": item["last_activity"],
+        })
+    rows.sort(
+        key=lambda r: (
+            _num(r.get("last_activity")),
+            _num(r.get("cost")),
+            _int(r.get("runs")) + _int(r.get("sessions")) + _int(r.get("calls")),
+            _text(r.get("ip")),
+        ),
+        reverse=True,
+    )
+    return rows
+
+
 def _aggregate_workflows(runs: list[dict[str, Any]], contexts: list[dict[str, Any]]) -> list[dict[str, Any]]:
     grouped: dict[str, dict[str, Any]] = {}
     for run in runs:
@@ -446,10 +584,11 @@ def build_user_dashboard_payload(
     current_session = active_sessions[0] if active_sessions else (sessions[0] if sessions else {})
     current_latest = latest_run_by_session.get(_text(current_session.get("id")))
     ip_workload = _aggregate_ip_workload(sessions, contexts)
+    ip_inventory = _ip_inventory(db, user_id, sessions, contexts, runs)
     workflow_progress = _aggregate_workflows(runs, contexts)
     needs_attention = _needs_attention(db, user_id, runs)
 
-    ip_count = len({_text(row.get("ip")) for row in ip_workload if _text(row.get("ip"))})
+    ip_count = len({_text(row.get("ip")) for row in ip_inventory if _text(row.get("ip"))})
     workflow_count = len({_text(row.get("workflow")) for row in workflow_progress if _text(row.get("workflow"))})
     return {
         "user": _safe_user(user),
@@ -477,6 +616,7 @@ def build_user_dashboard_payload(
             "needs_attention": len(needs_attention),
             "failed_runs": sum(1 for r in runs if _text(r.get("status")).lower() in {"failed", "fail", "error", "blocked"}),
         },
+        "ip_inventory": ip_inventory[:24],
         "ip_workload": ip_workload[:12],
         "workflow_progress": workflow_progress[:12],
         "recent_sessions": recent_sessions,

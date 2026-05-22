@@ -366,7 +366,7 @@ End-to-end smoke after rollout:
 
 ## Pipeline Image redesign (2026-05-18, phase 1)
 
-Source of truth: `ATLAS_UI_ENHANCEMENT/Pipeline Image.html` (self-contained mockup, ~45 KB).
+Source of truth: `artifacts/runtime/ATLAS_UI_ENHANCEMENT/Pipeline Image.html` (self-contained mockup, ~45 KB).
 
 Design language: cyan (`#5fc8eb`) = running, amber (`#f2b632`) = selected route / orchestrator state, green (`#76c893`) = passed, red (`#e85d5d`) = failed. Matches the mockup's `:root` tokens.
 

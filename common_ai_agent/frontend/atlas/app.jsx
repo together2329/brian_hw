@@ -327,7 +327,6 @@ const App = () => {
     }
     return { sessionId: parts[0] || 'default', ipId: '', workflow: '' };
   }, [TOP_WORKFLOWS, isWorkflowSegment, normalizeSession]);
-
   // Bumped to Date.now() whenever the user explicitly picks an IP /
   // workflow / session. While the timestamp is fresh, the periodic
   // /healthz sync defers to the UI selection — otherwise a stale
@@ -375,6 +374,12 @@ const App = () => {
     initialBootstrapNamespace || (holdInitialDashboardActivation ? '' : `${activeSessionId}/default/default`)
   );
   const [activeIp, setActiveIp] = React.useState(initialSplit.ipId || WORKFLOW_DEFAULT);
+  const splitActiveNamespace = React.useCallback(() => {
+    const namespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
+    return namespace
+      ? splitSessionNamespace(namespace)
+      : { sessionId: '', ipId: '', workflow: '' };
+  }, [activeNamespace, normalizeSession, splitSessionNamespace]);
   const [sessionIdOptions, setSessionIdOptions] = React.useState([]);
   const [ipOptions, setIpOptions] = React.useState([]);
   // Inline notice for + IP / + SESSION errors. window.alert/prompt
@@ -724,10 +729,10 @@ const App = () => {
   }, [bootDisplayDone]);
 
   const currentWorkflow = React.useCallback(() => {
-    return splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace).workflow
+    return splitActiveNamespace().workflow
       || normalizeSession(window.CONTEXT && window.CONTEXT.workspace)
       || WORKFLOW_DEFAULT;
-  }, [activeNamespace, normalizeSession, splitSessionNamespace]);
+  }, [normalizeSession, splitActiveNamespace]);
 
   const namespaceFor = React.useCallback((sessionId, ipId, workflow) => {
     const owner = normalizeSession(sessionId) || normalizeSession(window.ATLAS_USER_SESSION_ID || '') || 'default';
@@ -1037,13 +1042,11 @@ const App = () => {
           ''
         );
         const initialUrlNamespace = normalizeSession(initialUrlNamespaceRef.current || '');
-        const currentNamespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
         const parsedUrl = splitSessionNamespace(initialUrlNamespace);
         const parsedCtx = splitSessionNamespace(ctxSession);
         const urlStillOwnsBoot = !!(
           initialUrlNamespace &&
           ctxSession !== initialUrlNamespace &&
-          (currentNamespace === initialUrlNamespace || activeNamespace === initialUrlNamespace) &&
           (!parsedUrl.sessionId || !parsedCtx.sessionId || parsedUrl.sessionId === parsedCtx.sessionId)
         );
         // During login and fast screen changes, /healthz can briefly report
@@ -1125,7 +1128,9 @@ const App = () => {
     // backend log on first connection.
     if (!window.ATLAS_USER) return;
     if (atlasShouldHoldDashboardActivation()) return;
-    const parsed = splitSessionNamespace(window.ACTIVE_SESSION || activeNamespace || '');
+    const currentNamespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
+    if (!currentNamespace) return;
+    const parsed = splitSessionNamespace(currentNamespace);
     if (!parsed.ipId && !parsed.workflow) return;
     // Also bail if the parsed owner is not this user — the auth
     // gate will rewrite localStorage and we'll re-fire then.
@@ -1146,27 +1151,34 @@ const App = () => {
       const sessionId = ev?.detail?.sessionId;
       const namespace = ev?.detail?.namespace;
       if (!sessionId) return;
-      const parsed = splitSessionNamespace(namespace || window.ACTIVE_SESSION || '');
+      const currentNamespace = normalizeSession(namespace || window.ACTIVE_SESSION || activeNamespace || '');
+      const parsed = currentNamespace
+        ? splitSessionNamespace(currentNamespace)
+        : { sessionId: '', ipId: '', workflow: '' };
       const owner = normalizeSession(parsed.sessionId || sessionId);
+      const nextIp = parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT);
+      const nextWorkflow = parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT;
+      const nextNamespace = currentNamespace || namespaceFor(owner, nextIp, nextWorkflow);
       setActiveSessionId(owner);
-      setActiveNamespace(namespace || window.ACTIVE_SESSION || namespaceFor(owner, activeIp, currentWorkflow()));
-      setActiveIp(parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT));
+      setActiveNamespace(nextNamespace);
+      setActiveIp(nextIp);
       syncNamespaceUrl(
-        namespace || window.ACTIVE_SESSION || '',
+        nextNamespace,
         owner,
-        parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || WORKFLOW_DEFAULT),
-        parsed.workflow || WORKFLOW_DEFAULT
+        nextIp,
+        nextWorkflow
       );
       refreshTopTargets();
     };
     window.addEventListener('atlas-session-switched', onSwitch);
     return () => window.removeEventListener('atlas-session-switched', onSwitch);
-  }, [activeIp, currentWorkflow, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace, syncNamespaceUrl]);
+  }, [activeIp, activeNamespace, currentWorkflow, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace, syncNamespaceUrl]);
 
   const selectSessionId = (rawSessionId) => {
     const owner = normalizeSession(rawSessionId) || 'default';
-    const ip = activeIp || WORKFLOW_DEFAULT;
-    const wf = currentWorkflow() || WORKFLOW_DEFAULT;
+    const parsed = splitActiveNamespace();
+    const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
+    const wf = parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT;
     activateNamespace(owner, ip, wf, true);
   };
 
@@ -1175,9 +1187,11 @@ const App = () => {
     // Workflow / ip / session changes are user-driven only — picking
     // an IP keeps whatever workflow segment was already active. Use
     // the workflow dropdown explicitly to change it.
-    const cur = currentWorkflow();
+    const parsed = splitActiveNamespace();
+    const cur = parsed.workflow || currentWorkflow();
     const wf = isWorkflowSegment(cur) ? cur : WORKFLOW_DEFAULT;
-    activateNamespace(activeSessionId, ip, wf, true);
+    const owner = parsed.sessionId || activeSessionId || 'default';
+    activateNamespace(owner, ip, wf, true);
   };
 
   // Switch workflow segment of the active namespace. default is an
@@ -1189,8 +1203,10 @@ const App = () => {
     const preserveRunning = execMode === 'orchestrator';
     const ok = preserveRunning || confirmStopForWorkflowSwitch(wf);
     if (!ok) return;
-    const ip = activeIp || WORKFLOW_DEFAULT;
-    activateNamespace(activeSessionId, ip, wf, true, { preserveRunning });
+    const parsed = splitActiveNamespace();
+    const owner = parsed.sessionId || activeSessionId || 'default';
+    const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
+    activateNamespace(owner, ip, wf, true, { preserveRunning });
   };
 
   const beginNameEntry = (kind) => {
@@ -1206,8 +1222,9 @@ const App = () => {
       return false;
     }
     setSessionIdOptions(prev => Array.from(new Set([owner].concat(prev || []))));
-    const ip = activeIp || WORKFLOW_DEFAULT;
-    const wf = currentWorkflow() || WORKFLOW_DEFAULT;
+    const parsed = splitActiveNamespace();
+    const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
+    const wf = parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT;
     activateNamespace(owner, ip, wf, true);
     return true;
   };
@@ -1473,9 +1490,21 @@ const App = () => {
   }, [activateNamespace, activeIp, activeSessionId, execMode, screen, uiLang]);
 
   const activateDashboardSession = React.useCallback((row) => {
-    const parsed = splitSessionNamespace(String((row && row.id) || ''));
+    const rowNamespace = normalizeSession(String((row && row.id) || ''));
+    const parsed = rowNamespace
+      ? splitSessionNamespace(rowNamespace)
+      : { sessionId: '', ipId: '', workflow: '' };
+    const currentNamespace = normalizeSession(
+      window.ACTIVE_SESSION ||
+      activeNamespace ||
+      (() => { try { return localStorage.getItem('atlasActiveSession') || ''; } catch (_) { return ''; } })()
+    );
+    const current = currentNamespace
+      ? splitSessionNamespace(currentNamespace)
+      : { sessionId: '', ipId: '', workflow: '' };
     const owner = normalizeSession(
       parsed.sessionId ||
+      current.sessionId ||
       activeSessionId ||
       window.ATLAS_USER_SESSION_ID ||
       (window.ATLAS_USER && window.ATLAS_USER.username) ||
@@ -1484,19 +1513,21 @@ const App = () => {
     const ip = normalizeSession(
       (row && row.ip) ||
       parsed.ipId ||
+      current.ipId ||
       activeIp ||
       WORKFLOW_DEFAULT
     ) || WORKFLOW_DEFAULT;
     const workflow = normalizeSession(
       (row && row.workflow) ||
       parsed.workflow ||
+      current.workflow ||
       currentWorkflow() ||
       WORKFLOW_DEFAULT
     ) || WORKFLOW_DEFAULT;
     activateNamespace(owner, ip, workflow, true, {
       preserveRunning: execMode === 'orchestrator',
     });
-  }, [activeIp, activeSessionId, activateNamespace, currentWorkflow, execMode, normalizeSession, splitSessionNamespace]);
+  }, [activeIp, activeNamespace, activeSessionId, activateNamespace, currentWorkflow, execMode, normalizeSession, splitSessionNamespace]);
 
   React.useEffect(() => {
     document.documentElement.setAttribute('data-dir', dir);

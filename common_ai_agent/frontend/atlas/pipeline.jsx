@@ -137,7 +137,7 @@ function readPipeWidth(key, fallback, min, max) {
 
   // Phase bands used to group stage cards. Mirrors the layout sketch in
   // /Users/brian/.claude/plans/i-need-team-chat-magical-koala.md §Layout.
-  // Phase taxonomy matches ATLAS_UI_ENHANCEMENT/Pipeline Image.html mockup:
+  // Phase taxonomy matches artifacts/runtime/ATLAS_UI_ENHANCEMENT/Pipeline Image.html mockup:
   // 6 phases — SSOT, MODELS, RTL, BRANCH, VERIFY·EDA, SIGNOFF.
   window.PIPELINE_PHASES = [
     { id: 'SSOT',       stages: ['ssot'] },
@@ -594,7 +594,7 @@ function PhaseStrip({ stagesState }) {
 // ── /PhaseStrip ───────────────────────────────────────────────────────────────
 
 // ── EnhancedFlowCanvas ────────────────────────────────────────────────────────
-// SVG flow canvas matching ATLAS_UI_ENHANCEMENT/Pipeline Image.html: orchestrator
+// SVG flow canvas matching artifacts/runtime/ATLAS_UI_ENHANCEMENT/Pipeline Image.html: orchestrator
 // bus bar on top, 6 vertical lanes (SSOT / MODELS / RTL / BRANCH / VERIFY·EDA /
 // SIGNOFF), per-stage node boxes with state pills. Wired to pipelineState.stages
 // so it reflects real run progress instead of static mockup data.
