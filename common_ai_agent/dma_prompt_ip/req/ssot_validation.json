@@ -1,0 +1,45 @@
+{
+  "schema_version": "ssot_validation.v2",
+  "ip": "dma_prompt_ip",
+  "mode": "engineering",
+  "ssot": "dma_prompt_ip/yaml/dma_prompt_ip.ssot.yaml",
+  "ok": true,
+  "blockers": [],
+  "warnings": [
+    {
+      "severity": "warning",
+      "id": "ssot.extra_top_level_section",
+      "path": "ip_name",
+      "message": "Extra top-level section 'ip_name' is not part of the canonical schema.",
+      "fix": "Move project-specific data under custom unless a downstream gate explicitly owns this section."
+    },
+    {
+      "severity": "warning",
+      "id": "ssot.extra_top_level_section",
+      "path": "version",
+      "message": "Extra top-level section 'version' is not part of the canonical schema.",
+      "fix": "Move project-specific data under custom unless a downstream gate explicitly owns this section."
+    },
+    {
+      "severity": "warning",
+      "id": "ssot.extra_top_level_section",
+      "path": "created",
+      "message": "Extra top-level section 'created' is not part of the canonical schema.",
+      "fix": "Move project-specific data under custom unless a downstream gate explicitly owns this section."
+    },
+    {
+      "severity": "warning",
+      "id": "ssot.extra_top_level_section",
+      "path": "description",
+      "message": "Extra top-level section 'description' is not part of the canonical schema.",
+      "fix": "Move project-specific data under custom unless a downstream gate explicitly owns this section."
+    }
+  ],
+  "check_ssot_disk": {
+    "ok": true,
+    "returncode": 0,
+    "stdout": "[check_ssot_disk] PASS: dma_prompt_ip/yaml/dma_prompt_ip.ssot.yaml = 53198B, 34 sections, 0 TBDs, mode=engineering\n",
+    "stderr": ""
+  },
+  "preview_contract": "strict"
+}

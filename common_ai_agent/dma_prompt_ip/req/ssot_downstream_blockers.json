@@ -1,0 +1,6 @@
+{
+  "schema_version": "ssot_downstream_blockers.v1",
+  "ip": "dma_prompt_ip",
+  "ssot": "dma_prompt_ip/yaml/dma_prompt_ip.ssot.yaml",
+  "issues": []
+}
