@@ -66,3 +66,10 @@
 2026-05-19T08:23:36 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=dma_scratch_orch_live_20260519b/tb/cocotb/test_runner.py
 2026-05-19T08:42:08 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=dma_scratch_orch_live_20260519b/tb/cocotb/test_runner.py
 2026-05-19T09:15:59 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=dma_scratch_orch_live_20260519b/tb/cocotb/test_runner.py
+2026-05-21T22:19:32 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=atlas_vr_smoke_0521/tb/cocotb/test_runner.py
+2026-05-21T22:25:33 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=atlas_vr_smoke_0521/tb/cocotb/test_runner.py
+2026-05-21T22:27:29 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=atlas_vr_smoke_0521/tb/cocotb/test_runner.py
+2026-05-21T22:32:33 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=atlas_vr_smoke_0521/tb/cocotb/test_runner.py
+2026-05-21T22:34:03 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=atlas_vr_smoke_0521/tb/cocotb/test_runner.py
+2026-05-21T22:37:19 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=atlas_vr_smoke_0521/tb/cocotb/test_runner.py
+2026-05-21T22:40:18 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=atlas_vr_smoke_0521/tb/cocotb/test_runner.py

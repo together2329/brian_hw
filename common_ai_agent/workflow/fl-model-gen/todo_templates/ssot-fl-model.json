@@ -10,25 +10,25 @@
       "status": "pending"
     },
     {
-      "content": "Generate <ip>/model/functional_model.py with FunctionalModel.apply(txn)",
+      "content": "Generate model/functional_model.py with FunctionalModel.apply(txn) in the active IP root",
       "detail": "Write an executable Python reference model independent of RTL. The model must implement the actual SSOT transaction vocabulary, state updates, side effects, error cases, invariants, and reset behavior. Do not emit unrelated AXI/APB/memory/cpu helper behavior unless the SSOT explicitly describes that behavior.",
       "criteria": "functional_model.py exists\nFunctionalModel.apply(txn) dispatches every SSOT transaction or returns a precise unsupported transaction tied to an SSOT question\nModel state variables trace to function_model.state_variables\nExpected outputs are computed from SSOT behavior, not observed RTL\nNo IP-specific common_ai_agent generator branch was added",
       "status": "pending"
     },
     {
-      "content": "Generate <ip>/model/decomposition.json tracing FL submodels to SSOT sections",
+      "content": "Generate model/decomposition.json tracing FL submodels to SSOT sections in the active IP root",
       "detail": "Decompose the model into protocol, register/CSR, memory/FIFO, datapath, FSM/scenario, error, security/safety, debug/observability, and cycle submodels when present in SSOT. The unit list must drive RTL partitioning, TB agents, and coverage planning.",
       "criteria": "decomposition.json exists\nEach unit has kind, source_sections, rtl_candidates, and verification_impact\nUnits cover all SSOT sections that affect behavior\ncomplete=true only when no behavioral source section is unassigned",
       "status": "pending"
     },
     {
-      "content": "Generate <ip>/cov/fcov_plan.json before RTL signoff",
+      "content": "Generate cov/fcov_plan.json before RTL signoff in the active IP root",
       "detail": "Plan functional bins from scenarios, transaction types, protocol/header fields, state transitions, error cases, reset/clear behavior, debug/status observability, security/safety cases, and cycle/backpressure rules as applicable. This plan is the closure target for TB-gen and coverage.",
       "criteria": "fcov_plan.json exists\nplanned_before_rtl=true\nEvery scenario has at least one bin\nEvery function_model transaction has at least one bin\nEvery cycle_model/error/FSM/debug requirement affecting behavior has a bin or explicit waiver/escalation",
       "status": "pending"
     },
     {
-      "content": "Run FL self-check and write <ip>/model/fl_model_check.json",
+      "content": "Run FL self-check and write model/fl_model_check.json in the active IP root",
       "detail": "Execute the generated Python model self-check. The report must include pass/fail, transaction coverage over SSOT function_model.transactions, invariant checks, reset checks, error-case checks, and coverage-bin count. A pass without transaction traceability is rejected.",
       "criteria": "fl_model_check.json exists\npassed=true\nEvery SSOT transaction id/name is represented in transaction_results or equivalent traceability\nInvariant/reset/error checks pass\nReport points to functional_model.py and current SSOT",
       "status": "pending"

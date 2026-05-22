@@ -4,3 +4,5 @@ scoreboard=arm_m0_min/sim/scoreboard_events.jsonl
 coverage_functional=arm_m0_min/cov/coverage_functional.json
 waveforms=arm_m0_min/sim/arm_m0_min.vcd
 0 errors, 0 warnings
+[SIM ESCALATE] scoreboard_failed=24 owner=sim_debug evidence=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arm_m0_min/sim/scoreboard_events.jsonl
+[SIM ESCALATE] reason=FL-vs-RTL scoreboard mismatch: EQ_TRANSACTION_TX_DECODE_EXEC: i_haddr: expected=2 observed=4; EQ_SCENARIO_SC_ALU: i_haddr: expected=2 observed=4; EQ_SCENARIO_SC_CMP_BRANCH: i_haddr: expected=2 observed=4; EQ_SCENARIO_SC_IF_STALL: i_haddr: expected=2 observed=0; EQ_TIMING_ORDERING_1: i_haddr: expected=2 observed=6; EQ_STATE_CORE_RESET_TO_RUN_0: i_haddr: expected=2 observed=0; EQ_STATE_CORE_RUN_TO_STALL_IF_1: i_haddr: expected=2 observed=0; EQ_STATE_CORE_STALL_IF_TO_RUN_2: i_haddr: expected=2 observed=6; ... +16 more

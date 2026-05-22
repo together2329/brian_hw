@@ -79,7 +79,6 @@
         "cycle_model.pipeline",
         "cycle_model.pipeline.ex_wb",
         "cycle_model.pipeline.id",
-        "cycle_model.pipeline.if",
         "cycle_model.reset",
         "dataflow",
         "dataflow.ordering",
@@ -95,10 +94,6 @@
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
         "function_model.invariants.invariant_4",
-        "function_model.state_variables.nzcv_q",
-        "function_model.state_variables.pc_q",
-        "function_model.state_variables.rf_q",
-        "function_model.state_variables.trap_q",
         "function_model.transactions.FM_CPU_STEP",
         "function_model.transactions.fm_cpu_step",
         "function_model.transactions.fm_cpu_step.error_cases.error_case_0",
@@ -149,10 +144,6 @@
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
         "function_model.invariants.invariant_4",
-        "function_model.state_variables.nzcv_q",
-        "function_model.state_variables.pc_q",
-        "function_model.state_variables.rf_q",
-        "function_model.state_variables.trap_q",
         "function_model.transactions.fm_cpu_step",
         "function_model.transactions.fm_cpu_step.error_cases.error_case_0",
         "function_model.transactions.fm_cpu_step.error_cases.error_case_1",
@@ -186,7 +177,6 @@
         "cycle_model.ordering.ordering_4",
         "cycle_model.pipeline.ex_wb",
         "cycle_model.pipeline.id",
-        "cycle_model.pipeline.if",
         "cycle_model.reset"
       ],
       "structural_refs": [
@@ -234,6 +224,7 @@
       "ssot_refs": [
         "cycle_model",
         "cycle_model.pipeline",
+        "cycle_model.pipeline.if",
         "dataflow",
         "dataflow.ordering",
         "dataflow.sequence",
@@ -243,13 +234,15 @@
         "parameters"
       ],
       "function_model_refs": [],
-      "cycle_model_refs": [],
+      "cycle_model_refs": [
+        "cycle_model.pipeline.if"
+      ],
       "structural_refs": [],
       "verification_impact": [
         "module-level FL-vs-RTL scoreboard",
         "module functional coverage"
       ],
-      "requires_module_equivalence": false,
+      "requires_module_equivalence": true,
       "blocked": false,
       "blocker": ""
     },
@@ -374,12 +367,21 @@
       "ssot_refs": [
         "function_model",
         "function_model.state_variables",
+        "function_model.state_variables.nzcv_q",
+        "function_model.state_variables.pc_q",
+        "function_model.state_variables.rf_q",
+        "function_model.state_variables.trap_q",
         "memory.instances.regfile_storage",
         "parameters",
         "registers",
         "registers.register_list"
       ],
-      "function_model_refs": [],
+      "function_model_refs": [
+        "function_model.state_variables.nzcv_q",
+        "function_model.state_variables.pc_q",
+        "function_model.state_variables.rf_q",
+        "function_model.state_variables.trap_q"
+      ],
       "cycle_model_refs": [],
       "structural_refs": [
         "memory.instances.regfile_storage"
@@ -388,7 +390,7 @@
         "module-level FL-vs-RTL scoreboard",
         "module functional coverage"
       ],
-      "requires_module_equivalence": false,
+      "requires_module_equivalence": true,
       "blocked": false,
       "blocker": ""
     },
@@ -614,7 +616,6 @@
         "cycle_model.pipeline",
         "cycle_model.pipeline.ex_wb",
         "cycle_model.pipeline.id",
-        "cycle_model.pipeline.if",
         "cycle_model.reset",
         "dataflow",
         "dataflow.ordering",
@@ -630,10 +631,6 @@
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
         "function_model.invariants.invariant_4",
-        "function_model.state_variables.nzcv_q",
-        "function_model.state_variables.pc_q",
-        "function_model.state_variables.rf_q",
-        "function_model.state_variables.trap_q",
         "function_model.transactions.FM_CPU_STEP",
         "function_model.transactions.fm_cpu_step",
         "function_model.transactions.fm_cpu_step.error_cases.error_case_0",
@@ -684,10 +681,6 @@
         "function_model.invariants.invariant_2",
         "function_model.invariants.invariant_3",
         "function_model.invariants.invariant_4",
-        "function_model.state_variables.nzcv_q",
-        "function_model.state_variables.pc_q",
-        "function_model.state_variables.rf_q",
-        "function_model.state_variables.trap_q",
         "function_model.transactions.fm_cpu_step",
         "function_model.transactions.fm_cpu_step.error_cases.error_case_0",
         "function_model.transactions.fm_cpu_step.error_cases.error_case_1",
@@ -721,7 +714,6 @@
         "cycle_model.ordering.ordering_4",
         "cycle_model.pipeline.ex_wb",
         "cycle_model.pipeline.id",
-        "cycle_model.pipeline.if",
         "cycle_model.reset"
       ],
       "structural_refs": [
@@ -746,96 +738,80 @@
       ],
       "owner_matches": [
         {
-          "ref": "function_model.state_variables.pc_q",
-          "matched_ref": "function_model"
-        },
-        {
-          "ref": "function_model.state_variables.rf_q",
-          "matched_ref": "function_model"
-        },
-        {
-          "ref": "function_model.state_variables.nzcv_q",
-          "matched_ref": "function_model"
-        },
-        {
-          "ref": "function_model.state_variables.trap_q",
-          "matched_ref": "function_model"
-        },
-        {
           "ref": "function_model.transactions.fm_cpu_step",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.preconditions.precondition_0",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.preconditions.precondition_1",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.preconditions.precondition_2",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.outputs.output_0",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.outputs.output_1",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.outputs.output_2",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.output_rules.retire_pulse",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.output_rules.trap_flag",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.state_updates.pc_q",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.state_updates.rf_q",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.state_updates.nzcv_q",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.side_effects.side_effect_0",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.side_effects.side_effect_1",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.side_effects.side_effect_2",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.side_effects.side_effect_3",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.error_cases.error_case_0",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.error_cases.error_case_1",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.transactions.fm_cpu_step.error_cases.error_case_2",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM_CPU_STEP"
         },
         {
           "ref": "function_model.invariants.invariant_0",
@@ -882,16 +858,12 @@
           "matched_ref": "cycle_model"
         },
         {
-          "ref": "cycle_model.pipeline.if",
-          "matched_ref": "cycle_model"
-        },
-        {
           "ref": "cycle_model.pipeline.id",
-          "matched_ref": "cycle_model"
+          "matched_ref": "cycle_model.pipeline"
         },
         {
           "ref": "cycle_model.pipeline.ex_wb",
-          "matched_ref": "cycle_model"
+          "matched_ref": "cycle_model.pipeline"
         },
         {
           "ref": "cycle_model.ordering.ordering_0",
@@ -973,19 +945,19 @@
         },
         {
           "ref": "registers.register_list.xpsr",
-          "matched_ref": "registers"
+          "matched_ref": "registers.register_list"
         },
         {
           "ref": "registers.register_list.pc",
-          "matched_ref": "registers"
+          "matched_ref": "registers.register_list"
         },
         {
           "ref": "registers.register_list.exc_cause",
-          "matched_ref": "registers"
+          "matched_ref": "registers.register_list"
         },
         {
           "ref": "registers.register_list.exc_epc",
-          "matched_ref": "registers"
+          "matched_ref": "registers.register_list"
         }
       ],
       "verification_scope": "module",
@@ -1008,6 +980,7 @@
       "ssot_refs": [
         "cycle_model",
         "cycle_model.pipeline",
+        "cycle_model.pipeline.if",
         "dataflow",
         "dataflow.ordering",
         "dataflow.sequence",
@@ -1017,12 +990,19 @@
         "parameters"
       ],
       "function_model_refs": [],
-      "cycle_model_refs": [],
+      "cycle_model_refs": [
+        "cycle_model.pipeline.if"
+      ],
       "structural_refs": [],
-      "owner_matches": [],
+      "owner_matches": [
+        {
+          "ref": "cycle_model.pipeline.if",
+          "matched_ref": "cycle_model.pipeline"
+        }
+      ],
       "structural_owner_matches": [],
       "verification_scope": "module",
-      "requires_module_equivalence": false,
+      "requires_module_equivalence": true,
       "blocked": false,
       "blocker": ""
     },
@@ -1136,17 +1116,43 @@
       "ssot_refs": [
         "function_model",
         "function_model.state_variables",
+        "function_model.state_variables.nzcv_q",
+        "function_model.state_variables.pc_q",
+        "function_model.state_variables.rf_q",
+        "function_model.state_variables.trap_q",
         "memory.instances.regfile_storage",
         "parameters",
         "registers",
         "registers.register_list"
       ],
-      "function_model_refs": [],
+      "function_model_refs": [
+        "function_model.state_variables.nzcv_q",
+        "function_model.state_variables.pc_q",
+        "function_model.state_variables.rf_q",
+        "function_model.state_variables.trap_q"
+      ],
       "cycle_model_refs": [],
       "structural_refs": [
         "memory.instances.regfile_storage"
       ],
-      "owner_matches": [],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.pc_q",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.rf_q",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.nzcv_q",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.state_variables.trap_q",
+          "matched_ref": "function_model.state_variables"
+        }
+      ],
       "structural_owner_matches": [
         {
           "ref": "memory.instances.regfile_storage",
@@ -1154,7 +1160,7 @@
         }
       ],
       "verification_scope": "module",
-      "requires_module_equivalence": false,
+      "requires_module_equivalence": true,
       "blocked": false,
       "blocker": ""
     },

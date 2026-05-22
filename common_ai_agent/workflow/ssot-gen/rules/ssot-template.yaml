@@ -16,7 +16,7 @@
 # Usage:
 #   1. Copy this template: cp rules/ssot-template.yaml <ip>/yaml/<ip>_ssot.yaml
 #   2. Fill in all sections (LLM-assisted)
-#   3. Validate: workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering
+#   3. Validate: python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering
 #   4. Handoff: /ssot-rtl, /ssot-tb, sim_debug, coverage/EDA workflows
 # =============================================================================
 
@@ -341,8 +341,8 @@ function_model:
 # =============================================================================
 cycle_model:
   purpose: "Cycle/handshake contract for rtl-gen; describes when state, valid/ready, outputs, and interrupts may change."
-  executable: "pymtl3"
-  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle and run direct Python smoke checks instead of relying on pytest-pymtl3."
+  executable: "python"
+  backend_policy: "Use the repo-owned pure-Python deterministic stepper; keep FunctionalModel as the behavioral oracle and run direct Python smoke checks."
   clock: "dmaclk"
   reset:
     assertion: "dmacresetn low asynchronously clears all architectural state"
@@ -958,13 +958,41 @@ traceability:
 # =============================================================================
 # Optional but authoritative downstream work items. Use this when the SSOT owner
 # knows a specific next-step task that generic section expansion may not express
-# precisely enough. Each item must preserve content/detail/criteria.
+# precisely enough. Each item must preserve command/script/instructions plus
+# content/detail/criteria/source_refs so the next workflow can execute from a
+# concrete ledger instead of rediscovering intent from prose.
 workflow_todos:
+  ssot-gen:
+    - id: "SSOT_WRITE_VALIDATE_FROM_EVIDENCE"
+      content: "Write and validate the canonical SSOT YAML from approved evidence"
+      detail: "Use import manifest, extracted decisions, wiki import evidence, and approved Q&A as the only behavior sources; the template is schema/order only."
+      command: "/to-ssot <ip>"
+      script: "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py"
+      run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering && python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering"
+      instructions:
+        - "Read <ip>/req/import_manifest.json, <ip>/req/extracted_decisions.json, <ip>/wiki/import-evidence.md, and approved SSOT Q&A before writing."
+        - "Populate canonical sections only from source-backed evidence or explicit no-feature policy."
+        - "Do not copy example IP behavior from this template; preserve only the schema/order contract."
+        - "Run repair_ssot_schema.py and verify_ssot.py after the YAML edit and keep blockers open until fixed."
+      criteria:
+        - "SSOT YAML exists at <ip>/yaml/<ip>.ssot.yaml and uses the canonical top-level keys."
+        - "Every imported numeric/register/interface fact traces to import manifest, import evidence, or approved Q&A."
+        - "verify_ssot.py --mode engineering returns zero blockers after the final write."
+      source_refs: ["req/import_manifest.json", "req/extracted_decisions.json", "wiki/import-evidence.md"]
+      priority: "high"
+      required: true
   fl-model-gen: []
   rtl-gen:
     - id: "RTL_TODO_EXAMPLE"
       content: "Implement the SSOT-declared transaction pipeline"
       detail: "Translate function_model transaction acceptance, cycle_model timing, and ownership refs into RTL state/datapath/control logic."
+      command: "/ssot-rtl <ip>"
+      script: "$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py"
+      run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --audit-rtl"
+      instructions:
+        - "Derive the dynamic RTL TODO ledger from this SSOT before editing RTL."
+        - "Implement only owner_file/owner_module behavior traced by source_refs."
+        - "Rerun derive_rtl_todos.py --audit-rtl after edits and close tasks only with live RTL evidence."
       criteria:
         - "RTL owner logic is present in the declared owner_file"
         - "FunctionalModel expected result and RTL observed result can be compared for the referenced source_refs"
@@ -987,7 +1015,7 @@ workflow_todos:
 # =============================================================================
 generation_flow:
   steps:
-    - { name: "verify_ssot", command: "python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode ${ATLAS_RUN_MODE:-signoff}", description: "Validate production SSOT structure, Preview fields, function_model, cycle_model, DV plan, and quality gates" }
+    - { name: "verify_ssot", command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode ${ATLAS_RUN_MODE:-signoff}", description: "Validate production SSOT structure, Preview fields, function_model, cycle_model, DV plan, and quality gates" }
     - { name: "handoff_fl_model", command: "/ssot-fl-model <ip>", description: "fl-model-gen writes FunctionalModel, decomposition, and FCOV plan from SSOT" }
     - { name: "handoff_equivalence_goals", command: "/ssot-equiv-goals <ip>", description: "fl-model-gen derives FL-vs-RTL equivalence goals for TB scoreboards and sim_debug" }
     - { name: "handoff_rtl", command: "/ssot-rtl <ip>", description: "rtl-gen writes RTL directly from the SSOT and proves compile/lint gates" }

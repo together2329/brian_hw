@@ -82,7 +82,7 @@
       {
         "gate_kind": "common_ai_agent_authoring",
         "owner_module": "generic_counter_ip",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "status": "open",
@@ -130,7 +130,7 @@
         "prerequisites": [
           "An LLM authoring pass emitted or repaired DUT RTL files."
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "stage_sequence": [
           "ssot-rtl"
@@ -243,7 +243,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "required": true,
         "status": "open"
       }
@@ -389,7 +389,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "6085059178e14479206db427a5c4c939e11c365a2211f88d153c9c2417e23573",
+  "todo_plan_sha256": "c3aee053a7c47fa83b671a7c16c3d120057822beb3701c2334595163d70231dc",
   "top": "generic_counter_ip",
   "type": "rtl_authoring_packet"
 }

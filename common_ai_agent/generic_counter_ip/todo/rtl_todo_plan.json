@@ -40,7 +40,7 @@
     "static_missing": 0,
     "status": "fail"
   },
-  "generated_at": "2026-05-16T13:10:23Z",
+  "generated_at": "2026-05-22T01:42:28Z",
   "ip": "generic_counter_ip",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 0,
@@ -105,7 +105,7 @@
       "control_flow": 1,
       "depth_score": 9,
       "instances": 0,
-      "lines": 15,
+      "lines": 16,
       "logic_modules": 1,
       "modules": 1,
       "nonconstant_assigns": 0,
@@ -535,7 +535,7 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "required": true,
         "status": "open"
       }
@@ -640,7 +640,7 @@
       "content": "Gate: RTL sources contain no placeholder markers or disallowed generated-RTL constructs",
       "criteria": [
         "Listed RTL source files contain no TODO/TBD/FIXME/HACK markers",
-        "Listed RTL source files contain no placeholder/stub/dummy/not-implemented implementation text",
+        "Listed RTL source files contain no audit-banned incomplete/fake implementation text",
         "Listed RTL source files and rtl/<ip>_param.vh contain no banned package/function/task/loop constructs",
         "Default generated RTL uses input/output logic ports and portable always @ syntax",
         "FSMs use the conventional explicit style by default, unless SSOT/user specifies another synthesizable style",
@@ -648,7 +648,7 @@
         "Traceability keeps source_ref quality_gates.rtl_gen.rtl_placeholder_free_evidence",
         "Primary implementation evidence is in rtl/generic_counter_ip.sv"
       ],
-      "detail": "Production RTL cannot carry TODO/TBD/FIXME/stub/dummy/not-implemented markers in source code or comments. Generated RTL uses the project SystemVerilog subset: ANSI ports default to input/output logic, with no package/import/interface/modport, no function/task, no for/while, and no typedef/enum/always_ff/always_comb. If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract.\nSSOT ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.",
+      "detail": "Production RTL cannot carry audit-banned incomplete/fake implementation markers in source code or comments. Generated RTL uses the project SystemVerilog subset: ANSI ports default to input/output logic, with no package/import/interface/modport, no function/task, no for/while, and no typedef/enum/always_ff/always_comb. If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract.\nSSOT ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.",
       "evidence_terms": [],
       "gate_todo": {
         "artifact": "rtl/rtl_todo_plan.json",
@@ -1587,7 +1587,7 @@
     "open_tasks": [
       {
         "category": "rtl_gate.rtl_gen",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "task_id": "RTL-0006"
       },

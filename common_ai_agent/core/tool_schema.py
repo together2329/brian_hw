@@ -39,7 +39,7 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "  • Looking for a function/class name → grep_file\n"
             "Example: read_file(path='src/main.py')"
         ),
-        {"path": {"type": "string", "description": "Absolute or relative file path to read. Examples: 'src/main.py', './config.json', '/home/user/project/lib.py'"}},
+        {"path": {"type": "string", "description": "File path RELATIVE to the project root (cwd). Examples: 'src/main.py', 'workflow/ssot-gen/rules/ssot-template.yaml'. Do not prefix with /Users/ or /home/ — those are not valid project paths."}},
         required=["path"],
     ),
     "read_lines": _fn(
@@ -144,6 +144,10 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "Execute a shell command and return stdout + stderr.\n"
             "Use for: running tests, compiling code, git commands, installing packages, checking tool output.\n"
             "Avoid running long-running interactive commands (they will time out).\n"
+            "In ATLAS IP sessions, commands run from the active IP root; use paths like "
+            "rtl/foo.sv, model/functional_model.py, and list/<ip>.f, not <ip>/rtl/foo.sv. "
+            "If a legacy <ip>/... path is present, the tool runs from ATLAS_PROJECT_ROOT instead "
+            "to avoid nested <ip>/<ip>/... artifacts.\n"
             "For file reading/searching, prefer read_file/grep_file/find_files over shell commands — "
             "those tools parse output and handle errors better.\n"
             "Examples:\n"
@@ -151,7 +155,7 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "  run_command(command='git log --oneline -10')\n"
             "  run_command(command='pip install requests')"
         ),
-        {"command": {"type": "string", "description": "Shell command string to execute. Runs in project root. Supports pipes, &&, etc."}},
+        {"command": {"type": "string", "description": "Shell command string to execute. Runs in the active IP root when ATLAS_ACTIVE_IP is set, otherwise the project root. Supports pipes, &&, etc."}},
         required=["command"],
     ),
     "list_dir": _fn(

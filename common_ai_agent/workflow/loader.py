@@ -22,6 +22,20 @@ from pathlib import Path
 from typing import Optional
 
 
+SOURCE_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _workflow_root(project_root: Path) -> Path:
+    raw = os.environ.get("ATLAS_WORKFLOW_ROOT", "").strip()
+    base = Path(raw).expanduser() if raw else project_root / "workflow"
+    if (base / "ssot-gen").is_dir():
+        return base.resolve()
+    if (base / "workflow" / "ssot-gen").is_dir():
+        return (base / "workflow").resolve()
+    fallback = SOURCE_ROOT / "workflow"
+    return fallback.resolve() if fallback.is_dir() else base.resolve()
+
+
 # ─────────────────────────────────────────────────────────────
 # Trigger → HookPoint name mapping (string-based, no HookPoint import needed)
 # ─────────────────────────────────────────────────────────────
@@ -110,11 +124,11 @@ class WorkspaceConfig:
 
 def load_workspace(name: str, project_root: Path) -> WorkspaceConfig:
     """
-    Load workspace from <project_root>/workflow/<name>/workspace.json.
+    Load workspace from <workflow_root>/<name>/workspace.json.
     Reads .md prompt files and hook_messages.json automatically.
     Raises FileNotFoundError if workspace directory does not exist.
     """
-    ws_dir = project_root / "workflow" / name
+    ws_dir = _workflow_root(project_root) / name
     if not ws_dir.exists():
         raise FileNotFoundError(f"Workspace '{name}' not found at {ws_dir}")
 
@@ -229,7 +243,7 @@ def apply_workspace_env_early(project_root: Path) -> Optional[str]:
     if not ws_name:
         return None
 
-    ws_json = project_root / "workflow" / ws_name / "workspace.json"
+    ws_json = _workflow_root(project_root) / ws_name / "workspace.json"
     if not ws_json.exists():
         return ws_name  # name only; actual load happens in _setup_workspace
 

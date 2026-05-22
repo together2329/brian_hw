@@ -2,10 +2,10 @@
   "schema_version": 1,
   "type": "functional_coverage",
   "status": "pass",
-  "timestamp_iso": "2026-05-14T13:51:18Z",
+  "timestamp_iso": "2026-05-21T01:44:03Z",
   "functional": {
-    "hit": 55,
-    "total": 55,
+    "hit": 86,
+    "total": 86,
     "pct": 100.0,
     "bins": {
       "fcov_fm_tx_byte": {
@@ -25,18 +25,18 @@
       },
       "fcov_err_parity": {
         "hit": true,
-        "goal_id": "EQ_TRANSACTION_FM_RX_BYTE",
-        "scenario_id": "SC_002_EQ_TRANSACTION_FM_RX_BYTE"
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_043_EQ_ERROR_NONE"
       },
       "fcov_err_frame": {
         "hit": true,
-        "goal_id": "EQ_TRANSACTION_FM_RX_BYTE",
-        "scenario_id": "SC_002_EQ_TRANSACTION_FM_RX_BYTE"
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_043_EQ_ERROR_NONE"
       },
       "fcov_err_overrun": {
         "hit": true,
-        "goal_id": "EQ_TRANSACTION_FM_RX_BYTE",
-        "scenario_id": "SC_002_EQ_TRANSACTION_FM_RX_BYTE"
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_043_EQ_ERROR_NONE"
       },
       "function_receive_byte": {
         "hit": true,
@@ -125,13 +125,13 @@
       },
       "SC5_executed": {
         "hit": true,
-        "goal_id": "EQ_SCENARIO_SC5",
-        "scenario_id": "SC_009_EQ_SCENARIO_SC5"
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_043_EQ_ERROR_NONE"
       },
       "SC6_executed": {
         "hit": true,
-        "goal_id": "EQ_SCENARIO_SC6",
-        "scenario_id": "SC_010_EQ_SCENARIO_SC6"
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_043_EQ_ERROR_NONE"
       },
       "SC7_executed": {
         "hit": true,
@@ -165,8 +165,8 @@
       },
       "cycle_handshake_2": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_DBG_FRAMES_ERR",
-        "scenario_id": "SC_039_EQ_REGISTER_DBG_FRAMES_ERR"
+        "goal_id": "EQ_REGISTER_DBG_PARITIES_ERR",
+        "scenario_id": "SC_040_EQ_REGISTER_DBG_PARITIES_ERR"
       },
       "cycle_handshake_3": {
         "hit": true,
@@ -175,113 +175,268 @@
       },
       "cycle_ordering_0": {
         "hit": true,
-        "goal_id": "EQ_TIMING_ORDERING_1",
-        "scenario_id": "SC_027_EQ_TIMING_ORDERING_1"
+        "goal_id": "EQ_TIMING_ORDERING_2",
+        "scenario_id": "SC_028_EQ_TIMING_ORDERING_2"
       },
       "cycle_ordering_1": {
         "hit": true,
-        "goal_id": "EQ_TIMING_ORDERING_1",
-        "scenario_id": "SC_027_EQ_TIMING_ORDERING_1"
+        "goal_id": "EQ_TIMING_ORDERING_2",
+        "scenario_id": "SC_028_EQ_TIMING_ORDERING_2"
       },
       "cycle_ordering_2": {
         "hit": true,
-        "goal_id": "EQ_TIMING_ORDERING_1",
-        "scenario_id": "SC_027_EQ_TIMING_ORDERING_1"
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_043_EQ_ERROR_NONE"
       },
       "cycle_latency_register_read": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_DBG_FRAMES_ERR",
-        "scenario_id": "SC_039_EQ_REGISTER_DBG_FRAMES_ERR"
+        "goal_id": "EQ_REGISTER_DBG_PARITIES_ERR",
+        "scenario_id": "SC_040_EQ_REGISTER_DBG_PARITIES_ERR"
       },
       "cycle_latency_register_write": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_DBG_FRAMES_ERR",
-        "scenario_id": "SC_039_EQ_REGISTER_DBG_FRAMES_ERR"
+        "goal_id": "EQ_REGISTER_DBG_PARITIES_ERR",
+        "scenario_id": "SC_040_EQ_REGISTER_DBG_PARITIES_ERR"
+      },
+      "fsm_tx_fsm_tx_idle_to_tx_start_0": {
+        "hit": true,
+        "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
+        "scenario_id": "SC_051_EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7"
+      },
+      "fsm_tx_fsm_tx_start_to_tx_data_1": {
+        "hit": true,
+        "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
+        "scenario_id": "SC_051_EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7"
+      },
+      "fsm_tx_fsm_tx_data_to_tx_parity_2": {
+        "hit": true,
+        "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
+        "scenario_id": "SC_051_EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7"
+      },
+      "fsm_tx_fsm_tx_data_to_tx_stop1_3": {
+        "hit": true,
+        "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
+        "scenario_id": "SC_051_EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7"
+      },
+      "fsm_tx_fsm_tx_parity_to_tx_stop1_4": {
+        "hit": true,
+        "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
+        "scenario_id": "SC_051_EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7"
+      },
+      "fsm_tx_fsm_tx_stop1_to_tx_idle_5": {
+        "hit": true,
+        "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
+        "scenario_id": "SC_051_EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7"
+      },
+      "fsm_tx_fsm_tx_stop1_to_tx_stop2_6": {
+        "hit": true,
+        "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
+        "scenario_id": "SC_051_EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7"
+      },
+      "fsm_tx_fsm_tx_stop2_to_tx_idle_7": {
+        "hit": true,
+        "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
+        "scenario_id": "SC_051_EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7"
+      },
+      "fsm_rx_fsm_rx_idle_to_rx_start_detect_0": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
+      },
+      "fsm_rx_fsm_rx_start_detect_to_rx_start_confirm_1": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
+      },
+      "fsm_rx_fsm_rx_start_detect_to_rx_idle_2": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
+      },
+      "fsm_rx_fsm_rx_start_confirm_to_rx_data_3": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
+      },
+      "fsm_rx_fsm_rx_data_to_rx_parity_4": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
+      },
+      "fsm_rx_fsm_rx_data_to_rx_stop1_5": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
+      },
+      "fsm_rx_fsm_rx_parity_to_rx_stop1_6": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
+      },
+      "fsm_rx_fsm_rx_stop1_to_rx_idle_7": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
+      },
+      "fsm_rx_fsm_rx_stop1_to_rx_stop2_8": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
+      },
+      "fsm_rx_fsm_rx_stop2_to_rx_idle_9": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
+      },
+      "error_error_0": {
+        "hit": true,
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_043_EQ_ERROR_NONE"
+      },
+      "error_error_1": {
+        "hit": true,
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_043_EQ_ERROR_NONE"
+      },
+      "error_error_2": {
+        "hit": true,
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_043_EQ_ERROR_NONE"
+      },
+      "error_error_3": {
+        "hit": true,
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_043_EQ_ERROR_NONE"
       },
       "cycle_latency_tx_byte": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_043_EQ_ERROR_NONE"
       },
       "cycle_latency_rx_byte": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_043_EQ_ERROR_NONE"
       },
       "cycle_pipeline_tx_start": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_STATE_TX_FSM_TX_START_TO_TX_DATA_1",
+        "scenario_id": "SC_045_EQ_STATE_TX_FSM_TX_START_TO_TX_DATA_1"
       },
       "cycle_pipeline_tx_data": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_STATE_TX_FSM_TX_DATA_TO_TX_STOP1_3",
+        "scenario_id": "SC_047_EQ_STATE_TX_FSM_TX_DATA_TO_TX_STOP1_3"
       },
       "cycle_pipeline_tx_parity": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_STATE_TX_FSM_TX_PARITY_TO_TX_STOP1_4",
+        "scenario_id": "SC_048_EQ_STATE_TX_FSM_TX_PARITY_TO_TX_STOP1_4"
       },
       "cycle_pipeline_tx_stop1": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_STATE_TX_FSM_TX_STOP1_TO_TX_STOP2_6",
+        "scenario_id": "SC_050_EQ_STATE_TX_FSM_TX_STOP1_TO_TX_STOP2_6"
       },
       "cycle_pipeline_tx_stop2": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
+        "scenario_id": "SC_051_EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7"
       },
       "cycle_perf_throughput": {
         "hit": true,
         "goal_id": "EQ_REGISTER_BAUD",
         "scenario_id": "SC_031_EQ_REGISTER_BAUD"
       },
-      "fsm_tx_fsm_tx_idle_to_tx_start_0": {
+      "ccov_tx_idle": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
+        "scenario_id": "SC_051_EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7"
       },
-      "fsm_tx_fsm_tx_start_to_tx_data_1": {
+      "cycle_pipeline_tx_idle": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
+        "scenario_id": "SC_051_EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7"
       },
-      "fsm_tx_fsm_tx_data_to_tx_parity_2": {
+      "cycle_backpressure_0": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7",
+        "scenario_id": "SC_051_EQ_STATE_TX_FSM_TX_STOP2_TO_TX_IDLE_7"
       },
-      "fsm_tx_fsm_tx_data_to_tx_stop1_3": {
+      "ccov_tx_data": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_STATE_TX_FSM_TX_DATA_TO_TX_STOP1_3",
+        "scenario_id": "SC_047_EQ_STATE_TX_FSM_TX_DATA_TO_TX_STOP1_3"
       },
-      "fsm_tx_fsm_tx_parity_to_tx_stop1_4": {
+      "cycle_pipeline_rx_idle": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
       },
-      "fsm_tx_fsm_tx_stop1_to_tx_idle_5": {
+      "cycle_pipeline_rx_start_detect": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_STATE_RX_FSM_RX_START_DETECT_TO_RX_IDLE_2",
+        "scenario_id": "SC_054_EQ_STATE_RX_FSM_RX_START_DETECT_TO_RX_IDLE_2"
       },
-      "fsm_tx_fsm_tx_stop1_to_tx_stop2_6": {
+      "cycle_pipeline_rx_start_confirm": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
       },
-      "fsm_tx_fsm_tx_stop2_to_tx_idle_7": {
+      "cycle_backpressure_1": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_BAUD",
-        "scenario_id": "SC_031_EQ_REGISTER_BAUD"
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
       },
-      "error_error_0": {
+      "ccov_rx_start_confirm": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_DBG_FRAMES_ERR",
-        "scenario_id": "SC_039_EQ_REGISTER_DBG_FRAMES_ERR"
+        "goal_id": "EQ_STATE_RX_FSM_RX_START_CONFIRM_TO_RX_DATA_3",
+        "scenario_id": "SC_055_EQ_STATE_RX_FSM_RX_START_CONFIRM_TO_RX_DATA_3"
+      },
+      "ccov_rx_data": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_DATA_TO_RX_STOP1_5",
+        "scenario_id": "SC_057_EQ_STATE_RX_FSM_RX_DATA_TO_RX_STOP1_5"
+      },
+      "cycle_pipeline_rx_data": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_DATA_TO_RX_STOP1_5",
+        "scenario_id": "SC_057_EQ_STATE_RX_FSM_RX_DATA_TO_RX_STOP1_5"
+      },
+      "cycle_pipeline_rx_parity": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_PARITY_TO_RX_STOP1_6",
+        "scenario_id": "SC_058_EQ_STATE_RX_FSM_RX_PARITY_TO_RX_STOP1_6"
+      },
+      "cycle_pipeline_rx_stop1": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP1_TO_RX_STOP2_8",
+        "scenario_id": "SC_060_EQ_STATE_RX_FSM_RX_STOP1_TO_RX_STOP2_8"
+      },
+      "cycle_pipeline_rx_stop2": {
+        "hit": true,
+        "goal_id": "EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9",
+        "scenario_id": "SC_061_EQ_STATE_RX_FSM_RX_STOP2_TO_RX_IDLE_9"
+      },
+      "ccov_perf_fifo_depth": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CCOV_PERF_FIFO_DEPTH",
+        "scenario_id": "SC_066_EQ_COVERAGE_CCOV_PERF_FIFO_DEPTH"
+      },
+      "cycle_perf_outstanding": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+        "scenario_id": "SC_067_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING"
+      },
+      "cycle_perf_depth": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+        "scenario_id": "SC_068_EQ_COVERAGE_CYCLE_PERF_DEPTH"
+      },
+      "cycle_perf_frequency_mhz": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "scenario_id": "SC_069_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
       }
     }
   }

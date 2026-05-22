@@ -2423,6 +2423,27 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
             )
         )
 
+    # Two-root layout — IP work happens under one cwd, but ATLAS's own
+    # workflow/ templates + scripts live next to the atlas_ui.py source.
+    # Without this hint the LLM fabricates a path like
+    # `<cwd>/workflow/...` (or worse, /Users/.../ROOT_IP/workflow/...)
+    # for ssot-template.yaml even though the real file is under the
+    # ATLAS source tree, not the IP working dir.
+    _cwd = os.getcwd()
+    _atlas_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    _workflow_root = os.path.join(_atlas_root, "workflow")
+    parts.append(
+        f"FILESYSTEM LAYOUT (two roots):\n"
+        f"  IP_ROOT      = {_cwd}   ← cwd, where IPs (uart, arbiter, ...) live as direct subdirs\n"
+        f"  WORKFLOW_ROOT = {_workflow_root}   ← ATLAS workflow templates / scripts / prompts\n"
+        f"\n"
+        f"Path rules:\n"
+        f"  • IP paths: relative to IP_ROOT, e.g. 'uart_v2/yaml/uart_v2.ssot.yaml'\n"
+        f"  • Workflow paths: use absolute WORKFLOW_ROOT prefix, e.g.\n"
+        f"    '{_workflow_root}/ssot-gen/rules/ssot-template.yaml'\n"
+        f"  • Do NOT invent absolute prefixes like /Users/.../ROOT_IP/workflow/ — that path does not exist.\n"
+    )
+
     # Tool table (skip in native mode — LLM sees schemas via API tools param)
     if _native_mode:
         parts.append("TOOLS: (use function tools provided by the API)\n")

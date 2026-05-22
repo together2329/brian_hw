@@ -3,7 +3,7 @@
   "type": "generic_goal_scoreboard_cocotb_generation",
   "status": "pass",
   "ip": "dma_scratch_orch_live_20260519b",
-  "generated_at": "2026-05-19T00:14:46Z",
+  "generated_at": "2026-05-20T23:55:08Z",
   "manifest": "dma_scratch_orch_live_20260519b/tb/cocotb/tb_manifest.json",
   "test": "dma_scratch_orch_live_20260519b/tb/cocotb/test_dma_scratch_orch_live_20260519b.py",
   "runner": "dma_scratch_orch_live_20260519b/tb/cocotb/test_runner.py",

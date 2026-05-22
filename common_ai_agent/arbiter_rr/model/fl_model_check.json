@@ -20,14 +20,14 @@
           "transaction_id": "FM1",
           "transaction_name": "arbitrate_grant",
           "sample_accepted": 1,
-          "grant_index": 0,
-          "gnt_idx_o": 0,
-          "grant": 1,
-          "gnt_o": 1,
+          "grant_index": 1,
+          "gnt_idx_o": 1,
+          "grant": 2,
+          "gnt_o": 2,
           "grant_valid": 1,
           "gnt_valid_o": 1,
           "state_updates": {
-            "last_winner": 0
+            "last_winner": 1
           }
         }
       },
@@ -48,7 +48,7 @@
           "grant_index": 0,
           "gnt_idx_o": 0,
           "state_updates": {
-            "last_winner": 0
+            "last_winner": 1
           }
         }
       }

@@ -1,0 +1,37 @@
+{
+  "error": "",
+  "finish_reason": "",
+  "finished_at": "2026-05-21T14:33:38Z",
+  "input_hash": "2fedc5f1adc3b6dfb47ca631afebeb7bf558202eedf80c86c5337718e1fef5eb",
+  "model": "gpt-5.3-codex",
+  "output_hash": "e0c29681dbc8913532bd07c068b685dadb7148b9ecb5eb373763476f7d00454f",
+  "parsed_artifacts": [
+    {
+      "content": "module model_compare_counter_core #(\n    parameter integer COUNT_WIDTH = 8,\n    parameter integer STEP_WIDTH  = 4\n) (\n    input  logic                    clk,\n    input  logic                    rst_n,\n    input  logic                    enable,\n    input  logic                    clear,\n    input  logic [STEP_WIDTH-1:0]   step,\n    output logic [COUNT_WIDTH-1:0]  count,\n    output logic                    wrapped,\n    output logic                    valid\n);\n\n    // SSOT memory.instances.count_state_ff (depth=1, width=COUNT_WIDTH, latency=0)\n    logic [COUNT_WIDTH-1:0] count_state_ff;\n    // SSOT memory.instances.wrapped_state_ff (depth=1, width=1, latency=0)\n    logic                   wrapped_state_ff;\n    // SSOT memory.instances.valid_state_ff (depth=1, width=1, latency=0)\n    logic                   valid_state_ff;\n\n    // Zero-extend step for modulo counter update and carry detection.\n    logic [COUNT_WIDTH-1:0] step_ext;\n    logic [COUNT_WIDTH:0]   sum_ext;\n\n    // Explicit clear-enable arbitration signal for cycle_model.handshake_rules.clear_enable_priority.\n    logic clear_enable_priority;\n    logic clear_priority_taken;\n\n    assign step_ext = {{(COUNT_WIDTH-STEP_WIDTH){1'b0}}, step};\n    assign sum_ext  = {1'b0, count_state_ff} + {1'b0, step_ext};\n\n    // clear_enable_priority is true only when both controls are sampled high in the same cycle.\n    assign clear_enable_priority = clear & enable;\n    // clear branch has priority over update branch for both clear-only and clear+enable cycles.\n    assign clear_priority_taken  = clear | clear_enable_priority;\n\n    // Single sequential process implementing reset, clear-priority, update, and idle behavior.\n    // latency=1 contract: outputs/state for sampled inputs are committed on this edge.\n    always @(posedge clk or negedge rst_n) begin\n        if (!rst_n) begin\n            count_state_ff   <= {COUNT_WIDTH{1'b0}};\n            wrapped_state_ff <= 1'b0;\n            valid_state_ff   <= 1'b0;\n        end else if (clear_priority_taken) begin\n            // Clear has priority over enable.\n            count_state_ff   <= {COUNT_WIDTH{1'b0}};\n            wrapped_state_ff <= 1'b0;\n            valid_state_ff   <= 1'b0;\n        end else if (enable) begin\n            // Enabled update: modulo count and overflow pulse.\n            count_state_ff   <= sum_ext[COUNT_WIDTH-1:0];\n            wrapped_state_ff <= sum_ext[COUNT_WIDTH];\n            valid_state_ff   <= 1'b1;\n        end else begin\n            // Idle: hold count and deassert one-cycle pulse outputs.\n            count_state_ff   <= count_state_ff;\n            wrapped_state_ff <= 1'b0;\n            valid_state_ff   <= 1'b0;\n        end\n    end\n\n    // Architectural outputs map directly to the corresponding state FFs.\n    assign count   = count_state_ff;\n    assign wrapped = wrapped_state_ff;\n    assign valid   = valid_state_ff;\n\nendmodule\n",
+      "kind": "rtl",
+      "path": "model_compare_counter/rtl/model_compare_counter_core.sv"
+    }
+  ],
+  "prompt_hash": "bf0290493197b0cccbbb05b48aa69fa646ffd3f97c6e820776a680a09d4145e5",
+  "raw_response": "{\"files\":[{\"path\":\"model_compare_counter/rtl/model_compare_counter_core.sv\",\"kind\":\"rtl\",\"content\":\"module model_compare_counter_core #(\\n    parameter integer COUNT_WIDTH = 8,\\n    parameter integer STEP_WIDTH  = 4\\n) (\\n    input  logic                    clk,\\n    input  logic                    rst_n,\\n    input  logic                    enable,\\n    input  logic                    clear,\\n    input  logic [STEP_WIDTH-1:0]   step,\\n    output logic [COUNT_WIDTH-1:0]  count,\\n    output logic                    wrapped,\\n    output logic                    valid\\n);\\n\\n    // SSOT memory.instances.count_state_ff (depth=1, width=COUNT_WIDTH, latency=0)\\n    logic [COUNT_WIDTH-1:0] count_state_ff;\\n    // SSOT memory.instances.wrapped_state_ff (depth=1, width=1, latency=0)\\n    logic                   wrapped_state_ff;\\n    // SSOT memory.instances.valid_state_ff (depth=1, width=1, latency=0)\\n    logic                   valid_state_ff;\\n\\n    // Zero-extend step for modulo counter update and carry detection.\\n    logic [COUNT_WIDTH-1:0] step_ext;\\n    logic [COUNT_WIDTH:0]   sum_ext;\\n\\n    // Explicit clear-enable arbitration signal for cycle_model.handshake_rules.clear_enable_priority.\\n    logic clear_enable_priority;\\n    logic clear_priority_taken;\\n\\n    assign step_ext = {{(COUNT_WIDTH-STEP_WIDTH){1'b0}}, step};\\n    assign sum_ext  = {1'b0, count_state_ff} + {1'b0, step_ext};\\n\\n    // clear_enable_priority is true only when both controls are sampled high in the same cycle.\\n    assign clear_enable_priority = clear & enable;\\n    // clear branch has priority over update branch for both clear-only and clear+enable cycles.\\n    assign clear_priority_taken  = clear | clear_enable_priority;\\n\\n    // Single sequential process implementing reset, clear-priority, update, and idle behavior.\\n    // latency=1 contract: outputs/state for sampled inputs are committed on this edge.\\n    always @(posedge clk or negedge rst_n) begin\\n        if (!rst_n) begin\\n            count_state_ff   <= {COUNT_WIDTH{1'b0}};\\n            wrapped_state_ff <= 1'b0;\\n            valid_state_ff   <= 1'b0;\\n        end else if (clear_priority_taken) begin\\n            // Clear has priority over enable.\\n            count_state_ff   <= {COUNT_WIDTH{1'b0}};\\n            wrapped_state_ff <= 1'b0;\\n            valid_state_ff   <= 1'b0;\\n        end else if (enable) begin\\n            // Enabled update: modulo count and overflow pulse.\\n            count_state_ff   <= sum_ext[COUNT_WIDTH-1:0];\\n            wrapped_state_ff <= sum_ext[COUNT_WIDTH];\\n            valid_state_ff   <= 1'b1;\\n        end else begin\\n            // Idle: hold count and deassert one-cycle pulse outputs.\\n            count_state_ff   <= count_state_ff;\\n            wrapped_state_ff <= 1'b0;\\n            valid_state_ff   <= 1'b0;\\n        end\\n    end\\n\\n    // Architectural outputs map directly to the corresponding state FFs.\\n    assign count   = count_state_ff;\\n    assign wrapped = wrapped_state_ff;\\n    assign valid   = valid_state_ff;\\n\\nendmodule\\n\"}]}",
+  "stage": "rtl-gen",
+  "started_at": "2026-05-21T14:33:28Z",
+  "status": "pass",
+  "usage": {
+    "cache_created": 0,
+    "cache_read": 14080,
+    "cost": {
+      "pricing_per_1m": {
+        "cache": 0.875,
+        "input": 1.75,
+        "output": 14.0
+      },
+      "usd": 0.083405
+    },
+    "input": 46124,
+    "output": 1072,
+    "total": 47196,
+    "total_cache_created": 0,
+    "total_cache_read": 14080
+  }
+}

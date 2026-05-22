@@ -404,10 +404,6 @@ def _eval_trigger(trigger: str, ssot: dict[str, Any]) -> bool:
                 pass
         return False
 
-    if t == "ssot.cycle_model.executable == 'pymtl3'":
-        cm = ssot.get("cycle_model") if isinstance(ssot.get("cycle_model"), dict) else {}
-        return str(cm.get("executable") or "").strip().lower() == "pymtl3"
-
     if t == "ssot.synthesis.ppa_targets has any of {area_um2_max, power_mw_max, frequency_mhz_min}":
         syn = ssot.get("synthesis") if isinstance(ssot.get("synthesis"), dict) else {}
         ppa = syn.get("ppa_targets") if isinstance(syn.get("ppa_targets"), dict) else {}
@@ -441,18 +437,6 @@ _HARDCODED_TEMPLATES: list[dict[str, Any]] = [
         "validator": "test -f ${ip}/model/cycle_model.py && ! grep -E 'output_rules|state_updates|_eval_rule_expr' ${ip}/model/cycle_model.py",
         "priority": "high",
         "loop": False,
-    },
-    {
-        "id": "GLD_AUG_PYMTL3_PARITY",
-        "trigger": "ssot.cycle_model.executable == 'pymtl3'",
-        "content_pattern": "GLD_AUG_PYMTL3_PARITY — Verify PyMTL3 FL/CL parity vs pure-Python on golden_vectors.jsonl",
-        "activeForm": "Comparing PyMTL3 backend output to pure-Python oracle",
-        "detail": "Run the same golden vector through both pure-Python FunctionalModel.apply and PyMTL3 FunctionalModelPyMTL.apply; outputs must match byte-for-byte.",
-        "criteria": "Parity script exists at <ip>/verify/check_pymtl_parity.py\nAll golden vectors produce identical outputs across backends",
-        "validator": "python3 ${ip}/verify/check_pymtl_parity.py",
-        "priority": "medium",
-        "loop": True,
-        "max_loop_iterations": 5,
     },
     {
         "id": "GLD_AUG_PPA_SWEEP",

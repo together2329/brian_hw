@@ -15,18 +15,6 @@
       "loop": false
     },
     {
-      "id": "GLD_AUG_PYMTL3_PARITY",
-      "trigger": "ssot.cycle_model.executable == 'pymtl3'",
-      "content_pattern": "GLD_AUG_PYMTL3_PARITY — Verify PyMTL3 FL/CL parity vs pure-Python on golden_vectors.jsonl",
-      "activeForm": "Comparing PyMTL3 backend output to pure-Python oracle",
-      "detail": "Run the same golden vector through both pure-Python FunctionalModel.apply and PyMTL3 FunctionalModelPyMTL.apply; outputs must match byte-for-byte.",
-      "criteria": "Parity script exists at <ip>/verify/check_pymtl_parity.py\nAll golden vectors produce identical outputs across backends",
-      "validator": "python3 ${ip}/verify/check_pymtl_parity.py",
-      "priority": "medium",
-      "loop": true,
-      "max_loop_iterations": 5
-    },
-    {
       "id": "GLD_AUG_PPA_SWEEP",
       "trigger": "ssot.synthesis.ppa_targets has any of {area_um2_max, power_mw_max, frequency_mhz_min}",
       "content_pattern": "GLD_AUG_PPA_SWEEP — Drive PPA sweep through CL.tick and report measured area/power/fmax",

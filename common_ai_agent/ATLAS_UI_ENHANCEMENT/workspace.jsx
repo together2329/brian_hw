@@ -1120,12 +1120,22 @@ const SessionSwitcher = ({ currentSession, streaming, onSwitch }) => {
   );
 };
 
-const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
+const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeWorkflow = '' }) => {
   // Two-axis mode model:
   //   intent: 'normal' | 'plan'   (top-level — shift+tab to swap)
   //   workflow: null | 'ssot' | 'rtl_gen' | 'lint' | 'tb_gen'
   const [intent, setIntent] = React.useState('normal');
   const [workflow, setWorkflow] = React.useState(null);
+
+  React.useEffect(() => {
+    const nextWorkflow = String(activeWorkflow || '').trim();
+    const known = (window.FLOW_STAGES || []).some(s => s && s.id === nextWorkflow);
+    if (!nextWorkflow || nextWorkflow === 'default') {
+      setWorkflow(null);
+    } else if (known) {
+      setWorkflow(nextWorkflow);
+    }
+  }, [activeWorkflow]);
 
   // Column widths (drag-resizable, persisted in localStorage).
   // 0 = collapsed; any positive width is clamped to [min, max].
@@ -1810,7 +1820,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko' }) => {
       }
       if (ev.detail === 'SCOPE_PATH') {
         const activeWorkflow = workflowFromSession(window.ACTIVE_SESSION || '');
-        activateSession(window.SCOPE_PATH || '', activeWorkflow || workflow || (window.CONTEXT && window.CONTEXT.workspace) || '');
+        activateSession(window.SCOPE_PATH || '', activeWorkflow || (window.CONTEXT && window.CONTEXT.workspace) || '');
       }
     };
     onData({ detail: 'CONTEXT' });
@@ -6725,6 +6735,15 @@ const stripYamlScalar = (value) => {
   return text.replace(/\s+/g, ' ').trim();
 };
 
+const formatBitRange = (value) => {
+  const text = stripYamlScalar(value);
+  if (!text) return '';
+  const pair = text.match(/^\[?\s*(\d+)\s*(?:,|:|-|\s+)\s*(\d+)\s*\]?$/);
+  if (pair) return pair[1] === pair[2] ? pair[1] : `${pair[1]}:${pair[2]}`;
+  const single = text.match(/^\[?\s*(\d+)\s*\]?$/);
+  return single ? single[1] : text;
+};
+
 const fieldFromText = (text, key, max = 260) => {
   const lines = String(text || '').split(/\r?\n/);
   const rx = new RegExp(`^\\s*(?:-\\s*)?${rxEscape(key)}:\\s*(.*)$`);
@@ -6983,6 +7002,10 @@ const extractRegisters = (section) => {
     reset: blockField(block, 'reset'),
     description: blockField(block, 'description', 300),
     fields: listBlocksFromText(block.text, 'fields').map(field => ({
+      bits: formatBitRange(blockField(field, 'bits')
+        || blockField(field, 'bit')
+        || blockField(field, 'range')
+        || blockField(field, 'position')),
       name: blockField(field, 'name') || 'field',
       access: blockField(field, 'access'),
       reset: blockField(field, 'reset'),

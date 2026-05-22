@@ -4,5 +4,3 @@ scoreboard=atcwdt200/sim/scoreboard_events.jsonl
 coverage_functional=atcwdt200/cov/coverage_functional.json
 waveforms=atcwdt200/sim/atcwdt200.vcd
 0 errors, 0 warnings
-[SIM ESCALATE] scoreboard_failed=11 owner=sim_debug evidence=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/atcwdt200/sim/scoreboard_events.jsonl
-[SIM ESCALATE] reason=FL-vs-RTL scoreboard mismatch: EQ_TRANSACTION_APB_READ: prdata: expected=0 observed=50339842; EQ_TRANSACTION_WRITE_UNLOCK: no comparable RTL observable for FunctionalModel result; EQ_TRANSACTION_RESTART: no comparable RTL observable for FunctionalModel result; EQ_TRANSACTION_TIMEOUT_DECODE: no comparable RTL observable for FunctionalModel result; EQ_SCENARIO_APB_REGISTER_ACCESS: prdata: expected=0 observed=50339842; EQ_SCENARIO_RESTART_COMMAND: no comparable RTL observable for FunctionalModel result; EQ_REGISTER_VER: prdata: expected=0 observed=50339842; EQ_STATE_WATCHDOG_ST_INTTIME_TO_ST_RSTTIME_0: no comparable RTL observable for FunctionalModel result; ... +3 more

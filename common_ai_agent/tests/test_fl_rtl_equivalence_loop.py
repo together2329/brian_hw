@@ -1237,6 +1237,14 @@ def test_generated_driver_handles_fsm_reset_transitions_without_false_reset(monk
     assert bus_error_stimulus["i_hresp"] == 1
     assert bus_error_stimulus["d_hresp"] == 1
     assert ns["_goal_wait_cycles"](bus_error, manifest) == 3
+    assert ns["_default_field_value"]("clear", 0) == 0
+    assert ns["_default_field_value"]("cmd_clear", 0) == 0
+    control_manifest = {
+        "input_map": {"clear": "clear_i", "enable": "enable_i"},
+        "port_widths": {"clear_i": 1, "enable_i": 1},
+    }
+    assert ns["_idle_input_value"](control_manifest, "clear_i") == 0
+    assert ns["_idle_input_value"](control_manifest, "enable_i") == 0
 
     class Signal:
         def __init__(self):

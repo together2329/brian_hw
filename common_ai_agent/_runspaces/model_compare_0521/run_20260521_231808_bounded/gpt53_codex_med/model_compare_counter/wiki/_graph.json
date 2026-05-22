@@ -1,0 +1,347 @@
+{
+  "schema_version": "ip_wiki_graph.v1",
+  "generated_at": "2026-05-21T21:43:55Z",
+  "root": "model_compare_counter/wiki",
+  "node_count": 11,
+  "edge_count": 14,
+  "tags": {
+    "artifact": [
+      "audit",
+      "cl_model",
+      "coverage",
+      "filelist",
+      "fl_model",
+      "last_run",
+      "lint",
+      "rtl",
+      "sim",
+      "ssot",
+      "tb"
+    ],
+    "cl-model-gen": [
+      "cl_model"
+    ],
+    "coverage": [
+      "coverage"
+    ],
+    "equiv-goals": [
+      "audit"
+    ],
+    "fl-model-gen": [
+      "fl_model"
+    ],
+    "lint": [
+      "lint"
+    ],
+    "rtl-gen": [
+      "filelist",
+      "rtl"
+    ],
+    "run-log": [
+      "last_run"
+    ],
+    "sim": [
+      "sim"
+    ],
+    "ssot": [
+      "ssot"
+    ],
+    "tb-gen": [
+      "tb"
+    ]
+  },
+  "types": {
+    "log": [
+      "last_run"
+    ],
+    "reference": [
+      "audit",
+      "cl_model",
+      "coverage",
+      "filelist",
+      "fl_model",
+      "lint",
+      "rtl",
+      "sim",
+      "ssot",
+      "tb"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "audit",
+      "title": "model_compare_counter Equivalence Goals",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "equiv-goals"
+      ],
+      "related": [
+        "fl_model",
+        "rtl"
+      ],
+      "outgoing": [
+        "fl_model",
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-21T14:29:14Z",
+      "summary": "goals=34 blocked=0",
+      "status": "pass",
+      "digest": "goals=34 blocked=0",
+      "path": "model_compare_counter/verify/equivalence_goals.json",
+      "size_bytes": 101583
+    },
+    {
+      "id": "cl_model",
+      "title": "model_compare_counter CycleModel",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "cl-model-gen"
+      ],
+      "related": [
+        "ssot"
+      ],
+      "outgoing": [
+        "ssot"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-21T14:29:13Z",
+      "summary": "cycle_model.py size=16262B",
+      "status": "present",
+      "digest": "cycle_model.py size=16262B",
+      "path": "model_compare_counter/model/cycle_model.py",
+      "size_bytes": 16262
+    },
+    {
+      "id": "coverage",
+      "title": "model_compare_counter Coverage",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "coverage"
+      ],
+      "related": [
+        "sim"
+      ],
+      "outgoing": [
+        "sim"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-21T21:43:54Z",
+      "summary": "reports=5",
+      "status": "present",
+      "digest": "reports=5",
+      "path": "model_compare_counter/cov/coverage.json",
+      "size_bytes": 83252
+    },
+    {
+      "id": "filelist",
+      "title": "model_compare_counter filelist",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "rtl-gen"
+      ],
+      "related": [
+        "rtl"
+      ],
+      "outgoing": [
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-21T14:33:38Z",
+      "summary": "model_compare_counter.f size=63B",
+      "status": "present",
+      "digest": "model_compare_counter.f size=63B",
+      "path": "model_compare_counter/list/model_compare_counter.f",
+      "size_bytes": 63
+    },
+    {
+      "id": "fl_model",
+      "title": "model_compare_counter FunctionalModel",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "fl-model-gen"
+      ],
+      "related": [
+        "ssot"
+      ],
+      "outgoing": [
+        "ssot"
+      ],
+      "incoming": [
+        "rtl",
+        "tb",
+        "sim",
+        "audit"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-21T14:29:14Z",
+      "summary": "check=pass",
+      "status": "pass",
+      "digest": "check=pass",
+      "path": "model_compare_counter/model/functional_model.py",
+      "size_bytes": 60236
+    },
+    {
+      "id": "last_run",
+      "title": "model_compare_counter last run",
+      "type": "log",
+      "tags": [
+        "artifact",
+        "run-log"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-21T21:43:55Z",
+      "summary": "stages=4 last=goal-audit:pass",
+      "status": "pass",
+      "digest": "stages=4 last=goal-audit:pass",
+      "path": "model_compare_counter/logs/headless_run.json",
+      "size_bytes": 12834
+    },
+    {
+      "id": "lint",
+      "title": "model_compare_counter Lint",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "lint"
+      ],
+      "related": [
+        "rtl"
+      ],
+      "outgoing": [
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-21T21:31:25Z",
+      "summary": "errors=0 warnings=0",
+      "status": "pass",
+      "digest": "errors=0 warnings=0",
+      "path": "model_compare_counter/lint/dut_lint.json",
+      "size_bytes": 1759
+    },
+    {
+      "id": "rtl",
+      "title": "model_compare_counter RTL",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "rtl-gen"
+      ],
+      "related": [
+        "ssot",
+        "fl_model"
+      ],
+      "outgoing": [
+        "ssot",
+        "fl_model"
+      ],
+      "incoming": [
+        "filelist",
+        "lint",
+        "tb",
+        "sim",
+        "audit"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-21T21:31:23Z",
+      "summary": "files=2 compile_errors=0 surface=headless_common_engine",
+      "status": "pass",
+      "digest": "files=2 compile_errors=0 surface=headless_common_engine",
+      "path": "model_compare_counter/rtl",
+      "size_bytes": 512
+    },
+    {
+      "id": "sim",
+      "title": "model_compare_counter Simulation",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "sim"
+      ],
+      "related": [
+        "rtl",
+        "tb",
+        "fl_model"
+      ],
+      "outgoing": [
+        "rtl",
+        "tb",
+        "fl_model"
+      ],
+      "incoming": [
+        "coverage"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-21T21:43:54Z",
+      "summary": "results.xml=present scoreboard_events=present",
+      "status": "present",
+      "digest": "results.xml=present scoreboard_events=present",
+      "path": "model_compare_counter/sim",
+      "size_bytes": 416
+    },
+    {
+      "id": "ssot",
+      "title": "model_compare_counter SSOT",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "fl_model",
+        "cl_model",
+        "rtl"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-21T14:29:12Z",
+      "summary": "sections=36 size=36465B",
+      "status": "present",
+      "digest": "sections=36 size=36465B",
+      "path": "model_compare_counter/yaml/model_compare_counter.ssot.yaml",
+      "size_bytes": 36465
+    },
+    {
+      "id": "tb",
+      "title": "model_compare_counter Testbench",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "tb-gen"
+      ],
+      "related": [
+        "rtl",
+        "fl_model"
+      ],
+      "outgoing": [
+        "rtl",
+        "fl_model"
+      ],
+      "incoming": [
+        "sim"
+      ],
+      "broken_refs": [],
+      "updated": "2026-05-21T21:37:25Z",
+      "summary": "manifest=yes",
+      "status": "present",
+      "digest": "manifest=yes",
+      "path": "model_compare_counter/tb",
+      "size_bytes": 160
+    }
+  ],
+  "ip": "model_compare_counter"
+}

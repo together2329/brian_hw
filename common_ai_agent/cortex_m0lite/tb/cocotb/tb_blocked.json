@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "type": "tb_blocker",
+  "status": "blocked",
+  "owner": "ssot-gen + rtl-gen + tb-gen",
+  "ip": "cortex_m0lite",
+  "reason": "SSOT/RTL contract is not concrete enough for generic cocotb scoreboard generation.",
+  "questions": [
+    {
+      "id": "TB_INPUT_MAP_LOAD",
+      "decision_needed": "Map transaction field 'load' to a real input port.",
+      "evidence": "rtl_contract.input_map.load='instr_data', but 'instr_data' is not an input port.",
+      "options": [
+        "Repair rtl_contract.input_map or io_list."
+      ],
+      "recommended_default": "Repair rtl_contract.input_map or io_list.",
+      "downstream_effect": "The cocotb driver must know which DUT pin receives each FunctionalModel field."
+    },
+    {
+      "id": "TB_OUTPUT_PC_NEXT",
+      "decision_needed": "Map observable 'pc_next' to a real output port.",
+      "evidence": "rtl_contract output port 'pc' is not an SSOT output port.",
+      "options": [
+        "Repair function_model.output_rules[].port or io_list."
+      ],
+      "recommended_default": "Repair function_model.output_rules[].port or io_list.",
+      "downstream_effect": "The cocotb monitor must observe the same value that FunctionalModel predicts."
+    },
+    {
+      "id": "TB_OUTPUT_BUSY_NEXT",
+      "decision_needed": "Map observable 'busy_next' to a real output port.",
+      "evidence": "rtl_contract output port 'busy' is not an SSOT output port.",
+      "options": [
+        "Repair function_model.output_rules[].port or io_list."
+      ],
+      "recommended_default": "Repair function_model.output_rules[].port or io_list.",
+      "downstream_effect": "The cocotb monitor must observe the same value that FunctionalModel predicts."
+    }
+  ],
+  "next_action": "Repair SSOT/RTL contract through ATLAS, rerun /ssot-rtl, then rerun /tb.",
+  "timestamp": "2026-05-20T23:55:21Z"
+}

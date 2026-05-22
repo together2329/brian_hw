@@ -1013,14 +1013,25 @@ const App = () => {
     setActiveSessionId(me);
     setActiveNamespace(namespace);
     window.ACTIVE_SESSION = namespace;
+    window.CONTEXT = Object.assign({}, window.CONTEXT || {}, {
+      active_session: namespace,
+      session_id: me,
+      ip_id: ip,
+      ip,
+      workspace: 'ssot-gen',
+      active_workflow: 'ssot-gen',
+    });
+    window.SCOPE_PATH = ip;
     try { localStorage.setItem('atlasActiveSession', namespace); } catch (_) {}
     syncNamespaceUrl(namespace, me, ip, 'ssot-gen');
+    try { window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' })); } catch (_) {}
     if (window.atlasData && typeof window.atlasData.setUserSessionId === 'function') {
       window.atlasData.setUserSessionId(me);
     }
     if (window.atlasData && typeof window.atlasData.setScopePath === 'function') {
       window.atlasData.setScopePath(ip);
     }
+    try { window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' })); } catch (_) {}
     // /api/session/activate synchronously loads ssot-gen now, so /new-ip
     // can be queued directly without a redundant `/wf ssot-gen` racing
     // behind it.
@@ -1575,7 +1586,7 @@ const App = () => {
             ? <ErrorBoundary label="Pipeline"><window.AtlasPipeline /></ErrorBoundary>
             : screen === 'architect' && window.SocArchitect
               ? <ErrorBoundary label="Architect"><window.SocArchitect /></ErrorBoundary>
-              : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} /></ErrorBoundary>}
+              : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} activeNamespace={activeNamespace} activeWorkflow={currentWorkflow()} /></ErrorBoundary>}
         </div>
         {/* App-level StatusBar removed — model / tokens / iter / rate /
             SAFE chips were duplicated by the right-side AgentStatusPanel,

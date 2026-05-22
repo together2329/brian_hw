@@ -28,7 +28,7 @@
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
 - Tool-evidence blockers:
-  - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
+  - common_ai_agent_authoring: RTL authoring provenance is incomplete: todo_plan_sha256
   - dynamic_todo_closure: 1 required non-closure TODO(s) remain open.
 - Tool-evidence runbook:
   - common_ai_agent_authoring: stages=ssot-rtl; artifact=generic_counter_ip/rtl/rtl_authoring_provenance.json
@@ -47,7 +47,7 @@
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
-- Current reason: Missing common_ai_agent RTL authoring provenance.
+- Current reason: RTL authoring provenance is incomplete: todo_plan_sha256
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent

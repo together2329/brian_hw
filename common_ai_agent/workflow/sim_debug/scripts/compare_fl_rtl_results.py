@@ -5,10 +5,20 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
+
+
+def _resolve_project_root(root_arg: str, ip_root_arg: str, ip: str) -> Path:
+    ip_root_raw = (ip_root_arg or os.environ.get("ATLAS_IP_ROOT") or "").strip()
+    if ip_root_raw:
+        ip_root = Path(ip_root_raw).expanduser().resolve()
+        if not ip or ip_root.name == ip or (ip_root / "yaml").is_dir():
+            return ip_root.parent
+    return Path(root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ".").expanduser().resolve()
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -736,9 +746,10 @@ def compare(ip: str, root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("ip")
-    parser.add_argument("--root", default=".")
+    parser.add_argument("--root", default=os.environ.get("ATLAS_PROJECT_ROOT") or ".")
+    parser.add_argument("--ip-root", "--ip_root", dest="ip_root", default=os.environ.get("ATLAS_IP_ROOT") or "")
     args = parser.parse_args()
-    root = Path(args.root).resolve()
+    root = _resolve_project_root(args.root, args.ip_root, args.ip)
     compare_doc, classify_doc = compare(args.ip, root)
     summary = compare_doc["summary"]
     print(f"[compare_fl_rtl_results] wrote {args.ip}/sim/fl_rtl_compare.json")

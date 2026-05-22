@@ -56,9 +56,12 @@ def _safe_name(raw: Any, fallback: str) -> str:
 
 def _extract_backend(cm: dict[str, Any]) -> str:
     backend = str(cm.get("executable") or cm.get("backend") or "python").strip().lower()
-    if backend in {"pymtl", "pymtl3", "pymtl_3"}:
-        return "pymtl3"
-    return backend or "python"
+    if backend in {"", "python", "pure-python", "pure_python", "deterministic", "stepper"}:
+        return "python"
+    # Unsupported historical backend requests are intentionally folded back to
+    # the repo-owned pure-Python stepper. The generated CL must be runnable in
+    # the same lightweight environment as the other workflow scripts.
+    return "python"
 
 
 def _check_trigger(ssot: dict[str, Any], ip: str) -> tuple[bool, str]:
@@ -66,9 +69,6 @@ def _check_trigger(ssot: dict[str, Any], ip: str) -> tuple[bool, str]:
     cm = ssot.get("cycle_model")
     if not isinstance(cm, dict):
         return False, "cycle_model key missing"
-
-    if _extract_backend(cm) == "pymtl3":
-        return True, "cycle_model.executable=pymtl3"
 
     handshake = cm.get("handshake_rules")
     if handshake and (isinstance(handshake, (list, dict)) and len(handshake) > 0):
@@ -322,19 +322,13 @@ try:
 except ImportError:
     from functional_model import FunctionalModel
 
-try:
-    from pymtl3 import Bits1, Bits32, Component, InPort, OutPort, update_ff
-    HAS_PYMTL3 = True
-except Exception:
-    Bits1 = Bits32 = Component = InPort = OutPort = update_ff = None
-    HAS_PYMTL3 = False
-
 
 # ---------------------------------------------------------------------------
 # SSOT-derived tables (baked at generation time)
 # ---------------------------------------------------------------------------
 
-# Requested executable backend.  PyMTL3 is the default CL shell; FunctionalModel remains the oracle.
+# Executable backend. The CL model is a pure-Python deterministic stepper;
+# FunctionalModel remains the oracle.
 MODEL_BACKEND: str = {backend!r}
 
 # Latency table: transaction kind -> cycles.  max_cycles when defined; min_cycles otherwise; default=1.
@@ -349,7 +343,7 @@ _ORDERING_RULES: list[dict] = {ordering_rules!r}
 # Maximum outstanding transactions before stalling.
 _OUTSTANDING_CAP: int = {outstanding_cap!r}
 
-# Cycle/performance targets used by coverage and PyMTL shell instrumentation.
+# Cycle/performance targets used by coverage and timing instrumentation.
 PERFORMANCE_TARGETS: dict = {performance_targets!r}
 
 # Transaction kinds for self-check, derived from function_model.transactions at generation time.
@@ -472,57 +466,12 @@ class CycleModel:
         return {{
             "passed": bool(obs),
             "backend": MODEL_BACKEND,
-            "pymtl3_available": HAS_PYMTL3,
             "transactions": len(kinds),
             "results_observed": len(obs),
             "coverage_bins": total_bins,
             "coverage_hit": hit_bins,
             "performance_targets": PERFORMANCE_TARGETS,
         }}
-
-
-if HAS_PYMTL3:
-    class CycleModelPyMTL(Component):
-        """PyMTL3 cycle shell around CycleModel for cycle/performance validation.
-
-        The wrapper intentionally delegates behavioral results to CycleModel,
-        which delegates function evaluation to FunctionalModel.  PyMTL owns the
-        clocked shell and observable counters used by CL coverage.
-        """
-
-        def construct(s):
-            s.reset_in = InPort(Bits1)
-            s.valid = InPort(Bits1)
-            s.ready = OutPort(Bits1)
-            s.cycle_count = OutPort(Bits32)
-            s.outstanding = OutPort(Bits32)
-            s.queue_depth = OutPort(Bits32)
-            s._model = CycleModel()
-
-            @update_ff
-            def cl_tick():
-                if s.reset_in:
-                    s._model.reset()
-                    s.ready <<= 1
-                    s.cycle_count <<= 0
-                    s.outstanding <<= 0
-                    s.queue_depth <<= 0
-                else:
-                    next_cycle = s._model.now + 1
-                    s._model.tick(next_cycle)
-                    s.ready <<= int(s._model._outstanding < _OUTSTANDING_CAP)
-                    s.cycle_count <<= next_cycle
-                    s.outstanding <<= s._model._outstanding
-                    s.queue_depth <<= len(s._model.in_q)
-else:
-    CycleModelPyMTL = None
-
-
-def make_pymtl_cycle_model():
-    """Return the PyMTL3 cycle shell.  Use direct Python smoke, not pytest-pymtl3."""
-    if not HAS_PYMTL3:
-        raise RuntimeError("pymtl3 is not importable in this Python environment")
-    return CycleModelPyMTL()
 
 
 if __name__ == "__main__":
@@ -644,7 +593,6 @@ def main() -> int:
         "ip": args.ip,
         "source": str(model_path.relative_to(ip_dir)),
         "backend": backend,
-        "pymtl3_available": bool(check.get("pymtl3_available")),
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "passed": passed,
         "self_check": check,

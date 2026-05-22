@@ -60,7 +60,13 @@
       }
       window.addEventListener('error', function (ev) {
         if (ev.target && (ev.target.src || ev.target.href) && ev.target !== window) {
-          append('script load failed', (ev.target.src || ev.target.href));
+          var tag = String(ev.target.tagName || '').toLowerCase();
+          var url = ev.target.src || ev.target.href;
+          if (tag === 'img' && /^data:image\//i.test(String(url || ''))) return;
+          if (tag === 'script') append('script load failed', url);
+          else if (tag === 'link') append('stylesheet load failed', url);
+          else if (tag === 'img') append('image load failed', url);
+          else append('asset load failed', url);
           return;
         }
         append('uncaught', (ev.error && (ev.error.stack || ev.error.message)) || ev.message || 'unknown');
@@ -85,10 +91,10 @@
     })();
   </script>
 
-  <!-- SRI integrity= removed for Windows MITM proxy compatibility
-       (see index.html for full context). -->
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+  <!-- Vendored locally (frontend/atlas/vendor/) so admin works when
+       unpkg.com is blocked or unavailable. -->
+  <script src="vendor/react.development.js?v=18.3.1"></script>
+  <script src="vendor/react-dom.development.js?v=18.3.1"></script>
 
   <!-- Admin is precompiled so browser smoke tests and operators do not see
        Babel standalone's large-inline-script warnings in the console. -->

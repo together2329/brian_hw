@@ -37,6 +37,19 @@ _jobs_lock = threading.Lock()
 _jobs: dict[str, dict[str, Any]] = {}   # job_id (uuid hex) → job metadata
 _SOURCE_ROOT = Path(__file__).resolve().parents[1]
 
+
+def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
+    value = str(raw or os.environ.get("ATLAS_WORKFLOW_ROOT") or "").strip()
+    base = Path(value).expanduser() if value else _SOURCE_ROOT / "workflow"
+    if (base / "ssot-gen").is_dir():
+        return base.resolve()
+    if (base / "workflow" / "ssot-gen").is_dir():
+        return (base / "workflow").resolve()
+    return base.resolve()
+
+
+_WORKFLOW_ROOT = _resolve_workflow_root()
+
 _PIPELINE_STAGES = [
     {"id": "ssot",        "workflow": "ssot-gen",     "label": "SSOT gen"},
     {"id": "fl-model",    "workflow": "fl-model-gen", "label": "FL model"},
@@ -1470,8 +1483,8 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
             "visible goal instead of searching indefinitely. The first successful content-changing "
             f"tool call should write {ip}/yaml/{ip}.ssot.yaml with concrete draft sections, including "
             "machine-readable function_model output_rules/state_updates and sub_modules ownership refs. "
-            f"Then run python3 workflow/ssot-gen/scripts/repair_ssot_schema.py {ip} --mode engineering "
-            f"and python3 workflow/ssot-gen/scripts/verify_ssot.py {ip} --mode engineering. "
+            f"Then run python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering "
+            f"and python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. "
             f"If {ip}/rtl/rtl_blocked.json exists, answer each blocker inline so SSOT-gen can incorporate "
             "the decisions, then rerun /repair-ssot and validation before handing back to rtl-gen. "
             "Finish with an [SSOT HANDOFF] summarizing assumptions, remaining TBDs, validation evidence, "
@@ -1490,8 +1503,8 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
             "scoreboards, sim_debug, and coverage closure"
         ),
         "rtl": (
-            f"run /ssot-rtl {ip}; regenerate RTL from {ip}/yaml/{ip}.ssot.yaml and close "
-            "dynamic RTL TODOs, compile, and lint gates"
+            f"run /ssot-rtl {ip}; regenerate RTL from yaml/{ip}.ssot.yaml in the active IP root "
+            "and close dynamic RTL TODOs, compile, and lint gates"
         ),
         "lint": f"run /lint-ip {ip}; report and fix root-cause RTL lint errors and warnings",
         "tb": (
@@ -1563,7 +1576,7 @@ def _workflow_prompt_with_stage_driver(
         return (
             f"answer the {ip}/rtl/rtl_blocked.json questions inline so SSOT-gen records them; "
             f"then run /repair-ssot {ip}; "
-            f"then python3 workflow/ssot-gen/scripts/verify_ssot.py {ip} --mode engineering. "
+            f"then python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. "
             "This is an RTL blocker repair pass; do not rewrite the IP from scratch.\n\n"
             "[Orchestrator worker instruction]\n"
             + custom_prompt
@@ -1998,9 +2011,9 @@ def _job_artifact_recovery(
         ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
         if not ssot_path.is_file():
             return False, ""
-        checker = project_root / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
+        checker = _WORKFLOW_ROOT / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
         if not checker.is_file():
-            return False, f"SSOT checker missing: {checker.relative_to(project_root).as_posix()}"
+            return False, f"SSOT checker missing: {checker}"
         try:
             proc = subprocess.run(
                 ["bash", str(checker), ip, "--mode", _current_run_mode()],
@@ -2258,7 +2271,7 @@ def _job_artifact_failure(
                     return True, f"unreadable RTL source: {ip}/{rel}"
             if placeholder_hits:
                 return True, "placeholder RTL markers: " + ", ".join(placeholder_hits[:6])
-        checker = project_root / "workflow" / "rtl-gen" / "scripts" / "check_rtl_disk.sh"
+        checker = _WORKFLOW_ROOT / "rtl-gen" / "scripts" / "check_rtl_disk.sh"
         if checker.is_file():
             try:
                 proc = subprocess.run(

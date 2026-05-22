@@ -128,4 +128,4 @@ approve a change with `--update-lock`.
 - T2 #7: actually paste the signature-drift preamble into rtl-gen / tb-gen /
   sim-debug system_prompts (this requires modifying other workflows; left for
   human to apply per CHANGELOG snippet above)
-- PyMTL3 backend (deferred)
+- Optional external cycle backend research (deferred; default remains pure Python)

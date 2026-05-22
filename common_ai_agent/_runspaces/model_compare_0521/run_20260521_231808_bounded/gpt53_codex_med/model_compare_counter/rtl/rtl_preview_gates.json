@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "type": "starter_rtl_preview_gates",
+  "ip": "model_compare_counter",
+  "top": "model_compare_counter",
+  "mode": "starter",
+  "status": "handoff",
+  "hard_gates": [
+    {
+      "id": "STARTER_TOP_MODULE",
+      "status": "pass"
+    },
+    {
+      "id": "STARTER_IO_LIST",
+      "status": "pass"
+    },
+    {
+      "id": "STARTER_FUNCTION_MODEL",
+      "status": "pass"
+    },
+    {
+      "id": "STARTER_RTL_AUTHORING",
+      "status": "handoff"
+    },
+    {
+      "id": "STARTER_LLM_RTL_AUTHORING_REQUIRED",
+      "status": "required",
+      "message": "Stateful Starter RTL must be authored by an LLM/worker before compile/sim gates can run."
+    }
+  ],
+  "soft_gates": [
+    {
+      "id": "STARTER_LLM_RTL_AUTHORING_REQUIRED",
+      "severity": "warning",
+      "status": "handoff",
+      "message": "Starter contract is ready for LLM-authored RTL; Starter gates are relaxed but RTL must be real authored RTL."
+    }
+  ],
+  "deferred_gates": [],
+  "policy": "Starter produces real LLM-authored RTL with relaxed gates. Deferred gates remain non-blocking in Starter and become blocking in Engineering/Signoff as applicable.",
+  "timestamp": "2026-05-21T14:33:39Z"
+}

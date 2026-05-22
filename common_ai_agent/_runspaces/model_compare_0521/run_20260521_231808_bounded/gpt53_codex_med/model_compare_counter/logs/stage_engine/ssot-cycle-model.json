@@ -1,0 +1,33 @@
+{
+  "artifacts": [
+    "model_compare_counter/model/functional_model.py",
+    "model_compare_counter/model/cycle_model.py when executable CL is required",
+    "model_compare_counter/model/cl_model_check.json when executable CL is required"
+  ],
+  "blocker": "",
+  "created_at": "2026-05-21T14:29:13Z",
+  "headline": "[ssot-cycle-model] PASS",
+  "ip": "model_compare_counter",
+  "message": "[ssot-cycle-model] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py\nmodule: model_compare_counter\nsource: model_compare_counter/yaml/model_compare_counter.ssot.yaml\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med/model_compare_counter/model/functional_model.py\n[emit_fl_model] decomposition_units=9 fcov_bins=40 passed=True\n- emit_cycle_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med\n  stdout:\n[emit_cycle_model] trigger fired: cycle_model.executable=pymtl3\n[emit_cycle_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med/model_compare_counter/model/cycle_model.py\n[emit_cycle_model] CL self-check passed=True\n\nexpected artifacts:\n- model_compare_counter/model/functional_model.py\n- model_compare_counter/model/cycle_model.py when executable CL is required\n- model_compare_counter/model/cl_model_check.json when executable CL is required",
+  "metadata": {},
+  "returncode": 0,
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med",
+      "label": "emit_fl_model",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med/model_compare_counter/model/functional_model.py\n[emit_fl_model] decomposition_units=9 fcov_bins=40 passed=True"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med",
+      "label": "emit_cycle_model",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[emit_cycle_model] trigger fired: cycle_model.executable=pymtl3\n[emit_cycle_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med/model_compare_counter/model/cycle_model.py\n[emit_cycle_model] CL self-check passed=True"
+    }
+  ],
+  "stage": "ssot-cycle-model",
+  "status": "pass",
+  "workflow": "fl-model-gen"
+}

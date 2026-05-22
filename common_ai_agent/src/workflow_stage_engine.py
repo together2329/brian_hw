@@ -21,7 +21,19 @@ import yaml
 
 
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
-WORKFLOW_ROOT = SOURCE_ROOT / "workflow"
+
+
+def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
+    value = str(raw or os.environ.get("ATLAS_WORKFLOW_ROOT") or "").strip()
+    base = Path(value).expanduser() if value else SOURCE_ROOT / "workflow"
+    if (base / "ssot-gen").is_dir():
+        return base.resolve()
+    if (base / "workflow" / "ssot-gen").is_dir():
+        return (base / "workflow").resolve()
+    return base.resolve()
+
+
+WORKFLOW_ROOT = _resolve_workflow_root()
 
 STAGE_ALIASES = {
     "sfm": "ssot-fl-model",
@@ -1123,13 +1135,23 @@ class WorkflowStageEngine:
             status = "blocked"
             headline = "[RTL BLOCKED] rtl-gen waiting for LLM-authored RTL evidence"
 
+        ip_root = self.project_root / ip
+        if todo_plan_path.is_file():
+            try:
+                todo_plan_display = todo_plan_path.relative_to(ip_root)
+            except ValueError:
+                todo_plan_display = todo_plan_path.relative_to(self.project_root)
+        else:
+            todo_plan_display = "(missing)"
+
         lines = [
             headline,
             f"module: {ip}",
             f"top: {top}",
-            f"source: {ip}/yaml/{ip}.ssot.yaml",
+            f"source: yaml/{ip}.ssot.yaml",
+            f"ip_root: {ip_root}",
             f"preflight: {script}",
-            f"dynamic_todos: {todo_plan_path.relative_to(self.project_root) if todo_plan_path.is_file() else '(missing)'}",
+            f"dynamic_todos: {todo_plan_display}",
         ]
         metadata: dict[str, Any] = {"top": top, "rtl_manifest": rtl_progress, "rtl_todo_plan": todo_plan}
         blocker = ""
@@ -1138,7 +1160,7 @@ class WorkflowStageEngine:
             metadata["rtl_blocked"] = blocked_doc
             lines += [
                 f"blocker: {blocked_doc.get('reason') or 'SSOT decision required'}",
-                f"evidence: {blocker}",
+                "evidence: rtl/rtl_blocked.json",
                 f"next: {blocked_doc.get('next_action') or 'answer SSOT questions and rerun /ssot-rtl'}",
             ]
             if blocked_questions:
@@ -1258,15 +1280,15 @@ class WorkflowStageEngine:
                 for issue in (item.get("quality_issues") or [])[:3]:
                     lines.append(f"    quality: {issue}")
         artifacts = [
-            f"{ip}/yaml/{ip}.ssot.yaml",
-            f"{ip}/rtl/rtl_contract.json",
-            f"{ip}/rtl/rtl_todo_plan.json",
-            f"{ip}/rtl/rtl_todo_tracker.json",
-            f"{ip}/rtl/rtl_traceability.json",
-            f"{ip}/list/{ip}.f",
-            f"{ip}/rtl/rtl_compile.json",
-            f"{ip}/lint/dut_lint.json",
-            f"{ip}/rtl/rtl_blocked.json (only when SSOT decision is required)",
+            f"yaml/{ip}.ssot.yaml",
+            "rtl/rtl_contract.json",
+            "rtl/rtl_todo_plan.json",
+            "rtl/rtl_todo_tracker.json",
+            "rtl/rtl_traceability.json",
+            f"list/{ip}.f",
+            "rtl/rtl_compile.json",
+            "lint/dut_lint.json",
+            "rtl/rtl_blocked.json (only when SSOT decision is required)",
         ]
         self._append_artifacts(lines, artifacts)
         if blocked_doc:

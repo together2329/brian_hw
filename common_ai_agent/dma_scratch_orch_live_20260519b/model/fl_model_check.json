@@ -36,6 +36,8 @@
           "transaction_id": "FM2",
           "transaction_name": "feature_2",
           "sample_accepted": 1,
+          "irq": 0,
+          "csr_error": 0,
           "state_updates": {
             "fm2_observed": 1
           }
@@ -51,6 +53,8 @@
           "transaction_id": "FM3",
           "transaction_name": "feature_3",
           "sample_accepted": 1,
+          "irq": 0,
+          "mem_req_valid": 0,
           "state_updates": {
             "fm3_observed": 1
           }
@@ -66,6 +70,8 @@
           "transaction_id": "FM4",
           "transaction_name": "feature_4",
           "sample_accepted": 1,
+          "irq": 0,
+          "mem_req_write": 0,
           "state_updates": {
             "fm4_observed": 1
           }

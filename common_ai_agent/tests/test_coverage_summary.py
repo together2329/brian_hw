@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import sys
 from pathlib import Path
 
 
@@ -52,6 +54,101 @@ def test_threshold_for_metric_handles_combined_line_branch_goal():
 
     assert cov.threshold_for_metric(goal, ("line", "code")) == 90.0
     assert cov.threshold_for_metric(goal, ("branch",)) == 85.0
+
+
+def test_main_waives_uninstrumented_lcov_when_rtl_observed_bins_close(tmp_path: Path, monkeypatch):
+    cov = _load_module()
+    ip_dir = tmp_path / "counter_ip"
+    for subdir in ("yaml", "cov", "verify", "sim"):
+        (ip_dir / subdir).mkdir(parents=True)
+    (ip_dir / "yaml" / "counter_ip.ssot.yaml").write_text(
+        "\n".join(
+            [
+                "top_module:",
+                "  name: counter_ip",
+                "test_requirements:",
+                "  scenarios:",
+                "    - id: SC_COUNT",
+                "      name: count",
+                "      stimulus: enable",
+                "      expected: count increments",
+                "      checker: FL-vs-RTL scoreboard",
+                "  coverage_goals:",
+                "    function:",
+                "      target_pct: 100",
+                "      bins:",
+                "        - id: FCOV_COUNT",
+                "          coverage_domain: function",
+                "    cycle:",
+                "      target_pct: 100",
+                "      bins:",
+                "        - id: CCOV_COUNT",
+                "          coverage_domain: cycle",
+                "    code: line >= 95%, branch >= 95%",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "cov" / "fcov_plan.json").write_text(
+        json.dumps(
+            {
+                "bins": [
+                    {"id": "FCOV_COUNT", "coverage_domain": "function"},
+                    {"id": "CCOV_COUNT", "coverage_domain": "cycle"},
+                ]
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "cov" / "coverage_functional.json").write_text(
+        json.dumps(
+            {
+                "status": "pass",
+                "functional": {
+                    "bins": {
+                        "FCOV_COUNT": {"hit": True},
+                        "CCOV_COUNT": {"hit": True},
+                    }
+                },
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(
+        json.dumps({"goals": [{"goal_id": "EQ_COUNT", "coverage_refs": ["FCOV_COUNT", "CCOV_COUNT"]}]}) + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "sim" / "scoreboard_events.jsonl").write_text(
+        json.dumps(
+            {
+                "goal_id": "EQ_COUNT",
+                "scenario_id": "SC_COUNT",
+                "coverage_refs": ["FCOV_COUNT", "CCOV_COUNT"],
+                "passed": True,
+                "fl_expected": {"model_result": {"count": 1}},
+                "rtl_observed": {"count": 1},
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(sys, "argv", ["ssot_coverage_summary.py", str(ip_dir)])
+
+    assert cov.main() == 0
+    payload = json.loads((ip_dir / "cov" / "coverage.json").read_text(encoding="utf-8"))
+    assert payload["status"] == "pass"
+    assert payload["limitations"] == {}
+    assert payload["waived_limitations"].keys() == {"line", "branch"}
+    assert payload["lines"]["status"] == "not_instrumented"
+    assert payload["lines"]["measured"] is False
+    assert payload["lines"]["meets_target"] is True
+    assert payload["branches"]["status"] == "not_instrumented"
+    assert payload["branches"]["measured"] is False
+    assert payload["branches"]["meets_target"] is True
 
 
 def test_parse_lcov_filters_verilator_toggle_bins_from_branch_metric(tmp_path: Path):

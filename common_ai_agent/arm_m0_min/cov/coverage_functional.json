@@ -2,41 +2,21 @@
   "schema_version": 1,
   "type": "functional_coverage",
   "status": "pass",
-  "timestamp_iso": "2026-05-17T01:47:17Z",
+  "timestamp_iso": "2026-05-21T01:44:03Z",
   "functional": {
-    "hit": 30,
-    "total": 30,
+    "hit": 16,
+    "total": 16,
     "pct": 100.0,
     "bins": {
-      "function_alu_compare_branch": {
-        "hit": true,
-        "goal_id": "EQ_TRANSACTION_TX_DECODE_EXEC",
-        "scenario_id": "SC_001_EQ_TRANSACTION_TX_DECODE_EXEC"
-      },
       "function_single_transfer_memory_access": {
         "hit": true,
         "goal_id": "EQ_MEMORY_ID_EX_CTRL",
         "scenario_id": "SC_014_EQ_MEMORY_ID_EX_CTRL"
       },
-      "SC_ALU_executed": {
-        "hit": true,
-        "goal_id": "EQ_SCENARIO_SC_ALU",
-        "scenario_id": "SC_003_EQ_SCENARIO_SC_ALU"
-      },
-      "SC_CMP_BRANCH_executed": {
-        "hit": true,
-        "goal_id": "EQ_SCENARIO_SC_CMP_BRANCH",
-        "scenario_id": "SC_004_EQ_SCENARIO_SC_CMP_BRANCH"
-      },
       "SC_LOAD_STORE_executed": {
         "hit": true,
         "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
         "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_2"
-      },
-      "SC_IF_STALL_executed": {
-        "hit": true,
-        "goal_id": "EQ_SCENARIO_SC_IF_STALL",
-        "scenario_id": "SC_006_EQ_SCENARIO_SC_IF_STALL"
       },
       "SC_BUS_ERROR_executed": {
         "hit": true,
@@ -107,56 +87,6 @@
         "hit": true,
         "goal_id": "EQ_STATE_CORE_FAULT_HALT_TO_RESET_7",
         "scenario_id": "SC_024_EQ_STATE_CORE_FAULT_HALT_TO_RESET_7"
-      },
-      "latency_fetch_accept_lt_min": {
-        "hit": true,
-        "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_LT_MIN",
-        "scenario_id": "SC_030_EQ_COVERAGE_LATENCY_FETCH_ACCEPT_LT_MIN"
-      },
-      "latency_fetch_accept_at_min": {
-        "hit": true,
-        "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_AT_MIN",
-        "scenario_id": "SC_031_EQ_COVERAGE_LATENCY_FETCH_ACCEPT_AT_MIN"
-      },
-      "latency_fetch_accept_unbounded": {
-        "hit": true,
-        "goal_id": "EQ_COVERAGE_LATENCY_FETCH_ACCEPT_UNBOUNDED",
-        "scenario_id": "SC_032_EQ_COVERAGE_LATENCY_FETCH_ACCEPT_UNBOUNDED"
-      },
-      "latency_alu_instr_lt_min": {
-        "hit": true,
-        "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_LT_MIN",
-        "scenario_id": "SC_033_EQ_COVERAGE_LATENCY_ALU_INSTR_LT_MIN"
-      },
-      "latency_alu_instr_at_min": {
-        "hit": true,
-        "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MIN",
-        "scenario_id": "SC_034_EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MIN"
-      },
-      "latency_alu_instr_at_max": {
-        "hit": true,
-        "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MAX",
-        "scenario_id": "SC_035_EQ_COVERAGE_LATENCY_ALU_INSTR_AT_MAX"
-      },
-      "latency_alu_instr_gt_max": {
-        "hit": true,
-        "goal_id": "EQ_COVERAGE_LATENCY_ALU_INSTR_GT_MAX",
-        "scenario_id": "SC_036_EQ_COVERAGE_LATENCY_ALU_INSTR_GT_MAX"
-      },
-      "latency_load_store_instr_lt_min": {
-        "hit": true,
-        "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_LT_MIN",
-        "scenario_id": "SC_037_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_LT_MIN"
-      },
-      "latency_load_store_instr_at_min": {
-        "hit": true,
-        "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_AT_MIN",
-        "scenario_id": "SC_038_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_AT_MIN"
-      },
-      "latency_load_store_instr_unbounded": {
-        "hit": true,
-        "goal_id": "EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED",
-        "scenario_id": "SC_039_EQ_COVERAGE_LATENCY_LOAD_STORE_INSTR_UNBOUNDED"
       }
     }
   }

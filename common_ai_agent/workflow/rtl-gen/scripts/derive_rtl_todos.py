@@ -52,6 +52,15 @@ IMPLEMENTATION_SECTIONS = (
     "next_step_todos",
 )
 
+
+def _resolve_project_root(root_arg: str, ip_root_arg: str, ip: str) -> Path:
+    ip_root_raw = (ip_root_arg or os.environ.get("ATLAS_IP_ROOT") or "").strip()
+    if ip_root_raw:
+        ip_root = Path(ip_root_raw).expanduser().resolve()
+        if not ip or ip_root.name == ip or (ip_root / "yaml").is_dir():
+            return ip_root.parent
+    return Path(root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ".").expanduser().resolve()
+
 STATIC_EVIDENCE_CATEGORIES = (
     "function_model.",
     "cycle_model.",
@@ -8095,10 +8104,11 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("ip")
-    ap.add_argument("--root", default=".")
+    ap.add_argument("--root", default=os.environ.get("ATLAS_PROJECT_ROOT") or ".")
+    ap.add_argument("--ip-root", "--ip_root", dest="ip_root", default=os.environ.get("ATLAS_IP_ROOT") or "")
     ap.add_argument("--audit-rtl", action="store_true")
     ns = ap.parse_args()
-    plan = derive_plan(Path(ns.root).resolve(), ns.ip, audit_rtl=ns.audit_rtl)
+    plan = derive_plan(_resolve_project_root(ns.root, ns.ip_root, ns.ip), ns.ip, audit_rtl=ns.audit_rtl)
     summary = plan.get("summary") or {}
     gate = plan.get("gate") or {}
     print(

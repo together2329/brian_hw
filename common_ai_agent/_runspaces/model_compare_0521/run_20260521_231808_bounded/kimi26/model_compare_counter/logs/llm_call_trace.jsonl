@@ -1,0 +1,1 @@
+{"elapsed_sec": 1.111, "error": "Error calling LLM: HTTP Error 400: Bad Request", "log_stage": "ssot-gen", "model": "kimi-2.6", "stage": "ssot-gen", "status": "blocked", "ts": "2026-05-21T14:33:41Z", "usage": {}}

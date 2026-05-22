@@ -1,0 +1,4147 @@
+{
+  "authoring_packets": [
+    {
+      "json": "rtl/authoring_packets/module__model_compare_counter_core__cycle_model.json",
+      "markdown": "rtl/authoring_packets/module__model_compare_counter_core__cycle_model.md",
+      "packet_id": "module__model_compare_counter_core__cycle_model"
+    },
+    {
+      "json": "rtl/authoring_packets/module__model_compare_counter_core__equivalence.json",
+      "markdown": "rtl/authoring_packets/module__model_compare_counter_core__equivalence.md",
+      "packet_id": "module__model_compare_counter_core__equivalence"
+    },
+    {
+      "json": "rtl/authoring_packets/module__model_compare_counter_core__features.json",
+      "markdown": "rtl/authoring_packets/module__model_compare_counter_core__features.md",
+      "packet_id": "module__model_compare_counter_core__features"
+    },
+    {
+      "json": "rtl/authoring_packets/module__model_compare_counter_core__fsm.json",
+      "markdown": "rtl/authoring_packets/module__model_compare_counter_core__fsm.md",
+      "packet_id": "module__model_compare_counter_core__fsm"
+    },
+    {
+      "json": "rtl/authoring_packets/module__model_compare_counter_core__function_model_01.json",
+      "markdown": "rtl/authoring_packets/module__model_compare_counter_core__function_model_01.md",
+      "packet_id": "module__model_compare_counter_core__function_model_01"
+    },
+    {
+      "json": "rtl/authoring_packets/module__model_compare_counter_core__function_model_02.json",
+      "markdown": "rtl/authoring_packets/module__model_compare_counter_core__function_model_02.md",
+      "packet_id": "module__model_compare_counter_core__function_model_02"
+    },
+    {
+      "json": "rtl/authoring_packets/module__model_compare_counter_core__io_list.json",
+      "markdown": "rtl/authoring_packets/module__model_compare_counter_core__io_list.md",
+      "packet_id": "module__model_compare_counter_core__io_list"
+    },
+    {
+      "json": "rtl/authoring_packets/module__model_compare_counter_core__memory.json",
+      "markdown": "rtl/authoring_packets/module__model_compare_counter_core__memory.md",
+      "packet_id": "module__model_compare_counter_core__memory"
+    },
+    {
+      "json": "rtl/authoring_packets/module__model_compare_counter_core__test_requirements.json",
+      "markdown": "rtl/authoring_packets/module__model_compare_counter_core__test_requirements.md",
+      "packet_id": "module__model_compare_counter_core__test_requirements"
+    },
+    {
+      "json": "rtl/authoring_packets/module__model_compare_counter_core__workflow_todo.json",
+      "markdown": "rtl/authoring_packets/module__model_compare_counter_core__workflow_todo.md",
+      "packet_id": "module__model_compare_counter_core__workflow_todo"
+    },
+    {
+      "json": "rtl/authoring_packets/module__model_compare_counter.json",
+      "markdown": "rtl/authoring_packets/module__model_compare_counter.md",
+      "packet_id": "module__model_compare_counter"
+    },
+    {
+      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
+      "packet_id": "rtl_gate_evidence_closure"
+    },
+    {
+      "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
+      "markdown": "rtl/authoring_packets/rtl_gate_human_closure.md",
+      "packet_id": "rtl_gate_human_closure"
+    },
+    {
+      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
+      "packet_id": "rtl_gate_tool_evidence"
+    }
+  ],
+  "authoring_plan": "rtl/rtl_authoring_plan.json",
+  "gate": {
+    "all_required_todos_pass": true,
+    "audit_rtl": true,
+    "blocking_questions": 0,
+    "criteria": [
+      "Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "Gate: every SSOT-derived RTL behavior has an owner module",
+      "Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "Gate: required SSOT behavior has static DUT RTL evidence after audit",
+      "Gate: behavior-owner RTL modules contain real implementation structure",
+      "Gate: RTL sources contain no placeholder markers or disallowed generated-RTL constructs",
+      "Gate: SSOT top IO contracts match the RTL top module",
+      "Gate: SSOT top outputs are driven by real RTL logic",
+      "Gate: SSOT top inputs are consumed by RTL logic or child inputs",
+      "Gate: manifest-owned RTL modules are integrated into the top hierarchy",
+      "Gate: manifest-owned child instances have machine-checkable port connections",
+      "Gate: manifest child port connections carry live RTL signal flow",
+      "Gate: SSOT connection contracts match RTL child port maps",
+      "Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "Gate: DUT-only lint report passes after the final RTL edit",
+      "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
+    ],
+    "open_required_todos": 0,
+    "orphan_tasks": 0,
+    "static_missing": 0,
+    "status": "pass"
+  },
+  "generated_at": "2026-05-21T21:32:36Z",
+  "ip": "model_compare_counter",
+  "rows": [
+    {
+      "category": "rtl_flow.seed",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "top_module",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0001"
+    },
+    {
+      "category": "rtl_flow.top",
+      "evidence_terms": [
+        "compare",
+        "model_compare_counter"
+      ],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "io_list",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0002"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0003"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0004"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.owner_traceability",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0005"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0006"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0007"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0008"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0009"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0010"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0011"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0012"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0013"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.manifest_port_connection_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0014"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0015"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0016"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.dut_compile",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0017"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.dut_lint",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0018"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0019"
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "evidence_terms": [
+        "FM",
+        "FM_CLEAR",
+        "FM_UPDATE",
+        "PRIORITY",
+        "RTL_TODO_PRIORITY_SEQ",
+        "SEQ",
+        "TODO",
+        "UPDATE",
+        "compare",
+        "core",
+        "model_compare_counter_core"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "workflow_todos.rtl-gen[0]",
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "PRIORITY",
+          "UPDATE",
+          "compare",
+          "core",
+          "model_compare_counter_core"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "FM",
+          "FM_CLEAR",
+          "FM_UPDATE",
+          "PRIORITY",
+          "RTL_TODO_PRIORITY_SEQ",
+          "SEQ",
+          "TODO",
+          "UPDATE",
+          "compare",
+          "core",
+          "model_compare_counter_core"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0020"
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "evidence_terms": [
+        "FM",
+        "FM_UPDATE",
+        "OVERFLOW",
+        "PULSE",
+        "RTL_TODO_OVERFLOW_PULSE",
+        "TODO",
+        "UPDATE",
+        "compare",
+        "core",
+        "model_compare_counter_core"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "UPDATE",
+          "compare",
+          "core",
+          "model_compare_counter_core"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "FM",
+          "FM_UPDATE",
+          "OVERFLOW",
+          "PULSE",
+          "RTL_TODO_OVERFLOW_PULSE",
+          "TODO",
+          "UPDATE",
+          "compare",
+          "core",
+          "model_compare_counter_core"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0021"
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "evidence_terms": [
+        "FM",
+        "FM_CLEAR",
+        "FM_IDLE",
+        "FM_UPDATE",
+        "IDLE",
+        "PULSE",
+        "RTL_TODO_VALID_PULSE",
+        "TODO",
+        "UPDATE",
+        "VALID",
+        "compare",
+        "core",
+        "model_compare_counter_core"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "workflow_todos.rtl-gen[2]",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "IDLE",
+          "UPDATE",
+          "VALID",
+          "compare",
+          "core",
+          "model_compare_counter_core"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "FM",
+          "FM_CLEAR",
+          "FM_IDLE",
+          "FM_UPDATE",
+          "IDLE",
+          "PULSE",
+          "RTL_TODO_VALID_PULSE",
+          "TODO",
+          "UPDATE",
+          "VALID",
+          "compare",
+          "core",
+          "model_compare_counter_core"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0022"
+    },
+    {
+      "category": "parameters.item",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "parameters.COUNT_WIDTH",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0023"
+    },
+    {
+      "category": "parameters.item",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "parameters.STEP_WIDTH",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0024"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "io_list.clock_domains.clk.ports.clk",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0025"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "io_list.resets.rst_n.ports.rst_n",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0026"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "io_list.interfaces.ctrl_inputs.ports.enable",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0027"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "io_list.interfaces.ctrl_inputs.ports.clear",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0028"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "io_list.interfaces.ctrl_inputs.ports.step",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0029"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "io_list.interfaces.status_outputs.ports.count",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0030"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "io_list.interfaces.status_outputs.ports.wrapped",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0031"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "io_list.interfaces.status_outputs.ports.valid",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0032"
+    },
+    {
+      "category": "function_model.state_variable",
+      "evidence_terms": [
+        "count",
+        "count_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.state_variables.count_q",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "count",
+          "count_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0033"
+    },
+    {
+      "category": "function_model.state_variable",
+      "evidence_terms": [
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.state_variables.wrapped_q",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0034"
+    },
+    {
+      "category": "function_model.state_variable",
+      "evidence_terms": [
+        "valid",
+        "valid_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.state_variables.valid_q",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "valid",
+          "valid_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "valid",
+          "valid_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0035"
+    },
+    {
+      "category": "function_model.transaction",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0036"
+    },
+    {
+      "category": "function_model.precondition",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.preconditions.precondition_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0037"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.inputs.input_0",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0038"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "enable",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.inputs.input_1",
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "enable",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "enable",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0039"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "step",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.inputs.input_2",
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "step",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "step",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0040"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.inputs.input_3",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0041"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.outputs.output_0",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0042"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.outputs.output_1",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0043"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.outputs.output_2",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0044"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "out",
+        "out_count",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.outputs.out_count",
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_count",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "out",
+          "out_count",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0045"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "out",
+        "out_wrapped",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.outputs.out_wrapped",
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_wrapped",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "out",
+          "out_wrapped",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0046"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "out",
+        "out_valid",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.outputs.out_valid",
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_valid",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "out",
+          "out_valid",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0047"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.outputs.count_q",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0048"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.outputs.wrapped_q",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0049"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.outputs.valid_q",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0050"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "count",
+        "out",
+        "out_count"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.output_rules.out_count",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "count",
+          "out",
+          "out_count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "out",
+          "out_count"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0051"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "out",
+        "out_wrapped",
+        "wrapped"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.output_rules.out_wrapped",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "out",
+          "out_wrapped",
+          "wrapped"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "out_wrapped",
+          "wrapped"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0052"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "out",
+        "out_valid",
+        "valid"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.output_rules.out_valid",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "out",
+          "out_valid",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "out_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0053"
+    },
+    {
+      "category": "function_model.state_update",
+      "evidence_terms": [
+        "count",
+        "count_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.state_updates.count_q",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "count",
+          "count_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0054"
+    },
+    {
+      "category": "function_model.state_update",
+      "evidence_terms": [
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.state_updates.wrapped_q",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0055"
+    },
+    {
+      "category": "function_model.state_update",
+      "evidence_terms": [
+        "valid",
+        "valid_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.state_updates.valid_q",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "valid",
+          "valid_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "valid",
+          "valid_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0056"
+    },
+    {
+      "category": "function_model.side_effect",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_CLEAR.side_effects.side_effect_0",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0057"
+    },
+    {
+      "category": "function_model.transaction",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0058"
+    },
+    {
+      "category": "function_model.precondition",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.preconditions.precondition_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0059"
+    },
+    {
+      "category": "function_model.precondition",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.preconditions.precondition_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0060"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.inputs.input_0",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0061"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "enable",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.inputs.input_1",
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "enable",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "enable",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0062"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "step",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.inputs.input_2",
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "step",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "step",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0063"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.inputs.input_3",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0064"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q",
+        "xFF"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.outputs.output_0",
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q",
+          "xFF"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q",
+          "xFF"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0065"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.outputs.output_1",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0066"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.outputs.output_2",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0067"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "out",
+        "out_count",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q",
+        "xFF"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.outputs.out_count",
+      "static_evidence": {
+        "matched_count": 9,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_count",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q",
+          "xFF"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "out",
+          "out_count",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q",
+          "xFF"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0068"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "out",
+        "out_wrapped",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.outputs.out_wrapped",
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_wrapped",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "out",
+          "out_wrapped",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0069"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "out",
+        "out_valid",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.outputs.out_valid",
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_valid",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "out",
+          "out_valid",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0070"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q",
+        "xFF"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.outputs.count_q",
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q",
+          "xFF"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q",
+          "xFF"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0071"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.outputs.wrapped_q",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0072"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.outputs.valid_q",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0073"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "out",
+        "out_count",
+        "xFF"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.output_rules.out_count",
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_count",
+          "xFF"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_count",
+          "xFF"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0074"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "out",
+        "out_wrapped",
+        "wrapped"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.output_rules.out_wrapped",
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_wrapped",
+          "wrapped"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_wrapped",
+          "wrapped"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0075"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "out",
+        "out_valid",
+        "valid"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.output_rules.out_valid",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "out",
+          "out_valid",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "out_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0076"
+    },
+    {
+      "category": "function_model.state_update",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "xFF"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.state_updates.count_q",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "xFF"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "xFF"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0077"
+    },
+    {
+      "category": "function_model.state_update",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.state_updates.wrapped_q",
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0078"
+    },
+    {
+      "category": "function_model.state_update",
+      "evidence_terms": [
+        "valid",
+        "valid_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.state_updates.valid_q",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "valid",
+          "valid_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "valid",
+          "valid_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0079"
+    },
+    {
+      "category": "function_model.side_effect",
+      "evidence_terms": [
+        "Accepted",
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.side_effects.side_effect_0",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Accepted",
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0080"
+    },
+    {
+      "category": "function_model.side_effect",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_UPDATE.side_effects.side_effect_1",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0081"
+    },
+    {
+      "category": "function_model.transaction",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0082"
+    },
+    {
+      "category": "function_model.precondition",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.preconditions.precondition_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0083"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.inputs.input_0",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0084"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "enable",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.inputs.input_1",
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "enable",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "enable",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0085"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "step",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.inputs.input_2",
+      "static_evidence": {
+        "matched_count": 7,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "step",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "step",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0086"
+    },
+    {
+      "category": "function_model.input",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.inputs.input_3",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0087"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.outputs.output_0",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0088"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.outputs.output_1",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0089"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.outputs.output_2",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0090"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "out",
+        "out_count",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.outputs.out_count",
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_count",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "out",
+          "out_count",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0091"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "out",
+        "out_wrapped",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.outputs.out_wrapped",
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_wrapped",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "out",
+          "out_wrapped",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0092"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "out",
+        "out_valid",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.outputs.out_valid",
+      "static_evidence": {
+        "matched_count": 8,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_valid",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "out",
+          "out_valid",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0093"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.outputs.count_q",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0094"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.outputs.wrapped_q",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0095"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "Mirrored",
+        "SSOT",
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.outputs.valid_q",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "Mirrored",
+          "SSOT",
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0096"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "out",
+        "out_count"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.output_rules.out_count",
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "out",
+          "out_count"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0097"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "out",
+        "out_wrapped",
+        "wrapped"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.output_rules.out_wrapped",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "out",
+          "out_wrapped",
+          "wrapped"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "out_wrapped",
+          "wrapped"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0098"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "out",
+        "out_valid",
+        "valid"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.output_rules.out_valid",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "out",
+          "out_valid",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "out_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0099"
+    },
+    {
+      "category": "function_model.state_update",
+      "evidence_terms": [
+        "count",
+        "count_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.state_updates.count_q",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "count",
+          "count_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0100"
+    },
+    {
+      "category": "function_model.state_update",
+      "evidence_terms": [
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.state_updates.wrapped_q",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0101"
+    },
+    {
+      "category": "function_model.state_update",
+      "evidence_terms": [
+        "valid",
+        "valid_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.state_updates.valid_q",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "valid",
+          "valid_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "valid",
+          "valid_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0102"
+    },
+    {
+      "category": "function_model.side_effect",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.transactions.FM_IDLE.side_effects.side_effect_0",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0103"
+    },
+    {
+      "category": "function_model.invariant",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "valid",
+        "valid_q",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.invariants.invariant_0",
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "valid_q",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0104"
+    },
+    {
+      "category": "function_model.invariant",
+      "evidence_terms": [
+        "count",
+        "valid",
+        "valid_q",
+        "wrapped"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.invariants.invariant_1",
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "count",
+          "valid",
+          "valid_q",
+          "wrapped"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "valid",
+          "valid_q",
+          "wrapped"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0105"
+    },
+    {
+      "category": "function_model.invariant",
+      "evidence_terms": [
+        "count",
+        "count_prev",
+        "count_q",
+        "prev",
+        "valid",
+        "wrapped",
+        "wrapped_q"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "function_model.invariants.invariant_2",
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "valid",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_prev",
+          "count_q",
+          "prev",
+          "valid",
+          "wrapped",
+          "wrapped_q"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0106"
+    },
+    {
+      "category": "cycle_model.clock",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "cycle_model.clock",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0107"
+    },
+    {
+      "category": "cycle_model.reset",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "cycle_model.reset",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0108"
+    },
+    {
+      "category": "cycle_model.latency",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "cycle_model.latency",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0109"
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "evidence_terms": [
+        "clk"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "cycle_model.handshake_rules.clk",
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "clk"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "clk"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0110"
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "evidence_terms": [
+        "clear_enable_priority",
+        "enable",
+        "priority"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "cycle_model.handshake_rules.clear_enable_priority",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "clear_enable_priority",
+          "enable",
+          "priority"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "clear_enable_priority",
+          "enable",
+          "priority"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0111"
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "cycle_model.handshake_rules.backpressure",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0112"
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "cycle_model.pipeline.SAMPLE",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0113"
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "cycle_model.pipeline.COMMIT",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0114"
+    },
+    {
+      "category": "cycle_model.ordering",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0115"
+    },
+    {
+      "category": "cycle_model.ordering",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "cycle_model.ordering.ordering_rule_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0116"
+    },
+    {
+      "category": "cycle_model.ordering",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "cycle_model.ordering.ordering_rule_2",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0117"
+    },
+    {
+      "category": "cycle_model.backpressure",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0118"
+    },
+    {
+      "category": "cycle_model.observability",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "cycle_model.observability.observability_signal_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0119"
+    },
+    {
+      "category": "memory.instances",
+      "evidence_terms": [
+        "count",
+        "count_state_ff",
+        "ff"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "memory.instances.count_state_ff",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "count",
+          "count_state_ff",
+          "ff"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count",
+          "count_state_ff",
+          "ff"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0120"
+    },
+    {
+      "category": "memory.instances",
+      "evidence_terms": [
+        "ff",
+        "wrapped",
+        "wrapped_state_ff"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "memory.instances.wrapped_state_ff",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "ff",
+          "wrapped",
+          "wrapped_state_ff"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ff",
+          "wrapped",
+          "wrapped_state_ff"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0121"
+    },
+    {
+      "category": "memory.instances",
+      "evidence_terms": [
+        "ff",
+        "valid",
+        "valid_state_ff"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "memory.instances.valid_state_ff",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "ff",
+          "valid",
+          "valid_state_ff"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ff",
+          "valid",
+          "valid_state_ff"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0122"
+    },
+    {
+      "category": "fsm.state",
+      "evidence_terms": [
+        "RESET"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "fsm.control.states.state_0",
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "RESET"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "RESET"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0123"
+    },
+    {
+      "category": "fsm.state",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "fsm.control.states.state_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0124"
+    },
+    {
+      "category": "fsm.state",
+      "evidence_terms": [
+        "UPDATE"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "fsm.control.states.state_2",
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "UPDATE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "UPDATE"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0125"
+    },
+    {
+      "category": "fsm.state",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "fsm.control.states.state_3",
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0126"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "IDLE",
+        "RESET",
+        "rst",
+        "rst_n"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "fsm.control.transitions.transition_0",
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "IDLE",
+          "RESET",
+          "rst",
+          "rst_n"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "RESET",
+          "rst",
+          "rst_n"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0127"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "fsm.control.transitions.transition_1",
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0128"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "IDLE",
+        "UPDATE"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "fsm.control.transitions.transition_2",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "IDLE",
+          "UPDATE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "UPDATE"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0129"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "fsm.control.transitions.transition_3",
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0130"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "IDLE",
+        "UPDATE"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "fsm.control.transitions.transition_4",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "IDLE",
+          "UPDATE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "IDLE",
+          "UPDATE"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0131"
+    },
+    {
+      "category": "fsm.transition",
+      "evidence_terms": [
+        "IDLE"
+      ],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "fsm.control.transitions.transition_5",
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "IDLE"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0132"
+    },
+    {
+      "category": "features.item",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "features.Clear_priority_synchronous_control",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0133"
+    },
+    {
+      "category": "features.item",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "features.Enabled_modulo_increment",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0134"
+    },
+    {
+      "category": "features.item",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "features.Overflow_notification_pulse",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0135"
+    },
+    {
+      "category": "error_handling.recovery",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "error_handling.recovery.recovery_0",
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "rst",
+          "rst_n"
+        ],
+        "source_scope": "rtl/model_compare_counter.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0136"
+    },
+    {
+      "category": "security.assets",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "security.assets.asset_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0137"
+    },
+    {
+      "category": "security.assets",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "security.assets.asset_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0138"
+    },
+    {
+      "category": "security.assets",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "security.assets.asset_2",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0139"
+    },
+    {
+      "category": "integration.dependencies",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "integration.dependencies.dependencie_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0140"
+    },
+    {
+      "category": "integration.dependencies",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "integration.dependencies.dependencie_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0141"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "clk"
+      ],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "integration.connections.clk",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0142"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "integration.connections.rst_n",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0143"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "enable"
+      ],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "integration.connections.enable",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0144"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "integration.connections.clear",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0145"
+    },
+    {
+      "category": "integration.connections",
+      "evidence_terms": [
+        "step"
+      ],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "integration.connections.step",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0146"
+    },
+    {
+      "category": "synthesis.constraints",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "synthesis.constraints.constraint_0",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0147"
+    },
+    {
+      "category": "synthesis.constraints",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "synthesis.constraints.constraint_1",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0148"
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "synthesis.ppa_targets.area_um2_max",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0149"
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "synthesis.ppa_targets.power_mw_max",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0150"
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "synthesis.ppa_targets.frequency_mhz_min",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0151"
+    },
+    {
+      "category": "equivalence.module",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "sub_modules.model_compare_counter_core.module_equivalence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0152"
+    },
+    {
+      "category": "equivalence.module",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "source_ref": "sub_modules.model_compare_counter.module_equivalence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0153"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "test_requirements.scenarios.SC01",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0154"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "test_requirements.scenarios.SC02",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0155"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "test_requirements.scenarios.SC03",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0156"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "test_requirements.scenarios.SC04",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0157"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "test_requirements.scenarios.SC05",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0158"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "test_requirements.scenarios.SC06",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0159"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "test_requirements.scenarios.SC07",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0160"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "source_ref": "test_requirements.scenarios.SC08",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0161"
+    }
+  ],
+  "schema_version": 1,
+  "top": "model_compare_counter",
+  "type": "rtl_traceability_matrix"
+}

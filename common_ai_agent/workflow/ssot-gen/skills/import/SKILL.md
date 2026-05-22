@@ -43,10 +43,16 @@ summary and QA backlog; the production YAML is still written later by
    - extracted candidate facts
    - conflicts and missing facts
    - recommended next command (`/grill-me <ip>` or `/to-ssot <ip>`)
-4. Record non-blocking missing decisions with `record_ssot_qa`. Use `ask_user`
+4. Create or update `<ip>/req/extracted_decisions.json` with the same
+   per-decision facts and source excerpts in a compact machine-readable shape.
+5. Record executable handoff work in `workflow_todos.<stage>[]`. Each item must
+   include `command`, `script`, `instructions`, `content`, `detail`, `criteria`,
+   and `source_refs`; `/to-ssot` consumes these as its template-backed todo
+   ledger.
+6. Record non-blocking missing decisions with `record_ssot_qa`. Use `ask_user`
    only when the import cannot determine the IP name, top module, or basic IP
    type needed for the next write.
-5. End with `[SSOT IMPORT]`:
+7. End with `[SSOT IMPORT]`:
    - IP
    - evidence paths read
    - facts imported

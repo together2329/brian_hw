@@ -38,14 +38,16 @@ Output schema (`doc/wiki/_graph.json`):
 
 Run from the repo root or `common_ai_agent/`:
 
-    python3 workflow/wiki/build_graph.py
-    python3 workflow/wiki/build_graph.py --check    # exit 1 on broken refs
+    python3 "$ATLAS_WORKFLOW_ROOT/wiki/build_graph.py"
+    python3 "$ATLAS_WORKFLOW_ROOT/wiki/build_graph.py" --check    # exit 1 on broken refs
+    python3 "$ATLAS_WORKFLOW_ROOT/wiki/build_graph.py" --ip <ip> --root "$ATLAS_PROJECT_ROOT"
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import time
@@ -655,8 +657,17 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--project-root",
-        default=str(Path(__file__).resolve().parents[2]),
+        "--root",
+        dest="project_root",
+        default=os.environ.get("ATLAS_PROJECT_ROOT") or str(Path(__file__).resolve().parents[2]),
         help="Project root used to resolve <ip>/ when --ip is set.",
+    )
+    parser.add_argument(
+        "--ip-root",
+        "--ip_root",
+        dest="ip_root",
+        default=os.environ.get("ATLAS_IP_ROOT") or "",
+        help="Optional active IP directory; parent is used as project root when --ip is set.",
     )
     parser.add_argument(
         "--output",
@@ -676,7 +687,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.ip:
-        project_root = Path(args.project_root).resolve()
+        ip_root = Path(args.ip_root).expanduser().resolve() if args.ip_root else None
+        project_root = ip_root.parent if ip_root is not None and ip_root.is_dir() else Path(args.project_root).expanduser().resolve()
         graph = build_ip(args.ip, project_root)
         ip_wiki_dir = project_root / args.ip / "wiki"
         ip_wiki_dir.mkdir(parents=True, exist_ok=True)

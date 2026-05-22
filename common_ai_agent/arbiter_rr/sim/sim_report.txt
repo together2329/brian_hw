@@ -4,3 +4,5 @@ scoreboard=arbiter_rr/sim/scoreboard_events.jsonl
 coverage_functional=arbiter_rr/cov/coverage_functional.json
 waveforms=arbiter_rr/sim/arbiter_rr.vcd
 0 errors, 0 warnings
+[SIM ESCALATE] scoreboard_failed=2 owner=sim_debug evidence=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/arbiter_rr/sim/scoreboard_events.jsonl
+[SIM ESCALATE] reason=FL-vs-RTL scoreboard mismatch: EQ_SCENARIO_SC5: grant: expected=0 observed=4; gnt_o: expected=0 observed=4; grant_valid: expected=0 observed=1; gnt_valid_o: expected=0 observed=1; grant_index: expected=0 observed=2; gnt_idx_o: expected=0 observed=2; EQ_COVERAGE_CCOV_RESET_CLEAN: grant: expected=1 observed=0; gnt_o: expected=1 observed=0; grant_valid: expected=1 observed=0; gnt_valid_o: expected=1 observed=0

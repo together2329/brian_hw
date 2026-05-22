@@ -59,6 +59,15 @@ REQUIRED_ORDER = [
     "generation_flow",
 ]
 
+
+def _resolve_project_root(root_arg: str, ip_root_arg: str, ip: str) -> Path:
+    ip_root_raw = (ip_root_arg or os.environ.get("ATLAS_IP_ROOT") or "").strip()
+    if ip_root_raw:
+        ip_root = Path(ip_root_raw).expanduser().resolve()
+        if not ip or ip_root.name == ip or (ip_root / "yaml").is_dir():
+            return ip_root.parent
+    return Path(root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ".").expanduser().resolve()
+
 EXPRESSION_SCALAR_KEYS = {
     "condition",
     "detection",
@@ -1510,6 +1519,37 @@ def _ensure_transaction_output_summaries(doc: dict[str, Any]) -> None:
             tx["outputs"] = outputs
 
 
+def _ensure_state_update_widths(doc: dict[str, Any]) -> None:
+    """Fill validator-required state_update widths from declared state variables."""
+
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    if not isinstance(fm, dict):
+        return
+    state_widths: dict[str, int] = {}
+    for state in fm.get("state_variables") or []:
+        if not isinstance(state, dict):
+            continue
+        name = str(state.get("name") or "").strip()
+        if not name:
+            continue
+        try:
+            width = int(state.get("width") or 1)
+        except Exception:
+            width = 1
+        state_widths[name] = max(1, width)
+    for tx in fm.get("transactions") or []:
+        if not isinstance(tx, dict):
+            continue
+        updates = tx.get("state_updates")
+        if not isinstance(updates, list):
+            continue
+        for update in updates:
+            if not isinstance(update, dict) or update.get("width") not in (None, ""):
+                continue
+            name = str(update.get("name") or update.get("state") or update.get("target") or "").strip()
+            update["width"] = state_widths.get(name, 1)
+
+
 def _rewrite_self_referential_output_defaults(doc: dict[str, Any]) -> None:
     """Remove output self-feedback fallbacks from observable rules.
 
@@ -2633,10 +2673,10 @@ def _fsm_pipeline(doc: dict[str, Any]) -> list[dict[str, Any]]:
 def _ensure_cycle_model(doc: dict[str, Any]) -> dict[str, Any]:
     cm = dict(doc.get("cycle_model")) if isinstance(doc.get("cycle_model"), dict) else {}
     clock, freq = _first_clock(doc)
-    cm.setdefault("executable", "pymtl3")
+    cm.setdefault("executable", "python")
     cm.setdefault(
         "backend_policy",
-        "Use PyMTL3 for the clocked cycle model shell; FunctionalModel remains the behavioral oracle.",
+        "Use the repo-owned pure-Python deterministic stepper; FunctionalModel remains the behavioral oracle.",
     )
     cm.setdefault("performance", {
         "frequency_mhz": freq,
@@ -2655,8 +2695,8 @@ def _ensure_cycle_model(doc: dict[str, Any]) -> dict[str, Any]:
     dataflow = doc.get("dataflow") if isinstance(doc.get("dataflow"), dict) else {}
     return {
         "purpose": "Cycle/handshake contract for rtl-gen and waveform-based verification.",
-        "executable": "pymtl3",
-        "backend_policy": "Use PyMTL3 for the clocked cycle model shell; FunctionalModel remains the behavioral oracle.",
+        "executable": "python",
+        "backend_policy": "Use the repo-owned pure-Python deterministic stepper; FunctionalModel remains the behavioral oracle.",
         "clock": clock,
         "reset": {
             "signal": reset,
@@ -3837,6 +3877,7 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     _ensure_function_model_machine_rules(out)
     _ensure_rule_expr_input_map_completeness(out)
     _ensure_transaction_machine_rule_completeness(out)
+    _ensure_state_update_widths(out)
     _ensure_transaction_output_summaries(out)
     out["timing"] = _ensure_timing(out)
     out["power"] = _ensure_power(out)
@@ -3921,7 +3962,7 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     out["workflow_todos"] = _ensure_workflow_todos(out, ip)
     out["generation_flow"] = {
         "steps": [
-            {"name": "verify_ssot", "command": f"python3 workflow/ssot-gen/scripts/verify_ssot.py {ip} --mode ${{ATLAS_RUN_MODE:-signoff}}", "description": "Validate SSOT structure, Preview fields, and quality gates at the selected Run Mode"},
+            {"name": "verify_ssot", "command": f"python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode ${{ATLAS_RUN_MODE:-signoff}}", "description": "Validate SSOT structure, Preview fields, and quality gates at the selected Run Mode"},
             {"name": "handoff_fl_model", "command": f"/ssot-fl-model {ip}", "description": "Generate FunctionalModel, decomposition, and FCOV plan from SSOT"},
             {"name": "handoff_equivalence_goals", "command": f"/ssot-equiv-goals {ip}", "description": "Derive FL-vs-RTL equivalence goals before TB generation"},
             {"name": "handoff_rtl", "command": f"/ssot-rtl {ip}", "description": "Generate RTL from validated SSOT"},
@@ -4105,7 +4146,8 @@ def _validate_downstream_readiness(doc: dict[str, Any], ip: str, root: Path) -> 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("ip")
-    ap.add_argument("--root", default=".")
+    ap.add_argument("--root", default=os.environ.get("ATLAS_PROJECT_ROOT") or ".")
+    ap.add_argument("--ip-root", "--ip_root", dest="ip_root", default=os.environ.get("ATLAS_IP_ROOT") or "")
     ap.add_argument(
         "--mode",
         default="",
@@ -4118,7 +4160,7 @@ def main() -> int:
     )
     ns = ap.parse_args()
     run_mode = _normalize_run_mode(ns.mode or os.environ.get("ATLAS_RUN_MODE") or "signoff")
-    root = Path(ns.root).resolve()
+    root = _resolve_project_root(ns.root, ns.ip_root, ns.ip)
     ssot = _find_ssot(root, ns.ip)
     doc = _load_yaml(ssot)
     before_repair = dict(doc)
@@ -4158,7 +4200,7 @@ def main() -> int:
             return 2
     else:
         print("[repair_ssot_schema] downstream_readiness: clean")
-    print(f"[repair_ssot_schema] next: python3 workflow/ssot-gen/scripts/verify_ssot.py {ns.ip} --mode {run_mode}")
+    print(f"[repair_ssot_schema] next: python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ns.ip} --root \"$ATLAS_PROJECT_ROOT\" --mode {run_mode}")
     return 0
 
 

@@ -5,7 +5,7 @@
   "items": [
     {
       "content": "Read SSOT, FL model, decomposition, and FCOV plan as the equivalence source of truth",
-      "detail": "Use <ip>/yaml/<ip>.ssot.yaml, <ip>/model/functional_model.py, <ip>/model/decomposition.json, and <ip>/cov/fcov_plan.json. Do not infer behavior from RTL. If function_model or cycle_model is missing or under-specified, emit a precise SSOT question instead of inventing expected behavior.",
+      "detail": "Use yaml/<ip>.ssot.yaml, model/functional_model.py, model/decomposition.json, and cov/fcov_plan.json in the active IP root. Do not infer behavior from RTL. If function_model or cycle_model is missing or under-specified, emit a precise SSOT question instead of inventing expected behavior.",
       "criteria": "Current SSOT was read\nfunction_model transactions were enumerated\ncycle_model latency/handshake/ordering rules were enumerated\ndecomposition units were mapped\nfcov bins were mapped\nNo RTL observed behavior was used as expected behavior",
       "status": "pending"
     },

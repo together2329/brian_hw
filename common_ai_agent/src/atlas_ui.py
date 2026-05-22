@@ -109,6 +109,26 @@ else:
 HERE         = Path(__file__).resolve().parent
 SOURCE_ROOT  = HERE.parent                            # common_ai_agent/ (source)
 FRONTEND     = SOURCE_ROOT / "frontend" / "atlas"
+
+
+def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
+    """Resolve the directory that contains workflow families.
+
+    Accept either the workflow directory itself (`.../workflow`) or the
+    common_ai_agent source root (`.../common_ai_agent`). This lets CLI/env
+    callers pass the most obvious path without making every script guess.
+    """
+    value = str(raw or os.environ.get("ATLAS_WORKFLOW_ROOT") or "").strip()
+    base = Path(value).expanduser() if value else SOURCE_ROOT / "workflow"
+    if (base / "ssot-gen").exists() or base.name == "workflow":
+        return base.resolve()
+    nested = base / "workflow"
+    if (nested / "ssot-gen").exists():
+        return nested.resolve()
+    return base.resolve()
+
+
+WORKFLOW_ROOT = _resolve_workflow_root()
 # PROJECT_ROOT is the user's cwd at launch, NOT the source repo. This
 # lets the user run `python ../path/to/textual_main.py` from any
 # project directory and have the file API + scope operate on THAT dir.
@@ -636,7 +656,30 @@ def _ssot_export_valid_ip(name: str) -> bool:
     return bool(_SSOT_EXPORT_IP_NAME_RE.match(name or ""))
 
 
+def _configured_ip_root(ip: str = "") -> Path | None:
+    raw = os.environ.get("ATLAS_IP_ROOT", "").strip()
+    if not raw:
+        return None
+    try:
+        root = Path(raw).expanduser().resolve()
+    except Exception:
+        return None
+    if not root.is_dir():
+        return None
+    if ip and _ssot_export_valid_ip(ip):
+        if root.name == ip:
+            return root
+        for name in (f"{ip}.ssot.yaml", f"{ip}_ssot.yaml", f"{ip}.ssot.yml"):
+            if (root / "yaml" / name).is_file():
+                return root
+        return None
+    return root
+
+
 def _project_ip_root(ip: str) -> Path:
+    configured = _configured_ip_root(ip)
+    if configured is not None:
+        return configured
     nested = PROJECT_ROOT / ip
     if nested.exists():
         return nested
@@ -691,6 +734,24 @@ def _ssot_md_scalar(value: Any) -> str:
     if isinstance(value, (int, float)):
         return str(value)
     return str(value)
+
+
+def _ssot_md_bit_range(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, (list, tuple)) and len(value) == 2:
+        msb, lsb = value
+        if isinstance(msb, int) and isinstance(lsb, int):
+            return str(msb) if msb == lsb else f"{msb}:{lsb}"
+    text = _ssot_md_scalar(value).strip()
+    m = re.match(r"^\[?\s*(\d+)\s*(?:,|:|-|\s+)\s*(\d+)\s*\]?$", text)
+    if m:
+        msb, lsb = m.group(1), m.group(2)
+        return msb if msb == lsb else f"{msb}:{lsb}"
+    m = re.match(r"^\[?\s*(\d+)\s*\]?$", text)
+    if m:
+        return m.group(1)
+    return text
 
 
 def _ssot_md_is_short_scalar(value: Any) -> bool:
@@ -1698,7 +1759,7 @@ def _ssot_docx_render_register_detail(doc: Any, reg: dict, level: int = 2) -> No
             if not isinstance(f, dict):
                 continue
             bit_rows.append([
-                _ssot_md_scalar(f.get("bits") or f.get("bit") or f.get("range") or ""),
+                _ssot_md_bit_range(f.get("bits") or f.get("bit") or f.get("range") or ""),
                 _ssot_md_scalar(f.get("name") or ""),
                 _ssot_md_scalar(f.get("access") or ""),
                 _ssot_md_scalar(f.get("reset") or ""),
@@ -3495,6 +3556,11 @@ def create_app():
                     info["tokens_in"]    = d.get("in_tok",    d.get("input",  0))
                     info["tokens_cache"] = d.get("cache_tok", d.get("cached", 0))
                     info["tokens_out"]   = d.get("out_tok",   d.get("output", 0))
+                    # Current context window usage = the LAST turn's
+                    # input tokens. Cumulative tokens make sense for cost
+                    # ledger but not for "Context X / max" because a 200K
+                    # window can host many turns whose sum exceeds max.
+                    info["tokens"] = d.get("last_in_tok", 0)
                     # Prefer the cost_usd written by _emit_token (uses
                     # the per-call pricing at the moment of the LLM
                     # request, so model switches mid-session don't
@@ -3794,7 +3860,7 @@ def create_app():
         rel_ip = ip_dir.relative_to(PROJECT_ROOT).as_posix()
         run_info: dict[str, Any] | None = None
         if refresh:
-            script = SOURCE_ROOT / "workflow" / "lint" / "scripts" / "dut_lint_report.py"
+            script = WORKFLOW_ROOT / "lint" / "scripts" / "dut_lint_report.py"
             cmd = [_python_cmd(), str(script), rel_ip, "--top", top or ip_dir.name]
 
             def _run_lint_report():
@@ -4302,7 +4368,7 @@ def create_app():
         run_info: dict[str, Any] = {}
 
         if refresh:
-            script = SOURCE_ROOT / "workflow" / "coverage" / "scripts" / "ssot_coverage_summary.py"
+            script = WORKFLOW_ROOT / "coverage" / "scripts" / "ssot_coverage_summary.py"
             cmd = [_python_cmd(), str(script), rel_ip]
 
             def _run_summary():
@@ -4330,7 +4396,7 @@ def create_app():
                 run_info["summary"] = {"command": shlex.join(cmd), "returncode": 1, "output": str(exc)}
 
         if vcd:
-            script = SOURCE_ROOT / "workflow" / "coverage" / "scripts" / "coverage_vcd_toggle.sh"
+            script = WORKFLOW_ROOT / "coverage" / "scripts" / "coverage_vcd_toggle.sh"
             cmd = ["bash", str(script), rel_ip, "--json"]
             if top:
                 cmd.extend(["--top", top])
@@ -5631,7 +5697,7 @@ def create_app():
     _ELAB_CACHE = {}
     def _load_sim_debug_elab():
         import importlib.util as _ilu
-        elab_path = SOURCE_ROOT / "workflow" / "sim_debug" / "elab.py"
+        elab_path = WORKFLOW_ROOT / "sim_debug" / "elab.py"
         if not elab_path.is_file():
             raise FileNotFoundError(f"sim_debug elab module not found at {elab_path}")
         try:
@@ -10596,6 +10662,9 @@ def create_app():
         return _active_ssot_ip()
 
     def _ip_root(ip: str) -> Path:
+        configured = _configured_ip_root(ip)
+        if configured is not None:
+            return configured
         nested = PROJECT_ROOT / ip
         if nested.exists():
             return nested
@@ -10607,6 +10676,13 @@ def create_app():
         ip_dir = _ip_root(ip)
         if ip_dir == PROJECT_ROOT and PROJECT_ROOT.name == ip:
             return PROJECT_ROOT.parent
+        try:
+            resolved_ip = ip_dir.resolve()
+            resolved_project = PROJECT_ROOT.resolve()
+            if resolved_ip != resolved_project and resolved_ip.parent != resolved_project and (resolved_ip / "yaml").is_dir():
+                return resolved_ip.parent
+        except Exception:
+            pass
         return PROJECT_ROOT
 
     def _render_new_ip_plan(ip: str, kind: str, state: dict[str, Any]) -> str:
@@ -10682,6 +10758,8 @@ def create_app():
             f"{ip}/wiki/index.md",
             f"{ip}/wiki/_graph.json",
             f"{ip}/wiki/import-evidence.md",
+            f"{ip}/req/import_manifest.json",
+            f"{ip}/req/extracted_decisions.json",
             f"{ip}/req/imports/",
             *imported_paths[:24],
         ]
@@ -10716,7 +10794,7 @@ def create_app():
             path_lines,
             "",
             "Required action:",
-            f"1. Read `{ip}/wiki/index.md`, `{ip}/wiki/_graph.json`, `{ip}/wiki/import-evidence.md`, `{ip}/req/imports/`, and `{ip}/yaml/{ip}.ssot.yaml` if they exist.",
+            f"1. Read `{ip}/wiki/index.md`, `{ip}/wiki/_graph.json`, `{ip}/wiki/import-evidence.md`, `{ip}/req/import_manifest.json`, `{ip}/req/extracted_decisions.json`, `{ip}/req/imports/`, and `{ip}/yaml/{ip}.ssot.yaml` if they exist.",
             f"2. Follow relevant wiki links and inspect relevant files under `{ip}/req`, `{ip}/doc`, `{ip}/rtl`, `{ip}/model`, `{ip}/tb`, `{ip}/sim`, `{ip}/lint`, and `{ip}/logs` when the index or evidence points there.",
             "3. Detect unresolved SSOT decisions, contradictions, assumptions, TBD/null/placeholders, vague imported facts, and any truth that needs human approval or concretization.",
             "4. Generate ONLY the questions needed for this IP. The question set may be 0, 1, 4, 20, or more depending on complexity.",
@@ -10813,9 +10891,9 @@ def create_app():
             "index.md": (
                 f"# {ip} IP Wiki\n\n"
                 f"Per-IP knowledge base. Read with `wiki_query(ip=\"{ip}\")` or run\n"
-                f"`python3 workflow/wiki/build_graph.py --ip {ip}` to refresh the index.\n\n"
+                f"`python3 \"$ATLAS_WORKFLOW_ROOT/wiki/build_graph.py\" --ip {ip} --root \"$ATLAS_PROJECT_ROOT\"` to refresh the index.\n\n"
                 "## Status snapshot\n\n"
-                "Populated by `workflow/wiki/build_graph.py --ip <ip>`; the synthetic\n"
+                "Populated by `$ATLAS_WORKFLOW_ROOT/wiki/build_graph.py --ip <ip> --root $ATLAS_PROJECT_ROOT`; the synthetic\n"
                 "`[[ssot]]`, `[[fl_model]]`, `[[cl_model]]`, `[[rtl]]`, `[[filelist]]`,\n"
                 "`[[lint]]`, `[[tb]]`, `[[sim]]`, `[[coverage]]`, `[[audit]]`, and\n"
                 "`[[last_run]]` nodes carry status/digest fields.\n\n"
@@ -10861,7 +10939,7 @@ def create_app():
         try:
             import subprocess
 
-            script = Path(__file__).resolve().parents[1] / "workflow" / "wiki" / "build_graph.py"
+            script = WORKFLOW_ROOT / "wiki" / "build_graph.py"
             subprocess.run(
                 [
                     "python3",
@@ -10928,6 +11006,8 @@ def create_app():
                 for artifact in artifacts[:80]:
                     path = _compact_import_wiki_text(artifact.get("path"), 240).replace("|", "\\|")
                     size = artifact.get("size_bytes")
+                    if not isinstance(size, int):
+                        size = artifact.get("bytes")
                     md_path = _compact_import_wiki_text(artifact.get("md_path"), 240).replace("|", "\\|")
                     lines.append(f"| `{path}` | {size if isinstance(size, int) else ''} | `{md_path}` |")
             else:
@@ -11510,6 +11590,7 @@ def create_app():
         return rows
 
     def _import_section_todos(
+        ip: str,
         candidates: dict[str, str],
         sources: dict[str, list[dict[str, str]]],
     ) -> list[dict[str, Any]]:
@@ -11548,6 +11629,18 @@ def create_app():
                 "section": section,
                 "decision_keys": list(keys),
                 "evidence_keys": evidence_keys,
+                "command": f"/to-ssot {ip}",
+                "script": "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py",
+                "run_command": (
+                    f"python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering && "
+                    f"python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering"
+                ),
+                "instructions": [
+                    f"Read `{ip}/req/import_manifest.json`, `{ip}/req/extracted_decisions.json`, `{ip}/wiki/import-evidence.md`, and every `source_refs` file before editing this section.",
+                    f"Write only canonical `{section}` fields supported by imported evidence, approved Q&A, or explicit no-feature policy.",
+                    "If source evidence is silent or contradictory, record a precise SSOT QA card instead of filling template defaults.",
+                    "After the YAML write, run repair_ssot_schema.py and verify_ssot.py with --root pointing at the active project root.",
+                ],
                 "priority": "high" if evidence_keys else "normal",
                 "required": True,
             })
@@ -11571,6 +11664,14 @@ def create_app():
                         "DUT compile/lint evidence is fresh after doc-derived RTL edits",
                     ],
                     "source_refs": refs,
+                    "command": f"/ssot-rtl {ip}",
+                    "script": "$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py",
+                    "run_command": f"python3 \"$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --audit-rtl",
+                    "instructions": [
+                        "Start from the dynamic RTL TODO plan derived from the SSOT, not from a fixed IP template.",
+                        "Implement only behavior that traces to SSOT refs, import evidence, or approved workflow_todos.",
+                        "Rerun derive_rtl_todos.py --audit-rtl after RTL edits and keep every required gate open until real source evidence exists.",
+                    ],
                     "owner_module": f"{ip}_core",
                     "owner_file": f"rtl/{ip}.sv",
                     "priority": "high",
@@ -11592,6 +11693,14 @@ def create_app():
                         "Simulation emits results.xml, scoreboard_events.jsonl, VCD, and coverage evidence",
                     ],
                     "source_refs": refs,
+                    "command": f"/ssot-tb {ip}",
+                    "script": "$ATLAS_WORKFLOW_ROOT/tb-gen/scripts/emit_goal_scoreboard_cocotb.py",
+                    "run_command": f"python3 \"$ATLAS_WORKFLOW_ROOT/tb-gen/scripts/emit_goal_scoreboard_cocotb.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\"",
+                    "instructions": [
+                        "Generate tests and scoreboards from SSOT function_model, cycle_model, scenarios, and import-backed workflow_todos.",
+                        "Preserve source_refs in generated TB manifest/evidence so failures can be traced back to the SSOT.",
+                        "Run the generated cocotb simulation and keep results.xml plus scoreboard_events.jsonl as proof.",
+                    ],
                     "priority": "high" if has_dv else "normal",
                     "required": True,
                 }
@@ -11610,6 +11719,14 @@ def create_app():
                         "Escalations name the owning workflow: ssot-gen, rtl-gen, tb-gen, or coverage",
                     ],
                     "source_refs": refs,
+                    "command": f"/wf sim_debug",
+                    "script": "$ATLAS_WORKFLOW_ROOT/sim_debug/scripts/compare_fl_rtl_results.py",
+                    "run_command": f"python3 \"$ATLAS_WORKFLOW_ROOT/sim_debug/scripts/compare_fl_rtl_results.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\"",
+                    "instructions": [
+                        "Compare FL, RTL, scoreboard, waveform, and coverage evidence against imported source_refs and SSOT refs.",
+                        "Classify each mismatch to ssot-gen, rtl-gen, tb-gen, or human decision ownership.",
+                        "Do not close a mismatch without expected/got evidence and the source_ref that defines the expected behavior.",
+                    ],
                     "priority": "normal",
                     "required": True,
                 }
@@ -11631,7 +11748,7 @@ def create_app():
             for row in evidence_rows
             if str(row.get("path") or "").strip()
         ]
-        section_todos = _import_section_todos(candidates, sources)
+        section_todos = _import_section_todos(ip, candidates, sources)
         downstream = _import_downstream_todos(ip, source_refs, bool(candidates.get("test_expectation")))
 
         custom["atlas_import_doc_evidence"] = _merge_unique_records(
@@ -11692,22 +11809,35 @@ def create_app():
         todo_summary = _apply_import_yaml_todos(ip, doc, custom, artifacts, candidates, sources)
         next_action = "/grill-me" if conflicts or _missing_ssot_decisions(ip, state) else "/to-ssot"
         manifest_path = PROJECT_ROOT / ip / "req" / "import_manifest.json"
+        extracted_path = PROJECT_ROOT / ip / "req" / "extracted_decisions.json"
         try:
             manifest_path.parent.mkdir(parents=True, exist_ok=True)
-            manifest_path.write_text(
+            manifest_doc = {
+                "schema_version": "ssot_import_manifest.v1",
+                "ip": ip,
+                "workflow": "ssot-gen",
+                "updated_at": time.time(),
+                "kind": kind,
+                "artifacts": artifacts,
+                "candidate_facts": candidates,
+                "sources": sources,
+                "filled_decisions": filled,
+                "conflicts": conflicts,
+                "workflow_todo_summary": todo_summary,
+                "next": next_action,
+            }
+            manifest_path.write_text(json.dumps(manifest_doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            extracted_path.write_text(
                 json.dumps(
                     {
-                        "schema_version": "ssot_import_manifest.v1",
+                        "schema_version": "ssot_extracted_decisions.v1",
                         "ip": ip,
                         "workflow": "ssot-gen",
-                        "updated_at": time.time(),
-                        "kind": kind,
-                        "artifacts": artifacts,
-                        "candidate_facts": candidates,
+                        "updated_at": manifest_doc["updated_at"],
+                        "decisions": candidates,
                         "sources": sources,
                         "filled_decisions": filled,
                         "conflicts": conflicts,
-                        "workflow_todo_summary": todo_summary,
                         "next": next_action,
                     },
                     ensure_ascii=False,
@@ -12208,30 +12338,27 @@ def create_app():
             _emit_ssot_approval_ready(ip, state)
             return True
 
-        # LLM-base import (per user request). The intermediate
-        # import_manifest.json layer was retired — the LLM writes
-        # extracted evidence directly to `<ip>/wiki/import-evidence.md`
-        # (human-readable) and `<ip>/yaml/<ip>.ssot.yaml` (final
-        # structured artifact). The req/imports/ directory itself is
-        # the durable record of "what was uploaded".
-        artifact_paths_list: list[str] = []
-        for path in files:
-            try:
-                artifact_paths_list.append(_relative_project_path(path))
-            except Exception:
-                continue
-
+        artifacts, candidates, sources = _extract_import_candidates(ip, files)
+        filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources)
         state.setdefault("ip", ip)
         state.setdefault("kind", kind)
         state["active_session"] = _active_session_value() or _canonical_session_string(ip)
-        state["last_step"] = "import-llm-queued"
+        state["last_step"] = "import"
+        state["status"] = "answered" if not _missing_ssot_decisions(ip, state) else "planned"
         _save_ssot_state(ip, state)
+        missing = _missing_ssot_decisions(ip, state)
+        next_action = "/grill-me" if conflicts or missing else "/to-ssot"
 
         lines = [
-            f"[SSOT IMPORT] {ip} — queueing LLM extraction.",
+            f"[SSOT IMPORT] {ip}",
             f"imported files: {len(files)}",
-            f"target evidence wiki: {ip}/wiki/import-evidence.md",
-            f"target SSOT yaml:     {ip}/yaml/{ip}.ssot.yaml",
+            f"manifest: {ip}/req/import_manifest.json",
+            f"extracted decisions: {ip}/req/extracted_decisions.json",
+            f"evidence wiki: {ip}/wiki/import-evidence.md",
+            f"filled decisions: {', '.join(filled) if filled else '(none)'}",
+            f"missing decisions: {', '.join(missing) if missing else '(none)'}",
+            f"conflicts: {len(conflicts)}",
+            f"next: {next_action} {ip}",
         ]
         if errors:
             lines += ["", "notes:"]
@@ -12240,6 +12367,7 @@ def create_app():
             "",
             "evidence:",
         ]
+        artifact_paths_list = [str(a.get("path") or "") for a in artifacts if str(a.get("path") or "")]
         lines.extend(f"- {p}" for p in artifact_paths_list[:12])
         if len(artifact_paths_list) > 12:
             lines.append(f"- ... {len(artifact_paths_list) - 12} more")
@@ -12251,47 +12379,7 @@ def create_app():
         _append_active_history("user", text)
         _append_active_history("assistant", "```\n" + msg + "\n```")
         _emit_workflow_result(msg, "import")
-        _emit_ssot_approval_ready(ip, state, _missing_ssot_decisions(ip, state))
-
-        # Queue the LLM extraction turn. Same pattern as /to-ssot.
-        ssot_path = _ssot_yaml_path(ip)
-        artifact_block = "\n".join(f"  - `{p}`" for p in artifact_paths_list[:40])
-        if len(artifact_paths_list) > 40:
-            artifact_block += f"\n  - ... {len(artifact_paths_list) - 40} more"
-        _queue_prompt_for_session(client_session, "/mode normal")
-        _queue_prompt_for_session(client_session, "/wf ssot-gen")
-        _queue_prompt_for_session(client_session, "/clear")
-        _queue_prompt_for_session(client_session,
-            f"Read the import artifacts for IP `{ip}` and write structured "
-            f"SSOT evidence directly to disk.\n\n"
-            "Workspace boundary (do not search or read outside these roots):\n"
-            f"  - PROJECT_ROOT: `{PROJECT_ROOT}`\n"
-            f"  - IP_ROOT:      `{ip_dir}`\n\n"
-            "Imported artifacts (just-uploaded source documents):\n"
-            f"{artifact_block}\n\n"
-            "What to do:\n"
-            "  1. Read each artifact above with read_file.\n"
-            "  2. Identify per-decision evidence: purpose, bus_interface, "
-            "register_map, clock_reset, dataflow, interrupts, error_handling, "
-            "test_requirements, security/safety. Quote register addresses, "
-            "signal names, encodings, and table rows verbatim.\n"
-            f"  3. Append (or replace) a structured evidence section in "
-            f"`{ip}/wiki/import-evidence.md` — one heading per artifact, "
-            "facts grouped by decision key, with `# source: <path> "
-            "L<line>` citations on every transcribed number / row / "
-            "normative requirement.\n"
-            f"  4. Update `{ssot_path}` draft fields where the evidence is "
-            "unambiguous. Where the imports conflict or stay silent, "
-            "leave the SSOT field empty and add a short inline comment "
-            "explaining the gap — do NOT invent placeholders.\n"
-            "  5. Do NOT write `req/import_manifest.json` — that "
-            "intermediate file was retired. The imports/ directory itself "
-            "is the durable record of uploads; wiki + SSOT yaml are the "
-            "structured outputs.\n\n"
-            "Do not call todo_write (Plan Mode only).\n"
-            "Emit `[IMPORT EVIDENCE DONE]` once the wiki + SSOT updates are written."
-        )
-        bridge.emit("agent_state", running=True)
+        _emit_ssot_approval_ready(ip, state, missing)
         return True
 
     def _safe_import_upload_name(name: str) -> str:
@@ -13089,7 +13177,7 @@ def create_app():
         if not _valid_ip_name(ip):
             return JSONResponse({"error": "no active IP found"}, status_code=400)
 
-        script = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "verify_ssot.py"
+        script = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "verify_ssot.py"
         if not script.is_file():
             return JSONResponse({"error": f"validator script not found: {script}"}, status_code=404)
 
@@ -13408,14 +13496,56 @@ def create_app():
         _set_active_ssot_ip(ip)
         ip_dir = _ip_root(ip)
         state = _load_ssot_state(ip) or {}
-        # /to-ssot does NOT auto-import, does NOT flip an approve flag,
-        # does NOT block on missing decisions, and does NOT use the
-        # deterministic bridge or the 33-section template.
-        # It queues a Normal-mode LLM turn that reads imports + wiki + Q&A
-        # and writes the SSOT yaml directly with write_file / replace_in_file.
-        # Structure is derived from evidence — no canned template stamping.
-        spec = _render_approved_ssot_spec(ip, state) if state else f"[to-ssot] {ip}: no SSOT state yet."
         session = _canonical_session_string(ip)
+        manifest_path = ip_dir / "req" / "import_manifest.json"
+        extracted_path = ip_dir / "req" / "extracted_decisions.json"
+        evidence_path = ip_dir / "wiki" / "import-evidence.md"
+        imports_dir = ip_dir / "req" / "imports"
+        import_files: list[Path] = []
+        if imports_dir.is_dir():
+            for path in sorted(imports_dir.rglob("*"), key=lambda p: p.as_posix()):
+                if path.is_file() and path.suffix.lower() in _SSOT_IMPORT_EXTENSIONS:
+                    import_files.append(path)
+                    if len(import_files) >= 12:
+                        break
+
+        def _emit_to_ssot_blocked(msg: str) -> bool:
+            _append_session_message(session, "user", text)
+            _append_session_message(session, "assistant", msg)
+            _append_workflow_history("ssot-gen", "user", text)
+            _append_workflow_history("ssot-gen", "assistant", msg)
+            _append_active_history("user", text)
+            _append_active_history("assistant", "```\n" + msg + "\n```")
+            _emit_workflow_result(msg, "to-ssot")
+            _emit_ssot_approval_ready(ip, state)
+            return True
+
+        if import_files and (not manifest_path.is_file() or not extracted_path.is_file() or not evidence_path.is_file()):
+            listed = "\n".join(f"- `{_relative_project_path(path)}`" for path in import_files[:8])
+            return _emit_to_ssot_blocked(
+                f"[SSOT GATE] blocked: import evidence index is incomplete for {ip}\n"
+                f"required: `{_relative_project_path(manifest_path)}`, "
+                f"`{_relative_project_path(extracted_path)}`, "
+                f"`{_relative_project_path(evidence_path)}`\n"
+                "found import files:\n"
+                f"{listed or '- (none)'}\n"
+                f"run: /import --ip {ip} " + " ".join(f"@{_relative_project_path(path)}" for path in import_files[:8])
+            )
+
+        missing = _missing_ssot_decisions(ip, state)
+        if missing:
+            return _emit_to_ssot_blocked(
+                f"[SSOT GATE] blocked: {ip} still has missing SSOT decisions\n"
+                f"missing: {', '.join(missing)}\n"
+                f"next: run `/import --ip {ip} @<evidence>` if docs exist, or `/grill-me {ip}` for only the gaps.\n"
+                "The LLM SSOT write is not queued until these decision slots are evidence-backed."
+            )
+
+        # /to-ssot queues a Normal-mode LLM turn only after the deterministic
+        # import/decision preflight is complete. Structure is derived from
+        # manifest, extracted decisions, wiki evidence, and approved Q&A; the
+        # template is a schema contract only, never a source of IP behavior.
+        spec = _render_approved_ssot_spec(ip, state) if state else f"[to-ssot] {ip}: no SSOT state yet."
         _append_session_message(session, "user", text)
         _append_session_message(session, "assistant", spec)
         _append_workflow_history("ssot-gen", "user", text)
@@ -13425,7 +13555,7 @@ def create_app():
         ready_msg = (
             f"[to-ssot] {ip} — queueing LLM SSOT write.\n"
             f"Target: {ssot_path}\n"
-            f"Sources: `{ip}/req/imports/`, `{ip}/wiki/`, Web Q&A."
+            f"Sources: `{ip}/req/import_manifest.json`, `{ip}/req/extracted_decisions.json`, `{ip}/wiki/import-evidence.md`, Web Q&A."
         )
         _append_session_message(session, "assistant", ready_msg)
         _append_workflow_history("ssot-gen", "assistant", ready_msg)
@@ -13437,30 +13567,44 @@ def create_app():
         _queue_prompt_for_session(client_session, "/mode normal")
         _queue_prompt_for_session(client_session, "/wf ssot-gen")
         _queue_prompt_for_session(client_session, "/clear")
+        script_root = _script_project_root(ip)
+        repair_script = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
+        verify_script = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "verify_ssot.py"
         _queue_prompt_for_session(client_session,
             f"Write the canonical SSOT YAML for IP `{ip}` at the path\n"
             f"  `{ssot_path}`\n\n"
             "Workspace boundary (do not search or read outside these roots):\n"
             f"  - PROJECT_ROOT: `{PROJECT_ROOT}`\n"
             f"  - IP_ROOT:      `{ip_dir}`\n"
+            f"  - WORKFLOW_ROOT: `{WORKFLOW_ROOT}`\n"
             f"  - COMMON_AI_AGENT_HOME (read-only): `{SOURCE_ROOT}`\n\n"
+            "Environment aliases for commands: `$ATLAS_PROJECT_ROOT` is the IP/project artifact root, "
+            "`$ATLAS_WORKFLOW_ROOT` is the workflow script root, and `$ATLAS_IP_ROOT` may pin this IP root.\n\n"
             "Source-of-truth inputs (READ these first):\n"
-            f"  1. `{ip}/req/imports/`               — uploaded/converted requirement evidence.\n"
-            f"  2. `{ip}/wiki/index.md`, `_graph.json`, `import-evidence.md`, "
-            "`log.md`, `notes.md`  — accumulated wiki evidence.\n"
-            "  3. Web Q&A snapshot (already inline above in the [SSOT SPEC] block).\n\n"
+            f"  1. `{ip}/req/import_manifest.json`     — authoritative import inventory, candidate facts, source excerpts, conflicts, next action.\n"
+            f"  2. `{ip}/req/extracted_decisions.json` — per-decision evidence extracted by /import.\n"
+            f"  3. `{ip}/wiki/import-evidence.md`, `{ip}/wiki/index.md`, `_graph.json`, `log.md`, `notes.md` — accumulated wiki evidence.\n"
+            f"  4. `{ip}/req/imports/`                 — uploaded/converted requirement evidence referenced by the manifest.\n"
+            "  5. Web Q&A snapshot (already inline above in the [SSOT SPEC] block).\n\n"
             "Canonical YAML shape required by SSOT Preview and gates:\n"
             "  - Top level must be one YAML mapping. Do NOT wrap the document in `ssot:`, `sections:`, `spec:`, or markdown fences.\n"
             "  - Use these exact top-level keys, in this order:\n"
             "    top_module, sub_modules, decomposition, rtl_contract, parameters, io_list, features, dataflow, function_model, cycle_model, clock_reset_domains, cdc_requirements, rdc_requirements, registers, memory, interrupts, fsm, timing, power, security, error_handling, debug_observability, integration, dft, synthesis, pnr, coding_rules, reuse_modules, custom, dir_structure, filelist, test_requirements, quality_gates, traceability, workflow_todos, generation_flow.\n"
             "  - Do NOT use legacy aliases such as `interface`, `bus_interface`, `register_map`, `clock_reset`, `errors`, `debug`, `dv_plan`, or `verification_plan` as top-level sections.\n"
             "  - Engineering/signoff SSOT must include the fields SSOT Preview parses: `top_module.description`, `io_list.interfaces[].ports[]`, `function_model.transactions[]`, `cycle_model.pipeline[]`, `cycle_model.scenarios[]` or `function_model.scenarios[]` or `test_requirements.scenarios[]`, `registers.register_list[]` or an explicit no-register policy, `fsm.states/transitions` or an explicit no-FSM policy, and `test_requirements.scenarios[]`.\n\n"
+            "Workflow TODO contract:\n"
+            "  - Preserve and enrich `workflow_todos.<stage>[]` as the executable handoff list.\n"
+            "  - Every workflow_todos item you add or keep must include: `id`, `content`, `detail`, `command`, `script`, `instructions`, `criteria`, `source_refs`, `priority`, and `required`.\n"
+            f"  - `command` is the ATLAS slash command (for example `/to-ssot {ip}`, `/ssot-rtl {ip}`, `/ssot-tb {ip}`).\n"
+            "  - `script` is the deterministic workflow script that validates or expands that handoff (for example `$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py`).\n"
+            "  - `instructions` must be IP-specific and source-backed; do not leave generic template language when imported evidence is available.\n\n"
             "Rules for the write:\n"
             "  - Derive structure from the imports themselves. Do NOT stamp a "
             "33-section template; do NOT invent sections the imports don't "
             "support; do NOT use placeholder strings like '(TBD)' as a "
             "shortcut — if a fact isn't in the imports or Q&A, omit the "
             "field or leave a single-line comment explaining the gap.\n"
+            f"  - Do not copy DMA/AXI example content from `{WORKFLOW_ROOT / 'ssot-gen' / 'rules' / 'ssot-template.yaml'}`. The template is a schema/order reference only; imported evidence and Q&A are the behavior source.\n"
             "  - Quote register addresses, signal names, encodings, and "
             "interface widths verbatim from the imports.\n"
             "  - Cite the source path inline (e.g. "
@@ -13469,8 +13613,8 @@ def create_app():
             "Execution requirement: this is a single Normal-mode write turn. "
             "Use write_file (or replace_in_file on an existing draft) to "
             "produce the yaml; do not call todo_write (Plan Mode only). "
-            f"After the write, run `python3 workflow/ssot-gen/scripts/repair_ssot_schema.py {ip} --mode engineering` "
-            f"and `python3 workflow/ssot-gen/scripts/verify_ssot.py {ip} --mode engineering`; fix any format failures before handoff. "
+            f"After the write, run `python3 {repair_script} {ip} --root {script_root} --mode engineering` "
+            f"and `python3 {verify_script} {ip} --root {script_root} --mode engineering`; fix any format failures before handoff. "
             "Emit `[SSOT HANDOFF]` once the yaml is on disk."
         )
         bridge.emit("agent_state", running=True)
@@ -13488,8 +13632,8 @@ def create_app():
             )
             return True
 
-        script = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
-        validator = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "verify_ssot.py"
+        script = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
+        validator = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "verify_ssot.py"
         ssot_path = _ssot_yaml_path(ip)
         session = _canonical_session_string(ip)
         _append_session_message(session, "user", text)
@@ -13605,7 +13749,7 @@ def create_app():
 
         _set_active_ssot_ip(ip)
         ssot_path = _ssot_yaml_path(ip)
-        script = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "verify_ssot.py"
+        script = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "verify_ssot.py"
         session = _canonical_session_string(ip)
         _append_session_message(session, "user", text)
         _append_workflow_history("ssot-gen", "user", text)
@@ -13727,8 +13871,8 @@ def create_app():
             "- Reconcile filelist and top wrapper naming with SSOT, or escalate to ssot-gen "
             "if the SSOT source of truth must change.\n\n"
             "After the final RTL edit, run exactly:\n"
-            f"`{py_cmd} {SOURCE_ROOT / 'workflow' / 'rtl-gen' / 'scripts' / 'rtl_compile_report.py'} {ip} --top {ip}`\n"
-            f"`{py_cmd} {SOURCE_ROOT / 'workflow' / 'lint' / 'scripts' / 'dut_lint_report.py'} {ip} --top {ip}`\n\n"
+            f"`{py_cmd} {WORKFLOW_ROOT / 'rtl-gen' / 'scripts' / 'rtl_compile_report.py'} {ip} --top {ip}`\n"
+            f"`{py_cmd} {WORKFLOW_ROOT / 'lint' / 'scripts' / 'dut_lint_report.py'} {ip} --top {ip}`\n\n"
             "DONE requires compile pass E0/D0/S0, lint pass E0/W0/S0, and no hidden "
             "waivers/suppressions. If any part cannot be fixed from RTL alone, stop with "
             "a precise `[SSOT QUESTION]` or `[RTL BLOCKED]` rather than claiming DONE."
@@ -14014,9 +14158,9 @@ def create_app():
             return True
         if alias == "sim":
             session = f"{ip}/sim"
-            script = SOURCE_ROOT / "workflow" / "tb-gen" / "scripts" / "sim.sh"
-            validator = SOURCE_ROOT / "workflow" / "tb-gen" / "scripts" / "check_tb_sim_evidence.sh"
-            coverage_script = SOURCE_ROOT / "workflow" / "coverage" / "scripts" / "ssot_coverage_summary.py"
+            script = WORKFLOW_ROOT / "tb-gen" / "scripts" / "sim.sh"
+            validator = WORKFLOW_ROOT / "tb-gen" / "scripts" / "check_tb_sim_evidence.sh"
+            coverage_script = WORKFLOW_ROOT / "coverage" / "scripts" / "ssot_coverage_summary.py"
             runner_candidates = [
                 ip_dir / "tb" / "cocotb" / "test_runner.py",
                 ip_dir / "tb" / "cocotb" / "run_tests.py",
@@ -14133,7 +14277,7 @@ def create_app():
             return True
         if alias == "ssot-rtl":
             session = f"{ip}/rtl-gen"
-            script = SOURCE_ROOT / "workflow" / "rtl-gen" / "scripts" / "ssot_to_rtl.py"
+            script = WORKFLOW_ROOT / "rtl-gen" / "scripts" / "ssot_to_rtl.py"
             top = ip
             try:
                 import yaml as _yaml  # type: ignore
@@ -14192,8 +14336,8 @@ def create_app():
             compile_rc: int | None = None
             lint_rc: int | None = None
             if gen_rc == 0:
-                compile_script = SOURCE_ROOT / "workflow" / "rtl-gen" / "scripts" / "rtl_compile_report.py"
-                lint_script = SOURCE_ROOT / "workflow" / "lint" / "scripts" / "dut_lint_report.py"
+                compile_script = WORKFLOW_ROOT / "rtl-gen" / "scripts" / "rtl_compile_report.py"
+                lint_script = WORKFLOW_ROOT / "lint" / "scripts" / "dut_lint_report.py"
                 compile_rc = _run_tool(
                     "dut_compile",
                     [
@@ -14312,8 +14456,8 @@ def create_app():
             return True
         if alias == "ssot-equiv-goals":
             session = f"{ip}/fl-model-gen"
-            fl_script = SOURCE_ROOT / "workflow" / "fl-model-gen" / "scripts" / "emit_fl_model.py"
-            script = SOURCE_ROOT / "workflow" / "fl-model-gen" / "scripts" / "emit_equivalence_goals.py"
+            fl_script = WORKFLOW_ROOT / "fl-model-gen" / "scripts" / "emit_fl_model.py"
+            script = WORKFLOW_ROOT / "fl-model-gen" / "scripts" / "emit_equivalence_goals.py"
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
             bridge.emit("agent_state", running=True)
@@ -14411,9 +14555,9 @@ def create_app():
         if alias in {"ssot-tb", "ssot-tb-cocotb"}:
             canonical_alias = "ssot-tb-cocotb"
             session = f"{ip}/tb-gen"
-            script = SOURCE_ROOT / "workflow" / "tb-gen" / "scripts" / "emit_goal_scoreboard_cocotb.py"
-            validator = SOURCE_ROOT / "workflow" / "tb-gen" / "scripts" / "check_pyuvm_structure.sh"
-            scoreboard = SOURCE_ROOT / "workflow" / "tb-gen" / "runtime" / "equivalence_scoreboard.py"
+            script = WORKFLOW_ROOT / "tb-gen" / "scripts" / "emit_goal_scoreboard_cocotb.py"
+            validator = WORKFLOW_ROOT / "tb-gen" / "scripts" / "check_pyuvm_structure.sh"
+            scoreboard = WORKFLOW_ROOT / "tb-gen" / "runtime" / "equivalence_scoreboard.py"
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
             bridge.emit("agent_state", running=True)
@@ -14560,7 +14704,7 @@ def create_app():
             return True
         if alias == "sim-debug":
             session = f"{ip}/sim_debug"
-            script = SOURCE_ROOT / "workflow" / "sim_debug" / "scripts" / "compare_fl_rtl_results.py"
+            script = WORKFLOW_ROOT / "sim_debug" / "scripts" / "compare_fl_rtl_results.py"
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
             bridge.emit("agent_state", running=True)
@@ -14648,7 +14792,7 @@ def create_app():
             return True
         if alias == "goal-audit":
             session = f"{ip}/goal-audit"
-            script = SOURCE_ROOT / "workflow" / "sim_debug" / "scripts" / "audit_fl_rtl_equivalence_goal.py"
+            script = WORKFLOW_ROOT / "sim_debug" / "scripts" / "audit_fl_rtl_equivalence_goal.py"
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
             bridge.emit("agent_state", running=True)
@@ -14722,7 +14866,7 @@ def create_app():
             return True
         if alias == "ssot-fl-model":
             session = f"{ip}/fl-model-gen"
-            script = SOURCE_ROOT / "workflow" / "fl-model-gen" / "scripts" / "emit_fl_model.py"
+            script = WORKFLOW_ROOT / "fl-model-gen" / "scripts" / "emit_fl_model.py"
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
             bridge.emit("agent_state", running=True)
@@ -16454,8 +16598,8 @@ def create_app():
                         continue
                     if _handle_grill_me_command(_txt, client_session=session):
                         continue
-                    # /approve removed per user request — the approval
-                    # state is gone, the SSOT yaml is author-it-yourself.
+                    if _handle_approval_command(_txt, client_session=session):
+                        continue
                     if _handle_verify_ssot_command(_txt, client_session=session):
                         continue
                     if _handle_repair_ssot_command(_txt, client_session=session):
@@ -16948,6 +17092,14 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                         "out_tok": cumulative_out,
                         "sum_tok": cumulative_in + cumulative_out,
                         "cost_usd": cumulative_cost,
+                        # Last-call input tokens snapshot for the
+                        # "Context X / max" sidebar widget — without this
+                        # the widget can only see cumulative tokens and
+                        # the % bar stays at 0 forever.
+                        "last_in_tok": int(in_tok or 0),
+                        "last_cache_tok": int(cache_tok or 0),
+                        "last_out_tok": int(out_tok or 0),
+                        "last_at": time.time(),
                         "model": _model_now,
                         "updated_at": time.time(),
                     }, indent=2, ensure_ascii=False),
@@ -17286,18 +17438,18 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     # workflow/, rules/, templates/, etc. when running from a non-source
     # cwd (e.g. user runs `cd Custom_IP && python ../…/textual_main.py`).
     os.environ["ATLAS_SOURCE_ROOT"] = str(SOURCE_ROOT)
+    os.environ["ATLAS_WORKFLOW_ROOT"] = str(WORKFLOW_ROOT)
     os.environ["ATLAS_PROJECT_ROOT"] = str(PROJECT_ROOT)
     # Inject a system-prompt note so the LLM knows about both roots.
     _root_note = (
         f"\n\n[Atlas Runtime] You are running with cwd = {PROJECT_ROOT}. "
-        f"All file reads/writes default to here. The source repo "
-        f"(workflow templates, ssot-template.yaml, skills) lives at "
-        f"{SOURCE_ROOT} — reference those by absolute path, not by "
-        f"relative path from cwd. This source path is allowed for "
-        f"read-only workflow tooling/scripts such as "
-        f"$ATLAS_SOURCE_ROOT/workflow/...; keep generated IP artifacts "
-        f"under cwd and do not ask the user to mount or copy workflow/ "
-        f"into the project workspace."
+        f"All file reads/writes default to ATLAS_PROJECT_ROOT={PROJECT_ROOT}. "
+        f"The active workflow scripts live at ATLAS_WORKFLOW_ROOT={WORKFLOW_ROOT}; "
+        f"the common_ai_agent source root is ATLAS_SOURCE_ROOT={SOURCE_ROOT}. "
+        f"Use `$ATLAS_WORKFLOW_ROOT/<workflow>/scripts/...` for deterministic "
+        f"workflow tooling and pass `--root $ATLAS_PROJECT_ROOT` for IP/project "
+        f"artifacts. Keep generated IP artifacts under PROJECT_ROOT/IP_ROOT and "
+        f"do not ask the user to mount or copy workflow/ into the project workspace."
     )
     try:
         # Append to whatever the existing system prompt builder produces
@@ -17453,6 +17605,14 @@ def main() -> None:
                     help="Project root directory the backend serves "
                          "(.session/, IPs, file tree, …). Defaults to the "
                          "current working directory.")
+    ap.add_argument("--workflow-root", "--workflow_root", dest="workflow_root", default=None,
+                    help="Directory containing workflow families such as "
+                         "ssot-gen/ and rtl-gen/. Defaults to "
+                         "ATLAS_WORKFLOW_ROOT or common_ai_agent/workflow.")
+    ap.add_argument("--ip-root", "--ip_root", dest="ip_root", default=None,
+                    help="Optional active IP directory. When --root is omitted, "
+                         "PROJECT_ROOT becomes this directory's parent and "
+                         "ATLAS_IP_ROOT points at this directory.")
     # Canonical 3-part session path: <session_id>/<ip>/<workflow>
     # All three default to "default" so the directory layout is uniform.
     ap.add_argument("-s", "--session", dest="session_id", default="default",
@@ -17501,18 +17661,38 @@ def main() -> None:
     # Re-anchor PROJECT_ROOT before any request handler runs. Module-level
     # PROJECT_ROOT was computed from the import-time cwd; chdir + rebind
     # so /api/files, .session/, and friends all serve from --root.
+    global PROJECT_ROOT, WORKFLOW_ROOT
+    if args.workflow_root:
+        workflow_target = _resolve_workflow_root(args.workflow_root)
+        if not workflow_target.is_dir():
+            sys.exit(f"--workflow-root not found: {workflow_target}")
+        WORKFLOW_ROOT = workflow_target
+        os.environ["ATLAS_WORKFLOW_ROOT"] = str(WORKFLOW_ROOT)
+
+    ip_root_target: Path | None = None
+    if args.ip_root:
+        ip_root_target = Path(args.ip_root).expanduser().resolve()
+        if not ip_root_target.is_dir():
+            sys.exit(f"--ip-root not found: {ip_root_target}")
+        os.environ["ATLAS_IP_ROOT"] = str(ip_root_target)
+        if args.ip == "default" and _ssot_export_valid_ip(ip_root_target.name):
+            args.ip = ip_root_target.name
+
     if args.root:
         target = Path(args.root).expanduser().resolve()
         if not target.is_dir():
             sys.exit(f"--root not found: {target}")
         os.chdir(str(target))
-        global PROJECT_ROOT
         PROJECT_ROOT = target
+    elif ip_root_target is not None:
+        os.chdir(str(ip_root_target.parent))
+        PROJECT_ROOT = ip_root_target.parent
     # Always export PROJECT_ROOT to the env so workers, sub-agents, and
     # the system-prompt header injector resolve to the same path the UI
     # serves files from — even when the user launches without --root and
     # relies on the cwd default.
     os.environ["ATLAS_PROJECT_ROOT"] = str(PROJECT_ROOT)
+    os.environ.setdefault("ATLAS_WORKFLOW_ROOT", str(WORKFLOW_ROOT))
     # Seed environment so all path resolvers see the canonical 3-part string.
     new_session = f"{args.session_id}/{args.ip}/{args.workflow}"
     _atlas_active_session_cv.set(new_session)

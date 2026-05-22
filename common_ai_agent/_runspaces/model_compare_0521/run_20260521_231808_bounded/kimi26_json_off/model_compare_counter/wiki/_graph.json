@@ -1,0 +1,42 @@
+{
+  "schema_version": "ip_wiki_graph.v1",
+  "generated_at": "2026-05-21T14:34:34Z",
+  "root": "model_compare_counter/wiki",
+  "node_count": 1,
+  "edge_count": 0,
+  "tags": {
+    "artifact": [
+      "last_run"
+    ],
+    "run-log": [
+      "last_run"
+    ]
+  },
+  "types": {
+    "log": [
+      "last_run"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "last_run",
+      "title": "model_compare_counter last run",
+      "type": "log",
+      "tags": [
+        "artifact",
+        "run-log"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-05-21T14:34:34Z",
+      "summary": "stages=2 last=ssot-gen:blocked",
+      "status": "blocked",
+      "digest": "stages=2 last=ssot-gen:blocked",
+      "path": "model_compare_counter/logs/headless_run.json",
+      "size_bytes": 778
+    }
+  ],
+  "ip": "model_compare_counter"
+}

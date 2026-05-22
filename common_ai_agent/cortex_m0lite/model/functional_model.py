@@ -74,6 +74,9 @@ _CMPOPS = {
 
 def _normal_expr(text):
     text = str(text or "").strip()
+    reduction_or = re.fullmatch(r"\|\s*\((.*)\)", text)
+    if reduction_or:
+        text = f"reduction_or({reduction_or.group(1)})"
     text = text.replace("&&", " and ").replace("||", " or ")
     text = re.sub(r"(?<![=!<>])!(?!=)", " not ", text)
     return text
@@ -82,6 +85,65 @@ def _normal_expr(text):
 def _literal_int(text):
     text = str(text).strip().replace("_", "")
     return bool(re.fullmatch(r"(?:0x[0-9a-fA-F]+|[0-9]+|[0-9]*'[hHdDbB][0-9a-fA-FxXzZ]+)", text))
+
+
+def _h_bin_to_gray(value):
+    v = _parse_int(value, 0)
+    return v ^ (v >> 1)
+
+
+def _h_gray_to_bin(value):
+    g = _parse_int(value, 0)
+    b = g
+    s = g >> 1
+    while s:
+        b ^= s
+        s >>= 1
+    return b
+
+
+def _h_popcount(value):
+    return bin(_parse_int(value, 0) & ((1 << 256) - 1)).count("1")
+
+
+def _h_parity(value):
+    return _h_popcount(value) & 1
+
+
+def _h_clog2(value):
+    v = _parse_int(value, 0)
+    if v <= 1:
+        return 0
+    return (v - 1).bit_length()
+
+
+def _default_rule_helpers():
+    return {
+        "bin_to_gray": _h_bin_to_gray,
+        "gray_to_bin": _h_gray_to_bin,
+        "popcount": _h_popcount,
+        "parity": _h_parity,
+        "clog2": _h_clog2,
+        "min": lambda a, b: min(_parse_int(a, 0), _parse_int(b, 0)),
+        "max": lambda a, b: max(_parse_int(a, 0), _parse_int(b, 0)),
+        "abs": lambda a: abs(_parse_int(a, 0)),
+        "any": lambda *args: int(any(
+            _parse_int(a, 0) for a in (
+                args[0] if len(args) == 1 and isinstance(args[0], (list, tuple, range)) else args
+            )
+        )),
+        "all": lambda *args: int(all(
+            _parse_int(a, 0) for a in (
+                args[0] if len(args) == 1 and isinstance(args[0], (list, tuple, range)) else args
+            )
+        )),
+        "sum": lambda *args: int(sum(
+            _parse_int(a, 0) for a in (
+                args[0] if len(args) == 1 and isinstance(args[0], (list, tuple, range)) else args
+            )
+        )),
+        "len": lambda *args: len(args[0]) if len(args) == 1 and isinstance(args[0], (list, tuple, range)) else len(args),
+    }
 
 
 def _eval_ast(node, env):
@@ -136,7 +198,81 @@ def _eval_ast(node, env):
             return (base >> lo) & mask
         idx = _eval_ast(sl, env)
         return (base >> idx) & 1
+    if isinstance(node, ast.GeneratorExp):
+        return _eval_comprehension(node, env, generator=True)
+    if isinstance(node, ast.ListComp):
+        return _eval_comprehension(node, env, generator=False)
+    if isinstance(node, ast.Call):
+        if not isinstance(node.func, ast.Name):
+            raise ValueError(f"unsupported rule call {ast.dump(node.func)}")
+        func = env.get(node.func.id)
+        if not callable(func):
+            raise ValueError(f"unsupported rule helper {node.func.id}")
+        if node.keywords:
+            raise ValueError(f"unsupported keyword args for rule helper {node.func.id}")
+        args = [_eval_ast(arg, env) for arg in node.args]
+        return _parse_int(func(*args), 0)
     raise ValueError(f"unsupported rule expression node {type(node).__name__}")
+
+
+def _eval_comprehension(node, env, generator=False):
+    """Evaluate a generator expression or list comprehension.
+
+    Supports single-clause ``for`` with optional ``if`` filter, e.g.:
+        ``(x for x in range(8) if x > 0)``
+    Nested comprehensions are not supported.
+    """
+    if not node.generators:
+        raise ValueError("comprehension with no generators")
+    comp = node.generators[0]
+    if len(node.generators) > 1:
+        raise ValueError("nested comprehensions are not supported in rule expressions")
+    if not isinstance(comp.target, ast.Name):
+        raise ValueError("comprehension target must be a simple name")
+    var_name = comp.target.id
+    iter_values = _eval_iter(comp.iter, env)
+    results = []
+    for val in iter_values:
+        local_env = dict(env)
+        local_env[var_name] = val
+        # Apply if-filters
+        skip = False
+        for if_clause in comp.ifs:
+            if not _eval_ast(if_clause, local_env):
+                skip = True
+                break
+        if skip:
+            continue
+        results.append(_eval_ast(node.elt, local_env))
+    return results if not generator else results
+
+
+def _eval_iter(node, env):
+    """Evaluate an iterable source (range call or name reference)."""
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+        if node.func.id == "range":
+            args = [_eval_ast(a, env) for a in node.args]
+            if len(args) == 1:
+                return list(range(args[0]))
+            if len(args) == 2:
+                return list(range(args[0], args[1]))
+            if len(args) == 3:
+                return list(range(args[0], args[1], args[2]))
+            raise ValueError(f"range() expects 1-3 args, got {len(args)}")
+        # Other callables: evaluate and treat result as iterable if possible
+        func = env.get(node.func.id)
+        if callable(func):
+            call_args = [_eval_ast(a, env) for a in node.args]
+            result = func(*call_args)
+            if isinstance(result, (list, tuple, range)):
+                return list(result)
+            return [_parse_int(result, 0)]
+    if isinstance(node, ast.Name):
+        val = env.get(node.id)
+        if isinstance(val, (list, tuple, range)):
+            return list(val)
+        return [_parse_int(val, 0)]
+    raise ValueError(f"unsupported iterable in comprehension: {ast.dump(node)}")
 
 
 def _eval_rule_expr(expr, env):
@@ -173,6 +309,7 @@ class FunctionalModel:
             self.params.update(params)
         self.state_defaults = self._state_defaults()
         self.state = dict(self.state_defaults)
+        self._declared_state_names = set(self.state_defaults)
         self.registers = self._register_defaults()
         self.trace = []
 
@@ -206,6 +343,89 @@ class FunctionalModel:
             if off is not None:
                 defaults[str(off)] = item.get("reset", 0)
         return defaults
+
+    @staticmethod
+    def _field_bounds(field):
+        bits = field.get("bits")
+        if isinstance(bits, (list, tuple)) and len(bits) >= 2:
+            hi = _parse_int(bits[0], 0)
+            lo = _parse_int(bits[1], 0)
+            return (max(hi, lo), min(hi, lo))
+        if "msb" in field and "lsb" in field:
+            hi = _parse_int(field.get("msb"), 0)
+            lo = _parse_int(field.get("lsb"), 0)
+            return (max(hi, lo), min(hi, lo))
+        if "lsb" in field and ("width" in field or "bit_width" in field):
+            lo = _parse_int(field.get("lsb"), 0)
+            width = max(1, _parse_int(field.get("width", field.get("bit_width", 1)), 1))
+            return (lo + width - 1, lo)
+        return (0, 0)
+
+    def _state_name_for_register(self, reg):
+        name = str(reg.get("name") or "").strip()
+        if not name:
+            return ""
+        fm = SSOT_MODEL.get("function_model") or {}
+        for row in fm.get("state_variables") or []:
+            if not isinstance(row, dict):
+                continue
+            source = str(row.get("source") or "").strip().lower()
+            state_name = str(row.get("name") or "").strip()
+            if state_name and source == f"registers.{name}".lower():
+                return state_name
+        norm = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+        candidates = [
+            norm,
+            f"{norm}_reg",
+            f"{norm}_q",
+            f"{norm}_r",
+            f"{norm}_value",
+        ]
+        for field in reg.get("fields") or []:
+            if isinstance(field, dict):
+                fname = re.sub(r"[^a-z0-9]+", "_", str(field.get("name") or "").lower()).strip("_")
+                if fname:
+                    candidates.extend([fname, f"{fname}_reg", f"{fname}_q", f"{fname}_r"])
+        for candidate in candidates:
+            if candidate in self.state:
+                return candidate
+        return ""
+
+    def _register_read_value(self, reg):
+        name = str(reg.get("name") or "")
+        state_name = self._state_name_for_register(reg)
+        if state_name:
+            value = _parse_int(self.state.get(state_name), 0)
+        else:
+            value = _parse_int(self.registers.get(name, reg.get("reset", 0)), 0)
+        for field in reg.get("fields") or []:
+            if not isinstance(field, dict):
+                continue
+            fname = str(field.get("name") or "")
+            if fname in self.state:
+                fval = _parse_int(self.state.get(fname), 0)
+            elif f"{fname}_q" in self.state:
+                fval = _parse_int(self.state.get(f"{fname}_q"), 0)
+            elif fname in self.registers:
+                fval = _parse_int(self.registers.get(fname), 0)
+            else:
+                continue
+            hi, lo = self._field_bounds(field)
+            width = max(1, hi - lo + 1)
+            mask = (1 << width) - 1
+            value = (value & ~(mask << lo)) | ((fval & mask) << lo)
+        return value
+
+    def _read_mux(self, addr):
+        addr_i = _parse_int(addr, 0)
+        regs = SSOT_MODEL.get("registers") or {}
+        for reg in regs.get("register_list") or []:
+            if not isinstance(reg, dict):
+                continue
+            off = reg.get("offset")
+            if off is not None and addr_i == _parse_int(off, 0):
+                return self._register_read_value(reg)
+        return 0
 
     def reset(self):
         self.state = dict(self.state_defaults)
@@ -249,14 +469,84 @@ class FunctionalModel:
         self.trace.append(entry)
         return result
 
+    def _derived_signal_items(self):
+        fm = SSOT_MODEL.get("function_model") or {}
+        return _rule_items(fm.get("derived_signals"))
+
+    def _resolve_derived_signals(self, env):
+        pending = []
+        for idx, item in enumerate(self._derived_signal_items()):
+            name = str(
+                item.get("name")
+                or item.get("signal")
+                or item.get("output")
+                or item.get("port")
+                or f"derived_{idx}"
+            )
+            expr = item.get("expr", item.get("expression", item.get("value", "")))
+            if name and expr not in (None, ""):
+                pending.append((name, expr, item.get("width") or item.get("bits")))
+
+        unresolved_errors = {}
+        for _pass in range(max(len(pending), 1) + 1):
+            progressed = False
+            next_pending = []
+            for name, expr, width in pending:
+                try:
+                    value = _eval_rule_expr(expr, env)
+                except KeyError as exc:
+                    unresolved_errors[name] = str(exc)
+                    next_pending.append((name, expr, width))
+                    continue
+                if width is not None:
+                    width_i = _parse_int(width, 0)
+                    value &= (1 << max(width_i, 0)) - 1 if width_i > 0 else value
+                env[name] = value
+                unresolved_errors.pop(name, None)
+                progressed = True
+            pending = next_pending
+            if not pending or not progressed:
+                break
+        return unresolved_errors
+
+    @staticmethod
+    def _norm_state_token(value):
+        text = re.sub(r"[^a-z0-9]+", "_", str(value or "").lower()).strip("_")
+        for suffix in ("_reg", "_q", "_r", "_ff"):
+            if text.endswith(suffix):
+                text = text[: -len(suffix)]
+                break
+        return text
+
+    def _state_update_target(self, update_name):
+        name = str(update_name or "").strip()
+        if name in self._declared_state_names:
+            return name
+        norm_name = self._norm_state_token(name)
+        best = ""
+        best_len = 0
+        for state_name in self._declared_state_names:
+            norm_state = self._norm_state_token(state_name)
+            if not norm_state:
+                continue
+            if norm_name == norm_state or norm_name.endswith("_" + norm_state) or f"_{norm_state}_" in norm_name:
+                if len(norm_state) > best_len:
+                    best = state_name
+                    best_len = len(norm_state)
+        return best
+
     def _rule_env(self, txn):
         env = {}
+        env.update(_default_rule_helpers())
         env.update(self.params)
         env.update(self.state)
         env.update(self.registers)
         env.update(txn)
+        env["read_mux"] = self._read_mux
+        env["reduction_or"] = lambda value: 1 if _parse_int(value, 0) != 0 else 0
         env.setdefault("true", 1)
         env.setdefault("false", 0)
+        self._resolve_derived_signals(env)
         return env
 
     def _apply_structured_rules(self, tx, txn):
@@ -366,6 +656,10 @@ class FunctionalModel:
                     continue
                 updates[name] = value
                 env[name] = value
+                target = self._state_update_target(name)
+                if target and target != name:
+                    updates[target] = value
+                    env[target] = value
                 unresolved_errors.pop(name, None)
                 progressed = True
             pending_updates = next_pending
@@ -377,7 +671,14 @@ class FunctionalModel:
             missing = ", ".join(f"{name}: {unresolved_errors.get(name, 'unresolved dependency')}" for name, _expr in pending_updates)
             raise KeyError(f"unresolved state update dependencies: {missing}")
         if updates:
-            self.state.update(updates)
+            commit_updates = {}
+            for update_name, value in updates.items():
+                target = self._state_update_target(update_name)
+                if target:
+                    commit_updates[target] = value
+                else:
+                    commit_updates[update_name] = value
+            self.state.update(commit_updates)
             result["state_updates"] = dict(updates)
         return result
 
@@ -419,16 +720,166 @@ class FunctionalModel:
     def apply(self, txn):
         txn = dict(txn or {})
         kind = self._norm(txn.get("kind") or txn.get("op") or txn.get("transaction") or "")
+        tx = self._find_transaction(kind)
+        if tx is not None:
+            if self._norm(tx.get("name")) == "reset" or self._norm(tx.get("id")) in {"reset", "fm_reset"}:
+                self.reset()
+                return self._record(kind or "reset", txn, {"kind": "reset", "resp": RESP_OKAY, "state": dict(self.state)})
+            return self._record(kind, txn, self._apply_primary(tx, txn))
         reg_result = self._apply_register_access(txn)
         if reg_result is not None:
             return self._record(kind or "register_access", txn, reg_result)
-        tx = self._find_transaction(kind)
         if tx is None:
             return self._record(kind or "unknown", txn, {"kind": kind or "unknown", "resp": RESP_SLVERR, "error": "unsupported_transaction"})
-        if self._norm(tx.get("name")) == "reset" or self._norm(tx.get("id")) in {"reset", "fm_reset"}:
-            self.reset()
-            return self._record(kind or "reset", txn, {"kind": "reset", "resp": RESP_OKAY, "state": dict(self.state)})
-        return self._record(kind, txn, self._apply_primary(tx, txn))
+
+    def _eval_precondition(self, expr, env):
+        """Evaluate a single precondition string against env.
+
+        SSOT preconditions are mostly Python-evaluable but occasionally carry
+        a trailing natural-language clause in parentheses (e.g.
+        '(req_i & req_mask) != 0 (at least one unmasked active request)').
+        Normalize SQL-style OR/AND/NOT to Python operators, strip trailing
+        natural-language parentheticals, and try progressively shorter
+        prefixes until ast.parse succeeds. Unparseable preconditions are
+        treated as True so they don't block transaction matching.
+        """
+        text = str(expr or "").strip()
+        if not text:
+            return True
+        # Normalize boolean operators (SSOT prose sometimes uses uppercase).
+        text = re.sub(r"\bOR\b", " or ",  text)
+        text = re.sub(r"\bAND\b", " and ", text)
+        text = re.sub(r"\bNOT\b", " not ", text)
+        # Drop trailing parenthesized natural-language comments
+        # ('something words ...'). Detect by alpha-majority content.
+        def _strip_nl_tail(s):
+            # Find a trailing " (...)" where contents are mostly alphabetic.
+            depth = 0
+            best_end = len(s)
+            i = len(s) - 1
+            # Walk from the right, capture the last balanced "(...)" tail.
+            while i >= 0:
+                ch = s[i]
+                if ch == ")":
+                    depth += 1
+                elif ch == "(":
+                    depth -= 1
+                    if depth == 0:
+                        inner = s[i + 1:best_end - 1]
+                        alpha = sum(1 for c in inner if c.isalpha())
+                        if alpha >= max(3, len(inner) // 2) and " " in inner:
+                            # Natural language tail.
+                            return s[:i].rstrip()
+                        break
+                i -= 1
+            return s
+        text = _strip_nl_tail(text)
+        # Try ast.parse on the full string, then on progressively shorter
+        # prefixes ending at a comparison/logical operator.
+        candidates = [text]
+        for tok in (" and ", " or "):
+            for piece in text.split(tok):
+                candidates.append(piece.strip())
+        for cand in candidates:
+            if not cand:
+                continue
+            try:
+                tree = ast.parse(cand, mode="eval")
+            except Exception:
+                continue
+            try:
+                return bool(eval(compile(tree, "<precond>", mode="eval"), {"__builtins__": {}}, dict(env)))
+            except Exception:
+                continue
+        return True
+
+    def _select_transaction(self, inputs):
+        """Pick the transaction whose preconditions all hold given inputs.
+
+        Mutually-exclusive preconditions (typical SSOT pattern) yield a single
+        active transaction. If multiple match, the first declared wins.
+        Returns (tx, txn_payload) or (None, None) if none match.
+        """
+        env = dict(self.state)
+        env.update(self.registers)
+        env.update(inputs or {})
+        for tx in self._transactions():
+            if self._norm(tx.get("name")) == "reset" or self._norm(tx.get("id")) in {"reset", "fm_reset"}:
+                continue
+            preconds = [p for p in (tx.get("preconditions") or []) if isinstance(p, str)]
+            if all(self._eval_precondition(p, env) for p in preconds):
+                txn = {"kind": tx.get("id") or tx.get("name")}
+                txn.update(inputs or {})
+                return tx, txn
+        return None, None
+
+    def step(self, inputs=None):
+        """Cycle-accurate step: select active transaction from preconditions,
+        apply its output_rules and state_updates against current state and
+        inputs, register the result. Mirrors the RTL's per-cycle behaviour
+        when cocotb drives the same inputs cycle-by-cycle.
+
+        Returns the structured result dict (same shape as apply()).
+        """
+        inputs = inputs or {}
+        tx, txn = self._select_transaction(inputs)
+        if tx is None:
+            # No transaction matched preconditions: hold state, emit zero outputs.
+            return {"kind": "idle", "resp": RESP_OKAY, "state": dict(self.state)}
+        try:
+            return self._record(tx.get("id") or "", txn, self._apply_primary(tx, txn))
+        except KeyError as exc:
+            # output_rule references a signal that's neither SSOT state, FL
+            # register, nor caller-provided input (e.g. decoded combinational
+            # signals: branch_taken, is_store). Surface a partial idle result
+            # rather than crash — the per-cycle co-sim path treats this as
+            # 'no comparable expected at this cycle for this IP'.
+            return {
+                "kind": "step_unresolved",
+                "resp": RESP_OKAY,
+                "transaction_id": tx.get("id"),
+                "transaction_name": tx.get("name"),
+                "step_unresolved": str(exc),
+            }
+
+    def csr_write(self, offset, data):
+        """Apply an APB-style CSR write via _apply_register_access. Drives
+        the registers dict + any state_variables sourced from those register
+        fields (e.g. arb_enabled <- CTRL.enable)."""
+        result = self._apply_register_access({"kind": "csr_write", "op": "write", "addr": offset, "reg": offset, "data": data, "value": data})
+        # Mirror register field reset/source mapping into state_variables when
+        # state_variables.source is a register field path.
+        regs = SSOT_MODEL.get("registers") or {}
+        reg_list = regs.get("register_list") or []
+        fm = SSOT_MODEL.get("function_model") or {}
+        state_vars = fm.get("state_variables") or []
+        # Find which register matched the offset.
+        matched_reg = None
+        for r in reg_list:
+            if r.get("offset") == offset:
+                matched_reg = r
+                break
+        if matched_reg is None:
+            return result
+        for sv in state_vars:
+            src = str(sv.get("source") or "")
+            if not src.startswith("registers."):
+                continue
+            parts = src.split(".")
+            if len(parts) >= 2 and parts[1] != matched_reg.get("name"):
+                continue
+            if len(parts) >= 3:
+                field_name = parts[2]
+                for f in matched_reg.get("fields") or []:
+                    if f.get("name") == field_name:
+                        bits = f.get("bits") or [0, 0]
+                        hi, lo = (int(bits[0]), int(bits[1])) if len(bits) >= 2 else (0, 0)
+                        mask = (1 << (hi - lo + 1)) - 1
+                        self.state[sv.get("name")] = (data >> lo) & mask
+                        break
+            else:
+                self.state[sv.get("name")] = data
+        return result
 
     def coverage_seed_bins(self):
         return {item["id"]: False for item in SSOT_MODEL.get("fcov_bins", [])}
@@ -449,9 +900,12 @@ def run_self_check():
                 txn[name] = field_idx + idx + 1
         output_rules = _rule_items(tx.get("output_rules"))
         state_updates = _rule_items(tx.get("state_updates"))
+        derived_signals = _rule_items((SSOT_MODEL.get("function_model") or {}).get("derived_signals"))
         rule_names = set()
         rule_names.update(_expr_names(tx.get("sample_condition", "")))
         for rule in output_rules + state_updates:
+            rule_names.update(_expr_names(rule.get("expr", rule.get("expression", rule.get("value", "")))))
+        for rule in derived_signals:
             rule_names.update(_expr_names(rule.get("expr", rule.get("expression", rule.get("value", "")))))
         output_names = {
             str(rule.get("name") or rule.get("output") or rule.get("port"))
@@ -463,8 +917,16 @@ def run_self_check():
             for rule in state_updates
             if rule.get("name") or rule.get("state")
         }
+        derived_names = {
+            str(rule.get("name") or rule.get("signal") or rule.get("output") or rule.get("port"))
+            for rule in derived_signals
+            if rule.get("name") or rule.get("signal") or rule.get("output") or rule.get("port")
+        }
         known_names = set(model.params) | set(model.state) | set(model.registers) | output_names | update_names
+        known_names.update(derived_names)
         known_names.update({"true", "false", "True", "False", "and", "or", "not"})
+        known_names.update(_default_rule_helpers().keys())
+        known_names.update({"read_mux", "reduction_or", "range"})
         for name in sorted(rule_names - known_names):
             if name and name not in txn:
                 txn[name] = idx + len(txn) + 1
@@ -497,6 +959,7 @@ def run_self_check():
             if expr is not None:
                 invariants.append({"name": inv.get("name") or str(expr)[:40], "expr": expr})
     invariants_eval_env = {}
+    invariants_eval_env.update(_default_rule_helpers())
     invariants_eval_env.update(model.params)
     invariants_eval_env.update(model.state)
     invariants_eval_env.update(model.registers)

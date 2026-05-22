@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import time
@@ -20,7 +21,29 @@ import yaml
 
 
 SOURCE_ROOT = Path(__file__).resolve().parents[3]
-RUNTIME_DIR = SOURCE_ROOT / "workflow" / "tb-gen" / "runtime"
+
+
+def _resolve_workflow_root() -> Path:
+    raw = os.environ.get("ATLAS_WORKFLOW_ROOT", "").strip()
+    base = Path(raw).expanduser() if raw else SOURCE_ROOT / "workflow"
+    if (base / "tb-gen" / "runtime").is_dir():
+        return base.resolve()
+    if (base / "workflow" / "tb-gen" / "runtime").is_dir():
+        return (base / "workflow").resolve()
+    return base.resolve()
+
+
+WORKFLOW_ROOT = _resolve_workflow_root()
+RUNTIME_DIR = WORKFLOW_ROOT / "tb-gen" / "runtime"
+
+
+def _resolve_project_root(root_arg: str, ip_root_arg: str, ip: str) -> Path:
+    ip_root_raw = (ip_root_arg or os.environ.get("ATLAS_IP_ROOT") or "").strip()
+    if ip_root_raw:
+        ip_root = Path(ip_root_raw).expanduser().resolve()
+        if not ip or ip_root.name == ip or (ip_root / "yaml").is_dir():
+            return ip_root.parent
+    return Path(root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ".").expanduser().resolve()
 
 
 def _ident(value: Any) -> str:
@@ -893,6 +916,10 @@ def _default_field_value(field: str, idx: int) -> int:
     low = field.lower()
     if low in {"rst", "reset", "areset", "reset_n", "rst_n", "aresetn"}:
         return 0
+    if low in {"clear", "clr", "flush", "cancel", "kill", "abort"} or low.endswith(
+        ("_clear", "_clr", "_flush", "_cancel", "_kill", "_abort")
+    ):
+        return 0
     if low.endswith("_hresp") or low == "hresp" or low.endswith("_resp"):
         return 0
     if low.endswith("_hready") or low == "hready":
@@ -1632,6 +1659,11 @@ def _idle_input_value(manifest: dict[str, Any], port: str) -> int:
     input_map = manifest.get("input_map") or {}
     for field, mapped_port in input_map.items():
         if str(mapped_port) == str(port):
+            low = str(field).lower()
+            if low in {"clear", "clr", "enable", "en", "valid", "req", "request", "start", "go", "fire"} or low.endswith(
+                ("_clear", "_clr", "_enable", "_en", "_valid", "_req", "_request", "_start", "_go", "_fire")
+            ):
+                return 0
             return _fit_port_value(manifest, str(port), _stimulus_value_for_field(manifest, str(field), 0, {}))
     return _fit_port_value(manifest, str(port), _default_field_value(str(port), 0))
 
@@ -1969,6 +2001,7 @@ async def fl_rtl_equivalence_goals(dut):
     # can opt out via manifest['per_goal_reset'] = False (driven from
     # SSOT.cycle_model.state_accumulating or rtl_contract.per_goal_reset).
     _per_goal_reset = bool(manifest.get("per_goal_reset", True))
+    _reset_is_asserted = False
     for idx, goal in enumerate(goals):
         goal_id = str(goal["goal_id"])
         stimulus = _stimulus_for_goal(goal, manifest, idx)
@@ -1989,10 +2022,16 @@ async def fl_rtl_equivalence_goals(dut):
         _reset_for_property = (not _per_goal_reset) and (not _is_scenario_goal) and (not _is_reset_stimulus(stimulus))
         if _is_reset_stimulus(stimulus):
             await _reset_dut(dut, manifest, release=False)
+            _reset_is_asserted = True
             if _cl is not None:
                 _cl.reset()
         else:
-            if _per_goal_reset or _reset_for_property:
+            if _reset_is_asserted:
+                await _reset_dut(dut, manifest)
+                _reset_is_asserted = False
+                if _cl is not None:
+                    _cl.reset()
+            elif _per_goal_reset or _reset_for_property:
                 await _reset_dut(dut, manifest)
                 if _cl is not None:
                     _cl.reset()
@@ -2332,12 +2371,14 @@ def emit(ip: str, root: Path) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("ip")
-    parser.add_argument("--root", default=".")
+    parser.add_argument("--root", default=os.environ.get("ATLAS_PROJECT_ROOT") or ".")
+    parser.add_argument("--ip-root", "--ip_root", dest="ip_root", default=os.environ.get("ATLAS_IP_ROOT") or "")
     args = parser.parse_args()
+    root = _resolve_project_root(args.root, args.ip_root, args.ip)
     try:
-        emit(args.ip, Path(args.root))
+        emit(args.ip, root)
     except RuntimeError as exc:
-        ip_dir = Path(args.root).resolve() / args.ip
+        ip_dir = root / args.ip
         _write_blocked(ip_dir, args.ip, [_question(
             "TB_GENERATOR_INPUT",
             "Provide the missing source artifact required by generic TB generation.",

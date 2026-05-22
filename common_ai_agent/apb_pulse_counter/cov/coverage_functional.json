@@ -2,16 +2,26 @@
   "schema_version": 1,
   "type": "functional_coverage",
   "status": "pass",
-  "timestamp_iso": "2026-05-21T08:46:17Z",
+  "timestamp_iso": "2026-05-21T10:02:04Z",
   "functional": {
-    "hit": 23,
-    "total": 23,
+    "hit": 28,
+    "total": 28,
     "pct": 100.0,
     "bins": {
+      "SC06_executed": {
+        "hit": true,
+        "goal_id": "EQ_REGISTER_CLEAR",
+        "scenario_id": "SC_017_EQ_REGISTER_CLEAR"
+      },
       "function_apb_csr_clear": {
         "hit": true,
         "goal_id": "EQ_REGISTER_CLEAR",
-        "scenario_id": "SC_014_EQ_REGISTER_CLEAR"
+        "scenario_id": "SC_017_EQ_REGISTER_CLEAR"
+      },
+      "SC07_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC07",
+        "scenario_id": "SC_010_EQ_SCENARIO_SC07"
       },
       "function_pulse_increment": {
         "hit": true,
@@ -21,107 +31,122 @@
       "cycle_latency_pulse_increment": {
         "hit": true,
         "goal_id": "EQ_REGISTER_COUNT",
-        "scenario_id": "SC_013_EQ_REGISTER_COUNT"
+        "scenario_id": "SC_016_EQ_REGISTER_COUNT"
+      },
+      "SC08_executed": {
+        "hit": true,
+        "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
+        "scenario_id": "SC_020_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1"
       },
       "function_idle_or_read": {
         "hit": true,
         "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
-        "scenario_id": "SC_017_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1"
+        "scenario_id": "SC_020_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1"
       },
-      "SC1_executed": {
+      "SC01_executed": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_COUNT",
-        "scenario_id": "SC_013_EQ_REGISTER_COUNT"
+        "goal_id": "EQ_SCENARIO_SC01",
+        "scenario_id": "SC_004_EQ_SCENARIO_SC01"
       },
-      "SC2_executed": {
+      "SC02_executed": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_COUNT",
-        "scenario_id": "SC_013_EQ_REGISTER_COUNT"
+        "goal_id": "EQ_SCENARIO_SC02",
+        "scenario_id": "SC_005_EQ_SCENARIO_SC02"
       },
-      "SC3_executed": {
+      "SC03_executed": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_CLEAR",
-        "scenario_id": "SC_014_EQ_REGISTER_CLEAR"
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+        "scenario_id": "SC_013_EQ_PROTOCOL_HANDSHAKE_1"
       },
-      "SC4_executed": {
+      "SC04_executed": {
         "hit": true,
-        "goal_id": "EQ_REGISTER_COUNT",
-        "scenario_id": "SC_013_EQ_REGISTER_COUNT"
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_018_EQ_ERROR_NONE"
       },
-      "SC5_executed": {
+      "SC05_executed": {
         "hit": true,
-        "goal_id": "EQ_SCENARIO_SC5",
-        "scenario_id": "SC_008_EQ_SCENARIO_SC5"
+        "goal_id": "EQ_DEBUG_OBSERVABILITY",
+        "scenario_id": "SC_021_EQ_DEBUG_OBSERVABILITY"
       },
       "cycle_handshake_0": {
         "hit": true,
         "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
-        "scenario_id": "SC_010_EQ_PROTOCOL_HANDSHAKE_1"
+        "scenario_id": "SC_013_EQ_PROTOCOL_HANDSHAKE_1"
       },
       "cycle_handshake_1": {
         "hit": true,
         "goal_id": "EQ_REGISTER_CLEAR",
-        "scenario_id": "SC_014_EQ_REGISTER_CLEAR"
+        "scenario_id": "SC_017_EQ_REGISTER_CLEAR"
       },
       "cycle_ordering_0": {
         "hit": true,
         "goal_id": "EQ_REGISTER_CLEAR",
-        "scenario_id": "SC_014_EQ_REGISTER_CLEAR"
+        "scenario_id": "SC_017_EQ_REGISTER_CLEAR"
       },
       "cycle_ordering_1": {
         "hit": true,
         "goal_id": "EQ_REGISTER_COUNT",
-        "scenario_id": "SC_013_EQ_REGISTER_COUNT"
+        "scenario_id": "SC_016_EQ_REGISTER_COUNT"
       },
       "cycle_pipeline_s1_update": {
         "hit": true,
         "goal_id": "EQ_REGISTER_CLEAR",
-        "scenario_id": "SC_014_EQ_REGISTER_CLEAR"
+        "scenario_id": "SC_017_EQ_REGISTER_CLEAR"
       },
       "error_error_0": {
         "hit": true,
         "goal_id": "EQ_ERROR_NONE",
-        "scenario_id": "SC_015_EQ_ERROR_NONE"
+        "scenario_id": "SC_018_EQ_ERROR_NONE"
       },
       "cycle_pipeline_s0_sample": {
         "hit": true,
         "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
-        "scenario_id": "SC_017_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1"
+        "scenario_id": "SC_020_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1"
       },
       "fsm_apb_phase_idle_to_access_0": {
         "hit": true,
         "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
-        "scenario_id": "SC_017_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1"
+        "scenario_id": "SC_020_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1"
       },
       "fsm_apb_phase_access_to_idle_1": {
         "hit": true,
         "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1",
-        "scenario_id": "SC_017_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1"
+        "scenario_id": "SC_020_EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_1"
+      },
+      "fcov_primary_transaction": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_FCOV_PRIMARY_TRANSACTION",
+        "scenario_id": "SC_023_EQ_COVERAGE_FCOV_PRIMARY_TRANSACTION"
+      },
+      "ccov_primary_cycle_rule": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CCOV_PRIMARY_CYCLE_RULE",
+        "scenario_id": "SC_024_EQ_COVERAGE_CCOV_PRIMARY_CYCLE_RULE"
       },
       "cycle_latency_apb_write": {
         "hit": true,
         "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_APB_WRITE",
-        "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_LATENCY_APB_WRITE"
+        "scenario_id": "SC_025_EQ_COVERAGE_CYCLE_LATENCY_APB_WRITE"
       },
       "cycle_latency_apb_read": {
         "hit": true,
         "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_APB_READ",
-        "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_LATENCY_APB_READ"
+        "scenario_id": "SC_026_EQ_COVERAGE_CYCLE_LATENCY_APB_READ"
       },
       "cycle_backpressure_0": {
         "hit": true,
         "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
-        "scenario_id": "SC_021_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+        "scenario_id": "SC_027_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
       },
       "cycle_perf_frequency_mhz": {
         "hit": true,
         "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
-        "scenario_id": "SC_022_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+        "scenario_id": "SC_028_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
       },
       "cycle_perf_throughput": {
         "hit": true,
         "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
-        "scenario_id": "SC_023_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+        "scenario_id": "SC_029_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
       }
     }
   }

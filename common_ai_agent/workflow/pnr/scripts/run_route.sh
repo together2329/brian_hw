@@ -41,7 +41,9 @@ changed = 0
 out = []
 for line in src.read_text(encoding="utf-8", errors="replace").splitlines():
     match = re.match(r"^(\s*-\s+)(\S+)(\b.*\+\s+USE\s+)(GROUND|POWER)(\s*;.*)$", line)
-    if match and match.group(2).lower() in const_nets:
+    net_name = match.group(2).lower() if match else ""
+    net_leaf = net_name.rsplit("/", 1)[-1]
+    if match and (net_name in const_nets or net_leaf in const_nets):
         line = "".join([match.group(1), match.group(2), match.group(3), "SIGNAL", match.group(5)])
         changed += 1
     out.append(line)

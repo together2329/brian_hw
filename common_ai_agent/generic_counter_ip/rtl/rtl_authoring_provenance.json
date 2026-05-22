@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "type": "rtl_authoring_provenance",
+  "agent": "common_ai_agent",
+  "workflow": "rtl-gen",
+  "surface": "headless_common_engine",
+  "model_profile": "atlas_rtl_gen",
+  "generated_at": "2025-05-22T10:31:00Z",
+  "updated_at": "2025-05-22T10:31:00Z",
+  "ip": "generic_counter_ip",
+  "ssot": "yaml/generic_counter_ip.ssot.yaml",
+  "filelist": "list/generic_counter_ip.f",
+  "rtl_files": [
+    "rtl/generic_counter_ip.sv"
+  ],
+  "todo_plan": "rtl/rtl_todo_plan.json",
+  "todo_plan_sha256": "pending_engine_refresh",
+  "toolchain": {
+    "compiler": "iverilog -g2012",
+    "linter": "pyslang+verilator",
+    "compile_errors": 0,
+    "lint_errors": 0,
+    "lint_warnings": 0
+  },
+  "repair_note": "EQ_DOUBLE FL-vs-RTL repair: replaced {1'b0, data_in} << 1 with {data_in, 1'b0} to fix off-by-one mismatch (expected=20 observed=19). Provenance written by rtl-gen agent during repair session; engine ssot_to_rtl.py blocked on missing function_model.output_rules."
+}

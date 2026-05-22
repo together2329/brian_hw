@@ -362,15 +362,15 @@
         },
         {
           "ref": "registers.register_list.ctrl",
-          "matched_ref": "registers"
+          "matched_ref": "registers.register_list"
         },
         {
           "ref": "registers.register_list.req_mask",
-          "matched_ref": "registers"
+          "matched_ref": "registers.register_list"
         },
         {
           "ref": "registers.register_list.status",
-          "matched_ref": "registers"
+          "matched_ref": "registers.register_list"
         },
         {
           "ref": "registers.config.register_width",
@@ -557,119 +557,119 @@
         },
         {
           "ref": "function_model.transactions.fm1",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.preconditions.precondition_0",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.preconditions.precondition_1",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.inputs.input_0",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.inputs.input_1",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.inputs.input_2",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.outputs.output_0",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.outputs.output_1",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.outputs.output_2",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.outputs.output_3",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.output_rules.grant_index",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.output_rules.grant",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.output_rules.grant_valid",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.state_updates.last_winner",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.side_effects.side_effect_0",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm1.side_effects.side_effect_1",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM1"
         },
         {
           "ref": "function_model.transactions.fm2",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
           "ref": "function_model.transactions.fm2.preconditions.precondition_0",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
           "ref": "function_model.transactions.fm2.inputs.input_0",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
           "ref": "function_model.transactions.fm2.inputs.input_1",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
           "ref": "function_model.transactions.fm2.outputs.output_0",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
           "ref": "function_model.transactions.fm2.outputs.output_1",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
           "ref": "function_model.transactions.fm2.outputs.output_2",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
           "ref": "function_model.transactions.fm2.outputs.output_3",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
           "ref": "function_model.transactions.fm2.output_rules.grant",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
           "ref": "function_model.transactions.fm2.output_rules.grant_valid",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
           "ref": "function_model.transactions.fm2.output_rules.grant_index",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
           "ref": "function_model.transactions.fm2.state_updates.last_winner",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
           "ref": "function_model.transactions.fm2.side_effects.side_effect_0",
-          "matched_ref": "function_model"
+          "matched_ref": "function_model.transactions.FM2"
         },
         {
           "ref": "function_model.invariants.invariant_0",
@@ -709,27 +709,27 @@
         },
         {
           "ref": "cycle_model.handshake_rules.req_i",
-          "matched_ref": "cycle_model"
+          "matched_ref": "cycle_model.handshake_rules"
         },
         {
           "ref": "cycle_model.handshake_rules.gnt_o",
-          "matched_ref": "cycle_model"
+          "matched_ref": "cycle_model.handshake_rules"
         },
         {
           "ref": "cycle_model.handshake_rules.gnt_valid_o",
-          "matched_ref": "cycle_model"
+          "matched_ref": "cycle_model.handshake_rules"
         },
         {
           "ref": "cycle_model.handshake_rules.gnt_idx_o",
-          "matched_ref": "cycle_model"
+          "matched_ref": "cycle_model.handshake_rules"
         },
         {
           "ref": "cycle_model.pipeline.s0_sample_req",
-          "matched_ref": "cycle_model"
+          "matched_ref": "cycle_model.pipeline"
         },
         {
           "ref": "cycle_model.pipeline.s1_grant",
-          "matched_ref": "cycle_model"
+          "matched_ref": "cycle_model.pipeline"
         },
         {
           "ref": "cycle_model.ordering.ordering_0",

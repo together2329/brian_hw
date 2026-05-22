@@ -1,0 +1,15 @@
+cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/repair_ssot_schema.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_230646/deepseek --mode engineering
+cwd: /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+returncode: 1
+reason: canonicalize_llm_repair_1
+stderr:
+Traceback (most recent call last):
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/repair_ssot_schema.py", line 4166, in <module>
+    raise SystemExit(main())
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/repair_ssot_schema.py", line 4126, in main
+    repaired = repair(doc, state, ns.ip)
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/repair_ssot_schema.py", line 3834, in repair
+    out["cycle_model"] = _ensure_cycle_model(out)
+  File "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/repair_ssot_schema.py", line 2650, in _ensure_cycle_model
+    and "valid/ready" in str((cm.get("handshake_rules") or [{}])[0].get("signal", ""))
+AttributeError: 'str' object has no attribute 'get'

@@ -4,17 +4,67 @@
   "ip": "atcwdt200",
   "source": "atcwdt200/yaml/atcwdt200.ssot.yaml",
   "planned_before_rtl": true,
-  "level": "union",
-  "summary": {
-    "total_bins": 32,
-    "by_class": {
-      "scenario": 6,
-      "transaction_type": 6,
-      "state_transition": 4,
-      "error": 2,
-      "protocol_handshake": 3,
-      "latency_bin": 11
-    }
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "atcwdt200/req/",
+      "atcwdt200/yaml/atcwdt200.ssot.yaml",
+      "atcwdt200/model/functional_model.py",
+      "atcwdt200/cov/fcov_plan.json",
+      "atcwdt200/yaml/atcwdt200.ssot.yaml#io_list",
+      "atcwdt200/yaml/atcwdt200.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "atcwdt200/rtl/",
+      "atcwdt200/tb/",
+      "atcwdt200/sim/",
+      "atcwdt200/vectors/",
+      "atcwdt200/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
   },
   "bins": [
     {
@@ -60,181 +110,348 @@
       "description": "Pause and external clock behavior"
     },
     {
+      "id": "fcov_apb_read",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.apb_read",
+      "source_ref": "function_model.transactions.apb_read",
+      "description": "APB read transaction observed."
+    },
+    {
+      "id": "fcov_apb_write",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.apb_write",
+      "source_ref": "function_model.transactions.apb_write",
+      "description": "APB write transaction observed."
+    },
+    {
+      "id": "fcov_unlock",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.write_unlock",
+      "source_ref": "function_model.transactions.write_unlock",
+      "description": "WEN magic accepted."
+    },
+    {
+      "id": "fcov_restart",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.restart",
+      "source_ref": "function_model.transactions.restart",
+      "description": "Restart magic accepted."
+    },
+    {
+      "id": "fcov_timeout",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.watchdog_tick",
+      "source_ref": "function_model.transactions.watchdog_tick",
+      "description": "Interrupt and reset timeout behavior observed."
+    },
+    {
+      "id": "ccov_apb_access",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S1_APB_ACCESS",
+      "source_ref": "cycle_model.pipeline.S1_APB_ACCESS",
+      "description": "APB access stage observed."
+    },
+    {
+      "id": "ccov_sync",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S2_SYNC",
+      "source_ref": "cycle_model.pipeline.S2_SYNC",
+      "description": "Synchronizer stage observed."
+    },
+    {
+      "id": "ccov_count",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.S3_COUNT",
+      "source_ref": "cycle_model.pipeline.S3_COUNT",
+      "description": "Counter stage observed."
+    },
+    {
+      "id": "ccov_fsm_int_to_rst",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.watchdog.transitions",
+      "source_ref": "fsm.watchdog.transitions",
+      "description": "ST_INTTIME to ST_RSTTIME observed."
+    },
+    {
+      "id": "ccov_perf_freq",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "PCLK target recorded."
+    },
+    {
       "id": "function_apb_register_read",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.apb_read",
       "description": "apb_register_read"
     },
     {
       "id": "function_apb_register_write",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.apb_write",
       "description": "apb_register_write"
     },
     {
       "id": "function_write_protection_unlock",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[2]",
+      "source_ref": "function_model.transactions.write_unlock",
       "description": "write_protection_unlock"
     },
     {
       "id": "function_watchdog_restart_command",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[3]",
+      "source_ref": "function_model.transactions.restart",
       "description": "watchdog_restart_command"
     },
     {
       "id": "function_watchdog_tick_and_timeout_update",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[4]",
+      "source_ref": "function_model.transactions.watchdog_tick",
       "description": "watchdog_tick_and_timeout_update"
     },
     {
       "id": "function_timeout_interval_decode",
       "class": "transaction_type",
+      "coverage_domain": "function",
       "source": "function_model.transactions[5]",
+      "source_ref": "function_model.transactions.timeout_decode",
       "description": "timeout_interval_decode"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'psel', 'rule': 'Address is captured when psel is high.'}"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'signal': 'penable', 'rule': 'Write access is valid when psel && penable && pwrite.'}"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'signal': 'extclk', 'rule': 'External tick is consumed as synchronized rising-edge pulse if CDC QA approves internal sync.'}"
+    },
+    {
+      "id": "cycle_latency_register_read",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_read",
+      "source_ref": "cycle_model.latency.register_read",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'Reference prdata is combinational from delayed paddr; exact APB read latency pending protocol QA.'}"
+    },
+    {
+      "id": "cycle_latency_register_write",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_write",
+      "source_ref": "cycle_model.latency.register_write",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'Writes update state on pclk when psel && penable && pwrite.'}"
+    },
+    {
+      "id": "cycle_latency_watchdog_timeout",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.watchdog_timeout",
+      "source_ref": "cycle_model.latency.watchdog_timeout",
+      "description": "{'min_cycles': 1, 'max_cycles': None, 'description': 'Determined by timeout tap table and selected tick source.'}"
+    },
+    {
+      "id": "cycle_pipeline_s0_apb_addr",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Capture APB address during select phase."
+    },
+    {
+      "id": "cycle_pipeline_s1_apb_access",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Apply APB write side effects or drive selected read data."
+    },
+    {
+      "id": "cycle_pipeline_s2_sync",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Synchronize extclk and wdt_pause into pclk domain."
+    },
+    {
+      "id": "cycle_pipeline_s3_count",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[3]",
+      "source_ref": "cycle_model.pipeline[3]",
+      "description": "Increment or clear watchdog counter based on enable"
+    },
+    {
+      "id": "cycle_pipeline_s4_timeout_output",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[4]",
+      "source_ref": "cycle_model.pipeline[4]",
+      "description": "Update interrupt/reset status and outputs."
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "WEN unlock is evaluated before a protected write consumes or clears unlock state according to approved QA policy."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "Restart command clears counter and returns state to ST_INTTIME."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "Interrupt timeout set happens before reset-time phase begins."
+    },
+    {
+      "id": "cycle_ordering_3",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[3]",
+      "source_ref": "cycle_model.ordering[3]",
+      "description": "Reset timeout clears CR.EN and asserts reset status."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "APB interface has no backpressure in the reference; APB4 ready/error behavior is pending QA."
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'apb_max': 1, 'description': 'Single APB access at a time'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 5, 'queue_depth': 0, 'description': 'Register access plus synchronizer/counter stages'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "50"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'register_accesses_per_cycle': 1, 'condition': 'APB-like access with no wait states if legacy mode is selected'}"
     },
     {
       "id": "fsm_watchdog_st_inttime_to_st_rsttime_0",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.watchdog.transitions[0]",
+      "source_ref": "fsm.watchdog.transitions[0]",
       "description": "inttime_end and not restart_cmd"
     },
     {
       "id": "fsm_watchdog_st_rsttime_to_st_inttime_1",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.watchdog.transitions[1]",
+      "source_ref": "fsm.watchdog.transitions[1]",
       "description": "restart_cmd"
     },
     {
       "id": "fsm_watchdog_st_inttime_to_st_inttime_2",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.watchdog.transitions[2]",
+      "source_ref": "fsm.watchdog.transitions[2]",
       "description": "restart_cmd or not inttime_end"
     },
     {
       "id": "fsm_watchdog_st_rsttime_to_st_rsttime_3",
       "class": "state_transition",
+      "coverage_domain": "cycle",
       "source": "fsm.watchdog.transitions[3]",
+      "source_ref": "fsm.watchdog.transitions[3]",
       "description": "not restart_cmd"
     },
     {
       "id": "error_error_0",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
       "description": "{'id': 'ERR_UNSUPPORTED_APB_OFFSET', 'condition': 'APB access to unsupported offset', 'architectural_effect': 'Legacy-compatible mode returns zero on reads and ignores writes because no pslverr output exists.'}"
     },
     {
       "id": "error_error_1",
       "class": "error",
+      "coverage_domain": "function",
       "source": "error_handling.error_sources[1]",
+      "source_ref": "error_handling.error_sources[1]",
       "description": "{'id': 'ERR_BAD_MAGIC', 'condition': 'RES or WEN magic mismatch', 'architectural_effect': 'No state-changing command effect'}"
-    },
-    {
-      "id": "cycle_handshake_0",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[0]",
-      "description": "handshake_0"
-    },
-    {
-      "id": "cycle_handshake_1",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[1]",
-      "description": "handshake_1"
-    },
-    {
-      "id": "cycle_handshake_2",
-      "class": "protocol_handshake",
-      "source": "cycle_model.handshake_rules[2]",
-      "description": "handshake_2"
-    },
-    {
-      "id": "latency_register_read_at_min",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_read",
-      "description": "register_read latency == 0 cycles",
-      "bucket": "min",
-      "cycles": 0
-    },
-    {
-      "id": "latency_register_read_mid",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_read",
-      "description": "register_read latency ~mid (0 cycles)",
-      "bucket": "mid",
-      "cycles": 0
-    },
-    {
-      "id": "latency_register_read_at_max",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_read",
-      "description": "register_read latency == 1 cycles",
-      "bucket": "max",
-      "cycles": 1
-    },
-    {
-      "id": "latency_register_read_gt_max",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_read",
-      "description": "register_read latency > 1 cycles",
-      "bucket": ">max",
-      "threshold": 1
-    },
-    {
-      "id": "latency_register_write_lt_min",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_write",
-      "description": "register_write latency < 1 cycles",
-      "bucket": "<min",
-      "threshold": 1
-    },
-    {
-      "id": "latency_register_write_at_min",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_write",
-      "description": "register_write latency == 1 cycles",
-      "bucket": "min",
-      "cycles": 1
-    },
-    {
-      "id": "latency_register_write_at_max",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_write",
-      "description": "register_write latency == 1 cycles",
-      "bucket": "max",
-      "cycles": 1
-    },
-    {
-      "id": "latency_register_write_gt_max",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.register_write",
-      "description": "register_write latency > 1 cycles",
-      "bucket": ">max",
-      "threshold": 1
-    },
-    {
-      "id": "latency_watchdog_timeout_lt_min",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.watchdog_timeout",
-      "description": "watchdog_timeout latency < 1 cycles",
-      "bucket": "<min",
-      "threshold": 1
-    },
-    {
-      "id": "latency_watchdog_timeout_at_min",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.watchdog_timeout",
-      "description": "watchdog_timeout latency == 1 cycles",
-      "bucket": "min",
-      "cycles": 1
-    },
-    {
-      "id": "latency_watchdog_timeout_unbounded",
-      "class": "latency_bin",
-      "source": "cycle_model.latency.watchdog_timeout",
-      "description": "watchdog_timeout latency unbounded (no max_cycles)",
-      "bucket": "unbounded"
     }
-  ]
+  ],
+  "summary": {
+    "total_bins": 48,
+    "scenario_bins": 6,
+    "transaction_bins": 6,
+    "protocol_bins": 3,
+    "state_transition_bins": 5,
+    "error_bins": 2
+  }
 }

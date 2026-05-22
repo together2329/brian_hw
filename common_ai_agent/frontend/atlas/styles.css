@@ -2,22 +2,15 @@
    EDA workstation aesthetic, monospace, schematic-y, neutral grays
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
-
 :root {
-  /* Mono chain: JetBrains/Plex first (loaded via Google Fonts),
-     then Windows natives (Cascadia / Consolas) so Windows users see a
-     real mono even when the Google CDN is slow or blocked, then macOS
-     (ui-monospace / Menlo), then `Courier New` as a universal fallback
-     before the generic `monospace` keyword. Without the Windows
-     entries the chain dropped straight to the OS default which
-     renders ASCII art / glyphs poorly on Windows. */
-  --mono-base: 'JetBrains Mono', 'IBM Plex Mono', 'Cascadia Mono', 'Cascadia Code', Consolas, ui-monospace, Menlo, 'D2Coding', 'Courier New', 'Segoe UI Emoji', 'Segoe UI Symbol', monospace;
-  /* Sans chain: Inter / Noto first, then OS natives, with the Windows
-     emoji + symbol fonts appended so glyphs like ✓ ✗ ▾ ▸ ↩ render with
-     proper outlines on Windows (which has them in 'Segoe UI Symbol' /
-     'Segoe UI Emoji' rather than the base 'Segoe UI'). */
-  --sans: 'Inter', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  /* Local-first stacks. Atlas used to load Google Fonts from both index.html
+     and styles.css, which made font changes look sticky on locked-down
+     Windows networks. Keep preferred web font names for machines that have
+     them installed locally, but do not depend on remote font downloads. */
+  --windows-sans: 'Segoe UI Variable Text', 'Segoe UI', 'Malgun Gothic', 'Noto Sans KR', Arial, 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  --windows-mono: 'Cascadia Mono', 'Cascadia Code', Consolas, 'D2Coding', 'Courier New', 'Segoe UI Emoji', 'Segoe UI Symbol', monospace;
+  --mono-base: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, var(--windows-mono);
+  --sans: 'Inter', 'Noto Sans KR', 'Apple SD Gothic Neo', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, var(--windows-sans);
   /* Default UI font is sans-serif so prose-heavy panels (chat, ask_user,
      status pills, headers) read like a chat client instead of a terminal.
      Mono is still used for code/SSOT/diff via --code-font and the .mono
@@ -77,8 +70,8 @@ html[data-platform="windows"] {
   /* Windows ClearType renders Inter/JetBrains thin at Atlas' dense UI sizes.
      Prefer native Windows UI/code faces and bump each scale slightly so the
      1920px canvas remains dense but readable on common 100-125% DPI setups. */
-  --sans: 'Segoe UI Variable Text', 'Segoe UI', 'Malgun Gothic', 'Noto Sans KR', 'IBM Plex Sans', Arial, 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
-  --mono-base: 'Cascadia Mono', 'Cascadia Code', Consolas, 'D2Coding', 'JetBrains Mono', 'IBM Plex Mono', 'Courier New', 'Segoe UI Emoji', 'Segoe UI Symbol', monospace;
+  --sans: var(--windows-sans);
+  --mono-base: var(--windows-mono);
   --mono: var(--sans);
   --code-font: var(--mono-base);
   --enh-sans: 'Segoe UI Variable Text', 'Segoe UI', 'Malgun Gothic', sans-serif;
@@ -111,6 +104,12 @@ html[data-theme="light"] {
 }
 [data-font="sans"] {
   --mono: var(--sans);
+}
+[data-font="windows"] {
+  --mono: var(--windows-sans);
+  --code-font: var(--windows-mono);
+  --ui-text-weight: 500;
+  --ui-control-weight: 600;
 }
 [data-font="system"] {
   --mono: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

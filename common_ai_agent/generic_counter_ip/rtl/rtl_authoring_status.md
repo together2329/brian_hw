@@ -23,7 +23,7 @@
 - Process one authoring packet at a time: module packets first, then unowned tasks if any, then rtl_gate_evidence_closure; leave rtl_gate_tool_evidence to tools and rtl_gate_contract_blocked/rtl_gate_human_closure to human-locked authority gaps.
 - Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.
 - Do not close static RTL evidence with comments: derive_rtl_todos.py strips comments before matching, so evidence_terms must be preserved in live lint-clean RTL identifiers/logic.
-- Do not close static RTL evidence with evidence-only alias/dummy wires; the matched identifiers must participate in real RTL behavior.
+- Do not close static RTL evidence with evidence-only alias wires or marker-only helper wires; the matched identifiers must participate in real RTL behavior.
 - If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.
 - After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.
 - Keep locked authority artifacts unchanged unless a human approves a change request.

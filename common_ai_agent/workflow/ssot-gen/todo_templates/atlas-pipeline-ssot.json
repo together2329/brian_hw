@@ -10,9 +10,9 @@
     },
     {
       "content": "[SSOT] Repair and validate on disk",
-      "detail": "Run python3 workflow/ssot-gen/scripts/repair_ssot_schema.py <ip> --mode engineering, then python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering. Inspect failures literally and repair the YAML if needed.",
+      "detail": "Run python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering, then python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. Inspect failures literally and repair the YAML if needed.",
       "criteria": "repair_ssot_schema.py executed\nverify_ssot.py executed with --mode engineering\nYAML parses successfully\nPreview fields are present or explicitly waived\nValidation output is captured\nAny remaining failure is reported as a blocker, not green",
-      "validator": "python3 workflow/ssot-gen/scripts/verify_ssot.py",
+      "validator": "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\"",
       "priority": "high"
     },
     {

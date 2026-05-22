@@ -1,0 +1,6 @@
+{
+  "schema_version": "ssot_downstream_blockers.v1",
+  "ip": "apb_pulse_counter",
+  "ssot": "apb_pulse_counter/yaml/apb_pulse_counter.ssot.yaml",
+  "issues": []
+}

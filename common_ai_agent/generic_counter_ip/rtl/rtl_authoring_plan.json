@@ -11,7 +11,7 @@
       {
         "gate_kind": "common_ai_agent_authoring",
         "owner_module": "generic_counter_ip",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "source": "gate_todo",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "status": "open",
@@ -72,7 +72,7 @@
         "prerequisites": [
           "An LLM authoring pass emitted or repaired DUT RTL files."
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
         "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
         "stage_sequence": [
           "ssot-rtl"
@@ -114,7 +114,7 @@
           {
             "gate_kind": "common_ai_agent_authoring",
             "owner_module": "generic_counter_ip",
-            "reason": "Missing common_ai_agent RTL authoring provenance.",
+            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
             "source": "packet_task",
             "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
             "status": "open",
@@ -162,7 +162,7 @@
             "prerequisites": [
               "An LLM authoring pass emitted or repaired DUT RTL files."
             ],
-            "reason": "Missing common_ai_agent RTL authoring provenance.",
+            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
             "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
             "stage_sequence": [
               "ssot-rtl"
@@ -412,7 +412,7 @@
     "Process one authoring packet at a time: module packets first, then unowned tasks if any, then rtl_gate_evidence_closure; leave rtl_gate_tool_evidence to tools and rtl_gate_contract_blocked/rtl_gate_human_closure to human-locked authority gaps.",
     "Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.",
     "Do not close static RTL evidence with comments: derive_rtl_todos.py strips comments before matching, so evidence_terms must be preserved in live lint-clean RTL identifiers/logic.",
-    "Do not close static RTL evidence with evidence-only alias/dummy wires; the matched identifiers must participate in real RTL behavior.",
+    "Do not close static RTL evidence with evidence-only alias wires or marker-only helper wires; the matched identifiers must participate in real RTL behavior.",
     "If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.",
     "After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.",
     "Keep locked authority artifacts unchanged unless a human approves a change request.",
@@ -448,7 +448,7 @@
     "unowned_packets": 0
   },
   "target_scale": {},
-  "todo_plan_sha256": "6085059178e14479206db427a5c4c939e11c365a2211f88d153c9c2417e23573",
+  "todo_plan_sha256": "c3aee053a7c47fa83b671a7c16c3d120057822beb3701c2334595163d70231dc",
   "top": "generic_counter_ip",
   "type": "rtl_authoring_plan"
 }

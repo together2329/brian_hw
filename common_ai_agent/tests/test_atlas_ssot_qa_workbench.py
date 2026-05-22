@@ -87,11 +87,14 @@ def test_ssot_preview_ignores_yaml_hash_comments_in_digest_parser():
     assert "ch === '#' && !single && !double" in workspace_src
 
 
-def test_to_ssot_no_longer_reads_retired_import_manifest():
+def test_import_to_ssot_uses_manifest_and_split_roots():
     atlas_ui_src = ATLAS_UI_PY.read_text(encoding="utf-8")
     gate_start = atlas_ui_src.index("def _handle_to_ssot_gate")
     gate_end = atlas_ui_src.index("def _handle_repair_ssot_command", gate_start)
     gate_src = atlas_ui_src[gate_start:gate_end]
+    import_start = atlas_ui_src.index("def _handle_import_command")
+    import_end = atlas_ui_src.index("def _safe_import_upload_name", import_start)
+    import_src = atlas_ui_src[import_start:import_end]
     spec_start = atlas_ui_src.index("def _render_approved_ssot_spec")
     spec_end = atlas_ui_src.index("def _emit_ssot_approval_ready", spec_start)
     spec_src = atlas_ui_src[spec_start:spec_end]
@@ -99,16 +102,27 @@ def test_to_ssot_no_longer_reads_retired_import_manifest():
     qna_end = atlas_ui_src.index("def _render_approved_ssot_spec", qna_start)
     qna_src = atlas_ui_src[qna_start:qna_end]
 
-    assert "import_manifest.json" not in gate_src
-    assert "import_manifest.json" not in spec_src
-    assert "import_manifest.json" not in qna_src
+    assert "import_manifest.json" in import_src
+    assert "extracted_decisions.json" in import_src
+    assert "import-llm-queued" not in import_src
+    assert "import_manifest.json" in gate_src
+    assert "extracted_decisions.json" in gate_src
+    assert "blocked: import evidence index is incomplete" in gate_src
+    assert "blocked: {ip} still has missing SSOT decisions" in gate_src
     assert "`{ip}/req/imports/`" in gate_src
+    assert "ATLAS_WORKFLOW_ROOT" in gate_src
+    assert "ATLAS_PROJECT_ROOT" in gate_src
+    assert "--root {script_root}" in gate_src
     assert "{ip}/wiki/import-evidence.md" in spec_src
+    assert "import_manifest.json" in qna_src
     assert "`{ip}/req/imports/`" in qna_src
+    assert "--workflow-root" in atlas_ui_src
+    assert "--ip-root" in atlas_ui_src
 
     for path in (TO_SSOT_SKILL, SSOT_SYSTEM_PROMPT, COMMON_ENGINE_FLOW):
         src = path.read_text(encoding="utf-8")
-        assert "import_manifest.json" not in src
+        assert "import_manifest.json" in src
+        assert "ATLAS_WORKFLOW_ROOT" in src
 
 
 def test_to_ssot_preview_and_verify_share_canonical_format_contract():
@@ -145,9 +159,10 @@ def test_to_ssot_preview_and_verify_share_canonical_format_contract():
 
     assert "Do NOT wrap the document in `ssot:`" in gate_src
     assert "Do NOT use legacy aliases" in gate_src
-    assert "verify_ssot.py {ip} --mode engineering" in gate_src
-    assert "verify_ssot.py <ip> --mode engineering" in skill_src
-    assert "verify_ssot.py <ip> --mode engineering" in system_prompt_src
+    assert "verify_ssot.py" in gate_src
+    assert "--root {script_root}" in gate_src
+    assert 'verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering' in skill_src
+    assert 'verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering' in system_prompt_src
     assert "verify_ssot" in command_src
     assert '"verify_ssot": verify_ssot' in tools_src
     assert '"verify_ssot": _fn(' in schema_src

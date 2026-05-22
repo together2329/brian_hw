@@ -49,6 +49,20 @@ def _with_icarus_vcd_dump(sources: list[str], build_dir: Path, top: str, ip: str
     return [*sources, str(dump_src)], [top, dump_module]
 
 
+def _verilator_compile_args(simulator: str) -> list[str]:
+    if simulator != "verilator":
+        return []
+    enabled = os.environ.get("ATLAS_VERILATOR_COVERAGE", "1").strip().lower()
+    if enabled in {"0", "false", "no", "off"}:
+        return []
+    return [
+        "--coverage",
+        "--coverage-line",
+        "--coverage-expr",
+        "--coverage-toggle",
+    ]
+
+
 def _parse_results(path: Path) -> tuple[int, int, int]:
     root = ET.parse(path).getroot()
     tests = failures = errors = 0
@@ -63,6 +77,31 @@ def _parse_results(path: Path) -> tuple[int, int, int]:
         failures = sum(1 for case in cases if case.find("failure") is not None)
         errors = sum(1 for case in cases if case.find("error") is not None)
     return tests, failures, errors
+
+
+def _scoreboard_escalations(path: Path) -> list[str]:
+    if not path.is_file():
+        return []
+    failed = []
+    for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except Exception as exc:
+            failed.append(("PARSE_ERROR", f"scoreboard_events.jsonl parse error: {exc}"))
+            continue
+        if isinstance(row, dict) and row.get("passed") is False:
+            failed.append((str(row.get("goal_id") or "UNKNOWN"), str(row.get("mismatch") or "mismatch without detail")))
+    if not failed:
+        return []
+    preview = "; ".join(f"{goal}: {mismatch}" for goal, mismatch in failed[:8])
+    suffix = "" if len(failed) <= 8 else f"; ... +{len(failed) - 8} more"
+    return [
+        f"[SIM ESCALATE] scoreboard_failed={len(failed)} owner=sim_debug evidence={path}",
+        f"[SIM ESCALATE] reason=FL-vs-RTL scoreboard mismatch: {preview}{suffix}",
+    ]
 
 
 def main() -> int:
@@ -111,6 +150,8 @@ def main() -> int:
             waves=waves,
             force_compile=True,
             extra_env=env,
+            includes=[str(ip_dir / "rtl")],
+            verilog_compile_args=_verilator_compile_args(simulator),
         )
     except BaseException as exc:
         (sim_dir / "sim_report.txt").write_text(
@@ -127,6 +168,7 @@ def main() -> int:
     waves = _copy_waveforms(build_dir, sim_dir, ip)
     tests, failures, errors = _parse_results(canonical)
     passed = tests - failures - errors
+    escalations = _scoreboard_escalations(sim_dir / "scoreboard_events.jsonl")
     report = [
         f"TESTS={tests} PASS={passed} FAIL={failures + errors}",
         f"results={canonical.relative_to(project_root)}",
@@ -135,9 +177,12 @@ def main() -> int:
         f"waveforms={','.join(str(path.relative_to(project_root)) for path in waves) if waves else 'none'}",
         "0 errors, 0 warnings" if failures == 0 and errors == 0 else f"{errors} errors, {failures} failures",
     ]
+    report.extend(escalations)
     (sim_dir / "sim_report.txt").write_text("\n".join(report) + "\n", encoding="utf-8")
     print(f"TESTS={tests} PASS={passed} FAIL={failures + errors}")
     print("0 errors, 0 warnings" if failures == 0 and errors == 0 else f"{errors} errors, {failures} failures")
+    for line in escalations:
+        print(line)
     return 0 if failures == 0 and errors == 0 and tests > 0 else 1
 
 

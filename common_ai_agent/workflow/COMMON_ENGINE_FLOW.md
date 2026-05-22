@@ -38,7 +38,8 @@ The cross-linked wiki entry point for LLM/agent navigation is
    - SSOT is the single source of truth for sections, submodules, function model intent, cycle model intent, DV plan, coverage, downstream workflow TODOs, and signoff criteria.
    - `ssot-gen` LLM must author `workflow_todos.<stage>[]` when downstream work needs explicit decomposition. For `rtl-gen`, each item must include `content`, `detail`, `criteria`, and `source_refs`.
    - For full-flow smoke tests, `/mode auto-select` lets `ask_user` choose the explicit `Suggest:` answer, recommended/default option, or first safe option and record the QA card as approved with source `llm-ssot-qna.auto_select`.
-   - For existing IP material, run `/import --ip <ip> <doc_or_rtl_paths...>` before `/grill-me` or `/to-ssot`. Import writes evidence under `<ip>/req/imports/` and `<ip>/wiki/import-evidence.md`; `/to-ssot` still writes the canonical YAML.
+   - For existing IP material, run `/import --ip <ip> <doc_or_rtl_paths...>` before `/grill-me` or `/to-ssot`. Import writes evidence under `<ip>/req/imports/`, `<ip>/req/import_manifest.json`, `<ip>/req/extracted_decisions.json`, and `<ip>/wiki/import-evidence.md`; `/to-ssot` still writes the canonical YAML.
+   - `workflow_todos.<stage>[]` is the executable handoff ledger. Each executable item carries `command`, `script`, `instructions`, `content`, `detail`, `criteria`, and `source_refs`.
    - Missing semantics must produce a human gate, not a fixed template workaround.
 
 3. Functional model generation
@@ -56,7 +57,7 @@ The cross-linked wiki entry point for LLM/agent navigation is
    - Command: `/ssot-rtl <ip>`.
    - Engine stage: `ssot-rtl`.
    - Output: RTL, filelist, `rtl/rtl_todo_plan.json`, `rtl/rtl_traceability.json`, `rtl/rtl_contract.json`, `rtl/rtl_compile.json`, and `lint/dut_lint.json`.
-   - Internal order: command handler `stage:ssot-rtl` runs `workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root <project-root>`, writes `rtl/rtl_todo_plan.json`, `rtl/rtl_todo_tracker.json`, and `todo/rtl_todo_tracker.json`, then loads that dynamic tracker into the existing TodoTracker.
+   - Internal order: command handler `stage:ssot-rtl` runs `python3 "$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py" <ip> --root "$ATLAS_PROJECT_ROOT"`, writes `rtl/rtl_todo_plan.json`, `rtl/rtl_todo_tracker.json`, and `todo/rtl_todo_tracker.json`, then loads that dynamic tracker into the existing TodoTracker.
    - RTL-gen must treat the current SSOT as a binding contract for top ports, submodule files, filelist, registers, function/cycle behavior, timing, synthesis, and quality gates. Existing RTL is reuse evidence only; stale/generic RTL is repaired by rtl-gen, not accepted downstream.
    - `rtl-gen` must derive its active TODOs from SSOT, including all `workflow_todos.rtl-gen[]` items, and continue generation/repair until every required TODO has `todo_completion.status=pass`.
    - DUT-only compile/lint evidence is mandatory. Sim/TB logs are not lint approval.

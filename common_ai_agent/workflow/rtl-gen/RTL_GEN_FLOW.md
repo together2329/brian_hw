@@ -52,9 +52,9 @@ Internal order:
 3. The stage runs
    `workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root <project-root>`.
 4. The derive script writes/refreshes:
-   - `<ip>/rtl/rtl_todo_plan.json`
-   - `<ip>/rtl/rtl_todo_tracker.json`
-   - `<ip>/todo/rtl_todo_tracker.json`
+   - `rtl/rtl_todo_plan.json` in the active IP root
+   - `rtl/rtl_todo_tracker.json` in the active IP root
+   - `todo/rtl_todo_tracker.json` in the active IP root
 5. `workflow/loader.py` loads the dynamic tracker for the existing TodoTracker.
 6. `rtl-gen` implements and repairs RTL from the loaded flat TODO ledger.
 7. After RTL edits, the stage reruns compile, DUT-only lint, and

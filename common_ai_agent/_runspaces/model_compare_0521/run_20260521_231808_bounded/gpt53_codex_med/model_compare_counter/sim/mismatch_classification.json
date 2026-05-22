@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "type": "mismatch_classification",
+  "ip": "model_compare_counter",
+  "generated_at": "2026-05-21T21:42:55Z",
+  "status": "pass",
+  "classifications": []
+}

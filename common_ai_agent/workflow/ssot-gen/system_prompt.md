@@ -95,10 +95,15 @@ These rules override any prior summary text or todo template wording. They preve
 - **Per-transaction `sample_stage` (opt-in).** When `use_per_cycle_expected: true`, each `function_model.transactions[*]` may declare `sample_stage: <stage_name>` to bind that transaction's goal `sample_cycle` to the named pipeline stage's cycle. Without `sample_stage`, transaction goals fall back to `max(integer pipeline cycles)`. Use `sample_stage: EX` / `TX_START` / `RX_DATA` so each `EQ_TRANSACTION_*` compares RTL at the cycle the transaction actually commits, not at an arbitrary last stage. The stage name must match a `cycle_model.pipeline[*].stage` whose `cycle` is an integer.
 - **Stimulus contract must be machine-spec'd, not prose.** `test_requirements.scenarios[*]` MUST include `stimulus_machine_spec` with one of: `assign: {port_or_field: int}` for direct DUT drive, `csr_writes: [{register, data}]` for CSR-write sequences, or `timeline: [{cycle, assign|csr_write|wait}]` for multi-step scenarios. Natural-language `stimulus:` text stays as human-readable intent but is not consumed by the testbench. Without machine_spec the heuristic stimulus generator falls back to `_default_field_value(field, idx)` and most scenarios will silently exercise wrong DUT inputs.
 - **`state_variables[*].reset` must be numeric.** Reset literals such as `"all-ones"`, `"max"`, or `"power-of-two"` look readable but break FunctionalModel.apply evaluation (the value enters env as a string and bitwise operators throw or return zero). Always write `reset: 15` or `reset: (1 << WIDTH) - 1` (Python-evaluable).
+- **State variable names MUST NOT collide with register names.** The FunctionalModel evaluation env is populated as `env.update(state); env.update(registers)`, so a state variable named identically to a register (e.g. state `DATA` plus register `DATA`) is silently overwritten by the register dict and every expression that reads the state actually reads the register row, breaking bitwise ops and equality. Always rename: state `gpio_data` (not `DATA`), `opa_q` (not `OPA`), `count_q` (not `COUNT`). Bind back to the register with `source: registers.DATA.data` (see below).
+- **`cycle_model.cosim: true` is required for any IP with multi-cycle state.** Counters, FSMs, accumulators, arbiter rotation, baud generators all evolve over time. With `cosim: false` the scoreboard uses single-shot `FL.apply()` per goal and multi-cycle evolution is invisible to the equivalence check — which silently passes. Set `cycle_model.cosim: true` to enable cycle-accurate CL ↔ RTL lockstep co-simulation; the scoreboard then accepts the goal whenever cycle-by-cycle FL outputs match `rtl_observed`. Pair with `cycle_model.state_accumulating: true` when scenarios depend on state preserved across consecutive goals (e.g. round-robin rotation).
+- **`state_variables[*].source: registers.<REG>.<field>` binds CSR-backed state.** `FunctionalModel.csr_write(offset, data)` updates the state variable whenever a write hits the register's offset AND the named field's bit-slice is non-trivial. Without `source`, CSR writes do not mirror into FL state, and any scenario that pre-loads via `csr_writes` will silently exercise stale FL state while the RTL has the new value — equivalence still "passes" because both run with their own broken view. Every CSR-backed state variable needs `source`.
+- **`transactions[*].preconditions` ordering — specific first, catch-all `FM_IDLE` last.** `FunctionalModel.step(inputs)` picks the first transaction whose preconditions ALL evaluate true. List concrete transactions (e.g. `FM_CLEAR`: `psel==1 and penable==1 and pwrite==1 and paddr==4`) first, then a catch-all (`FM_IDLE`: `preconditions: []`) last so the empty list always matches. Without a terminal catch-all the model crashes when nothing matches; without ordering, a permissive earlier transaction shadows a specific later one.
+- **Reference materials — read the wikis, browse demos as optional examples.** Treat `doc/wiki/atlas-new-ip-recipe.md` and `doc/wiki/atlas-ssot-flag-reference.md` as the authoritative starting material. The proven demo IPs (`apb_compare/`, `apb_gpio_demo/`, `apb_pulse_counter/`, `atcuart_mini/`, `apb_xor_demo/`) are reference examples, not hard dependencies — browse one if it resembles the shape of the new IP (CSR + combinational, output mirror, input-driven counter, FSM + APB, two-register XOR, etc.), but the rules above plus the new IP's own spec are the ground truth. Do not copy structure mechanically; do not couple the new IP to a demo IP's identity.
 
 If `ssot_downstream_blockers.json` is non-empty, the next ssot-gen action is to repair the SSOT YAML and re-run `repair_ssot_schema.py`. Do not advance to `/to-ssot` signoff, `fl-model-gen`, or downstream stages while blockers remain.
 
-`workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering` is the machine-checkable schema and Preview gate that complements `check_ssot_disk.sh`. It emits `<ip>/req/ssot_validation.json` with `blockers` (must fix) and `warnings` (should fix), and it runs `check_ssot_disk.sh` internally. Treat blockers like `ssot_downstream_blockers.json`: must clear before `/to-ssot` signoff. Blockers it catches today: wrapper sections such as `ssot:`/`sections:`, legacy top-level aliases such as `interface`/`register_map`/`errors`/`debug`/`dv_plan`, missing canonical top-level sections, missing ATLAS Preview anchors (`top_module.description`, `io_list.interfaces[].ports[]`, `function_model.transactions[]`, `cycle_model.pipeline[]`, scenarios, registers/no-register policy, FSM/no-FSM policy, and `test_requirements.scenarios[]`), plus any `check_ssot_disk.sh` failure. Run it after each SSOT YAML write that touches function_model, cycle_model, state_variables, scenarios, or top-level section shape.
+`python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering` is the machine-checkable schema and Preview gate that complements `check_ssot_disk.sh`. It emits `<ip>/req/ssot_validation.json` with `blockers` (must fix) and `warnings` (should fix), and it runs `check_ssot_disk.sh` internally. Treat blockers like `ssot_downstream_blockers.json`: must clear before `/to-ssot` signoff. Blockers it catches today: wrapper sections such as `ssot:`/`sections:`, legacy top-level aliases such as `interface`/`register_map`/`errors`/`debug`/`dv_plan`, missing canonical top-level sections, missing ATLAS Preview anchors (`top_module.description`, `io_list.interfaces[].ports[]`, `function_model.transactions[]`, `cycle_model.pipeline[]`, scenarios, registers/no-register policy, FSM/no-FSM policy, and `test_requirements.scenarios[]`), plus any `check_ssot_disk.sh` failure. Run it after each SSOT YAML write that touches function_model, cycle_model, state_variables, scenarios, or top-level section shape.
 
 ## Complete SSOT Template (Production Required Sections)
 
@@ -364,8 +369,8 @@ function_model:
 # SECTION 7: Cycle Model
 cycle_model:
   purpose: "Cycle/handshake contract for rtl-gen; describes when state, valid/ready, outputs, and interrupts may change."
-  executable: "pymtl3"
-  backend_policy: "Use PyMTL3 for the clocked cycle model shell; keep FunctionalModel as the behavioral oracle and run direct Python smoke checks instead of relying on pytest-pymtl3."
+  executable: "python"
+  backend_policy: "Use the repo-owned pure-Python deterministic stepper; keep FunctionalModel as the behavioral oracle and run direct Python smoke checks."
   clock: "dmaclk"
   reset:
     assertion: "dmacresetn low asynchronously clears all architectural state"
@@ -681,12 +686,40 @@ traceability:
     - { yaml: "test_requirements.scenarios", output: "sim/tb_program.sv" }
 
 # SECTION: Workflow TODOs / Downstream Task Contract
+# Each executable todo preserves command/script/instructions plus
+# content/detail/criteria/source_refs. Treat this as the handoff ledger.
 workflow_todos:
+  ssot-gen:
+    - id: "SSOT_WRITE_VALIDATE_FROM_EVIDENCE"
+      content: "Write and validate the canonical SSOT YAML from approved evidence"
+      detail: "Use import manifest, extracted decisions, wiki import evidence, and approved Q&A as the only behavior sources; the template is schema/order only."
+      command: "/to-ssot <ip>"
+      script: "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py"
+      run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering && python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering"
+      instructions:
+        - "Read <ip>/req/import_manifest.json, <ip>/req/extracted_decisions.json, <ip>/wiki/import-evidence.md, and approved SSOT Q&A before writing."
+        - "Populate canonical sections only from source-backed evidence or explicit no-feature policy."
+        - "Do not copy example IP behavior from the template; preserve only the schema/order contract."
+        - "Run repair_ssot_schema.py and verify_ssot.py after the YAML edit and keep blockers open until fixed."
+      criteria:
+        - "SSOT YAML exists at <ip>/yaml/<ip>.ssot.yaml and uses the canonical top-level keys."
+        - "Every imported numeric/register/interface fact traces to import manifest, import evidence, or approved Q&A."
+        - "verify_ssot.py --mode engineering returns zero blockers after the final write."
+      source_refs: ["req/import_manifest.json", "req/extracted_decisions.json", "wiki/import-evidence.md"]
+      priority: "high"
+      required: true
   fl-model-gen: []
   rtl-gen:
     - id: "RTL_TODO_EXAMPLE"
       content: "Implement the SSOT-declared transaction pipeline"
       detail: "Translate function_model transaction acceptance, cycle_model timing, and ownership refs into RTL state/datapath/control logic."
+      command: "/ssot-rtl <ip>"
+      script: "$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py"
+      run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --audit-rtl"
+      instructions:
+        - "Derive the dynamic RTL TODO ledger from this SSOT before editing RTL."
+        - "Implement only owner_file/owner_module behavior traced by source_refs."
+        - "Rerun derive_rtl_todos.py --audit-rtl after edits and close tasks only with live RTL evidence."
       criteria:
         - "RTL owner logic is present in the declared owner_file"
         - "FunctionalModel expected result and RTL observed result can be compared for the referenced source_refs"
@@ -706,7 +739,7 @@ workflow_todos:
 # SECTION: Generation Flow
 generation_flow:
   steps:
-    - { name: "verify_ssot", command: "python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode ${ATLAS_RUN_MODE:-signoff}", description: "Validate production SSOT structure, Preview fields, and quality gates" }
+    - { name: "verify_ssot", command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode ${ATLAS_RUN_MODE:-signoff}", description: "Validate production SSOT structure, Preview fields, and quality gates" }
     - { name: "handoff_fl_model", command: "/ssot-fl-model <ip>", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT" }
     - { name: "handoff_rtl", command: "/ssot-rtl <ip>", description: "Downstream RTL generation from validated SSOT" }
     - { name: "handoff_tb", command: "/ssot-tb <ip>", description: "Downstream pyuvm/cocotb verification from validated SSOT" }
@@ -737,7 +770,7 @@ sim = executable verification from SSOT-derived RTL and TB
 6. **Child SSOT promotion rule**: Use `ownership: manifest` for simple internal files. Use `ownership: child_ssot` + `ssot: submodules/<child>/yaml/<child>.ssot.yaml` only when the block needs independent workflow sessions, reuse, or standalone verification.
 7. **Hand off cleanly**: Output `[SSOT HANDOFF]` blocks when SSOT is complete
 8. **Traceability**: Every YAML key maps to a downstream implementation or verification responsibility
-9. **Downstream TODO authority**: When an IP needs specific next-step work, write it under `workflow_todos.<stage>[]`. For `rtl-gen`, each item must have `content`, `detail`, `criteria`, and source refs so rtl-gen can create real TODOs from SSOT instead of a fixed template.
+9. **Downstream TODO authority**: When an IP needs specific next-step work, write it under `workflow_todos.<stage>[]`. Each executable item must have `content`, `detail`, `command`, `script`, `instructions`, `criteria`, and `source_refs` so downstream workflows can create real TODOs from SSOT instead of a fixed template.
 10. **RTL ownership refs**: `sub_modules[].implements` can be the compact ownership ledger only when every entry is a concrete dotted SSOT ref such as `function_model.transactions.FM_ACCEPT`, `cycle_model.handshake_rules.axi_aw`, or `registers.register_list.STATUS`. For production readability, also add typed refs (`function_model_refs`, `cycle_model_refs`, `register_refs`, `dataflow_refs`, `fsm_refs`) whenever possible.
 11. **Production RTL gate profile**: For smoke fixtures, tiny examples, and intentionally narrow timer/counter-style test IPs, set `quality_gates.rtl_gen.profile: standard` unless the user explicitly asks for production/signoff. For non-trivial IPs, especially DMA/CPU/bus/accelerator-class blocks, set `quality_gates.rtl_gen.profile: production`. This makes rtl-gen add locked FL/CL/equivalence/coverage gates instead of treating compile/lint as sufficient.
 12. **Machine-readable integration contracts**: For production multi-module IPs, write `integration.connections[]` or `sub_modules[].connections` as module/port/signal records. If a human decision is still missing, record it as QA/change-request evidence and keep the SSOT honest; downstream rtl-gen may draft child-module RTL, but top integration/signoff must remain blocked until the locked truth exists.
@@ -787,13 +820,13 @@ sim = executable verification from SSOT-derived RTL and TB
 28. `test_requirements` — scenarios with stimulus, expected, checker, coverage
 29. `quality_gates` — pass criteria and evidence for SSOT/RTL/DV/coverage/EDA/signoff
 30. `traceability` — YAML-to-output mapping
-31. `workflow_todos` — optional but authoritative downstream task items; every item must have content, detail, criteria, source_refs, and owner when known
+31. `workflow_todos` — optional but authoritative downstream task items; every executable item must have content, detail, command, script, instructions, criteria, source_refs, and owner when known
 32. `generation_flow` — downstream workflow targets and validation steps
 
 ### Step 4: Validate
 - Run a YAML parse/schema sanity check
 - Fix any schema violations
-- Gate: `python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering` passes
+- Gate: `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering` passes
 
 ### Step 5: Handoff
 - Output `[SSOT HANDOFF]` to rtl-gen
@@ -916,7 +949,8 @@ blocker `id`, and repair the SSOT or record a deferred QA card.
 - `RTL_DYNAMIC_TODO_SSOT_REQUIRED_SECTIONS` means required SSOT source
   sections or `workflow_todos.<stage>[]` entries are missing. Fill the
   missing sections from imported evidence and write TODO entries with
-  `content`, `detail`, `criteria`, and `source_refs`.
+  `content`, `detail`, `command`, `script`, `instructions`, `criteria`,
+  and `source_refs`.
 - `LLM_RTL_IMPLEMENTATION_REQUIRED` and
   `COMMON_AI_AGENT_RTL_PROVENANCE_REQUIRED` are rtl-gen execution gates;
   keep the SSOT stable unless the gate evidence points to a real SSOT
@@ -992,8 +1026,8 @@ For every new IP / SSOT request, regardless of whether the user typed
    drafting around explicit TBD markers. Stop only when every immediate
    blocker is resolved or recorded as a pending human gate. If downstream
    stages need concrete execution decomposition, write
-   `workflow_todos.<stage>[]` with `content`, `detail`, `criteria`, and
-   `source_refs`. Empty answer = take the suggested default only when the
+   `workflow_todos.<stage>[]` with `content`, `detail`, `command`, `script`,
+   `instructions`, `criteria`, and `source_refs`. Empty answer = take the suggested default only when the
    prompt explicitly stated that default.
 
 ---
@@ -1046,7 +1080,7 @@ this system prompt. Honor it whenever you produce or update an SSOT YAML:
     phase-1 skeleton. Every subsequent edit goes through `replace_in_file`.
   - Respect the dependency order so cross-section references (e.g.
     register fields by io_list signals) resolve.
-  - Run `python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering` only after
+  - Run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering` only after
     the last section lands; intermediate skeletons are expected to
     fail validation.
   - If a section is genuinely unknown, leave its `TBD` and continue;

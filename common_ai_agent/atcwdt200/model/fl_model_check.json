@@ -20,8 +20,8 @@
           "transaction_id": "apb_read",
           "transaction_name": "APB register read",
           "sample_accepted": 1,
-          "prdata_rule": 0,
-          "prdata": 0
+          "prdata_rule": 50339842,
+          "prdata": 50339842
         }
       },
       {
@@ -34,6 +34,10 @@
           "transaction_id": "apb_write",
           "transaction_name": "APB register write",
           "sample_accepted": 1,
+          "wdt_int_rule": 0,
+          "wdt_int": 0,
+          "wdt_rst_rule": 0,
+          "wdt_rst": 0,
           "state_updates": {
             "CR_FIELDS": 4,
             "SR_INTZERO": 0
@@ -50,6 +54,10 @@
           "transaction_id": "write_unlock",
           "transaction_name": "Write protection unlock",
           "sample_accepted": 1,
+          "wdt_int_rule": 0,
+          "wdt_int": 0,
+          "wdt_rst_rule": 0,
+          "wdt_rst": 0,
           "state_updates": {
             "REG_WEN": 0
           }
@@ -65,6 +73,10 @@
           "transaction_id": "restart",
           "transaction_name": "Watchdog restart command",
           "sample_accepted": 1,
+          "wdt_int_rule": 0,
+          "wdt_int": 0,
+          "wdt_rst_rule": 0,
+          "wdt_rst": 0,
           "state_updates": {
             "COUNTER": 0,
             "STATE": 0
@@ -104,6 +116,10 @@
           "transaction_id": "timeout_decode",
           "transaction_name": "Timeout interval decode",
           "sample_accepted": 1,
+          "wdt_int_rule": 0,
+          "wdt_int": 0,
+          "wdt_rst_rule": 0,
+          "wdt_rst": 0,
           "state_updates": {
             "TIMEOUT_PREDICATES": 0
           }

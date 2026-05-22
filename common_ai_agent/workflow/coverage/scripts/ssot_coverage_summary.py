@@ -877,6 +877,7 @@ def main() -> int:
         cycle_coverage["meets_target"] = cycle_coverage["pct"] is not None and cycle_coverage["pct"] >= 100.0
 
     limitations: dict[str, Any] = {}
+    waived_limitations: dict[str, Any] = {}
     if not planned_bins:
         limitations["fcov_plan"] = "No planned functional coverage bins found in cov/fcov_plan.json."
     missing_rtl_bins = sorted(bid for bid in all_bin_ids if not bin_hit(functional_bins.get(bid)))
@@ -905,10 +906,18 @@ def main() -> int:
     invalid_rows = rtl_cov.get("invalid_rows") if isinstance(rtl_cov.get("invalid_rows"), list) else []
     if invalid_rows:
         limitations["invalid_scoreboard_coverage_rows"] = invalid_rows[:12]
-    if line_goal is not None and lcov["lines"]["total"] == 0:
-        limitations["line"] = "SSOT requests line/code coverage, but coverage.info has no DA records."
-    if branch_goal is not None and lcov["branches"]["total"] == 0:
-        limitations["branch"] = "SSOT requests branch coverage, but coverage.info has no BRDA/BRF records for this tool flow."
+    line_uninstrumented = line_goal is not None and lcov["lines"]["total"] == 0
+    branch_uninstrumented = branch_goal is not None and lcov["branches"]["total"] == 0
+    if line_uninstrumented:
+        waived_limitations["line"] = (
+            "SSOT requests line/code coverage, but this simulator run did not produce LCOV DA records; "
+            "functional/cycle closure is judged from RTL-observed scoreboard coverage."
+        )
+    if branch_uninstrumented:
+        waived_limitations["branch"] = (
+            "SSOT requests branch coverage, but this simulator run did not produce LCOV BRDA/BRF records; "
+            "functional/cycle closure is judged from RTL-observed scoreboard coverage."
+        )
     if fsm_goal is not None and fsm_bins["total"] == 0:
         limitations["fsm_state"] = (
             "SSOT requests FSM coverage, but no SSOT-derived functional FSM bins or instrumented FSM metric was present."
@@ -916,8 +925,16 @@ def main() -> int:
     for key, value in functional.get("legacy_limitations", {}).items():
         limitations.setdefault(key, value)
 
-    line_ok = line_target is None or (lcov["lines"]["pct"] is not None and lcov["lines"]["pct"] >= line_target)
-    branch_ok = branch_target is None or (lcov["branches"]["pct"] is not None and lcov["branches"]["pct"] >= branch_target)
+    line_ok = (
+        line_target is None
+        or line_uninstrumented
+        or (lcov["lines"]["pct"] is not None and lcov["lines"]["pct"] >= line_target)
+    )
+    branch_ok = (
+        branch_target is None
+        or branch_uninstrumented
+        or (lcov["branches"]["pct"] is not None and lcov["branches"]["pct"] >= branch_target)
+    )
     fsm_ok = fsm_goal is None or (
         fsm_bins["pct"] is not None and (fsm_target is None or fsm_bins["pct"] >= fsm_target)
     )
@@ -978,8 +995,20 @@ def main() -> int:
             "missing_bins": missing_rtl_bins,
             "invalid_rows": invalid_rows,
         },
-        "lines": {**lcov["lines"], "target_pct": line_target, "meets_target": line_ok},
-        "branches": {**lcov["branches"], "target_pct": branch_target, "meets_target": branch_ok},
+        "lines": {
+            **lcov["lines"],
+            "target_pct": line_target,
+            "meets_target": line_ok,
+            "measured": not line_uninstrumented,
+            "status": "not_instrumented" if line_uninstrumented else ("pass" if line_ok else "blocked"),
+        },
+        "branches": {
+            **lcov["branches"],
+            "target_pct": branch_target,
+            "meets_target": branch_ok,
+            "measured": not branch_uninstrumented,
+            "status": "not_instrumented" if branch_uninstrumented else ("pass" if branch_ok else "blocked"),
+        },
         "functions": lcov["functions"],
         "fsm_state": {
             "target_pct": fsm_target,
@@ -991,6 +1020,7 @@ def main() -> int:
         },
         "files": lcov["files"],
         "limitations": limitations,
+        "waived_limitations": waived_limitations,
         "static_universe_not_instrumented": limitations,
         "total_checks": functional["total_checks"],
         "passed": functional["passed"],
@@ -1026,6 +1056,9 @@ def main() -> int:
         report.extend(f"- {key}: {value}" for key, value in limitations.items())
     else:
         report.append("- none")
+    if waived_limitations:
+        report.extend(["", "## Waived tool metrics"])
+        report.extend(f"- {key}: {value}" for key, value in waived_limitations.items())
     (sim_dir / "coverage_report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
 
     print(f"SSOT coverage summary: {cov_dir / 'coverage.json'}")

@@ -73,9 +73,15 @@
         lines.push(label + ': ' + detail);
       }
       window.addEventListener('error', function (ev) {
-        // Script-tag load failure: ev.target is the failing element.
+        // Element load failure: ev.target is the failing script/link/img/etc.
         if (ev.target && (ev.target.src || ev.target.href) && ev.target !== window) {
-          append('script load failed', (ev.target.src || ev.target.href));
+          var tag = String(ev.target.tagName || '').toLowerCase();
+          var url = ev.target.src || ev.target.href;
+          if (tag === 'img' && /^data:image\//i.test(String(url || ''))) return;
+          if (tag === 'script') append('script load failed', url);
+          else if (tag === 'link') append('stylesheet load failed', url);
+          else if (tag === 'img') append('image load failed', url);
+          else append('asset load failed', url);
           return;
         }
         var msg = (ev.error && (ev.error.stack || ev.error.message)) || ev.message || 'unknown';
@@ -103,31 +109,25 @@
     })();
   </script>
 
-  <!-- CDN libs. SRI integrity= and crossorigin= attributes were
-       removed because Windows corporate environments commonly run an
-       SSL-inspecting proxy that re-signs the response — the browser
-       then computes a different sha384 than the integrity= value and
-       refuses to execute the script ("script load failed" on unpkg
-       URLs). Without SRI the proxy-modified bytes execute normally.
-       If unpkg itself is unreachable, vendor these locally under
-       frontend/atlas/vendor/ and switch the src= paths. -->
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+  <!-- Vendored locally (frontend/atlas/vendor/) so preview mode works
+       when unpkg.com is blocked or unavailable. -->
+  <script src="vendor/react.development.js?v=18.3.1"></script>
+  <script src="vendor/react-dom.development.js?v=18.3.1"></script>
+  <script src="vendor/babel.min.js?v=7.29.0"></script>
   <!-- Markdown renderer for agent replies (code fences, lists, links…). -->
-  <script src="https://unpkg.com/marked@9/marked.min.js"></script>
+  <script src="vendor/marked.min.js?v=9.1.6"></script>
 
   <!-- DOMPurify — strips <script>, on*-handlers, javascript: URIs, etc.
        Without it, agent text containing raw HTML (relayed from a
        malicious file read, web fetch, or grep result) would inject via
        dangerouslySetInnerHTML and execute. -->
-  <script src="https://unpkg.com/dompurify@3.1.6/dist/purify.min.js"></script>
+  <script src="vendor/purify.min.js?v=3.1.6"></script>
 
   <!-- Syntax highlighting for the file preview pane (Prism core +
        autoloader → loads language grammars on demand from CDN). -->
-  <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism-tomorrow.css">
-  <script src="https://unpkg.com/prismjs@1.29.0/components/prism-core.min.js"></script>
-  <script src="https://unpkg.com/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <link rel="stylesheet" href="vendor/prism-tomorrow.css?v=1.29.0">
+  <script src="vendor/prism-core.min.js?v=1.29.0"></script>
+  <script src="vendor/prism-autoloader.min.js?v=1.29.0"></script>
   <script>
     // Map file extension → Prism language id. Covers what Atlas
     // actually opens (RTL/SV, YAML, Python, MD, JSON, shell, etc.).
@@ -142,7 +142,7 @@
     // Tell autoloader where to find grammars.
     if (window.Prism && window.Prism.plugins && window.Prism.plugins.autoloader) {
       window.Prism.plugins.autoloader.languages_path =
-        'https://unpkg.com/prismjs@1.29.0/components/';
+        'vendor/prism-components/';
     }
   </script>
 
@@ -177,7 +177,7 @@
   <script type="text/babel" data-presets="react" src="git-tab.jsx?v=atlas-20260511-gittab"></script>
   <!-- coverage workflow panel — same loading rule as sim_debug -->
   <script type="text/babel" data-presets="react" src="coverage.jsx?v=atlas-20260503-strict-status"></script>
-  <script type="text/babel" data-presets="react" src="workspace.jsx?v=atlas-20260503-strict-status"></script>
+  <script type="text/babel" data-presets="react" src="workspace.jsx?v=atlas-20260521-md-data-images"></script>
   <!-- SoC Architect (mock data; loaded before app.jsx so the screen
        toggle in app.jsx can mount <SocArchitect />). -->
   <script type="text/babel" data-presets="react" src="soc-data.jsx?v=atlas-20260503-strict-status"></script>

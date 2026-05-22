@@ -16,6 +16,7 @@ import ast
 import json
 import keyword
 import re
+import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -137,7 +138,7 @@ def _load_json_object(path: Path) -> dict[str, Any]:
 
 def _path_record(root: Path, path: Path) -> dict[str, Any]:
     try:
-        rel = str(path.relative_to(root))
+        rel = path.relative_to(root).as_posix()
     except Exception:
         rel = str(path)
     record: dict[str, Any] = {"path": rel, "exists": path.is_file()}
@@ -1553,8 +1554,8 @@ def _cycle_model(decisions: dict[str, str], io: dict[str, Any]) -> dict[str, Any
         rules.append({"signal": "axis", "rule": "AXI4-Stream accepts beats on tvalid && tready; tlast closes the packet transaction."})
     return {
         "purpose": "Cycle-accurate protocol, reset, latency, and observability contract for rtl-gen.",
-        "executable": "pymtl3",
-        "backend_policy": "Use PyMTL3 for the clocked cycle model shell; FunctionalModel remains the behavioral oracle.",
+        "executable": "python",
+        "backend_policy": "Use the repo-owned pure-Python deterministic stepper; FunctionalModel remains the behavioral oracle.",
         "clock": clk,
         "reset": {
             "signal": rst["name"],
@@ -1989,7 +1990,7 @@ def _doc(root: Path, ip: str, state: dict[str, Any]) -> dict[str, Any]:
         },
         "generation_flow": {
             "steps": [
-                {"name": "verify_ssot", "command": f"python3 workflow/ssot-gen/scripts/verify_ssot.py {ip} --mode ${{ATLAS_RUN_MODE:-signoff}}", "description": "Validate production SSOT structure, Preview fields, and model sections"},
+                {"name": "verify_ssot", "command": f"python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode ${{ATLAS_RUN_MODE:-signoff}}", "description": "Validate production SSOT structure, Preview fields, and model sections"},
                 {"name": "handoff_fl_model", "command": "/wf fl-model-gen", "description": "Generate executable FunctionalModel and decomposition from SSOT"},
                 {"name": "handoff_equivalence_goals", "command": f"/ssot-equiv-goals {ip}", "description": "Derive SSOT-traced FL-vs-RTL equivalence goals before TB generation"},
                 {"name": "handoff_rtl", "command": f"/ssot-rtl {ip}", "description": "Generate RTL directly from validated SSOT and prove DUT-only compile/lint"},
@@ -2011,22 +2012,82 @@ def _interrupt_sources(text: str) -> list[dict[str, Any]]:
     return sources or [{"id": "IRQ1", "name": "approved_event", "condition": text, "clear": "approved CSR/control clear policy"}]
 
 
+def _resolve_atlas_root(cli_root: str) -> Path:
+    """Resolve ATLAS workspace root with priority:
+    1) --root flag (non-cwd) if it contains workflow/
+    2) ATLAS_ROOT env var if it contains workflow/
+    3) Walk up from __file__ to find workflow/
+    4) Fallback: --root as-is (resolved)
+    """
+    import os
+    if cli_root and cli_root not in (".", ""):
+        p = Path(cli_root).resolve()
+        if (p / "workflow").is_dir():
+            return p
+    env = os.environ.get("ATLAS_ROOT", "")
+    if env:
+        ep = Path(env).resolve()
+        if (ep / "workflow").is_dir():
+            return ep
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        if (parent / "workflow").is_dir():
+            return parent
+    return Path(cli_root or ".").resolve()
+
+
+def _merge_preserve_existing(existing: Any, generated: Any) -> Any:
+    """Incremental merge: existing wins. Fill only missing nested dict keys
+    from generated. Lists and scalars from existing are kept as-is, so any
+    hand-curated content (stimulus_machine_spec, source bindings, expression
+    overrides, scenarios) survives subsequent /to-ssot runs.
+    """
+    if isinstance(existing, dict) and isinstance(generated, dict):
+        merged = dict(existing)
+        for key, gen_val in generated.items():
+            if key not in merged or merged[key] is None:
+                merged[key] = gen_val
+            elif isinstance(merged[key], dict) and isinstance(gen_val, dict):
+                merged[key] = _merge_preserve_existing(merged[key], gen_val)
+        return merged
+    return existing
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("ip")
     ap.add_argument("--root", default=".")
+    ap.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing SSOT yaml unconditionally; default is incremental merge that preserves hand edits.",
+    )
     ns = ap.parse_args()
-    root = Path(ns.root).resolve()
+    root = _resolve_atlas_root(ns.root)
+    print(f"[approved_to_ssot] resolved ROOT = {root.as_posix()}")
     state = _load_state(root, ns.ip)
     doc = _doc(root, ns.ip, state)
     yaml_dir = root / ns.ip / "yaml"
     yaml_dir.mkdir(parents=True, exist_ok=True)
     out = yaml_dir / f"{ns.ip}.ssot.yaml"
+    merged_with_existing = False
+    if out.is_file() and not ns.force:
+        try:
+            existing_doc = yaml.safe_load(out.read_text(encoding="utf-8"))
+            if isinstance(existing_doc, dict):
+                doc = _merge_preserve_existing(existing_doc, doc)
+                merged_with_existing = True
+        except Exception as exc:
+            print(
+                f"[approved_to_ssot] WARN: could not parse existing {out.relative_to(root).as_posix()} for merge: {exc}",
+                file=sys.stderr,
+            )
     header = (
         "# =============================================================================\n"
         f"# {ns.ip}.ssot.yaml -- YAML Single Source of Truth\n"
         f"# Generated from ATLAS Web To SSOT state at {time.strftime('%Y-%m-%dT%H:%M:%S')}\n"
-        "# Generator: workflow/ssot-gen/scripts/approved_to_ssot.py (generic SSOT bridge)\n"
+        "# Generator: $ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/approved_to_ssot.py (generic SSOT bridge)\n"
+        f"# Mode: {'incremental merge (existing preserved)' if merged_with_existing else 'fresh write'}\n"
         "# =============================================================================\n\n"
     )
     out.write_text(header + yaml.safe_dump(doc, sort_keys=False, width=120), encoding="utf-8")
@@ -2037,11 +2098,11 @@ def main() -> int:
     if missing:
         raise SystemExit("[approved_to_ssot] generated YAML missing sections: " + ", ".join(missing))
     req_out = _write_requirements(root, ns.ip, state, loaded)
-    print(f"[approved_to_ssot] wrote {out.relative_to(root)}")
-    print(f"[approved_to_ssot] wrote {req_out.relative_to(root)}")
+    print(f"[approved_to_ssot] wrote {out.relative_to(root).as_posix()}")
+    print(f"[approved_to_ssot] wrote {req_out.relative_to(root).as_posix()}")
     print(f"[approved_to_ssot] PASS: YAML parses with {len(loaded.keys())} top-level sections")
     print("[SSOT HANDOFF] -> rtl-gen")
-    print(f"SSOT: {out.relative_to(root)}")
+    print(f"SSOT: {out.relative_to(root).as_posix()}")
     print(f"top_module: {ns.ip}")
     print(f"type: {loaded.get('top_module', {}).get('type', 'unknown')}")
     print("next: /ssot-rtl " + ns.ip)

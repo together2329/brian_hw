@@ -292,7 +292,7 @@ def _markdown(packet: dict[str, Any], *, max_rows: int) -> str:
         "After human review, copy the edited `draft_rtl_blocker_answers` into an answers JSON as `rtl_blocker_answers`, then run:",
         "",
         "```sh",
-        "python3 workflow/ssot-gen/scripts/resolve_rtl_blockers.py <ip> --root . --answers-json <approved-answers.json>",
+        "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/resolve_rtl_blockers.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --answers-json <approved-answers.json>",
         "```",
         "",
         "Then rerun RTL TODO derivation. If the RTL files were already common_ai_agent-authored and only SSOT metadata changed, refresh provenance:",

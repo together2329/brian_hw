@@ -8,6 +8,8 @@
       "name": "atcwdt200_regs",
       "kind": "rtl_module",
       "source_sections": [
+        "dataflow",
+        "decomposition",
         "error_handling",
         "features",
         "function_model",
@@ -19,6 +21,10 @@
       ],
       "rtl_file": "rtl/atcwdt200_regs.sv",
       "ssot_refs": [
+        "dataflow.sequence.sequence_0",
+        "dataflow.sequence.sequence_1",
+        "dataflow.sinks.sinks_0",
+        "decomposition.units.apb_register_block",
         "error_handling",
         "features.restart_and_pause",
         "function_model",
@@ -49,6 +55,8 @@
         "function_model.transactions.apb_write.error_cases.error_case_0",
         "function_model.transactions.apb_write.inputs.input_0",
         "function_model.transactions.apb_write.inputs.input_1",
+        "function_model.transactions.apb_write.output_rules.wdt_int_rule",
+        "function_model.transactions.apb_write.output_rules.wdt_rst_rule",
         "function_model.transactions.apb_write.outputs.output_0",
         "function_model.transactions.apb_write.preconditions.precondition_0",
         "function_model.transactions.apb_write.side_effects.side_effect_0",
@@ -60,6 +68,8 @@
         "function_model.transactions.write_unlock",
         "function_model.transactions.write_unlock.error_cases.error_case_0",
         "function_model.transactions.write_unlock.inputs.input_0",
+        "function_model.transactions.write_unlock.output_rules.wdt_int_rule",
+        "function_model.transactions.write_unlock.output_rules.wdt_rst_rule",
         "function_model.transactions.write_unlock.outputs.output_0",
         "function_model.transactions.write_unlock.preconditions.precondition_0",
         "function_model.transactions.write_unlock.side_effects.side_effect_0",
@@ -105,6 +115,8 @@
         "function_model.transactions.apb_write.error_cases.error_case_0",
         "function_model.transactions.apb_write.inputs.input_0",
         "function_model.transactions.apb_write.inputs.input_1",
+        "function_model.transactions.apb_write.output_rules.wdt_int_rule",
+        "function_model.transactions.apb_write.output_rules.wdt_rst_rule",
         "function_model.transactions.apb_write.outputs.output_0",
         "function_model.transactions.apb_write.preconditions.precondition_0",
         "function_model.transactions.apb_write.side_effects.side_effect_0",
@@ -116,6 +128,8 @@
         "function_model.transactions.write_unlock",
         "function_model.transactions.write_unlock.error_cases.error_case_0",
         "function_model.transactions.write_unlock.inputs.input_0",
+        "function_model.transactions.write_unlock.output_rules.wdt_int_rule",
+        "function_model.transactions.write_unlock.output_rules.wdt_rst_rule",
         "function_model.transactions.write_unlock.outputs.output_0",
         "function_model.transactions.write_unlock.preconditions.precondition_0",
         "function_model.transactions.write_unlock.side_effects.side_effect_0",
@@ -148,6 +162,8 @@
       "kind": "rtl_module",
       "source_sections": [
         "cycle_model",
+        "dataflow",
+        "decomposition",
         "features",
         "fsm",
         "function_model",
@@ -179,6 +195,13 @@
         "cycle_model.pipeline.s3_count",
         "cycle_model.pipeline.s4_timeout_output",
         "cycle_model.reset",
+        "dataflow.sequence.sequence_2",
+        "dataflow.sequence.sequence_3",
+        "dataflow.sequence.sequence_4",
+        "dataflow.sequence.sequence_5",
+        "dataflow.sinks.sinks_1",
+        "dataflow.sinks.sinks_2",
+        "decomposition.units.watchdog_core",
         "features.watchdog_timeout",
         "fsm",
         "fsm.watchdog",
@@ -187,6 +210,8 @@
         "function_model.transactions.restart.error_cases.error_case_0",
         "function_model.transactions.restart.inputs.input_0",
         "function_model.transactions.restart.inputs.input_1",
+        "function_model.transactions.restart.output_rules.wdt_int_rule",
+        "function_model.transactions.restart.output_rules.wdt_rst_rule",
         "function_model.transactions.restart.outputs.output_0",
         "function_model.transactions.restart.preconditions.precondition_0",
         "function_model.transactions.restart.side_effects.side_effect_0",
@@ -197,6 +222,8 @@
         "function_model.transactions.timeout_decode.inputs.input_0",
         "function_model.transactions.timeout_decode.inputs.input_1",
         "function_model.transactions.timeout_decode.inputs.input_2",
+        "function_model.transactions.timeout_decode.output_rules.wdt_int_rule",
+        "function_model.transactions.timeout_decode.output_rules.wdt_rst_rule",
         "function_model.transactions.timeout_decode.outputs.output_0",
         "function_model.transactions.timeout_decode.preconditions.precondition_0",
         "function_model.transactions.timeout_decode.side_effects.side_effect_0",
@@ -224,13 +251,16 @@
         "function_model.transactions.watchdog_tick.state_updates.sr_rstzero",
         "function_model.transactions.watchdog_tick.state_updates.state",
         "interrupts",
-        "parameters.counter_width"
+        "parameters.counter_width",
+        "parameters.int_time_width"
       ],
       "function_model_refs": [
         "function_model.transactions.restart",
         "function_model.transactions.restart.error_cases.error_case_0",
         "function_model.transactions.restart.inputs.input_0",
         "function_model.transactions.restart.inputs.input_1",
+        "function_model.transactions.restart.output_rules.wdt_int_rule",
+        "function_model.transactions.restart.output_rules.wdt_rst_rule",
         "function_model.transactions.restart.outputs.output_0",
         "function_model.transactions.restart.preconditions.precondition_0",
         "function_model.transactions.restart.side_effects.side_effect_0",
@@ -241,6 +271,8 @@
         "function_model.transactions.timeout_decode.inputs.input_0",
         "function_model.transactions.timeout_decode.inputs.input_1",
         "function_model.transactions.timeout_decode.inputs.input_2",
+        "function_model.transactions.timeout_decode.output_rules.wdt_int_rule",
+        "function_model.transactions.timeout_decode.output_rules.wdt_rst_rule",
         "function_model.transactions.timeout_decode.outputs.output_0",
         "function_model.transactions.timeout_decode.preconditions.precondition_0",
         "function_model.transactions.timeout_decode.side_effects.side_effect_0",
@@ -289,7 +321,8 @@
       ],
       "structural_refs": [
         "features.watchdog_timeout",
-        "parameters.counter_width"
+        "parameters.counter_width",
+        "parameters.int_time_width"
       ],
       "verification_impact": [
         "module-level FL-vs-RTL scoreboard",
@@ -304,6 +337,8 @@
       "kind": "rtl_module",
       "source_sections": [
         "cdc_requirements",
+        "dataflow",
+        "decomposition",
         "io_list"
       ],
       "rtl_candidates": [
@@ -314,6 +349,8 @@
         "cdc_requirements",
         "cdc_requirements.crossings.extclk_to_pclk",
         "cdc_requirements.crossings.wdt_pause_to_pclk",
+        "dataflow.sequence.sequence_2",
+        "decomposition.units.cdc_sync",
         "io_list"
       ],
       "function_model_refs": [],
@@ -469,6 +506,8 @@
       "rtl_module": "atcwdt200_regs",
       "rtl_file": "rtl/atcwdt200_regs.sv",
       "source_sections": [
+        "dataflow",
+        "decomposition",
         "error_handling",
         "features",
         "function_model",
@@ -476,6 +515,10 @@
         "registers"
       ],
       "ssot_refs": [
+        "dataflow.sequence.sequence_0",
+        "dataflow.sequence.sequence_1",
+        "dataflow.sinks.sinks_0",
+        "decomposition.units.apb_register_block",
         "error_handling",
         "features.restart_and_pause",
         "function_model",
@@ -506,6 +549,8 @@
         "function_model.transactions.apb_write.error_cases.error_case_0",
         "function_model.transactions.apb_write.inputs.input_0",
         "function_model.transactions.apb_write.inputs.input_1",
+        "function_model.transactions.apb_write.output_rules.wdt_int_rule",
+        "function_model.transactions.apb_write.output_rules.wdt_rst_rule",
         "function_model.transactions.apb_write.outputs.output_0",
         "function_model.transactions.apb_write.preconditions.precondition_0",
         "function_model.transactions.apb_write.side_effects.side_effect_0",
@@ -517,6 +562,8 @@
         "function_model.transactions.write_unlock",
         "function_model.transactions.write_unlock.error_cases.error_case_0",
         "function_model.transactions.write_unlock.inputs.input_0",
+        "function_model.transactions.write_unlock.output_rules.wdt_int_rule",
+        "function_model.transactions.write_unlock.output_rules.wdt_rst_rule",
         "function_model.transactions.write_unlock.outputs.output_0",
         "function_model.transactions.write_unlock.preconditions.precondition_0",
         "function_model.transactions.write_unlock.side_effects.side_effect_0",
@@ -562,6 +609,8 @@
         "function_model.transactions.apb_write.error_cases.error_case_0",
         "function_model.transactions.apb_write.inputs.input_0",
         "function_model.transactions.apb_write.inputs.input_1",
+        "function_model.transactions.apb_write.output_rules.wdt_int_rule",
+        "function_model.transactions.apb_write.output_rules.wdt_rst_rule",
         "function_model.transactions.apb_write.outputs.output_0",
         "function_model.transactions.apb_write.preconditions.precondition_0",
         "function_model.transactions.apb_write.side_effects.side_effect_0",
@@ -573,6 +622,8 @@
         "function_model.transactions.write_unlock",
         "function_model.transactions.write_unlock.error_cases.error_case_0",
         "function_model.transactions.write_unlock.inputs.input_0",
+        "function_model.transactions.write_unlock.output_rules.wdt_int_rule",
+        "function_model.transactions.write_unlock.output_rules.wdt_rst_rule",
         "function_model.transactions.write_unlock.outputs.output_0",
         "function_model.transactions.write_unlock.preconditions.precondition_0",
         "function_model.transactions.write_unlock.side_effects.side_effect_0",
@@ -690,6 +741,14 @@
           "matched_ref": "function_model.transactions.apb_write"
         },
         {
+          "ref": "function_model.transactions.apb_write.output_rules.wdt_int_rule",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
+          "ref": "function_model.transactions.apb_write.output_rules.wdt_rst_rule",
+          "matched_ref": "function_model.transactions.apb_write"
+        },
+        {
           "ref": "function_model.transactions.apb_write.state_updates.cr_fields",
           "matched_ref": "function_model.transactions.apb_write"
         },
@@ -731,6 +790,14 @@
         },
         {
           "ref": "function_model.transactions.write_unlock.outputs.output_0",
+          "matched_ref": "function_model.transactions.write_unlock"
+        },
+        {
+          "ref": "function_model.transactions.write_unlock.output_rules.wdt_int_rule",
+          "matched_ref": "function_model.transactions.write_unlock"
+        },
+        {
+          "ref": "function_model.transactions.write_unlock.output_rules.wdt_rst_rule",
           "matched_ref": "function_model.transactions.write_unlock"
         },
         {
@@ -820,6 +887,8 @@
       "rtl_file": "rtl/atcwdt200_core.sv",
       "source_sections": [
         "cycle_model",
+        "dataflow",
+        "decomposition",
         "features",
         "fsm",
         "function_model",
@@ -847,6 +916,13 @@
         "cycle_model.pipeline.s3_count",
         "cycle_model.pipeline.s4_timeout_output",
         "cycle_model.reset",
+        "dataflow.sequence.sequence_2",
+        "dataflow.sequence.sequence_3",
+        "dataflow.sequence.sequence_4",
+        "dataflow.sequence.sequence_5",
+        "dataflow.sinks.sinks_1",
+        "dataflow.sinks.sinks_2",
+        "decomposition.units.watchdog_core",
         "features.watchdog_timeout",
         "fsm",
         "fsm.watchdog",
@@ -855,6 +931,8 @@
         "function_model.transactions.restart.error_cases.error_case_0",
         "function_model.transactions.restart.inputs.input_0",
         "function_model.transactions.restart.inputs.input_1",
+        "function_model.transactions.restart.output_rules.wdt_int_rule",
+        "function_model.transactions.restart.output_rules.wdt_rst_rule",
         "function_model.transactions.restart.outputs.output_0",
         "function_model.transactions.restart.preconditions.precondition_0",
         "function_model.transactions.restart.side_effects.side_effect_0",
@@ -865,6 +943,8 @@
         "function_model.transactions.timeout_decode.inputs.input_0",
         "function_model.transactions.timeout_decode.inputs.input_1",
         "function_model.transactions.timeout_decode.inputs.input_2",
+        "function_model.transactions.timeout_decode.output_rules.wdt_int_rule",
+        "function_model.transactions.timeout_decode.output_rules.wdt_rst_rule",
         "function_model.transactions.timeout_decode.outputs.output_0",
         "function_model.transactions.timeout_decode.preconditions.precondition_0",
         "function_model.transactions.timeout_decode.side_effects.side_effect_0",
@@ -892,13 +972,16 @@
         "function_model.transactions.watchdog_tick.state_updates.sr_rstzero",
         "function_model.transactions.watchdog_tick.state_updates.state",
         "interrupts",
-        "parameters.counter_width"
+        "parameters.counter_width",
+        "parameters.int_time_width"
       ],
       "function_model_refs": [
         "function_model.transactions.restart",
         "function_model.transactions.restart.error_cases.error_case_0",
         "function_model.transactions.restart.inputs.input_0",
         "function_model.transactions.restart.inputs.input_1",
+        "function_model.transactions.restart.output_rules.wdt_int_rule",
+        "function_model.transactions.restart.output_rules.wdt_rst_rule",
         "function_model.transactions.restart.outputs.output_0",
         "function_model.transactions.restart.preconditions.precondition_0",
         "function_model.transactions.restart.side_effects.side_effect_0",
@@ -909,6 +992,8 @@
         "function_model.transactions.timeout_decode.inputs.input_0",
         "function_model.transactions.timeout_decode.inputs.input_1",
         "function_model.transactions.timeout_decode.inputs.input_2",
+        "function_model.transactions.timeout_decode.output_rules.wdt_int_rule",
+        "function_model.transactions.timeout_decode.output_rules.wdt_rst_rule",
         "function_model.transactions.timeout_decode.outputs.output_0",
         "function_model.transactions.timeout_decode.preconditions.precondition_0",
         "function_model.transactions.timeout_decode.side_effects.side_effect_0",
@@ -957,7 +1042,8 @@
       ],
       "structural_refs": [
         "features.watchdog_timeout",
-        "parameters.counter_width"
+        "parameters.counter_width",
+        "parameters.int_time_width"
       ],
       "owner_matches": [
         {
@@ -978,6 +1064,14 @@
         },
         {
           "ref": "function_model.transactions.restart.outputs.output_0",
+          "matched_ref": "function_model.transactions.restart"
+        },
+        {
+          "ref": "function_model.transactions.restart.output_rules.wdt_int_rule",
+          "matched_ref": "function_model.transactions.restart"
+        },
+        {
+          "ref": "function_model.transactions.restart.output_rules.wdt_rst_rule",
           "matched_ref": "function_model.transactions.restart"
         },
         {
@@ -1109,6 +1203,14 @@
           "matched_ref": "function_model.transactions.timeout_decode"
         },
         {
+          "ref": "function_model.transactions.timeout_decode.output_rules.wdt_int_rule",
+          "matched_ref": "function_model.transactions.timeout_decode"
+        },
+        {
+          "ref": "function_model.transactions.timeout_decode.output_rules.wdt_rst_rule",
+          "matched_ref": "function_model.transactions.timeout_decode"
+        },
+        {
           "ref": "function_model.transactions.timeout_decode.state_updates.timeout_predicates",
           "matched_ref": "function_model.transactions.timeout_decode"
         },
@@ -1195,6 +1297,10 @@
           "matched_ref": "semantic_terms:atcwdt200_core,core,watchdog"
         },
         {
+          "ref": "parameters.int_time_width",
+          "matched_ref": "semantic_terms:atcwdt200_core,core"
+        },
+        {
           "ref": "features.watchdog_timeout",
           "matched_ref": "semantic_terms:tick,timeout,watchdog"
         }
@@ -1211,12 +1317,16 @@
       "rtl_file": "rtl/atcwdt200_sync.sv",
       "source_sections": [
         "cdc_requirements",
+        "dataflow",
+        "decomposition",
         "io_list"
       ],
       "ssot_refs": [
         "cdc_requirements",
         "cdc_requirements.crossings.extclk_to_pclk",
         "cdc_requirements.crossings.wdt_pause_to_pclk",
+        "dataflow.sequence.sequence_2",
+        "decomposition.units.cdc_sync",
         "io_list"
       ],
       "function_model_refs": [],
@@ -1266,7 +1376,7 @@
     }
   ],
   "orphan_function_cycle_refs": [],
-  "function_cycle_ref_count": 99,
+  "function_cycle_ref_count": 107,
   "authority_contract": {
     "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
     "general_evaluation_criteria": [

@@ -1,0 +1,98 @@
+{
+  "ip": "model_compare_counter",
+  "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med",
+  "run_log": "model_compare_counter/logs/headless_run.json",
+  "stages": [
+    {
+      "artifacts": [
+        "model_compare_counter/req/model_compare_counter_requirements.md",
+        "model_compare_counter/req/requirements.md"
+      ],
+      "blocker": "",
+      "message": "requirements copied",
+      "returncode": 0,
+      "stage": "req",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "model_compare_counter/yaml/model_compare_counter.ssot.yaml",
+        "model_compare_counter/logs/llm/ssot-gen.json"
+      ],
+      "blocker": "",
+      "message": "SSOT contract valid",
+      "returncode": 0,
+      "stage": "ssot-gen",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "model_compare_counter/model/functional_model.py",
+        "model_compare_counter/model/decomposition.json",
+        "model_compare_counter/model/fl_model_check.json",
+        "model_compare_counter/cov/fcov_plan.json"
+      ],
+      "blocker": "",
+      "message": "[ssot-fl-model] generic SSOT-driven FL model stage\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py\nmodule: model_compare_counter\nsource: model_compare_counter/yaml/model_compare_counter.ssot.yaml\nexit: 0\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med/model_compare_counter/model/functional_model.py\n[emit_fl_model] decomposition_units=9 fcov_bins=40 passed=True\n\nexpected artifacts:\n- model_compare_counter/model/functional_model.py\n- model_compare_counter/model/decomposition.json\n- model_compare_counter/model/fl_model_check.json\n- model_compare_counter/cov/fcov_plan.json",
+      "returncode": 0,
+      "stage": "fl-model-gen",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "model_compare_counter/model/functional_model.py",
+        "model_compare_counter/model/cycle_model.py when executable CL is required",
+        "model_compare_counter/model/cl_model_check.json when executable CL is required"
+      ],
+      "blocker": "",
+      "message": "[ssot-cycle-model] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py\nmodule: model_compare_counter\nsource: model_compare_counter/yaml/model_compare_counter.ssot.yaml\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med/model_compare_counter/model/functional_model.py\n[emit_fl_model] decomposition_units=9 fcov_bins=40 passed=True\n- emit_cycle_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_cycle_model.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med\n  stdout:\n[emit_cycle_model] trigger fired: cycle_model.executable=pymtl3\n[emit_cycle_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med/model_compare_counter/model/cycle_model.py\n[emit_cycle_model] CL self-check passed=True\n\nexpected artifacts:\n- model_compare_counter/model/functional_model.py\n- model_compare_counter/model/cycle_model.py when executable CL is required\n- model_compare_counter/model/cl_model_check.json when executable CL is required",
+      "returncode": 0,
+      "stage": "cl-model-gen",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "model_compare_counter/cov/fl_fcov_plan.json",
+        "model_compare_counter/cov/cl_fcov_plan.json when cycle_model requires CL bins",
+        "model_compare_counter/cov/fcov_plan.json"
+      ],
+      "blocker": "",
+      "message": "[ssot-dual-fcov] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_dual_fcov.py\nmodule: model_compare_counter\nsource: model_compare_counter/yaml/model_compare_counter.ssot.yaml\n\nruns:\n- emit_dual_fcov: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_dual_fcov.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med\n  stdout:\n[emit_dual_fcov] cl_fcov_plan.json written (7 bins)\n[emit_dual_fcov] ip=model_compare_counter fl=18 cl=7 union=25 cl_triggered=True\n\nexpected artifacts:\n- model_compare_counter/cov/fl_fcov_plan.json\n- model_compare_counter/cov/cl_fcov_plan.json when cycle_model requires CL bins\n- model_compare_counter/cov/fcov_plan.json",
+      "returncode": 0,
+      "stage": "dual-fcov",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "model_compare_counter/verify/equivalence_goals.json",
+        "model_compare_counter/model/functional_model.py",
+        "model_compare_counter/model/decomposition.json",
+        "model_compare_counter/cov/fcov_plan.json"
+      ],
+      "blocker": "",
+      "message": "[ssot-equiv-goals] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py\nmodule: model_compare_counter\nsource: model_compare_counter/yaml/model_compare_counter.ssot.yaml\ngoals: total=34 required=34 blocked=0 module=1/1\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med/model_compare_counter/model/functional_model.py\n[emit_fl_model] decomposition_units=9 fcov_bins=40 passed=True\n- emit_equivalence_goals: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_equivalence_goals.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med\n  stdout:\n[emit_equivalence_goals] wrote model_compare_counter/verify/equivalence_goals.json\n[emit_equivalence_goals] total=34 required=34 blocked=0 unverified=0\n\nexpected artifacts:\n- model_compare_counter/verify/equivalence_goals.json\n- model_compare_counter/model/functional_model.py\n- model_compare_counter/model/decomposition.json\n- model_compare_counter/cov/fcov_plan.json",
+      "returncode": 0,
+      "stage": "equiv-goals",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "model_compare_counter/yaml/model_compare_counter.ssot.yaml",
+        "model_compare_counter/rtl/rtl_contract.json",
+        "model_compare_counter/rtl/rtl_todo_plan.json",
+        "model_compare_counter/rtl/rtl_todo_tracker.json",
+        "model_compare_counter/rtl/rtl_traceability.json",
+        "model_compare_counter/list/model_compare_counter.f",
+        "model_compare_counter/rtl/rtl_compile.json",
+        "model_compare_counter/lint/dut_lint.json",
+        "model_compare_counter/rtl/rtl_blocked.json (only when SSOT decision is required)"
+      ],
+      "blocker": "",
+      "message": "[RTL BLOCKED] rtl-gen waiting for LLM-authored RTL evidence\nmodule: model_compare_counter\ntop: model_compare_counter\nsource: model_compare_counter/yaml/model_compare_counter.ssot.yaml\npreflight: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/ssot_to_rtl.py\ndynamic_todos: model_compare_counter/rtl/rtl_todo_plan.json\n\nruns:\n- derive_rtl_todos: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/derive_rtl_todos.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med\n  stdout:\n[derive_rtl_todos] model_compare_counter: tasks=161 blockers=0 orphans=0 gate=planned\n- rtl_preflight: exit 2\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/ssot_to_rtl.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med\n  stdout:\n[RTL HANDOFF] starter needs LLM-authored RTL for model_compare_counter: rtl/starter_llm_rtl_handoff.json\n- audit_rtl_todos: exit 1\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/derive_rtl_todos.py model_compare_counter --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/_runspaces/model_compare_0521/run_20260521_231808_bounded/gpt53_codex_med --audit-rtl\n  stdout:\n[derive_rtl_todos] model_compare_counter: tasks=161 blockers=0 orphans=0 gate=fail\n\nrtl_dynamic_todos:\n- tasks: 161 required=161\n- ssot_workflow_todos: 3\n- rtl_gate_todos: 17\n- sections: cycle_model, equivalence, error_handling, features, fsm, function_model, integration, io_list, memory, parameters, rtl_flow, rtl_gate\n- gate: fail\n- blockers: 0\n- orphans: 0\n- static_missing: 27\n- open_required_todos: 34\n- all_required_todos_pass: False\n- owner_logic_checked: 1\n- owner_logic_issues: 0\n- top_io_contracts: 8\n- top_io_issues: 0\n- port_connection_issues: 0\n- connection_contract_issues: 0\n- static_missing_details:\n  - RTL-0033: function_model.state_variables.count_q terms=['count', 'count_q']\n  - RTL-0034: function_model.state_variables.wrapped_q terms=['wrapped', 'wrapped_q']\n  - RTL-0035: function_model.state_variables.valid_q terms=['valid', 'valid_q']\n  - RTL-0051: function_model.transactions.FM_CLEAR.output_rules.out_count terms=['count', 'out', 'out_count']\n  - RTL-0052: function_model.transactions.FM_CLEAR.output_rules.out_wrapped terms=['out', 'out_wrapped', 'wrapped']\n  - RTL-0053: function_model.transactions.FM_CLEAR.output_rules.out_valid terms=['out', 'out_valid', 'valid']\n  - RTL-0054: function_model.transactions.FM_CLEAR.state_updates.count_q terms=['count', 'count_q']\n  - RTL-0055: function_model.transactions.FM_CLEAR.state_updates.wrapped_q terms=['wrapped', 'wrapped_q']\n  - RTL-0056: function_model.transactions.FM_CLEAR.state_updates.valid_q terms=['valid', 'valid_q']\n  - RTL-0074: function_model.transactions.FM_UPDATE.output_rules.out_count terms=['count', 'count_q', 'out', 'out_count', 'xFF']\n  - RTL-0076: function_model.transactions.FM_UPDATE.output_rules.out_valid terms=['out', 'out_valid', 'valid']\n  - RTL-0077: function_model.transactions.FM_UPDATE.state_updates.count_q terms=['count', 'count_q', 'xFF']\n- open_required_details:\n  - RTL-0007: quality_gates.rtl_gen.static_rtl_evidence category=rtl_gate.rtl_gen reason=27 static-evidence-required task(s) still lack DUT RTL evidence.\n  - RTL-0017: quality_gates.rtl_gen.dut_compile category=rtl_gate.rtl_gen reason=Missing canonical DUT compile artifact: rtl/rtl_compile.json.\n  - RTL-0018: quality_gates.rtl_gen.dut_lint category=rtl_gate.rtl_gen reason=Missing canonical DUT lint artifact: lint/dut_lint.json.\n  - RTL-0019: quality_gates.rtl_gen.dynamic_todo_closure category=rtl_gate.rtl_gen reason=33 required non-closure TODO(s) remain open.\n  - RTL-0033: function_model.state_variables.count_q category=function_model.state_variable reason=Required RTL static evidence is missing.\n  - RTL-0034: function_model.state_variables.wrapped_q category=function_model.state_variable reason=Required RTL static evidence is missing.\n  - RTL-0035: function_model.state_variables.valid_q category=function_model.state_variable reason=Required RTL static evidence is missing.\n  - RTL-0051: function_model.transactions.FM_CLEAR.output_rules.out_count category=function_model.output_rule reason=Required RTL static evidence is missing.\n  - RTL-0052: function_model.transactions.FM_CLEAR.output_rules.out_wrapped category=function_model.output_rule reason=Required RTL static evidence is missing.\n  - RTL-0053: function_model.transactions.FM_CLEAR.output_rules.out_valid category=function_model.output_rule reason=Required RTL static evidence is missing.\n  - RTL-0054: function_model.transactions.FM_CLEAR.state_updates.count_q category=function_model.state_update reason=Required RTL static evidence is missing.\n  - RTL-0055: function_model.transactions.FM_CLEAR.state_updates.wrapped_q category=function_model.state_update reason=Required RTL static evidence is missing.\n\nrtl_manifest:\n- approved: 2/2\n- filelist: model_compare_counter/list/model_compare_counter.f\n- manifest_mismatches: 0\n- hierarchy_issues: 0\n- quality_issues: 0\n\nartifacts:\n- model_compare_counter/yaml/model_compare_counter.ssot.yaml\n- model_compare_counter/rtl/rtl_contract.json\n- model_compare_counter/rtl/rtl_todo_plan.json\n- model_compare_counter/rtl/rtl_todo_tracker.json\n- model_compare_counter/rtl/rtl_traceability.json\n- model_compare_counter/list/model_compare_counter.f\n- model_compare_counter/rtl/rtl_compile.json\n- model_compare_counter/lint/dut_lint.json\n- model_compare_counter/rtl/rtl_blocked.json (only when SSOT decision is required)\n\nnext: queued rtl-gen repair with compile/lint/SSOT-manifest diagnostics as evidence.",
+      "returncode": 2,
+      "stage": "rtl-gen",
+      "status": "blocked"
+    }
+  ],
+  "status": "blocked"
+}

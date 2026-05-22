@@ -1,0 +1,102 @@
+{
+  "schema_version": "ssot_validation.v2",
+  "ip": "apb_compare",
+  "mode": "engineering",
+  "ssot": "apb_compare/yaml/apb_compare.ssot.yaml",
+  "ok": false,
+  "blockers": [
+    {
+      "severity": "blocker",
+      "id": "ssot.required_section_missing",
+      "path": "cdc_requirements",
+      "message": "Required top-level section 'cdc_requirements' is missing for mode=engineering.",
+      "fix": "Add 'cdc_requirements:' using workflow/ssot-gen/rules/ssot-template.yaml as the field reference."
+    },
+    {
+      "severity": "blocker",
+      "id": "ssot.required_section_missing",
+      "path": "rdc_requirements",
+      "message": "Required top-level section 'rdc_requirements' is missing for mode=engineering.",
+      "fix": "Add 'rdc_requirements:' using workflow/ssot-gen/rules/ssot-template.yaml as the field reference."
+    },
+    {
+      "severity": "blocker",
+      "id": "ssot.required_section_missing",
+      "path": "timing",
+      "message": "Required top-level section 'timing' is missing for mode=engineering.",
+      "fix": "Add 'timing:' using workflow/ssot-gen/rules/ssot-template.yaml as the field reference."
+    },
+    {
+      "severity": "blocker",
+      "id": "ssot.required_section_missing",
+      "path": "coding_rules",
+      "message": "Required top-level section 'coding_rules' is missing for mode=engineering.",
+      "fix": "Add 'coding_rules:' using workflow/ssot-gen/rules/ssot-template.yaml as the field reference."
+    },
+    {
+      "severity": "blocker",
+      "id": "ssot.required_section_missing",
+      "path": "reuse_modules",
+      "message": "Required top-level section 'reuse_modules' is missing for mode=engineering.",
+      "fix": "Add 'reuse_modules:' using workflow/ssot-gen/rules/ssot-template.yaml as the field reference."
+    },
+    {
+      "severity": "blocker",
+      "id": "ssot.required_section_missing",
+      "path": "custom",
+      "message": "Required top-level section 'custom' is missing for mode=engineering.",
+      "fix": "Add 'custom:' using workflow/ssot-gen/rules/ssot-template.yaml as the field reference."
+    },
+    {
+      "severity": "blocker",
+      "id": "ssot.required_section_missing",
+      "path": "dir_structure",
+      "message": "Required top-level section 'dir_structure' is missing for mode=engineering.",
+      "fix": "Add 'dir_structure:' using workflow/ssot-gen/rules/ssot-template.yaml as the field reference."
+    },
+    {
+      "severity": "blocker",
+      "id": "ssot.required_section_missing",
+      "path": "filelist",
+      "message": "Required top-level section 'filelist' is missing for mode=engineering.",
+      "fix": "Add 'filelist:' using workflow/ssot-gen/rules/ssot-template.yaml as the field reference."
+    },
+    {
+      "severity": "blocker",
+      "id": "ssot.required_section_missing",
+      "path": "traceability",
+      "message": "Required top-level section 'traceability' is missing for mode=engineering.",
+      "fix": "Add 'traceability:' using workflow/ssot-gen/rules/ssot-template.yaml as the field reference."
+    },
+    {
+      "severity": "blocker",
+      "id": "ssot.required_section_missing",
+      "path": "generation_flow",
+      "message": "Required top-level section 'generation_flow' is missing for mode=engineering.",
+      "fix": "Add 'generation_flow:' using workflow/ssot-gen/rules/ssot-template.yaml as the field reference."
+    },
+    {
+      "severity": "blocker",
+      "id": "check_ssot_disk.failed",
+      "path": "apb_compare/yaml/apb_compare.ssot.yaml",
+      "message": "check_ssot_disk.sh failed with exit 1.",
+      "fix": "[check_ssot_disk] FAIL: apb_compare/yaml/apb_compare.ssot.yaml only has 24 top-level section keys (need ≥30)"
+    }
+  ],
+  "warnings": [
+    {
+      "severity": "warning",
+      "id": "ssot.canonical_order",
+      "path": "$",
+      "message": "Canonical sections are present but not in the standard order.",
+      "fix": "Run repair_ssot_schema.py <ip> --mode engineering or reorder sections to match ssot-template.yaml."
+    }
+  ],
+  "check_ssot_disk": {
+    "ok": false,
+    "returncode": 1,
+    "stdout": "[check_ssot_disk] FAIL: apb_compare/yaml/apb_compare.ssot.yaml only has 24 top-level section keys (need ≥30)\n",
+    "stderr": ""
+  },
+  "preview_contract": "strict"
+}

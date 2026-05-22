@@ -1,0 +1,1 @@
+Prepare tb-gen for model_compare_counter using model_compare_counter/verify/equivalence_goals.json, model_compare_counter/model/functional_model.py, and model_compare_counter/rtl/rtl_contract.json. Do not duplicate expected behavior by hand; scoreboard must call FunctionalModel.

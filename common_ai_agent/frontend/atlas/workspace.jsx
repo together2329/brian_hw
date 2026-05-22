@@ -1242,12 +1242,22 @@ const SessionSwitcher = ({ currentSession, streaming, onSwitch }) => {
   );
 };
 
-const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
+const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeWorkflow = '' }) => {
   // Two-axis mode model:
   //   intent: 'normal' | 'plan'   (top-level — shift+tab to swap)
   //   workflow: null | 'ssot' | 'rtl_gen' | 'lint' | 'tb_gen'
   const [intent, setIntent] = React.useState('normal');
   const [workflow, setWorkflow] = React.useState(null);
+
+  React.useEffect(() => {
+    const nextWorkflow = String(activeWorkflow || '').trim();
+    const known = (window.FLOW_STAGES || []).some(s => s && s.id === nextWorkflow);
+    if (!nextWorkflow || nextWorkflow === 'default') {
+      setWorkflow(null);
+    } else if (known) {
+      setWorkflow(nextWorkflow);
+    }
+  }, [activeWorkflow]);
 
   // Column widths (drag-resizable, persisted in localStorage).
   // 0 = collapsed; any positive width is clamped to [min, max].
@@ -1558,6 +1568,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
   const [streaming, setStreaming] = React.useState(false);
   const streamingRef = React.useRef(false);
   const streamBufferRef = React.useRef('');
+  const awaitingRunStartRef = React.useRef(false);
+  const backendRunStartedRef = React.useRef(false);
   React.useEffect(() => { streamingRef.current = streaming; }, [streaming]);
   React.useEffect(() => {
     try {
@@ -2008,7 +2020,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
       }
       if (ev.detail === 'SCOPE_PATH') {
         const activeWorkflow = workflowFromSession(window.ACTIVE_SESSION || '');
-        activateSession(window.SCOPE_PATH || '', activeWorkflow || workflow || (window.CONTEXT && window.CONTEXT.workspace) || '');
+        activateSession(window.SCOPE_PATH || '', activeWorkflow || (window.CONTEXT && window.CONTEXT.workspace) || '');
       }
     };
     onData({ detail: 'CONTEXT' });
@@ -2646,6 +2658,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
 
     setFeed(f => [...f, { kind: 'user', text: raw }]);
     setStreaming(true);
+    awaitingRunStartRef.current = true;
+    backendRunStartedRef.current = false;
     setStreamText('');
     // Prepend a scope-restriction directive so the agent is forced to
     // operate inside the user's selected directory. Slash commands
@@ -2728,6 +2742,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
     subs.push(window.backend.subscribe('token', (m) => {
       const t = m.text || '';
       if (!t || t === '\x00') return;
+      awaitingRunStartRef.current = false;
       streamBufferRef.current += t;
       if (!_streamTimer) _streamTimer = setTimeout(_flushStream, STREAM_FLUSH_MS);
     }));
@@ -2755,6 +2770,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
     subs.push(window.backend.subscribe('reasoning', (m) => {
       const t = (m.text || '').trim();
       if (!t) return;
+      awaitingRunStartRef.current = false;
       _reasonBuf.lines.push(t);
       if (!_reasonRaf) _reasonRaf = requestAnimationFrame(_flushReason);
     }));
@@ -2769,6 +2785,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
     subs.push(window.backend.subscribe('tool', (m) => {
       const t = (m.text || '').trim();
       if (!t) return;
+      awaitingRunStartRef.current = false;
       // Detect the per-iteration banner (── Iter N / M  [model]) and
       // route to a thinner iter_marker kind so the feed doesn't break
       // tool action+obs cards with a full-width separator.
@@ -2813,6 +2830,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
     subs.push(window.backend.subscribe('tool_result', (m) => {
       const t = (m.text || '').trim();
       if (!t) return;
+      awaitingRunStartRef.current = false;
       const statusText = t.toLowerCase();
       const failed = /\b(error|traceback|exception|failed|fatal|exit code [1-9])\b/.test(statusText);
       setWorkspaceTelemetry(prev => ({
@@ -2871,6 +2889,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
     const turnEnd = () => {
       parkBuffer();
       setStreaming(false);
+      awaitingRunStartRef.current = false;
+      backendRunStartedRef.current = false;
       // Drop a visible divider in the feed so the user can scroll back
       // and see exactly where each turn ended. Skip if the previous
       // entry is already a turn_end (defensive — flush + done can both
@@ -2921,8 +2941,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '' }) => {
     subs.push(window.backend.subscribe('flush', parkBuffer));
     subs.push(window.backend.subscribe('done', turnEnd));
     subs.push(window.backend.subscribe('agent_state', (m) => {
-      if (m.running === false) turnEnd();
-      else if (m.running === true) setStreaming(true);
+      if (m.running === false) {
+        if (awaitingRunStartRef.current && !backendRunStartedRef.current) return;
+        turnEnd();
+      } else if (m.running === true) {
+        awaitingRunStartRef.current = false;
+        backendRunStartedRef.current = true;
+        setStreaming(true);
+      }
     }));
     subs.push(window.backend.subscribe('error', (m) => {
       setFeed(l => [...l, { kind: 'agent', text: `[error] ${m.message || ''}`, createdAt: Date.now() }]);
@@ -8459,6 +8485,15 @@ const ssotValuePresent = (value) => {
   return !!text && !/^(false|none|n\/a|na|tbd|todo|unknown|placeholder|null|\[\]|\{\})$/i.test(text);
 };
 
+const formatBitRange = (value) => {
+  const text = stripYamlScalar(value);
+  if (!text) return '';
+  const pair = text.match(/^\[?\s*(\d+)\s*(?:,|:|-|\s+)\s*(\d+)\s*\]?$/);
+  if (pair) return pair[1] === pair[2] ? pair[1] : `${pair[1]}:${pair[2]}`;
+  const single = text.match(/^\[?\s*(\d+)\s*\]?$/);
+  return single ? single[1] : text;
+};
+
 const fieldFromText = (text, key, max = 260) => {
   const lines = ssotPreviewLines(text);
   const rx = new RegExp(`^\\s*(?:-\\s*)?${rxEscape(key)}:\\s*(.*)$`);
@@ -8853,10 +8888,10 @@ const extractRegisters = (section) => {
       ...listBlocksFromText(block.text, 'fields'),
       ...mapBlocksFromText(block.text, 'fields'),
     ].map(field => ({
-      bits: blockField(field, 'bits')
+      bits: formatBitRange(blockField(field, 'bits')
         || blockField(field, 'bit')
         || blockField(field, 'range')
-        || blockField(field, 'position'),
+        || blockField(field, 'position')),
       name: blockField(field, 'name') || field?.mapKey || 'field',
       access: blockField(field, 'access'),
       reset: blockField(field, 'reset'),

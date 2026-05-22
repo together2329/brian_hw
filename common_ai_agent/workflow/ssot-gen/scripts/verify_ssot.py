@@ -61,6 +61,15 @@ CANONICAL_ORDER = [
     "generation_flow",
 ]
 
+
+def _resolve_project_root(root_arg: str, ip_root_arg: str, ip: str) -> Path:
+    ip_root_raw = (ip_root_arg or os.environ.get("ATLAS_IP_ROOT") or "").strip()
+    if ip_root_raw:
+        ip_root = Path(ip_root_raw).expanduser().resolve()
+        if not ip or ip_root.name == ip or (ip_root / "yaml").is_dir():
+            return ip_root.parent
+    return Path(root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ".").expanduser().resolve()
+
 REQUIRED_BY_MODE = {
     "starter": ["top_module", "io_list", "function_model"],
     "engineering": [
@@ -416,7 +425,7 @@ def _run_check_ssot(root: Path, ip: str, mode: str) -> dict[str, Any]:
             f"check_ssot_disk.sh expects <root>/<ip>; got root={root}",
         )
     proc = subprocess.run(
-        [bash, str(checker), ip, "--mode", mode],
+        [bash, str(checker), ip, "--root", str(checker_root), "--mode", mode],
         cwd=str(checker_root),
         text=True,
         encoding="utf-8",
@@ -540,7 +549,8 @@ def _render(report: dict[str, Any]) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("ip", nargs="?", default="")
-    ap.add_argument("--root", default=".")
+    ap.add_argument("--root", default=os.environ.get("ATLAS_PROJECT_ROOT") or ".")
+    ap.add_argument("--ip-root", "--ip_root", dest="ip_root", default=os.environ.get("ATLAS_IP_ROOT") or "")
     ap.add_argument(
         "--mode",
         default="",
@@ -557,7 +567,7 @@ def main() -> int:
     ns = ap.parse_args()
 
     ip = (ns.ip or os.environ.get("IP_NAME") or os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
-    root = Path(ns.root or os.environ.get("ATLAS_PROJECT_ROOT") or ".").resolve()
+    root = _resolve_project_root(ns.root, ns.ip_root, ip)
     mode = _normalize_mode(ns.mode or os.environ.get("ATLAS_RUN_MODE") or "engineering")
     ssot = _find_ssot(root, ip) if ip else root / "<missing-ip>" / "yaml" / "<missing-ip>.ssot.yaml"
 

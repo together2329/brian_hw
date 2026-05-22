@@ -8,6 +8,8 @@
 # Inputs (env):
 #   IP_NAME — IP slug (auto-detected from cwd if missing)
 #   ATLAS_RUN_MODE — starter | engineering | signoff
+#   ATLAS_PROJECT_ROOT — parent directory containing <ip> directories
+#   ATLAS_IP_ROOT — optional active IP directory; parent becomes project root
 #   MIN_YAML — minimum bytes for <ip>.ssot.yaml (mode default)
 #   MIN_SECTIONS — minimum top-level section count (mode default)
 #
@@ -17,9 +19,27 @@
 set -u
 
 RUN_MODE="${ATLAS_RUN_MODE:-signoff}"
+PROJECT_ROOT="${ATLAS_PROJECT_ROOT:-}"
+IP_ROOT="${ATLAS_IP_ROOT:-}"
 IP="${IP_NAME:-}"
 while [ $# -gt 0 ]; do
     case "$1" in
+        --root|--project-root)
+            PROJECT_ROOT="${2:-}"
+            shift 2
+            ;;
+        --root=*|--project-root=*)
+            PROJECT_ROOT="${1#*=}"
+            shift
+            ;;
+        --ip-root|--ip_root)
+            IP_ROOT="${2:-}"
+            shift 2
+            ;;
+        --ip-root=*|--ip_root=*)
+            IP_ROOT="${1#*=}"
+            shift
+            ;;
         --mode)
             RUN_MODE="${2:-}"
             shift 2
@@ -49,6 +69,18 @@ case "$RUN_MODE" in
     sign-off) RUN_MODE="signoff" ;;
     *) echo "[check_ssot_disk] FAIL: --mode must be starter, engineering, or signoff"; exit 1 ;;
 esac
+
+if [ -n "$IP_ROOT" ]; then
+    [ -d "$IP_ROOT" ] || { echo "[check_ssot_disk] FAIL: --ip-root not found: $IP_ROOT"; exit 1; }
+    IP_ROOT=$(cd "$IP_ROOT" && pwd -P)
+    [ -n "$IP" ] || IP=$(basename "$IP_ROOT")
+    [ -n "$PROJECT_ROOT" ] || PROJECT_ROOT=$(dirname "$IP_ROOT")
+fi
+if [ -n "$PROJECT_ROOT" ]; then
+    [ -d "$PROJECT_ROOT" ] || { echo "[check_ssot_disk] FAIL: --root not found: $PROJECT_ROOT"; exit 1; }
+    cd "$PROJECT_ROOT" || { echo "[check_ssot_disk] FAIL: cannot cd to root: $PROJECT_ROOT"; exit 1; }
+fi
+
 if [ -z "$IP" ]; then
     IP=$(find . -maxdepth 3 -type f -name "*.ssot.yaml" 2>/dev/null \
          | sort -t/ -k2 | head -1 | awk -F/ '{print $(NF-2)}')

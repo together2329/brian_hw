@@ -1,0 +1,1191 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 21,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/model_compare_counter.sv",
+      "name": "model_compare_counter",
+      "refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/model_compare_counter_core.sv",
+        "name": "model_compare_counter_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/model_compare_counter.sv",
+        "name": "model_compare_counter",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "model_compare_counter",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "model_compare_counter",
+        "port": "rst_n",
+        "signal": "rst_n",
+        "signal_terms": [
+          "rst_n"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "model_compare_counter",
+        "port": "enable",
+        "signal": "enable",
+        "signal_terms": [
+          "enable"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "model_compare_counter",
+        "port": "clear",
+        "signal": "clear",
+        "signal_terms": [],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "model_compare_counter",
+        "port": "step",
+        "signal": "step",
+        "signal_terms": [
+          "step"
+        ],
+        "source_ref": "integration.connections[4]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ctrl_inputs_enable",
+          "enable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "enable",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "clear",
+          "ctrl_inputs_clear"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clear",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "ctrl_inputs_step",
+          "step"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "step",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "count",
+          "status_outputs_count"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "count",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "status_outputs_wrapped",
+          "wrapped"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "wrapped",
+        "source_ref": "io_list.interfaces[1].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "status_outputs_valid",
+          "valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "valid",
+        "source_ref": "io_list.interfaces[1].ports[2]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "model_compare_counter",
+  "kind": "module",
+  "owner_file": "rtl/model_compare_counter.sv",
+  "owner_module": "model_compare_counter",
+  "packet_id": "module__model_compare_counter",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "equivalence.module": 1,
+      "error_handling.recovery": 1,
+      "integration.connections": 5,
+      "integration.dependencies": 2,
+      "parameters.item": 2,
+      "rtl_flow.seed": 1,
+      "rtl_flow.top": 1,
+      "security.assets": 3,
+      "synthesis.constraints": 2,
+      "synthesis.ppa_targets": 3
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 21,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 21,
+    "source_refs": [
+      "top_module",
+      "io_list",
+      "error_handling.recovery.recovery_0",
+      "security.assets.asset_0",
+      "security.assets.asset_1",
+      "security.assets.asset_2",
+      "integration.dependencies.dependencie_0",
+      "integration.dependencies.dependencie_1",
+      "integration.connections.clk",
+      "integration.connections.rst_n",
+      "integration.connections.enable",
+      "integration.connections.clear",
+      "integration.connections.step",
+      "synthesis.constraints.constraint_0",
+      "synthesis.constraints.constraint_1",
+      "synthesis.ppa_targets.area_um2_max",
+      "synthesis.ppa_targets.power_mw_max",
+      "synthesis.ppa_targets.frequency_mhz_min",
+      "sub_modules.model_compare_counter.module_equivalence",
+      "parameters.COUNT_WIDTH",
+      "parameters.STEP_WIDTH"
+    ],
+    "status_counts": {
+      "pass": 21
+    },
+    "task_count": 21
+  },
+  "tasks": [
+    {
+      "category": "rtl_flow.seed",
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "criteria": [
+        "rtl_todo_plan.json was regenerated from the current SSOT",
+        "Every required task in the plan is either implemented, evidenced, or escalated",
+        "No IP-specific fixed template is used as the source of truth",
+        "Traceability keeps source_ref top_module",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via top_module.",
+      "evidence_terms": [],
+      "id": "RTL-0001",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {},
+      "ssot_refs": [
+        "top_module"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_flow.top",
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "criteria": [
+        "Top module name matches SSOT top_module",
+        "Every SSOT top-level port appears with matching direction and width",
+        "Filelist contains all LLM-authored RTL sources and no stale sources",
+        "Traceability keeps source_ref io_list",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via top_module.\nSSOT item context: value=model_compare_counter.",
+      "evidence_terms": [
+        "compare",
+        "model_compare_counter"
+      ],
+      "id": "RTL-0002",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "io_list",
+      "ssot_context": {
+        "value": "model_compare_counter"
+      },
+      "ssot_refs": [
+        "io_list"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "error_handling.recovery",
+      "content": "Implement error/fault item recovery_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref error_handling.recovery.recovery_0",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "This SSOT error_handling.recovery item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: error_handling.recovery.recovery_0.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via top_fallback.\nSSOT item context: value=Apply rst_n low then high to return outputs/state to known zero baseline..",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0136",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "error_handling.recovery.recovery_0",
+      "ssot_context": {
+        "value": "Apply rst_n low then high to return outputs/state to known zero baseline."
+      },
+      "ssot_refs": [
+        "error_handling.recovery.recovery_0"
+      ],
+      "static_evidence": {
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "rst",
+          "rst_n"
+        ],
+        "source_scope": "rtl/model_compare_counter.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item asset_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.asset_0",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_0.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via top_fallback.\nSSOT item context: value=count output integrity.",
+      "evidence_terms": [],
+      "id": "RTL-0137",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.asset_0",
+      "ssot_context": {
+        "value": "count output integrity"
+      },
+      "ssot_refs": [
+        "security.assets.asset_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item asset_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.asset_1",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_1.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via top_fallback.\nSSOT item context: value=clear priority correctness.",
+      "evidence_terms": [],
+      "id": "RTL-0138",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.asset_1",
+      "ssot_context": {
+        "value": "clear priority correctness"
+      },
+      "ssot_refs": [
+        "security.assets.asset_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "security.assets",
+      "content": "Implement security item asset_2",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref security.assets.asset_2",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: security.assets.asset_2.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via top_fallback.\nSSOT item context: value=overflow pulse correctness.",
+      "evidence_terms": [],
+      "id": "RTL-0139",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "security.assets.asset_2",
+      "ssot_context": {
+        "value": "overflow pulse correctness"
+      },
+      "ssot_refs": [
+        "security.assets.asset_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item dependencie_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.dependencie_0",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.dependencie_0.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via integration.\nSSOT item context: value=Single synchronous clock domain source.",
+      "evidence_terms": [],
+      "id": "RTL-0140",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.dependencie_0",
+      "ssot_context": {
+        "value": "Single synchronous clock domain source"
+      },
+      "ssot_refs": [
+        "integration.dependencies.dependencie_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.dependencies",
+      "content": "Implement integration item dependencie_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.dependencies.dependencie_1",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.dependencie_1.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via integration.\nSSOT item context: value=Active-low reset distribution.",
+      "evidence_terms": [],
+      "id": "RTL-0141",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.dependencies.dependencie_1",
+      "ssot_context": {
+        "value": "Active-low reset distribution"
+      },
+      "ssot_refs": [
+        "integration.dependencies.dependencie_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item clk",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.clk",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv",
+        "DUT port clk is the implementation/observation point for clk"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.clk.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via integration.\nSSOT item context: port=clk; signal=clk.",
+      "evidence_terms": [
+        "clk"
+      ],
+      "id": "RTL-0142",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.clk",
+      "ssot_context": {
+        "port": "clk",
+        "signal": "clk"
+      },
+      "ssot_refs": [
+        "integration.connections.clk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item rst_n",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.rst_n",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv",
+        "DUT port rst_n is the implementation/observation point for rst_n"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.rst_n.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via integration.\nSSOT item context: port=rst_n; signal=rst_n.",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0143",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.rst_n",
+      "ssot_context": {
+        "port": "rst_n",
+        "signal": "rst_n"
+      },
+      "ssot_refs": [
+        "integration.connections.rst_n"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item enable",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.enable",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv",
+        "DUT port enable is the implementation/observation point for enable"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.enable.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via integration.\nSSOT item context: port=enable; signal=enable.",
+      "evidence_terms": [
+        "enable"
+      ],
+      "id": "RTL-0144",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.enable",
+      "ssot_context": {
+        "port": "enable",
+        "signal": "enable"
+      },
+      "ssot_refs": [
+        "integration.connections.enable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item clear",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.clear",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv",
+        "DUT port clear is the implementation/observation point for clear"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.clear.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via integration.\nSSOT item context: port=clear; signal=clear.",
+      "evidence_terms": [],
+      "id": "RTL-0145",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.clear",
+      "ssot_context": {
+        "port": "clear",
+        "signal": "clear"
+      },
+      "ssot_refs": [
+        "integration.connections.clear"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item step",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.step",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv",
+        "DUT port step is the implementation/observation point for step"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.step.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via integration.\nSSOT item context: port=step; signal=step.",
+      "evidence_terms": [
+        "step"
+      ],
+      "id": "RTL-0146",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.step",
+      "ssot_context": {
+        "port": "step",
+        "signal": "step"
+      },
+      "ssot_refs": [
+        "integration.connections.step"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_0",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_0.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via top_fallback.\nSSOT item context: value=Constrain clk to 100 MHz target.",
+      "evidence_terms": [],
+      "id": "RTL-0147",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_0",
+      "ssot_context": {
+        "value": "Constrain clk to 100 MHz target"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_1",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_1.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via top_fallback.\nSSOT item context: value=Constrain rst_n as asynchronous reset input.",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0148",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_1",
+      "ssot_context": {
+        "value": "Constrain rst_n as asynchronous reset input"
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item area_um2_max",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.area_um2_max",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.area_um2_max.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via top_fallback.\nSSOT item context: name=area_um2_max.",
+      "evidence_terms": [],
+      "id": "RTL-0149",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.area_um2_max",
+      "ssot_context": {
+        "name": "area_um2_max"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.area_um2_max"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item power_mw_max",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.power_mw_max",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.power_mw_max.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via top_fallback.\nSSOT item context: name=power_mw_max.",
+      "evidence_terms": [],
+      "id": "RTL-0150",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.power_mw_max",
+      "ssot_context": {
+        "name": "power_mw_max"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.power_mw_max"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item frequency_mhz_min",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.frequency_mhz_min",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.frequency_mhz_min.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via top_fallback.\nSSOT item context: name=frequency_mhz_min; value=100.",
+      "evidence_terms": [],
+      "id": "RTL-0151",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.frequency_mhz_min",
+      "ssot_context": {
+        "name": "frequency_mhz_min",
+        "value": "100"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.frequency_mhz_min"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module model_compare_counter is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.model_compare_counter.module_equivalence",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.model_compare_counter.module_equivalence.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0153",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.model_compare_counter.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.model_compare_counter.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter COUNT_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.COUNT_WIDTH",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.COUNT_WIDTH.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via top_fallback.\nSSOT item context: name=COUNT_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0023",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.COUNT_WIDTH",
+      "ssot_context": {
+        "name": "COUNT_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.COUNT_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "parameters.item",
+      "content": "Implement parameter STEP_WIDTH",
+      "criteria": [
+        "Parameter default/value matches SSOT",
+        "Parameter-derived widths are implemented outside procedural part-selects",
+        "Compile/lint evidence covers the parameterized form",
+        "Traceability keeps source_ref parameters.STEP_WIDTH",
+        "Primary implementation evidence is in rtl/model_compare_counter.sv"
+      ],
+      "detail": "Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.\nSSOT ref: parameters.STEP_WIDTH.\nOwner: model_compare_counter in rtl/model_compare_counter.sv via top_fallback.\nSSOT item context: name=STEP_WIDTH.",
+      "evidence_terms": [],
+      "id": "RTL-0024",
+      "owner_file": "rtl/model_compare_counter.sv",
+      "owner_module": "model_compare_counter",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "parameters.STEP_WIDTH",
+      "ssot_context": {
+        "name": "STEP_WIDTH"
+      },
+      "ssot_refs": [
+        "parameters.STEP_WIDTH"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "7b4231553a245d5e6bf56f3adc24d2b390c4fc3a6b61990ebc0327f541ddce0d",
+  "top": "model_compare_counter",
+  "type": "rtl_authoring_packet"
+}

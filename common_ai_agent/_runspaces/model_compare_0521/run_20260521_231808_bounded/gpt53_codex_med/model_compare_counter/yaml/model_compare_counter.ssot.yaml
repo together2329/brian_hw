@@ -1,0 +1,1109 @@
+top_module:
+  name: model_compare_counter
+  file: rtl/model_compare_counter.sv
+  version: '1.0'
+  type: peripheral
+  description: 8-bit enabled up-counter with clear priority, overflow pulse, and valid pulse.
+  reference_spec: model_compare_counter/req/model_compare_counter_requirements.md
+  target:
+    technology: generic
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+sub_modules:
+- name: model_compare_counter_core
+  file: rtl/model_compare_counter_core.sv
+  ownership: manifest
+  ssot_gen: false
+  implements:
+  - function_model.transactions
+  - function_model.state_variables
+  - cycle_model.pipeline
+  - cycle_model.ordering
+  - io_list.interfaces
+  - io_list.clock_domains
+  - io_list.resets
+  - fsm.control
+  source_sections:
+  - function_model
+  - cycle_model
+  - io_list
+  - fsm
+  - features
+  - dataflow
+  - decomposition
+  - test_requirements
+  function_model_refs:
+  - function_model.transactions
+  - function_model.state_variables
+  - function_model.transactions.FM_CLEAR
+  - function_model.transactions.FM_UPDATE
+  - function_model.transactions.FM_IDLE
+  cycle_model_refs:
+  - cycle_model.pipeline
+  - cycle_model.ordering
+  - cycle_model.handshake_rules
+  - cycle_model
+  fsm_refs:
+  - fsm.control
+  - fsm
+  description: Sequential state update and output pulse generation logic.
+  feature_refs:
+  - features
+  dataflow_refs:
+  - dataflow
+  decomposition_refs:
+  - decomposition
+  test_refs:
+  - test_requirements
+- name: model_compare_counter
+  file: rtl/model_compare_counter.sv
+  ownership: manifest
+  ssot_gen: true
+  wiring_only: true
+  description: Top-level integration module matching SSOT top_module
+  implements:
+  - top_module
+  - integration
+  source_sections: &id001
+  - top_module
+  - io_list
+  - decomposition
+  - integration
+  decomposition_refs:
+  - decomposition
+  dataflow_refs:
+  - dataflow
+decomposition:
+  strategy: manifest_owned_leaf_decomposition
+  owners:
+  - module: model_compare_counter_core
+    file: rtl/model_compare_counter_core.sv
+    responsibility: Sequential state update and output pulse generation logic.
+    source_sections:
+    - function_model
+    - cycle_model
+    - io_list
+    - fsm
+  - module: model_compare_counter
+    file: rtl/model_compare_counter.sv
+    responsibility: Top-level integration module matching SSOT top_module
+    source_sections: *id001
+  integration_policy: Top-level wiring must be backed by integration.connections or sub_modules[].connections before signoff.
+  source_refs:
+  - sub_modules
+  - function_model
+  - cycle_model
+  - integration
+rtl_contract:
+  top_name: model_compare_counter
+  reset_behavior:
+    asynchronous_assertion: true
+    synchronous_release: true
+    reset_values:
+      count: 0
+      wrapped: 0
+      valid: 0
+  protocols:
+  - No external bus protocol; direct sampled control inputs.
+  implementation_rules:
+  - clear must have higher priority than enable in sequential next-state logic.
+  - count update is modulo 256 (truncate to COUNT_WIDTH).
+  - wrapped and valid are one-cycle pulses and deassert in idle cycles.
+  owner: ssot-gen
+  type: ssot_derived_rule_contract
+  transaction: FM_CLEAR
+  clock: clk
+  reset: rst_n
+  reset_active: low
+  sample_condition: enable
+  input_map:
+    enable: enable
+    clear: clear
+    step: step
+  output_map:
+    count: count
+    wrapped: wrapped
+    valid: valid
+  contract_invariants:
+  - RTL-visible behavior implements the referenced function_model transaction.
+  - Input sampling and output observation follow cycle_model handshake and latency rules.
+  output_rules:
+  - name: out_count
+    port: count
+    expr: '0'
+    width: 8
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: out_wrapped
+    port: wrapped
+    expr: '0'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: out_valid
+    port: valid
+    expr: '0'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+parameters:
+- name: COUNT_WIDTH
+  default: 8
+  type: int
+  description: Width of count output register.
+  drives:
+  - rtl/model_compare_counter.sv
+  - rtl/model_compare_counter_core.sv
+- name: STEP_WIDTH
+  default: 4
+  type: int
+  description: Width of step input.
+  drives:
+  - rtl/model_compare_counter.sv
+  - rtl/model_compare_counter_core.sv
+io_list:
+  clock_domains:
+  - name: clk
+    frequency_mhz: 100
+    description: Main synchronous clock.
+    ports:
+    - name: clk
+      width: 1
+      direction: input
+      description: Rising-edge sampling clock
+  resets:
+  - name: rst_n
+    polarity: active_low
+    sync_async: async_assert_sync_deassert
+    description: Active-low reset for all architectural state.
+    ports:
+    - name: rst_n
+      width: 1
+      direction: input
+      description: Active-low reset
+  interfaces:
+  - name: ctrl_inputs
+    type: custom
+    role: sink
+    description: Control and increment inputs.
+    ports:
+    - name: enable
+      width: 1
+      direction: input
+      description: Accept update when high and clear low
+    - name: clear
+      width: 1
+      direction: input
+      description: Synchronous clear request with priority over enable
+    - name: step
+      width: 4
+      direction: input
+      description: Increment magnitude for enabled update
+    clock_domain: clk
+    reset_domain: rst_n
+    protocol:
+      acceptance: Transfer acceptance follows the declared valid/ready or protocol phase rule.
+      stability: Payload/control fields remain stable until accepted.
+      response: Observable response timing follows cycle_model latency and ordering.
+  - name: status_outputs
+    type: custom
+    role: source
+    description: Counter state and pulse outputs.
+    ports:
+    - name: count
+      width: 8
+      direction: output
+      description: Registered modulo-256 counter value
+    - name: wrapped
+      width: 1
+      direction: output
+      description: One-cycle pulse on overflow of enabled addition
+    - name: valid
+      width: 1
+      direction: output
+      description: One-cycle pulse when enabled update is accepted
+    clock_domain: clk
+    reset_domain: rst_n
+    protocol:
+      acceptance: Transfer acceptance follows the declared valid/ready or protocol phase rule.
+      stability: Payload/control fields remain stable until accepted.
+      response: Observable response timing follows cycle_model latency and ordering.
+features:
+- name: Clear-priority synchronous control
+  trigger: clear sampled high at rising edge
+  datapath: Force counter and pulse outputs to zero
+  control: Clear branch precedes enable branch
+  output: count=0, wrapped=0, valid=0
+- name: Enabled modulo increment
+  trigger: enable high while clear low
+  datapath: Add zero-extended step to 8-bit count and truncate to 8 bits
+  control: Update branch after clear check
+  output: count updates modulo 256, valid pulse asserted
+- name: Overflow notification pulse
+  trigger: enabled increment where count + step >= 256
+  datapath: Carry-out detect from 9-bit addition
+  control: Only in enabled update branch
+  output: wrapped pulse for one cycle
+dataflow:
+  read_path:
+    source: Inputs enable/clear/step sampled at clk edge
+    burst: single sample per cycle
+    buffer: n/a
+    sequence: sample inputs -> evaluate priority -> compute next state
+  write_path:
+    source: next_count and next pulse flags
+    burst: single register update per cycle
+    destination: count/wrapped/valid output registers
+    sequence: compute next values -> commit on rising edge
+  loop_control:
+    counter: count register
+    decrement: n/a
+    auto_increment: count increments by step when enabled and not cleared
+function_model:
+  purpose: Behavioral oracle for counter updates, overflow pulse semantics, and idle hold behavior.
+  state_variables:
+  - name: count_q
+    reset: 0
+    width: 8
+    description: Architectural counter state
+  - name: wrapped_q
+    reset: 0
+    width: 1
+    description: One-cycle overflow indication output register
+  - name: valid_q
+    reset: 0
+    width: 1
+    description: One-cycle accepted-update indication output register
+  transactions:
+  - id: FM_CLEAR
+    name: clear_priority_reset
+    preconditions:
+    - clear == 1
+    inputs:
+    - clear
+    - enable
+    - step
+    - count_q
+    outputs:
+    - count == 0
+    - wrapped == 0
+    - valid == 0
+    - name: out_count
+      port: count
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: out_wrapped
+      port: wrapped
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: out_valid
+      port: valid
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: count_q
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: wrapped_q
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: valid_q
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    output_rules:
+    - name: out_count
+      port: count
+      width: 8
+      expr: '0'
+    - name: out_wrapped
+      port: wrapped
+      width: 1
+      expr: '0'
+    - name: out_valid
+      port: valid
+      width: 1
+      expr: '0'
+    state_updates:
+    - name: count_q
+      width: 8
+      expr: '0'
+    - name: wrapped_q
+      width: 1
+      expr: '0'
+    - name: valid_q
+      width: 1
+      expr: '0'
+    side_effects:
+    - Clear overrides enable and forces all outputs/state low on next observed state.
+    error_cases: []
+  - id: FM_UPDATE
+    name: enabled_increment
+    preconditions:
+    - clear == 0
+    - enable == 1
+    inputs:
+    - clear
+    - enable
+    - step
+    - count_q
+    outputs:
+    - count == ((count_q + step) & 0xFF)
+    - wrapped == 1 when (count_q + step) > 255 else 0
+    - valid == 1
+    - name: out_count
+      port: count
+      expr: (count_q + step) & 0xFF
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: out_wrapped
+      port: wrapped
+      expr: 1 if ((count_q + step) > 255) else 0
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: out_valid
+      port: valid
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: count_q
+      expr: (count_q + step) & 0xFF
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: wrapped_q
+      expr: 1 if ((count_q + step) > 255) else 0
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: valid_q
+      expr: '1'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    output_rules:
+    - name: out_count
+      port: count
+      width: 8
+      expr: (count_q + step) & 0xFF
+    - name: out_wrapped
+      port: wrapped
+      width: 1
+      expr: 1 if ((count_q + step) > 255) else 0
+    - name: out_valid
+      port: valid
+      width: 1
+      expr: '1'
+    state_updates:
+    - name: count_q
+      width: 8
+      expr: (count_q + step) & 0xFF
+    - name: wrapped_q
+      width: 1
+      expr: 1 if ((count_q + step) > 255) else 0
+    - name: valid_q
+      width: 1
+      expr: '1'
+    side_effects:
+    - Accepted enabled update advances count modulo 256 and emits valid pulse.
+    - wrapped pulse is asserted only for overflowing additions.
+    error_cases: []
+  - id: FM_IDLE
+    name: idle_hold
+    preconditions:
+    - transaction is accepted under cycle_model rules
+    inputs:
+    - clear
+    - enable
+    - step
+    - count_q
+    outputs:
+    - count == count_q
+    - wrapped == 0
+    - valid == 0
+    - name: out_count
+      port: count
+      expr: count_q
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: out_wrapped
+      port: wrapped
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: out_valid
+      port: valid
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: count_q
+      expr: count_q
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: wrapped_q
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: valid_q
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    output_rules:
+    - name: out_count
+      port: count
+      width: 8
+      expr: count_q
+    - name: out_wrapped
+      port: wrapped
+      width: 1
+      expr: '0'
+    - name: out_valid
+      port: valid
+      width: 1
+      expr: '0'
+    state_updates:
+    - name: count_q
+      width: 8
+      expr: count_q
+    - name: wrapped_q
+      width: 1
+      expr: '0'
+    - name: valid_q
+      width: 1
+      expr: '0'
+    side_effects:
+    - Counter holds during idle cycles while pulse outputs deassert.
+    error_cases: []
+  invariants:
+  - clear==1 implies next count_q, wrapped_q, valid_q are all zero regardless of enable.
+  - valid_q may only be 1 in cycles where clear==0 and enable==1.
+  - wrapped_q may only be 1 in cycles where clear==0 and enable==1 and (count_prev + step) > 255.
+cycle_model:
+  purpose: Single-cycle sampled-input to post-edge-state visibility contract.
+  executable: pymtl3
+  backend_policy: Use FunctionalModel transaction stepping for expected behavior and lockstep cycle comparison.
+  cosim: true
+  state_accumulating: true
+  use_per_cycle_expected: true
+  clock: clk
+  reset:
+    assertion: rst_n low asynchronously clears count/wrapped/valid state to zero
+    deassertion: state is valid on first rising edge after rst_n is high
+  latency:
+    update_latency:
+      min_cycles: 1
+      max_cycles: 1
+      description: Input sampled at edge N
+      updated outputs visible after edge N: null
+  handshake_rules:
+  - signal: clk
+    rule: Inputs enable/clear/step are sampled only on rising edge of clk.
+  - signal: clear_enable_priority
+    rule: If clear and enable are both high at a sampled edge, clear branch wins and no increment occurs.
+  - signal: backpressure
+    rule: No ready/valid backpressure; every cycle can accept control inputs.
+  pipeline:
+  - stage: SAMPLE
+    cycle: 0
+    action: Sample clear, enable, step, and current count state
+    output_rules:
+    - name: sample_enable
+      port: valid
+      width: 1
+      expr: '0'
+  - stage: COMMIT
+    cycle: 1
+    action: Commit clear/update/idle state and pulse outputs
+    output_rules:
+    - name: count_commit
+      port: count
+      width: 8
+      expr: 0 if clear == 1 else (((count_q + step) & 0xFF) if enable == 1 else count_q)
+    - name: wrapped_commit
+      port: wrapped
+      width: 1
+      expr: 0 if clear == 1 else ((1 if ((count_q + step) > 255) else 0) if enable == 1 else 0)
+    - name: valid_commit
+      port: valid
+      width: 1
+      expr: 0 if clear == 1 else (1 if enable == 1 else 0)
+  ordering:
+  - 'Reset dominance: active reset forces zeros before functional branch evaluation.'
+  - Within functional operation, clear branch is evaluated before enable branch each sampled cycle.
+  - Pulse outputs wrapped/valid correspond to same update cycle as count commit.
+  backpressure:
+  - Not applicable; no downstream handshake channels to stall updates.
+  observability:
+  - Each function_model transaction maps to COMMIT stage output expectations.
+  performance:
+    frequency_mhz: 100
+    throughput:
+      sustained_beats_per_cycle: 1
+      condition: No backpressure on the active interface
+    outstanding:
+      max: 1
+      description: Default one accepted operation until the SSOT declares deeper buffering
+    depth:
+      pipeline_stages: 3
+      queue_depth: 1
+      description: Default accept/evaluate/observe cycle model depth
+clock_reset_domains:
+  domains:
+  - name: clk
+    frequency_mhz: 100
+    description: Sole synchronous domain
+  reset_scheme:
+    signal: rst_n
+    polarity: active_low
+    type: async_assert_sync_deassert
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: Single clock domain; no CDC paths.
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: Single reset domain; no RDC paths.
+registers:
+  config:
+    register_width: 32
+    addr_width: 0
+    byte_addressable: false
+  no_registers_policy:
+    reason: This IP is direct-wire controlled and does not expose CSR/register programming interface.
+    software_visible: false
+  register_list: []
+  no_registers: true
+  policy: No firmware-visible registers are declared; add register_list before CSR behavior is implemented.
+memory:
+  instances:
+  - name: count_state_ff
+    type: register
+    depth: 1
+    width: 8
+    read_ports: 1
+    write_ports: 1
+    latency: 0
+    description: Counter state storage
+  - name: wrapped_state_ff
+    type: register
+    depth: 1
+    width: 1
+    read_ports: 1
+    write_ports: 1
+    latency: 0
+    description: Wrapped pulse storage
+  - name: valid_state_ff
+    type: register
+    depth: 1
+    width: 1
+    read_ports: 1
+    write_ports: 1
+    latency: 0
+    description: Valid pulse storage
+interrupts:
+  sources: []
+  output:
+    signal: none
+    polarity: active_high
+    type: none
+fsm:
+  control:
+    states:
+    - RESET
+    - CLEAR
+    - UPDATE
+    - IDLE
+    transitions:
+    - from: RESET
+      to: IDLE
+      condition: rst_n == 1
+    - from: IDLE
+      to: CLEAR
+      condition: clear == 1
+    - from: IDLE
+      to: UPDATE
+      condition: clear == 0 and enable == 1
+    - from: IDLE
+      to: IDLE
+      condition: clear == 0 and enable == 0
+    - from: UPDATE
+      to: IDLE
+      condition: next cycle
+    - from: CLEAR
+      to: IDLE
+      condition: next cycle
+timing:
+  target_clocks:
+  - name: clk
+    period_ns: 10.0
+    uncertainty_ns: 0.2
+  latency_budget:
+  - path: enable/clear/step -> count/wrapped/valid
+    min_cycles: 1
+    max_cycles: 1
+    requirement: single-cycle accept/update/observe
+  throughput:
+  - item: updates
+    value: 1 update per cycle when enable=1 and clear=0
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports:
+    - sta/out/timing.rpt
+    - sta/out/wns.json
+power:
+  domains:
+  - name: PD_MAIN
+    description: Always-on logic domain for this simple block
+  power_states:
+  - name: true
+    domain: PD_MAIN
+    condition: clk toggling and rst_n may be asserted/deasserted
+    retention: false
+  clock_gating:
+  - Optional inferred enable-based data gating allowed; no explicit clock gate required.
+  upf_required: false
+security:
+  classification: non-cryptographic control primitive
+  assets:
+  - count output integrity
+  - clear priority correctness
+  - overflow pulse correctness
+  threat_model:
+  - threat: control input glitching near clock edge
+    mitigation: synchronous sampling contract and setup/hold assumptions
+  - threat: state corruption via reset misuse
+    mitigation: defined reset behavior and verification of reset recovery
+  assumptions:
+  - Inputs are driven from trusted logic within same clock domain.
+  privilege_model: System-level access control is owned by the integrating bus/firewall unless explicitly declared here.
+error_handling:
+  error_sources:
+  - id: illegal_xz_inputs
+    condition: Simulation-only X/Z on control inputs
+    architectural_effect: Status/error reporting follows the SSOT error policy
+  propagation:
+  - No dedicated error output; errors are detected in verification checks and lint/formal assertions.
+  recovery:
+  - Apply rst_n low then high to return outputs/state to known zero baseline.
+debug_observability:
+  waveform_must_probe:
+  - clk
+  - rst_n
+  - clear
+  - enable
+  - step
+  - count
+  - wrapped
+  - valid
+  trace_events:
+  - name: EVT_CLEAR
+    trigger: clear==1 sampled
+    observables:
+    - count
+    - wrapped
+    - valid
+  - name: EVT_UPDATE
+    trigger: clear==0 and enable==1 sampled
+    observables:
+    - count
+    - wrapped
+    - valid
+    - step
+  - name: EVT_IDLE
+    trigger: clear==0 and enable==0 sampled
+    observables:
+    - count
+    - wrapped
+    - valid
+  status_outputs:
+  - status/debug signals declared in io_list or registers
+integration:
+  bus_attachment:
+    type: none
+    description: Direct signal-level integration; no APB/AXI wrapper required.
+  dependencies:
+  - Single synchronous clock domain source
+  - Active-low reset distribution
+  connections:
+  - module: model_compare_counter
+    port: clk
+    signal: clk
+  - module: model_compare_counter
+    port: rst_n
+    signal: rst_n
+  - module: model_compare_counter
+    port: enable
+    signal: enable
+  - module: model_compare_counter
+    port: clear
+    signal: clear
+  - module: model_compare_counter
+    port: step
+    signal: step
+  connection_contract_status: missing machine-readable module wiring; child RTL drafts may proceed from owner packets, but top integration/signoff must stay blocked until SSOT authors integration.connections or sub_modules[].connections with module/port/signal records
+  integration_notes:
+  - Integrator must connect every declared io_list port and honor timing/reset assumptions.
+dft:
+  scan_required: false
+  controllability:
+  - All state is controllable via rst_n, enable, clear, step under clocked operation.
+  observability:
+  - All state is directly observable via count, wrapped, valid outputs.
+  mbist_required: true
+synthesis:
+  dialect: systemverilog_2012
+  constraints:
+  - Constrain clk to 100 MHz target
+  - Constrain rst_n as asynchronous reset input
+  required_outputs:
+  - netlist
+  - area_report
+  - timing_report
+  - lint_report
+  top_module: model_compare_counter
+  tool_flow: yosys
+  target_technology: sky130_fd_sc_hd
+  target_library: sky130_fd_sc_hd
+  liberty_env_var: SKY130_LIB
+  corner:
+    name: sky130_fd_sc_hd__ss_100C_1v40
+    process: ss
+    temperature_c: 100
+    voltage_v: 1.4
+  library_policy: Use the SKY130_LIB environment variable to locate the SS corner Liberty file for the declared sky130_fd_sc_hd target library; synthesis and STA must stop if the file is unreadable or does not match the declared corner.
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 100
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: met3
+    vertical: met2
+  cts_buf_list:
+  - sky130_fd_sc_hd__clkbuf_4
+  - sky130_fd_sc_hd__clkbuf_8
+  routing:
+    signal_layers:
+      min: met1
+      max: met5
+    drc_waivers: []
+coding_rules:
+  verilog_style: systemverilog_2012
+  file_extension: .sv
+  conventions:
+  - Use nonblocking assignments in sequential always blocks.
+  - No inferred latches.
+  - Single always_ff-style sequential process for state updates.
+  - Clear branch must be coded ahead of enable branch in priority chain.
+  lint_waivers: []
+reuse_modules: []
+custom:
+  assumptions:
+  - step is interpreted as unsigned 4-bit value in range 0..15.
+  notes:
+  - No protocol backpressure or multicycle command tracking is required.
+  optional_behavior_policy:
+    resolution: non_required_optional_items_disabled_unless_ssot_marks_required_or_parameterized
+    owner: ssot-gen deterministic repair
+    rule: Rows marked required:false or prose-only optional verification aids do not add RTL behavior. Any optional functional behavior must be converted by ssot-gen into required behavior or an explicit parameter/register policy before rtl-gen signoff.
+dir_structure:
+  yaml_dir: yaml/
+  output_dirs:
+    rtl: rtl/
+    tb: tb/
+    tc: tc/
+    sim: sim/
+    lint: lint/
+    list: list/
+filelist:
+  headers: []
+  rtl:
+  - rtl/model_compare_counter.sv
+  - rtl/model_compare_counter_core.sv
+  sim:
+  - sim/tb_model_compare_counter.py
+  firmware: []
+  docs:
+  - doc/model_compare_counter_mas.md
+  tb:
+  - tb/cocotb/test_model_compare_counter.py
+  - tb/cocotb/test_runner.py
+  - tb/cocotb/scoreboard.py
+  coverage:
+  - cov/coverage.json
+test_requirements:
+  scenarios:
+  - id: SC01
+    name: reset contract
+    stimulus: Assert and release the declared reset while all external interfaces remain idle.
+    expected: Architectural state, status, outputs, and debug observability match function_model reset outputs.
+    checker: Reset checker compares all declared reset-visible state against function_model and cycle_model reset rules.
+    coverage:
+    - function_model.reset
+    - cycle_model.reset
+  - id: SC02
+    name: primary approved behavior
+    stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.
+    expected: Externally observable result/status/side effects match the function_model primary transaction.
+    checker: FL-vs-RTL scoreboard compares observable outputs and state updates from the locked function_model.
+    coverage:
+    - function_model.primary
+    - features
+    - dataflow
+  - id: SC03
+    name: cycle handshake and backpressure
+    stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.
+    expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.
+    checker: Protocol monitor and scoreboard check cycle_model.handshake_rules, ordering, and latency budget.
+    coverage:
+    - cycle_model.handshake_rules
+    - cycle_model.ordering
+    - backpressure
+  - id: SC04
+    name: error and recovery policy
+    stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.
+    expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.
+    checker: Negative checker compares error result and recovery state against function_model error_cases.
+    coverage:
+    - error_handling.error_sources
+    - function_model.error_cases
+  - id: SC05
+    name: debug and trace observability
+    stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.
+    expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.
+    checker: Waveform/trace checker validates debug_observability entries and traceability.yaml_to_output rows.
+    coverage:
+    - debug_observability
+    - traceability
+  - id: SC06
+    name: function_model transaction FM_CLEAR
+    stimulus: Drive preconditions for function_model transaction `FM_CLEAR`.
+    expected: Outputs and side effects match `FM_CLEAR` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_CLEAR
+  - id: SC07
+    name: function_model transaction FM_UPDATE
+    stimulus: Drive preconditions for function_model transaction `FM_UPDATE`.
+    expected: Outputs and side effects match `FM_UPDATE` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_UPDATE
+  - id: SC08
+    name: function_model transaction FM_IDLE
+    stimulus: Drive preconditions for function_model transaction `FM_IDLE`.
+    expected: Outputs and side effects match `FM_IDLE` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_IDLE
+  scoreboard_checks: 12
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+      bins:
+      - id: FCOV_CLEAR_PRIORITY
+        source_ref: function_model.transactions.FM_CLEAR
+        class: transaction
+        description: Clear transaction taken when clear=1
+      - id: FCOV_UPDATE_NO_OVERFLOW
+        source_ref: function_model.transactions.FM_UPDATE
+        class: arithmetic
+        description: Enabled increment with no overflow
+      - id: FCOV_UPDATE_OVERFLOW
+        source_ref: function_model.transactions.FM_UPDATE
+        class: arithmetic
+        description: Enabled increment with overflow wrap
+      - id: FCOV_IDLE_HOLD
+        source_ref: function_model.transactions.FM_IDLE
+        class: transaction
+        description: Idle hold transaction executed
+      description: Behavioral coverage from function_model.
+    cycle:
+      target_pct: 100
+      model: cycle_model
+      bins:
+      - id: CCOV_CLEAR_WINS
+        source_ref: cycle_model.handshake_rules.clear_enable_priority
+        class: ordering
+        description: Clear branch selected over enable
+      - id: CCOV_WRAP_PULSE
+        source_ref: cycle_model.pipeline.COMMIT
+        class: pulse
+        description: Wrapped pulse asserted on overflow cycle
+      - id: CCOV_IDLE_DEASSERT
+        source_ref: cycle_model.pipeline.COMMIT
+        class: pulse
+        description: wrapped/valid deasserted during idle
+      - id: CCOV_CONSECUTIVE_UPDATES
+        source_ref: cycle_model.pipeline.COMMIT
+        class: sequence
+        description: Multi-cycle consecutive updates
+      description: Cycle/performance coverage from cycle_model.
+    code: line >= 95%, branch >= 95%
+    scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence
+quality_gates:
+  ssot:
+    pass: SSOT passes engineering schema and disk checks with mandatory function/cycle/test sections populated.
+    evidence:
+    - req/ssot_validation.json
+    - req/ssot_downstream_blockers.json
+  rtl:
+    pass: RTL compiles and lints clean with no warnings; behavior matches SSOT function/cycle contracts.
+    evidence:
+    - lint/lint_report.txt
+    - sim/fl_rtl_goal_audit.json
+  rtl_gen:
+    profile: standard
+    pass: RTL TODO ledger implemented with provenance for model_compare_counter_core behavior.
+    evidence:
+    - rtl/rtl_todo_plan.json
+    - rtl/rtl_authoring_provenance.json
+  dv:
+    pass: cocotb/pyuvm scenarios execute and scoreboard passes all required checks.
+    evidence:
+    - sim/sim_results.xml
+    - sim/scoreboard_report.json
+  coverage:
+    pass: Function and cycle coverage bins for all required scenarios reach target or approved waiver.
+    evidence:
+    - cov/coverage.json
+    - sim/coverage_report.md
+  eda:
+    pass: Synthesis meets 100MHz target and emits required reports.
+    evidence:
+    - syn/syn_report.txt
+    - syn/timing_report.txt
+    - syn/area_report.txt
+  signoff:
+    pass: Final goal audit shows all required SSOT->RTL->TB->SIM goals closed.
+    evidence:
+    - sim/final_goal_audit.json
+traceability:
+  yaml_to_output:
+  - yaml: top_module
+    output: rtl/model_compare_counter.sv
+  - yaml: io_list.interfaces
+    output: rtl/model_compare_counter.sv port list
+  - yaml: function_model.transactions
+    output: sim scoreboard expected model and rtl sequential logic
+  - yaml: cycle_model.pipeline
+    output: cycle-accurate checks in cocotb/pyuvm
+  - yaml: test_requirements.scenarios
+    output: sim test sequences
+  - yaml: quality_gates
+    output: lint/sim/coverage/syn signoff evidence collection
+  - yaml: function_model
+    output: RTL behavior and TB reference model
+  - yaml: cycle_model
+    output: RTL handshake/pipeline timing and waveform checks
+  - yaml: function_model/cycle_model/test_requirements
+    output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
+  - yaml: timing
+    output: STA constraints and latency pass/fail criteria
+  - yaml: security
+    output: Threat mitigations and negative tests
+  - yaml: error_handling
+    output: Fault RTL paths and DV error scenarios
+  - yaml: debug_observability
+    output: VCD probes and sim_debug inspection
+workflow_todos:
+  fl-model-gen:
+  - id: FL_TODO_MODEL_COUNTER_STEP
+    content: Implement executable FL model for clear/enable/idle transactions.
+    detail: Build Python FunctionalModel state step() honoring transaction order FM_CLEAR -> FM_UPDATE -> FM_IDLE and invariants.
+    criteria:
+    - FL model reproduces modulo-256 count update behavior
+    - FL model emits wrapped/valid pulses exactly per SSOT
+    source_refs:
+    - function_model.transactions
+    - function_model.invariants
+    priority: high
+    required: true
+  rtl-gen:
+  - id: RTL_TODO_PRIORITY_SEQ
+    content: Implement clear-priority sequential next-state logic.
+    detail: In rtl/model_compare_counter_core.sv code reset, clear, enable, idle branches with clear overriding enable in same sampled cycle.
+    criteria:
+    - If clear=1 and enable=1 at edge, resulting count/wrapped/valid are zero
+    - Branch order and behavior match FM_CLEAR/FM_UPDATE/FM_IDLE
+    source_refs:
+    - function_model.transactions.FM_CLEAR
+    - function_model.transactions.FM_UPDATE
+    - cycle_model.ordering
+    owner_module: model_compare_counter_core
+    owner_file: rtl/model_compare_counter_core.sv
+    priority: high
+    required: true
+  - id: RTL_TODO_OVERFLOW_PULSE
+    content: Generate wrapped pulse from overflow carry-out only on enabled updates.
+    detail: Compute 9-bit sum for count+step and drive wrapped for one cycle when carry-out is set, while idle/clear force wrapped low.
+    criteria:
+    - wrapped asserted exactly on overflowing FM_UPDATE cycles
+    - wrapped deasserted on clear and idle cycles
+    source_refs:
+    - function_model.transactions.FM_UPDATE
+    - function_model.invariants
+    - cycle_model.pipeline
+    owner_module: model_compare_counter_core
+    owner_file: rtl/model_compare_counter_core.sv
+    priority: high
+    required: true
+  - id: RTL_TODO_VALID_PULSE
+    content: Implement valid one-cycle pulse for accepted enabled updates.
+    detail: Drive valid high only in enable && !clear branch and low otherwise, including reset and clear cycles.
+    criteria:
+    - valid=1 for each accepted update cycle
+    - valid=0 during reset, clear, and idle cycles
+    source_refs:
+    - function_model.transactions.FM_UPDATE
+    - function_model.transactions.FM_CLEAR
+    - function_model.transactions.FM_IDLE
+    owner_module: model_compare_counter_core
+    owner_file: rtl/model_compare_counter_core.sv
+    priority: high
+    required: true
+  tb-gen:
+  - id: TB_TODO_SCENARIOS
+    content: Implement cocotb/pyuvm tests for six required scenarios.
+    detail: Create directed and sequence-based tests for reset, clear priority, no-overflow, overflow, idle hold, and multi-update accumulation.
+    criteria:
+    - All scenario IDs SC_RESET..SC_MULTI_SEQ executed
+    - Scoreboard checks pass for all transactions
+    source_refs:
+    - test_requirements.scenarios
+    - function_model
+    - cycle_model
+    priority: high
+    required: true
+  sim_debug:
+  - id: DBG_TODO_WAVES
+    content: Capture debug waveforms for must-probe signals in failing tests.
+    detail: Ensure waveform dump includes all debug_observability.waveform_must_probe signals and annotate transaction boundaries.
+    criteria:
+    - Waveform includes clk,rst_n,clear,enable,step,count,wrapped,valid
+    source_refs:
+    - debug_observability.waveform_must_probe
+    priority: medium
+    required: true
+  coverage:
+  - id: COV_TODO_BINS
+    content: Close function and cycle coverage bins tied to required scenarios.
+    detail: Add collectors/crosses to prove overflow and clear-priority ordering bins and consecutive update sequence bins.
+    criteria:
+    - All function and cycle bins hit >= target_pct
+    source_refs:
+    - test_requirements.coverage_goals
+    priority: high
+    required: true
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+generation_flow:
+  steps:
+  - name: verify_ssot
+    command: python3 workflow/ssot-gen/scripts/verify_ssot.py model_compare_counter --mode ${ATLAS_RUN_MODE:-signoff}
+    description: Validate SSOT structure, Preview fields, and quality gates at the selected Run Mode
+  - name: handoff_fl_model
+    command: /ssot-fl-model model_compare_counter
+    description: Generate FunctionalModel, decomposition, and FCOV plan from SSOT
+  - name: handoff_equivalence_goals
+    command: /ssot-equiv-goals model_compare_counter
+    description: Derive FL-vs-RTL equivalence goals before TB generation
+  - name: handoff_rtl
+    command: /ssot-rtl model_compare_counter
+    description: Generate RTL from validated SSOT
+  - name: handoff_tb
+    command: /ssot-tb-cocotb model_compare_counter
+    description: Generate cocotb/pyuvm verification from validated SSOT
+  - name: handoff_sim_debug
+    command: /wf sim_debug
+    description: Run simulation, waveform, and coverage inspection

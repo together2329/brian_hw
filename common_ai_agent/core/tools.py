@@ -543,6 +543,38 @@ def read_file(path):
     try:
         path = _resolve_asset_path(path)
 
+        # ATLAS has two roots — the user's IP_ROOT (cwd, where IPs live)
+        # and the ATLAS source tree where workflow/ + src/ + core/ + ...
+        # live. When the LLM passes a path that doesn't exist under cwd
+        # but does exist under the ATLAS source tree, redirect there
+        # instead of erroring. This is the structural fix for two-root
+        # confusion — see the FILESYSTEM LAYOUT block in the system
+        # prompt for the same split documented to the LLM.
+        if not os.path.exists(path):
+            try:
+                # core/tools.py → core/ → parent = ATLAS source root.
+                atlas_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            except Exception:
+                atlas_root = ""
+            if atlas_root:
+                # Strip any fabricated absolute prefix down to the first
+                # recognized top-level subtree, then try under atlas_root.
+                # Works for both "/Users/.../ROOT_IP/workflow/..." and the
+                # already-relative "workflow/..." form.
+                rel = path
+                for anchor in ("workflow/", "src/", "core/", "frontend/",
+                                "scripts/", "tools/", "tests/"):
+                    idx = path.find("/" + anchor)
+                    if idx >= 0:
+                        rel = path[idx + 1:]
+                        break
+                    if path.startswith(anchor):
+                        rel = path
+                        break
+                candidate = os.path.join(atlas_root, rel)
+                if os.path.exists(candidate):
+                    path = candidate
+
         if not os.path.exists(path):
             # Try to suggest similar files nearby (limited scope)
             import glob as _glob
@@ -928,6 +960,25 @@ def _decode_robust(b):
     return b.decode('utf-8', errors='replace')
 
 
+def _command_references_active_ip_path(command, active_ip):
+    """Return true when a shell command names the active IP as a path prefix.
+
+    Bare IP arguments, such as `derive_rtl_todos.py uart_v2 --root ...`, should
+    still run from the active IP root. Path arguments, such as
+    `uart_v2/rtl/foo.sv`, should run from the project root to avoid creating
+    nested `<ip>/<ip>/...` artifacts.
+    """
+    if not command or not active_ip or active_ip == "default":
+        return False
+    command_text = str(command)
+    if "$ATLAS_ACTIVE_IP/" in command_text or "${ATLAS_ACTIVE_IP}/" in command_text:
+        return True
+    import re as _re
+
+    ip_pat = _re.escape(str(active_ip).strip())
+    return bool(_re.search(rf'(?<![A-Za-z0-9_.-])(?:\./)?{ip_pat}/', command_text))
+
+
 def run_command(command, timeout=60):
     """
     Runs a shell command and returns output.
@@ -937,6 +988,11 @@ def run_command(command, timeout=60):
     Do NOT use run_command to write files — use write_file instead.
     Do NOT use run_command to search code — use grep_file instead.
     Do NOT use run_command to list directories — use list_dir instead.
+    In ATLAS IP sessions, commands run from the active IP root
+    ($ATLAS_PROJECT_ROOT/$ATLAS_ACTIVE_IP). Use IP-root relative paths such as
+    rtl/foo.sv or model/functional_model.py, not <ip>/rtl/foo.sv. If a legacy
+    <ip>/... path is present, the tool runs from ATLAS_PROJECT_ROOT instead to
+    avoid nested <ip>/<ip>/... artifacts.
 
     Args:
         command: The shell command to run.
@@ -962,14 +1018,17 @@ def run_command(command, timeout=60):
         command = _translate_command_for_windows(command)
 
         # Pin cwd to ATLAS_PROJECT_ROOT/ATLAS_ACTIVE_IP so `pwd`, `ls`,
-        # `git status`, etc. always run from the active IP directory
-        # the user explicitly set with --root + -ip. When no IP is
-        # bound, fall back to PROJECT_ROOT alone.
+        # `git status`, etc. run from the active IP directory the user
+        # explicitly set with --root + -ip. If the command already references
+        # the active IP as a path prefix (`uart_v2/rtl/...`), run from
+        # PROJECT_ROOT instead so legacy project-root paths do not create
+        # nested `<ip>/<ip>/...` artifacts.
         _proj_root = _atlas_project_root()
         _active_ip = (os.environ.get("ATLAS_ACTIVE_IP", "") or "").strip()
         _cmd_cwd = None
         if _proj_root:
-            if _active_ip and _active_ip != "default":
+            _uses_project_root_path = _command_references_active_ip_path(command, _active_ip)
+            if _active_ip and _active_ip != "default" and not _uses_project_root_path:
                 _ip_path = os.path.join(_proj_root, _active_ip)
                 if os.path.isdir(_ip_path):
                     _cmd_cwd = _ip_path

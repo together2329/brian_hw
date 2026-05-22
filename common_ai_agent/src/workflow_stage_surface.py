@@ -152,12 +152,13 @@ def run_common_stage_surface(
             "/clear",
             f"/ssot-rtl {ip}",
             (
-                f"Implement RTL for {ip} from {ip}/yaml/{ip}.ssot.yaml and the dynamic "
-                f"RTL ledger stored at {ip}/rtl/rtl_todo_plan.json and "
-                f"{ip}/rtl/rtl_todo_tracker.json.\n"
-                f"Use {ip}/rtl/rtl_authoring_plan.json and open packets under "
-                f"{ip}/rtl/authoring_packets/ as the work queue; review "
-                f"{ip}/rtl/rtl_authoring_status.md for a human-readable queue preview"
+                f"Implement RTL for {ip} from yaml/{ip}.ssot.yaml and the dynamic "
+                "RTL ledger stored at rtl/rtl_todo_plan.json and "
+                "rtl/rtl_todo_tracker.json. This ATLAS worker runs shell commands from "
+                f"the active IP root, so do not prefix tool paths with {ip}/.\n"
+                "Use rtl/rtl_authoring_plan.json and open packets under "
+                "rtl/authoring_packets/ as the work queue; review "
+                "rtl/rtl_authoring_status.md for a human-readable queue preview"
                 f"{f' ({authoring_summary})' if authoring_summary else ''}. Process module packets first, "
                 "then unowned tasks, then rtl_gate_closure. For sliced packets, merge into the same "
                 "owner_file and preserve prior slice logic; start from next_llm_packets when listed "
@@ -187,13 +188,14 @@ def run_common_stage_surface(
             "/clear",
             f"/todo template {template} {ip}",
             (
-                f"Repair generated RTL for {ip} from {ip}/yaml/{ip}.ssot.yaml using the "
+                f"Repair generated RTL for {ip} from yaml/{ip}.ssot.yaml using the "
                 "common stage-engine evidence below. Repair only RTL-owned artifacts; do not "
                 "change SSOT semantics and do not use fixed IP templates. Use "
-                f"{ip}/rtl/rtl_authoring_plan.json and open packets under {ip}/rtl/authoring_packets/"
-                f"; review {ip}/rtl/rtl_authoring_status.md for the current queue preview"
+                "rtl/rtl_authoring_plan.json and open packets under rtl/authoring_packets/"
+                "; review rtl/rtl_authoring_status.md for the current queue preview"
                 f"{f' ({authoring_summary})' if authoring_summary else ''}; merge sliced packet repairs into "
-                "existing owner files instead of replacing earlier packet logic; start from next_llm_packets "
+                "existing owner files instead of replacing earlier packet logic; do not prefix tool paths "
+                f"with {ip}/ because shell commands run from the active IP root; start from next_llm_packets "
                 "when listed and skip packets whose llm_actionable_open_count is zero. Rerun DUT-only compile "
                 "and lint through the common engine before reporting DONE.\n\n"
                 "Stage-engine evidence:\n```text\n"

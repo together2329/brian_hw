@@ -72,6 +72,26 @@ const ATLAS_EXEC_MODE_OPTIONS = [
   { key: 'orchestrator', label: 'Orchestrator' },
 ];
 const DEFAULT_ATLAS_EXEC_MODE = 'orchestrator';
+const ATLAS_FONT_MODE_OPTIONS = [
+  { key: 'windows', label: 'Windows' },
+  { key: 'sans', label: 'Sans' },
+  { key: 'system', label: 'System' },
+  { key: 'mono', label: 'Mono' },
+];
+const normalizeAtlasFontMode = (value) => {
+  const v = String(value || '').trim().toLowerCase();
+  return ATLAS_FONT_MODE_OPTIONS.some(o => o.key === v) ? v : '';
+};
+const atlasIsWindowsPlatform = () => {
+  try {
+    if (document.documentElement.getAttribute('data-platform') === 'windows') return true;
+    return /Windows|Win32|Win64|WOW64/i.test(
+      `${navigator.userAgent || ''} ${navigator.platform || ''}`
+    );
+  } catch (_) {
+    return false;
+  }
+};
 const normalizeAtlasRunMode = (value) => {
   const v = String(value || '').trim().toLowerCase().replace(/_/g, '-');
   if (v === 'eng') return 'engineering';
@@ -202,10 +222,12 @@ const App = () => {
   });
   const [fontMode, setFontMode] = React.useState(() => {
     try {
-      const saved = localStorage.getItem('atlasFontMode');
+      const saved = normalizeAtlasFontMode(localStorage.getItem('atlasFontMode'));
       const userSet = localStorage.getItem('atlasFontModeUserSet') === '1';
-      if (saved === 'mono' && !userSet) return 'sans';
-      return ['mono', 'sans', 'system'].includes(saved) ? saved : 'sans';
+      if (saved && userSet) return saved;
+      if (saved === 'mono' && !userSet) return atlasIsWindowsPlatform() ? 'windows' : 'sans';
+      if (saved) return saved;
+      return atlasIsWindowsPlatform() ? 'windows' : 'sans';
     } catch (_) { return 'sans'; }
   });
   const [fontScale, setFontScale] = React.useState(() => {
@@ -1244,14 +1266,25 @@ const App = () => {
     setActiveNamespace(namespace);
     try { setScreen('workspace'); localStorage.atlasScreen = 'workspace'; } catch (_) {}
     window.ACTIVE_SESSION = namespace;
+    window.CONTEXT = Object.assign({}, window.CONTEXT || {}, {
+      active_session: namespace,
+      session_id: me,
+      ip_id: ip,
+      ip,
+      workspace: 'ssot-gen',
+      active_workflow: 'ssot-gen',
+    });
+    window.SCOPE_PATH = ip;
     try { localStorage.setItem('atlasActiveSession', namespace); } catch (_) {}
     syncNamespaceUrl(namespace, me, ip, 'ssot-gen');
+    try { window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'CONTEXT' })); } catch (_) {}
     if (window.atlasData && typeof window.atlasData.setUserSessionId === 'function') {
       window.atlasData.setUserSessionId(me);
     }
     if (window.atlasData && typeof window.atlasData.setScopePath === 'function') {
       window.atlasData.setScopePath(ip);
     }
+    try { window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' })); } catch (_) {}
     // /api/session/activate synchronously loads ssot-gen now, so /new-ip
     // can be queued directly without a redundant `/wf ssot-gen` racing
     // behind it.
@@ -1820,9 +1853,9 @@ const App = () => {
               setFontMode(e.currentTarget.value);
               try { localStorage.setItem('atlasFontModeUserSet', '1'); } catch (_) {}
             }}>
-            <option value="mono">Mono</option>
-            <option value="sans">Sans</option>
-            <option value="system">System</option>
+            {ATLAS_FONT_MODE_OPTIONS.map(opt => (
+              <option key={opt.key} value={opt.key}>{opt.label}</option>
+            ))}
           </select>
         </label>
         <label className="dir-select-wrap" title="Change UI text size">
@@ -1940,7 +1973,7 @@ const App = () => {
             ? <ErrorBoundary label="Pipeline"><window.AtlasPipeline /></ErrorBoundary>
             : screen === 'architect' && window.SocArchitect
               ? <ErrorBoundary label="Architect"><window.SocArchitect /></ErrorBoundary>
-              : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} activeNamespace={activeNamespace} /></ErrorBoundary>}
+              : <ErrorBoundary label="Workspace"><Workspace dir={dir} uiLang={uiLang} activeNamespace={activeNamespace} activeWorkflow={currentWorkflow()} /></ErrorBoundary>}
         </div>
         {/* App-level StatusBar removed — model / tokens / iter / rate /
             SAFE chips were duplicated by the right-side AgentStatusPanel,

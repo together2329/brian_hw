@@ -22,7 +22,8 @@ Approved QA may come from a human answer or from explicit `auto-select` mode.
 When it came from auto-select, preserve the fact in `custom.assumptions` or the
 handoff summary so reviewers can audit the generated SSOT before signoff.
 
-If `/import` was run first, use `<ip>/req/imports/` and
+If `/import` was run first, use `<ip>/req/import_manifest.json`,
+`<ip>/req/extracted_decisions.json`, `<ip>/req/imports/`, and
 `<ip>/wiki/import-evidence.md` as evidence. Do not treat imported RTL as the
 production output of this workflow; convert only the confirmed facts into SSOT
 fields.
@@ -89,7 +90,17 @@ enrichment instead of rewriting the whole SSOT:
      no-FSM policy, and `test_requirements.scenarios[]`. Treat these as
      required for a previewable engineering SSOT.
 
-5. **Fill the YAML generically from the approved context.**
+5. **Write executable workflow todos.** Preserve and enrich
+   `workflow_todos.<stage>[]` as the downstream handoff ledger. Every
+   executable item must include `id`, `content`, `detail`, `command`, `script`,
+   `instructions`, `criteria`, `source_refs`, `priority`, and `required`.
+   Use `command` for the ATLAS slash entrypoint (`/to-ssot <ip>`,
+   `/ssot-rtl <ip>`, `/ssot-tb <ip>`) and `script` for the deterministic
+   workflow script that validates or expands that handoff. The todo detail and
+   instructions must be IP-specific and source-backed; do not leave generic
+   template text when import evidence exists.
+
+6. **Fill the YAML generically from the approved context.**
    - Do not use IP-specific fixed templates.
    - Required behavior fields must come from the conversation, local requirements, or explicit assumptions.
    - List sections preserve the order grill-me elicited them in.
@@ -110,7 +121,7 @@ enrichment instead of rewriting the whole SSOT:
    - Comments are optional; do not add `TODO` comments for behavior that
      rtl-gen needs. Ask/stop instead.
 
-6. **Write the file.** Path is exactly `<ip>/yaml/<ip>.ssot.yaml` from the
+7. **Write the file.** Path is exactly `<ip>/yaml/<ip>.ssot.yaml` from the
    project root. Do not add a second `<ip>/` segment when the UI scope is
    already set to that IP; for `gpio`, the path is `gpio/yaml/gpio.ssot.yaml`,
    never `gpio/gpio/yaml/gpio.ssot.yaml`. Use `write_file`.
@@ -119,20 +130,20 @@ enrichment instead of rewriting the whole SSOT:
    complete canonical SSOT. For a substantive existing SSOT, read it first
    and preserve user-authored facts while completing missing sections.
 
-7. **Validate before final handoff.** Use the workflow validators:
-   first run `python3 workflow/ssot-gen/scripts/repair_ssot_schema.py <ip> --mode engineering`,
-   then run `python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering`.
+8. **Validate before final handoff.** Use the workflow validators:
+   first run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`,
+   then run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`.
    `verify_ssot.py` also runs `check_ssot_disk.sh` and writes
    `<ip>/req/ssot_validation.json`. If validation fails, fix the YAML and
    rerun. Do not run RTL/TB generators from ssot-gen.
 
-8. **Summary.** After writing, list:
+9. **Summary.** After writing, list:
    - the path written
    - which sections came from conversation vs. template defaults
    - any `# TODO: confirm` lines that need follow-up
    - whether validation passed
 
-9. **Suggest next steps.** Use `/ssot-rtl <ip>` after the SSOT validates,
+10. **Suggest next steps.** Use `/ssot-rtl <ip>` after the SSOT validates,
    or another `/grill-me` round if blocking behavioral fields are missing.
 
 ## Bounded execution rule

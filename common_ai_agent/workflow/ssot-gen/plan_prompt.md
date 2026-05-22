@@ -53,7 +53,7 @@ When the input contains `[SSOT TBD REPORT] -> ssot-gen`, switch from new-IP plan
 - Check every `test_requirements.scenarios[]` item has stimulus, expected result, and coverage/scoreboard intent
 - Check `quality_gates` gives concrete pass criteria and evidence for SSOT, RTL, DV, coverage, EDA, and signoff
 - Check every assumption that affects RTL behavior is recorded under `custom.assumptions`
-- Run `python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --mode engineering` or an equivalent YAML parse/structure check
+- Run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering` or an equivalent YAML parse/structure check
 - Fix validation errors before handoff
 
 ## Phase 4: Handoff

@@ -1,0 +1,24 @@
+{
+  "schema_version": "ssot_validation.v2",
+  "ip": "apb_pulse_counter",
+  "mode": "signoff",
+  "ssot": "apb_pulse_counter/yaml/apb_pulse_counter.ssot.yaml",
+  "ok": false,
+  "blockers": [
+    {
+      "severity": "blocker",
+      "id": "check_ssot_disk.failed",
+      "path": "apb_pulse_counter/yaml/apb_pulse_counter.ssot.yaml",
+      "message": "check_ssot_disk.sh failed with exit 1.",
+      "fix": "[check_ssot_disk] FAIL: apb_pulse_counter/yaml/apb_pulse_counter.ssot.yaml failed YAML/model validation"
+    }
+  ],
+  "warnings": [],
+  "check_ssot_disk": {
+    "ok": false,
+    "returncode": 1,
+    "stdout": "[check_ssot_disk] FAIL: apb_pulse_counter/yaml/apb_pulse_counter.ssot.yaml failed YAML/model validation\n  sub_modules[0].name='apb_pulse_counter' duplicates the IP name; rename, drop, or mark wiring_only:true so rtl-gen can tell it from the top wrapper\n",
+    "stderr": ""
+  },
+  "preview_contract": "strict"
+}

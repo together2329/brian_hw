@@ -66,6 +66,8 @@
         "function_model.transactions.fm2",
         "function_model.transactions.fm2.error_cases.error_case_0",
         "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.output_rules.csr_error",
+        "function_model.transactions.fm2.output_rules.irq",
         "function_model.transactions.fm2.outputs.fm2_observed",
         "function_model.transactions.fm2.outputs.output_0",
         "function_model.transactions.fm2.preconditions.precondition_0",
@@ -74,6 +76,8 @@
         "function_model.transactions.fm3",
         "function_model.transactions.fm3.error_cases.error_case_0",
         "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.output_rules.irq",
+        "function_model.transactions.fm3.output_rules.mem_req_valid",
         "function_model.transactions.fm3.outputs.fm3_observed",
         "function_model.transactions.fm3.outputs.output_0",
         "function_model.transactions.fm3.preconditions.precondition_0",
@@ -82,6 +86,8 @@
         "function_model.transactions.fm4",
         "function_model.transactions.fm4.error_cases.error_case_0",
         "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.output_rules.irq",
+        "function_model.transactions.fm4.output_rules.mem_req_write",
         "function_model.transactions.fm4.outputs.fm4_observed",
         "function_model.transactions.fm4.outputs.output_0",
         "function_model.transactions.fm4.preconditions.precondition_0",
@@ -118,6 +124,8 @@
         "function_model.transactions.fm2",
         "function_model.transactions.fm2.error_cases.error_case_0",
         "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.output_rules.csr_error",
+        "function_model.transactions.fm2.output_rules.irq",
         "function_model.transactions.fm2.outputs.fm2_observed",
         "function_model.transactions.fm2.outputs.output_0",
         "function_model.transactions.fm2.preconditions.precondition_0",
@@ -126,6 +134,8 @@
         "function_model.transactions.fm3",
         "function_model.transactions.fm3.error_cases.error_case_0",
         "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.output_rules.irq",
+        "function_model.transactions.fm3.output_rules.mem_req_valid",
         "function_model.transactions.fm3.outputs.fm3_observed",
         "function_model.transactions.fm3.outputs.output_0",
         "function_model.transactions.fm3.preconditions.precondition_0",
@@ -134,6 +144,8 @@
         "function_model.transactions.fm4",
         "function_model.transactions.fm4.error_cases.error_case_0",
         "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.output_rules.irq",
+        "function_model.transactions.fm4.output_rules.mem_req_write",
         "function_model.transactions.fm4.outputs.fm4_observed",
         "function_model.transactions.fm4.outputs.output_0",
         "function_model.transactions.fm4.preconditions.precondition_0",
@@ -318,6 +330,8 @@
         "function_model.transactions.fm2",
         "function_model.transactions.fm2.error_cases.error_case_0",
         "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.output_rules.csr_error",
+        "function_model.transactions.fm2.output_rules.irq",
         "function_model.transactions.fm2.outputs.fm2_observed",
         "function_model.transactions.fm2.outputs.output_0",
         "function_model.transactions.fm2.preconditions.precondition_0",
@@ -326,6 +340,8 @@
         "function_model.transactions.fm3",
         "function_model.transactions.fm3.error_cases.error_case_0",
         "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.output_rules.irq",
+        "function_model.transactions.fm3.output_rules.mem_req_valid",
         "function_model.transactions.fm3.outputs.fm3_observed",
         "function_model.transactions.fm3.outputs.output_0",
         "function_model.transactions.fm3.preconditions.precondition_0",
@@ -334,6 +350,8 @@
         "function_model.transactions.fm4",
         "function_model.transactions.fm4.error_cases.error_case_0",
         "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.output_rules.irq",
+        "function_model.transactions.fm4.output_rules.mem_req_write",
         "function_model.transactions.fm4.outputs.fm4_observed",
         "function_model.transactions.fm4.outputs.output_0",
         "function_model.transactions.fm4.preconditions.precondition_0",
@@ -370,6 +388,8 @@
         "function_model.transactions.fm2",
         "function_model.transactions.fm2.error_cases.error_case_0",
         "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.output_rules.csr_error",
+        "function_model.transactions.fm2.output_rules.irq",
         "function_model.transactions.fm2.outputs.fm2_observed",
         "function_model.transactions.fm2.outputs.output_0",
         "function_model.transactions.fm2.preconditions.precondition_0",
@@ -378,6 +398,8 @@
         "function_model.transactions.fm3",
         "function_model.transactions.fm3.error_cases.error_case_0",
         "function_model.transactions.fm3.inputs.input_0",
+        "function_model.transactions.fm3.output_rules.irq",
+        "function_model.transactions.fm3.output_rules.mem_req_valid",
         "function_model.transactions.fm3.outputs.fm3_observed",
         "function_model.transactions.fm3.outputs.output_0",
         "function_model.transactions.fm3.preconditions.precondition_0",
@@ -386,6 +408,8 @@
         "function_model.transactions.fm4",
         "function_model.transactions.fm4.error_cases.error_case_0",
         "function_model.transactions.fm4.inputs.input_0",
+        "function_model.transactions.fm4.output_rules.irq",
+        "function_model.transactions.fm4.output_rules.mem_req_write",
         "function_model.transactions.fm4.outputs.fm4_observed",
         "function_model.transactions.fm4.outputs.output_0",
         "function_model.transactions.fm4.preconditions.precondition_0",
@@ -506,6 +530,14 @@
           "matched_ref": "single_owner"
         },
         {
+          "ref": "function_model.transactions.fm2.output_rules.irq",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm2.output_rules.csr_error",
+          "matched_ref": "single_owner"
+        },
+        {
           "ref": "function_model.transactions.fm2.state_updates.fm2_observed",
           "matched_ref": "single_owner"
         },
@@ -538,6 +570,14 @@
           "matched_ref": "single_owner"
         },
         {
+          "ref": "function_model.transactions.fm3.output_rules.irq",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm3.output_rules.mem_req_valid",
+          "matched_ref": "single_owner"
+        },
+        {
           "ref": "function_model.transactions.fm3.state_updates.fm3_observed",
           "matched_ref": "single_owner"
         },
@@ -567,6 +607,14 @@
         },
         {
           "ref": "function_model.transactions.fm4.outputs.fm4_observed",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm4.output_rules.irq",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm4.output_rules.mem_req_write",
           "matched_ref": "single_owner"
         },
         {
@@ -691,7 +739,7 @@
     }
   ],
   "orphan_function_cycle_refs": [],
-  "function_cycle_ref_count": 58,
+  "function_cycle_ref_count": 64,
   "authority_contract": {
     "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
     "general_evaluation_criteria": [

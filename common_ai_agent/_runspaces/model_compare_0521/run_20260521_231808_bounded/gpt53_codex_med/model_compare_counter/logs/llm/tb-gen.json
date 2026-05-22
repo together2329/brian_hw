@@ -1,0 +1,15 @@
+{
+  "error": "Error calling LLM: HTTP 400: {\"detail\":\"The 'gpt-5.3-codex-med' model is not supported when using Codex with a ChatGPT account.\"}",
+  "finish_reason": "",
+  "finished_at": "2026-05-21T21:30:20Z",
+  "input_hash": "560b680c2a3773ae944e243dec314ce42077f048b332160c8fab281689ecb9a5",
+  "model": "gpt-5.3-codex-med",
+  "output_hash": "2f0665000c10ae545d17c6d688b85b953d5c10152d054348519b9fba4e9a1ba0",
+  "parsed_artifacts": [],
+  "prompt_hash": "52a870e22a1197e01cfe8ff9c8122d22e039efebbc630d7c06ee1918d592c61d",
+  "raw_response": "Error calling LLM: HTTP 400: {\"detail\":\"The 'gpt-5.3-codex-med' model is not supported when using Codex with a ChatGPT account.\"}",
+  "stage": "tb-gen",
+  "started_at": "2026-05-21T21:30:19Z",
+  "status": "blocked",
+  "usage": {}
+}

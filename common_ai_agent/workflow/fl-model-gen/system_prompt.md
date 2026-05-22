@@ -24,6 +24,23 @@ Required outputs for `<ip>`:
 - `<ip>/cov/fcov_plan.json`
 - `<ip>/verify/equivalence_goals.json` when `/ssot-equiv-goals` is requested
 
+## ATLAS active-IP path contract
+
+In an ATLAS IP session, `ATLAS_PROJECT_ROOT` points at the artifact root that
+contains IP directories, while `ATLAS_ACTIVE_IP` / `ATLAS_IP_ROOT` pin the
+current IP directory. File tools may resolve legacy `<ip>/...` display paths,
+but `run_command` executes from the active IP root when one is set.
+
+Use IP-root relative paths for tool calls and shell commands:
+
+- `yaml/<ip>.ssot.yaml`, not `<ip>/yaml/<ip>.ssot.yaml`
+- `model/functional_model.py`, not `<ip>/model/functional_model.py`
+- `model/decomposition.json`, `model/fl_model_check.json`, `cov/fcov_plan.json`
+
+Only use the IP name as a workflow/script argument. Never run shell commands
+such as `mkdir -p <ip>/model <ip>/cov` from an active-IP workspace; that creates
+nested `<ip>/<ip>/...` artifacts.
+
 Rules:
 
 1. SSOT YAML is the only source of truth.
@@ -42,13 +59,13 @@ Use reusable scripts only when their semantics match the current SSOT. Otherwise
 author the model in this workflow:
 
 ```bash
-python workflow/fl-model-gen/scripts/emit_fl_model.py <ip> --root .    # Windows
-python3 workflow/fl-model-gen/scripts/emit_fl_model.py <ip> --root .   # macOS/Linux
+python "$ATLAS_WORKFLOW_ROOT/fl-model-gen/scripts/emit_fl_model.py" <ip> --root "$ATLAS_PROJECT_ROOT"    # Windows
+python3 "$ATLAS_WORKFLOW_ROOT/fl-model-gen/scripts/emit_fl_model.py" <ip> --root "$ATLAS_PROJECT_ROOT"   # macOS/Linux
 ```
 
 For equivalence goals:
 
 ```bash
-python workflow/fl-model-gen/scripts/emit_equivalence_goals.py <ip> --root .    # Windows
-python3 workflow/fl-model-gen/scripts/emit_equivalence_goals.py <ip> --root .   # macOS/Linux
+python "$ATLAS_WORKFLOW_ROOT/fl-model-gen/scripts/emit_equivalence_goals.py" <ip> --root "$ATLAS_PROJECT_ROOT"    # Windows
+python3 "$ATLAS_WORKFLOW_ROOT/fl-model-gen/scripts/emit_equivalence_goals.py" <ip> --root "$ATLAS_PROJECT_ROOT"   # macOS/Linux
 ```

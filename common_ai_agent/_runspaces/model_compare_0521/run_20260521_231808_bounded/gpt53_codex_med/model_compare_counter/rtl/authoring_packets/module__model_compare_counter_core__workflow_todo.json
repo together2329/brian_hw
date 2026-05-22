@@ -1,0 +1,416 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 5,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 10,
+      "enabled": true,
+      "index": 10,
+      "key": "workflow_todo",
+      "module_task_count": 123,
+      "rule": "Owner module model_compare_counter_core is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/model_compare_counter_core.sv",
+      "name": "model_compare_counter_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.ordering",
+        "cycle_model.pipeline",
+        "dataflow",
+        "decomposition",
+        "features",
+        "fsm",
+        "fsm.control",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions",
+        "function_model.transactions.FM_CLEAR",
+        "function_model.transactions.FM_IDLE",
+        "function_model.transactions.FM_UPDATE",
+        "io_list",
+        "io_list.clock_domains",
+        "io_list.interfaces",
+        "io_list.resets",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/model_compare_counter_core.sv",
+        "name": "model_compare_counter_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/model_compare_counter.sv",
+        "name": "model_compare_counter",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "model_compare_counter",
+  "kind": "module",
+  "owner_file": "rtl/model_compare_counter_core.sv",
+  "owner_module": "model_compare_counter_core",
+  "packet_id": "module__model_compare_counter_core__workflow_todo",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "workflow_todo.rtl_gen": 3
+    },
+    "module_slice": {
+      "count": 10,
+      "enabled": true,
+      "index": 10,
+      "key": "workflow_todo",
+      "module_task_count": 123,
+      "rule": "Owner module model_compare_counter_core is split into 10 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "workflow_todo",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 3,
+    "source_refs": [
+      "workflow_todos.rtl-gen[0]",
+      "workflow_todos.rtl-gen[1]",
+      "workflow_todos.rtl-gen[2]"
+    ],
+    "status_counts": {
+      "pass": 3
+    },
+    "task_count": 3
+  },
+  "tasks": [
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement clear-priority sequential next-state logic.",
+      "criteria": [
+        "If clear=1 and enable=1 at edge, resulting count/wrapped/valid are zero",
+        "Branch order and behavior match FM_CLEAR/FM_UPDATE/FM_IDLE",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[0]",
+        "Primary implementation evidence is in rtl/model_compare_counter_core.sv",
+        "Semantic source_refs covered: cycle_model.ordering, function_model.transactions.FM_CLEAR, function_model.transactions.FM_UPDATE"
+      ],
+      "detail": "In rtl/model_compare_counter_core.sv code reset, clear, enable, idle branches with clear overriding enable in same sampled cycle.\nSSOT ref: workflow_todos.rtl-gen[0].\nOwner: model_compare_counter_core in rtl/model_compare_counter_core.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_PRIORITY_SEQ.",
+      "evidence_terms": [
+        "FM",
+        "FM_CLEAR",
+        "FM_UPDATE",
+        "PRIORITY",
+        "RTL_TODO_PRIORITY_SEQ",
+        "SEQ",
+        "TODO",
+        "UPDATE",
+        "compare",
+        "core",
+        "model_compare_counter_core"
+      ],
+      "id": "RTL-0020",
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[0]",
+      "ssot_context": {
+        "id": "RTL_TODO_PRIORITY_SEQ"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering",
+        "function_model.transactions.FM_CLEAR",
+        "function_model.transactions.FM_UPDATE",
+        "workflow_todos.rtl-gen[0]"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "PRIORITY",
+          "UPDATE",
+          "compare",
+          "core",
+          "model_compare_counter_core"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "FM",
+          "FM_CLEAR",
+          "FM_UPDATE",
+          "PRIORITY",
+          "RTL_TODO_PRIORITY_SEQ",
+          "SEQ",
+          "TODO",
+          "UPDATE",
+          "compare",
+          "core",
+          "model_compare_counter_core"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_PRIORITY_SEQ",
+        "source_refs": [
+          "cycle_model.ordering",
+          "function_model.transactions.FM_CLEAR",
+          "function_model.transactions.FM_UPDATE"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Generate wrapped pulse from overflow carry-out only on enabled updates.",
+      "criteria": [
+        "wrapped asserted exactly on overflowing FM_UPDATE cycles",
+        "wrapped deasserted on clear and idle cycles",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[1]",
+        "Primary implementation evidence is in rtl/model_compare_counter_core.sv",
+        "Semantic source_refs covered: cycle_model.pipeline, function_model.invariants, function_model.transactions.FM_UPDATE"
+      ],
+      "detail": "Compute 9-bit sum for count+step and drive wrapped for one cycle when carry-out is set, while idle/clear force wrapped low.\nSSOT ref: workflow_todos.rtl-gen[1].\nOwner: model_compare_counter_core in rtl/model_compare_counter_core.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_OVERFLOW_PULSE.",
+      "evidence_terms": [
+        "FM",
+        "FM_UPDATE",
+        "OVERFLOW",
+        "PULSE",
+        "RTL_TODO_OVERFLOW_PULSE",
+        "TODO",
+        "UPDATE",
+        "compare",
+        "core",
+        "model_compare_counter_core"
+      ],
+      "id": "RTL-0021",
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[1]",
+      "ssot_context": {
+        "id": "RTL_TODO_OVERFLOW_PULSE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline",
+        "function_model.invariants",
+        "function_model.transactions.FM_UPDATE",
+        "workflow_todos.rtl-gen[1]"
+      ],
+      "static_evidence": {
+        "matched_count": 4,
+        "matched_terms": [
+          "UPDATE",
+          "compare",
+          "core",
+          "model_compare_counter_core"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "FM",
+          "FM_UPDATE",
+          "OVERFLOW",
+          "PULSE",
+          "RTL_TODO_OVERFLOW_PULSE",
+          "TODO",
+          "UPDATE",
+          "compare",
+          "core",
+          "model_compare_counter_core"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_OVERFLOW_PULSE",
+        "source_refs": [
+          "cycle_model.pipeline",
+          "function_model.invariants",
+          "function_model.transactions.FM_UPDATE"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    },
+    {
+      "category": "workflow_todo.rtl_gen",
+      "content": "Implement valid one-cycle pulse for accepted enabled updates.",
+      "criteria": [
+        "valid=1 for each accepted update cycle",
+        "valid=0 during reset, clear, and idle cycles",
+        "SSOT workflow_todos.rtl-gen content/detail/criteria are preserved in rtl_todo_plan.json",
+        "RTL implementation evidence satisfies this SSOT-defined todo without editing SSOT, FunctionalModel, coverage goals, interface rules, or performance targets",
+        "Traceability keeps source_ref workflow_todos.rtl-gen[2]",
+        "Primary implementation evidence is in rtl/model_compare_counter_core.sv",
+        "Semantic source_refs covered: function_model.transactions.FM_CLEAR, function_model.transactions.FM_IDLE, function_model.transactions.FM_UPDATE"
+      ],
+      "detail": "Drive valid high only in enable && !clear branch and low otherwise, including reset and clear cycles.\nSSOT ref: workflow_todos.rtl-gen[2].\nOwner: model_compare_counter_core in rtl/model_compare_counter_core.sv via workflow_todos.owner.\nSSOT item context: id=RTL_TODO_VALID_PULSE.",
+      "evidence_terms": [
+        "FM",
+        "FM_CLEAR",
+        "FM_IDLE",
+        "FM_UPDATE",
+        "IDLE",
+        "PULSE",
+        "RTL_TODO_VALID_PULSE",
+        "TODO",
+        "UPDATE",
+        "VALID",
+        "compare",
+        "core",
+        "model_compare_counter_core"
+      ],
+      "id": "RTL-0022",
+      "owner_file": "rtl/model_compare_counter_core.sv",
+      "owner_module": "model_compare_counter_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "workflow_todos.rtl-gen[2]",
+      "ssot_context": {
+        "id": "RTL_TODO_VALID_PULSE"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_CLEAR",
+        "function_model.transactions.FM_IDLE",
+        "function_model.transactions.FM_UPDATE",
+        "workflow_todos.rtl-gen[2]"
+      ],
+      "static_evidence": {
+        "matched_count": 6,
+        "matched_terms": [
+          "IDLE",
+          "UPDATE",
+          "VALID",
+          "compare",
+          "core",
+          "model_compare_counter_core"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 3,
+        "required_terms": [
+          "FM",
+          "FM_CLEAR",
+          "FM_IDLE",
+          "FM_UPDATE",
+          "IDLE",
+          "PULSE",
+          "RTL_TODO_VALID_PULSE",
+          "TODO",
+          "UPDATE",
+          "VALID",
+          "compare",
+          "core",
+          "model_compare_counter_core"
+        ],
+        "source_scope": "rtl/model_compare_counter_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      },
+      "workflow_todo": {
+        "id": "RTL_TODO_VALID_PULSE",
+        "source_refs": [
+          "function_model.transactions.FM_CLEAR",
+          "function_model.transactions.FM_IDLE",
+          "function_model.transactions.FM_UPDATE"
+        ],
+        "stage": "rtl-gen",
+        "user_category": ""
+      }
+    }
+  ],
+  "todo_plan_sha256": "7b4231553a245d5e6bf56f3adc24d2b390c4fc3a6b61990ebc0327f541ddce0d",
+  "top": "model_compare_counter",
+  "type": "rtl_authoring_packet"
+}

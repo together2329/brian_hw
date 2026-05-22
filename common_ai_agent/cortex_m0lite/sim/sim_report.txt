@@ -1,6 +1,2 @@
-TESTS=1 PASS=1 FAIL=0
-results=cortex_m0lite/sim/results.xml
-scoreboard=cortex_m0lite/sim/scoreboard_events.jsonl
-coverage_functional=cortex_m0lite/cov/coverage_functional.json
-waveforms=cortex_m0lite/sim/cortex_m0lite.vcd
-0 errors, 0 warnings
+TESTS=1 PASS=0 FAIL=1
+Simulation exception: Process iverilog terminated with error 9

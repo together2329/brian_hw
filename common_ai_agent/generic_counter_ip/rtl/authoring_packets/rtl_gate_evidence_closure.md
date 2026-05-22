@@ -77,13 +77,13 @@ Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
 - Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence
-- Detail: Production RTL cannot carry TODO/TBD/FIXME/stub/dummy/not-implemented markers in source code or comments. Generated RTL uses the project SystemVerilog subset: ANSI ports default to input/output logic, with no package/import/interface/modport, no function/task, no for/while, and no typedef/enum/always_ff/always_comb. If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract.
+- Detail: Production RTL cannot carry audit-banned incomplete/fake implementation markers in source code or comments. Generated RTL uses the project SystemVerilog subset: ANSI ports default to input/output logic, with no package/import/interface/modport, no function/task, no for/while, and no typedef/enum/always_ff/always_comb. If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract.
 SSOT ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence.
 Owner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.
 - Current reason: RTL sources contain no placeholder markers or disallowed default-policy constructs.
 - Criteria:
   - Listed RTL source files contain no TODO/TBD/FIXME/HACK markers
-  - Listed RTL source files contain no placeholder/stub/dummy/not-implemented implementation text
+  - Listed RTL source files contain no audit-banned incomplete/fake implementation text
   - Listed RTL source files and rtl/<ip>_param.vh contain no banned package/function/task/loop constructs
   - Default generated RTL uses input/output logic ports and portable always @ syntax
   - FSMs use the conventional explicit style by default, unless SSOT/user specifies another synthesizable style

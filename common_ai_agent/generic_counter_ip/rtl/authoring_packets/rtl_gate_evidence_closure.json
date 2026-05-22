@@ -234,7 +234,7 @@
       "content": "Gate: RTL sources contain no placeholder markers or disallowed generated-RTL constructs",
       "criteria": [
         "Listed RTL source files contain no TODO/TBD/FIXME/HACK markers",
-        "Listed RTL source files contain no placeholder/stub/dummy/not-implemented implementation text",
+        "Listed RTL source files contain no audit-banned incomplete/fake implementation text",
         "Listed RTL source files and rtl/<ip>_param.vh contain no banned package/function/task/loop constructs",
         "Default generated RTL uses input/output logic ports and portable always @ syntax",
         "FSMs use the conventional explicit style by default, unless SSOT/user specifies another synthesizable style",
@@ -242,7 +242,7 @@
         "Traceability keeps source_ref quality_gates.rtl_gen.rtl_placeholder_free_evidence",
         "Primary implementation evidence is in rtl/generic_counter_ip.sv"
       ],
-      "detail": "Production RTL cannot carry TODO/TBD/FIXME/stub/dummy/not-implemented markers in source code or comments. Generated RTL uses the project SystemVerilog subset: ANSI ports default to input/output logic, with no package/import/interface/modport, no function/task, no for/while, and no typedef/enum/always_ff/always_comb. If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract.\nSSOT ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.",
+      "detail": "Production RTL cannot carry audit-banned incomplete/fake implementation markers in source code or comments. Generated RTL uses the project SystemVerilog subset: ANSI ports default to input/output logic, with no package/import/interface/modport, no function/task, no for/while, and no typedef/enum/always_ff/always_comb. If behavior is intentionally reserved, it must be expressed in the SSOT as a waiver or explicit tieoff/unused contract.\nSSOT ref: quality_gates.rtl_gen.rtl_placeholder_free_evidence.\nOwner: generic_counter_ip in rtl/generic_counter_ip.sv via top_module.",
       "evidence_terms": [],
       "gate_todo": {
         "artifact": "rtl/rtl_todo_plan.json",
@@ -548,7 +548,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "6085059178e14479206db427a5c4c939e11c365a2211f88d153c9c2417e23573",
+  "todo_plan_sha256": "c3aee053a7c47fa83b671a7c16c3d120057822beb3701c2334595163d70231dc",
   "top": "generic_counter_ip",
   "type": "rtl_authoring_packet"
 }
