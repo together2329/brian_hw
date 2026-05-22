@@ -67,8 +67,10 @@ def register_sessions_routes(
         Body: {"owner": str, "ip": str, "workflow": str}
         Legacy {"session_id": str} is still accepted as the owner field.
         Each field is optional; missing/empty values default to "default".
-        Updates ATLAS_ACTIVE_SESSION and ATLAS_ACTIVE_IP env vars so all
-        path resolvers in this process pivot to the same triple.
+        In in-process mode, mirrors ATLAS_ACTIVE_SESSION and ATLAS_ACTIVE_IP
+        so legacy path resolvers pivot to the same triple. In process mode,
+        keeps the main process globals unchanged and lets the selected worker
+        receive the namespace in its own environment when spawned.
 
         The frontend calls this on page load (so URL params survive a
         restart) and any time the user changes a top dropdown.
@@ -125,6 +127,38 @@ def register_sessions_routes(
         def _emit_to_canonical(msg_type: str, **payload: Any) -> None:
             bridge.emit(msg_type, session_id=canonical, **payload)
 
+        def _using_processes() -> bool:
+            try:
+                fn = getattr(bridge, "_using_processes", None)
+                return bool(fn()) if callable(fn) else False
+            except Exception:
+                return False
+
+        process_mode = _using_processes()
+
+        def _active_for_owner(owner: str) -> str:
+            try:
+                fn = getattr(bridge, "active_session_for_owner", None)
+                if callable(fn):
+                    return str(fn(owner) or "")
+            except Exception:
+                pass
+            return ""
+
+        def _session_running(session_id: str) -> bool:
+            if not session_id:
+                return False
+            try:
+                fn = getattr(bridge, "is_session_running", None)
+                if callable(fn):
+                    return bool(fn(session_id))
+            except Exception:
+                pass
+            try:
+                return bool(getattr(bridge.get_session(session_id), "agent_running", False))
+            except Exception:
+                return False
+
         # Halt the running agent + drain queued prompts BEFORE flipping
         # env vars whenever the active triple actually changes. Without
         # this, an in-flight react_loop keeps reading from the OLD IP's
@@ -138,13 +172,21 @@ def register_sessions_routes(
         # deliberate focus switches between per-session workers. In that mode
         # the frontend sends preserve_running=true so an already-running worker
         # can continue while the user jumps to another worker and sends input.
-        prev = active_session_value() or ""
+        prev = _active_for_owner(sid) if multi_user_on else ""
+        if not prev:
+            candidate_prev = active_session_value() or ""
+            candidate_owner = candidate_prev.split("/", 1)[0] if candidate_prev else ""
+            if not multi_user_on or not candidate_owner or candidate_owner == sid:
+                prev = candidate_prev
         triple_changed = prev != canonical
-        was_running = bool(getattr(bridge, "agent_running", False))
-        halted = bool(triple_changed and was_running and not preserve_running)
+        was_running = _session_running(prev) if prev else False
+        halted = bool(prev and triple_changed and was_running and not preserve_running)
         if halted:
             try:
-                bridge.request_stop_for_session(prev or canonical)
+                if process_mode:
+                    bridge.exit_session(prev or canonical)
+                else:
+                    bridge.request_stop_for_session(prev or canonical)
                 try:
                     bridge.get_session(prev or canonical).agent_running = False
                 except Exception:
@@ -154,26 +196,34 @@ def register_sessions_routes(
                     bridge.emit("agent_state", running=False, session_id=canonical)
             except Exception:
                 pass
+        try:
+            bridge.activate_session(canonical)
+        except Exception:
+            pass
         atlas_active_session_cv.set(canonical)
         atlas_active_ip_cv.set(ip)
-        # Mirror to os.environ — main.py's chat_loop runs in its own
+        # Mirror to os.environ only for in-process chat_loop mode — main.py's
+        # chat_loop runs in its own
         # thread and can't see contextvars set inside the FastAPI
         # request task. Without this mirror the /wf prompt that fires
         # right after this handler reads a stale ATLAS_ACTIVE_SESSION
         # and pads the missing IP slot to "default", landing the
         # workspace in .session/default/default/<wf>/ instead of the
-        # IP the user just picked.
-        os.environ["ATLAS_ACTIVE_SESSION"] = canonical
-        os.environ["ATLAS_ACTIVE_IP"] = ip
-        os.environ["ATLAS_DEFAULT_SESSION_ID"] = sid
-        os.environ["ATLAS_DEFAULT_WORKFLOW"] = wf
-        if setup_session is not None:
-            try:
-                setup_session(canonical)
-                os.environ["ATLAS_SESSION_APPLIED"] = canonical
-            except Exception as exc:
-                print(f"[Session] activate→setup_session({canonical!r}) failed: {exc}",
-                      flush=True)
+        # IP the user just picked. Process workers get a private env at
+        # spawn time, so mutating the shared backend env there would be a
+        # cross-user last-writer-wins race.
+        if not process_mode:
+            os.environ["ATLAS_ACTIVE_SESSION"] = canonical
+            os.environ["ATLAS_ACTIVE_IP"] = ip
+            os.environ["ATLAS_DEFAULT_SESSION_ID"] = sid
+            os.environ["ATLAS_DEFAULT_WORKFLOW"] = wf
+            if setup_session is not None:
+                try:
+                    setup_session(canonical)
+                    os.environ["ATLAS_SESSION_APPLIED"] = canonical
+                except Exception as exc:
+                    print(f"[Session] activate→setup_session({canonical!r}) failed: {exc}",
+                          flush=True)
         # Synchronously update the workspace too. /api/session/activate was
         # only mirroring path-resolution env vars; the actual workflow
         # config (system prompt, skills, hooks, todo template) is loaded
@@ -184,8 +234,11 @@ def register_sessions_routes(
         # workflow until the chat_loop got around to it — and if the
         # loop was busy on an LLM call, it never did. Calling
         # _setup_workspace from here decouples the FE flip from chat_loop
-        # availability so the user sees the new workspace immediately.
-        prev_wf = os.environ.get("ACTIVE_WORKSPACE", "")
+        # availability so the user sees the new workspace immediately. In
+        # process mode the actual setup runs inside core.session_worker for
+        # that namespace; the main backend only emits UI state.
+        prev_parts = [part for part in str(prev or "").split("/") if part]
+        prev_wf = prev_parts[2] if len(prev_parts) >= 3 else os.environ.get("ACTIVE_WORKSPACE", "")
         if setup_workspace is not None and wf and wf != prev_wf:
             # Emit via 'token'+'flush' — workspace.jsx subscribes to that
             # streaming channel, not to a bare 'agent' type.
@@ -198,14 +251,7 @@ def register_sessions_routes(
                 _emit_to_canonical("workspace_changing", workspace=wf, prev=prev_wf, ip=ip)
             except Exception:
                 pass
-            try:
-                setup_workspace(wf)
-                os.environ["ACTIVE_WORKSPACE"] = wf
-                print(
-                    f"[Workflow] {wf!r} loaded via /api/session/activate "
-                    f"(prev={prev_wf!r}, ip={ip!r}, owner={sid!r})",
-                    flush=True,
-                )
+            if process_mode:
                 try:
                     _emit_to_canonical(
                         "workspace_changed",
@@ -214,6 +260,7 @@ def register_sessions_routes(
                         ip=ip,
                         session=canonical,
                         source="api/session/activate",
+                        process_scoped=True,
                     )
                     _emit_to_canonical(
                         "token",
@@ -222,9 +269,34 @@ def register_sessions_routes(
                     _emit_to_canonical("flush")
                 except Exception:
                     pass
-            except Exception as exc:
-                print(f"[Workflow] activate→setup_workspace({wf!r}) failed: {exc}",
-                      flush=True)
+            else:
+                try:
+                    setup_workspace(wf)
+                    os.environ["ACTIVE_WORKSPACE"] = wf
+                    print(
+                        f"[Workflow] {wf!r} loaded via /api/session/activate "
+                        f"(prev={prev_wf!r}, ip={ip!r}, owner={sid!r})",
+                        flush=True,
+                    )
+                    try:
+                        _emit_to_canonical(
+                            "workspace_changed",
+                            workspace=wf,
+                            prev=prev_wf,
+                            ip=ip,
+                            session=canonical,
+                            source="api/session/activate",
+                        )
+                        _emit_to_canonical(
+                            "token",
+                            text=f"✅ Workflow switched to '{wf}' (was '{prev_wf}') · ip={ip}\n",
+                        )
+                        _emit_to_canonical("flush")
+                    except Exception:
+                        pass
+                except Exception as exc:
+                    print(f"[Workflow] activate→setup_workspace({wf!r}) failed: {exc}",
+                          flush=True)
         if triple_changed:
             try:
                 _emit_to_canonical("commands_changed")
@@ -255,6 +327,7 @@ def register_sessions_routes(
                 _conv.write_text("[]", encoding="utf-8")
         except Exception:
             pass
+        session_row: dict[str, Any] = {}
         try:
             summary = {
                 "kind": "atlas_control_plane",
@@ -264,18 +337,12 @@ def register_sessions_routes(
                 "workflow": wf,
             }
             with _atlas_db() as db:
-                db.import_session(
+                session_row = db.upsert_runtime_session(
                     canonical,
                     user_id,
-                    project_id=ip,
-                    directory=str(_session_dir),
-                    title=f"{ip} / {wf}",
-                    status="active",
-                    summary=summary,
-                )
-                db.update_session(
-                    canonical,
-                    user_id=user_id,
+                    owner=sid,
+                    ip=ip,
+                    workflow=wf,
                     project_id=ip,
                     directory=str(_session_dir),
                     title=f"{ip} / {wf}",
@@ -285,28 +352,44 @@ def register_sessions_routes(
         except Exception as exc:
             print(f"[Session] activate→db session upsert({canonical!r}) failed: {exc}",
                   flush=True)
+        session_payload = _session_context_payload(session_row) if session_row else {}
         return JSONResponse({
             "ok": True,
             "active_session": canonical,
             "namespace": canonical,
             "owner": sid,
+            "owner_id": sid,
+            "user_id": user_id,
             "session_id": sid,
             "db_session_id": canonical,
+            "runtime_session_id": session_payload.get("session_uid") or "",
+            "session_uid": session_payload.get("session_uid") or "",
+            "session_label": session_payload.get("session_label") or "",
+            "session": session_payload,
             "ip": ip,
             "workflow": wf,
             "halted": halted,
             "preserve_running": preserve_running,
+            "process_scoped": process_mode,
         })
 
     # ── /api/session/history ───────────────────────────────────────
-    def _db_conversation_messages(session_id: str) -> Optional[list[dict[str, Any]]]:
+    def _db_conversation_messages(
+        session_id: str,
+        user_id: str = "",
+    ) -> Optional[list[dict[str, Any]]]:
         """Return DB-backed conversation messages when *session_id* is a DB session."""
         try:
             with _atlas_db() as db:
-                if db.get_session(session_id) is None:
+                session_row = (
+                    db.get_session_for_user(user_id, session_id)
+                    if user_id else db.get_session(session_id)
+                )
+                if session_row is None:
                     return None
+                db_session_id = str(session_row.get("id") or session_id)
                 messages: list[dict[str, Any]] = []
-                for msg in db.get_messages(session_id):
+                for msg in db.get_messages(db_session_id):
                     if msg.get("role") == "system":
                         continue
                     parts = db.get_parts(msg["id"])
@@ -337,7 +420,7 @@ def register_sessions_routes(
             return None
 
     @app.get("/api/session/history")
-    async def api_session_history(session: str, limit: int = 200):
+    async def api_session_history(request: Request, session: str, limit: int = 200):
         """Read a specific .session/<session>/conversation.json.
 
         Architect uses this to reload per-IP/per-workflow agent history,
@@ -356,7 +439,10 @@ def register_sessions_routes(
             sdir.relative_to(root)
         except Exception:
             return JSONResponse({"error": "session path escapes .session"}, status_code=400)
-        db_msgs = _db_conversation_messages(session)
+        access_error = _authorize_session_request(request, session)
+        if access_error is not None:
+            return access_error
+        db_msgs = _db_conversation_messages(session, _request_user_id(request))
         if db_msgs is not None:
             if limit == 0:
                 db_msgs = []
@@ -399,7 +485,7 @@ def register_sessions_routes(
 
     # ── /api/session/state ─────────────────────────────────────────
     @app.get("/api/session/state")
-    async def api_session_state(session: str, limit: int = 200, mode: str = "conversation"):
+    async def api_session_state(request: Request, session: str, limit: int = 200, mode: str = "conversation"):
         """Return all UI state owned by a specific session namespace.
 
         This is the session-scoped hydrate endpoint for IP/sub-top/SoC
@@ -429,6 +515,9 @@ def register_sessions_routes(
             sdir.relative_to(root)
         except Exception:
             return JSONResponse({"error": "session path escapes .session"}, status_code=400)
+        access_error = _authorize_session_request(request, session)
+        if access_error is not None:
+            return access_error
 
         def _read_json(path: Path, fallback: Any) -> Any:
             if not path.is_file():
@@ -450,7 +539,7 @@ def register_sessions_routes(
             if not conv_path.is_file():
                 conv_path = sdir / "conversation.json"
 
-        db_messages = _db_conversation_messages(session)
+        db_messages = _db_conversation_messages(session, _request_user_id(request))
         conversation_source = "db" if db_messages is not None else "file"
         if db_messages is not None:
             messages = db_messages

@@ -415,6 +415,38 @@ def test_multiuser_bridge_process_mode_routes_explicit_sessions(dummy_worker_scr
             pass
 
 
+def test_single_worker_per_owner_kills_previous_owner_worker(dummy_worker_script):
+    db_path = _temp_db()
+    bridge = _MultiUserBridge(use_processes=True, single_worker_per_owner=True)
+    bridge._process_manager = DummyProcessManager(
+        db_path=db_path, dummy_script_path=dummy_worker_script
+    )
+
+    try:
+        bridge.submit_prompt_for_session("alice/ip_a/rtl-gen", "prompt-a")
+        bridge.submit_prompt_for_session("bob/ip_b/rtl-gen", "prompt-b")
+        time.sleep(0.3)
+
+        assert bridge._process_manager.is_alive("alice/ip_a/rtl-gen")
+        assert bridge._process_manager.is_alive("bob/ip_b/rtl-gen")
+
+        bridge.submit_prompt_for_session("alice/ip_a/tb-gen", "prompt-c")
+        time.sleep(0.3)
+
+        assert not bridge._process_manager.is_alive("alice/ip_a/rtl-gen")
+        assert bridge._process_manager.is_alive("alice/ip_a/tb-gen")
+        assert bridge._process_manager.is_alive("bob/ip_b/rtl-gen")
+        assert bridge.get_session("alice/ip_a/rtl-gen").agent_alive is False
+        assert bridge.get_session("alice/ip_a/rtl-gen").agent_running is False
+    finally:
+        if bridge._process_manager:
+            bridge._process_manager.stop_all()
+        try:
+            os.unlink(db_path)
+        except OSError:
+            pass
+
+
 def test_kill_and_cleanup(dummy_worker_script):
     db_path = _temp_db()
     manager = DummyProcessManager(db_path=db_path, dummy_script_path=dummy_worker_script)

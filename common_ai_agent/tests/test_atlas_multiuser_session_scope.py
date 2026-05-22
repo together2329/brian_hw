@@ -315,6 +315,157 @@ def test_session_activate_preserves_running_worker_when_requested(tmp_path, monk
     assert rtl.agent_running is False
 
 
+def test_session_activate_halts_only_previous_namespace(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    # Another session is running, but the namespace the user is leaving is not.
+    other = app.state.bridge._ensure_session("alice/spi_core/orchestrator")
+    other.agent_running = True
+
+    first = _activate(client, "alice", "spi_core", "rtl-gen")
+    assert first.status_code == 200, first.text
+    second = _activate(client, "alice", "spi_core", "tb-gen")
+
+    assert second.status_code == 200, second.text
+    assert second.json()["halted"] is False
+    assert other.agent_running is True
+
+
+def test_process_session_activate_terminates_previous_worker(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "1")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    calls = []
+
+    class FakeProcessManager:
+        def __init__(self):
+            self.live = {"alice/spi_core/rtl-gen"}
+
+        def is_alive(self, session_id):
+            return session_id in self.live
+
+        def kill(self, session_id):
+            calls.append(("kill", session_id))
+            self.live.discard(session_id)
+            return True
+
+        def list_active(self):
+            return list(self.live)
+
+        def send_input(self, session_id, msg_type, payload=None):
+            calls.append(("send_input", session_id, msg_type, payload))
+            return "msg-id" if session_id in self.live else None
+
+        def latest_output_id(self, session_id):
+            return None
+
+        def spawn(self, session_id):
+            self.live.add(session_id)
+            calls.append(("spawn", session_id))
+            return True
+
+        def poll_output(self, session_id, since_id=None):
+            return []
+
+        def stop_all(self):
+            calls.append(("stop_all",))
+            self.live.clear()
+
+    app.state.bridge._process_manager = FakeProcessManager()
+    first = _activate(client, "alice", "spi_core", "rtl-gen")
+    assert first.status_code == 200, first.text
+    assert first.json()["halted"] is False
+    assert calls == []
+    app.state.bridge.get_session("alice/spi_core/rtl-gen").agent_running = True
+
+    switched = _activate(client, "alice", "spi_core", "tb-gen")
+
+    assert switched.status_code == 200, switched.text
+    assert switched.json()["halted"] is True
+    assert ("kill", "alice/spi_core/rtl-gen") in calls
+    assert not any(call[:3] == ("send_input", "alice/spi_core/rtl-gen", "stop") for call in calls)
+    assert app.state.bridge.get_session("alice/spi_core/rtl-gen").agent_alive is False
+
+
+def test_process_session_activate_does_not_mutate_main_env(tmp_path, monkeypatch):
+    import os
+
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "1")
+    monkeypatch.setenv("ATLAS_ACTIVE_SESSION", "sentinel/ip_old/wf_old")
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "ip_old")
+    monkeypatch.setenv("ATLAS_DEFAULT_SESSION_ID", "sentinel")
+    monkeypatch.setenv("ATLAS_DEFAULT_WORKFLOW", "wf_old")
+    monkeypatch.setenv("ACTIVE_WORKSPACE", "wf_old")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    response = _activate(client, "alice", "spi_core", "rtl-gen")
+
+    assert response.status_code == 200, response.text
+    assert response.json()["active_session"] == "alice/spi_core/rtl-gen"
+    assert os.environ["ATLAS_ACTIVE_SESSION"] == "sentinel/ip_old/wf_old"
+    assert os.environ["ATLAS_ACTIVE_IP"] == "ip_old"
+    assert os.environ["ATLAS_DEFAULT_SESSION_ID"] == "sentinel"
+    assert os.environ["ATLAS_DEFAULT_WORKFLOW"] == "wf_old"
+    assert os.environ["ACTIVE_WORKSPACE"] == "wf_old"
+
+    health = client.get("/healthz")
+    assert health.status_code == 200, health.text
+    assert health.json()["active_session"] == "alice/spi_core/rtl-gen"
+    assert health.json()["active_ip"] == "spi_core"
+    assert health.json()["active_workflow"] == "rtl-gen"
+
+
+def test_process_workers_stop_on_app_shutdown(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "1")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    calls = []
+
+    class FakeProcessManager:
+        def stop_all(self):
+            calls.append("stop_all")
+
+    app.state.bridge._process_manager = FakeProcessManager()
+    with TestClient(app):
+        assert calls == []
+
+    assert calls == ["stop_all"]
+
+
 def test_session_activate_policy_and_mode_sweep_keeps_namespace_todos_isolated(tmp_path, monkeypatch):
     import os
 

@@ -2763,6 +2763,30 @@ def create_app():
     _use_proc = _multi_user_env and _proc_raw not in ("0", "false", "no", "off")
     _strict_raw = os.environ.get("ATLAS_STRICT_SESSION_ROUTING", "0").strip().lower()
     _strict_routing = _strict_raw in ("1", "true", "yes", "on")
+    _exec_raw = (
+        os.environ.get("ATLAS_EXEC_MODE")
+        or os.environ.get("ATLAS_DEFAULT_EXEC_MODE")
+        or ""
+    ).strip().lower()
+    _orch_raw = os.environ.get("ATLAS_ORCHESTRATOR_MODE")
+    _single_loop = os.environ.get("ATLAS_SINGLE_MAIN_LOOP", "").strip().lower() in (
+        "1", "true", "yes", "on",
+    )
+    _orch_disabled = (
+        _orch_raw is not None
+        and _orch_raw.strip().lower() in ("0", "false", "no", "off")
+    )
+    _single_worker_raw = (
+        os.environ.get("ATLAS_SINGLE_WORKER_PER_OWNER")
+        or os.environ.get("ATLAS_SINGLE_WORKER_PER_USER")
+        or ""
+    ).strip().lower()
+    if _single_worker_raw:
+        _single_worker_per_owner = _single_worker_raw in ("1", "true", "yes", "on")
+    else:
+        _single_worker_per_owner = _use_proc and (
+            _single_loop or _exec_raw == "single-worker" or _orch_disabled
+        )
 
     def _multi_user_enabled() -> bool:
         raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
@@ -2776,7 +2800,9 @@ def create_app():
         single_user=not _multi_user_env,
         use_processes=_use_proc,
         strict_session_routing=_strict_routing,
+        single_worker_per_owner=_single_worker_per_owner,
     )
+    app.add_event_handler("shutdown", bridge.stop_all_processes)
     # Register the bridge so the ReAct loop's orchestrator chat
     # injector (built lazily inside main.py / agent_server.py before
     # this point) can resolve sessions for the chat watermark.
@@ -3381,7 +3407,14 @@ def create_app():
         _multi_user_on = _multi_user_enabled()
         info["multi_user"] = _multi_user_on
         user = request.scope.get("user")
-        info["user_session"] = (user.get("username") if user else None)
+        username = user.get("username") if user else None
+        info["user_session"] = username
+        request_active_session = ""
+        if username:
+            try:
+                request_active_session = bridge.active_session_for_owner(str(username))
+            except Exception:
+                request_active_session = ""
         client_host = (request.client.host if request.client else "") or "127.0.0.1"
         if client_host.startswith("::ffff:"):
             client_host = client_host[7:]
@@ -3465,12 +3498,24 @@ def create_app():
             # the preview / SSOT / QA panels in sync without a custom
             # WS event.
             info["active_session"] = (
-                _active_session_value()
+                request_active_session
+                or _active_session_value()
                 or _canonical_session_string()
             )
-            info["active_ip"] = _active_ip_value() or "default"
+            _active_parts = [
+                part for part in normalize_session_name(
+                    str(info.get("active_session") or "")
+                ).split("/") if part
+            ]
+            info["active_ip"] = (
+                _active_parts[1]
+                if len(_active_parts) >= 2 and _active_parts[1]
+                else (_active_ip_value() or "default")
+            )
             info["active_workflow"] = (
-                os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
+                _active_parts[2]
+                if len(_active_parts) >= 3 and _active_parts[2]
+                else (os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default")
             )
             active_session_path = normalize_session_name(str(info.get("active_session") or ""))
             if active_session_path:
@@ -3503,7 +3548,7 @@ def create_app():
                 import json as _json
                 from pathlib import Path as _P
                 _sess = str(PROJECT_ROOT)
-                _sess_str = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/")
+                _sess_str = normalize_session_name(str(info.get("active_session") or "")).strip("/")
                 _candidates = []
                 if _sess_str:
                     # Canonical 3-part path:

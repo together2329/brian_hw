@@ -269,11 +269,14 @@ class _MultiUserBridge:
         single_user: bool = False,
         use_processes: bool = False,
         strict_session_routing: bool = False,
+        single_worker_per_owner: bool = False,
     ):
         self._sessions = {}
         self._sessions_lock = threading.RLock()
         self._single_user = single_user
         self._strict_session_routing = strict_session_routing
+        self._single_worker_per_owner = single_worker_per_owner
+        self._owner_active_sessions = {}
         self._active_session_id = "default"
         self._active_lock = threading.Lock()
         self._agent_starter = None
@@ -335,6 +338,50 @@ class _MultiUserBridge:
         normalized = normalize_session_name(str(session_id or ""))
         return normalized or "default"
 
+    def _owner_from_session_id(self, session_id: str | None) -> str:
+        normalized = self._normalize_session_id(session_id)
+        parts = [part for part in normalized.split("/") if part]
+        return parts[0] if parts else "default"
+
+    def _mark_owner_active(self, session_id: str | None) -> None:
+        normalized = self._normalize_session_id(session_id)
+        owner = self._owner_from_session_id(normalized)
+        with self._sessions_lock:
+            self._owner_active_sessions[owner] = normalized
+
+    def active_session_for_owner(self, owner: str | None) -> str:
+        normalized_owner = normalize_session_name(str(owner or "")).split("/", 1)[0]
+        if not normalized_owner:
+            return ""
+        with self._sessions_lock:
+            return str(self._owner_active_sessions.get(normalized_owner) or "")
+
+    def is_session_running(self, session_id: str | None) -> bool:
+        normalized = self._normalize_session_id(session_id)
+        session = self._ensure_session(normalized)
+        if self._process_manager is not None and self._process_manager.is_alive(normalized):
+            return True
+        return bool(session.agent_running)
+
+    def _kill_owner_siblings_for_process_spawn(self, session_id: str) -> None:
+        manager = self._process_manager
+        if manager is None or not self._single_worker_per_owner:
+            return
+        owner = self._owner_from_session_id(session_id)
+        for active_session_id in list(manager.list_active()):
+            if active_session_id == session_id:
+                continue
+            if self._owner_from_session_id(active_session_id) != owner:
+                continue
+            manager.kill(active_session_id)
+            sibling = self._ensure_session(active_session_id)
+            sibling.agent_running = False
+            sibling.agent_alive = False
+            sibling.emit("agent_state", running=False)
+            sibling.emit("worker_exited", session_id=sibling.session_id)
+            sibling.emit("done")
+            self._process_output_cursors.pop(active_session_id, None)
+
     def _ensure_session(self, session_id: str | None) -> _SessionBridge:
         session_id = self._normalize_session_id(session_id)
         with self._sessions_lock:
@@ -374,6 +421,9 @@ class _MultiUserBridge:
             return False
         with self._sessions_lock:
             removed = self._sessions.pop(session_id, None)
+            owner = self._owner_from_session_id(session_id)
+            if self._owner_active_sessions.get(owner) == session_id:
+                self._owner_active_sessions.pop(owner, None)
         if removed is None:
             return False
         removed.request_stop()
@@ -386,6 +436,7 @@ class _MultiUserBridge:
         session = self._ensure_session(session_id)
         with self._active_lock:
             self._active_session_id = session.session_id
+        self._mark_owner_active(session.session_id)
         session.touch()
 
     def bind_client(self, client: Any, session_id: str | None) -> str:
@@ -401,6 +452,7 @@ class _MultiUserBridge:
         # a logged-in user's prompts queue up unread.
         with self._active_lock:
             self._active_session_id = session.session_id
+        self._mark_owner_active(session.session_id)
         if peers > 1:
             session.emit("peer_joined", peers=peers, session_id=session.session_id)
         return session.session_id
@@ -489,6 +541,7 @@ class _MultiUserBridge:
     def ensure_agent_alive(self) -> None:
         if self._process_manager is not None:
             session = self._active_session()
+            self._kill_owner_siblings_for_process_spawn(session.session_id)
             if not self._process_manager.is_alive(session.session_id):
                 latest_output_id = self._process_manager.latest_output_id(session.session_id)
                 if latest_output_id:
@@ -496,6 +549,7 @@ class _MultiUserBridge:
                 else:
                     self._process_output_cursors.pop(session.session_id, None)
             self._process_manager.spawn(session.session_id)
+            self._mark_owner_active(session.session_id)
             session.agent_alive = True
             return
         with self._sessions_lock:
@@ -541,6 +595,7 @@ class _MultiUserBridge:
             return False
         session = self._ensure_session(session_id)
         if spawn:
+            self._kill_owner_siblings_for_process_spawn(session.session_id)
             if not manager.is_alive(session.session_id):
                 latest_output_id = manager.latest_output_id(session.session_id)
                 if latest_output_id:
@@ -548,6 +603,7 @@ class _MultiUserBridge:
                 else:
                     self._process_output_cursors.pop(session.session_id, None)
             manager.spawn(session.session_id)
+            self._mark_owner_active(session.session_id)
             session.agent_alive = True
             session.agent_running = True
         msg_id = manager.send_input(session.session_id, msg_type, payload or {})
@@ -603,6 +659,7 @@ class _MultiUserBridge:
         session = self._ensure_session(session_id)
         if self._process_manager is not None:
             self._process_manager.kill(session.session_id)
+            self._process_output_cursors.pop(session.session_id, None)
         else:
             session.request_stop()
         session.agent_running = False
@@ -610,6 +667,16 @@ class _MultiUserBridge:
         session.emit("agent_state", running=False)
         session.emit("worker_exited", session_id=session.session_id)
         session.emit("done")
+
+    def stop_all_processes(self) -> None:
+        if self._process_manager is None:
+            return
+        self._process_manager.stop_all()
+        with self._sessions_lock:
+            sessions = list(self._sessions.values())
+        for session in sessions:
+            session.agent_running = False
+            session.agent_alive = False
 
     def exit_active_session(self) -> None:
         session = self._active_session()
