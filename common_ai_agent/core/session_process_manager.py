@@ -41,15 +41,27 @@ class SessionProcessManager:
     Input/output is routed through the SQLite queue in :class:`AtlasDB`.
     """
 
-    def __init__(self, db_path: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        db_path: Optional[str] = None,
+        project_root: Optional[str | Path] = None,
+    ) -> None:
         """Initialize the process manager.
 
         Args:
             db_path: Path to the Atlas SQLite database. Defaults to
                 ``~/.common_ai_agent/atlas.db``.
+            project_root: Artifact root served by Atlas. Defaults to
+                ``ATLAS_PROJECT_ROOT`` or the current working directory.
         """
         self.db_path = db_path
         self._source_root = Path(__file__).resolve().parents[1]
+        raw_project_root = (
+            project_root
+            or os.environ.get("ATLAS_PROJECT_ROOT")
+            or Path.cwd()
+        )
+        self._project_root = Path(os.path.expanduser(str(raw_project_root))).resolve()
         self._processes: Dict[str, Dict[str, Any]] = {}
         self._lock = threading.RLock()
 
@@ -101,8 +113,9 @@ class SessionProcessManager:
         env["ATLAS_TRACE_ENABLE"] = "1"
         env["ATLAS_DB_PATH"] = effective_db
         env["ATLAS_TRACE_DB_PATH"] = effective_db
-        env.setdefault("ATLAS_SOURCE_ROOT", str(self._source_root))
-        env.setdefault("ATLAS_PROJECT_ROOT", str(Path.cwd()))
+        env["ATLAS_SOURCE_ROOT"] = str(self._source_root)
+        env.setdefault("COMMON_AI_AGENT_HOME", str(self._source_root))
+        env["ATLAS_PROJECT_ROOT"] = str(self._project_root)
         python_paths = [str(self._source_root), str(self._source_root / "src")]
         existing_pythonpath = env.get("PYTHONPATH", "")
         if existing_pythonpath:
@@ -149,7 +162,7 @@ class SessionProcessManager:
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 env=self.build_worker_env(session_id, db_path=effective_db),
-                cwd=str(self._source_root),
+                cwd=str(self._project_root),
                 # Detach from parent TTY so signals/shells don't propagate.
                 start_new_session=True,
             )

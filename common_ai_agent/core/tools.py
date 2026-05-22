@@ -284,11 +284,49 @@ def _atlas_project_root() -> str:
     )
 
 
+def _atlas_ip_root() -> str:
+    return os.environ.get("ATLAS_IP_ROOT", "")
+
+
 def _norm_rel_tool_path(path: str) -> str:
     norm = str(path or "").replace("\\", "/").strip()
     while norm.startswith("./"):
         norm = norm[2:]
     return norm
+
+
+def _ip_name_from_ssot_leaf(leaf: str) -> str:
+    name = os.path.basename(str(leaf or ""))
+    for suffix in (".ssot.yaml", ".ssot.yml", "_ssot.yaml", "_ssot.yml"):
+        if name.endswith(suffix):
+            return name[: -len(suffix)]
+    return ""
+
+
+def _candidate_ip_bases(project_root: str, inferred_ip: str, first_subdir: str) -> list[str]:
+    """Candidate roots for unprefixed IP-subdir paths such as yaml/foo.ssot.yaml."""
+    bases: list[str] = []
+    ip_root = _atlas_ip_root()
+    if ip_root:
+        ip_root_abs = os.path.abspath(os.path.expanduser(ip_root))
+        if os.path.isdir(ip_root_abs):
+            # ATLAS_IP_ROOT may be the active IP dir (<root>/<ip>) or a
+            # collection root containing many IP dirs. Support both; the CLI
+            # historically made this easy to confuse.
+            if os.path.isdir(os.path.join(ip_root_abs, first_subdir)):
+                bases.append(ip_root_abs)
+            if inferred_ip:
+                bases.append(os.path.join(ip_root_abs, inferred_ip))
+    if project_root and inferred_ip:
+        bases.append(os.path.join(project_root, inferred_ip))
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for base in bases:
+        norm = os.path.abspath(base)
+        if norm not in seen:
+            seen.add(norm)
+            deduped.append(norm)
+    return deduped
 
 
 def _atlas_ip_project_candidate(path: str) -> str:
@@ -319,6 +357,10 @@ def _atlas_ip_project_candidate(path: str) -> str:
 
     if len(parts) >= 2 and parts[1] in _IP_SUBDIRS and first not in _NON_IP_ROOTS:
         return os.path.join(project_root, *parts)
+    if len(parts) >= 2 and first in _IP_SUBDIRS:
+        inferred_ip = _ip_name_from_ssot_leaf(parts[1])
+        for base in _candidate_ip_bases(project_root, inferred_ip, first):
+            return os.path.join(base, *parts)
     return ""
 
 

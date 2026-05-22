@@ -77,6 +77,52 @@ def test_write_file_ip_subdir_path_uses_active_ip_under_atlas_project_root(tmp_p
     assert cwd_file.read_text(encoding="utf-8") == "wrong cwd file\n"
 
 
+def test_write_file_unprefixed_ssot_yaml_infers_ip_under_project_root(tmp_path, monkeypatch):
+    ip = "new_axi"
+    project_root = tmp_path / "ROOT_IP"
+    server_cwd = tmp_path / "common_ai_agent"
+    cwd_file = server_cwd / "yaml" / f"{ip}.ssot.yaml"
+    target = project_root / ip / "yaml" / f"{ip}.ssot.yaml"
+    cwd_file.parent.mkdir(parents=True)
+    cwd_file.write_text("wrong source-root yaml\n", encoding="utf-8")
+
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "default")
+    monkeypatch.delenv("ATLAS_IP_ROOT", raising=False)
+    monkeypatch.setattr(tools, "_git_auto_commit", lambda *args, **kwargs: None)
+
+    result = tools.write_file(path=f"yaml/{ip}.ssot.yaml", content="project root yaml\n")
+
+    assert str(target) in result
+    assert target.read_text(encoding="utf-8") == "project root yaml\n"
+    assert cwd_file.read_text(encoding="utf-8") == "wrong source-root yaml\n"
+
+
+def test_write_file_unprefixed_ssot_yaml_uses_ip_root_collection(tmp_path, monkeypatch):
+    ip = "new_axi"
+    project_root = tmp_path / "Project"
+    ip_collection = project_root / "ROOT_IP"
+    server_cwd = tmp_path / "common_ai_agent"
+    cwd_file = server_cwd / "yaml" / f"{ip}.ssot.yaml"
+    target = ip_collection / ip / "yaml" / f"{ip}.ssot.yaml"
+    ip_collection.mkdir(parents=True)
+    cwd_file.parent.mkdir(parents=True)
+    cwd_file.write_text("wrong source-root yaml\n", encoding="utf-8")
+
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_IP_ROOT", str(ip_collection))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "default")
+    monkeypatch.setattr(tools, "_git_auto_commit", lambda *args, **kwargs: None)
+
+    result = tools.write_file(path=f"yaml/{ip}.ssot.yaml", content="ip collection yaml\n")
+
+    assert str(target) in result
+    assert target.read_text(encoding="utf-8") == "ip collection yaml\n"
+    assert cwd_file.read_text(encoding="utf-8") == "wrong source-root yaml\n"
+
+
 def test_replace_tools_prefer_atlas_project_root_for_ip_paths(tmp_path, monkeypatch):
     ip = "uart_core"
     project_root = tmp_path / "served_root"

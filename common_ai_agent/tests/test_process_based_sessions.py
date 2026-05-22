@@ -107,7 +107,7 @@ def dummy_worker_script():
         pass
 
 
-def test_session_process_manager_spawns_worker_from_source_root(monkeypatch, tmp_path):
+def test_session_process_manager_spawns_worker_from_project_root(monkeypatch, tmp_path):
     db_path = tmp_path / "atlas-custom.db"
     popen_calls = []
 
@@ -133,10 +133,13 @@ def test_session_process_manager_spawns_worker_from_source_root(monkeypatch, tmp
     cmd, kwargs = popen_calls[0]
     assert cmd[:3] == [sys.executable, "-m", "core.session_worker"]
     assert cmd[cmd.index("--db-path") + 1] == str(db_path.resolve())
-    assert kwargs["cwd"] == str(Path(PROJECT_ROOT).resolve())
+    assert kwargs["cwd"] == str(tmp_path.resolve())
     env = kwargs["env"]
     assert env["ATLAS_DB_PATH"] == str(db_path.resolve())
     assert env["ATLAS_TRACE_DB_PATH"] == str(db_path.resolve())
+    assert env["ATLAS_PROJECT_ROOT"] == str(tmp_path.resolve())
+    assert env["ATLAS_SOURCE_ROOT"] == str(Path(PROJECT_ROOT).resolve())
+    assert env["COMMON_AI_AGENT_HOME"] == str(Path(PROJECT_ROOT).resolve())
     assert env["ATLAS_ACTIVE_SESSION"] == "alice/spi_core/rtl-gen"
     assert env["ATLAS_DEFAULT_SESSION_ID"] == "alice"
     assert env["ATLAS_ACTIVE_IP"] == "spi_core"

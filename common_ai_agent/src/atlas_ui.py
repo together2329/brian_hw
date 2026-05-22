@@ -17911,12 +17911,14 @@ def main() -> None:
         os.environ["ATLAS_WORKFLOW_ROOT"] = str(WORKFLOW_ROOT)
 
     ip_root_target: Path | None = None
+    ip_root_is_active_ip = False
     if args.ip_root:
         ip_root_target = Path(args.ip_root).expanduser().resolve()
         if not ip_root_target.is_dir():
             sys.exit(f"--ip-root not found: {ip_root_target}")
         os.environ["ATLAS_IP_ROOT"] = str(ip_root_target)
-        if args.ip == "default" and _ssot_export_valid_ip(ip_root_target.name):
+        ip_root_is_active_ip = (ip_root_target / "yaml").is_dir()
+        if ip_root_is_active_ip and args.ip == "default" and _ssot_export_valid_ip(ip_root_target.name):
             args.ip = ip_root_target.name
 
     if args.root:
@@ -17926,8 +17928,12 @@ def main() -> None:
         os.chdir(str(target))
         PROJECT_ROOT = target
     elif ip_root_target is not None:
-        os.chdir(str(ip_root_target.parent))
-        PROJECT_ROOT = ip_root_target.parent
+        if ip_root_is_active_ip:
+            os.chdir(str(ip_root_target.parent))
+            PROJECT_ROOT = ip_root_target.parent
+        else:
+            os.chdir(str(ip_root_target))
+            PROJECT_ROOT = ip_root_target
     # Always export PROJECT_ROOT to the env so workers, sub-agents, and
     # the system-prompt header injector resolve to the same path the UI
     # serves files from — even when the user launches without --root and
