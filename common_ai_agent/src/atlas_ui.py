@@ -5191,12 +5191,13 @@ def create_app():
         REQUIRED_SECTIONS = [
             "top_module", "sub_modules", "decomposition", "parameters", "io_list",
             "features", "dataflow", "function_model", "cycle_model", "rtl_contract",
-            "clock_reset_domains", "registers", "memory", "interrupts", "fsm",
+            "clock_reset_domains", "cdc_requirements", "rdc_requirements",
+            "registers", "memory", "interrupts", "fsm",
             "timing", "power", "security", "error_handling", "debug_observability",
             "integration", "dft", "synthesis", "pnr", "test_requirements",
             "quality_gates", "traceability", "workflow_todos", "filelist",
             "coding_rules", "reuse_modules", "custom", "dir_structure",
-            "generation_flow", "cdc_requirements",
+            "generation_flow",
         ]
 
         present_sections = sum(1 for k in REQUIRED_SECTIONS if k in ssot_doc)
@@ -9621,14 +9622,30 @@ def create_app():
         return _ssot_session_dir(ip) / "state.json"
 
     def _load_ssot_state(ip: str) -> dict[str, Any]:
-        path = _ssot_state_path(ip)
-        if not path.is_file():
-            return {}
-        try:
-            doc = json.loads(path.read_text(encoding="utf-8"))
-            return doc if isinstance(doc, dict) else {}
-        except Exception:
-            return {}
+        paths = [_ssot_state_path(ip)]
+        # Single-user/dev mode historically stored SSOT state under the
+        # default owner or the legacy two-part path. Keep those reads in
+        # single-user mode only so multi-user sessions do not see another
+        # user's SSOT decisions.
+        if not _multi_user_enabled():
+            paths.extend([
+                PROJECT_ROOT / ".session" / "default" / ip / "ssot-gen" / "state.json",
+                _legacy_ssot_session_dir(ip) / "state.json",
+            ])
+        seen: set[Path] = set()
+        for path in paths:
+            if path in seen:
+                continue
+            seen.add(path)
+            if not path.is_file():
+                continue
+            try:
+                doc = json.loads(path.read_text(encoding="utf-8"))
+                if isinstance(doc, dict):
+                    return doc
+            except Exception:
+                continue
+        return {}
 
     def _save_ssot_state(ip: str, state: dict[str, Any]) -> None:
         path = _ssot_state_path(ip)
@@ -10308,6 +10325,9 @@ def create_app():
             "cdc_requirements": [
                 {"from_clock": "TBD", "to_clock": "TBD", "scheme": "TBD"},
             ],
+            "rdc_requirements": [
+                {"from_reset": "TBD", "to_reset": "TBD", "scheme": "TBD"},
+            ],
             "custom": {},
         }
 
@@ -10381,7 +10401,9 @@ def create_app():
                 token = value.strip().lower()
                 if not token:
                     return False
-                return token not in {"tbd", "todo", "draft", "?", "n/a"}
+                if token in {"tbd", "todo", "draft", "?", "n/a"}:
+                    return False
+                return re.search(r"(^|[^a-z0-9])(tbd|todo|fixme|placeholder)([^a-z0-9]|$)", token) is None
             if isinstance(value, (list, tuple, set)):
                 return any(_meaningful(v) for v in value)
             if isinstance(value, dict):
@@ -10530,8 +10552,10 @@ def create_app():
                 merged[k] = v
         # If PyYAML failed (doc empty) but the file exists, fall back to
         # regex-detected top-level section names so the Validation pane
-        # still shows the real on-disk state.
-        if not doc or len(merged) < len(_SSOT_REQUIRED_DECISIONS):
+        # still shows the real on-disk state. Do not use this fallback on a
+        # parseable draft: the /new-ip TBD scaffold has all top-level keys,
+        # but those keys are not approved design decisions.
+        if not doc:
             for k, v in _decisions_from_top_keys(_ssot_raw_top_keys(ip)).items():
                 if k not in merged and v:
                     merged[k] = v
@@ -10866,8 +10890,15 @@ def create_app():
         kind = " ".join(kind_tokens).strip() or "TBD"
         return ip, kind, import_paths, ""
 
+    def _ssot_session_for_ip(ip: str) -> str:
+        current = normalize_session_name(str(_active_session_value() or ""))
+        parts = [p for p in current.split("/") if p]
+        if len(parts) >= 3 and parts[-2] == ip and parts[-1] == "ssot-gen":
+            return current
+        return _canonical_session_string(ip, "ssot-gen")
+
     def _render_ssot_llm_qna_prompt(ip: str, kind: str, state: dict[str, Any]) -> str:
-        session = normalize_session_name(str(_active_session_value() or _canonical_session_string(ip)))
+        session = _ssot_session_for_ip(ip)
         imported = state.get("imported_artifacts") if isinstance(state.get("imported_artifacts"), list) else []
         imported_paths = [
             str(item.get("path") or "").strip()
@@ -10995,7 +11026,7 @@ def create_app():
             "approved": False,
             "approved_at": 0,
             "status": "planned",
-            "active_session": _active_session_value() or _canonical_session_string(ip),
+            "active_session": _ssot_session_for_ip(ip),
             "last_step": "new-ip",
             "created_at": time.time(),
         }
@@ -12010,7 +12041,7 @@ def create_app():
         filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources)
         state.setdefault("ip", ip)
         state.setdefault("kind", kind)
-        state["active_session"] = _active_session_value() or _canonical_session_string(ip)
+        state["active_session"] = _ssot_session_for_ip(ip)
         _save_ssot_state(ip, state)
         return filled, conflicts, artifacts, errors
 
@@ -12464,7 +12495,7 @@ def create_app():
         filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources)
         state.setdefault("ip", ip)
         state.setdefault("kind", kind)
-        state["active_session"] = _active_session_value() or _canonical_session_string(ip)
+        state["active_session"] = _ssot_session_for_ip(ip)
         state["last_step"] = "import"
         state["status"] = "answered" if not _missing_ssot_decisions(ip, state) else "planned"
         _save_ssot_state(ip, state)
@@ -13394,7 +13425,7 @@ def create_app():
             return True
         state = _load_ssot_state(ip) or _new_ssot_state(ip)
         _ensure_ssot_draft(ip, str(state.get("kind") or "TBD"))
-        state["active_session"] = _active_session_value() or _canonical_session_string(ip)
+        state["active_session"] = _ssot_session_for_ip(ip)
         state["last_step"] = "grill-me"
         _save_ssot_state(ip, state)
         missing = _missing_ssot_decisions(ip, state)
@@ -13581,7 +13612,7 @@ def create_app():
         state["approved"] = True
         state["approved_at"] = time.time()
         state["status"] = "approved"
-        state["active_session"] = _active_session_value() or _canonical_session_string(ip)
+        state["active_session"] = _ssot_session_for_ip(ip)
         state["last_step"] = "approve"
         _save_ssot_state(ip, state)
         spec = _render_approved_ssot_spec(ip, state)

@@ -33,6 +33,15 @@ def _register(client: TestClient, username: str = "alice") -> None:
     assert response.status_code == 200, response.text
 
 
+def _receive_slash_output(ws, marker: str) -> str:
+    for _ in range(20):
+        msg = ws.receive_json()
+        text = str(msg.get("text") or "")
+        if msg.get("type") == "slash_output" and marker in text:
+            return text
+    raise AssertionError(f"did not receive slash_output containing {marker!r}")
+
+
 def test_ssot_qa_workbench_has_first_class_actions_and_no_history_panel():
     src = WORKSPACE_JSX.read_text(encoding="utf-8")
 
@@ -50,7 +59,8 @@ def test_ssot_qa_workbench_has_first_class_actions_and_no_history_panel():
     assert "importExportOnly={true}" in src
     assert "무엇을 만들까?" in src
     assert "채워야 하는 9칸" in src
-    assert "SSOT Percent" in src
+    assert "Answer Percent" in src
+    assert "답변 진행률" in src
     assert "SSOT 3단계 흐름" in src
     assert "2. Deep Interview" in src
     assert "3. To SSOT" in src
@@ -404,6 +414,36 @@ def test_ssot_qa_api_reports_remaining_required_decisions(tmp_path, monkeypatch)
     assert requirements["filled"] == 2
     assert requirements["missing"] == requirements["total"] - 2
     assert "register_map" in requirements["missing_keys"]
+
+
+def test_new_ip_tbd_scaffold_does_not_fill_ssot_answer_percent(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    ip = "empty_axi"
+    client = TestClient(atlas_ui.create_app())
+    _register(client, username="qa_user")
+
+    with client.websocket_connect(f"/ws/agent?session_id=qa_user/{ip}/ssot-gen") as ws:
+        assert ws.receive_json()["type"] == "hello"
+        ws.send_json({"type": "prompt", "text": f"/new-ip {ip}"})
+        plan = _receive_slash_output(ws, "[SSOT PLAN]")
+
+    assert "- · `purpose`" in plan
+    assert "missing decisions: purpose" in plan
+
+    response = client.get(f"/api/ssot/qa?ip={ip}")
+    assert response.status_code == 200, response.text
+    requirements = response.json()["requirements"]
+    assert requirements["total"] >= 9
+    assert requirements["filled"] == 0
+    assert requirements["missing"] == requirements["total"]
+    assert set(requirements["missing_keys"]) >= {"purpose", "bus_interface", "test_expectation"}
 
 
 def test_ssot_import_upload_saves_attachment_and_returns_import_command(tmp_path, monkeypatch):
