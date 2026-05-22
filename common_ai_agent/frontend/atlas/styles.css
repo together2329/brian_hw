@@ -641,6 +641,19 @@ html[data-platform="windows"] .app {
   text-transform: none;
 }
 .dir-select::-ms-expand { display: none; }  /* hide legacy IE/Edge arrow */
+.dir-session-readonly {
+  max-width: 128px;
+  min-width: 78px;
+  height: 20px;
+  line-height: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--fg);
+  text-transform: none;
+  font-family: var(--mono);
+  font-size: var(--ui-control-font-size);
+}
 .dir-select.ip {
   min-width: 78px;
   max-width: 120px;

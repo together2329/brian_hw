@@ -2706,6 +2706,18 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       setBackendState(window.backend.getConnectionState());
     }
     const subs = [];
+    const workspaceEventMatchesActiveSession = (m, opts = {}) => {
+      const eventSession = normalizeUiSession((m && (m.session_id || m.session || m.namespace)) || '');
+      const active = normalizeUiSession(
+        window.ACTIVE_SESSION
+        || activeSessionRef.current
+        || activeSession
+        || ''
+      );
+      if (!active) return !opts.requireSession;
+      if (!eventSession) return !opts.requireSession;
+      return eventSession === active;
+    };
     // Hello payload — server tells us which center-column layout the
     // user has configured (.config: ATLAS_CENTER_LAYOUT=classic|tabbed).
     subs.push(window.backend.subscribe('hello', (m) => {
@@ -2855,6 +2867,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       }]);
     }));
     subs.push(window.backend.subscribe('cost', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
       const input = Number(m?.input || 0);
       const cached = Number(m?.cached || 0);
       const output = Number(m?.output || 0);
@@ -15567,6 +15580,7 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
             tokensOut: j.tokens_out,
             costUsd: j.cost_usd,
             pricing: j.pricing || null,
+            activeSession: j.active_session || '',
           });
         })
         .catch(() => {});

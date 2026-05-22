@@ -16,6 +16,34 @@ from core.session_process_manager import SessionProcessManager  # pyright: ignor
 from core.session_names import normalize_session_name
 
 
+_SESSION_PRIVATE_BROADCAST_TYPES = {
+    "agent",
+    "agent_received",
+    "agent_state",
+    "ask_user",
+    "ask_user_answered",
+    "ask_user_closed",
+    "context",
+    "cost",
+    "done",
+    "error",
+    "file_changed",
+    "flush",
+    "mode_change",
+    "reasoning",
+    "slash_output",
+    "ssot_qa_updated",
+    "todo",
+    "todo_line",
+    "token",
+    "tool",
+    "tool_result",
+    "worker_exited",
+    "worker_started",
+    "worker_stopped",
+}
+
+
 _atlas_bridge_session_id_cv = contextvars.ContextVar("atlas_bridge_session_id", default="")
 _WRITE_TOOL_RE = re.compile(
     r"^(?:write_file|write_to_file|replace_in_file|replace_lines|replace_file_content|multi_replace_file_content|edit_file|patch_file|apply_patch|patch|update_file)\b",
@@ -410,6 +438,9 @@ class _MultiUserBridge:
         a global-room post from a user on a dma session), so chat events
         emit through this path instead. Each session keeps the same dedup
         via msg_id_seen() on the receiving WS leg."""
+        if str(msg_type or "") in _SESSION_PRIVATE_BROADCAST_TYPES:
+            self.emit(msg_type, **payload)
+            return
         with self._sessions_lock:
             sessions = list(self._sessions.values())
         for session in sessions:

@@ -2927,7 +2927,7 @@ def create_app():
                 raise
 
     async def _broadcast_outbox():
-        """Single consumer for bridge events, broadcast to every live WS.
+        """Single consumer for bridge events, fan out to the event session's WS clients.
 
         Each websocket used to start its own consumer on the same queue. With
         a browser tab plus an automation client, events were load-balanced
@@ -2953,36 +2953,6 @@ def create_app():
                 except Exception:
                     session = bridge._ensure_session(session_id)
                 snapshot = list(session.clients)
-                # When the agent thread's contextvar didn't carry the
-                # active session_id forward (e.g. orchestrator threads
-                # whose copy_context() snapshot predated the WS bind),
-                # the target session ends up with zero clients and live
-                # `tool` / `tool_result` / `token` / `cost` frames are
-                # dropped — exactly the "tool calls only show after
-                # reload" + "cost stays at 0" symptoms users hit.
-                # Fall back only to connected clients with the same owner
-                # in multi-user mode. That preserves live recovery for a
-                # user's sibling tabs without leaking an ownerless or
-                # inactive user's stream to someone else's browser.
-                if not snapshot:
-                    seen_clients = set()
-                    try:
-                        with bridge._sessions_lock:
-                            all_sessions = list(bridge._sessions.values())
-                    except Exception:
-                        all_sessions = []
-                    _multi_raw = os.environ.get("ATLAS_MULTI_USER", "1").strip().lower()
-                    _multi_user = _multi_raw not in ("0", "false", "no", "off")
-                    _target_owner = str(session_id or "").split("/", 1)[0]
-                    for sess in all_sessions:
-                        if _multi_user:
-                            _sess_owner = str(getattr(sess, "session_id", "") or "").split("/", 1)[0]
-                            if not _target_owner or _target_owner == "default" or _sess_owner != _target_owner:
-                                continue
-                        for c in list(sess.clients):
-                            if c not in seen_clients:
-                                seen_clients.add(c)
-                                snapshot.append(c)
                 if not snapshot:
                     continue
                 # Serialize once for the whole fan-out and skip the
@@ -3282,28 +3252,45 @@ def create_app():
             return JSONResponse({"ok": False, "error": str(e), "base_url": base},
                                 status_code=502)
 
+    def _request_active_session_for_user(request: Request) -> str:
+        user = request.scope.get("user") or {}
+        username = normalize_session_name(str(user.get("username") or ""))
+        if username:
+            try:
+                active = normalize_session_name(bridge.active_session_for_owner(username))
+            except Exception:
+                active = ""
+            return active or f"{username}/default"
+        return normalize_session_name(_active_session_value() or "")
+
     @app.post("/api/control/stop")
-    async def api_control_stop():
+    async def api_control_stop(request: Request):
         """HTTP fallback for the UI Stop button and Escape key.
 
         The primary control plane is the WebSocket, but control buttons
         should still work when the WS is reconnecting or its outbound queue
         is wedged behind a larger message.
         """
-        bridge.request_stop()
-        bridge.agent_running = False
-        bridge.emit("agent_state", running=False)
-        return JSONResponse({"ok": True, "action": "stop"})
+        target_session = _request_active_session_for_user(request)
+        bridge.request_stop_for_session(target_session)
+        try:
+            session = bridge._ensure_session(target_session)
+            session.agent_running = False
+        except Exception:
+            pass
+        bridge.emit("agent_state", running=False, session_id=target_session)
+        return JSONResponse({"ok": True, "action": "stop", "session_id": target_session})
 
     @app.post("/api/control/shutdown")
-    async def api_control_shutdown():
+    async def api_control_shutdown(request: Request):
         """HTTP fallback for the UI Exit button.
 
         Exit terminates the active session worker only. Atlas UI is the
         backend server for every browser/user, so it must stay alive.
         """
-        bridge.exit_active_session()
-        return JSONResponse({"ok": True, "action": "exit_session"})
+        target_session = _request_active_session_for_user(request)
+        bridge.exit_session(target_session)
+        return JSONResponse({"ok": True, "action": "exit_session", "session_id": target_session})
 
     @app.post("/api/settings/reasoning-effort")
     async def api_settings_reasoning_effort(request: Request):
@@ -3325,7 +3312,11 @@ def create_app():
             _persist_reasoning_effort(effort)
             _refresh_config_after_persist()
             _set_runtime_reasoning_effort(effort)
-            bridge.emit("context", reasoning_effort=effort)
+            bridge.emit(
+                "context",
+                reasoning_effort=effort,
+                session_id=_request_active_session_for_user(request),
+            )
             return JSONResponse({"ok": True, "reasoning_effort": effort})
         except Exception as exc:
             return JSONResponse({"ok": False, "error": str(exc)}, status_code=500)
@@ -3387,7 +3378,13 @@ def create_app():
                 (row["key"] for row in updated_options if row.get("selected") == "true"),
                 selected["key"],
             )
-            bridge.emit("context", model=model, model_options=updated_options, selected_model_key=updated_selected_key)
+            bridge.emit(
+                "context",
+                model=model,
+                model_options=updated_options,
+                selected_model_key=updated_selected_key,
+                session_id=_request_active_session_for_user(request),
+            )
             return JSONResponse({
                 "ok": True,
                 "model": model,
@@ -3414,10 +3411,14 @@ def create_app():
         user = request.scope.get("user")
         username = user.get("username") if user else None
         info["user_session"] = username
+        username_norm = normalize_session_name(str(username or ""))
         request_active_session = ""
-        if username:
+        if username_norm:
             try:
-                request_active_session = bridge.active_session_for_owner(str(username))
+                request_active_session = (
+                    bridge.active_session_for_owner(username_norm)
+                    or bridge.active_session_for_owner(_session_owner_with_model(username_norm))
+                )
             except Exception:
                 request_active_session = ""
         client_host = (request.client.host if request.client else "") or "127.0.0.1"
@@ -3502,11 +3503,30 @@ def create_app():
             # so polling /healthz from the frontend is enough to keep
             # the preview / SSOT / QA panels in sync without a custom
             # WS event.
-            info["active_session"] = (
-                request_active_session
-                or _active_session_value()
-                or _canonical_session_string()
-            )
+            def _owned_healthz_session(raw: str) -> str:
+                normalized = normalize_session_name(str(raw or ""))
+                if not normalized:
+                    return ""
+                if not username_norm:
+                    return normalized
+                owner = normalized.split("/", 1)[0]
+                allowed = {username_norm, _session_owner_with_model(username_norm)}
+                return normalized if owner in allowed else ""
+
+            if username_norm:
+                active_session = (
+                    _owned_healthz_session(request_active_session)
+                    or _owned_healthz_session(_active_session_value())
+                )
+                if not active_session:
+                    active_session = f"{_session_owner_with_model(username_norm)}/default/default"
+                info["active_session"] = active_session
+            else:
+                info["active_session"] = (
+                    request_active_session
+                    or _active_session_value()
+                    or _canonical_session_string()
+                )
             _active_parts = [
                 part for part in normalize_session_name(
                     str(info.get("active_session") or "")
@@ -3523,6 +3543,20 @@ def create_app():
                 else (os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default")
             )
             active_session_path = normalize_session_name(str(info.get("active_session") or ""))
+            info["db_session_id"] = ""
+            info["session_uid"] = ""
+            info["session_label"] = ""
+            if active_session_path and user:
+                try:
+                    with AtlasDB() as _db:
+                        _row = _db.get_session_for_user(str(user.get("id") or ""), active_session_path)
+                    if _row:
+                        info["db_session_id"] = str(_row.get("id") or "")
+                        info["session_uid"] = str(_row.get("session_uid") or "")
+                        _uid = info["session_uid"]
+                        info["session_label"] = f"S-{_uid[:8]}" if _uid else active_session_path
+                except Exception:
+                    pass
             if active_session_path:
                 session_dir = PROJECT_ROOT / ".session" / active_session_path
                 info["session_dir"] = str(session_dir)
@@ -16500,9 +16534,13 @@ def create_app():
         def _authorize_ws_session(raw_session: str) -> str | None:
             normalized = normalize_session_name(str(raw_session or ""))
             if not normalized or normalized == "default":
-                normalized = f"{username}/default" if username else "default"
+                normalized = f"{username}/default/default" if username else "default/default/default"
             elif username and normalized == username:
-                normalized = f"{username}/default"
+                normalized = f"{username}/default/default"
+            else:
+                parts = [part for part in normalized.split("/") if part]
+                if len(parts) == 2 and username and parts[0] == username:
+                    normalized = f"{parts[0]}/{parts[1]}/default"
             owner = normalized.split("/", 1)[0]
             if _multi_user and username and owner != username:
                 with AtlasDB() as db:

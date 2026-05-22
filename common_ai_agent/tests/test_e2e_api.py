@@ -83,7 +83,7 @@ def test_full_flow(tmp_path, monkeypatch):
     assert "ATLAS Lobby" in r.text
     print("PASS: /lobby")
 
-    with client.websocket_connect("/ws/agent?session_id=test-session") as ws:
+    with client.websocket_connect("/ws/agent?session_id=e2e_user/test_ip/ssot-gen") as ws:
         data = ws.receive_json()
         assert data["type"] == "hello"
         print("PASS: WebSocket /ws/agent?session_id=...")
@@ -129,7 +129,7 @@ def test_session_state_keeps_file_fallback_for_namespace_sessions(tmp_path, monk
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
-    sdir = tmp_path / ".session" / "alice" / "ip_alpha" / "ssot-gen"
+    sdir = tmp_path / ".session" / "file_reader" / "ip_alpha" / "ssot-gen"
     sdir.mkdir(parents=True)
     (sdir / "conversation.json").write_text(
         '[{"role":"user","content":"hello from file"}]',
@@ -139,7 +139,7 @@ def test_session_state_keeps_file_fallback_for_namespace_sessions(tmp_path, monk
     client = TestClient(atlas_ui.create_app())
     login = client.post("/api/auth/register", json={"username": "file_reader", "password": "pw"})
     assert login.status_code == 200, login.text
-    state = client.get("/api/session/state?session=alice/ip_alpha/ssot-gen")
+    state = client.get("/api/session/state?session=file_reader/ip_alpha/ssot-gen")
 
     assert state.status_code == 200, state.text
     conversation = state.json()["conversation"]

@@ -173,6 +173,28 @@ def test_strict_routing_requires_session_or_context():
     assert msg and msg.get("text") == "context routed"
 
 
+def test_private_events_cannot_be_broadcast_to_every_session():
+    bridge = _MultiUserBridge()
+    bridge._ensure_session("alice/ip_alpha/rtl-gen")
+    bridge._ensure_session("bob/ip_beta/rtl-gen")
+
+    bridge.broadcast_all(
+        "cost",
+        session_id="alice/ip_alpha/rtl-gen",
+        input=7,
+        output=3,
+    )
+
+    msg, sid = asyncio.get_event_loop().run_until_complete(bridge.next_event(timeout=0.5))
+    assert sid == "alice/ip_alpha/rtl-gen"
+    assert msg and msg.get("type") == "cost"
+    assert msg.get("input") == 7
+
+    msg, sid = asyncio.get_event_loop().run_until_complete(bridge.next_event(timeout=0.05))
+    assert msg is None
+    assert sid is None
+
+
 def test_question_flow_uses_context_session_not_latest_active():
     bridge = _MultiUserBridge()
     bridge.activate_session("user-b")

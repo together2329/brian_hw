@@ -97,9 +97,11 @@ def register_sessions_routes(
             if isinstance(raw_preserve, bool)
             else str(raw_preserve or "").strip().lower() in ("1", "true", "yes", "on")
         )
-        # Sanitize — refuse exotic path chars to avoid traversal.
+        # Sanitize — refuse exotic path chars to avoid traversal. Usernames
+        # may be numeric account ids, so the first segment cannot require a
+        # letter.
         for label, val in (("owner", sid), ("ip", ip), ("workflow", wf)):
-            if not re.match(r"^[A-Za-z][A-Za-z0-9_-]*$", val):
+            if not re.match(r"^[A-Za-z0-9][A-Za-z0-9_-]*$", val):
                 return JSONResponse(
                     {"error": f"invalid {label}: {val!r}"},
                     status_code=400,
@@ -612,6 +614,18 @@ def register_sessions_routes(
         multi_user_on = _multi_user_enabled()
         if multi_user_on and not owner:
             return JSONResponse({"error": "login required", "sessions": [], "count": 0}, status_code=401)
+        db_by_namespace: dict[str, dict[str, Any]] = {}
+        user_id = _request_user_id(request)
+        try:
+            with _atlas_db() as db:
+                for item in db.list_sessions(user_id):
+                    if not isinstance(item, dict):
+                        continue
+                    namespace = str(item.get("namespace") or item.get("id") or "").strip()
+                    if namespace:
+                        db_by_namespace[namespace] = item
+        except Exception:
+            db_by_namespace = {}
         if root.is_dir():
             for p in sorted(root.rglob("conversation.json")):
                 try:
@@ -624,12 +638,31 @@ def register_sessions_routes(
                 session = str(rel)
                 if session == ".":
                     continue
-                out.append({
+                db_session = db_by_namespace.get(session) or {}
+                row = {
                     "session": session,
                     "path": p.relative_to(PROJECT_ROOT).as_posix(),
                     "mtime": p.stat().st_mtime,
                     "size": p.stat().st_size,
-                })
+                }
+                row.update(_session_context_payload(db_session))
+                out.append(row)
+        seen = {str(row.get("session") or "") for row in out}
+        for namespace, db_session in db_by_namespace.items():
+            if namespace in seen:
+                continue
+            if multi_user_on and owner:
+                parts = [part for part in namespace.split("/") if part]
+                if len(parts) >= 3 and parts[0] != owner:
+                    continue
+            row = {
+                "session": namespace,
+                "path": "",
+                "mtime": db_session.get("updated_at") or 0,
+                "size": 0,
+            }
+            row.update(_session_context_payload(db_session))
+            out.append(row)
         return JSONResponse({"sessions": out, "count": len(out)})
 
     # ── Atlas SQLite session CRUD (/api/sessions*) ─────────────────
@@ -642,8 +675,64 @@ def register_sessions_routes(
             pass
         return db
 
+    def _session_label(session: dict) -> str:
+        uid = str(session.get("session_uid") or "").strip()
+        if uid:
+            return f"S-{uid[:8]}"
+        namespace = str(session.get("namespace") or session.get("id") or "").strip()
+        return namespace or ""
+
+    def _session_context_payload(session: Optional[dict]) -> dict[str, Any]:
+        if not isinstance(session, dict) or not session:
+            return {}
+        summary = session.get("summary") if isinstance(session.get("summary"), dict) else {}
+        namespace = str(session.get("namespace") or summary.get("namespace") or session.get("id") or "")
+        owner = str(session.get("owner") or summary.get("owner") or "")
+        ip = str(session.get("ip_id") or session.get("ip") or summary.get("ip") or session.get("project_id") or "")
+        workflow = str(session.get("workflow") or summary.get("workflow") or "")
+        return {
+            "db_session_id": session.get("id") or "",
+            "session_uid": session.get("session_uid") or "",
+            "session_label": _session_label(session),
+            "namespace": namespace,
+            "owner": owner,
+            "ip": ip,
+            "workflow": workflow,
+            "session_kind": session.get("session_kind") or "",
+        }
+
+    def _namespace_owner(session: str) -> str:
+        parts = [part for part in normalize_session_name(str(session or "")).split("/") if part]
+        return parts[0] if len(parts) >= 3 else ""
+
+    def _authorize_session_request(request: Request, session: str) -> Optional[JSONResponse]:
+        if not _multi_user_enabled():
+            return None
+        owner = _request_username(request)
+        if not owner:
+            return JSONResponse({"error": "login required"}, status_code=401)
+        user_id = _request_user_id(request)
+        namespace_owner = _namespace_owner(session)
+        if namespace_owner and namespace_owner != owner:
+            return JSONResponse({"error": "session owner mismatch"}, status_code=403)
+        try:
+            with _atlas_db() as db:
+                owned = db.get_session_for_user(user_id, session)
+                if owned is not None:
+                    return None
+                existing = db.find_session(session)
+                if existing is not None and existing.get("user_id") != user_id:
+                    return JSONResponse({"error": "session owner mismatch"}, status_code=403)
+        except Exception:
+            pass
+        return None
+
     def _public_session(session: dict, include_summary: bool = False) -> dict:
-        fields = ["id", "user_id", "title", "project_id", "status", "created_at", "updated_at"]
+        fields = [
+            "id", "session_uid", "user_id", "namespace", "owner", "title",
+            "project_id", "workspace_id", "ip_id", "ip", "workflow",
+            "session_kind", "status", "created_at", "updated_at",
+        ]
         if include_summary:
             fields.append("summary")
         return {key: session.get(key) for key in fields}
@@ -706,7 +795,7 @@ def register_sessions_routes(
         user_id = _request_user_id(request)
         try:
             with _atlas_db() as db:
-                session = db.get_session(session_id)
+                session = db.get_session_for_user(user_id, session_id)
                 if not _owns_session(session, user_id):
                     return _session_not_found()
                 return JSONResponse(_public_session(session, include_summary=True))
@@ -727,12 +816,12 @@ def register_sessions_routes(
         user_id = _request_user_id(request)
         try:
             with _atlas_db() as db:
-                session = db.get_session(session_id)
+                session = db.get_session_for_user(user_id, session_id)
                 if not _owns_session(session, user_id):
                     return _session_not_found()
                 if fields:
-                    db.update_session(session_id, **fields)
-                updated = db.get_session(session_id)
+                    db.update_session(session["id"], **fields)
+                updated = db.get_session(session["id"])
                 if not _owns_session(updated, user_id):
                     return _session_not_found()
                 return JSONResponse(_public_session(updated, include_summary=True))
@@ -745,10 +834,10 @@ def register_sessions_routes(
         user_id = _request_user_id(request)
         try:
             with _atlas_db() as db:
-                session = db.get_session(session_id)
+                session = db.get_session_for_user(user_id, session_id)
                 if not _owns_session(session, user_id):
                     return _session_not_found()
-                db.delete_session(session_id)
+                db.delete_session(session["id"])
                 return JSONResponse({"deleted": True})
         except Exception as e:
             print(f"api_delete_session error: {e}")
@@ -764,15 +853,15 @@ def register_sessions_routes(
         try:
             user_id = _request_user_id(request)
             with _atlas_db() as db:
-                session = db.get_session(session_id)
+                session = db.get_session_for_user(user_id, session_id)
                 if not _owns_session(session, user_id):
                     return JSONResponse(
                         {"error": "session not found or not owned by user"},
                         status_code=404,
                     )
             # Bind on the bridge so emit/inbox/outbox routing follows.
-            bridge.activate_session(session_id)
-            return JSONResponse({"activated": True, "session_id": session_id})
+            bridge.activate_session(session["id"])
+            return JSONResponse({"activated": True, "session_id": session["id"]})
         except Exception as e:
             print(f"api_activate_session error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)

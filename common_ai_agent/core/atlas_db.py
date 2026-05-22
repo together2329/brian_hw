@@ -52,8 +52,16 @@ CREATE INDEX IF NOT EXISTS idx_users_password_reset_token
 -- sessions
 CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
+    session_uid TEXT,
     user_id TEXT NOT NULL,
+    namespace TEXT,
+    owner TEXT,
     project_id TEXT,
+    workspace_id TEXT,
+    ip_id TEXT,
+    ip TEXT,
+    workflow TEXT,
+    session_kind TEXT DEFAULT 'chat',
     directory TEXT,
     title TEXT,
     status TEXT DEFAULT 'active',
@@ -63,6 +71,10 @@ CREATE TABLE IF NOT EXISTS sessions (
     summary TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id, status);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_uid
+    ON sessions(session_uid) WHERE session_uid IS NOT NULL AND session_uid != '';
+CREATE INDEX IF NOT EXISTS idx_sessions_user_namespace ON sessions(user_id, namespace);
+CREATE INDEX IF NOT EXISTS idx_sessions_user_context ON sessions(user_id, ip_id, workflow, status);
 
 -- messages
 CREATE TABLE IF NOT EXISTS messages (
@@ -661,7 +673,14 @@ class AtlasDB:
                 "password_reset_requested_at": "REAL",
                 "password_reset_used_at": "REAL",
             },
-            "sessions": {"user_id": "TEXT", "status": "TEXT"},
+            "sessions": {
+                "session_uid": "TEXT",
+                "user_id": "TEXT",
+                "namespace": "TEXT",
+                "ip_id": "TEXT",
+                "workflow": "TEXT",
+                "status": "TEXT",
+            },
             "messages": {"session_id": "TEXT", "created_at": "REAL"},
             "parts": {"message_id": "TEXT"},
             "feedback": {"user_id": "TEXT", "status": "TEXT", "created_at": "REAL"},
@@ -761,6 +780,45 @@ class AtlasDB:
         self._ensure_column(conn, "users", "password_reset_expires_at", "REAL")
         self._ensure_column(conn, "users", "password_reset_requested_at", "REAL")
         self._ensure_column(conn, "users", "password_reset_used_at", "REAL")
+        session_columns = {
+            "session_uid": "TEXT",
+            "namespace": "TEXT",
+            "owner": "TEXT",
+            "workspace_id": "TEXT",
+            "ip_id": "TEXT",
+            "ip": "TEXT",
+            "workflow": "TEXT",
+            "session_kind": "TEXT DEFAULT 'chat'",
+        }
+        for column, definition in session_columns.items():
+            self._ensure_column(conn, "sessions", column, definition)
+        conn.execute(
+            """CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_uid
+                  ON sessions(session_uid) WHERE session_uid IS NOT NULL AND session_uid != ''"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_sessions_user_namespace
+                  ON sessions(user_id, namespace)"""
+        )
+        conn.execute(
+            """CREATE INDEX IF NOT EXISTS idx_sessions_user_context
+                  ON sessions(user_id, ip_id, workflow, status)"""
+        )
+        for row in conn.execute(
+            "SELECT id FROM sessions WHERE session_uid IS NULL OR session_uid = ''"
+        ).fetchall():
+            conn.execute(
+                "UPDATE sessions SET session_uid = ? WHERE id = ?",
+                (self._new_id(), row["id"]),
+            )
+        conn.execute(
+            """
+            UPDATE sessions
+               SET namespace = id
+             WHERE (namespace IS NULL OR namespace = '')
+               AND instr(id, '/') > 0
+            """
+        )
         conn.execute(
             """CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
                   ON users(email) WHERE email IS NOT NULL AND email != ''"""
@@ -991,19 +1049,36 @@ class AtlasDB:
     ) -> Dict[str, Any]:
         """Create a new session. Returns the session dict."""
         session_id = self._new_id()
+        session_uid = self._new_id()
         now = self._now()
         directory = str(Path.cwd())
         self._execute(
             """
-            INSERT INTO sessions (id, user_id, project_id, directory, title, status, created_at, updated_at, archived_at, summary)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO sessions
+            (id, session_uid, user_id, project_id, session_kind, directory, title, status, created_at, updated_at, archived_at, summary)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (session_id, user_id, project_id, directory, title, "active", now, now, None, None),
+            (
+                session_id,
+                session_uid,
+                user_id,
+                project_id,
+                "chat",
+                directory,
+                title,
+                "active",
+                now,
+                now,
+                None,
+                None,
+            ),
         )
         return {
             "id": session_id,
+            "session_uid": session_uid,
             "user_id": user_id,
             "project_id": project_id,
+            "session_kind": "chat",
             "directory": directory,
             "title": title,
             "status": "active",
@@ -1016,6 +1091,37 @@ class AtlasDB:
     def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Get session by ID. Returns session dict or None."""
         row = self._fetchone("SELECT * FROM sessions WHERE id = ?", (session_id,))
+        if row is None:
+            return None
+        return self._row_to_dict(row, "sessions")
+
+    def get_session_for_user(self, user_id: str, session_id: str) -> Optional[Dict[str, Any]]:
+        """Get a session by DB id, runtime namespace, or public uid for one user."""
+        row = self._fetchone(
+            """
+            SELECT * FROM sessions
+             WHERE user_id = ?
+               AND (id = ? OR namespace = ? OR session_uid = ?)
+             ORDER BY updated_at DESC
+             LIMIT 1
+            """,
+            (user_id, session_id, session_id, session_id),
+        )
+        if row is None:
+            return None
+        return self._row_to_dict(row, "sessions")
+
+    def find_session(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Get a session by DB id, runtime namespace, or public uid."""
+        row = self._fetchone(
+            """
+            SELECT * FROM sessions
+             WHERE id = ? OR namespace = ? OR session_uid = ?
+             ORDER BY updated_at DESC
+             LIMIT 1
+            """,
+            (session_id, session_id, session_id),
+        )
         if row is None:
             return None
         return self._row_to_dict(row, "sessions")
@@ -1045,6 +1151,75 @@ class AtlasDB:
             f"UPDATE sessions SET {columns} WHERE id = ?",
             tuple(values),
         )
+
+    def upsert_runtime_session(
+        self,
+        session_id: str,
+        user_id: str,
+        *,
+        owner: str = "",
+        ip: str = "",
+        workflow: str = "",
+        workspace_id: str = "",
+        ip_id: str = "",
+        project_id: str = "",
+        directory: str = "",
+        title: str = "",
+        status: str = "active",
+        summary: Any = None,
+    ) -> Dict[str, Any]:
+        """Create/update the DB row that backs one active User/IP/Workflow runtime."""
+        existing = self.get_session(session_id)
+        if existing is not None and existing.get("user_id") != user_id:
+            raise ValueError("runtime session belongs to a different user")
+        session_uid = (existing or {}).get("session_uid") or self._new_id()
+        ip_value = ip_id or ip
+        if existing is None:
+            self.import_session(
+                session_id,
+                user_id,
+                project_id=project_id or ip_value,
+                directory=directory,
+                title=title,
+                status=status,
+                summary=summary,
+                session_uid=session_uid,
+                namespace=session_id,
+                owner=owner,
+                workspace_id=workspace_id,
+                ip_id=ip_value,
+                ip=ip or ip_value,
+                workflow=workflow,
+                session_kind="runtime",
+            )
+        self.update_session(
+            session_id,
+            session_uid=session_uid,
+            user_id=user_id,
+            namespace=session_id,
+            owner=owner,
+            project_id=project_id or ip_value,
+            workspace_id=workspace_id,
+            ip_id=ip_value,
+            ip=ip or ip_value,
+            workflow=workflow,
+            session_kind="runtime",
+            directory=directory,
+            title=title,
+            status=status,
+            summary=summary,
+        )
+        return self.get_session(session_id) or {
+            "id": session_id,
+            "session_uid": session_uid,
+            "user_id": user_id,
+            "namespace": session_id,
+            "owner": owner,
+            "ip_id": ip_value,
+            "ip": ip or ip_value,
+            "workflow": workflow,
+            "session_kind": "runtime",
+        }
 
     def archive_session(self, session_id: str):
         """Mark a session as archived."""
@@ -1376,19 +1551,37 @@ class AtlasDB:
         updated_at: Optional[float] = None,
         archived_at: Optional[float] = None,
         summary: Any = None,
+        session_uid: Optional[str] = None,
+        namespace: str = "",
+        owner: str = "",
+        workspace_id: str = "",
+        ip_id: str = "",
+        ip: str = "",
+        workflow: str = "",
+        session_kind: str = "chat",
     ) -> Dict[str, Any]:
         now = self._now()
         summary_json = self._dump_json(summary)
+        session_uid = session_uid or self._new_id()
         self._execute(
             """
             INSERT OR IGNORE INTO sessions
-            (id, user_id, project_id, directory, title, status, created_at, updated_at, archived_at, summary)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (id, session_uid, user_id, namespace, owner, project_id, workspace_id, ip_id, ip, workflow, session_kind,
+             directory, title, status, created_at, updated_at, archived_at, summary)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 session_id,
+                session_uid,
                 user_id,
+                namespace,
+                owner,
                 project_id,
+                workspace_id,
+                ip_id,
+                ip,
+                workflow,
+                session_kind,
                 directory,
                 title,
                 status,
@@ -1400,6 +1593,7 @@ class AtlasDB:
         )
         return self.get_session(session_id) or {
             "id": session_id,
+            "session_uid": session_uid,
             "user_id": user_id,
             "title": title,
         }
@@ -3631,8 +3825,10 @@ class AtlasDB:
         rows = self._fetchall(
             """
             SELECT
-                s.id, s.user_id, s.project_id, s.directory, s.title,
-                s.status, s.created_at, s.updated_at, s.archived_at, s.summary,
+                s.id, s.session_uid, s.user_id, s.namespace, s.owner,
+                s.project_id, s.workspace_id, s.ip_id, s.ip, s.workflow,
+                s.session_kind, s.directory, s.title, s.status,
+                s.created_at, s.updated_at, s.archived_at, s.summary,
                 u.username as owner_username, u.display_name as owner_display_name,
                 r.id as latest_workflow_run_id,
                 r.workflow as latest_workflow,
@@ -3655,8 +3851,8 @@ class AtlasDB:
         for row in rows:
             item = self._row_to_dict(row, "sessions")
             summary = item.get("summary") if isinstance(item.get("summary"), dict) else {}
-            item["ip"] = summary.get("ip") or item.get("project_id") or ""
-            item["workflow"] = item.get("latest_workflow") or summary.get("workflow") or ""
+            item["ip"] = item.get("ip_id") or item.get("ip") or summary.get("ip") or item.get("project_id") or ""
+            item["workflow"] = item.get("workflow") or item.get("latest_workflow") or summary.get("workflow") or ""
             item["pipeline_run_id"] = summary.get("pipeline_run_id") or item.get("latest_workflow_run_id") or ""
             sessions.append(item)
         return sessions

@@ -74,8 +74,12 @@ def test_multiuser_session_ip_workflow_dirs_and_ip_visibility(tmp_path, monkeypa
 
     alice_sessions = alice.get("/api/session/list")
     assert alice_sessions.status_code == 200
-    alice_listed = {row["session"] for row in alice_sessions.json()["sessions"]}
+    alice_rows = alice_sessions.json()["sessions"]
+    alice_listed = {row["session"] for row in alice_rows}
     assert alice_listed == {"alice/ip_alpha/sta", "alice/ip_beta/sta"}
+    assert all(row["owner"] == "alice" for row in alice_rows)
+    assert all(row["session_uid"] for row in alice_rows)
+    assert {row["ip"] for row in alice_rows} == {"ip_alpha", "ip_beta"}
 
     forbidden = alice.post(
         "/api/session/activate",
@@ -102,13 +106,30 @@ def test_session_activate_records_db_control_plane_namespace(tmp_path, monkeypat
     response = _activate(client, "alice", "spi_core", "orchestrator")
 
     assert response.status_code == 200, response.text
-    assert response.json()["active_session"] == "alice/spi_core/orchestrator"
+    payload = response.json()
+    assert payload["active_session"] == "alice/spi_core/orchestrator"
+    assert payload["owner"] == "alice"
+    assert payload["user_id"]
+    assert payload["session_uid"]
+    assert payload["runtime_session_id"] == payload["session_uid"]
+    assert payload["session_label"].startswith("S-")
+    health = client.get("/healthz")
+    assert health.status_code == 200, health.text
+    assert health.json()["db_session_id"] == "alice/spi_core/orchestrator"
+    assert health.json()["session_uid"] == payload["session_uid"]
     user_id = client.get("/api/users/me").json()["user"]["id"]
     with AtlasDB() as db:
         session = db.get_session("alice/spi_core/orchestrator")
         assert session is not None
+        assert session["session_uid"] == payload["session_uid"]
         assert session["user_id"] == user_id
+        assert session["namespace"] == "alice/spi_core/orchestrator"
+        assert session["owner"] == "alice"
         assert session["project_id"] == "spi_core"
+        assert session["ip_id"] == "spi_core"
+        assert session["ip"] == "spi_core"
+        assert session["workflow"] == "orchestrator"
+        assert session["session_kind"] == "runtime"
         assert session["summary"]["kind"] == "atlas_control_plane"
         assert session["summary"]["ip"] == "spi_core"
         assert session["summary"]["workflow"] == "orchestrator"
@@ -143,12 +164,62 @@ def test_session_activate_owner_alias_keeps_db_user_id_distinct(tmp_path, monkey
     assert payload["owner"] == "alice"
     assert payload["session_id"] == "alice"
     assert payload["db_session_id"] == "alice/spi_core/rtl-gen"
+    assert payload["session_uid"]
+    assert payload["session"]["db_session_id"] == "alice/spi_core/rtl-gen"
+    assert payload["session"]["owner"] == "alice"
+    assert payload["session"]["ip"] == "spi_core"
+    assert payload["session"]["workflow"] == "rtl-gen"
     user_id = client.get("/api/users/me").json()["user"]["id"]
     with AtlasDB() as db:
         session = db.get_session("alice/spi_core/rtl-gen")
         assert session is not None
         assert session["user_id"] == user_id
         assert session["user_id"] != session["id"]
+        assert session["session_uid"] == payload["session_uid"]
+        assert session["namespace"] == "alice/spi_core/rtl-gen"
+        assert session["owner"] == "alice"
+
+
+def test_session_history_and_state_forbid_cross_user_namespace_reads(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    alice = TestClient(app)
+    bob = TestClient(app)
+    _register(alice, "alice")
+    _register(bob, "bob")
+
+    activated = _activate(alice, "alice", "secret_ip", "rtl-gen")
+    assert activated.status_code == 200, activated.text
+    namespace = "alice/secret_ip/rtl-gen"
+    session_dir = tmp_path / ".session" / "alice" / "secret_ip" / "rtl-gen"
+    (session_dir / "conversation.json").write_text(
+        json.dumps([{"role": "user", "content": "alice-only file"}]),
+        encoding="utf-8",
+    )
+    (session_dir / "todo.json").write_text(
+        json.dumps({"todos": [{"id": "alice-only-todo"}]}),
+        encoding="utf-8",
+    )
+    with AtlasDB() as db:
+        msg = db.save_message(namespace, "assistant")
+        db.save_part(msg["id"], namespace, "text", text="alice-only db")
+
+    assert alice.get("/api/session/history", params={"session": namespace}).status_code == 200
+    assert alice.get("/api/session/state", params={"session": namespace}).status_code == 200
+
+    forbidden_history = bob.get("/api/session/history", params={"session": namespace})
+    forbidden_state = bob.get("/api/session/state", params={"session": namespace})
+
+    assert forbidden_history.status_code == 403
+    assert forbidden_state.status_code == 403
 
 
 def test_healthz_context_cost_is_scoped_to_active_namespace(tmp_path, monkeypatch):
@@ -223,6 +294,134 @@ def test_healthz_context_cost_is_scoped_to_active_namespace(tmp_path, monkeypatc
     assert empty_health.json()["tokens"] == 0
     assert empty_health.json()["tokens_in"] == 0
     assert empty_health.json()["cost_usd"] == 0.0
+
+
+def test_healthz_does_not_share_cost_with_numeric_user_owner(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_SESSION_PER_MODEL", "0")
+    monkeypatch.setenv("ATLAS_DEFAULT_WORKFLOW", "default")
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    brian = TestClient(app)
+    numeric = TestClient(app)
+    _register(brian, "brian")
+    _register(numeric, "20766")
+
+    brian_active = _activate(brian, "brian", "ip_brian", "rtl-gen")
+    assert brian_active.status_code == 200, brian_active.text
+    brian_cost = tmp_path / ".session" / "brian" / "ip_brian" / "rtl-gen" / "cost.json"
+    brian_cost.write_text(
+        json.dumps({
+            "in_tok": 777,
+            "cache_tok": 0,
+            "out_tok": 333,
+            "sum_tok": 1110,
+            "cost_usd": 9.99,
+        }),
+        encoding="utf-8",
+    )
+
+    numeric_before_activate = numeric.get("/healthz")
+    assert numeric_before_activate.status_code == 200, numeric_before_activate.text
+    before_payload = numeric_before_activate.json()
+    assert before_payload["active_session"] == "20766/default/default"
+    assert before_payload["tokens"] == 0
+    assert before_payload["tokens_in"] == 0
+    assert before_payload["tokens_out"] == 0
+    assert before_payload["cost_usd"] == 0.0
+
+    numeric_active = _activate(numeric, "20766", "ip_207", "rtl-gen")
+    assert numeric_active.status_code == 200, numeric_active.text
+    numeric_cost = tmp_path / ".session" / "20766" / "ip_207" / "rtl-gen" / "cost.json"
+    numeric_cost.write_text(
+        json.dumps({
+            "in_tok": 12,
+            "cache_tok": 3,
+            "out_tok": 4,
+            "sum_tok": 16,
+            "cost_usd": 0.07,
+            "last_in_tok": 12,
+            "last_cache_tok": 3,
+            "last_out_tok": 4,
+        }),
+        encoding="utf-8",
+    )
+
+    numeric_after_activate = numeric.get("/healthz")
+    assert numeric_after_activate.status_code == 200, numeric_after_activate.text
+    after_payload = numeric_after_activate.json()
+    assert after_payload["active_session"] == "20766/ip_207/rtl-gen"
+    assert after_payload["tokens"] == 12
+    assert after_payload["tokens_in"] == 12
+    assert after_payload["tokens_out"] == 4
+    assert after_payload["cost_usd"] == 0.07
+
+
+def test_http_control_stop_targets_request_user_session_only(tmp_path, monkeypatch):
+    import asyncio
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    alice = TestClient(app)
+    bob = TestClient(app)
+    _register(alice, "alice")
+    _register(bob, "bob")
+
+    assert _activate(alice, "alice", "ip_alpha", "rtl-gen").status_code == 200
+    assert _activate(bob, "bob", "ip_beta", "rtl-gen").status_code == 200
+
+    alice_session = app.state.bridge._ensure_session("alice/ip_alpha/rtl-gen")
+    bob_session = app.state.bridge._ensure_session("bob/ip_beta/rtl-gen")
+    alice_session.agent_running = True
+    bob_session.agent_running = True
+
+    while True:
+        event, _sid = asyncio.get_event_loop().run_until_complete(
+            app.state.bridge.next_event(timeout=0.01)
+        )
+        if event is None:
+            break
+
+    response = alice.post("/api/control/stop")
+
+    assert response.status_code == 200, response.text
+    assert response.json()["session_id"] == "alice/ip_alpha/rtl-gen"
+    assert alice_session.agent_running is False
+    assert bob_session.agent_running is True
+
+    events = []
+    while True:
+        event, sid = asyncio.get_event_loop().run_until_complete(
+            app.state.bridge.next_event(timeout=0.01)
+        )
+        if event is None:
+            break
+        events.append((event, sid))
+    assert any(
+        event.get("type") == "agent_state"
+        and event.get("running") is False
+        and sid == "alice/ip_alpha/rtl-gen"
+        for event, sid in events
+    )
+    assert not any(
+        event.get("type") == "agent_state"
+        and event.get("running") is False
+        and sid == "bob/ip_beta/rtl-gen"
+        for event, sid in events
+    )
 
 
 def test_ip_list_requires_login_in_multiuser_mode(tmp_path, monkeypatch):
@@ -690,6 +889,26 @@ def test_websocket_binds_full_session_namespace(tmp_path, monkeypatch):
             raise AssertionError("cross-user websocket should be rejected")
     except WebSocketDisconnect as exc:
         assert exc.code == 1008
+
+
+def test_websocket_default_bind_keeps_three_part_user_namespace(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "20766")
+
+    with client.websocket_connect("/ws/agent") as ws:
+        hello = ws.receive_json()
+        assert hello["type"] == "hello"
+        health = client.get("/healthz")
+        assert health.status_code == 200, health.text
+        assert health.json()["active_session"] == "20766/default/default"
 
 
 def test_websocket_close_unbinds_and_reconnects_same_session(tmp_path, monkeypatch):

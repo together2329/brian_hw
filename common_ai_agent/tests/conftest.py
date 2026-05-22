@@ -13,6 +13,14 @@ sys.path.insert(0, _project_root)                        # core.*, lib.*, agents
 import pytest
 
 
+def pytest_configure(config):
+    """Drop stale user-site plugins that are not part of this repo."""
+    pm = config.pluginmanager
+    for plugin in list(pm.get_plugins()):
+        if getattr(plugin, "__name__", "") == "pytest_plugin.pytest_pymtl3":
+            pm.unregister(plugin)
+
+
 @pytest.fixture(scope="session")
 def rag_database():
     """Shared RAG database instance for tests"""

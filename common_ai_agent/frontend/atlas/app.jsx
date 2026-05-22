@@ -377,6 +377,12 @@ const App = () => {
     initialBootstrapNamespace || (holdInitialDashboardActivation ? '' : `${activeSessionId}/default/default`)
   );
   const [activeIp, setActiveIp] = React.useState(initialSplit.ipId || WORKFLOW_DEFAULT);
+  const [activeDbSession, setActiveDbSession] = React.useState(() => ({
+    dbSessionId: String(window.ATLAS_DB_SESSION_ID || '').trim(),
+    sessionUid: String(window.ATLAS_SESSION_UID || '').trim(),
+    sessionLabel: String(window.ATLAS_SESSION_LABEL || '').trim(),
+    namespace: initialBootstrapNamespace || '',
+  }));
   const splitActiveNamespace = React.useCallback(() => {
     const namespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
     return namespace
@@ -558,13 +564,14 @@ const App = () => {
           const holdDashboardActivation = atlasShouldHoldDashboardActivation();
           const currentNs = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
           const currentOwner = (currentNs.split('/').filter(Boolean)[0] || '');
+          const ownerMismatch = !!(currentOwner && currentOwner !== username);
           localStorage.setItem('atlasUserSessionId', username);
-          if (hasUrlContext || (!holdDashboardActivation && (!currentNs || currentNs === 'default' || (currentOwner && currentOwner !== username)))) {
+          if (hasUrlContext || (!holdDashboardActivation && (!currentNs || currentNs === 'default' || ownerMismatch))) {
             const currentParts = currentNs
               ? splitSessionNamespace(currentNs)
               : { sessionId: '', ipId: '', workflow: '' };
-            const nextIp = requestedIp || currentParts.ipId || WORKFLOW_DEFAULT;
-            const nextWf = requestedWf || currentParts.workflow || WORKFLOW_DEFAULT;
+            const nextIp = requestedIp || (!ownerMismatch ? currentParts.ipId : '') || WORKFLOW_DEFAULT;
+            const nextWf = requestedWf || (!ownerMismatch ? currentParts.workflow : '') || WORKFLOW_DEFAULT;
             const nextNs = `${username}/${nextIp}/${nextWf}`;
             window.ACTIVE_SESSION = nextNs;
             localStorage.setItem('atlasActiveSession', nextNs);
@@ -805,6 +812,25 @@ const App = () => {
     } catch (_) {}
   }, [normalizeSession]);
 
+  const applySessionMeta = React.useCallback((payload, fallbackNamespace) => {
+    const data = payload && typeof payload === 'object' ? payload : {};
+    const nested = data.session && typeof data.session === 'object' ? data.session : {};
+    const namespace = normalizeSession(data.namespace || nested.namespace || fallbackNamespace || '');
+    const dbSessionId = String(data.db_session_id || nested.db_session_id || nested.id || namespace || '').trim();
+    const sessionUid = String(data.session_uid || data.runtime_session_id || nested.session_uid || '').trim();
+    const sessionLabel = String(
+      data.session_label
+      || nested.session_label
+      || (sessionUid ? `S-${sessionUid.slice(0, 8)}` : '')
+    ).trim();
+    const next = { dbSessionId, sessionUid, sessionLabel, namespace };
+    window.ATLAS_DB_SESSION_ID = dbSessionId;
+    window.ATLAS_SESSION_UID = sessionUid;
+    window.ATLAS_SESSION_LABEL = sessionLabel;
+    setActiveDbSession(next);
+    return next;
+  }, [normalizeSession]);
+
   const activateNamespace = React.useCallback((sessionId, ipId, workflow, syncWorkflow = true, opts = {}) => {
     userPickAtRef.current = Date.now();
     const owner = loggedInOwner() || normalizeSession(sessionId) || 'default';
@@ -879,6 +905,11 @@ const App = () => {
           }),
         });
         activated = !!(res && res.ok);
+        if (activated) {
+          let payload = {};
+          try { payload = await res.json(); } catch (_) { payload = {}; }
+          applySessionMeta(payload, namespace);
+        }
       } catch (_) {}
       if (syncWorkflow && !activated) activateBackendWorkflow(wf, namespace);
       if (workflowChanged) {
@@ -893,7 +924,7 @@ const App = () => {
     };
     _activateAndDispatch();
     return namespace;
-  }, [activateBackendWorkflow, loggedInOwner, namespaceFor, normalizeSession, setAgentRunningState, splitSessionNamespace, syncNamespaceUrl]);
+  }, [activateBackendWorkflow, applySessionMeta, loggedInOwner, namespaceFor, normalizeSession, setAgentRunningState, splitSessionNamespace, syncNamespaceUrl]);
 
   React.useEffect(() => {
     window.activateAtlasNamespace = activateNamespace;
@@ -1123,6 +1154,14 @@ const App = () => {
       setActiveNamespace(canonicalNamespace);
       setActiveSessionId(owner);
       setActiveIp(ipSeg);
+      if (isHealthTick && (ctx.dbSessionId || ctx.sessionUid || ctx.sessionLabel)) {
+        applySessionMeta({
+          db_session_id: ctx.dbSessionId,
+          session_uid: ctx.sessionUid,
+          session_label: ctx.sessionLabel,
+          namespace: canonicalNamespace,
+        }, canonicalNamespace);
+      }
       // Push the canonical triple into the URL so the address bar
       // never silently disagrees with what the server reports.
       // Without this, reloading after a triple flip kept the OLD
@@ -1144,7 +1183,7 @@ const App = () => {
       window.removeEventListener('atlas-conversation-loaded', syncCurrent);
       window.removeEventListener('atlas-data-changed', syncCurrent);
     };
-  }, [activeIp, activeNamespace, activeSessionId, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace]);
+  }, [activeIp, activeNamespace, activeSessionId, applySessionMeta, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace]);
 
   React.useEffect(() => {
     // Don't fire the URL/localStorage → backend handshake before we
@@ -1190,6 +1229,9 @@ const App = () => {
       setActiveSessionId(owner);
       setActiveNamespace(nextNamespace);
       setActiveIp(nextIp);
+      if (ev?.detail?.session_uid || ev?.detail?.db_session_id || ev?.detail?.session_label) {
+        applySessionMeta(ev.detail, nextNamespace);
+      }
       syncNamespaceUrl(
         nextNamespace,
         owner,
@@ -1200,7 +1242,7 @@ const App = () => {
     };
     window.addEventListener('atlas-session-switched', onSwitch);
     return () => window.removeEventListener('atlas-session-switched', onSwitch);
-  }, [activeIp, activeNamespace, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace, syncNamespaceUrl]);
+  }, [activeIp, activeNamespace, applySessionMeta, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace, syncNamespaceUrl]);
 
   const selectSessionId = (rawSessionId) => {
     const authOwner = loggedInOwner();
@@ -1344,11 +1386,16 @@ const App = () => {
     // can be queued directly without a redundant `/wf ssot-gen` racing
     // behind it.
     try {
-      await fetch('/api/session/activate', {
+      const response = await fetch('/api/session/activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ owner: me, ip, workflow: 'ssot-gen' }),
       });
+      if (response && response.ok) {
+        let payload = {};
+        try { payload = await response.json(); } catch (_) { payload = {}; }
+        applySessionMeta(payload, namespace);
+      }
     } catch (_) {}
     if (window.backend) {
       try {
@@ -1686,6 +1733,16 @@ const App = () => {
   }
 
   const ownerEditable = !loggedInOwner();
+  const activeDbSessionLabel = (
+    activeDbSession.sessionLabel
+    || (activeDbSession.sessionUid ? `S-${activeDbSession.sessionUid.slice(0, 8)}` : '')
+    || (normalizeSession(activeDbSession.namespace || activeNamespace) || 'pending')
+  );
+  const activeDbSessionTitle = [
+    activeDbSession.dbSessionId ? `db_session_id=${activeDbSession.dbSessionId}` : '',
+    activeDbSession.sessionUid ? `session_uid=${activeDbSession.sessionUid}` : '',
+    activeNamespace ? `namespace=.session/${normalizeSession(activeNamespace)}` : '',
+  ].filter(Boolean).join(' · ');
 
   return (
     <div className="app" data-dir={dir} data-theme={theme}>
@@ -1853,6 +1910,10 @@ const App = () => {
                     onClick={() => setNameEntry(null)}>×</button>
           </form>
         )}
+        <label className="dir-select-wrap" title={activeDbSessionTitle || 'Runtime DB session for this user/IP/workflow'}>
+          <span>session</span>
+          <output className="dir-session-readonly">{activeDbSessionLabel}</output>
+        </label>
         <label className="dir-select-wrap" title="Select ip_id. Namespace is user/ip_id/workflow.">
           <span>ip_id</span>
           <select

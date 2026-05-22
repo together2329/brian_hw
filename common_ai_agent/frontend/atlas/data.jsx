@@ -842,22 +842,34 @@
       // re-derives activeSessionId from the namespace).
       try {
         const stored = (localStorage.getItem('atlasUserSessionId') || '').trim();
-        // Migrate stale auto-generated `u-<base36>-<rand>` ids to the
-        // server-supplied default ("default" in single-user mode).
-        // Don't override deliberate user-named sessions (anything that
-        // doesn't match the random stamp pattern).
+        const serverUser = normalizeSessionName(d.user_session || '');
+        const storedUser = normalizeSessionName(stored);
+        // Migrate stale auto-generated `u-<base36>-<rand>` ids, and keep
+        // browser-local owner state aligned with the authenticated user.
         const isLegacyRandom = /^u-[a-z0-9]{6,12}-[a-z0-9]{4,8}$/i.test(stored);
-        const shouldSeed = (!stored || isLegacyRandom) && d.user_session;
+        const userChanged = !!(serverUser && storedUser && storedUser !== serverUser);
+        const shouldSeed = !!(serverUser && (!storedUser || isLegacyRandom || userChanged));
         if (shouldSeed) {
-          localStorage.setItem('atlasUserSessionId', d.user_session);
-          window.ATLAS_USER_SESSION_ID = d.user_session;
+          localStorage.setItem('atlasUserSessionId', serverUser);
+          window.ATLAS_USER_SESSION_ID = serverUser;
           const storedNs = normalizeSessionName(localStorage.getItem('atlasActiveSession') || '');
           const liveNs = normalizeSessionName(window.ACTIVE_SESSION || '');
           const activeNs = normalizeSessionName(URL_ACTIVE_SESSION || liveNs || storedNs);
+          const activeParts = activeNs.split('/').filter(Boolean);
+          const activeOwner = activeParts[0] || '';
           const legacyNs = /^u-[a-z0-9]{6,12}-[a-z0-9]{4,8}(?:\/|$)/i.test(activeNs);
-          if (!activeNs || activeNs === 'default' || legacyNs) {
-            const tail = legacyNs ? activeNs.split('/').filter(Boolean).slice(1) : [];
-            const seedNs = [d.user_session, ...(tail.length ? tail : ['default'])].join('/');
+          const ownerMismatch = !!(activeOwner && activeOwner !== serverUser);
+          if (!activeNs || activeNs === 'default' || legacyNs || ownerMismatch) {
+            const serverNs = normalizeSessionName(d.active_session || '');
+            const serverParts = serverNs.split('/').filter(Boolean);
+            let tail = [];
+            if ((legacyNs || ownerMismatch) && URL_ACTIVE_SESSION) {
+              tail = activeParts.slice(1);
+            } else if (serverParts[0] === serverUser) {
+              tail = serverParts.slice(1);
+            }
+            if (tail.length < 2) tail = ['default', 'default'];
+            const seedNs = [serverUser, ...tail.slice(0, 2)].join('/');
             localStorage.setItem('atlasActiveSession', seedNs);
             window.ACTIVE_SESSION = seedNs;
             window.dispatchEvent(new CustomEvent('atlas-session-loaded', {
@@ -865,6 +877,11 @@
             }));
           } else if (storedNs !== activeNs) {
             localStorage.setItem('atlasActiveSession', activeNs);
+          }
+          if (userChanged && !URL_ACTIVE_SESSION) {
+            window.SCOPE_PATH = '';
+            localStorage.removeItem('atlasScopePath');
+            window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
           }
           window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'USER_SESSION_ID' }));
         }
@@ -888,6 +905,9 @@
         try { localStorage.setItem('atlasScopePath', backendActiveIp); } catch (_) {}
         window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SCOPE_PATH' }));
       }
+      window.ATLAS_DB_SESSION_ID = String(d.db_session_id || '').trim();
+      window.ATLAS_SESSION_UID = String(d.session_uid || '').trim();
+      window.ATLAS_SESSION_LABEL = String(d.session_label || '').trim();
       window.CONTEXT = Object.assign({}, _prev, {
         ...(() => {
           const nextActiveSession = String(d.active_session || '').trim();
@@ -911,6 +931,9 @@
         modelOptions: Array.isArray(d.model_options) ? d.model_options : [],
         selectedModelKey: d.selected_model_key || '',
         activeSession: d.active_session || '',
+        dbSessionId: d.db_session_id || '',
+        sessionUid: d.session_uid || '',
+        sessionLabel: d.session_label || '',
         activeIp:      d.active_ip      || '',
         activeWorkflow: d.active_workflow || '',
         maxTokens:   d.max_context    || _prev.maxTokens || 0,
@@ -1073,7 +1096,7 @@
         setTimeout(attach, 200);
         return;
       }
-      const eventMatchesActiveSession = (m) => {
+      const eventMatchesActiveSession = (m, opts = {}) => {
         const eventSession = normalizeSessionName(
           (m && (m.session_id || m.session || m.namespace)) || ''
         );
@@ -1082,7 +1105,9 @@
           || (window.CONTEXT && (window.CONTEXT.activeSession || window.CONTEXT.active_session))
           || ''
         );
-        return !eventSession || !activeSession || eventSession === activeSession;
+        if (!activeSession) return !opts.requireSession;
+        if (!eventSession) return !opts.requireSession;
+        return eventSession === activeSession;
       };
       // 'hello' fires on every WS connect (initial + every reconnect
       // after a transient drop). Re-run /healthz so the UI's session/
@@ -1132,7 +1157,7 @@
         dispatchAtlasFileChanged(path, (m && m.tool) || '');
       });
       window.backend.subscribe('context', (m) => {
-        if (!eventMatchesActiveSession(m)) return;
+        if (!eventMatchesActiveSession(m, { requireSession: true })) return;
         let changed = false;
         if (typeof m.used === 'number') {
           window.CONTEXT.tokens = m.used;
@@ -1160,7 +1185,7 @@
       // Live cost — agent fires per-LLM-call. We accumulate into CONTEXT
       // so the sidebar reflects spend without waiting for the 5 s poll.
       window.backend.subscribe('cost', (m) => {
-        if (!eventMatchesActiveSession(m)) return;
+        if (!eventMatchesActiveSession(m, { requireSession: true })) return;
         const ctx = window.CONTEXT;
         ctx.tokensIn    = (ctx.tokensIn    || 0) + (m.input  || 0);
         ctx.tokensCache = (ctx.tokensCache || 0) + (m.cached || 0);
