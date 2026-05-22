@@ -25,7 +25,9 @@ SOURCE_ROOT = Path(__file__).resolve().parents[3]
 
 def _resolve_workflow_root() -> Path:
     raw = os.environ.get("ATLAS_WORKFLOW_ROOT", "").strip()
-    base = Path(raw).expanduser() if raw else SOURCE_ROOT / "workflow"
+    base = Path(os.path.expandvars(raw)).expanduser() if raw else SOURCE_ROOT / "workflow"
+    if not base.is_absolute():
+        base = SOURCE_ROOT / base
     if (base / "tb-gen" / "runtime").is_dir():
         return base.resolve()
     if (base / "workflow" / "tb-gen" / "runtime").is_dir():
@@ -38,12 +40,16 @@ RUNTIME_DIR = WORKFLOW_ROOT / "tb-gen" / "runtime"
 
 
 def _resolve_project_root(root_arg: str, ip_root_arg: str, ip: str) -> Path:
+    project_root = Path(os.path.expandvars(root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ".")).expanduser().resolve()
     ip_root_raw = (ip_root_arg or os.environ.get("ATLAS_IP_ROOT") or "").strip()
     if ip_root_raw:
-        ip_root = Path(ip_root_raw).expanduser().resolve()
+        ip_root = Path(os.path.expandvars(ip_root_raw)).expanduser()
+        if not ip_root.is_absolute():
+            ip_root = project_root / ip_root
+        ip_root = ip_root.resolve()
         if not ip or ip_root.name == ip or (ip_root / "yaml").is_dir():
             return ip_root.parent
-    return Path(root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ".").expanduser().resolve()
+    return project_root
 
 
 def _ident(value: Any) -> str:

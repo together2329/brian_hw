@@ -1,5 +1,9 @@
 import sys
-sys.path.insert(0, '/Users/brian/Desktop/Project/brian_hw/common_ai_agent')
+from pathlib import Path
+
+SOURCE_ROOT = Path(__file__).resolve().parents[1]
+if str(SOURCE_ROOT) not in sys.path:
+    sys.path.insert(0, str(SOURCE_ROOT))
 
 from fastapi.testclient import TestClient
 

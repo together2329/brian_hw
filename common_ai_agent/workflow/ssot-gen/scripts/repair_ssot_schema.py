@@ -61,12 +61,16 @@ REQUIRED_ORDER = [
 
 
 def _resolve_project_root(root_arg: str, ip_root_arg: str, ip: str) -> Path:
+    project_root = Path(os.path.expandvars(root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ".")).expanduser().resolve()
     ip_root_raw = (ip_root_arg or os.environ.get("ATLAS_IP_ROOT") or "").strip()
     if ip_root_raw:
-        ip_root = Path(ip_root_raw).expanduser().resolve()
+        ip_root = Path(os.path.expandvars(ip_root_raw)).expanduser()
+        if not ip_root.is_absolute():
+            ip_root = project_root / ip_root
+        ip_root = ip_root.resolve()
         if not ip or ip_root.name == ip or (ip_root / "yaml").is_dir():
             return ip_root.parent
-    return Path(root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ".").expanduser().resolve()
+    return project_root
 
 EXPRESSION_SCALAR_KEYS = {
     "condition",

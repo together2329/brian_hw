@@ -114,7 +114,7 @@ ssot-authority       # 신규 — 9 gates / 9 loops manifest
 
 CLI 직접 호출 (워크스페이스 외부):
 ```bash
-cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+cd /path/to/common_ai_agent
 python3 workflow/fl-model-gen/scripts/emit_model_signature.py <ip> --root .
 python3 workflow/fl-model-gen/scripts/emit_cycle_model.py <ip> --root .
 python3 workflow/fl-model-gen/scripts/emit_dual_fcov.py <ip> --root .
@@ -390,7 +390,7 @@ lib/todo_tracker.py                                    ← TodoItem 스키마 �
 
 ### 1단계 — 환경 확인
 ```bash
-cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+cd /path/to/common_ai_agent
 ls workflow/fl-model-gen/scripts/        # 6개 신규 + 기존 2개 = 8개
 ls workflow/fl-model-gen/commands/        # 8개 (기존 2 + 신규 6)
 ls workflow/fl-model-gen/todo_templates/  # 4개 (기존 2 + 신규 2)
@@ -445,7 +445,7 @@ cat workflow/fl-model-gen/todo_templates/golden-workflow-augment.json
 새 작업 후 항상 smbus 9-step 검증 재실행:
 
 ```bash
-cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+cd /path/to/common_ai_agent
 
 # 1. emit scripts 모두 존재
 ls workflow/fl-model-gen/scripts/emit_*.py

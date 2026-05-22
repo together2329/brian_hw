@@ -120,6 +120,52 @@ def runtime_model_override_active() -> bool:
     )
 
 
+def _source_root() -> Path:
+    return Path(__file__).resolve().parent.parent
+
+
+def _resolve_env_path(value: str, base: Path) -> str:
+    raw = os.path.expandvars(os.path.expanduser(str(value or "").strip()))
+    if not raw:
+        return ""
+    path = Path(raw)
+    if not path.is_absolute():
+        path = base / path
+    return str(path.resolve(strict=False))
+
+
+def _normalize_workspace_env_paths() -> None:
+    """Resolve portable workspace paths from project config files.
+
+    Project-local .config files are shared across machines, so they should be
+    able to use values like ``${ATLAS_SOURCE_ROOT}/workflow`` or ``workflow``
+    without pinning one developer's checkout path.
+    """
+    source_root = _source_root()
+    raw_source_root = os.getenv("ATLAS_SOURCE_ROOT", "").strip()
+    if raw_source_root:
+        os.environ["ATLAS_SOURCE_ROOT"] = _resolve_env_path(raw_source_root, source_root)
+    else:
+        os.environ["ATLAS_SOURCE_ROOT"] = str(source_root)
+
+    raw_workflow_root = os.getenv("ATLAS_WORKFLOW_ROOT", "").strip()
+    if raw_workflow_root:
+        os.environ["ATLAS_WORKFLOW_ROOT"] = _resolve_env_path(raw_workflow_root, source_root)
+
+    raw_project_root = os.getenv("ATLAS_PROJECT_ROOT", "").strip()
+    if raw_project_root:
+        os.environ["ATLAS_PROJECT_ROOT"] = _resolve_env_path(raw_project_root, Path.cwd())
+
+    raw_ip_root = os.getenv("ATLAS_IP_ROOT", "").strip()
+    if raw_ip_root:
+        project_base = Path(os.getenv("ATLAS_PROJECT_ROOT", "") or Path.cwd())
+        os.environ["ATLAS_IP_ROOT"] = _resolve_env_path(raw_ip_root, project_base)
+
+    raw_modifiable_dir = os.getenv("MODIFIABLE_DIR", "").strip()
+    if raw_modifiable_dir:
+        os.environ["MODIFIABLE_DIR"] = _resolve_env_path(raw_modifiable_dir, source_root)
+
+
 def mark_runtime_model_override() -> None:
     """Protect a CLI/slash/UI model switch from .env hot-reload rollback."""
     os.environ[_RUNTIME_MODEL_OVERRIDE_FLAG] = "1"
@@ -180,24 +226,15 @@ def load_env_file(force_reload: bool = False):
                 continue
             if force_reload or key not in os.environ:
                 os.environ[key] = value
+    _normalize_workspace_env_paths()
 
 
 def _env_bool(name: str, default: str = "false") -> bool:
     return os.getenv(name, default).strip().lower() in ("true", "1", "yes", "on")
 
 
-def _source_root() -> Path:
-    return Path(__file__).resolve().parent.parent
-
-
 def _resolve_source_path(value: str) -> str:
-    raw = os.path.expandvars(os.path.expanduser(str(value or "").strip()))
-    if not raw:
-        return ""
-    path = Path(raw)
-    if not path.is_absolute():
-        path = _source_root() / path
-    return str(path.resolve(strict=False))
+    return _resolve_env_path(value, _source_root())
 
 
 def _first_readable(paths: list[Path]) -> Path:

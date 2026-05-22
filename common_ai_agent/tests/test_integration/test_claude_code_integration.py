@@ -5,11 +5,14 @@ Test script to validate Claude Code integration into Common AI Agent
 
 import sys
 import os
+from pathlib import Path
 
 # Add common_ai_agent to path
-sys.path.insert(0, '/Users/brian/Desktop/Project/brian_hw/common_ai_agent')
-sys.path.insert(0, '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/src')
-sys.path.insert(0, '/Users/brian/Desktop/Project/brian_hw/common_ai_agent/core')
+SOURCE_ROOT = Path(__file__).resolve().parents[2]
+for path in (SOURCE_ROOT, SOURCE_ROOT / 'src', SOURCE_ROOT / 'core'):
+    path_str = str(path)
+    if path_str not in sys.path:
+        sys.path.insert(0, path_str)
 
 def test_config_flags():
     """Test that new config flags exist"""
@@ -70,9 +73,7 @@ def test_tool_descriptions():
     print("TEST 3: Tool Description Files")
     print("="*60)
 
-    from pathlib import Path
-
-    base_path = Path('/Users/brian/Desktop/Project/brian_hw/common_ai_agent/core/tool_descriptions/tools')
+    base_path = SOURCE_ROOT / 'core' / 'tool_descriptions' / 'tools'
 
     new_files = [
         'run_command.txt',
@@ -241,9 +242,7 @@ def test_parallel_execution_guidance():
     print("TEST 7: Parallel Execution Guidance")
     print("="*60)
 
-    from pathlib import Path
-
-    base_path = Path('/Users/brian/Desktop/Project/brian_hw/common_ai_agent/core/tool_descriptions/tools')
+    base_path = SOURCE_ROOT / 'core' / 'tool_descriptions' / 'tools'
 
     files_to_check = {
         'read_file.txt': 'parallel',

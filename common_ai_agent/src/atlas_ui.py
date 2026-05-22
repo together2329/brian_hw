@@ -119,7 +119,9 @@ def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
     callers pass the most obvious path without making every script guess.
     """
     value = str(raw or os.environ.get("ATLAS_WORKFLOW_ROOT") or "").strip()
-    base = Path(value).expanduser() if value else SOURCE_ROOT / "workflow"
+    base = Path(os.path.expandvars(value)).expanduser() if value else SOURCE_ROOT / "workflow"
+    if not base.is_absolute():
+        base = SOURCE_ROOT / base
     if (base / "ssot-gen").exists() or base.name == "workflow":
         return base.resolve()
     nested = base / "workflow"
@@ -680,7 +682,10 @@ def _configured_ip_root(ip: str = "") -> Path | None:
     if not raw:
         return None
     try:
-        root = Path(raw).expanduser().resolve()
+        root = Path(os.path.expandvars(raw)).expanduser()
+        if not root.is_absolute():
+            root = PROJECT_ROOT / root
+        root = root.resolve()
     except Exception:
         return None
     if not root.is_dir():

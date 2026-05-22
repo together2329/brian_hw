@@ -1,7 +1,7 @@
 # Workflow Workspace System — Progress
 
 **Branch**: `feature_workflow`
-**Working dir**: `/Users/brian/Desktop/Project/brian_hw_modifiable/common_ai_agent/`
+**Working dir**: `<common_ai_agent checkout>/`
 **Verified**: `python3 workflow/integrate.py -w verilog` → 13/13 PASS
 
 ---

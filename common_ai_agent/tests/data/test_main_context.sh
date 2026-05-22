@@ -1,16 +1,18 @@
 #!/bin/bash
 # Test /context command in main.py
 
-cd /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$SCRIPT_DIR"
 
 # Create input file
-cat > /tmp/brian_test_input.txt << 'EOF'
+INPUT_FILE="$(mktemp /tmp/common_ai_agent_context.XXXXXX)"
+cat > "$INPUT_FILE" << 'EOF'
 /context debug
 exit
 EOF
 
 # Run common_ai_agent with input
-python3 src/main.py < /tmp/brian_test_input.txt
+python3 src/main.py < "$INPUT_FILE"
 
 # Clean up
-rm /tmp/brian_test_input.txt
+rm "$INPUT_FILE"

@@ -27,7 +27,9 @@ SOURCE_ROOT = Path(__file__).resolve().parents[1]
 
 def _workflow_root(project_root: Path) -> Path:
     raw = os.environ.get("ATLAS_WORKFLOW_ROOT", "").strip()
-    base = Path(raw).expanduser() if raw else project_root / "workflow"
+    base = Path(os.path.expandvars(raw)).expanduser() if raw else project_root / "workflow"
+    if raw and not base.is_absolute():
+        base = SOURCE_ROOT / base
     if (base / "ssot-gen").is_dir():
         return base.resolve()
     if (base / "workflow" / "ssot-gen").is_dir():

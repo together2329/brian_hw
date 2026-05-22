@@ -34,21 +34,21 @@ done
 [[ -z "$IP" ]] && { echo "usage: run_sta.sh <ip> [--root .] [--liberty file]" >&2; exit 2; }
 ROOT="$(cd "$ROOT" && pwd)"
 IP_DIR="$ROOT/$IP"
+SCRIPTS="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SOURCE_ROOT="$(cd "$SCRIPTS/../../.." && pwd)"
 
 # Default liberty: sky130 typical corner from OpenROAD test PDK if not given.
 if [[ -z "$LIBERTY" ]]; then
     for cand in \
         "$HOME/src/OpenROAD/test/sky130hd/sky130_fd_sc_hd__${CORNER}_025C_1v80.lib" \
         "$HOME/src/OpenROAD/test/sky130hd/sky130_fd_sc_hd__tt_025C_1v80.lib" \
-        "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pdk/sky130/lib/sky130_fd_sc_hd__tt_025C_1v80.lib"; do
+        "$SOURCE_ROOT/pdk/sky130/lib/sky130_fd_sc_hd__tt_025C_1v80.lib"; do
         [[ -f "$cand" ]] && LIBERTY="$cand" && break
     done
 fi
 [[ -z "$LIBERTY" || ! -f "$LIBERTY" ]] && { echo "[run_sta] no liberty file" >&2; exit 1; }
 
 echo "[run_sta] liberty: $LIBERTY"
-
-SCRIPTS="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # ── Stage 1: yosys synth with liberty ────────────────────────────────
 echo "[run_sta] (1/2) yosys synth with sky130 mapping..."

@@ -13,11 +13,14 @@ Tests confirm:
 """
 import os
 import sys
+from pathlib import Path
 
 os.environ["ATLAS_MULTI_USER"] = "0"
 os.environ["ATLAS_MULTI_USER_PROC"] = "0"
 
-sys.path.insert(0, '/Users/brian/Desktop/Project/brian_hw/common_ai_agent')
+SOURCE_ROOT = Path(__file__).resolve().parents[1]
+if str(SOURCE_ROOT) not in sys.path:
+    sys.path.insert(0, str(SOURCE_ROOT))
 
 from fastapi.testclient import TestClient
 from src.atlas_ui import create_app
