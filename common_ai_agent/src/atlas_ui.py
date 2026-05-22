@@ -6469,6 +6469,7 @@ def create_app():
             "coverage":        ("cov",        "run / iterate coverage"),
             "goal-audit":      ("audit,ga",   "audit goal coverage and evidence"),
             "signoff":         ("",           "final signoff review"),
+            "feedback":        ("fb",         "send admin-visible feedback: /feedback <message>"),
         }
         for name, (alias_str, hint) in _INLINE_WORKFLOW_HINTS.items():
             if name in seen:

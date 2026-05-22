@@ -246,6 +246,7 @@
     { cmd: '/scope',   alias: 'sc', hint: '(client) confine agent to a directory: /scope <path>' },
     { cmd: '/cd',      alias: 'cd', hint: '(client) alias for /scope' },
     { cmd: '/session', alias: 'ss', hint: '(client) show or switch session: /session default' },
+    { cmd: '/feedback', alias: 'fb', hint: '(client) send admin-visible feedback: /feedback <message>' },
   ];
 
   const DEFAULT_FLOW_STAGES = [
@@ -764,8 +765,10 @@
         const live = cmds.map(c => ({
           cmd:   c.cmd,
           alias: (c.aliases && c.aliases[0]) || c.name.slice(0, 2),
+          aliases: c.aliases || [],
           hint:  c.hint || '',
           desc:  c.hint || '',
+          usage: c.usage || c.cmd,
         }));
         // Merge in the client-side commands (handled by workspace.jsx
         // before sending to the backend, so they never appear in
@@ -783,6 +786,10 @@
           { cmd: '/pipeline', alias: 'pl',
             hint: '(client) dispatch full SSOT pipeline: /pipeline <ip>',
             desc: '(client) dispatch full SSOT pipeline: /pipeline <ip>' },
+          { cmd: '/feedback', alias: 'fb',
+            hint: '(client) send admin-visible feedback: /feedback <message>',
+            desc: '(client) send admin-visible feedback: /feedback <message>',
+            usage: '/feedback <message>' },
         ];
         const present = new Set(live.map(c => c.cmd));
         for (const c of clientOnly) {

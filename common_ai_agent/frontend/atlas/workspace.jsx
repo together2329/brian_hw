@@ -1577,6 +1577,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   const inputHistoryDraftRef = React.useRef('');
   const [showSlash, setShowSlash] = React.useState(false);
   const [slashSel, setSlashSel] = React.useState(0);
+  const [slashCommands, setSlashCommands] = React.useState(() => (
+    Array.isArray(window.SLASH_COMMANDS) ? window.SLASH_COMMANDS : []
+  ));
   const [streaming, setStreaming] = React.useState(false);
   const streamingRef = React.useRef(false);
   const streamBufferRef = React.useRef('');
@@ -2344,18 +2347,32 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   }, [atQuery && atQuery.filter, atDirEntries]);
 
   const filtered = React.useMemo(() => {
-    if (!input.startsWith('/')) return [];
+    if (!/^\/[^\s]*$/.test(input)) return [];
     const q = input.slice(1).toLowerCase();
-    return window.SLASH_COMMANDS.filter(c =>
-      c.cmd.slice(1).toLowerCase().startsWith(q) || c.alias.startsWith(q)
-    );
-  }, [input]);
+    const commands = slashCommands.length
+      ? slashCommands
+      : (Array.isArray(window.SLASH_COMMANDS) ? window.SLASH_COMMANDS : []);
+    return commands.filter(c => {
+      const cmd = String(c.cmd || '').replace(/^\//, '').toLowerCase();
+      const aliases = [
+        c.alias,
+        ...(Array.isArray(c.aliases) ? c.aliases : []),
+      ]
+        .flatMap(v => String(v || '').split(/[,\s]+/))
+        .map(v => v.trim().toLowerCase())
+        .filter(Boolean);
+      const text = `${c.hint || ''} ${c.desc || ''} ${c.usage || ''}`.toLowerCase();
+      return cmd.startsWith(q)
+        || aliases.some(a => a.startsWith(q))
+        || (q.length >= 2 && text.includes(q));
+    }).slice(0, 40);
+  }, [input, slashCommands]);
 
   const [showAt, setShowAt] = React.useState(false);
   const [atSel, setAtSel] = React.useState(0);
 
   React.useEffect(() => {
-    if (input.startsWith('/')) { setShowSlash(true); setSlashSel(0); setShowAt(false); }
+    if (/^\/[^\s]*$/.test(input)) { setShowSlash(true); setSlashSel(0); setShowAt(false); }
     else setShowSlash(false);
     // Keep the @ popup open as long as the user is in an @-token —
     // even when matches are momentarily empty (chaining into a new
@@ -2363,6 +2380,19 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     if (atQuery) { setShowAt(true); setAtSel(0); }
     else setShowAt(false);
   }, [input, atQuery && atQuery.parentAbs, atQuery && atQuery.filter]);
+
+  React.useEffect(() => {
+    const refreshSlashCommands = () => {
+      setSlashCommands(Array.isArray(window.SLASH_COMMANDS) ? window.SLASH_COMMANDS : []);
+      setSlashSel(0);
+    };
+    refreshSlashCommands();
+    const onDataChanged = (ev) => {
+      if (!ev.detail || ev.detail === 'SLASH_COMMANDS') refreshSlashCommands();
+    };
+    window.addEventListener('atlas-data-changed', onDataChanged);
+    return () => window.removeEventListener('atlas-data-changed', onDataChanged);
+  }, []);
 
   const acceptAtCompletion = (entry) => {
     if (!atQuery) return;
@@ -4536,7 +4566,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
                   onMouseEnter={() => setSlashSel(i)}>
                   <span className="si-cmd">{c.cmd}</span>
                   <span className="si-alias">{c.alias}</span>
-                  <span className="si-desc">{c.desc}</span>
+                  <span className="si-desc">{c.desc || c.hint || c.usage || ''}</span>
                 </div>
               ))}
             </div>
