@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "ip": "fresh_rule_ip",
+  "coverage_type": "ssot_coverage_summary",
+  "bins": [
+    {
+      "id": "FCOV_RULE_DOUBLE",
+      "source_ref": "test_requirements.coverage_goals.planned_bins.FCOV_RULE_DOUBLE",
+      "hit": true,
+      "hit_source": "verify/scoreboard_events.jsonl",
+      "evidence_type": "rtl_observed_scoreboard",
+      "scenario_id": "SC_RULE_DOUBLE",
+      "rtl_observed": {
+        "source": "dut module boundary ports",
+        "result": 26,
+        "result_valid": 1,
+        "accepted_count": 1,
+        "ready": 1
+      },
+      "fl_expected": {
+        "model_api": "FunctionalModel.apply",
+        "transaction": "FM_PRIMARY",
+        "value": 13,
+        "result": 26,
+        "accepted_count": 1
+      }
+    }
+  ],
+  "summary": {
+    "planned_bins": 1,
+    "hit_bins": 1,
+    "rtl_observed_bins": 1
+  }
+}
