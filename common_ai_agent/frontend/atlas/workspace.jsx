@@ -15499,7 +15499,7 @@ const OrchestratorWorkflowPane = ({ activeIp }) => {
         <div style={{ padding: '12px', borderBottom: '1px solid var(--line)' }}>
           <div style={{ fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Orchestrator</div>
           <div style={{ color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 10, marginTop: 4 }}>
-            {orch.model || 'gpt-5.5'} · {orch.reasoning_effort || 'xhigh'} · {orch.enabled ? 'on' : 'off'}
+            {orch.model || 'gpt-5.5'} · {orch.reasoning_effort || 'low'} · {orch.enabled ? 'on' : 'off'}
           </div>
         </div>
         <div style={{ padding: 10, borderBottom: '1px solid var(--line)', display: 'grid', gap: 8 }}>

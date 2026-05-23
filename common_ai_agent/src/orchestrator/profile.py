@@ -1,9 +1,9 @@
 """Runtime profile for the Atlas orchestrator loop.
 
-Defaults to gpt-5.5 + xhigh (deepest reasoning) but both are env-
-overridable so an operator can trade quality for latency without a code
-change. xhigh makes even a "Hi" take 20-40s; set
-ATLAS_ORCHESTRATOR_REASONING_EFFORT=low (or medium) for a snappy chat.
+Defaults to gpt-5.5 + low reasoning because the orchestrator is a routing
+and status layer; workflow workers do the deeper implementation work. Both
+values are env-overridable when an operator explicitly wants a slower,
+deeper orchestration pass.
 """
 import os
 
@@ -11,7 +11,7 @@ ORCHESTRATOR_MODEL = (
     os.environ.get("ATLAS_ORCHESTRATOR_MODEL", "").strip() or "gpt-5.5"
 )
 ORCHESTRATOR_REASONING_EFFORT = (
-    os.environ.get("ATLAS_ORCHESTRATOR_REASONING_EFFORT", "").strip() or "xhigh"
+    os.environ.get("ATLAS_ORCHESTRATOR_REASONING_EFFORT", "").strip() or "low"
 )
 
 
