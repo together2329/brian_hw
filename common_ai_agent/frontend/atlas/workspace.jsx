@@ -3445,8 +3445,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         if (!r.ok) return;
         const d = await r.json();
         const msgs = Array.isArray(d.messages) ? d.messages : [];
+        const isLivePoll = orchSinceRef.current > 0;
         const toFeedEntry = window.AtlasOrchestratorChatLogic?.feedEntryFromChatMessage
-          || ((msg) => {
+          || ((msg, animate) => {
             const payload = (msg && msg.payload) || {};
             const role = String(payload.role || '').toLowerCase();
             const content = String(payload.content || '').trim();
@@ -3454,7 +3455,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             const created = Number((msg && msg.created_at) || 0);
             const createdAt = created > 0 ? created * 1000 : 0;
             const payloadTool = String(payload.tool || payload.name || payload.display_name || '').trim();
-            if (role === 'assistant') return { kind: 'agent', text: content, createdAt };
+            if (role === 'assistant') return { kind: 'agent', text: content, createdAt, _animate: animate };
             if (role === 'thought' || role === 'reasoning') return { kind: 'thought', text: content, createdAt };
             if (role === 'tool') {
               const call = content.match(/^[▶⏺]\s*([A-Za-z_][\w.-]*)\s*(?:\(([\s\S]*)\))?\s*$/)
@@ -3470,24 +3471,25 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             return null;
           });
         const fresh = [];
-        for (const m of msgs) {
-          const id = m.id || '';
+        let foundAssistant = false;
+        for (let mi = msgs.length - 1; mi >= 0; mi--) {
+          const m = msgs[mi];
+          const id = String(m.id || '');
+          if (id && orchSeenRef.current.has(id)) continue;
           const payload = (m && m.payload) || {};
-          const pollContent = String(payload.content || '').trim();
-          const created = Number((m && m.created_at) || 0);
-          const wsKey = `orch:${created}:${pollContent.slice(0, 40)}`;
-          if ((!id || orchSeenRef.current.has(id)) && orchSeenRef.current.has(wsKey)) continue;
+          const role = String(payload.role || '').toLowerCase();
+          const animate = isLivePoll && role === 'assistant' && !foundAssistant;
+          if (animate) foundAssistant = true;
           if (id) orchSeenRef.current.add(id);
-          if (pollContent) orchSeenRef.current.add(wsKey);
-          const entry = toFeedEntry(m);
-          if (entry) fresh.push(entry);
+          const entry = toFeedEntry(m, animate);
+          if (entry) fresh.unshift(entry);
         }
         if (typeof d.next_since === 'number') orchSinceRef.current = d.next_since;
         if (fresh.length) { setFeed(f => [...f, ...fresh]); setStreaming(false); }
       } catch (_) {}
     };
     poll();
-    const t = setInterval(poll, 3000);
+    const t = setInterval(poll, 1000);
     return () => { dead = true; clearInterval(t); };
   }, [workflow, activeIp]);
 
@@ -5449,6 +5451,31 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
 // the right comparator.
 const ToolCard = React.memo(_ToolCardRaw);
 
+const Typewriter = ({ text }) => {
+  const full = String(text || '');
+  const [shown, setShown] = React.useState('');
+  const [done, setDone] = React.useState(false);
+  React.useEffect(() => {
+    if (!full) { setDone(true); return; }
+    setShown('');
+    setDone(false);
+    let i = 0;
+    const delay = Math.max(8, Math.min(20, Math.round(1200 / full.length)));
+    const iv = setInterval(() => {
+      i++;
+      setShown(full.slice(0, i));
+      if (i >= full.length) { clearInterval(iv); setDone(true); }
+    }, delay);
+    return () => clearInterval(iv);
+  }, [full]);
+  return (
+    <span style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+      {shown}
+      {!done && <span className="stream-caret" style={{ display: 'inline-block', width: 2, height: '1em', background: 'var(--accent)', marginLeft: 1, verticalAlign: 'text-bottom', animation: 'blink 0.7s step-end infinite' }} />}
+    </span>
+  );
+};
+
 const LiveAgentPreview = React.memo(({ text }) => {
   const body = String(text || '');
   if (!body.trim()) return null;
@@ -5501,9 +5528,12 @@ const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summ
           <span className="ts-pill">{_relTime(entry.createdAt)}</span>
         ) : null}
         <CopyBtn text={entry.text || ''} />
-        <div className="md-agent" style={{ marginTop: 4 }} dangerouslySetInnerHTML={{ __html: html }}
-          ref={_postProcessMarkdownNode}
-        />
+        {entry._animate
+          ? <div className="md-agent" style={{ marginTop: 4 }}><Typewriter text={entry.text || ''} /></div>
+          : <div className="md-agent" style={{ marginTop: 4 }} dangerouslySetInnerHTML={{ __html: html }}
+              ref={_postProcessMarkdownNode}
+            />
+        }
       </div>
     );
   }
