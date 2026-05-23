@@ -1521,10 +1521,23 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   React.useEffect(() => {
     const sid = normalizeUiSession(activeNamespace || '');
     if (!sid || sid === activeSessionRef.current) return;
+    const prevSid = activeSessionRef.current;
     window.ACTIVE_SESSION = sid;
     activeSessionRef.current = sid;
     setActiveSession(sid);
     try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
+    // Leaving the orchestrator chat for a worker session: that worker session's
+    // conversation.json is usually empty (the worker writes its transcript
+    // elsewhere), so /api/session/state fires no hydration event and the
+    // orchestrator feed would linger as stale content. Clear it explicitly;
+    // the worker-log poll (and any real history) repopulate.
+    const prevWf = String(prevSid || '').split('/').pop();
+    const newWf = sid.split('/').pop();
+    if (prevWf === 'orchestrator' && newWf && newWf !== 'orchestrator') {
+      liveFeedStartedRef.current = false;
+      hydratedConversationSessionRef.current = sid;
+      setFeed(NORMAL_FEED);
+    }
     if (window.backend) {
       try {
         if (typeof window.backend.switchSession === 'function') window.backend.switchSession(sid);

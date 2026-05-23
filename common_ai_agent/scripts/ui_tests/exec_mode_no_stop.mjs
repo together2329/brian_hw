@@ -7,18 +7,28 @@ import { launch, jpost, shoot, assert, failures, results, log, BASE, USER, PASS 
 
 // Lightweight nav that does NOT wait for networkidle — an active orchestrator
 // run keeps the network busy forever, so networkidle never settles.
+const WORKSPACE_TAB = () => [...document.querySelectorAll('button,a,span,[role="tab"]')]
+  .find(x => /^\s*[⌂\s]*WORKSPACE\s*$/i.test((x.textContent || '').trim()) && x.offsetParent !== null);
+// A workflow chip uniquely ends with the ○/◉ status circle.
+const HAS_WF_CHIPS = () => [...document.querySelectorAll('button')]
+  .some(b => /[○◉]$/.test((b.textContent || '').replace(/\s+/g, ' ').trim()));
+
 async function loginAndOpen(page, ip) {
-  page.setDefaultNavigationTimeout(90000);  // active orchestrator run loads the server
+  // The active orchestrator run loads the server; use generous timeouts and
+  // wait for real mount markers instead of fixed sleeps.
+  page.setDefaultNavigationTimeout(120000);
+  page.setDefaultTimeout(120000);
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   await jpost(page, '/api/auth/login', { username: USER, password: PASS });
   await page.goto(`${BASE}/?session_id=${USER}&ip=${ip}&workflow=orchestrator`, { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(3500);
+  await page.waitForFunction(WORKSPACE_TAB, { timeout: 120000 });
   await page.evaluate(() => {
     const e = [...document.querySelectorAll('button,a,span,[role="tab"]')]
       .find(x => /^\s*[⌂\s]*WORKSPACE\s*$/i.test((x.textContent || '').trim()) && x.offsetParent !== null);
     if (e) e.click();
   });
-  await page.waitForTimeout(2000);
+  await page.waitForFunction(HAS_WF_CHIPS, { timeout: 120000 });
+  await page.waitForTimeout(800);
 }
 
 // Click the left-rail workflow chip. Each chip renders "<n> <glyph> <label> <○|◉>",
