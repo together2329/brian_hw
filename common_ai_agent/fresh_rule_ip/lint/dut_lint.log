@@ -1,0 +1,14 @@
+===== pyslang =====
+command: pyslang rtl/fresh_rule_ip.sv
+returncode: 0
+errors: 0 warnings: 0
+pyslang files: 1
+errors=0 warnings=0
+
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/fresh_rule_ip.f --top-module fresh_rule_ip
+returncode: 0
+errors: 0 warnings: 0
+- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
+- Verilator: Built from 0.034 MB sources in 2 modules, into 0.017 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.045 s (elab=0.015, cvt=0.015, bld=0.000); cpu 0.016 s on 1 threads; allocated 10.078 MB

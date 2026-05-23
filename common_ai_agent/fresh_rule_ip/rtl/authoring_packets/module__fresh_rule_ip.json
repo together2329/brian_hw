@@ -1,0 +1,1319 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 22,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/fresh_rule_ip.sv",
+      "name": "fresh_rule_ip",
+      "refs": [
+        "top_module",
+        "function_model",
+        "cycle_model"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/fresh_rule_ip.sv",
+        "name": "fresh_rule_ip",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rule_io_valid",
+          "valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "valid",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "data_in",
+          "rule_io_data_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "data_in",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "result",
+          "rule_io_result"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "result",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "9"
+      },
+      {
+        "aliases": [
+          "ready",
+          "rule_io_ready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "ready",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "result_valid",
+          "rule_io_result_valid"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "result_valid",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "accepted_count",
+          "rule_io_accepted_count"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "accepted_count",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "8"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "fresh_rule_ip",
+  "kind": "module",
+  "owner_file": "rtl/fresh_rule_ip.sv",
+  "owner_module": "fresh_rule_ip",
+  "packet_id": "module__fresh_rule_ip",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "coverage.functional_bin": 1,
+      "cycle_model.handshake_rules": 1,
+      "cycle_model.latency": 1,
+      "equivalence.module": 1,
+      "features.item": 1,
+      "function_model.output": 1,
+      "function_model.output_rule": 1,
+      "function_model.side_effect": 1,
+      "function_model.state_update": 1,
+      "function_model.state_variable": 1,
+      "function_model.transaction": 1,
+      "io_list.port": 8,
+      "rtl_flow.seed": 1,
+      "rtl_flow.top": 1,
+      "test_requirements.scenario": 1
+    },
+    "module_slice": {
+      "count": 1,
+      "enabled": false,
+      "index": 1,
+      "key": "all",
+      "module_task_count": 22,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 22,
+    "source_refs": [
+      "top_module",
+      "io_list",
+      "function_model.state_variables.accepted_count",
+      "function_model.transactions.FM_PRIMARY",
+      "function_model.transactions.FM_PRIMARY.outputs.output_0",
+      "function_model.transactions.FM_PRIMARY.output_rules.result",
+      "function_model.transactions.FM_PRIMARY.state_updates.accepted_count",
+      "function_model.transactions.FM_PRIMARY.side_effects.side_effect_0",
+      "cycle_model.latency",
+      "cycle_model.handshake_rules.valid_sample",
+      "features.double_value",
+      "sub_modules.fresh_rule_ip.module_equivalence",
+      "io_list.clock_domains.main.ports.clk",
+      "io_list.resets.rst_n.ports.rst_n",
+      "io_list.interfaces.rule_io.ports.valid",
+      "io_list.interfaces.rule_io.ports.data_in",
+      "io_list.interfaces.rule_io.ports.result",
+      "io_list.interfaces.rule_io.ports.ready",
+      "io_list.interfaces.rule_io.ports.result_valid",
+      "io_list.interfaces.rule_io.ports.accepted_count",
+      "test_requirements.scenarios.SC_RULE_DOUBLE",
+      "test_requirements.coverage_goals.planned_bins.FCOV_RULE_DOUBLE"
+    ],
+    "status_counts": {
+      "pass": 22
+    },
+    "task_count": 22
+  },
+  "tasks": [
+    {
+      "category": "rtl_flow.seed",
+      "content": "Read SSOT and build dynamic RTL implementation ledger",
+      "criteria": [
+        "rtl_todo_plan.json was regenerated from the current SSOT",
+        "Every required task in the plan is either implemented, evidenced, or escalated",
+        "No IP-specific fixed template is used as the source of truth",
+        "Traceability keeps source_ref top_module",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv"
+      ],
+      "detail": "Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.\nSSOT ref: top_module.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_module.",
+      "evidence_terms": [],
+      "id": "RTL-0001",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {},
+      "ssot_refs": [
+        "top_module"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "rtl_flow.top",
+      "content": "Implement top-level ports, reset, and filelist integration",
+      "criteria": [
+        "Top module name matches SSOT top_module",
+        "Every SSOT top-level port appears with matching direction and width",
+        "Filelist contains all LLM-authored RTL sources and no stale sources",
+        "Traceability keeps source_ref io_list",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv"
+      ],
+      "detail": "The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.\nSSOT ref: io_list.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_module.\nSSOT item context: value=fresh_rule_ip.",
+      "evidence_terms": [
+        "fresh",
+        "fresh_rule_ip",
+        "ip"
+      ],
+      "id": "RTL-0002",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "io_list",
+      "ssot_context": {
+        "value": "fresh_rule_ip"
+      },
+      "ssot_refs": [
+        "io_list"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state accepted_count",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.accepted_count",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "accepted_count width matches SSOT value 8",
+        "accepted_count reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.accepted_count.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.\nSSOT item context: name=accepted_count; width=8; reset=0.",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "count"
+      ],
+      "id": "RTL-0028",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.accepted_count",
+      "ssot_context": {
+        "name": "accepted_count",
+        "reset": "0",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.accepted_count"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "source_scope": "rtl/fresh_rule_ip.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_PRIMARY",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_PRIMARY.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.\nSSOT item context: id=FM_PRIMARY; name=primary_behavior.",
+      "evidence_terms": [],
+      "id": "RTL-0029",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY",
+      "ssot_context": {
+        "id": "FM_PRIMARY",
+        "name": "primary_behavior"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_PRIMARY: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.outputs.output_0",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "DUT port [\"result\"] is the implementation/observation point for primary_behavior"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.outputs.output_0.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.\nSSOT item context: id=FM_PRIMARY; name=primary_behavior; port=[\"result\"]; signal=[\"result\", \"value\"]; state=[\"accepted_count\"].",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "count",
+        "result",
+        "value"
+      ],
+      "id": "RTL-0030",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.outputs.output_0",
+      "ssot_context": {
+        "id": "FM_PRIMARY",
+        "name": "primary_behavior",
+        "port": "[\"result\"]",
+        "signal": "[\"result\", \"value\"]",
+        "state": "[\"accepted_count\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.outputs.output_0"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count",
+          "result",
+          "value"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "count",
+          "result",
+          "value"
+        ],
+        "source_scope": "rtl/fresh_rule_ip.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_PRIMARY: result",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.output_rules.result",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "result width matches SSOT value 9",
+        "result RTL expression implements SSOT expression value * 2",
+        "DUT port result is the implementation/observation point for result",
+        "result is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.output_rules.result.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.\nSSOT item context: name=result; port=result; expr=value * 2; width=9.",
+      "evidence_terms": [
+        "result"
+      ],
+      "id": "RTL-0031",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.output_rules.result",
+      "ssot_context": {
+        "expr": "value * 2",
+        "name": "result",
+        "port": "result",
+        "width": "9"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.output_rules.result"
+      ],
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "result"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "result"
+        ],
+        "source_scope": "rtl/fresh_rule_ip.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_PRIMARY: accepted_count",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.state_updates.accepted_count",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "accepted_count width matches SSOT value 8",
+        "accepted_count RTL expression implements SSOT expression accepted_count + 1",
+        "accepted_count updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.state_updates.accepted_count.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.\nSSOT item context: name=accepted_count; expr=accepted_count + 1; width=8.",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "count"
+      ],
+      "id": "RTL-0032",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.state_updates.accepted_count",
+      "ssot_context": {
+        "expr": "accepted_count + 1",
+        "name": "accepted_count",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.state_updates.accepted_count"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "source_scope": "rtl/fresh_rule_ip.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_PRIMARY: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_PRIMARY.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "DUT port [\"result\"] is the implementation/observation point for primary_behavior"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PRIMARY.side_effects.side_effect_0.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.\nSSOT item context: id=FM_PRIMARY; name=primary_behavior; port=[\"result\"]; signal=[\"accepted_count increments on each sampled transaction\", \"value\"]; state=[\"accepted_count\"].",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "count",
+        "result",
+        "value"
+      ],
+      "id": "RTL-0033",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_PRIMARY.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_PRIMARY",
+        "name": "primary_behavior",
+        "port": "[\"result\"]",
+        "signal": "[\"accepted_count increments on each sampled transaction\", \"value\"]",
+        "state": "[\"accepted_count\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_PRIMARY.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count",
+          "result",
+          "value"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "count",
+          "result",
+          "value"
+        ],
+        "source_scope": "rtl/fresh_rule_ip.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via cycle_model.\nSSOT item context: value=1.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {
+        "value": "1"
+      },
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: valid_sample",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.valid_sample",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "valid_sample appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.valid_sample.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via cycle_model.\nSSOT item context: name=valid_sample.",
+      "evidence_terms": [
+        "sample",
+        "valid",
+        "valid_sample"
+      ],
+      "id": "RTL-0035",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.valid_sample",
+      "ssot_context": {
+        "name": "valid_sample"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.valid_sample"
+      ],
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "sample",
+          "valid",
+          "valid_sample"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "sample",
+          "valid",
+          "valid_sample"
+        ],
+        "source_scope": "rtl/fresh_rule_ip.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature double_value",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.double_value",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.double_value.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.\nSSOT item context: name=double_value.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.double_value",
+      "ssot_context": {
+        "name": "double_value"
+      },
+      "ssot_refs": [
+        "features.double_value"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "equivalence.module",
+      "content": "Prove module fresh_rule_ip is functionally equivalent to FL",
+      "criteria": [
+        "verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module",
+        "cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff",
+        "scoreboard row fl_expected.model_api is FunctionalModel.apply",
+        "scoreboard row rtl_observed contains real RTL module boundary observations, not copied FL expected data",
+        "Any mismatch keeps SSOT and FunctionalModel fixed unless the SSOT itself is proven wrong",
+        "Traceability keeps source_ref sub_modules.fresh_rule_ip.module_equivalence",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv"
+      ],
+      "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.fresh_rule_ip.module_equivalence.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via module_equivalence.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "high",
+      "required": true,
+      "source_ref": "sub_modules.fresh_rule_ip.module_equivalence",
+      "ssot_context": {},
+      "ssot_refs": [
+        "sub_modules.fresh_rule_ip.module_equivalence"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port clk",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.main.ports.clk",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "clk width matches SSOT value 1",
+        "clk port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.main.ports.clk.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.\nSSOT item context: name=clk; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0020",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.main.ports.clk",
+      "ssot_context": {
+        "direction": "input",
+        "name": "clk",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.main.ports.clk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rst_n",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.rst_n.ports.rst_n",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "rst_n width matches SSOT value 1",
+        "rst_n port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.rst_n.ports.rst_n.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.\nSSOT item context: name=rst_n; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0021",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.rst_n.ports.rst_n",
+      "ssot_context": {
+        "direction": "input",
+        "name": "rst_n",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.rst_n.ports.rst_n"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port valid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.rule_io.ports.valid",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "valid width matches SSOT value 1",
+        "valid port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.rule_io.ports.valid.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.\nSSOT item context: name=valid; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0022",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.rule_io.ports.valid",
+      "ssot_context": {
+        "direction": "input",
+        "name": "valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.rule_io.ports.valid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port data_in",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.rule_io.ports.data_in",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "data_in width matches SSOT value 8",
+        "data_in port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.rule_io.ports.data_in.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.\nSSOT item context: name=data_in; width=8; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0023",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.rule_io.ports.data_in",
+      "ssot_context": {
+        "direction": "input",
+        "name": "data_in",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.rule_io.ports.data_in"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port result",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.rule_io.ports.result",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "result width matches SSOT value 9",
+        "result port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.rule_io.ports.result.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.\nSSOT item context: name=result; width=9; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0024",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.rule_io.ports.result",
+      "ssot_context": {
+        "direction": "output",
+        "name": "result",
+        "width": "9"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.rule_io.ports.result"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port ready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.rule_io.ports.ready",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "ready width matches SSOT value 1",
+        "ready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.rule_io.ports.ready.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.\nSSOT item context: name=ready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0025",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.rule_io.ports.ready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "ready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.rule_io.ports.ready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port result_valid",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.rule_io.ports.result_valid",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "result_valid width matches SSOT value 1",
+        "result_valid port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.rule_io.ports.result_valid.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.\nSSOT item context: name=result_valid; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0026",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.rule_io.ports.result_valid",
+      "ssot_context": {
+        "direction": "output",
+        "name": "result_valid",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.rule_io.ports.result_valid"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port accepted_count",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.rule_io.ports.accepted_count",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "accepted_count width matches SSOT value 8",
+        "accepted_count port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.rule_io.ports.accepted_count.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.\nSSOT item context: name=accepted_count; width=8; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0027",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.rule_io.ports.accepted_count",
+      "ssot_context": {
+        "direction": "output",
+        "name": "accepted_count",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.rule_io.ports.accepted_count"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Keep RTL observable for scenario SC_RULE_DOUBLE",
+      "criteria": [
+        "RTL exposes enough signals/status/outputs for the scenario checker",
+        "FunctionalModel expected result and RTL observed result can be compared",
+        "Scenario has coverage refs or a precise SSOT reason for exclusion",
+        "Traceability keeps source_ref test_requirements.scenarios.SC_RULE_DOUBLE",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "Downstream checker compares RTL-observed behavior against expected result: result equals FunctionalModel result and result_valid pulses"
+      ],
+      "detail": "Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.\nSSOT ref: test_requirements.scenarios.SC_RULE_DOUBLE.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.\nSSOT item context: id=SC_RULE_DOUBLE; name=double sampled input; expected=result equals FunctionalModel result and result_valid pulses.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC_RULE_DOUBLE",
+      "ssot_context": {
+        "expected": "result equals FunctionalModel result and result_valid pulses",
+        "id": "SC_RULE_DOUBLE",
+        "name": "double sampled input"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC_RULE_DOUBLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "coverage.functional_bin",
+      "content": "Provide RTL evidence for coverage bin FCOV_RULE_DOUBLE",
+      "criteria": [
+        "Bin has a scoreboard coverage_refs entry",
+        "Scoreboard row includes concrete rtl_observed DUT signals",
+        "Coverage summary marks the bin hit from RTL-observed evidence, not raw model-only coverage",
+        "Traceability keeps source_ref test_requirements.coverage_goals.planned_bins.FCOV_RULE_DOUBLE",
+        "Primary implementation evidence is in rtl/fresh_rule_ip.sv",
+        "FCOV_RULE_DOUBLE can be hit only by scoreboard_events.jsonl with concrete rtl_observed DUT signals"
+      ],
+      "detail": "Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.\nSSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_RULE_DOUBLE.\nOwner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.\nSSOT item context: id=FCOV_RULE_DOUBLE.",
+      "evidence_terms": [],
+      "id": "RTL-0039",
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "test_requirements.coverage_goals.planned_bins.FCOV_RULE_DOUBLE",
+      "ssot_context": {
+        "id": "FCOV_RULE_DOUBLE"
+      },
+      "ssot_refs": [
+        "test_requirements.coverage_goals.planned_bins.FCOV_RULE_DOUBLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "a0bcac4cc0692bd6cd97d0d7416e667e8e8ae023ae00064215840cf973d4895a",
+  "top": "fresh_rule_ip",
+  "type": "rtl_authoring_packet"
+}
