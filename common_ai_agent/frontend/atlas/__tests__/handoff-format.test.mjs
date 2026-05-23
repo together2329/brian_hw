@@ -59,6 +59,19 @@ describe('handoffFields — dispatch / write_handoff labeled rendering', () => {
     expect(sent.reason).toBe('fl passed');
   });
 
+  it('recovers payload fields embedded inside flattened args text', () => {
+    const action = {
+      tool: 'write_handoff',
+      args: 'ip="mctp_axi", workflow="rtl-gen", payload={"task":"Implement AXI packet RTL","reason":"SSOT passed"}, schedule="serial"',
+    };
+    const { sent } = handoffFields(action, null);
+    expect(sent.target).toBe('rtl-gen');
+    expect(sent.ip).toBe('mctp_axi');
+    expect(sent.task).toBe('Implement AXI packet RTL');
+    expect(sent.reason).toBe('SSOT passed');
+    expect(sent.schedule).toBe('serial');
+  });
+
   it('surfaces an error result and leaves result null when obs has no signal', () => {
     const errObs = { text: '{"workflow":"sim","status":"error","result":{"error":"timeout after 600s"}}' };
     const { result } = handoffFields({ tool: 'dispatch_workflow', argsRaw: { ip: 'x', workflow: 'sim' } }, errObs);

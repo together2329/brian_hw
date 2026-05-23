@@ -24,17 +24,24 @@ export function toolEntryFromDisplayLine(content) {
 export function feedEntryFromChatMessage(message) {
   const payload = (message && message.payload) || {};
   const role = String(payload.role || '').toLowerCase();
-  const content = String(payload.content || '').trim();
+  const displayContent = String(payload.content ?? payload.text ?? payload.raw_content ?? payload.rawContent ?? '');
+  const rawContent = String(payload.raw_content ?? payload.rawContent ?? displayContent);
+  const content = displayContent.trim();
   if (!content) return null;
   const created = Number((message && message.created_at) || 0);
   const createdAt = created > 0 ? created * 1000 : 0;
   const payloadTool = String(payload.tool || payload.name || payload.display_name || '').trim();
+  const rawMeta = {
+    rawText: rawContent,
+    rawRole: role,
+    source: String(payload.source || (message && message.source) || 'orchestrator_chat'),
+  };
 
   if (role === 'assistant') {
-    return { kind: 'agent', text: content, createdAt };
+    return { kind: 'agent', text: content, createdAt, ...rawMeta };
   }
   if (role === 'thought' || role === 'reasoning') {
-    return { kind: 'thought', text: content, createdAt };
+    return { kind: 'thought', text: content, createdAt, ...rawMeta };
   }
   if (role === 'tool') {
     const parsed = toolEntryFromDisplayLine(content);
@@ -45,6 +52,7 @@ export function feedEntryFromChatMessage(message) {
       tool: parsed.tool,
       args: parsed.args,
       createdAt,
+      ...rawMeta,
     };
   }
   if (role === 'tool_result' || role === 'observation' || role === 'obs') {
@@ -53,13 +61,16 @@ export function feedEntryFromChatMessage(message) {
       text: content,
       tool: payloadTool,
       createdAt,
+      ...rawMeta,
     };
   }
   return null;
 }
 
 export function feedEntryFromWorkerLogEntry(entry, job = {}) {
-  const content = String((entry && (entry.content ?? entry.text)) || '').trim();
+  const displayContent = String((entry && (entry.content ?? entry.text ?? entry.raw_content ?? entry.rawContent)) || '');
+  const rawContent = String((entry && (entry.raw_content ?? entry.rawContent)) || displayContent);
+  const content = displayContent.trim();
   if (!content) return null;
   const type = String((entry && entry.type) || '').toLowerCase();
   const role = String((entry && entry.role) || '').toLowerCase();
@@ -74,6 +85,11 @@ export function feedEntryFromWorkerLogEntry(entry, job = {}) {
     stage_id: String((job && job.stage_id) || ''),
     status: String((job && job.status) || ''),
     worker: String((job && job.worker) || ''),
+  };
+  const rawMeta = {
+    rawText: rawContent,
+    rawRole: String((entry && (entry.raw_role || entry.rawRole || entry.role || entry.type)) || ''),
+    source: String((entry && entry.source) || 'worker_log'),
   };
 
   // The worker prompt/context is huge and already visible in job detail.
@@ -91,18 +107,57 @@ export function feedEntryFromWorkerLogEntry(entry, job = {}) {
       createdAt,
       live: true,
       worker,
+      ...rawMeta,
     };
   }
   if (type === 'observation' || role === 'tool') {
-    return { kind: 'obs', text: content, tool, createdAt, live: true, worker };
+    return { kind: 'obs', text: content, tool, createdAt, live: true, worker, ...rawMeta };
   }
   if (type === 'response' || role === 'assistant') {
-    return { kind: 'agent', text: content, createdAt, live: true, worker };
+    return { kind: 'agent', text: content, createdAt, live: true, worker, ...rawMeta };
   }
   if (type === 'done') {
-    return { kind: 'agent', text: content, createdAt, live: true, worker };
+    return { kind: 'agent', text: content, createdAt, live: true, worker, ...rawMeta };
   }
   return null;
+}
+
+export function workerStatusEntryFromJob(job = {}) {
+  const jobId = String(job.job_id || job.id || '').trim();
+  const workflow = String(job.workflow || job.stage_id || 'worker').trim();
+  const status = String(job.status || 'active').trim();
+  if (!jobId && !workflow && !status) return null;
+  const worker = String(job.worker || job.worker_url || '').trim();
+  const model = String(job.model || '').trim();
+  const runId = String(job.run_id || '').trim();
+  const timestamp = Number(job.updated_at || job.finished_at || job.started_at || 0);
+  const createdAt = timestamp > 0 ? timestamp * 1000 : Date.now();
+  const short = (value) => {
+    const text = String(value || '').trim();
+    return text.length > 10 ? text.slice(0, 10) : text;
+  };
+  const host = worker.replace(/^https?:\/\//, '');
+  const bits = [
+    `worker ${workflow} ${status}`,
+    jobId ? `job ${short(jobId)}` : '',
+    runId ? `run ${short(runId)}` : '',
+    model ? `model ${model}` : '',
+    host ? host : '',
+  ].filter(Boolean);
+  return {
+    kind: 'worker_status',
+    text: bits.join(' · '),
+    createdAt,
+    live: true,
+    worker: {
+      job_id: jobId,
+      run_id: runId,
+      workflow,
+      stage_id: String(job.stage_id || ''),
+      status,
+      worker,
+    },
+  };
 }
 
 // --- Orchestrator handoff formatting (dispatch_workflow / write_handoff) ---
@@ -127,6 +182,36 @@ function _hArgMetaValue(argsText, name) {
   const re = new RegExp('(?:^|[,\\s])' + name + '\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\'|([^,\\s]+))');
   const match = String(argsText || '').match(re);
   return match ? (match[1] || match[2] || match[3] || '').trim() : '';
+}
+
+function _hObjectArgValue(argsText, name) {
+  const src = String(argsText || '');
+  const key = src.search(new RegExp('(?:^|[,\\s])' + name + '\\s*=\\s*\\{'));
+  if (key < 0) return null;
+  const start = src.indexOf('{', key);
+  if (start < 0) return null;
+  let depth = 0;
+  let quote = '';
+  let esc = false;
+  for (let i = start; i < src.length; i++) {
+    const ch = src[i];
+    if (quote) {
+      if (esc) esc = false;
+      else if (ch === '\\') esc = true;
+      else if (ch === quote) quote = '';
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      continue;
+    }
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) return _hParseJsonObject(src.slice(start, i + 1));
+    }
+  }
+  return null;
 }
 
 function _hFirstMetaValue(...values) {
@@ -156,7 +241,9 @@ export function handoffFields(action, obs) {
   if (!a && action && typeof action.args === 'string') a = _hParseJsonObject(action.args);
   const argsText = (action && typeof action.args === 'string') ? action.args
     : (action && typeof action.text === 'string') ? action.text : '';
-  const payload = (a && a.payload && typeof a.payload === 'object') ? a.payload : null;
+  const payload = (a && a.payload && typeof a.payload === 'object')
+    ? a.payload
+    : _hObjectArgValue(argsText, 'payload');
   const stages = (a && Array.isArray(a.stages))
     ? a.stages.map(s => String(s || '').trim()).filter(Boolean) : [];
   const workflow = _hFirstMetaValue(a && a.workflow, _hArgMetaValue(argsText, 'workflow'));

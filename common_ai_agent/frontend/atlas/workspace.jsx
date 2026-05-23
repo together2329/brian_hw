@@ -1509,6 +1509,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   const hydratedConversationSessionRef = React.useRef(activeSession);
   const liveFeedStartedRef = React.useRef(false);
   const workerLogCursorsRef = React.useRef(new Map());
+  const workerStatusSeenRef = React.useRef(new Map());
+  const workerTerminalLogDoneRef = React.useRef(new Set());
   const appendLiveFeedEntries = React.useCallback((entries) => {
     const fresh = (Array.isArray(entries) ? entries : [entries])
       .filter(Boolean)
@@ -2371,7 +2373,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
               // Stamp `tool` so the render-time pre-pass can pair this
               // hydrated action with the next 'tool'-role obs into a
               // single ToolCard (matching the live shape).
-              newFeed.push({ kind: 'action', text: `▶ ${fn} ${argsText}`, tool: fn, args: argsText, argsRaw: args });
+              newFeed.push({
+                kind: 'action',
+                text: `▶ ${fn} ${argsText}`,
+                tool: fn,
+                args: argsText,
+                argsRaw: args,
+                rawText: `▶ ${fn} ${argsText}`,
+                rawRole: 'tool',
+                source: 'conversation',
+              });
             }
           }
         } else if (role === 'tool' && content) {
@@ -2380,6 +2391,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             text: content.slice(0, 8000),
             tool: m.name || '',
             truncated: content.length > 8000,
+            rawText: content,
+            rawRole: 'tool',
+            source: 'conversation',
           });
         }
       }
@@ -2415,6 +2429,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         if (namespaceChanged) {
           liveFeedStartedRef.current = false;
           workerLogCursorsRef.current.clear();
+          workerStatusSeenRef.current.clear();
+          workerTerminalLogDoneRef.current.clear();
         }
         return newFeed;
       });
@@ -2968,8 +2984,30 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         }),
       })
         .then(r => r.json().catch(() => ({})))
-        .then(d => { if (d && d.error) setFeed(f => [...f, { kind: 'agent', text: `[orchestrator] ${d.error}` }]); })
-        .catch(e => setFeed(f => [...f, { kind: 'agent', text: `[orchestrator] ${String(e)}` }]));
+        .then(d => {
+          if (d && d.error) {
+            setFeed(f => [...f, { kind: 'agent', text: `[orchestrator] ${d.error}`, createdAt: Date.now() }]);
+            setStreaming(false);
+            awaitingRunStartRef.current = false;
+            return;
+          }
+          if (d && d.fast_path && d.reply) {
+            appendLiveFeedEntries({ kind: 'agent', text: String(d.reply), createdAt: Date.now(), source: 'orchestrator_fast_path' });
+            setStreaming(false);
+            awaitingRunStartRef.current = false;
+            return;
+          }
+          const status = String(d && d.status || '').toLowerCase();
+          if (['completed', 'complete', 'done', 'answered', 'yielded', 'blocked', 'error', 'failed', 'cancelled'].includes(status)) {
+            setStreaming(false);
+            awaitingRunStartRef.current = false;
+          }
+        })
+        .catch(e => {
+          setFeed(f => [...f, { kind: 'agent', text: `[orchestrator] ${String(e)}`, createdAt: Date.now() }]);
+          setStreaming(false);
+          awaitingRunStartRef.current = false;
+        });
       return;
     }
 
@@ -3185,6 +3223,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         tool: toolName,
         args: argsText,
         createdAt: Date.now(),
+        rawText: t,
+        rawRole: 'tool',
+        source: 'websocket_tool',
       });
     }));
     // Tool observation: the result the agent just received from the tool.
@@ -3208,6 +3249,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         tool: m.tool || '',
         truncated: !!m.truncated,
         createdAt: Date.now(),
+        rawText: t,
+        rawRole: 'tool_result',
+        source: 'websocket_tool_result',
       });
     }));
     subs.push(window.backend.subscribe('cost', (m) => {
@@ -3557,22 +3601,85 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     return () => { dead = true; clearInterval(t); };
   }, [workflow, activeIp, backendState]);
 
+  // The DB runner can park with status=yielded while the browser missed the
+  // final WebSocket done event (iPad sleep/reconnect is the common case).
+  // Poll the authoritative run row and clear the spinner once the current
+  // turn is terminal or parked.
+  const orchRunSeenRef = React.useRef(false);
+  React.useEffect(() => {
+    const ip = String(activeIp || '').trim();
+    if (String(workflow || '') !== 'orchestrator' || !ip || ip.toLowerCase() === 'default') return undefined;
+    orchRunSeenRef.current = false;
+    let dead = false;
+    const terminalStatuses = new Set(['error', 'completed', 'complete', 'done', 'blocked', 'cancelled', 'failed', 'yielded']);
+    const activeStatuses = new Set(['running', 'starting', 'active', 'yielding', '']);
+    const poll = async () => {
+      if (dead || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
+      try {
+        const r = await fetch(`/api/orchestrator/active_run?ip=${encodeURIComponent(ip)}`, {
+          credentials: 'include',
+          cache: 'no-store',
+        });
+        if (!r.ok) return;
+        const d = await r.json();
+        const run = d && d.run;
+        const status = String(run && run.status || '').toLowerCase();
+        if (run && activeStatuses.has(status)) orchRunSeenRef.current = true;
+        const parkedOrDone = (run && terminalStatuses.has(status)) || (!run && orchRunSeenRef.current);
+        if (parkedOrDone && (orchRunSeenRef.current || streamingRef.current || awaitingRunStartRef.current)) {
+          streamBufferRef.current = '';
+          setStreamText('');
+          setStreaming(false);
+          awaitingRunStartRef.current = false;
+          backendRunStartedRef.current = false;
+        }
+      } catch (_) {}
+    };
+    poll();
+    const t = setInterval(poll, 2000);
+    return () => { dead = true; clearInterval(t); };
+  }, [workflow, activeIp]);
+
   // ── Worker live-log append for orchestrator mode ────────────────────────
   React.useEffect(() => {
     const ip = String(activeIp || '').trim();
     if (String(workflow || '') !== 'orchestrator' || !ip || ip.toLowerCase() === 'default') return undefined;
     workerLogCursorsRef.current = new Map();
+    workerStatusSeenRef.current = new Map();
+    workerTerminalLogDoneRef.current = new Set();
     let dead = false;
     const activeStatuses = new Set(['queued', 'pending', 'running']);
-    const terminalStatuses = new Set(['completed', 'error', 'blocked']);
+    const terminalStatuses = new Set(['passed', 'done', 'completed', 'error', 'failed', 'blocked', 'cancelled']);
+    const appendWorkerStatus = (job) => {
+      const jobId = String(job?.job_id || '');
+      if (!jobId) return;
+      const key = [
+        String(job?.workflow || job?.stage_id || ''),
+        String(job?.status || ''),
+        String(job?.run_id || ''),
+        String(job?.worker || ''),
+        String(job?.model || ''),
+      ].join('|');
+      if (workerStatusSeenRef.current.get(jobId) === key) return;
+      workerStatusSeenRef.current.set(jobId, key);
+      const mapper = window.AtlasOrchestratorChatLogic?.workerStatusEntryFromJob;
+      const entry = typeof mapper === 'function' ? mapper(job) : null;
+      if (entry) appendLiveFeedEntries(entry);
+    };
     const pollWorkerLog = async (job) => {
       const jobId = String(job?.job_id || '');
       if (!jobId) return;
       const status = String(job?.status || '').toLowerCase();
       const known = workerLogCursorsRef.current.has(jobId);
-      if (!activeStatuses.has(status) && !(known && terminalStatuses.has(status))) return;
+      const terminal = terminalStatuses.has(status);
+      if (!activeStatuses.has(status) && !(known && terminal)) return;
+      appendWorkerStatus(job);
+      if (terminal && workerTerminalLogDoneRef.current.has(jobId)) return;
       const since = workerLogCursorsRef.current.get(jobId) || 0;
-      if (!String(job?.run_id || '') && since === 0) return;
+      if (!String(job?.run_id || '') && since === 0) {
+        if (terminal) workerTerminalLogDoneRef.current.add(jobId);
+        return;
+      }
       const r = await fetch(`/api/job/${encodeURIComponent(jobId)}/log?since=${encodeURIComponent(String(since))}`, {
         credentials: 'include',
         cache: 'no-store',
@@ -3580,7 +3687,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       if (!r.ok) return;
       const data = await r.json();
       const entries = Array.isArray(data.entries) ? data.entries : [];
-      if (!entries.length) return;
+      if (!entries.length) {
+        if (terminal) workerTerminalLogDoneRef.current.add(jobId);
+        return;
+      }
       let nextCursor = since;
       const mapper = window.AtlasOrchestratorChatLogic?.feedEntryFromWorkerLogEntry;
       const fresh = [];
@@ -3592,6 +3702,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       }
       workerLogCursorsRef.current.set(jobId, nextCursor);
       if (fresh.length) appendLiveFeedEntries(fresh);
+      if (terminal) workerTerminalLogDoneRef.current.add(jobId);
     };
     const poll = async () => {
       if (dead || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
@@ -3654,6 +3765,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   const workerLogSinceRef = React.useRef(0);
   const workerLogSeenRef = React.useRef(new Set());
   const workerLogAutoTabRef = React.useRef('');
+  const workerSessionStatusSeenRef = React.useRef('');
   // (A) live progress header for the worker session: {workflow,status,startedAt,iterations}
   const [workerProgress, setWorkerProgress] = React.useState(null);
   React.useEffect(() => {
@@ -3663,20 +3775,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     workerLogJobRef.current = '';
     workerLogSinceRef.current = 0;
     workerLogSeenRef.current = new Set();
+    workerSessionStatusSeenRef.current = '';
     setWorkerProgress(null);
     let dead = false;
-
-    const toEntry = (e) => {
-      const type = String(e.type || e.role || '').toLowerCase();
-      const text = String(e.content || '').trim();
-      if (!text) return null;
-      const createdAt = Number(e.timestamp || 0) * 1000 || 0;
-      if (type === 'response' || type === 'assistant') return { kind: 'agent', text, createdAt };
-      if (type === 'action') return { kind: 'action', text, createdAt };
-      if (type === 'observation' || type === 'obs') return { kind: 'obs', text, createdAt };
-      // task / plan / context / system / thought → thought (truncate noisy context)
-      return { kind: 'thought', text: text.length > 1200 ? text.slice(0, 1200) + ' …' : text, createdAt };
-    };
 
     const findJobId = async () => {
       try {
@@ -3685,9 +3786,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         const d = await r.json();
         const active = (d && d.worker && Array.isArray(d.worker.active)) ? d.worker.active
           : (d && Array.isArray(d.active)) ? d.active : [];
-        const match = active.find(j => String(j.workflow || '') === wf)
-          || active.find(j => String(j.stage_id || '') === wf)
-          || active.find(j => wf.startsWith(String(j.stage_id || ' ')));
+        const matchesWorkflow = (j) => {
+          const jobWorkflow = String(j.workflow || '').trim();
+          const stage = String(j.stage_id || '').trim();
+          return jobWorkflow === wf || stage === wf || (!!stage && wf.startsWith(stage));
+        };
+        const match = active.find(matchesWorkflow);
         return match ? String(match.job_id || '') : '';
       } catch (_) { return ''; }
     };
@@ -3704,14 +3808,21 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         if (!r.ok) { if (r.status === 404) workerLogJobRef.current = ''; return; }
         const d = await r.json();
         const jb = d.job || {};
+        const fresh = [];
         setWorkerProgress({
           workflow: wf,
           status: String(d.status || jb.status || 'running'),
           startedAt: Number(jb.started_at || 0),
           iterations: Number(jb.iterations || 0),
         });
+        const statusKey = [jid, String(d.status || jb.status || ''), String(jb.run_id || ''), String(jb.worker || '')].join('|');
+        if (workerSessionStatusSeenRef.current !== statusKey) {
+          workerSessionStatusSeenRef.current = statusKey;
+          const statusMapper = window.AtlasOrchestratorChatLogic?.workerStatusEntryFromJob;
+          const statusEntry = typeof statusMapper === 'function' ? statusMapper({ ...jb, job_id: jid, workflow: jb.workflow || wf, status: d.status || jb.status || 'running' }) : null;
+          if (statusEntry) fresh.push(statusEntry);
+        }
         const entries = Array.isArray(d.entries) ? d.entries : [];
-        const fresh = [];
         let maxIdx = workerLogSinceRef.current;
         for (const e of entries) {
           const idx = Number(e.index);
@@ -3720,7 +3831,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             workerLogSeenRef.current.add(idx);
             if (idx + 1 > maxIdx) maxIdx = idx + 1;
           }
-          const fe = toEntry(e);
+          const mapper = window.AtlasOrchestratorChatLogic?.feedEntryFromWorkerLogEntry;
+          const fe = typeof mapper === 'function'
+            ? mapper(e, { ...jb, job_id: jid, workflow: jb.workflow || wf, status: d.status || jb.status || 'running' })
+            : null;
           if (fe) fresh.push(fe);
         }
         workerLogSinceRef.current = maxIdx;
@@ -5673,6 +5787,31 @@ const HandoffRow = ({ label, children }) => (
   </div>
 );
 
+const RawTraceDetails = ({ action, obs, tool, summaryMode = false }) => {
+  const parts = [];
+  const add = (label, entry) => {
+    if (!entry) return;
+    const raw = entry.rawText != null ? String(entry.rawText)
+      : summaryMode && entry.text != null ? String(entry.text) : '';
+    if (!raw.trim()) return;
+    const meta = [
+      entry.rawRole ? `role=${entry.rawRole}` : '',
+      entry.source ? `source=${entry.source}` : '',
+      entry.worker && entry.worker.job_id ? `job=${entry.worker.job_id}` : '',
+    ].filter(Boolean).join(' ');
+    parts.push(`${label}${meta ? ' ' + meta : ''}\n${raw}`);
+  };
+  add('ACTION RAW', action);
+  add('RESULT RAW', obs);
+  if (!parts.length) return null;
+  return (
+    <details className="tool-raw-trace">
+      <summary>raw trace</summary>
+      <ToolOutputPre text={parts.join('\n\n')} tool={tool} />
+    </details>
+  );
+};
+
 // HandoffCard: clean labeled rendering for orchestrator handoffs
 // (dispatch_workflow / write_handoff). Replaces the raw "key={json}" args
 // line with an aligned label/value card covering both the dispatch (sent)
@@ -5732,6 +5871,7 @@ const _HandoffCardRaw = ({ action, obs, tool }) => {
           {result.error && <HandoffRow label="error"><span style={{ color: '#f85149' }}>{result.error}</span></HandoffRow>}
         </div>
       )}
+      <RawTraceDetails action={action} obs={obs} tool={tool} summaryMode />
     </div>
   );
 };
@@ -5940,6 +6080,7 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
           hideHeader
         />
       )}
+      <RawTraceDetails action={action} obs={obs} tool={tool} summaryMode={summaryMode} />
     </div>
   );
 };
@@ -6012,6 +6153,19 @@ const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, dir, summ
           dangerouslySetInnerHTML={{ __html: userHtml }}
           ref={_postProcessMarkdownNode}
         />
+      </div>
+    );
+  }
+  if (entry.kind === 'worker_status') {
+    const st = String(entry.worker && entry.worker.status || '').toLowerCase();
+    const col = /error|fail|blocked|cancelled/.test(st)
+      ? '#f85149'
+      : /complete|passed|done/.test(st) ? '#3fb950' : 'var(--accent)';
+    return (
+      <div className="feed-entry worker-status-entry has-hover-affordance">
+        <span className="worker-status-dot" style={{ color: col }}>●</span>
+        <span className="worker-status-text">{entry.text || 'worker active'}</span>
+        {entry.createdAt ? <span className="ts-pill">{_relTime(entry.createdAt)}</span> : null}
       </div>
     );
   }

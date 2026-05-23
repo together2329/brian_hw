@@ -3,6 +3,7 @@ import {
   feedEntryFromChatMessage,
   feedEntryFromWorkerLogEntry,
   toolEntryFromDisplayLine,
+  workerStatusEntryFromJob,
 } from '../lib/orchestrator_chat_logic.mjs';
 
 describe('orchestrator chat poll mapping', () => {
@@ -13,10 +14,12 @@ describe('orchestrator chat poll mapping', () => {
       payload: { role: 'assistant', content: '작업을 시작했어요' },
     });
 
-    expect(entry).toEqual({
+    expect(entry).toMatchObject({
       kind: 'agent',
       text: '작업을 시작했어요',
       createdAt: 1716400000000,
+      rawText: '작업을 시작했어요',
+      rawRole: 'assistant',
     });
   });
 
@@ -31,12 +34,14 @@ describe('orchestrator chat poll mapping', () => {
       },
     });
 
-    expect(entry).toEqual({
+    expect(entry).toMatchObject({
       kind: 'action',
       text: '⏺ read_pipeline_state(ip="new_axi", include_jobs=true)',
       tool: 'read_pipeline_state',
       args: '(ip="new_axi", include_jobs=true)',
       createdAt: 1716400001000,
+      rawText: '⏺ read_pipeline_state(ip="new_axi", include_jobs=true)',
+      rawRole: 'tool',
     });
   });
 
@@ -63,11 +68,13 @@ describe('orchestrator chat poll mapping', () => {
         display_name: 'read_pipeline_state',
         content: '└─ {"ok":true}',
       },
-    })).toEqual({
+    })).toMatchObject({
       kind: 'obs',
       text: '└─ {"ok":true}',
       tool: 'read_pipeline_state',
       createdAt: 1716400002000,
+      rawText: '└─ {"ok":true}',
+      rawRole: 'tool_result',
     });
   });
 
@@ -76,10 +83,12 @@ describe('orchestrator chat poll mapping', () => {
       id: 'm5',
       created_at: 1716400003,
       payload: { role: 'thought', content: 'checking state' },
-    })).toEqual({
+    })).toMatchObject({
       kind: 'thought',
       text: 'checking state',
       createdAt: 1716400003000,
+      rawText: 'checking state',
+      rawRole: 'thought',
     });
   });
 
@@ -97,10 +106,12 @@ describe('orchestrator chat poll mapping', () => {
       type: 'action',
       role: 'assistant',
       content: 'slash:/sim-debug mctp_axi',
+      raw_content: 'Action: slash:/sim-debug mctp_axi',
       timestamp: 1716400004,
     }, job)).toMatchObject({
       kind: 'action',
       text: 'slash:/sim-debug mctp_axi',
+      rawText: 'Action: slash:/sim-debug mctp_axi',
       tool: 'sim_debug',
       live: true,
       worker: { job_id: 'j1', workflow: 'sim_debug' },
@@ -116,6 +127,24 @@ describe('orchestrator chat poll mapping', () => {
       text: '[sim-debug] FL-vs-RTL compare',
       tool: 'sim_debug',
       live: true,
+    });
+  });
+
+  it('creates compact worker status entries for orchestrator live visibility', () => {
+    expect(workerStatusEntryFromJob({
+      job_id: 'cd16478088c1',
+      run_id: 'run_765165dd',
+      workflow: 'ssot-gen',
+      status: 'running',
+      worker: 'http://127.0.0.1:5735',
+      model: 'glm-5.1',
+      started_at: 1716400006,
+    })).toMatchObject({
+      kind: 'worker_status',
+      text: 'worker ssot-gen running · job cd16478088 · run run_765165 · model glm-5.1 · 127.0.0.1:5735',
+      createdAt: 1716400006000,
+      live: true,
+      worker: { job_id: 'cd16478088c1', workflow: 'ssot-gen', status: 'running' },
     });
   });
 

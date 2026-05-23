@@ -26,43 +26,62 @@
   function feedEntryFromChatMessage(message) {
     var payload = (message && message.payload) || {};
     var role = String(payload.role || '').toLowerCase();
-    var content = String(payload.content || '').trim();
+    var displayContent = String(payload.content != null ? payload.content
+      : payload.text != null ? payload.text
+      : payload.raw_content != null ? payload.raw_content
+      : payload.rawContent != null ? payload.rawContent : '');
+    var rawContent = String(payload.raw_content != null ? payload.raw_content
+      : payload.rawContent != null ? payload.rawContent : displayContent);
+    var content = displayContent.trim();
     if (!content) return null;
     var created = Number((message && message.created_at) || 0);
     var createdAt = created > 0 ? created * 1000 : 0;
     var payloadTool = String(payload.tool || payload.name || payload.display_name || '').trim();
+    var rawMeta = {
+      rawText: rawContent,
+      rawRole: role,
+      source: String(payload.source || (message && message.source) || 'orchestrator_chat'),
+    };
 
     if (role === 'assistant') {
-      return { kind: 'agent', text: content, createdAt: createdAt };
+      return Object.assign({ kind: 'agent', text: content, createdAt: createdAt }, rawMeta);
     }
     if (role === 'thought' || role === 'reasoning') {
-      return { kind: 'thought', text: content, createdAt: createdAt };
+      return Object.assign({ kind: 'thought', text: content, createdAt: createdAt }, rawMeta);
     }
     if (role === 'tool') {
       var parsed = toolEntryFromDisplayLine(content);
       if (!parsed) return null;
-      return {
+      return Object.assign({
         kind: 'action',
         text: parsed.text || content,
         tool: parsed.tool,
         args: parsed.args,
         createdAt: createdAt,
-      };
+      }, rawMeta);
     }
     if (role === 'tool_result' || role === 'observation' || role === 'obs') {
-      return {
+      return Object.assign({
         kind: 'obs',
         text: content,
         tool: payloadTool,
         createdAt: createdAt,
-      };
+      }, rawMeta);
     }
     return null;
   }
 
   function feedEntryFromWorkerLogEntry(entry, job) {
     job = job || {};
-    var content = String((entry && (entry.content != null ? entry.content : entry.text)) || '').trim();
+    var displayContent = String((entry && (
+      entry.content != null ? entry.content
+        : entry.text != null ? entry.text
+        : entry.raw_content != null ? entry.raw_content : entry.rawContent
+    )) || '');
+    var rawContent = String((entry && (
+      entry.raw_content != null ? entry.raw_content : entry.rawContent
+    )) || displayContent);
+    var content = displayContent.trim();
     if (!content) return null;
     var type = String((entry && entry.type) || '').toLowerCase();
     var role = String((entry && entry.role) || '').toLowerCase();
@@ -78,6 +97,11 @@
       status: String((job && job.status) || ''),
       worker: String((job && job.worker) || ''),
     };
+    var rawMeta = {
+      rawText: rawContent,
+      rawRole: String((entry && (entry.raw_role || entry.rawRole || entry.role || entry.type)) || ''),
+      source: String((entry && entry.source) || 'worker_log'),
+    };
 
     // The worker prompt/context is huge and already visible in job detail.
     // The live chat should show the worker's actual ReAct/action/result flow.
@@ -86,7 +110,7 @@
 
     if (type === 'action' || (role === 'assistant' && /^Action:/.test(content))) {
       var parsed = toolEntryFromDisplayLine(content);
-      return {
+      return Object.assign({
         kind: 'action',
         text: content,
         tool: parsed ? parsed.tool : tool,
@@ -94,18 +118,57 @@
         createdAt: createdAt,
         live: true,
         worker: worker,
-      };
+      }, rawMeta);
     }
     if (type === 'observation' || role === 'tool') {
-      return { kind: 'obs', text: content, tool: tool, createdAt: createdAt, live: true, worker: worker };
+      return Object.assign({ kind: 'obs', text: content, tool: tool, createdAt: createdAt, live: true, worker: worker }, rawMeta);
     }
     if (type === 'response' || role === 'assistant') {
-      return { kind: 'agent', text: content, createdAt: createdAt, live: true, worker: worker };
+      return Object.assign({ kind: 'agent', text: content, createdAt: createdAt, live: true, worker: worker }, rawMeta);
     }
     if (type === 'done') {
-      return { kind: 'agent', text: content, createdAt: createdAt, live: true, worker: worker };
+      return Object.assign({ kind: 'agent', text: content, createdAt: createdAt, live: true, worker: worker }, rawMeta);
     }
     return null;
+  }
+
+  function workerStatusEntryFromJob(job) {
+    job = job || {};
+    var jobId = String(job.job_id || job.id || '').trim();
+    var workflow = String(job.workflow || job.stage_id || 'worker').trim();
+    var status = String(job.status || 'active').trim();
+    if (!jobId && !workflow && !status) return null;
+    var workerUrl = String(job.worker || job.worker_url || '').trim();
+    var model = String(job.model || '').trim();
+    var runId = String(job.run_id || '').trim();
+    var timestamp = Number(job.updated_at || job.finished_at || job.started_at || 0);
+    var createdAt = timestamp > 0 ? timestamp * 1000 : Date.now();
+    var short = function (value) {
+      var text = String(value || '').trim();
+      return text.length > 10 ? text.slice(0, 10) : text;
+    };
+    var host = workerUrl.replace(/^https?:\/\//, '');
+    var bits = [
+      'worker ' + workflow + ' ' + status,
+      jobId ? 'job ' + short(jobId) : '',
+      runId ? 'run ' + short(runId) : '',
+      model ? 'model ' + model : '',
+      host ? host : '',
+    ].filter(Boolean);
+    return {
+      kind: 'worker_status',
+      text: bits.join(' · '),
+      createdAt: createdAt,
+      live: true,
+      worker: {
+        job_id: jobId,
+        run_id: runId,
+        workflow: workflow,
+        stage_id: String(job.stage_id || ''),
+        status: status,
+        worker: workerUrl,
+      },
+    };
   }
 
   // --- Orchestrator handoff formatting (dispatch_workflow / write_handoff) ---
@@ -124,6 +187,35 @@
     var re = new RegExp('(?:^|[,\\s])' + name + '\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\'|([^,\\s]+))');
     var match = String(argsText || '').match(re);
     return match ? (match[1] || match[2] || match[3] || '').trim() : '';
+  }
+  function hObjectArgValue(argsText, name) {
+    var src = String(argsText || '');
+    var key = src.search(new RegExp('(?:^|[,\\s])' + name + '\\s*=\\s*\\{'));
+    if (key < 0) return null;
+    var start = src.indexOf('{', key);
+    if (start < 0) return null;
+    var depth = 0;
+    var quote = '';
+    var esc = false;
+    for (var i = start; i < src.length; i++) {
+      var ch = src.charAt(i);
+      if (quote) {
+        if (esc) esc = false;
+        else if (ch === '\\') esc = true;
+        else if (ch === quote) quote = '';
+        continue;
+      }
+      if (ch === '"' || ch === "'") {
+        quote = ch;
+        continue;
+      }
+      if (ch === '{') depth++;
+      else if (ch === '}') {
+        depth--;
+        if (depth === 0) return hParseJsonObject(src.slice(start, i + 1));
+      }
+    }
+    return null;
   }
   function hFirstMetaValue() {
     for (var i = 0; i < arguments.length; i++) {
@@ -152,7 +244,9 @@
     if (!a && action && typeof action.args === 'string') a = hParseJsonObject(action.args);
     var argsText = (action && typeof action.args === 'string') ? action.args
       : (action && typeof action.text === 'string') ? action.text : '';
-    var payload = (a && a.payload && typeof a.payload === 'object') ? a.payload : null;
+    var payload = (a && a.payload && typeof a.payload === 'object')
+      ? a.payload
+      : hObjectArgValue(argsText, 'payload');
     var stages = (a && Array.isArray(a.stages))
       ? a.stages.map(function (s) { return String(s || '').trim(); }).filter(Boolean) : [];
     var workflow = hFirstMetaValue(a && a.workflow, hArgMetaValue(argsText, 'workflow'));
@@ -189,6 +283,7 @@
   var api = {
     feedEntryFromChatMessage: feedEntryFromChatMessage,
     feedEntryFromWorkerLogEntry: feedEntryFromWorkerLogEntry,
+    workerStatusEntryFromJob: workerStatusEntryFromJob,
     toolEntryFromDisplayLine: toolEntryFromDisplayLine,
     handoffFields: handoffFields,
     handoffStatusColor: handoffStatusColor,
