@@ -163,6 +163,14 @@ def test_generic_ssot_prose_does_not_become_static_rtl_terms():
     )
     assert (
         derive._evidence_terms(
+            "function_model.invariant",
+            "function_model.invariants.invariant_3",
+            "Data movement and ordering follow the dataflow section without bypassing declared buffers or counters.",
+        )
+        == []
+    )
+    assert (
+        derive._evidence_terms(
             "function_model.output",
             "function_model.transactions.FM1.outputs.error",
             "Auto-injected placeholder rule for observable state error (repair_ssot_schema rule_expr_completeness pass; TB scoreboard expr)",
