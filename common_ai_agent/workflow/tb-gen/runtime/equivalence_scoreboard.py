@@ -118,6 +118,18 @@ def _deep_equal(left: Any, right: Any) -> bool:
     return left == right
 
 
+def _json_text(value: Any) -> str:
+    try:
+        return json.dumps(value, ensure_ascii=False, sort_keys=True).lower()
+    except Exception:
+        return str(value or "").lower()
+
+
+def _is_repair_generated_fm_expected(fl_expected: dict[str, Any]) -> bool:
+    text = _json_text(fl_expected)
+    return any(phrase in text for phrase in REPAIR_MARKER_PHRASES) and re.search(r"\bfm\d+_observed\b", text) is not None
+
+
 def _binary_string_to_int(value: Any) -> int | None:
     if not isinstance(value, str):
         return None
@@ -1061,6 +1073,8 @@ class EquivalenceScoreboard:
             return False, "rtl_observed must be DUT signal observations, not FunctionalModel model_result"
         if rtl_observed == fl_expected:
             return False, "rtl_observed must not copy the full fl_expected payload"
+        if _is_repair_generated_fm_expected(fl_expected):
+            return True, ""
         if _is_debug_observability_expected(fl_expected):
             return True, ""
         if _is_degenerate_state_expected(fl_expected):

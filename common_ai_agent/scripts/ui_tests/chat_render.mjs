@@ -31,7 +31,13 @@ try {
         .find(x => (x.textContent || '').trim().toUpperCase() === 'CHAT' && x.offsetParent !== null);
       if (el) el.click();
     });
-    await page.waitForTimeout(4000); // let the 1s poller hydrate the feed
+    // Wait for the 1s poller to actually hydrate feed entries (avoids a
+    // 0-entry race under server load), then a beat for fusion to settle.
+    await page.waitForFunction(
+      () => document.querySelectorAll('.feed-entry, .react-block, .tool-card').length > 0,
+      { timeout: 15000 },
+    ).catch(() => {});
+    await page.waitForTimeout(2500);
 
     // Feed entries are class-marked, not [data-kind] (that attr only exists in
     // the code-fold tree view). Map each kind to its real DOM marker.
