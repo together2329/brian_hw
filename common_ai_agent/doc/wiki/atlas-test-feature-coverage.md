@@ -280,14 +280,21 @@ skips the dead-import paths automatically (see §5).
 
 ## 4. What is *not* in the test suite
 
-These are real features with **no automated coverage** today. Manual or new tests needed.
+Closed (added 2026-05-23):
+- ~~Lazy worker reaper~~ → `test_lazy_worker_reaper.py` (6 cases)
+- ~~Orchestrator-mode cold-start storm~~ → `test_lazy_worker_cold_start_storm.py` (4 cases)
+- ~~50-way concurrent DB writer~~ → `test_atlas_db_concurrent_writers.py` (2 cases)
 
-- **Lazy worker reaper** — kills no test today; relies on stdin `status` and dispatch log.
-- **Orchestrator-mode cold-start storm** — N=12 simultaneous lazy spawns. No load test in repo.
-- **Dashboard IP-row click navigation** — `test_atlas_user_dashboard.py` validates payload shape but not the click handler.
-- **AgentStatusPanel WORKERS section** — no jsx test runner; verified visually.
-- **`atlas-dispatch.log` rotation correctness** — relies on stdlib RotatingFileHandler defaults.
-- **single-worker `WORKER_URL_DEFAULT=http://127.0.0.1:5601` env injection** — checked only indirectly via `_worker_url_is_shared_default`.
+Still open (no automated coverage; manual or new tests needed):
+
+- **Dashboard IP-row click navigation** — `test_atlas_user_dashboard.py` validates the payload shape but not the click handler. Needs a JSX test runner (none configured today).
+- **AgentStatusPanel WORKERS section** — same blocker; no JSX test infra.
+- **Orchestrator chat "select IP" warning banner** — same blocker.
+- **`.dir-select-wrap.run-policy` border change** — cosmetic, low priority.
+- **`atlas-dispatch.log` rotation correctness** — relies on stdlib RotatingFileHandler defaults; could add a synthetic 6 MB write test.
+- **single-worker `WORKER_URL_DEFAULT=http://127.0.0.1:5601` env injection** — checked only indirectly via `_worker_url_is_shared_default`. A focused test on the env-set side of `atlas_ui.py:_single_worker_mode` branch would catch regressions.
+
+To close the JSX-side gaps, run `npm init` + install `vitest` + `@testing-library/react` and add a `frontend/__tests__/` folder. There is no JS toolchain in the repo today (browser-Babel only), so this is a separate setup task.
 
 ---
 
