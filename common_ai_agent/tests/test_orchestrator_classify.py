@@ -269,6 +269,24 @@ class TestStageRules:
         assert result["owner"] == "coverage_gap"
         assert result["next_workflow"] == "tb-gen"
 
+    def test_tb_missing_equivalence_goals_routes_to_equivalence(self):
+        result = classify_failure(
+            "tb",
+            evidence={
+                "tb_blocked": {
+                    "questions": [
+                        {
+                            "id": "TB_GENERATOR_INPUT",
+                            "evidence": "missing equivalence goals: /work/ip/verify/equivalence_goals.json",
+                        }
+                    ]
+                }
+            },
+        )
+        assert result["owner"] == "fl-model-gen"
+        assert result["next_workflow"] == "equivalence"
+        assert result["confidence"] == "high"
+
     def test_sta_setup_failure(self):
         result = classify_failure(
             "sta",

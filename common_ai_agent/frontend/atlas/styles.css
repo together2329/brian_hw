@@ -1484,6 +1484,26 @@ html[data-platform="windows"] .app {
   margin: 4px 0; opacity: 0.45;
 }
 
+/* Orchestrator handoff card (dispatch_workflow / write_handoff) — clean
+   labeled key/value layout instead of raw JSON args. */
+.handoff-card { font-family: var(--mono); font-size: var(--ui-font-size); line-height: 1.4; }
+.handoff-block { padding: 2px 0; }
+.handoff-result { margin-top: 3px; }
+.handoff-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+.handoff-glyph { color: var(--fg-mute); }
+.handoff-verb { font-weight: 700; color: #fbbf24; }
+.handoff-target { font-weight: 700; color: var(--fg); }
+.handoff-arrow { color: var(--fg-mute); }
+.handoff-ip { color: var(--fg); }
+.handoff-sched { color: var(--fg-mute); font-size: var(--ui-small-font-size); }
+.handoff-status { display: inline-flex; align-items: baseline; gap: 4px; color: var(--fg-mute); }
+.handoff-stages { display: inline-flex; flex-wrap: wrap; gap: 2px 10px; color: var(--fg-mute); }
+.handoff-stage { white-space: nowrap; }
+.handoff-dot { font-size: 9px; line-height: 1; }
+.handoff-row { display: flex; gap: 8px; padding-left: 18px; align-items: baseline; }
+.handoff-label { flex: 0 0 auto; min-width: 9ch; color: var(--fg-mute); }
+.handoff-val { min-width: 0; color: var(--fg); white-space: pre-wrap; word-break: break-word; }
+
 .tool-output-pre {
   margin: 4px 0 0;
   max-height: 320px;

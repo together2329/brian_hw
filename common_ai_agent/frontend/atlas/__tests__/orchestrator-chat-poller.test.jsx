@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   feedEntryFromChatMessage,
+  feedEntryFromWorkerLogEntry,
   toolEntryFromDisplayLine,
 } from '../lib/orchestrator_chat_logic.mjs';
 
@@ -87,5 +88,42 @@ describe('orchestrator chat poll mapping', () => {
       id: 'm3',
       payload: { role: 'user', content: 'Hi' },
     })).toBeNull();
+  });
+
+  it('maps worker log action/result rows as live raw feed entries', () => {
+    const job = { job_id: 'j1', run_id: 'r1', workflow: 'sim_debug', status: 'running', worker: 'http://127.0.0.1:7000' };
+    expect(feedEntryFromWorkerLogEntry({
+      index: 6,
+      type: 'action',
+      role: 'assistant',
+      content: 'slash:/sim-debug mctp_axi',
+      timestamp: 1716400004,
+    }, job)).toMatchObject({
+      kind: 'action',
+      text: 'slash:/sim-debug mctp_axi',
+      tool: 'sim_debug',
+      live: true,
+      worker: { job_id: 'j1', workflow: 'sim_debug' },
+    });
+    expect(feedEntryFromWorkerLogEntry({
+      index: 7,
+      type: 'observation',
+      role: 'tool',
+      content: '[sim-debug] FL-vs-RTL compare',
+      timestamp: 1716400005,
+    }, job)).toMatchObject({
+      kind: 'obs',
+      text: '[sim-debug] FL-vs-RTL compare',
+      tool: 'sim_debug',
+      live: true,
+    });
+  });
+
+  it('does not dump the huge worker context prompt into live chat', () => {
+    expect(feedEntryFromWorkerLogEntry({
+      type: 'task',
+      role: 'user',
+      content: '[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: mctp_axi',
+    }, { workflow: 'rtl-gen' })).toBeNull();
   });
 });

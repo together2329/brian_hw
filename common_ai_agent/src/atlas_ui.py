@@ -2930,6 +2930,18 @@ def create_app():
         _orch_register_bridge(bridge)
     except Exception:
         pass
+    try:
+        from src.orchestrator.react_bridge import register_live_event_emitter as _orch_live_events
+
+        def _emit_orchestrator_live(session_id: str, event: dict[str, Any]) -> None:
+            sid = normalize_session_name(str(session_id or ""))
+            if not sid:
+                return
+            bridge.emit("orchestrator_chat", session_id=sid, **dict(event or {}))
+
+        _orch_live_events(_emit_orchestrator_live)
+    except Exception:
+        pass
     # Opt-in auto-start of the chat-responder bots. With
     # CHAT_RESPONDER_AUTOSTART=1 in .env, atlas_ui spawns one daemon
     # thread per IP room plus one for _global, so launching the UI is

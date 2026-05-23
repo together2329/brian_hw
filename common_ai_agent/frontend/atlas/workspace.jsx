@@ -1507,6 +1507,16 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   });
   const activeSessionRef = React.useRef(activeSession);
   const hydratedConversationSessionRef = React.useRef(activeSession);
+  const liveFeedStartedRef = React.useRef(false);
+  const workerLogCursorsRef = React.useRef(new Map());
+  const appendLiveFeedEntries = React.useCallback((entries) => {
+    const fresh = (Array.isArray(entries) ? entries : [entries])
+      .filter(Boolean)
+      .map(e => ({ ...e, live: e.live !== false }));
+    if (!fresh.length) return;
+    liveFeedStartedRef.current = true;
+    setFeed(f => [...f, ...fresh]);
+  }, []);
   React.useEffect(() => { activeSessionRef.current = activeSession; }, [activeSession]);
   React.useEffect(() => {
     const sid = normalizeUiSession(activeNamespace || '');
@@ -1661,7 +1671,12 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     const sessionWorkflow = workflowFromSession(activeSession || window.ACTIVE_SESSION || '');
     if ((next || '') === currentWorkflow && !(next === 'orchestrator' && sessionWorkflow !== 'orchestrator')) return;
     const runningNow = streamingRef.current || window.ATLAS_AGENT_RUNNING === true;
-    if (runningNow) {
+    // In orchestrator mode the orchestrator coordinates workers across stages,
+    // and the left-rail workflow chips just switch which worker's workspace is
+    // *viewed* — switching must NOT stop the run. Only single-worker mode binds
+    // one agent to the active workflow, so only it prompts to stop before switch.
+    const orchestratorMode = atlasUiOrchestratorMode();
+    if (runningNow && !orchestratorMode) {
       const label = next || 'default';
       if (!window.confirm(`Agent is running. Stop it and switch workflow to "${label}"?`)) return;
       try { if (window.backend) window.backend.send({ type: 'stop' }); } catch (_) {}
@@ -1671,11 +1686,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         }).catch(() => {});
       } catch (_) {}
     }
-    setStreaming(false);
-    try {
-      window.ATLAS_AGENT_RUNNING = false;
-      window.dispatchEvent(new CustomEvent('atlas-agent-running', { detail: { running: false } }));
-    } catch (_) {}
+    if (!orchestratorMode) {
+      setStreaming(false);
+      try {
+        window.ATLAS_AGENT_RUNNING = false;
+        window.dispatchEvent(new CustomEvent('atlas-agent-running', { detail: { running: false } }));
+      } catch (_) {}
+    }
     setWorkflow(next || null);
     window.CONTEXT = Object.assign({}, window.CONTEXT || {}, { workspace: next || '' });
     refreshFeed(intent, next || null);
@@ -2291,6 +2308,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         const text = String(e.text || '');
         return !!text.trim() && !placeholderTexts.has(text);
       }
+      // live worker steps often map to 'thought' — count them (when live-stamped)
+      // so a thought-only worker transcript isn't wiped by a late hydration.
+      if (e.kind === 'thought') return !!e.live;
       return ['user', 'qcard', 'action', 'obs', 'ssot_approval'].includes(e.kind);
     });
     const hasPendingAskUser = () => {
@@ -2338,7 +2358,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
               // Stamp `tool` so the render-time pre-pass can pair this
               // hydrated action with the next 'tool'-role obs into a
               // single ToolCard (matching the live shape).
-              newFeed.push({ kind: 'action', text: `▶ ${fn} ${argsText}`, tool: fn, args: argsText });
+              newFeed.push({ kind: 'action', text: `▶ ${fn} ${argsText}`, tool: fn, args: argsText, argsRaw: args });
             }
           }
         } else if (role === 'tool' && content) {
@@ -2362,6 +2382,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         const prevSession = normalizeUiSession(hydratedConversationSessionRef.current || '');
         const namespaceChanged = !!(session && prevSession && session !== prevSession);
         const sameActiveSession = !session || session === normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || '');
+        if (sameActiveSession && !namespaceChanged && liveFeedStartedRef.current && hasLiveFeedEntries(prev)) {
+          return prev;
+        }
         // ask_user can trigger a session-state refresh before the agent
         // flushes conversation.json. That empty same-session snapshot
         // should not erase the live chat or the pending Q&A card.
@@ -2376,6 +2399,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           return prev;
         }
         if (session) hydratedConversationSessionRef.current = session;
+        if (namespaceChanged) {
+          liveFeedStartedRef.current = false;
+          workerLogCursorsRef.current.clear();
+        }
         return newFeed;
       });
     };
@@ -2921,7 +2948,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: raw, ip: orchIp }),
+        body: JSON.stringify({
+          message: raw,
+          ip: orchIp,
+          session: normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || activeSession || ''),
+        }),
       })
         .then(r => r.json().catch(() => ({})))
         .then(d => { if (d && d.error) setFeed(f => [...f, { kind: 'agent', text: `[orchestrator] ${d.error}` }]); })
@@ -3029,6 +3060,19 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     subs.push(window.backend.subscribe('peer_left', (m) => {
       setPeerCount(m.peers || 1);
     }));
+    subs.push(window.backend.subscribe('orchestrator_chat', (m) => {
+      if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
+      const mapper = window.AtlasOrchestratorChatLogic?.feedEntryFromChatMessage;
+      if (typeof mapper !== 'function') return;
+      const entry = mapper({
+        id: m.id || `${m.created_at || Date.now()}-${Math.random()}`,
+        created_at: m.created_at || (Date.now() / 1000),
+        payload: m.payload || {},
+      });
+      if (!entry) return;
+      awaitingRunStartRef.current = false;
+      appendLiveFeedEntries({ ...entry, live: true, source: 'orchestrator_live' });
+    }));
     // Coalesce token chunks into a small fixed cadence. The live preview
     // renders this state, so requestAnimationFrame can become too chatty
     // during dense token bursts; 50 ms stays visibly live without forcing
@@ -3059,13 +3103,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       _reasonBuf.lines = [];
       if (!newLines.length) return;
       const chunk = newLines.join('\n');
+      liveFeedStartedRef.current = true;
       setFeed(l => {
         const last = l[l.length - 1];
         if (last && last.kind === 'thought') {
           return [...l.slice(0, -1),
-                  { kind: 'thought', text: last.text + '\n' + chunk, createdAt: last.createdAt || Date.now() }];
+                  { ...last, live: true, text: last.text + '\n' + chunk, createdAt: last.createdAt || Date.now() }];
         }
-        return [...l, { kind: 'thought', text: chunk, createdAt: Date.now() }];
+        return [...l, { kind: 'thought', text: chunk, createdAt: Date.now(), live: true }];
       });
     };
     subs.push(window.backend.subscribe('reasoning', (m) => {
@@ -3106,7 +3151,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       // Finalize any pending streaming text first so the tool-call entry
       // sits AFTER the pre-tool reasoning/agent text in the feed.
       const buf = streamBufferRef.current;
-      if (buf.trim()) setFeed(l => [...l, { kind: 'agent', text: buf, createdAt: Date.now() }]);
+      if (buf.trim()) appendLiveFeedEntries({ kind: 'agent', text: buf, createdAt: Date.now() });
       streamBufferRef.current = '';
       setStreamText('');
       // Parse "▶/⏺ tool_name  args…" → capture tool name so ToolCard can
@@ -3121,13 +3166,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         lastToolStatus: 'running',
         lastToolResult: argsText || prev.lastToolResult || '',
       }));
-      setFeed(l => [...l, {
+      appendLiveFeedEntries({
         kind: 'action',
         text: t,
         tool: toolName,
         args: argsText,
         createdAt: Date.now(),
-      }]);
+      });
     }));
     // Tool observation: the result the agent just received from the tool.
     subs.push(window.backend.subscribe('tool_result', (m) => {
@@ -3144,13 +3189,13 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         lastToolResult: t.split('\n').find(line => line.trim()) || t,
       }));
       if (_isWorkflowResultTool(m.tool || '')) return;
-      setFeed(l => [...l, {
+      appendLiveFeedEntries({
         kind: 'obs',
         text: t,
         tool: m.tool || '',
         truncated: !!m.truncated,
         createdAt: Date.now(),
-      }]);
+      });
     }));
     subs.push(window.backend.subscribe('cost', (m) => {
       if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
@@ -3187,7 +3232,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // agent_state(running:false) explicitly says we're done.
     const parkBuffer = () => {
       const buf = streamBufferRef.current;
-      if (buf.trim()) setFeed(l => [...l, { kind: 'agent', text: buf, createdAt: Date.now() }]);
+      if (buf.trim()) appendLiveFeedEntries({ kind: 'agent', text: buf, createdAt: Date.now() });
       streamBufferRef.current = '';
       setStreamText('');
     };
@@ -3203,7 +3248,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       setFeed(l => {
         const last = l[l.length - 1];
         if (last && last.kind === 'turn_end') return l;
-        return [...l, { kind: 'turn_end', text: '✓ end of loop', createdAt: Date.now() }];
+        liveFeedStartedRef.current = true;
+        return [...l, { kind: 'turn_end', text: '✓ end of loop', createdAt: Date.now(), live: true }];
       });
     };
     // Mode flip from backend (chat_loop auto-promotes plan_q→normal when
@@ -3239,7 +3285,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           dup = true;
           return l;
         }
-        return [...l, { kind: 'agent', text: shown, createdAt: Date.now(), fromSlash: true }];
+        liveFeedStartedRef.current = true;
+        return [...l, { kind: 'agent', text: shown, createdAt: Date.now(), fromSlash: true, live: true }];
       });
       if (dup) return;
       streamBufferRef.current = '';
@@ -3266,7 +3313,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     }));
     subs.push(window.backend.subscribe('error', (m) => {
       if (!workspaceEventMatchesActiveSession(m, { requireSession: true })) return;
-      setFeed(l => [...l, { kind: 'agent', text: `[error] ${m.message || ''}`, createdAt: Date.now() }]);
+      appendLiveFeedEntries({ kind: 'agent', text: `[error] ${m.message || ''}`, createdAt: Date.now() });
       streamBufferRef.current = '';
       setStreamText('');
       setStreaming(false);
@@ -3427,9 +3474,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       if (_reasonRaf) cancelAnimationFrame(_reasonRaf);
       subs.forEach(u => u && u());
     };
-  }, [activateAskUserSession, refreshSsotQa]);
+  }, [activateAskUserSession, appendLiveFeedEntries, refreshSsotQa]);
 
-  // ── Orchestrator HTTP polling (DB-backed, survives WiFi drops) ──────────
+  // ── Orchestrator recovery polling (DB-backed fallback only) ─────────────
   const orchSeenRef = React.useRef(new Set());
   const orchSinceRef = React.useRef(0);
   React.useEffect(() => {
@@ -3482,16 +3529,76 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           if (animate) foundAssistant = true;
           if (id) orchSeenRef.current.add(id);
           const entry = toFeedEntry(m, animate);
-          if (entry) fresh.unshift(entry);
+          if (entry) fresh.unshift({ ...entry, recovered: true });
         }
         if (typeof d.next_since === 'number') orchSinceRef.current = d.next_since;
         if (fresh.length) { setFeed(f => [...f, ...fresh]); setStreaming(false); }
       } catch (_) {}
     };
+    // With an open WebSocket, orchestrator rows arrive via
+    // `orchestrator_chat` live events. SQLite polling is only the
+    // reconnect/recovery backup, not the primary screen path.
+    if (backendState === 'open') return undefined;
     poll();
     const t = setInterval(poll, 1000);
     return () => { dead = true; clearInterval(t); };
-  }, [workflow, activeIp]);
+  }, [workflow, activeIp, backendState]);
+
+  // ── Worker live-log append for orchestrator mode ────────────────────────
+  React.useEffect(() => {
+    const ip = String(activeIp || '').trim();
+    if (String(workflow || '') !== 'orchestrator' || !ip || ip.toLowerCase() === 'default') return undefined;
+    workerLogCursorsRef.current = new Map();
+    let dead = false;
+    const activeStatuses = new Set(['queued', 'pending', 'running']);
+    const terminalStatuses = new Set(['completed', 'error', 'blocked']);
+    const pollWorkerLog = async (job) => {
+      const jobId = String(job?.job_id || '');
+      if (!jobId) return;
+      const status = String(job?.status || '').toLowerCase();
+      const known = workerLogCursorsRef.current.has(jobId);
+      if (!activeStatuses.has(status) && !(known && terminalStatuses.has(status))) return;
+      const since = workerLogCursorsRef.current.get(jobId) || 0;
+      if (!String(job?.run_id || '') && since === 0) return;
+      const r = await fetch(`/api/job/${encodeURIComponent(jobId)}/log?since=${encodeURIComponent(String(since))}`, {
+        credentials: 'include',
+        cache: 'no-store',
+      });
+      if (!r.ok) return;
+      const data = await r.json();
+      const entries = Array.isArray(data.entries) ? data.entries : [];
+      if (!entries.length) return;
+      let nextCursor = since;
+      const mapper = window.AtlasOrchestratorChatLogic?.feedEntryFromWorkerLogEntry;
+      const fresh = [];
+      for (const entry of entries) {
+        const idx = Number(entry && entry.index);
+        if (Number.isFinite(idx)) nextCursor = Math.max(nextCursor, idx + 1);
+        const mapped = typeof mapper === 'function' ? mapper(entry, data.job || job) : null;
+        if (mapped) fresh.push(mapped);
+      }
+      workerLogCursorsRef.current.set(jobId, nextCursor);
+      if (fresh.length) appendLiveFeedEntries(fresh);
+    };
+    const poll = async () => {
+      if (dead || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
+      try {
+        const r = await fetch(`/api/jobs?ip=${encodeURIComponent(ip)}`, {
+          credentials: 'include',
+          cache: 'no-store',
+        });
+        if (!r.ok) return;
+        const d = await r.json();
+        const jobs = (Array.isArray(d.jobs) ? d.jobs : [])
+          .filter(job => String(job?.ip || '') === ip)
+          .slice(0, 30);
+        await Promise.all(jobs.map(pollWorkerLog));
+      } catch (_) {}
+    };
+    poll();
+    const t = setInterval(poll, 1200);
+    return () => { dead = true; clearInterval(t); };
+  }, [workflow, activeIp, appendLiveFeedEntries]);
 
   // ── Brief live-worker strip for the orchestrator chat ───────────────────
   // Shows which workers the orchestrator currently has running, inline in
@@ -3520,6 +3627,116 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     };
     poll();
     const t = setInterval(poll, 3000);
+    return () => { dead = true; clearInterval(t); };
+  }, [workflow, activeIp]);
+
+  // ── Worker-session LIVE transcript poll ─────────────────────────────────
+  // When viewing a worker session (not the orchestrator), surface the live
+  // ReAct steps of the worker the orchestrator dispatched. Those steps are
+  // NOT in this session's conversation.json (the worker writes elsewhere) —
+  // but the worker agent-server exposes them via /api/job/{id}/log. We map
+  // (ip, workflow) → running job_id through /api/pipeline/progress-debug,
+  // then poll the job log and append new entries to the feed.
+  const workerLogJobRef = React.useRef('');
+  const workerLogSinceRef = React.useRef(0);
+  const workerLogSeenRef = React.useRef(new Set());
+  const workerLogAutoTabRef = React.useRef('');
+  // (A) live progress header for the worker session: {workflow,status,startedAt,iterations}
+  const [workerProgress, setWorkerProgress] = React.useState(null);
+  React.useEffect(() => {
+    const ip = String(activeIp || '').trim();
+    const wf = String(workflow || '');
+    if (!wf || wf === 'orchestrator' || !ip || ip.toLowerCase() === 'default') return undefined;
+    workerLogJobRef.current = '';
+    workerLogSinceRef.current = 0;
+    workerLogSeenRef.current = new Set();
+    setWorkerProgress(null);
+    let dead = false;
+
+    const toEntry = (e) => {
+      const type = String(e.type || e.role || '').toLowerCase();
+      const text = String(e.content || '').trim();
+      if (!text) return null;
+      const createdAt = Number(e.timestamp || 0) * 1000 || 0;
+      if (type === 'response' || type === 'assistant') return { kind: 'agent', text, createdAt };
+      if (type === 'action') return { kind: 'action', text, createdAt };
+      if (type === 'observation' || type === 'obs') return { kind: 'obs', text, createdAt };
+      // task / plan / context / system / thought → thought (truncate noisy context)
+      return { kind: 'thought', text: text.length > 1200 ? text.slice(0, 1200) + ' …' : text, createdAt };
+    };
+
+    const findJobId = async () => {
+      try {
+        const r = await fetch(`/api/pipeline/progress-debug?ip=${encodeURIComponent(ip)}`, { credentials: 'include', cache: 'no-store' });
+        if (!r.ok) return '';
+        const d = await r.json();
+        const active = (d && d.worker && Array.isArray(d.worker.active)) ? d.worker.active
+          : (d && Array.isArray(d.active)) ? d.active : [];
+        const match = active.find(j => String(j.workflow || '') === wf)
+          || active.find(j => String(j.stage_id || '') === wf)
+          || active.find(j => wf.startsWith(String(j.stage_id || ' ')));
+        return match ? String(match.job_id || '') : '';
+      } catch (_) { return ''; }
+    };
+
+    const poll = async () => {
+      if (dead || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
+      try {
+        if (!workerLogJobRef.current) {
+          workerLogJobRef.current = await findJobId();
+          if (!workerLogJobRef.current) return;
+        }
+        const jid = workerLogJobRef.current;
+        const r = await fetch(`/api/job/${encodeURIComponent(jid)}/log?since=${workerLogSinceRef.current}`, { credentials: 'include', cache: 'no-store' });
+        if (!r.ok) { if (r.status === 404) workerLogJobRef.current = ''; return; }
+        const d = await r.json();
+        const jb = d.job || {};
+        setWorkerProgress({
+          workflow: wf,
+          status: String(d.status || jb.status || 'running'),
+          startedAt: Number(jb.started_at || 0),
+          iterations: Number(jb.iterations || 0),
+        });
+        const entries = Array.isArray(d.entries) ? d.entries : [];
+        const fresh = [];
+        let maxIdx = workerLogSinceRef.current;
+        for (const e of entries) {
+          const idx = Number(e.index);
+          if (Number.isFinite(idx)) {
+            if (workerLogSeenRef.current.has(idx)) continue;
+            workerLogSeenRef.current.add(idx);
+            if (idx + 1 > maxIdx) maxIdx = idx + 1;
+          }
+          const fe = toEntry(e);
+          if (fe) fresh.push(fe);
+        }
+        workerLogSinceRef.current = maxIdx;
+        if (fresh.length) {
+          // Route through appendLiveFeedEntries so entries are `live`-stamped
+          // and liveFeedStartedRef is set — otherwise a late conversation
+          // hydration (empty conversation.json) would wipe them.
+          appendLiveFeedEntries(fresh);
+          setStreaming(s => (s ? false : s));
+          // First live steps for this job → surface the CHAT tab so the user
+          // who clicked the strip chip actually sees the worker working
+          // (worker sessions otherwise default to checklist/report tabs).
+          // Only override the workflow-default tabs; never fight a manual pick.
+          if (workerLogAutoTabRef.current !== jid) {
+            workerLogAutoTabRef.current = jid;
+            setMainTab(prev => (
+              prev === 'checklist' || prev === 'sim_summary' ||
+              prev === 'coverage' || prev === 'workflow_report' || prev === 'debug'
+            ) ? 'chat' : prev);
+          }
+        }
+        // job finished → stop chasing it (next active job, if any, re-resolves)
+        if (d.status && ['passed', 'failed', 'error', 'done', 'completed', 'cancelled'].includes(String(d.status))) {
+          workerLogJobRef.current = '';
+        }
+      } catch (_) {}
+    };
+    poll();
+    const t = setInterval(poll, 1500);
     return () => { dead = true; clearInterval(t); };
   }, [workflow, activeIp]);
 
@@ -3964,23 +4181,26 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     // sometimes leave .tool empty on one side, causing a standalone
     // "OBS" row to leak into the feed).
     const out = [];
+    const entrySummaryMode = (...entries) => (
+      entries.some(e => e && e.live) ? false : chatFeedSummary
+    );
     for (let i = 0; i < feed.length; i++) {
       const cur = feed[i];
       const nxt = feed[i + 1];
       if (cur && cur.kind === 'action' && nxt && nxt.kind === 'obs') {
-        out.push(<ToolCard key={i} action={cur} obs={nxt} summaryMode={chatFeedSummary} />);
+        out.push(<ToolCard key={i} action={cur} obs={nxt} summaryMode={entrySummaryMode(cur, nxt)} />);
         i++;
         continue;
       }
       if (cur && cur.kind === 'action' && cur.tool) {
-        out.push(<ToolCard key={i} action={cur} obs={null} summaryMode={chatFeedSummary} />);
+        out.push(<ToolCard key={i} action={cur} obs={null} summaryMode={entrySummaryMode(cur)} />);
         continue;
       }
       // Orphan obs (action got swallowed, or hydration ordering anomaly):
       // wrap it in a ToolCard so it gets the same single-row collapsed
       // look as paired tools, instead of a separate "OBS" header line.
       if (cur && cur.kind === 'obs') {
-        out.push(<ToolCard key={i} action={null} obs={cur} summaryMode={chatFeedSummary} />);
+        out.push(<ToolCard key={i} action={null} obs={cur} summaryMode={entrySummaryMode(cur)} />);
         continue;
       }
       out.push(
@@ -3992,14 +4212,42 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           onCustom={setCustom}
           onSubmit={submitCard}
           dir={dir}
-          summaryMode={chatFeedSummary}
+          summaryMode={entrySummaryMode(cur)}
         />
       );
     }
     return out;
   };
+  const renderWorkerProgress = () => {
+    if (workflow === 'orchestrator' || !workerProgress) return null;
+    const wp = workerProgress;
+    const done = ['passed', 'done', 'completed'].includes(wp.status);
+    const failed = ['failed', 'error', 'cancelled'].includes(wp.status);
+    const running = !done && !failed;
+    const col = running ? 'var(--accent)' : done ? 'var(--ok, #76c893)' : 'var(--err, #e85d5d)';
+    let elapsed = '';
+    if (wp.startedAt > 0) {
+      const s = Math.max(0, Math.floor(Date.now() / 1000 - wp.startedAt));
+      elapsed = s < 60 ? `${s}s` : `${Math.floor(s / 60)}m${String(s % 60).padStart(2, '0')}s`;
+    }
+    return (
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 3, display: 'flex', alignItems: 'center', gap: 8,
+        padding: '5px 10px', marginBottom: 8, fontFamily: 'var(--mono)', fontSize: 11,
+        background: 'var(--panel, #0f1118)', borderBottom: '1px solid var(--line)',
+      }}>
+        <span style={{ color: col }}>{running ? '▶' : done ? '✓' : '✗'}</span>
+        <b>{wp.workflow}</b>
+        <span style={{ color: col }}>{wp.status}</span>
+        {elapsed ? <span className="mute" style={{ color: 'var(--fg-mute)' }}>· {elapsed}</span> : null}
+        {wp.iterations > 0 ? <span className="mute" style={{ color: 'var(--fg-mute)' }}>· iter {wp.iterations}</span> : null}
+        <span className="mute" style={{ color: 'var(--fg-dim)', marginLeft: 'auto' }}>live worker</span>
+      </div>
+    );
+  };
   const renderChatPane = (style = {}) => (
     <div ref={feedRef} style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '14px 18px', ...style }}>
+      {renderWorkerProgress()}
       {renderFeedEntries()}
       <LiveAgentPreview text={streamText} />
     </div>
@@ -5388,17 +5636,177 @@ const _dispatchWorkflowMeta = (tool, obsText, argsText) => {
   return { model, effort, worker, execMode };
 };
 
+// Handoff parsing lives in lib/orchestrator_chat_logic (loaded before this
+// script and tested via vitest) so there is a single source of truth. These
+// thin wrappers delegate to it, with a minimal fallback if the global is
+// somehow unavailable (degrades to showing the raw args, never crashes).
+const _handoffFields = (action, obs) => {
+  const lib = (typeof window !== 'undefined') && window.AtlasOrchestratorChatLogic;
+  if (lib && typeof lib.handoffFields === 'function') return lib.handoffFields(action, obs);
+  const argsText = (action && (action.args || action.text)) || '';
+  return { sent: { target: '', ip: '', task: String(argsText), reason: '', schedule: '', fanout: false }, result: null };
+};
+
+const _handoffStatusColor = (status) => {
+  const lib = (typeof window !== 'undefined') && window.AtlasOrchestratorChatLogic;
+  if (lib && typeof lib.handoffStatusColor === 'function') return lib.handoffStatusColor(status);
+  return '#8b949e';
+};
+
+const HandoffRow = ({ label, children }) => (
+  <div className="handoff-row">
+    <span className="handoff-label">{label}</span>
+    <span className="handoff-val">{children}</span>
+  </div>
+);
+
+// HandoffCard: clean labeled rendering for orchestrator handoffs
+// (dispatch_workflow / write_handoff). Replaces the raw "key={json}" args
+// line with an aligned label/value card covering both the dispatch (sent)
+// and the worker's result summary (received).
+const _HandoffCardRaw = ({ action, obs, tool }) => {
+  const theme = _toolTheme(tool);
+  const verb = tool === 'write_handoff' ? 'Handoff' : 'Dispatch';
+  const { sent, result } = _handoffFields(action, obs);
+  const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
+  const isErr = result && /(error|fail|blocked|fatal)/i.test(`${result.status || ''} ${result.error || ''}`);
+  const borderColor = isErr ? '#f85149' : theme.color;
+  return (
+    <div className="tool-card handoff-card has-hover-affordance" style={{ borderLeftColor: borderColor }}>
+      <span className="tool-card-ts">{_relTime(ts)}</span>
+      <div className="handoff-block">
+        <div className="handoff-title">
+          <span className="handoff-glyph">⇢</span>
+          <span className="handoff-verb">{verb}</span>
+          {sent.target && <span className="handoff-target">{sent.target}</span>}
+          {sent.ip && <><span className="handoff-arrow">→</span><span className="handoff-ip">{sent.ip}</span></>}
+          {sent.fanout && sent.schedule && <span className="handoff-sched">({sent.schedule})</span>}
+        </div>
+        {sent.task && <HandoffRow label="task">{sent.task}</HandoffRow>}
+        {sent.reason && <HandoffRow label="reason">{sent.reason}</HandoffRow>}
+        {sent.schedule && !sent.fanout && <HandoffRow label="schedule">{sent.schedule}</HandoffRow>}
+      </div>
+      {result && (
+        <div className="handoff-block handoff-result">
+          <div className="handoff-title">
+            <span className="handoff-glyph handoff-return">⎿</span>
+            {result.jobs ? (
+              <span className="handoff-stages">
+                {result.jobs.map((j, k) => (
+                  <span key={k} className="handoff-stage">
+                    {j.workflow}{' '}
+                    <span className="handoff-dot" style={{ color: _handoffStatusColor(j.status) }}>●</span>
+                    {j.status ? ' ' + j.status : ''}
+                  </span>
+                ))}
+              </span>
+            ) : (
+              <>
+                {result.workflow && <span className="handoff-target">{result.workflow}</span>}
+                {result.status && (
+                  <span className="handoff-status">
+                    <span className="handoff-dot" style={{ color: _handoffStatusColor(result.status) }}>●</span>
+                    {result.status}
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+          {!result.jobs && result.worker && <HandoffRow label="worker">{result.worker.replace(/^https?:\/\//, '')}</HandoffRow>}
+          {!result.jobs && (result.job || result.model) && (
+            <HandoffRow label="job">{[result.job, result.model].filter(Boolean).join(' · ')}</HandoffRow>
+          )}
+          {result.error && <HandoffRow label="error"><span style={{ color: '#f85149' }}>{result.error}</span></HandoffRow>}
+        </div>
+      )}
+    </div>
+  );
+};
+const HandoffCard = React.memo(_HandoffCardRaw);
+
 // ToolCard: pairs an action entry with its obs entry into a single
 // connected card with tool-themed left border + glyph + status badge.
 // Either half can be missing (action-only when blocked, obs-only is
 // uncommon but handled).
+// Compact one-line summary of a read_pipeline_state result so the chat
+// doesn't dump the raw JSON. Returns '' if it can't parse.
+const _pipelineStateSummary = (obsText) => {
+  try {
+    const raw = String(obsText || '').replace(/^└─\s*/, '').trim();
+    const d = JSON.parse(raw);
+    if (!d || typeof d !== 'object') return '';
+    const passed = Array.isArray(d.passed) ? d.passed : [];
+    const running = Array.isArray(d.running) ? d.running : [];
+    const failed = (d.failed && typeof d.failed === 'object') ? d.failed : {};
+    const shortReason = (v) => {
+      const s = String(v || '');
+      const wns = s.match(/WNS=(-?[\d.]+).*?viol=(\d+)/i);
+      if (wns) return `WNS ${wns[1]}/${wns[2]}`;
+      const st = s.match(/status=([A-Za-z_]+)/i);
+      if (st) return st[1];
+      const tag = s.match(/\[([a-z-]+)\]\s*(.+)$/i);
+      if (tag) return tag[2].slice(0, 24);
+      return '';
+    };
+    const parts = [];
+    if (passed.length) parts.push(`✓ ${passed.join(' ')}`);
+    const fk = Object.keys(failed);
+    if (fk.length) parts.push(`✗ ${fk.map(k => { const r = shortReason(failed[k]); return r ? `${k}(${r})` : k; }).join(' ')}`);
+    if (running.length) parts.push(`▶ ${running.join(' ')}`);
+    return parts.join('   ');
+  } catch (_) { return ''; }
+};
+
+// Readable one-line summary of an orchestrator tool CALL's args, so the chat
+// shows "⏸ until job ab12… / your reply · <reason>" instead of raw
+// `wake_on={"job_ids":[...],"user_message":true,...}, reason="..."`.
+// Returns '' for tools we don't special-case (keeps the raw args).
+const _orchToolArgsSummary = (tool, argsText) => {
+  const t = String(tool || '').toLowerCase();
+  const a = String(argsText || '');
+  const grab = (re) => { const m = a.match(re); return m ? m[1] : ''; };
+  const short = (id) => { const s = String(id || '').replace(/["'\s]/g, ''); return s.length > 8 ? s.slice(0, 8) + '…' : s; };
+  const unq = (s) => String(s || '').replace(/\\"/g, '"').replace(/\\n/g, ' ');
+  const reason = unq(grab(/reason="((?:[^"\\]|\\.)*)"/));
+  const reasonTail = reason ? ` · ${reason}` : '';
+  if (t === 'yield_run') {
+    const jobs = grab(/"job_ids"\s*:\s*\[([^\]]*)\]/);
+    const jobList = jobs ? jobs.split(',').map(short).filter(Boolean) : [];
+    const userMsg = /"user_message"\s*:\s*true/.test(a);
+    const secs = grab(/"after_seconds"\s*:\s*(\d+)/);
+    const waits = [];
+    if (jobList.length) waits.push(`job ${jobList.join(', ')}`);
+    if (userMsg) waits.push('your reply');
+    if (secs) waits.push(`${secs}s timer`);
+    return `⏸ ${waits.length ? 'until ' + waits.join(' / ') : 'parked'}${reasonTail}`;
+  }
+  if (t === 'wait_job') return `job ${short(grab(/job_id="([^"]+)"/))}`;
+  if (t === 'read_artifact') { const st = grab(/\bstage="([^"]+)"/); const ip = grab(/\bip="([^"]+)"/); return st ? `${st} evidence` : ip; }
+  if (t === 'classify_failure') { const st = grab(/\bstage="([^"]+)"/); return st ? `classify ${st}` : ''; }
+  if (t === 'mark_downstream_stale') { const st = grab(/from_stage="([^"]+)"/); return st ? `stale from ${st}` : ''; }
+  if (t === 'web_search') { const q = unq(grab(/query="((?:[^"\\]|\\.)*)"/)); return q ? `“${q}”` : ''; }
+  if (t === 'web_fetch') return grab(/url="([^"]+)"/);
+  if (t === 'import_document') { const p = grab(/path="([^"]+)"/); return p ? p.split('/').pop() : ''; }
+  if (t === 'ask_user') return unq(grab(/question="((?:[^"\\]|\\.)*)"/));
+  if (t === 'read_pipeline_state') { const ip = grab(/\bip="([^"]+)"/); return ip ? `ip ${ip}` : ''; }
+  return '';
+};
+
 const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   const tool = _normalizeToolName((action && action.tool) || (obs && obs.tool) || '');
+  // Orchestrator handoffs get a dedicated labeled card instead of the raw
+  // "key={json}" args line — see HandoffCard.
+  const liveRaw = !!((action && action.live) || (obs && obs.live));
+  if (!liveRaw && (tool === 'dispatch_workflow' || tool === 'write_handoff')) {
+    return <HandoffCard action={action} obs={obs} tool={tool} />;
+  }
   const theme = _toolTheme(tool);
   // If the obs indicates an error, override the border to red so the
   // eye finds it. Otherwise use the tool theme color.
   const obsTextRaw = obs ? (summaryMode ? _cleanTodoToolText(obs.text || '', obs.tool) : (obs.text || '')) : '';
   const obsText = obsTextRaw.replace(/\x1b\[[\d;]*m/g, '');
+  const isStateRead = String(tool || '').toLowerCase() === 'read_pipeline_state';
+  const stateSummary = isStateRead && obs ? _pipelineStateSummary(obsText) : '';
   const status = obs ? _obsStatus(obsText) : 'neutral';
   const borderColor = status === 'err' ? '#f85149' : theme.color;
   const rawArgsText = action && action.text
@@ -5422,6 +5830,10 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   }
   const dispatchMeta = _dispatchWorkflowMeta(tool, obsText, argsText);
   const isDispatchTool = String(tool || '').toLowerCase() === 'dispatch_workflow';
+  // Readable orchestrator tool-call summary (yield_run/wait_job/read_artifact/…)
+  // shown instead of the raw `key={json}` args. Falls back to raw args.
+  const orchSummary = isDispatchTool ? '' : _orchToolArgsSummary(tool, rawArgsText);
+  const displayArgs = orchSummary || argsText;
   const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
   // Tool results default to OPEN. The user needs to see the result/cost
   // trail without hunting through collapsed cards; large bodies remain
@@ -5434,12 +5846,14 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   // their arguments by default while keeping the result body collapsible.
   // Threshold: > 100 chars or contains a newline.
   const argsIsLong = !!argsText && (argsText.length > 100 || /\n/.test(argsText));
-  const [obsOpen, setObsOpen] = React.useState(!!obs || !summaryMode || isReplaceTool);
+  // read_pipeline_state dumps a big JSON blob — default it COLLAPSED in
+  // summary mode (a compact summary shows in the header; click to expand raw).
+  const [obsOpen, setObsOpen] = React.useState(((!!obs && !isStateRead) || !summaryMode) || isReplaceTool);
   React.useEffect(() => {
-    setObsOpen(!!obs || !summaryMode || isReplaceTool);
-  }, [obs, summaryMode, isReplaceTool]);
+    setObsOpen(((!!obs && !isStateRead) || !summaryMode) || isReplaceTool);
+  }, [obs, summaryMode, isReplaceTool, isStateRead]);
   const showArgsExpanded = obsOpen || showFullArgsByDefault;
-  const headClickable = (!!obs && obsIsMulti) || argsIsLong;
+  const headClickable = (!!obs && obsIsMulti) || argsIsLong || (isStateRead && !!obs);
   const toggleObs = () => { if (headClickable) setObsOpen(v => !v); };
   return (
     <div className="tool-card has-hover-affordance"
@@ -5471,11 +5885,11 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
             {dispatchMeta.worker && <span>{dispatchMeta.worker.replace(/^https?:\/\//, '')}</span>}
           </span>
         )}
-        {argsText && (
+        {displayArgs && (
           <span
             className={`tool-card-args${showArgsExpanded ? '' : ' trunc'}`}
             style={{
-              color: 'var(--fg)',
+              color: orchSummary ? 'var(--fg-mute)' : 'var(--fg)',
               ...(isDispatchTool ? { flexBasis: '100%' } : {}),
               ...(showArgsExpanded ? {
                 whiteSpace: 'pre-wrap',
@@ -5484,11 +5898,14 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
                 textOverflow: 'clip',
               } : {}),
             }}
-          >{argsText}</span>
+          >{displayArgs}</span>
+        )}
+        {isStateRead && stateSummary && !obsOpen && (
+          <span className="tool-card-args" style={{ color: 'var(--fg-mute)', flexBasis: '100%', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{stateSummary}</span>
         )}
         {status === 'err' && <span className="tool-card-status" style={{ color: '#f85149' }}>✗</span>}
         {status === 'ok'  && <span className="tool-card-status" style={{ color: '#3fb950' }}>✓</span>}
-        {(obsIsMulti || argsIsLong) ? (
+        {(obsIsMulti || argsIsLong || (isStateRead && !!obs)) ? (
           <>
             {obsIsMulti && (
               <span className="mute" style={{ fontSize: 'var(--ui-small-font-size)', color: 'var(--fg)' }}>

@@ -1,0 +1,47 @@
+{
+  "title": "EXPECTED \u00b7 atlas_flow_gpio_demo APB write 0x55->DATA@0x0 (from SSOT contract)",
+  "signals": [
+    {
+      "name": "PCLK",
+      "wave": "ppppp"
+    },
+    {
+      "name": "PSEL",
+      "wave": "01.0."
+    },
+    {
+      "name": "PENABLE",
+      "wave": "0.10."
+    },
+    {
+      "name": "PWRITE",
+      "wave": "x1.x."
+    },
+    {
+      "name": "PADDR",
+      "wave": "x=.x.",
+      "data": [
+        "0x0"
+      ]
+    },
+    {
+      "name": "PWDATA",
+      "wave": "x=.x.",
+      "data": [
+        "0x55"
+      ]
+    },
+    {
+      "name": "PREADY",
+      "wave": "1...."
+    },
+    {
+      "name": "gpio_out",
+      "wave": "=.=..",
+      "data": [
+        "0x0",
+        "0x55"
+      ]
+    }
+  ]
+}

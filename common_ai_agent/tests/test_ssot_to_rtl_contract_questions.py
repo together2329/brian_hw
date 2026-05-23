@@ -607,6 +607,44 @@ def test_manifest_submodule_contract_refs_allow_multi_file_rtl_gen():
     assert not [q for q in questions if q["id"] == "RTL_MANIFEST_FILELIST_SYNC"]
 
 
+def test_manifest_submodule_keyed_refs_imply_source_sections():
+    rtl_gen = _load_rtl_gen()
+    doc = _doc_with_structured_primary()
+    doc["filelist"] = {
+        "rtl": [
+            "rtl/simple_cpu_fifo.sv",
+            "rtl/simple_cpu_irq.sv",
+            "rtl/simple_cpu.sv",
+        ]
+    }
+    doc["sub_modules"] = [
+        {
+            "name": "simple_cpu_fifo",
+            "file": "rtl/simple_cpu_fifo.sv",
+            "ownership": "manifest",
+            "implements": "top_module",
+            "dataflow_refs": ["rx_fifo"],
+        },
+        {
+            "name": "simple_cpu_irq",
+            "file": "rtl/simple_cpu_irq.sv",
+            "ownership": "manifest",
+            "implements": "top_module",
+            "register_refs": ["IRQ_STATUS"],
+        },
+        {
+            "name": "simple_cpu",
+            "file": "rtl/simple_cpu.sv",
+            "ownership": "manifest",
+            "description": "top",
+        },
+    ]
+
+    questions = rtl_gen._rtl_contract_questions(doc, "simple_cpu")
+
+    assert not [q for q in questions if q["id"] == "RTL_MODULE_CONTRACTS"]
+
+
 def test_wiring_only_module_can_use_global_integration_connections():
     rtl_gen = _load_rtl_gen()
     doc = _doc_with_structured_primary()
@@ -884,6 +922,70 @@ function_model:
     assert gates["mode"] == "starter"
     assert any(item["id"] == "STARTER_CYCLE_MODEL_DEFERRED" for item in gates["soft_gates"])
     assert any(item["id"] == "STARTER_LLM_RTL_AUTHORING_REQUIRED" for item in gates["soft_gates"])
+
+
+def test_starter_mode_accepts_existing_common_agent_rtl_provenance(tmp_path: Path):
+    rtl_gen = _load_rtl_gen()
+    ip = "tiny_starter_done"
+    ip_dir = tmp_path / ip
+    (ip_dir / "yaml").mkdir(parents=True)
+    (ip_dir / "rtl").mkdir()
+    (ip_dir / "list").mkdir()
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        """
+top_module:
+  name: tiny_starter_done
+  file: rtl/tiny_starter_done.sv
+io_list:
+  interfaces:
+    - name: pins
+      type: raw
+      ports:
+        - {name: a_i, direction: input, width: 1}
+        - {name: b_i, direction: input, width: 1}
+        - {name: y_o, direction: output, width: 1}
+function_model:
+  description: y_o is asserted when both inputs are asserted.
+  output_rules:
+    - {name: y_o, expr: a_i and b_i}
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(
+        "module tiny_starter_done(input logic a_i, input logic b_i, output logic y_o); "
+        "assign y_o = a_i & b_i; endmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+    todo_path = ip_dir / "rtl" / "rtl_todo_plan.json"
+    todo_path.write_text(
+        json.dumps({"schema_version": 1, "type": "rtl_todo_plan", "tasks": []}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_authoring_provenance.json").write_text(
+        json.dumps(
+            {
+                "type": "rtl_authoring_provenance",
+                "agent": "common_ai_agent",
+                "workflow": "rtl-gen",
+                "surface": "headless_common_engine",
+                "todo_plan_sha256": rtl_gen._stable_json_sha256(todo_path),
+                "rtl_files": [f"rtl/{ip}.sv"],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    rtl_gen.generate(ip, tmp_path, mode="starter")
+
+    gates = json.loads((ip_dir / "rtl" / "rtl_preview_gates.json").read_text(encoding="utf-8"))
+    assert gates["status"] == "pass"
+    assert not (ip_dir / "rtl" / "rtl_blocked.json").exists()
+    hard_gate = [item for item in gates["hard_gates"] if item["id"] == "STARTER_LLM_RTL_AUTHORING_REQUIRED"]
+    assert hard_gate and hard_gate[0]["status"] == "pass"
 
 
 def test_signoff_preflight_preserves_generic_rtl_contract_for_tb(tmp_path: Path):

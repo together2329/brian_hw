@@ -251,3 +251,47 @@ workflow_runs WHERE ip_id=18161...
 - DB 덤프: `/tmp/worker4_verify/db_after.txt` (chat_messages + orchestrator_runs
   + workflow_runs 30s post-POST 스냅샷).
 - 핸드오프 plan 원본: `.omc/handoffs/team-plan-orch-ux-hardcore.md`.
+
+---
+
+## 8. Handoff card — dispatch/result를 raw JSON 대신 labeled card로 (2026-05-23)
+
+오케스트레이터가 일을 **넘길 때**(`dispatch_workflow` / `write_handoff`)와
+**받을 때**(worker summary obs) 모두 chat feed에 raw JSON으로 찍히던 문제.
+`▶ dispatch_workflow ip=…, payload={"task":…}, …` + `{"workflow":…,"status":…}`
+→ 정렬된 label/value 카드로 교체.
+
+```
+⇢ Dispatch  ssot-gen → uart_tx
+   task      Generate SSOT for UART TX
+   reason    kickoff
+   schedule  auto
+⎿ ssot-gen   ● running
+   worker    admin/uart_tx/ssot-gen
+   job       j_8f2a · deepseek-v4-pro
+```
+
+- **원인**: `workspaceToolArgsText`가 객체 값을 `JSON.stringify`로 펼침
+  (workspace.jsx). dispatch 결과 obs는 worker summary JSON 그대로 표시.
+- **변경**:
+  - 파싱 로직 = single source of truth → `lib/orchestrator_chat_logic`
+    (`handoffFields`, `handoffStatusColor`). `.mjs`(vitest)/`.js`(browser
+    `window.AtlasOrchestratorChatLogic`) 트윈, **parity 검증 완료**.
+    3가지 arg shape 허용: structured object(`argsRaw`), JSON string,
+    flatten된 `key=value` 텍스트(live stream). fan-out `stages[]`도 지원.
+  - `workspace.jsx`: `HandoffCard` 컴포넌트 + `ToolCard`에서 두 핸드오프
+    툴은 여기로 분기. 파싱은 위 글로벌에 위임(미로드 시 raw args fallback).
+  - `styles.css`: `.handoff-*` (label `min-width:9ch` 정렬, status dot 색).
+- **상태 색**: error/blocked=red, complete/passed=green, running=blue,
+  queued=grey (`handoffStatusColor`).
+- **검증**:
+  - vitest `__tests__/handoff-format.test.mjs` 7 케이스 + 전체 22 pass;
+    js/mjs twin parity OK (fan-out jobs[] 포함).
+  - **실제 브라우저 시각 렌더 검증 완료** (무비용) — `scripts/ui_tests/handoff_card_render.mjs`:
+    실 서버(:3001) 로그인 → CHAT 탭 → 실제 `atlas-conversation-loaded` 이벤트로
+    realistic conversation 주입 → 진짜 `HandoffCard` 렌더. 15/15 assert pass.
+    single dispatch / fan-out(per-stage dot) / write_handoff / error 4종 카드 확인,
+    raw JSON 없음, status dot 색(running=blue, queued=grey, error=red) 검증.
+    스크린샷: `.omc/ui-shots/handoff_card_render.png`.
+- 포맷 선택지(labeled / compact / title card)는 사용자가 **labeled card** 채택.
+  fan-out 결과는 per-stage `lint ● running · tb ● running · syn ● queued` 로 표시.

@@ -1521,6 +1521,28 @@ def _pnr_artifact_summary(ip_dir: Path) -> tuple[str, str]:
     return (f"DRC={drc_count}", "SPEF ready" if spef_ready else "SPEF missing")
 
 
+def _json_status_artifact_failure(path: Path, rel: str) -> str:
+    if not path.is_file():
+        return ""
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return f"unparseable artifact: {rel}"
+    if not isinstance(doc, dict):
+        return f"unparseable artifact: {rel}"
+    status = str(doc.get("status") or "").strip().lower()
+    if status in {"", "pass", "passed", "ok", "completed", "success"}:
+        return ""
+    headline = str(doc.get("headline") or doc.get("blocker") or "").strip()
+    if not headline:
+        summary = doc.get("summary") if isinstance(doc.get("summary"), dict) else {}
+        failed = summary.get("goals_failed") or summary.get("failed") or summary.get("blockers")
+        if failed:
+            headline = f"failed={failed}"
+    suffix = f" {headline[:160]}" if headline else ""
+    return f"{rel} status={status}{suffix}"
+
+
 def _ensure_stage_artifact_version_for_job(
     job: dict[str, Any],
     project_root: Path,
@@ -3128,6 +3150,9 @@ def _job_artifact_failure(
                 return True, f"{ip}/{rel} errors={error_count}"
             return False, ""
     if stage == "sim" or workflow == "sim":
+        reason = _json_status_artifact_failure(ip_dir / "logs" / "stage_engine" / "sim.json", "logs/stage_engine/sim.json")
+        if reason:
+            return True, f"{ip}/{reason}"
         results_xml = ip_dir / "sim" / "results.xml"
         if not results_xml.is_file():
             results_xml = ip_dir / "tb" / "cocotb" / "results.xml"
@@ -3140,6 +3165,18 @@ def _job_artifact_failure(
             if failures > 0:
                 return True, f"{ip}/{results_xml.relative_to(ip_dir).as_posix()} failures={failures}"
             return False, ""
+    if stage == "coverage" or workflow == "coverage":
+        for rel in ("logs/stage_engine/coverage.json", "cov/coverage.json"):
+            reason = _json_status_artifact_failure(ip_dir / rel, rel)
+            if reason:
+                return True, f"{ip}/{reason}"
+        return False, ""
+    if stage == "sim-debug" or (workflow == "sim_debug" and stage != "goal-audit"):
+        for rel in ("logs/stage_engine/sim-debug.json", "sim/fl_rtl_compare.json", "sim/mismatch_classification.json"):
+            reason = _json_status_artifact_failure(ip_dir / rel, rel)
+            if reason:
+                return True, f"{ip}/{reason}"
+        return False, ""
     if stage == "rtl" or workflow == "rtl-gen":
         rtl_dir = ip_dir / "rtl"
         gate_reason = _rtl_gate_failure_reason(ip_dir, ip)

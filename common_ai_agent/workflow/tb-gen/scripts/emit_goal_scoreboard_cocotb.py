@@ -1130,6 +1130,14 @@ def _is_sampled_goal(goal: dict[str, Any], tx_type: str, *, is_reset: bool = Fal
         return True
     if tx_norm in {"fm_primary", "primary", "primary_behavior"} or "primary_behavior" in tx_norm:
         return True
+    if re.fullmatch(r"(?:feature|fm)_?\d+", tx_norm):
+        return True
+    if (
+        "feature trigger is asserted" in goal_text
+        or "drive preconditions for function_model transaction" in goal_text
+        or "function model transaction" in goal_text
+    ):
+        return True
     if re.fullmatch(r"sc\\d+", tx_norm) and not any(token in identity for token in ("apb", "csr", "register", "reset")):
         return True
     if goal_kind == "state":
@@ -1654,6 +1662,14 @@ def _stimulus_for_goal(goal: dict[str, Any], manifest: dict[str, Any], idx: int)
 def _goal_wait_cycles(goal: dict[str, Any], manifest: dict[str, Any]) -> int:
     base = max(int(manifest.get("latency_cycles") or 1), 1)
     text = _goal_text(goal)
+    contract = goal.get("stimulus_contract") if isinstance(goal.get("stimulus_contract"), dict) else {}
+    tx_type = str(contract.get("transaction_type") or "")
+    feature_match = re.search(r"(?:feature|fm)_?(\d+)", tx_type, flags=re.I)
+    if feature_match:
+        return max(base, int(feature_match.group(1)) + 4)
+    goal_feature_match = re.search(r"(?:feature|fm)_?(\d+)", text, flags=re.I)
+    if goal_feature_match:
+        return max(base, int(goal_feature_match.group(1)) + 4)
     if any(token in text for token in ("stall_mem", "load/store", "load store", "d_hresp", "d_hready")):
         return max(base, 3)
     if any(token in text for token in ("bus_error", "bus error", "fault_halt", "fault halt")):

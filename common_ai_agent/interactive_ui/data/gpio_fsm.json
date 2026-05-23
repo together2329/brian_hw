@@ -1,0 +1,35 @@
+{
+  "top": "atlas_flow_gpio_demo",
+  "fsm": {
+    "apb_phase": {
+      "states": [
+        "IDLE",
+        "SETUP",
+        "ACCESS"
+      ],
+      "transitions": [
+        {
+          "from": "IDLE",
+          "to": "SETUP",
+          "condition": "psel == 1 and penable == 0"
+        },
+        {
+          "from": "SETUP",
+          "to": "ACCESS",
+          "condition": "psel == 1 and penable == 1"
+        },
+        {
+          "from": "ACCESS",
+          "to": "IDLE",
+          "condition": "psel == 0"
+        },
+        {
+          "from": "IDLE",
+          "to": "IDLE",
+          "condition": "psel == 0"
+        }
+      ],
+      "note": "Standard APB-Lite slave handshake. Always-ready (PREADY=1 in ACCESS)."
+    }
+  }
+}

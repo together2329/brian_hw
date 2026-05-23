@@ -57,3 +57,137 @@ export function feedEntryFromChatMessage(message) {
   }
   return null;
 }
+
+export function feedEntryFromWorkerLogEntry(entry, job = {}) {
+  const content = String((entry && (entry.content ?? entry.text)) || '').trim();
+  if (!content) return null;
+  const type = String((entry && entry.type) || '').toLowerCase();
+  const role = String((entry && entry.role) || '').toLowerCase();
+  const workflow = String((job && (job.workflow || job.stage_id)) || '').trim();
+  const tool = String((entry && entry.tool) || workflow || role || 'worker').trim();
+  const timestamp = Number((entry && entry.timestamp) || (job && job.started_at) || 0);
+  const createdAt = timestamp > 0 ? timestamp * 1000 : 0;
+  const worker = {
+    job_id: String((job && job.job_id) || ''),
+    run_id: String((job && job.run_id) || ''),
+    workflow,
+    stage_id: String((job && job.stage_id) || ''),
+    status: String((job && job.status) || ''),
+    worker: String((job && job.worker) || ''),
+  };
+
+  // The worker prompt/context is huge and already visible in job detail.
+  // The live chat should show the worker's actual ReAct/action/result flow.
+  if (type === 'context') return null;
+  if (type === 'task' && /^\[ATLAS ARCHITECT WORKFLOW CONTEXT\]/.test(content)) return null;
+
+  if (type === 'action' || (role === 'assistant' && /^Action:/.test(content))) {
+    const parsed = toolEntryFromDisplayLine(content);
+    return {
+      kind: 'action',
+      text: content,
+      tool: parsed ? parsed.tool : tool,
+      args: parsed ? parsed.args : '',
+      createdAt,
+      live: true,
+      worker,
+    };
+  }
+  if (type === 'observation' || role === 'tool') {
+    return { kind: 'obs', text: content, tool, createdAt, live: true, worker };
+  }
+  if (type === 'response' || role === 'assistant') {
+    return { kind: 'agent', text: content, createdAt, live: true, worker };
+  }
+  if (type === 'done') {
+    return { kind: 'agent', text: content, createdAt, live: true, worker };
+  }
+  return null;
+}
+
+// --- Orchestrator handoff formatting (dispatch_workflow / write_handoff) ---
+// Turns a handoff tool call (+ optional result obs) into clean labeled fields
+// for the HandoffCard UI, instead of dumping raw JSON args. Tolerant of three
+// arg shapes: a structured object (hydrated tool_calls carry argsRaw), a JSON
+// string, or the flattened "key=value, key=value" text the live stream carries.
+
+function _hParseJsonObject(text) {
+  if (text && typeof text === 'object' && !Array.isArray(text)) return text;
+  const raw = String(text || '').trim().replace(/^└─\s*/, '');
+  if (!raw || !raw.startsWith('{')) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function _hArgMetaValue(argsText, name) {
+  const re = new RegExp('(?:^|[,\\s])' + name + '\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\'|([^,\\s]+))');
+  const match = String(argsText || '').match(re);
+  return match ? (match[1] || match[2] || match[3] || '').trim() : '';
+}
+
+function _hFirstMetaValue(...values) {
+  for (const value of values) {
+    if (Array.isArray(value)) {
+      const compact = value.map(v => String(v == null ? '' : v).trim()).filter(Boolean);
+      if (compact.length) return compact.join(', ');
+    } else {
+      const text = String(value == null ? '' : value).trim();
+      if (text) return text;
+    }
+  }
+  return '';
+}
+
+export function handoffStatusColor(status) {
+  const s = String(status || '').toLowerCase();
+  if (/(error|fail|blocked|fatal)/.test(s)) return '#f85149';
+  if (/(complete|passed|done|success|\bok\b)/.test(s)) return '#3fb950';
+  if (/(running|active|dispatch|in_progress|started)/.test(s)) return '#58a6ff';
+  return '#8b949e';  // queued / pending / unknown
+}
+
+export function handoffFields(action, obs) {
+  const rawArgs = action && (action.argsRaw != null ? action.argsRaw : action.args);
+  let a = (rawArgs && typeof rawArgs === 'object') ? rawArgs : _hParseJsonObject(rawArgs);
+  if (!a && action && typeof action.args === 'string') a = _hParseJsonObject(action.args);
+  const argsText = (action && typeof action.args === 'string') ? action.args
+    : (action && typeof action.text === 'string') ? action.text : '';
+  const payload = (a && a.payload && typeof a.payload === 'object') ? a.payload : null;
+  const stages = (a && Array.isArray(a.stages))
+    ? a.stages.map(s => String(s || '').trim()).filter(Boolean) : [];
+  const workflow = _hFirstMetaValue(a && a.workflow, _hArgMetaValue(argsText, 'workflow'));
+  const target = stages.length ? stages.join(', ') : workflow;
+  const sent = {
+    target,
+    fanout: stages.length > 1,
+    ip: _hFirstMetaValue(a && a.ip, _hArgMetaValue(argsText, 'ip')),
+    task: _hFirstMetaValue(a && a.prompt, payload && payload.task, _hArgMetaValue(argsText, 'prompt')),
+    reason: _hFirstMetaValue(a && a.reason, payload && payload.reason, _hArgMetaValue(argsText, 'reason')),
+    schedule: _hFirstMetaValue(a && a.schedule, _hArgMetaValue(argsText, 'schedule')),
+  };
+  const r = _hParseJsonObject(obs && obs.text);
+  let result = null;
+  if (r) {
+    const jobs = Array.isArray(r.jobs) ? r.jobs.filter(j => j && typeof j === 'object') : [];
+    result = {
+      workflow: _hFirstMetaValue(r.workflow, jobs.map(j => j.workflow)) || target,
+      status: _hFirstMetaValue(r.status, jobs.map(j => j.status)),
+      worker: _hFirstMetaValue(r.worker, r.workers, jobs.map(j => j.worker)),
+      job: _hFirstMetaValue(r.job_id, r.job, jobs.map(j => j.job_id)),
+      model: _hFirstMetaValue(r.model, r.models, jobs.map(j => j.model)),
+      error: _hFirstMetaValue(r.error, r.result && r.result.error),
+    };
+    // Fan-out: keep per-stage workflow/status so the card can show
+    // "lint ● running · tb ● running · syn ● queued" instead of one merged dot.
+    const perStage = jobs
+      .map(j => ({ workflow: String(j.workflow || '').trim(), status: String(j.status || '').trim() }))
+      .filter(j => j.workflow);
+    if (perStage.length > 1) result.jobs = perStage;
+    if (!result.status && !result.worker && !result.job && !result.error && !result.jobs) result = null;
+  }
+  return { sent, result };
+}

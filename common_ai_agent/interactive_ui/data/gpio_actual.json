@@ -1,0 +1,49 @@
+{
+  "title": "ACTUAL \u00b7 atlas_flow_gpio_demo.vcd @posedge PCLK (0x55 write window)",
+  "signals": [
+    {
+      "name": "PCLK",
+      "wave": "ppppp"
+    },
+    {
+      "name": "PSEL",
+      "wave": "01.0."
+    },
+    {
+      "name": "PENABLE",
+      "wave": "0.10."
+    },
+    {
+      "name": "PWRITE",
+      "wave": "1..01"
+    },
+    {
+      "name": "PADDR",
+      "wave": "=....",
+      "data": [
+        "0x0"
+      ]
+    },
+    {
+      "name": "PWDATA",
+      "wave": "==..=",
+      "data": [
+        "0xD",
+        "0x55",
+        "0xF"
+      ]
+    },
+    {
+      "name": "PREADY",
+      "wave": "1...."
+    },
+    {
+      "name": "gpio_out",
+      "wave": "=.=..",
+      "data": [
+        "0x0",
+        "0x55"
+      ]
+    }
+  ]
+}

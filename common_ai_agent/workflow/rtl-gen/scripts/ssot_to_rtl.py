@@ -1838,9 +1838,14 @@ def _module_contract_ready(sm: dict, doc: dict | None = None) -> bool:
         "ssot_refs",
     )
     refs = _module_declared_refs(sm)
-    has_source_sections = _contract_value_present(sm.get("source_sections")) or bool(_source_sections_from_refs(refs))
+    has_keyed_section_refs = any(_contract_value_present(sm.get(key)) for key in behavior_ref_keys)
+    has_source_sections = (
+        _contract_value_present(sm.get("source_sections"))
+        or bool(_source_sections_from_refs(refs))
+        or has_keyed_section_refs
+    )
     has_behavior_refs = (
-        any(_contract_value_present(sm.get(key)) for key in behavior_ref_keys)
+        has_keyed_section_refs
         or any(_looks_like_ssot_ref(ref) for ref in _contract_ref_values(sm.get("implements")))
     )
     return (
@@ -3500,6 +3505,23 @@ def generate(ip: str, root: Path, mode: str = "signoff") -> None:
             for q in hard_questions:
                 print(f"- {q['id']}: {q['decision_needed']}")
             raise SystemExit(2)
+        implementation_questions = _existing_rtl_preflight_questions(ip_dir, ip, top, doc)
+        if not implementation_questions:
+            if blocked_path.exists():
+                blocked_path.unlink()
+            gates = _starter_preview_gate_report(ip, top, soft_gates, deferred_questions, status="pass")
+            gates["hard_gates"].append({
+                "id": "STARTER_LLM_RTL_AUTHORING_REQUIRED",
+                "status": "pass",
+                "message": "common_ai_agent rtl-gen provenance covers the Starter RTL manifest.",
+            })
+            (ip_dir / "rtl" / "rtl_preview_gates.json").write_text(
+                json.dumps(gates, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            expected = _expected_rtl_files(doc, top)
+            print(f"[ssot_to_rtl] starter preflight passed for LLM-authored RTL: {ip} ({len(expected)} manifest file(s))")
+            return
         _write_starter_llm_handoff_artifacts(ip_dir, ip, top, contract, soft_gates, deferred_questions)
         _write_blocked(ip_dir, ip, top, [_question(
             "STARTER_LLM_RTL_AUTHORING_REQUIRED",

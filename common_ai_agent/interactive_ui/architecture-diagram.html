@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>architecture diagram demo</title>
+<style>
+  :root{--bg:#0d1117;--fg:#e6edf3;--mute:#8b949e;--accent:#58a6ff;--ok:#3fb950;--warn:#d29922;--line:#30363d;--panel:#161b22;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:ui-monospace,SFMono-Regular,Menlo,"Cascadia Mono",Consolas,monospace;font-size:13px;line-height:1.5;}
+  .bar{padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .bar .ttl{font-weight:700;}
+  .bar .tag{font-size:10px;color:var(--mute);}
+  button{background:var(--accent);color:#000;border:0;padding:6px 13px;border-radius:5px;font-family:inherit;font-weight:700;cursor:pointer;}
+  button.ghost{background:transparent;color:var(--accent);border:1px solid var(--line);}
+  button.ghost.active{background:var(--warn);color:#000;border-color:var(--warn);}
+  button:disabled{opacity:.45;cursor:default;}
+  .wrap{display:flex;align-items:flex-start;gap:0;}
+  .stage{padding:14px;overflow:auto;flex:1;min-width:0;}
+  svg{display:block;font-family:inherit;}
+
+  /* side panel */
+  .side{width:320px;flex:0 0 320px;border-left:1px solid var(--line);background:var(--panel);min-height:200px;padding:14px;overflow-y:auto;max-height:calc(100vh - 120px);}
+  .side h4{margin:0 0 8px;font-size:12px;color:var(--accent);letter-spacing:.04em;text-transform:uppercase;}
+  .side .meta{font-size:11px;color:var(--mute);margin-bottom:6px;}
+  .side .meta b{color:var(--fg);font-weight:700;}
+  .side .desc{font-size:12px;color:var(--fg);margin:6px 0;line-height:1.55;}
+  .side .refs{list-style:none;margin:4px 0 0;padding:0;}
+  .side .refs li{font-size:11px;color:var(--mute);padding:3px 0;border-top:1px solid var(--line);}
+  .side .refs li code{color:var(--accent);}
+  .side .hint{font-size:11px;color:var(--mute);}
+  .side hr{border:none;border-top:1px solid var(--line);margin:10px 0;}
+  .kindtag{display:inline-block;font-size:10px;font-weight:700;border-radius:4px;padding:1px 7px;margin-left:6px;}
+  .kindtag.control{color:var(--warn);border:1px solid var(--warn);}
+  .kindtag.datapath{color:var(--ok);border:1px solid var(--ok);}
+  .kindtag.reg{color:var(--accent);border:1px solid var(--accent);}
+  .kindtag.reserved{color:var(--mute);border:1px solid var(--line);}
+
+  /* contract panel */
+  .fm{border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin-bottom:10px;}
+  .fm .fmid{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:5px;}
+  .fm .pre{font-size:10px;color:var(--mute);margin-bottom:4px;}
+  .fm .pre code{color:var(--warn);}
+  .fm .rule{font-size:10px;padding:2px 0;border-top:1px solid var(--line);}
+  .fm .rule .rport{color:var(--ok);font-weight:700;}
+  .fm .rule .rexpr{color:var(--fg);}
+  .fm .rule .rdesc{color:var(--mute);}
+  .lat{font-size:11px;margin-top:8px;padding:6px 8px;border:1px solid var(--line);border-radius:4px;}
+  .lat .lrow{display:flex;justify-content:space-between;padding:2px 0;}
+  .lat .lk{color:var(--mute);}
+  .lat .lv{color:var(--ok);font-weight:700;}
+  .lat .lv.warn{color:var(--warn);}
+
+  /* SVG classes */
+  .boundary{fill:rgba(88,166,255,0.03);stroke:var(--line);stroke-width:1.4;stroke-dasharray:4 4;}
+  .boundaryLbl{fill:var(--mute);font-size:11px;}
+  .clkBadge{fill:var(--panel);stroke:var(--line);stroke-width:1;}
+  .clkBadgeTxt{fill:var(--warn);font-size:9px;font-weight:700;}
+  .clkBadgeSub{fill:var(--mute);font-size:8px;}
+  .blk{fill:var(--panel);stroke:var(--line);stroke-width:1.4;cursor:pointer;transition:stroke .12s,fill .12s;}
+  .blk.control{stroke:#5a4a18;}
+  .blk.datapath{stroke:#1d4326;}
+  .blk.reg{stroke:#1d3a5f;}
+  .blk:hover,.blk.hot{stroke-width:2;}
+  .blk.control:hover,.blk.control.hot{stroke:var(--warn);fill:#1c1708;}
+  .blk.datapath:hover,.blk.datapath.hot{stroke:var(--ok);fill:#0c1c11;}
+  .blk.reg:hover,.blk.reg.hot{stroke:var(--accent);fill:#0b1827;}
+  .blkTitle{fill:var(--fg);font-size:12px;font-weight:700;text-anchor:middle;pointer-events:none;}
+  .blkSub{fill:var(--mute);font-size:9px;text-anchor:middle;pointer-events:none;}
+  .stageTag{fill:var(--warn);font-size:8px;font-weight:700;text-anchor:middle;pointer-events:none;opacity:.85;}
+  .grp{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:2 3;}
+  .grpLbl{fill:var(--mute);font-size:10px;}
+  .port{fill:#0d1117;stroke:var(--line);stroke-width:1;cursor:pointer;transition:stroke .12s,fill .12s;}
+  .port.in{stroke:#3a5170;}
+  .port.out{stroke:#3a5a3f;}
+  .port:hover,.port.hot{stroke:var(--accent);fill:#10243b;}
+  .portLbl{font-size:10px;pointer-events:none;}
+  .portLbl.in{fill:var(--accent);}
+  .portLbl.out{fill:var(--ok);}
+  .portW{fill:var(--mute);font-size:9px;pointer-events:none;}
+  .edge{fill:none;stroke:var(--mute);stroke-width:1.4;}
+  .edge.flow{stroke:var(--mute);stroke-width:1.6;}
+  .edge.lit{stroke:var(--warn);stroke-width:2.4;filter:drop-shadow(0 0 3px var(--warn));}
+  .edgeW{fill:none;font-size:9px;fill:var(--mute);}
+  .edgeWTxt{fill:var(--mute);font-size:9px;text-anchor:middle;}
+  .edgeWBg{fill:var(--bg);stroke:none;}
+  .pulse{fill:var(--warn);filter:drop-shadow(0 0 5px var(--warn));}
+  .clkLbl{fill:var(--warn);font-size:10px;font-weight:700;}
+  /* bit-field strip */
+  .field{cursor:pointer;transition:opacity .12s;}
+  .field:hover{opacity:.75;}
+  .fieldLbl{fill:var(--fg);font-size:8px;text-anchor:middle;pointer-events:none;}
+  .fieldIdx{fill:var(--mute);font-size:8px;pointer-events:none;}
+
+  .readout{padding:10px 14px;border-top:1px solid var(--line);background:var(--panel);display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-height:42px;}
+  .chip{font-size:11px;border:1px solid var(--line);border-radius:4px;padding:2px 7px;color:var(--mute);}
+  .chip b{color:var(--fg);font-weight:700;}
+  .editor{padding:12px 14px;border-top:1px solid var(--line);background:var(--bg);}
+  .editor textarea{width:100%;height:180px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:12px;padding:10px;resize:vertical;}
+  .editor .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .err{color:var(--warn);font-size:11px;min-height:14px;}
+  .legend{font-size:10px;color:var(--mute);}
+  .legend code{color:var(--accent);}
+</style></head>
+<body>
+<div class="bar">
+  <span class="ttl">▦ architecture diagram</span>
+  <button onclick="traceFlow()" id="traceBtn">▶ Trace dataflow</button>
+  <button class="ghost" onclick="stopTrace()">⏸ 정지</button>
+  <button class="ghost" id="contractBtn" onclick="toggleContract()">ƒ contract</button>
+  <span class="tag">블록·포트·필드에 마우스를 올리면 오른쪽 패널에 SSOT 메타가 표시됩니다 · 단일 HTML, 의존성 0</span>
+</div>
+
+<div class="wrap">
+  <div class="stage"><svg id="svg"></svg></div>
+  <aside class="side" id="side">
+    <h4>info</h4>
+    <p class="hint">블록 위에 마우스를 올리면 kind · stage · action · source_refs 가, 포트 위에 올리면 width · direction 이, 레지스터 필드 위에 올리면 access · reset · effect 가 여기에 표시됩니다.<br><br><b>ƒ contract</b> 버튼으로 function model (FM1/FM2) 을 확인하세요.</p>
+  </aside>
+</div>
+
+<div class="readout" id="readout"><span class="chip">호버 대상 없음 — 블록 또는 포트 위로 마우스</span></div>
+
+<div class="editor">
+  <div class="row">
+    <span class="legend">SSOT arch 스펙 편집 → 렌더. 키: <code>top</code> · <code>interfaces[].ports</code> · <code>blocks</code> · <code>registers[].fields</code> · <code>dataflow</code> · <code>transactions</code> · <code>latency</code> · <code>clock_reset</code></span>
+    <button onclick="reRender()">↻ Render</button>
+  </div>
+  <textarea id="spec" spellcheck="false"></textarea>
+  <div class="err" id="err"></div>
+</div>
+
+<script>
+const SVGNS='http://www.w3.org/2000/svg';
+
+// --- REAL data extracted from project SSOT: interactive_ui/data/gpio_arch.json ---
+const DEFAULT = {
+  "top": "atlas_flow_gpio_demo",
+  "description": "8-bit GPIO output controlled by a single APB-Lite CSR (DATA). Demonstrates the SSOT-driven FL.step() cycle-accurate co-sim path.",
+  "clock_reset": {
+    "clock": "PCLK",
+    "freq_mhz": 50,
+    "reset": "PRESETn",
+    "reset_polarity": "active_low",
+    "reset_type": "async_assert_sync_deassert"
+  },
+  "interfaces": [
+    {
+      "name": "apb_slave",
+      "type": "APB-Lite",
+      "role": "slave",
+      "ports": [
+        { "name": "PADDR",   "width": 4,  "dir": "input" },
+        { "name": "PSEL",    "width": 1,  "dir": "input" },
+        { "name": "PENABLE", "width": 1,  "dir": "input" },
+        { "name": "PWRITE",  "width": 1,  "dir": "input" },
+        { "name": "PWDATA",  "width": 32, "dir": "input" },
+        { "name": "PRDATA",  "width": 32, "dir": "output" },
+        { "name": "PREADY",  "width": 1,  "dir": "output" },
+        { "name": "PSLVERR", "width": 1,  "dir": "output" }
+      ]
+    },
+    {
+      "name": "gpio_output",
+      "type": "custom",
+      "role": null,
+      "ports": [
+        { "name": "gpio_out", "width": 8, "dir": "output" }
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "id": "csr_decode",
+      "kind": "control",
+      "stage": "S0_DECODE",
+      "cycle": 0,
+      "action": "Address decode and access-phase capture (psel & penable).",
+      "source_refs": ["registers.register_list"]
+    },
+    {
+      "id": "gpio_drive",
+      "kind": "datapath",
+      "stage": "S1_UPDATE",
+      "cycle": 1,
+      "action": "On write, latch pwdata into DATA. gpio_out tracks DATA.",
+      "source_refs": ["function_model.transactions.FM1"]
+    }
+  ],
+  "registers": [
+    {
+      "name": "DATA",
+      "offset": "0x0",
+      "width": 32,
+      "access": "rw",
+      "reset": 0,
+      "desc": "GPIO output data register (low GPIO_WIDTH bits drive gpio_out)",
+      "write_side_effects": [
+        "Lower 8 bits update gpio_out on the next rising PCLK after access phase completes."
+      ],
+      "fields": [
+        { "name": "data",          "msb": 7,  "lsb": 0,  "access": "rw",       "reset": 0, "effect": "Drives gpio_out", "desc": "GPIO output value" },
+        { "name": "reserved_31_8", "msb": 31, "lsb": 8,  "access": "reserved", "reset": 0, "effect": "ignore",         "desc": "Reserved" }
+      ]
+    }
+  ],
+  "dataflow": [
+    {
+      "source": "pwdata",
+      "sink": "gpio_out",
+      "path": "PWDATA → DATA register (registered) → gpio_out (combinational)",
+      "width_in": 32,
+      "width_out": 8
+    }
+  ],
+  "transactions": [
+    {
+      "id": "FM1",
+      "name": "apb_write_data",
+      "preconditions": ["psel == 1", "penable == 1", "pwrite == 1", "paddr == 0"],
+      "inputs": ["pwdata"],
+      "outputs": ["DATA register updates to pwdata & 0xff; gpio_out tracks DATA"],
+      "output_rules": [
+        { "port": "PREADY",  "expr": 1,                 "width": 1,  "desc": "APB always-ready slave" },
+        { "port": "PSLVERR", "expr": 0,                 "width": 1,  "desc": "No slave error in this demo" },
+        { "port": "gpio_out","expr": "pwdata & 0xff",   "width": 8,  "desc": "gpio_out reflects new DATA value" }
+      ]
+    },
+    {
+      "id": "FM2",
+      "name": "idle_or_read",
+      "preconditions": ["pwrite == 0 or psel == 0 or penable == 0"],
+      "inputs": ["paddr"],
+      "outputs": ["gpio_out holds previous DATA; PRDATA returns DATA on read; PREADY=1; PSLVERR=0"],
+      "output_rules": [
+        { "port": "PREADY",  "expr": 1,                                                                         "width": 1,  "desc": null },
+        { "port": "PSLVERR", "expr": 0,                                                                         "width": 1,  "desc": null },
+        { "port": "gpio_out","expr": "gpio_data & 0xff",                                                        "width": 8,  "desc": null },
+        { "port": "PRDATA",  "expr": "gpio_data if (psel==1 and penable==1 and pwrite==0 and paddr==0) else 0", "width": 32, "desc": null }
+      ]
+    }
+  ],
+  "latency": {
+    "apb_write": { "min_cycles": 1, "max_cycles": 1, "description": "DATA updates one cycle after access phase rising edge" },
+    "apb_read":  { "min_cycles": 0, "max_cycles": 0, "description": "PRDATA is combinational from DATA in access phase" }
+  }
+};
+
+// ---- layout constants ----
+const PORTW=86, PORTH=20, PORTGAP=6;
+const CLKX=10, BUSX=10;
+const BNDX=200, BNDY=30, BNDW=590, BNDH=440;
+// block row Y sits lower to make room for field strip below
+const BLK_Y=130, BLK_H=76;
+// field strip below the DATA register block
+const FIELD_Y=BLK_Y+BLK_H+28;
+const FIELD_H=24, FIELD_TOTAL_W=150; // same width as regW
+// SVG overall size
+const SVG_W=940, SVG_H=560;
+
+let SPEC=null;
+let NODES={};
+let svg;
+let CONTRACT_OPEN=false;
+
+function svgEl(tag,attrs){
+  const e=document.createElementNS(SVGNS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]);
+  return e;
+}
+function txt(cls,x,y,s,extra){
+  const t=svgEl('text',Object.assign({class:cls,x,y},extra||{}));
+  t.textContent=s; return t;
+}
+function findIface(spec,name){ return spec.interfaces.find(i=>i.name===name); }
+function findBlock(spec,id){
+  const arr=spec.blocks||spec.decomposition_units||[];
+  return arr.find(u=>u.id===id);
+}
+
+// ---- main render ----
+function render(spec){
+  SPEC=spec; NODES={};
+  svg=document.getElementById('svg');
+  svg.setAttribute('width',SVG_W);
+  svg.setAttribute('height',SVG_H);
+  svg.setAttribute('viewBox',`0 0 ${SVG_W} ${SVG_H}`);
+  svg.innerHTML='';
+
+  // defs: arrowheads
+  const defs=svgEl('defs',{});
+  defs.innerHTML=
+    '<marker id="ah"  markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#8b949e"/></marker>'+
+    '<marker id="ahF" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#d29922"/></marker>'+
+    '<pattern id="hatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">'+
+    '  <line x1="0" y1="0" x2="0" y2="5" stroke="#30363d" stroke-width="1.5"/></pattern>';
+  svg.appendChild(defs);
+
+  // boundary
+  svg.appendChild(svgEl('rect',{class:'boundary',x:BNDX,y:BNDY,width:BNDW,height:BNDH,rx:8}));
+  svg.appendChild(txt('boundaryLbl',BNDX+12,BNDY-7,'module  '+spec.top));
+
+  // clock/reset badge (corner of boundary)
+  drawClkBadge(spec.clock_reset);
+
+  const apb=findIface(spec,'apb_slave')||{ports:[]};
+  const ins=apb.ports.filter(p=>p.dir==='input');
+  const outs=apb.ports.filter(p=>p.dir==='output');
+
+  // clock/reset port rows (far left)
+  drawClkReset(spec.clock_reset);
+
+  // APB port groups
+  const inGroupTop=94;
+  drawPortGroup('apb in', BUSX, inGroupTop, ins, 'in');
+  const outGroupTop=inGroupTop+(ins.length*(PORTH+PORTGAP))+40;
+  drawPortGroup('apb out', BUSX, outGroupTop, outs, 'out');
+
+  // internal blocks
+  const csrBlk=findBlock(spec,'csr_decode');
+  const gdrvBlk=findBlock(spec,'gpio_drive');
+  const reg=(spec.registers&&spec.registers[0])||{name:'DATA',offset:'0x0',access:'rw'};
+
+  const csrX=BNDX+36,  csrW=132;
+  const regX=BNDX+224, regW=FIELD_TOTAL_W;
+  const gdrX=BNDX+428, gdrW=112;
+
+  // pipeline stage tags above blocks
+  drawStageTag(csrBlk, csrX, csrW, BLK_Y);
+  drawStageTag(gdrvBlk, gdrX, gdrW, BLK_Y);
+
+  drawBlock('csr_decode', csrBlk?csrBlk.kind:'control', csrX, BLK_Y, csrW, BLK_H,
+            'csr_decode', (csrBlk&&csrBlk.kind)||'control', {block:csrBlk});
+  drawBlock('DATA_reg', 'reg', regX, BLK_Y, regW, BLK_H,
+            'DATA  @'+reg.offset, '[31:0]  '+(reg.access||'rw'), {register:reg});
+  drawBlock('gpio_drive', gdrvBlk?gdrvBlk.kind:'datapath', gdrX, BLK_Y, gdrW, BLK_H,
+            'gpio_drive', (gdrvBlk&&gdrvBlk.kind)||'datapath', {block:gdrvBlk});
+
+  // bit-field strip below DATA register
+  drawFieldStrip(reg, regX, regW);
+
+  // gpio_output port (right edge)
+  const gif=findIface(spec,'gpio_output')||{ports:[]};
+  const gport=gif.ports[0]||{name:'gpio_out',width:8,dir:'output'};
+  const gpX=BNDX+BNDW-6, gpY=BLK_Y+BLK_H/2-PORTH/2;
+  const gpRect=svgEl('rect',{class:'port out',x:gpX,y:gpY,width:PORTW+8,height:PORTH,rx:3});
+  attachPortHover(gpRect,gport,gif);
+  svg.appendChild(gpRect);
+  svg.appendChild(txt('portLbl out',gpX+7,gpY+13,gport.name));
+  svg.appendChild(txt('portW',gpX+PORTW-16,gpY+13,'['+(gport.width-1)+':0]'));
+  NODES['gpio_port']={cx:gpX,cy:gpY+PORTH/2,rx:gpX+PORTW+8};
+
+  // store block anchors for trace
+  NODES['csr_decode']={cx:csrX+csrW/2,cy:BLK_Y+BLK_H/2,lx:csrX,rx:csrX+csrW,ty:BLK_Y,h:BLK_H};
+  NODES['DATA_reg']  ={cx:regX+regW/2, cy:BLK_Y+BLK_H/2,lx:regX, rx:regX+regW, ty:BLK_Y,h:BLK_H};
+  NODES['gpio_drive']={cx:gdrX+gdrW/2,cy:BLK_Y+BLK_H/2,lx:gdrX, rx:gdrX+gdrW, ty:BLK_Y,h:BLK_H};
+
+  // edges
+  const pw=NODES['port_PWDATA'];
+  if(pw) edge([[pw.rx,pw.cy],[BNDX,pw.cy],[BNDX,BLK_Y+BLK_H/2],[csrX,BLK_Y+BLK_H/2]],'edge');
+
+  const cy=BLK_Y+BLK_H/2;
+  // flow edges (traced + width-labelled)
+  edgeFlow([[csrX+csrW,cy],[regX,cy]],'e_csr_reg');
+  edgeFlow([[regX+regW,cy],[gdrX,cy]],'e_reg_gdrv');
+  edgeFlow([[gdrX+gdrW,cy],[gpX,cy]],'e_gdrv_out');
+
+  // bit-width labels on dataflow edges (from dataflow[0])
+  const df=(spec.dataflow&&spec.dataflow[0])||(spec.dataflow_sequence&&spec.dataflow_sequence[0]);
+  if(df){
+    // [31:0] on csr->reg edge
+    drawEdgeWidthTag((csrX+csrW+regX)/2, cy-7, df.width_in?('['+( df.width_in-1)+':0]'):'[31:0]');
+    // [7:0] on gdrv->out edge
+    drawEdgeWidthTag((gdrX+gdrW+gpX)/2,  cy-7, df.width_out?('['+(df.width_out-1)+':0]'):'[7:0]');
+  }
+
+  // read-path: reg -> PRDATA
+  const prd=NODES['port_PRDATA'];
+  if(prd) edge([[regX+regW/2,BLK_Y+BLK_H],[regX+regW/2,outGroupTop-12],[BNDX-32,outGroupTop-12],[BNDX-32,prd.cy],[prd.rx,prd.cy]],'edge');
+
+  // latency annotation on csr->reg edge
+  drawLatencyNote(spec.latency, (csrX+csrW+regX)/2, cy+18);
+
+  // pulse dot (hidden)
+  svg.appendChild(svgEl('circle',{class:'pulse',id:'pulse',r:5,cx:0,cy:0,visibility:'hidden'}));
+}
+
+// ---- clock/reset badge in top-right of boundary ----
+function drawClkBadge(cr){
+  if(!cr) return;
+  const bw=182, bh=34, bx=BNDX+BNDW-bw-8, by=BNDY+8;
+  svg.appendChild(svgEl('rect',{class:'clkBadge',x:bx,y:by,width:bw,height:bh,rx:4}));
+  svg.appendChild(txt('clkBadgeTxt',bx+8,by+13,cr.clock+' @ '+cr.freq_mhz+' MHz'));
+  const rtype=(cr.reset_type||'').replace(/_/g,' ');
+  svg.appendChild(txt('clkBadgeSub',bx+8,by+25,cr.reset+' ⇓ active-low  ·  '+rtype));
+}
+
+// ---- clock/reset ports (far left) ----
+function drawClkReset(cr){
+  const clkName=(cr&&cr.clock)||'PCLK';
+  const rstName=(cr&&cr.reset)||'PRESETn';
+  const items=[
+    {n:clkName,  y:58, desc:(cr?cr.clock+' @ '+cr.freq_mhz+' MHz — APB bus clock':'APB bus clock')},
+    {n:rstName,  y:58+PORTH+PORTGAP, desc:(cr?cr.reset+' — '+cr.reset_polarity+', '+cr.reset_type:'active-low async reset')}
+  ];
+  svg.appendChild(txt('grpLbl',CLKX+2,46,'clk / rst'));
+  items.forEach(it=>{
+    const r=svgEl('rect',{class:'port in',x:CLKX,y:it.y,width:PORTW,height:PORTH,rx:3});
+    attachPortHover(r,{name:it.n,width:1,dir:'input',desc:it.desc},{name:'clock_reset',type:'system'});
+    svg.appendChild(r);
+    svg.appendChild(txt('clkLbl',CLKX+6,it.y+13,it.n));
+    svg.appendChild(svgEl('line',{class:'edge',x1:CLKX+PORTW,y1:it.y+PORTH/2,x2:BNDX,y2:it.y+PORTH/2,'stroke-dasharray':'3 3'}));
+  });
+}
+
+// ---- APB port group ----
+function drawPortGroup(label, x, top, ports, dir){
+  const n=ports.length;
+  const groupH=n*(PORTH+PORTGAP)+22;
+  svg.appendChild(svgEl('rect',{class:'grp',x:x-6,y:top-16,width:PORTW+12,height:groupH,rx:5}));
+  svg.appendChild(txt('grpLbl',x-2,top-4,label));
+  ports.forEach((p,i)=>{
+    const y=top+i*(PORTH+PORTGAP);
+    const r=svgEl('rect',{class:'port '+dir,x,y,width:PORTW,height:PORTH,rx:3});
+    attachPortHover(r,p,findIface(SPEC,'apb_slave'));
+    svg.appendChild(r);
+    svg.appendChild(txt('portLbl '+dir,x+6,y+13,p.name));
+    svg.appendChild(txt('portW',x+PORTW-22,y+13,p.width>1?('['+(p.width-1)+':0]'):'1b'));
+    NODES['port_'+p.name]={cx:x+PORTW/2,cy:y+PORTH/2,rx:x+PORTW,lx:x};
+    if(dir==='in'){
+      svg.appendChild(svgEl('line',{class:'edge',x1:x+PORTW,y1:y+PORTH/2,x2:BNDX,y2:y+PORTH/2,'stroke-dasharray':'3 3'}));
+    }
+  });
+}
+
+// ---- pipeline stage tag above block ----
+function drawStageTag(blk, bx, bw, by){
+  if(!blk||!blk.stage) return;
+  const label=blk.stage+' · cyc'+blk.cycle;
+  svg.appendChild(txt('stageTag',bx+bw/2,by-5,label));
+}
+
+// ---- internal block ----
+function drawBlock(id, kind, x, y, w, h, title, sub, meta){
+  const r=svgEl('rect',{class:'blk '+kind,id:'rect_'+id,x,y,width:w,height:h,rx:6});
+  r.addEventListener('mouseenter',()=>showBlock(id,kind,meta,r));
+  r.addEventListener('mouseleave',()=>r.classList.remove('hot'));
+  svg.appendChild(r);
+  svg.appendChild(txt('blkTitle',x+w/2,y+h/2-4,title));
+  svg.appendChild(txt('blkSub',x+w/2,y+h/2+13,sub));
+}
+
+// ---- bit-field strip for a register ----
+function drawFieldStrip(reg, rx, rw){
+  if(!reg||!reg.fields||!reg.fields.length) return;
+  const totalBits=reg.width||32;
+  const fy=FIELD_Y;
+  // connector from bottom of DATA_reg block to field strip
+  svg.appendChild(svgEl('line',{class:'edge',x1:rx+rw/2,y1:BLK_Y+BLK_H,x2:rx+rw/2,y2:fy,'stroke-dasharray':'2 3'}));
+  svg.appendChild(txt('grpLbl',rx,fy-10,'register fields'));
+
+  // draw each field proportionally
+  reg.fields.forEach(f=>{
+    const bits=f.msb-f.lsb+1;
+    const fx=rx+(f.lsb/totalBits)*rw;
+    const fw=(bits/totalBits)*rw;
+    const isReserved=f.access==='reserved';
+    const fillColor=isReserved?'url(#hatch)':(f.access==='rw'?'#0b1827':'#161b22');
+    const strokeColor=isReserved?'#30363d':'#58a6ff';
+    const g=svgEl('g',{class:'field',id:'field_'+f.name});
+    g.addEventListener('mouseenter',()=>showField(f));
+    g.addEventListener('mouseleave',()=>{
+      document.getElementById('readout').innerHTML='<span class="chip">호버 대상 없음 — 블록 또는 포트 위로 마우스</span>';
+    });
+    const fr=svgEl('rect',{x:fx,y:fy,width:fw-1,height:FIELD_H,fill:fillColor,stroke:strokeColor,'stroke-width':1,rx:2});
+    g.appendChild(fr);
+    // field name inside (only if wide enough)
+    if(fw>20){
+      const ft=svgEl('text',{class:'fieldLbl',x:fx+fw/2,y:fy+FIELD_H/2+3,fill:isReserved?'#8b949e':'#58a6ff'});
+      ft.textContent=f.name; g.appendChild(ft);
+    }
+    svg.appendChild(g);
+    // bit indices below
+    svg.appendChild(txt('fieldIdx',fx+2,fy+FIELD_H+9,f.msb.toString()));
+    svg.appendChild(txt('fieldIdx',fx+fw-2,fy+FIELD_H+9,f.lsb.toString(),{'text-anchor':'end'}));
+  });
+  // strip outline
+  svg.appendChild(svgEl('rect',{x:rx,y:fy,width:rw-1,height:FIELD_H,fill:'none',stroke:'#30363d','stroke-width':1,rx:2,'pointer-events':'none'}));
+}
+
+// ---- plain edge ----
+function edge(pts,cls,id){
+  const d='M'+pts.map(p=>p[0]+','+p[1]).join(' L');
+  const a={class:cls,d,'marker-end':'url(#ah)'};
+  if(id) a.id=id;
+  svg.appendChild(svgEl('path',a));
+}
+
+// ---- dataflow edge (separate so we can add lit class) ----
+function edgeFlow(pts,id){
+  const d='M'+pts.map(p=>p[0]+','+p[1]).join(' L');
+  svg.appendChild(svgEl('path',{class:'edge flow',id,d,'marker-end':'url(#ah)'}));
+}
+
+// ---- edge bit-width floating tag ----
+function drawEdgeWidthTag(x, y, label){
+  const tw=34, th=13;
+  svg.appendChild(svgEl('rect',{class:'edgeWBg',x:x-tw/2,y:y-th+2,width:tw,height:th,rx:2}));
+  svg.appendChild(txt('edgeWTxt',x,y,label));
+}
+
+// ---- latency note ----
+function drawLatencyNote(latency, cx, y){
+  if(!latency) return;
+  const wr=latency.apb_write, rd=latency.apb_read;
+  if(!wr&&!rd) return;
+  const parts=[];
+  if(wr) parts.push('wr: '+wr.min_cycles+'cyc');
+  if(rd) parts.push('rd: '+rd.min_cycles+'cyc (comb)');
+  const label=parts.join('  ');
+  const tw=label.length*5.2+8, th=12;
+  svg.appendChild(svgEl('rect',{x:cx-tw/2,y:y,width:tw,height:th,fill:'var(--bg)',stroke:'var(--line)','stroke-width':1,rx:3}));
+  const t=svgEl('text',{x:cx,y:y+9,'text-anchor':'middle',fill:'var(--mute)',style:'font-size:8.5px'});
+  t.textContent=label; svg.appendChild(t);
+}
+
+// ---- hover handlers ----
+function showBlock(id, kind, meta, el){
+  el.classList.add('hot');
+  const side=document.getElementById('side');
+  const ro=document.getElementById('readout');
+  let html='', chips='';
+  if(meta.block){
+    const b=meta.block||{};
+    html='<h4>block</h4>'
+      +'<div class="meta"><b>'+(b.id||id)+'</b><span class="kindtag '+kind+'">'+kind+'</span></div>';
+    if(b.stage) html+='<div class="meta">stage <b>'+b.stage+'</b> · cycle <b>'+b.cycle+'</b></div>';
+    if(b.action) html+='<div class="desc"><b>action:</b> '+b.action+'</div>';
+    html+='<div class="desc">'+kindDesc(kind)+'</div>';
+    if(b.source_refs&&b.source_refs.length){
+      html+='<div class="meta">source_refs</div><ul class="refs">'
+        +b.source_refs.map(s=>'<li><code>'+s+'</code></li>').join('')+'</ul>';
+    }
+    chips='<span class="chip">block <b>'+(b.id||id)+'</b></span>'
+      +'<span class="chip">kind <b>'+kind+'</b></span>'
+      +(b.stage?'<span class="chip">'+b.stage+' · cyc'+b.cycle+'</span>':'');
+  } else if(meta.register){
+    const rg=meta.register;
+    html='<h4>register</h4>'
+      +'<div class="meta"><b>'+rg.name+'</b><span class="kindtag reg">'+(rg.access||'rw')+'</span></div>'
+      +'<div class="meta">offset <b>'+(rg.offset||'0x0')+'</b> · reset <b>'+((rg.reset||0).toString(16).padStart(8,'0').toUpperCase())+'</b></div>'
+      +'<div class="desc">'+(rg.desc||'')+'</div>';
+    if(rg.write_side_effects&&rg.write_side_effects.length){
+      html+='<div class="meta" style="margin-top:6px">write side-effects</div><ul class="refs">'
+        +rg.write_side_effects.map(s=>'<li>'+s+'</li>').join('')+'</ul>';
+    }
+    html+='<hr><div class="meta">hover a field stripe below for bit-level detail</div>';
+    chips='<span class="chip">reg <b>'+rg.name+'</b></span>'
+      +'<span class="chip">offset <b>'+(rg.offset||'0x0')+'</b></span>'
+      +'<span class="chip">access <b>'+(rg.access||'rw')+'</b></span>';
+  }
+  side.innerHTML=html;
+  ro.innerHTML=chips;
+}
+
+function showField(f){
+  const side=document.getElementById('side');
+  const isRes=f.access==='reserved';
+  side.innerHTML='<h4>register field</h4>'
+    +'<div class="meta"><b>'+f.name+'</b><span class="kindtag '+(isRes?'reserved':f.access)+'">'+f.access+'</span></div>'
+    +'<div class="meta">bits <b>['+f.msb+':'+f.lsb+']</b> · width <b>'+(f.msb-f.lsb+1)+'</b></div>'
+    +'<div class="meta">reset <b>0x'+((f.reset||0).toString(16))+'</b></div>'
+    +'<div class="meta">effect <b>'+f.effect+'</b></div>'
+    +'<div class="desc">'+f.desc+'</div>';
+  const ro=document.getElementById('readout');
+  ro.innerHTML='<span class="chip">field <b>'+f.name+'</b></span>'
+    +'<span class="chip">bits <b>['+f.msb+':'+f.lsb+']</b></span>'
+    +'<span class="chip">access <b>'+f.access+'</b></span>'
+    +'<span class="chip">effect <b>'+f.effect+'</b></span>';
+}
+
+function kindDesc(kind){
+  if(kind==='control') return 'Decodes the APB-Lite CSR access (PSEL/PENABLE/PWRITE/PADDR) and gates the write enable into the DATA register.';
+  if(kind==='datapath') return 'Latches pwdata into DATA on write; drives gpio_out combinationally from the low 8 bits.';
+  return 'Decomposition unit from the SSOT.';
+}
+
+function attachPortHover(el, p, iface){
+  el.addEventListener('mouseenter',()=>{
+    el.classList.add('hot');
+    const dirArrow=p.dir==='input'?'→ in':'out →';
+    document.getElementById('side').innerHTML='<h4>port</h4>'
+      +'<div class="meta"><b>'+p.name+'</b></div>'
+      +'<div class="meta">interface <b>'+(iface?iface.name:'—')+'</b>'+(iface&&iface.type?' · '+iface.type:'')+'</div>'
+      +'<div class="meta">direction <b>'+p.dir+'</b></div>'
+      +'<div class="meta">width <b>'+p.width+'</b> bit'+(p.width>1?'s':'')
+        +(p.width>1?' ['+(p.width-1)+':0]':'')+'</div>'
+      +'<div class="desc">'+(p.desc||portDesc(p.name))+'</div>';
+    document.getElementById('readout').innerHTML='<span class="chip">port <b>'+p.name+'</b></span>'
+      +'<span class="chip">dir <b>'+dirArrow+'</b></span>'
+      +'<span class="chip">width <b>'+p.width+'b</b></span>';
+  });
+  el.addEventListener('mouseleave',()=>el.classList.remove('hot'));
+}
+
+function portDesc(name){
+  const m={PADDR:'APB address (selects the CSR)',PSEL:'slave select',PENABLE:'APB access-phase strobe',
+    PWRITE:'1=write 0=read',PWDATA:'write data — captured into DATA register',
+    PRDATA:'read data — returns DATA in access phase (combinational)',
+    PREADY:'transfer-complete (tied 1 — always-ready slave)',
+    PSLVERR:'slave error (tied 0 — no error)',gpio_out:'8-bit GPIO output pins driven by DATA[7:0]'};
+  return m[name]||'';
+}
+
+// ---- contract panel toggle ----
+function toggleContract(){
+  CONTRACT_OPEN=!CONTRACT_OPEN;
+  const btn=document.getElementById('contractBtn');
+  btn.classList.toggle('active',CONTRACT_OPEN);
+  if(CONTRACT_OPEN){ showContractPanel(); }
+  else {
+    document.getElementById('side').innerHTML='<h4>info</h4><p class="hint">블록·포트·필드 위에 마우스를 올리세요.</p>';
+  }
+}
+
+function showContractPanel(){
+  const txns=(SPEC&&SPEC.transactions)||[];
+  const lat=SPEC&&SPEC.latency;
+  let html='<h4>ƒ function model</h4>';
+  txns.forEach(t=>{
+    html+='<div class="fm">'
+      +'<div class="fmid">'+t.id+' — '+t.name+'</div>'
+      +'<div class="pre">preconditions: '
+      +t.preconditions.map(p=>'<code>'+p+'</code>').join(' · ')+'</div>';
+    (t.output_rules||[]).forEach(r=>{
+      html+='<div class="rule"><span class="rport">'+r.port+'</span>'
+        +' = <span class="rexpr">'+r.expr+'</span>';
+      if(r.desc) html+=' <span class="rdesc">// '+r.desc+'</span>';
+      html+='</div>';
+    });
+    html+='</div>';
+  });
+  if(lat){
+    html+='<div class="lat">';
+    if(lat.apb_write) html+='<div class="lrow"><span class="lk">write latency</span><span class="lv warn">'+lat.apb_write.min_cycles+' cyc</span></div>'
+      +'<div class="lrow" style="font-size:10px;color:var(--mute)">'+lat.apb_write.description+'</div>';
+    if(lat.apb_read)  html+='<div class="lrow"><span class="lk">read latency</span><span class="lv">'+lat.apb_read.min_cycles+' cyc (comb)</span></div>'
+      +'<div class="lrow" style="font-size:10px;color:var(--mute)">'+lat.apb_read.description+'</div>';
+    html+='</div>';
+  }
+  document.getElementById('side').innerHTML=html;
+}
+
+// ---- trace animation ----
+let TRACE=null;
+
+function buildTracePath(){
+  const pw=NODES['port_PWDATA'], csr=NODES['csr_decode'], reg=NODES['DATA_reg'], gd=NODES['gpio_drive'], gp=NODES['gpio_port'];
+  if(!pw||!csr||!reg||!gd||!gp) return [];
+  return [
+    {x:pw.rx,   y:pw.cy,    edge:null},
+    {x:BNDX,    y:pw.cy,    edge:null},
+    {x:BNDX,    y:csr.cy,   edge:null},
+    {x:csr.lx,  y:csr.cy,   edge:null},
+    {x:csr.rx,  y:csr.cy,   edge:'e_csr_reg',  step:0},
+    {x:reg.lx,  y:reg.cy,   edge:'e_csr_reg'},
+    {x:reg.rx,  y:reg.cy,   edge:'e_reg_gdrv', step:1},
+    {x:gd.lx,   y:gd.cy,    edge:'e_reg_gdrv'},
+    {x:gd.rx,   y:gd.cy,    edge:'e_gdrv_out', step:2},
+    {x:gp.cx,   y:gp.cy,    edge:'e_gdrv_out'},
+    {x:gp.rx,   y:gp.cy,    edge:null,          step:3}
+  ];
+}
+
+function stepReadout(stage){
+  const df=(SPEC.dataflow&&SPEC.dataflow[0])||(SPEC.dataflow_sequence&&SPEC.dataflow_sequence[0])||{path:''};
+  const labels=['PWDATA captured [31:0]','DATA register (registered) — 1 cyc latency','gpio_drive (combinational)','gpio_out[7:0] — pwdata & 0xff'];
+  document.getElementById('readout').innerHTML=
+    '<span class="chip" style="border-color:var(--warn);color:var(--warn)">trace <b>'+(stage+1)+'/4</b></span>'
+    +'<span class="chip"><b>'+labels[stage]+'</b></span>'
+    +'<span class="chip" style="color:var(--mute)">'+df.path+'</span>';
+}
+
+function traceFlow(){
+  stopTrace();
+  const path=buildTracePath();
+  if(!path.length) return;
+  document.getElementById('traceBtn').disabled=true;
+  // override side panel for duration
+  if(!CONTRACT_OPEN){
+    const df=(SPEC.dataflow&&SPEC.dataflow[0])||(SPEC.dataflow_sequence&&SPEC.dataflow_sequence[0]);
+    document.getElementById('side').innerHTML='<h4>dataflow</h4>'
+      +'<div class="desc">'+(df?df.path:'')+'</div>'
+      +(df?'<div class="meta">in <b>'+df.width_in+'b</b> → out <b>'+df.width_out+'b</b> (mask 0xff)</div>':'');
+  }
+  const dot=document.getElementById('pulse');
+  dot.setAttribute('visibility','visible');
+  const litBlocks=['csr_decode','DATA_reg','gpio_drive'];
+  litBlocks.forEach(id=>{const r=document.getElementById('rect_'+id);if(r)r.classList.remove('hot');});
+  ['e_csr_reg','e_reg_gdrv','e_gdrv_out'].forEach(id=>{resetEdge(id);});
+
+  let i=0; const segDur=620;
+  function seg(){
+    if(i>=path.length-1){ finishTrace(); return; }
+    const a=path[i], b=path[i+1];
+    if(b.edge){ const e=document.getElementById(b.edge); if(e){e.classList.add('lit');e.setAttribute('marker-end','url(#ahF)');} }
+    if(typeof a.step==='number'){
+      const r=document.getElementById('rect_'+litBlocks[a.step]); if(r)r.classList.add('hot');
+      stepReadout(a.step);
+    }
+    const t0=performance.now();
+    function frame(now){
+      const k=Math.min(1,(now-t0)/segDur);
+      const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+      dot.setAttribute('cx',a.x+(b.x-a.x)*e);
+      dot.setAttribute('cy',a.y+(b.y-a.y)*e);
+      if(k<1){ TRACE=requestAnimationFrame(frame); }
+      else { i++; TRACE=requestAnimationFrame(seg); }
+    }
+    TRACE=requestAnimationFrame(frame);
+  }
+  seg();
+}
+
+function finishTrace(){
+  stepReadout(3);
+  const gp=NODES['gpio_port'], dot=document.getElementById('pulse');
+  if(gp){ dot.setAttribute('cx',gp.rx); dot.setAttribute('cy',gp.cy); }
+  TRACE=setTimeout(()=>{
+    ['e_csr_reg','e_reg_gdrv','e_gdrv_out'].forEach(resetEdge);
+    ['csr_decode','DATA_reg','gpio_drive'].forEach(id=>{const r=document.getElementById('rect_'+id);if(r)r.classList.remove('hot');});
+    dot.setAttribute('visibility','hidden');
+    document.getElementById('traceBtn').disabled=false;
+    TRACE=null;
+  },900);
+}
+
+function resetEdge(id){
+  const e=document.getElementById(id);
+  if(e){ e.classList.remove('lit'); e.setAttribute('marker-end','url(#ah)'); }
+}
+
+function stopTrace(){
+  if(TRACE){ cancelAnimationFrame(TRACE); clearTimeout(TRACE); TRACE=null; }
+  const dot=document.getElementById('pulse'); if(dot) dot.setAttribute('visibility','hidden');
+  ['e_csr_reg','e_reg_gdrv','e_gdrv_out'].forEach(resetEdge);
+  ['csr_decode','DATA_reg','gpio_drive'].forEach(id=>{const r=document.getElementById('rect_'+id);if(r)r.classList.remove('hot');});
+  const btn=document.getElementById('traceBtn'); if(btn) btn.disabled=false;
+}
+
+// ---- editable spec re-render ----
+function reRender(){
+  const err=document.getElementById('err'); err.textContent='';
+  try{
+    stopTrace();
+    CONTRACT_OPEN=false;
+    document.getElementById('contractBtn').classList.remove('active');
+    const spec=JSON.parse(document.getElementById('spec').value);
+    if(!spec.top||!Array.isArray(spec.interfaces)) throw new Error('스펙에 top / interfaces 필요');
+    render(spec);
+  } catch(ex){ err.textContent='JSON 오류: '+ex.message; }
+}
+
+// boot
+document.getElementById('spec').value=JSON.stringify(DEFAULT,null,2);
+render(DEFAULT);
+</script>
+</body></html>

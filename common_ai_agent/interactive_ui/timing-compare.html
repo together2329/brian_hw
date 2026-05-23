@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>timing compare — SSOT vs VCD</title>
+<style>
+  :root{--bg:#0d1117;--fg:#e6edf3;--mute:#8b949e;--accent:#58a6ff;--ok:#3fb950;--warn:#d29922;--bad:#f85149;--line:#30363d;--panel:#161b22;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:ui-monospace,SFMono-Regular,Menlo,"Cascadia Mono",Consolas,monospace;font-size:13px;line-height:1.5;}
+  .bar{padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .bar .ttl{font-weight:700;}
+  button{background:var(--accent);color:#000;border:0;padding:6px 13px;border-radius:5px;font-family:inherit;font-weight:700;cursor:pointer;}
+  button.ghost{background:transparent;color:var(--accent);border:1px solid var(--line);}
+  .verdict{font-weight:700;padding:3px 10px;border-radius:5px;}
+  .verdict.ok{background:rgba(63,185,80,.15);color:var(--ok);border:1px solid var(--ok);}
+  .verdict.bad{background:rgba(248,81,73,.15);color:var(--bad);border:1px solid var(--bad);}
+  .lane{padding:6px 14px 0;}
+  .lane h3{margin:10px 0 2px;font-size:12px;font-weight:700;display:flex;gap:8px;align-items:center;}
+  .lane h3 .src{font-size:10px;color:var(--mute);font-weight:400;}
+  .lane.exp h3 .dot{color:var(--accent);} .lane.act h3 .dot{color:var(--warn);}
+  .stage{overflow-x:auto;}
+  svg{display:block;font-family:inherit;}
+  .grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4;}
+  .wave{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-linejoin:round;}
+  .wave.act{stroke:var(--warn);}
+  .hatch{stroke:var(--mute);stroke-width:1;opacity:.5;}
+  .lbl{fill:var(--mute);font-size:12px;}
+  .cyc{fill:var(--mute);font-size:10px;text-anchor:middle;}
+  .busText{fill:var(--fg);font-size:11px;text-anchor:middle;}
+  .miss{fill:var(--bad);opacity:.16;}
+  .missMark{fill:var(--bad);font-size:11px;text-anchor:middle;font-weight:700;}
+  .diff{padding:8px 14px 14px;border-top:1px solid var(--line);background:var(--panel);margin-top:8px;}
+  .diff .none{color:var(--ok);}
+  .drow{font-size:12px;margin:2px 0;}
+  .drow .sig{color:var(--accent);} .drow b.e{color:var(--mute);} .drow b.a{color:var(--bad);}
+  .legend{font-size:10px;color:var(--mute);}
+  .legend code{color:var(--accent);}
+</style></head>
+<body>
+<div class="bar">
+  <span class="ttl">⟷ timing compare</span>
+  <span id="verdict" class="verdict ok">…</span>
+  <button class="ghost" onclick="toggleInject()" id="injbtn">⚠ 위반 주입</button>
+  <span class="legend">위: SSOT 계약이 요구하는 <b>기대</b> 파형 · 아래: VCD에서 추출한 <b>실제</b> RTL 파형 · <code>x</code>=don't-care(위반 아님)</span>
+</div>
+
+<div class="lane exp"><h3><span class="dot">●</span>EXPECTED<span class="src" id="expSrc"></span></h3><div class="stage"><svg id="svgExp"></svg></div></div>
+<div class="lane act"><h3><span class="dot">●</span>ACTUAL<span class="src" id="actSrc"></span></h3><div class="stage"><svg id="svgAct"></svg></div></div>
+<div class="diff" id="diff"></div>
+
+<script>
+const SVGNS='http://www.w3.org/2000/svg';
+const LABELW=92,CW=64,ROWH=44,HDR=22,AMP=22,PAD=8;
+
+// ── REAL data: EXPECTED produced by scripts/wavespec/ssot_to_wavespec.py ──
+const EXPECTED = {"title":"EXPECTED · atlas_flow_gpio_demo · APB write 0x55→DATA@0x0 (from SSOT contract)","signals":[
+  {"name":"PCLK","wave":"ppppp"},
+  {"name":"PSEL","wave":"01.0."},
+  {"name":"PENABLE","wave":"0.10."},
+  {"name":"PWRITE","wave":"x1.x."},
+  {"name":"PADDR","wave":"x=.x.","data":["0x0"]},
+  {"name":"PWDATA","wave":"x=.x.","data":["0x55"]},
+  {"name":"PREADY","wave":"1...."},
+  {"name":"gpio_out","wave":"=.=..","data":["0x0","0x55"]}
+]};
+// A deliberately wrong contract variant — toggled by "위반 주입" to show detection.
+// (spec claims gpio_out updates one cycle LATER than the RTL actually drives it)
+const EXPECTED_BUGGY = JSON.parse(JSON.stringify(EXPECTED));
+EXPECTED_BUGGY.title="EXPECTED (injected violation) · gpio_out contracted one cycle late";
+EXPECTED_BUGGY.signals.find(s=>s.name==="gpio_out").wave="=..=.";   // 0x0,0x0,0x0,0x55,0x55
+EXPECTED_BUGGY.signals.find(s=>s.name==="PENABLE").wave="001.0";    // access asserted a cycle late
+
+// ── REAL data: ACTUAL produced by scripts/wavespec/vcd_to_wavespec.py ──
+const ACTUAL = {"title":"ACTUAL · atlas_flow_gpio_demo.vcd · @posedge PCLK (0x55 write window)","signals":[
+  {"name":"PCLK","wave":"ppppp"},
+  {"name":"PSEL","wave":"01.0."},
+  {"name":"PENABLE","wave":"0.10."},
+  {"name":"PWRITE","wave":"1..01"},
+  {"name":"PADDR","wave":"=....","data":["0x0"]},
+  {"name":"PWDATA","wave":"==..=","data":["0xD","0x55","0xF"]},
+  {"name":"PREADY","wave":"1...."},
+  {"name":"gpio_out","wave":"=.=..","data":["0x0","0x55"]}
+]};
+
+let inject=false;
+
+function parseWave(wave,data){
+  const cells=[];let prev=null,di=0;
+  for(const ch of wave){
+    if(ch==='.'){cells.push(prev?{...prev,edge:false}:{kind:'level',v:0,edge:false});continue;}
+    let c;
+    if(ch==='p'||ch==='n')c={kind:'clock'};
+    else if(ch==='1')c={kind:'level',v:1};
+    else if(ch==='0')c={kind:'level',v:0};
+    else if(ch==='=')c={kind:'bus',label:(data&&data[di++])||'='};
+    else if(ch==='x')c={kind:'x'};
+    else if(ch==='z')c={kind:'z'};
+    else c={kind:'level',v:0};
+    c.edge=true;cells.push(c);prev=c;
+  }
+  return cells;
+}
+function cellVal(c){
+  if(!c)return undefined;
+  switch(c.kind){case 'clock':return 'p';case 'level':return c.v?'1':'0';case 'bus':return c.label;case 'x':return 'x';case 'z':return 'z';}
+}
+function isClock(sig){return sig.wave[0]==='p';}
+
+// cell-by-cell contract diff: a mismatch only when EXPECTED is concrete (not x/z) and differs.
+function computeDiff(exp,act){
+  const mism={};const rows=[];
+  const actMap={};act.signals.forEach(s=>actMap[s.name]=parseWave(s.wave,s.data));
+  exp.signals.forEach(s=>{
+    if(isClock(s))return;
+    const ec=parseWave(s.wave,s.data),ac=actMap[s.name];if(!ac)return;
+    for(let i=0;i<ec.length;i++){
+      const ev=cellVal(ec[i]),av=cellVal(ac[i]);
+      if(ev==='x'||ev==='z'||ev===undefined||av===undefined)continue;
+      if(ev!==av){(mism[s.name]=mism[s.name]||new Set()).add(i);rows.push({sig:s.name,cell:i,exp:ev,act:av});}
+    }
+  });
+  return {mism,rows};
+}
+
+function svgEl(t,a){const e=document.createElementNS(SVGNS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+
+function render(svgId,model,actClass,mism){
+  const svg=document.getElementById(svgId);
+  const n=Math.max(...model.signals.map(s=>s.wave.length),1);
+  const W=LABELW+n*CW,H=HDR+model.signals.length*ROWH+8;
+  svg.setAttribute('width',W);svg.setAttribute('height',H);svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.innerHTML='';
+  for(let i=0;i<n;i++){
+    const x=LABELW+i*CW;
+    svg.appendChild(svgEl('line',{class:'grid',x1:x,y1:HDR,x2:x,y2:H-8}));
+    const t=svgEl('text',{class:'cyc',x:x+CW/2,y:14});t.textContent=i;svg.appendChild(t);
+  }
+  model.signals.forEach((sig,ri)=>{
+    const cells=parseWave(sig.wave,sig.data);
+    const top=HDR+ri*ROWH,hiY=top+PAD,lowY=hiY+AMP,midY=(hiY+lowY)/2;
+    const missSet=mism&&mism[sig.name];
+    if(missSet)missSet.forEach(ci=>{
+      const x=LABELW+ci*CW;
+      svg.appendChild(svgEl('rect',{class:'miss',x:x,y:top,width:CW,height:ROWH}));
+      const m=svgEl('text',{class:'missMark',x:x+CW/2,y:top+ROWH-3});m.textContent='✗';svg.appendChild(m);
+    });
+    const nm=svgEl('text',{class:'lbl',x:8,y:midY+4});nm.textContent=sig.name;svg.appendChild(nm);
+    const parts=[],hatch=[],texts=[];let prevY=lowY;
+    cells.forEach((c,ci)=>{
+      const x0=LABELW+ci*CW,x1=x0+CW,mid=(x0+x1)/2;
+      if(c.kind==='clock'){parts.push(`M${x0},${lowY} L${x0},${hiY} L${mid},${hiY} L${mid},${lowY} L${x1},${lowY}`);prevY=lowY;}
+      else if(c.kind==='level'){const y=c.v?hiY:lowY;if(c.edge&&prevY!==y)parts.push(`M${x0},${prevY} L${x0},${y}`);parts.push(`M${x0},${y} L${x1},${y}`);prevY=y;}
+      else if(c.kind==='bus'){
+        if(c.edge){let j=ci+1;while(j<cells.length&&cells[j].kind==='bus'&&!cells[j].edge)j++;const rx=LABELW+j*CW;
+          parts.push(`M${x0},${midY} L${x0+5},${hiY}`);parts.push(`M${x0},${midY} L${x0+5},${lowY}`);
+          parts.push(`M${x0+5},${hiY} L${rx},${hiY}`);parts.push(`M${x0+5},${lowY} L${rx},${lowY}`);
+          texts.push({x:(x0+rx)/2,y:midY+4,t:c.label});}
+        prevY=midY;}
+      else if(c.kind==='x'){parts.push(`M${x0},${hiY} L${x1},${hiY}`);parts.push(`M${x0},${lowY} L${x1},${lowY}`);for(let hx=x0;hx<x1;hx+=6)hatch.push(`M${hx},${hiY} L${Math.min(hx+AMP,x1)},${lowY}`);prevY=midY;}
+      else if(c.kind==='z'){parts.push(`M${x0},${midY} L${x1},${midY}`);prevY=midY;}
+    });
+    if(hatch.length)svg.appendChild(svgEl('path',{class:'hatch',d:hatch.join(' ')}));
+    svg.appendChild(svgEl('path',{class:'wave'+(actClass?' act':''),d:parts.join(' ')}));
+    texts.forEach(tx=>{const t=svgEl('text',{class:'busText',x:tx.x,y:tx.y});t.textContent=tx.t;svg.appendChild(t);});
+  });
+}
+
+function run(){
+  const exp=inject?EXPECTED_BUGGY:EXPECTED;
+  document.getElementById('expSrc').textContent='— '+exp.title.replace(/^EXPECTED · /,'');
+  document.getElementById('actSrc').textContent='— '+ACTUAL.title.replace(/^ACTUAL · /,'');
+  const {mism,rows}=computeDiff(exp,ACTUAL);
+  render('svgExp',exp,false,null);
+  render('svgAct',ACTUAL,true,mism);
+  const v=document.getElementById('verdict');
+  if(rows.length===0){v.className='verdict ok';v.textContent='✓ 계약 만족 — 불일치 0';}
+  else{v.className='verdict bad';v.textContent='✗ '+rows.length+' 불일치';}
+  const d=document.getElementById('diff');
+  if(rows.length===0){d.innerHTML='<span class="none">✓ 모든 concrete 계약 셀이 실제 RTL 파형과 일치합니다. (don’t-care 셀은 비교 제외)</span>';}
+  else{d.innerHTML='<b>불일치 (기대 ≠ 실제):</b>'+rows.map(r=>
+    `<div class="drow"><span class="sig">${r.sig}</span> @cyc ${r.cell} — 기대 <b class="e">${r.exp}</b> / 실제 <b class="a">${r.act}</b></div>`).join('');}
+}
+function toggleInject(){inject=!inject;document.getElementById('injbtn').textContent=inject?'↩ 정상 계약 복원':'⚠ 위반 주입';run();}
+run();
+</script>
+</body></html>

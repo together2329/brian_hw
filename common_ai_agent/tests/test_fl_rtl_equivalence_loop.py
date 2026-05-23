@@ -1213,12 +1213,23 @@ def test_generated_driver_handles_fsm_reset_transitions_without_false_reset(monk
             "constraints": ["Core enters FAULT_HALT"],
         },
     }
+    generic_feature = {
+        "goal_id": "EQ_TRANSACTION_FM2",
+        "title": "Transaction feature_2 matches FunctionalModel",
+        "kind": "transaction",
+        "stimulus_contract": {
+            "transaction_type": "feature_2",
+            "required_fields": ["kind"],
+            "constraints": ["Feature trigger is asserted under legal configuration"],
+        },
+    }
 
     run_stimulus = ns["_stimulus_for_goal"](reset_to_run, manifest, 0)
     reset_stimulus = ns["_stimulus_for_goal"](fault_to_reset, manifest, 1)
     fault_stimulus = ns["_stimulus_for_goal"](run_to_fault, manifest, 2)
     stall_mem_fault_stimulus = ns["_stimulus_for_goal"](stall_mem_fault, manifest, 3)
     bus_error_stimulus = ns["_stimulus_for_goal"](bus_error, manifest, 4)
+    generic_feature_stimulus = ns["_stimulus_for_goal"](generic_feature, manifest, 5)
 
     assert run_stimulus["kind"] == "core_RESET_to_RUN_0"
     assert run_stimulus["_sample_active"] is True
@@ -1237,6 +1248,8 @@ def test_generated_driver_handles_fsm_reset_transitions_without_false_reset(monk
     assert bus_error_stimulus["i_hresp"] == 1
     assert bus_error_stimulus["d_hresp"] == 1
     assert ns["_goal_wait_cycles"](bus_error, manifest) == 3
+    assert generic_feature_stimulus["_sample_active"] is True
+    assert ns["_goal_wait_cycles"](generic_feature, manifest) == 6
     assert ns["_default_field_value"]("clear", 0) == 0
     assert ns["_default_field_value"]("cmd_clear", 0) == 0
     control_manifest = {

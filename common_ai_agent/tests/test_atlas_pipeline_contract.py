@@ -336,6 +336,48 @@ def test_sim_error_still_dispatches_sim_debug_for_classification(monkeypatch) ->
             jobs._jobs.clear()
 
 
+def test_stage_engine_failure_overrides_completed_artifact_recovery(tmp_path: Path) -> None:
+    ip = "stage_fail_ip"
+    log_dir = tmp_path / ip / "logs" / "stage_engine"
+    log_dir.mkdir(parents=True)
+    (log_dir / "sim-debug.json").write_text(
+        json.dumps({"status": "fail", "summary": {"goals_failed": 18}}),
+        encoding="utf-8",
+    )
+    sim_dir = tmp_path / ip / "sim"
+    sim_dir.mkdir(parents=True)
+    (sim_dir / "mismatch_classification.json").write_text(
+        json.dumps({"status": "action_required"}),
+        encoding="utf-8",
+    )
+
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "sim-debug", "workflow": "sim_debug"},
+        tmp_path,
+    )
+
+    assert failed is True
+    assert "logs/stage_engine/sim-debug.json status=fail" in reason
+
+
+def test_coverage_blocked_artifact_is_not_reported_as_pass(tmp_path: Path) -> None:
+    ip = "coverage_blocked_ip"
+    cov_dir = tmp_path / ip / "cov"
+    cov_dir.mkdir(parents=True)
+    (cov_dir / "coverage.json").write_text(
+        json.dumps({"status": "blocked"}),
+        encoding="utf-8",
+    )
+
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "coverage", "workflow": "coverage"},
+        tmp_path,
+    )
+
+    assert failed is True
+    assert "cov/coverage.json status=blocked" in reason
+
+
 def test_rtl_completion_registers_version_and_fans_out_context(
     tmp_path: Path,
     monkeypatch,

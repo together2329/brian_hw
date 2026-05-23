@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>timing diagram demo</title>
+<style>
+  :root{--bg:#0d1117;--fg:#e6edf3;--mute:#8b949e;--accent:#58a6ff;--ok:#3fb950;--warn:#d29922;--line:#30363d;--panel:#161b22;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:ui-monospace,SFMono-Regular,Menlo,"Cascadia Mono",Consolas,monospace;font-size:13px;line-height:1.5;}
+  .bar{padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .bar .ttl{font-weight:700;}
+  .bar .tag{font-size:10px;color:var(--mute);}
+  button{background:var(--accent);color:#000;border:0;padding:6px 13px;border-radius:5px;font-family:inherit;font-weight:700;cursor:pointer;}
+  button.ghost{background:transparent;color:var(--accent);border:1px solid var(--line);}
+  .stage{padding:14px;overflow:auto;}
+  svg{display:block;font-family:inherit;}
+  .grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4;}
+  .wave{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-linejoin:round;}
+  .hatch{stroke:var(--mute);stroke-width:1;opacity:.5;}
+  .lbl{fill:var(--mute);font-size:12px;}
+  .cyc{fill:var(--mute);font-size:10px;text-anchor:middle;}
+  .busText{fill:var(--fg);font-size:11px;text-anchor:middle;}
+  .cursor{stroke:var(--warn);stroke-width:1.2;}
+  .col{fill:var(--warn);opacity:.08;}
+  .readout{padding:10px 14px;border-top:1px solid var(--line);background:var(--panel);display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-height:42px;}
+  .chip{font-size:11px;border:1px solid var(--line);border-radius:4px;padding:2px 7px;color:var(--mute);}
+  .chip b{color:var(--fg);font-weight:700;}
+  .chip.cyc0{border-color:var(--warn);color:var(--warn);}
+  .editor{padding:12px 14px;border-top:1px solid var(--line);background:var(--bg);}
+  .editor textarea{width:100%;height:150px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:12px;padding:10px;resize:vertical;}
+  .editor .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .err{color:var(--warn);font-size:11px;}
+  .legend{font-size:10px;color:var(--mute);}
+  .legend code{color:var(--accent);}
+</style></head>
+<body>
+<div class="bar">
+  <span class="ttl">⎓ timing diagram</span>
+  <button onclick="play()">▶ 재생</button>
+  <button class="ghost" onclick="stopPlay()">⏸ 정지</button>
+  <span class="tag">파형 위에 마우스를 올리면 해당 cycle 값이 아래에 표시됩니다 · 단일 HTML, 의존성 0</span>
+</div>
+
+<div class="stage"><svg id="svg"></svg></div>
+<div class="readout" id="readout"><span class="chip">cursor 없음 — 파형 위로 마우스</span></div>
+
+<div class="editor">
+  <div class="row">
+    <span class="legend">스펙 편집 → 렌더. 표기: <code>p</code>=clock <code>0/1</code>=level <code>.</code>=유지 <code>=</code>=bus(data) <code>x</code>=don't-care <code>z</code>=hi-Z</span>
+    <button onclick="reRender()">↻ 렌더</button>
+  </div>
+  <textarea id="spec" spellcheck="false"></textarea>
+  <div class="err" id="err"></div>
+</div>
+
+<script>
+const SVGNS='http://www.w3.org/2000/svg';
+const LABELW=110, CW=54, ROWH=46, HDR=26, AMP=24, PADTOP=10;
+
+const DEFAULT = {
+  signals:[
+    {name:"ACLK",    wave:"p........."},
+    {name:"AWVALID", wave:"010......."},
+    {name:"AWREADY", wave:"0.10......"},
+    {name:"AWADDR",  wave:"x=x.......", data:["0x40"]},
+    {name:"WVALID",  wave:"0..10....."},
+    {name:"WREADY",  wave:"0...10...."},
+    {name:"WDATA",   wave:"x..=x.....", data:["0xCAFE"]},
+    {name:"BVALID",  wave:"0.....10.."},
+    {name:"BREADY",  wave:"0....1.0.."},
+    {name:"BRESP",   wave:"x.....=x..", data:["OKAY"]}
+  ]
+};
+
+let MODEL=null; // {n, rows:[{name,cells}]}
+
+// --- parse a WaveDrom-ish wave string into per-cell resolved states ---
+function parseWave(wave, data){
+  const cells=[]; let prev=null, di=0;
+  for(const ch of wave){
+    if(ch==='.'){ cells.push(prev?{...prev,edge:false}:{kind:'level',v:0,edge:false}); continue; }
+    let c;
+    if(ch==='p'||ch==='n') c={kind:'clock',pol:ch};
+    else if(ch==='1') c={kind:'level',v:1};
+    else if(ch==='0') c={kind:'level',v:0};
+    else if(ch==='=') c={kind:'bus',label:(data&&data[di++])||'='};
+    else if(ch==='x') c={kind:'x'};
+    else if(ch==='z') c={kind:'z'};
+    else c={kind:'level',v:0};
+    c.edge=true; cells.push(c); prev=c;
+  }
+  return cells;
+}
+
+function buildModel(spec){
+  const rows=spec.signals.map(s=>({name:s.name, cells:parseWave(s.wave,s.data)}));
+  const n=Math.max(...rows.map(r=>r.cells.length),1);
+  return {n, rows};
+}
+
+function svgEl(tag,attrs){const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
+
+function render(model){
+  MODEL=model;
+  const svg=document.getElementById('svg');
+  const W=LABELW+model.n*CW, H=HDR+model.rows.length*ROWH+8;
+  svg.setAttribute('width',W); svg.setAttribute('height',H);
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.innerHTML='';
+
+  // highlighted column + cursor (declared first so they sit under labels)
+  const col=svgEl('rect',{class:'col',x:LABELW,y:HDR,width:CW,height:H-HDR,visibility:'hidden'}); col.id='col'; svg.appendChild(col);
+
+  // cycle numbers + vertical grid
+  for(let i=0;i<model.n;i++){
+    const x=LABELW+i*CW;
+    svg.appendChild(svgEl('line',{class:'grid',x1:x,y1:HDR,x2:x,y2:H-8}));
+    const t=svgEl('text',{class:'cyc',x:x+CW/2,y:16}); t.textContent=i; svg.appendChild(t);
+  }
+
+  model.rows.forEach((row,ri)=>{
+    const top=HDR+ri*ROWH, hiY=top+PADTOP, lowY=hiY+AMP, midY=(hiY+lowY)/2;
+    // signal name
+    const nm=svgEl('text',{class:'lbl',x:8,y:midY+4}); nm.textContent=row.name; svg.appendChild(nm);
+
+    const parts=[]; const hatches=[]; const texts=[];
+    let prevY=lowY;
+    row.cells.forEach((c,ci)=>{
+      const x0=LABELW+ci*CW, x1=x0+CW, mid=(x0+x1)/2;
+      if(c.kind==='clock'){
+        parts.push(`M${x0},${lowY} L${x0},${hiY} L${mid},${hiY} L${mid},${lowY} L${x1},${lowY}`);
+        prevY=lowY;
+      } else if(c.kind==='level'){
+        const y=c.v?hiY:lowY;
+        if(c.edge && prevY!==y) parts.push(`M${x0},${prevY} L${x0},${y}`);
+        parts.push(`M${x0},${y} L${x1},${y}`); prevY=y;
+      } else if(c.kind==='bus'){
+        if(c.edge){
+          let j=ci+1; while(j<row.cells.length && row.cells[j].kind==='bus' && !row.cells[j].edge) j++;
+          const runX1=LABELW+j*CW;
+          parts.push(`M${x0},${midY} L${x0+5},${hiY}`);
+          parts.push(`M${x0},${midY} L${x0+5},${lowY}`);
+          parts.push(`M${x0+5},${hiY} L${runX1},${hiY}`);
+          parts.push(`M${x0+5},${lowY} L${runX1},${lowY}`);
+          texts.push({x:(x0+runX1)/2,y:midY+4,t:c.label});
+        }
+        prevY=midY;
+      } else if(c.kind==='x'){
+        parts.push(`M${x0},${hiY} L${x1},${hiY}`);
+        parts.push(`M${x0},${lowY} L${x1},${lowY}`);
+        for(let hx=x0;hx<x1;hx+=6) hatches.push(`M${hx},${hiY} L${Math.min(hx+AMP,x1)},${lowY}`);
+        prevY=midY;
+      } else if(c.kind==='z'){
+        parts.push(`M${x0},${midY} L${x1},${midY}`); prevY=midY;
+      }
+    });
+    if(hatches.length) svg.appendChild(svgEl('path',{class:'hatch',d:hatches.join(' ')}));
+    svg.appendChild(svgEl('path',{class:'wave',d:parts.join(' ')}));
+    texts.forEach(tx=>{const t=svgEl('text',{class:'busText',x:tx.x,y:tx.y});t.textContent=tx.t;svg.appendChild(t);});
+  });
+
+  const cur=svgEl('line',{class:'cursor',x1:0,y1:HDR,x2:0,y2:H-8,visibility:'hidden'}); cur.id='cursor'; svg.appendChild(cur);
+  svg.onmousemove=onMove; svg.onmouseleave=()=>{if(!PLAYING)hideCursor();};
+}
+
+function valueAt(c){
+  if(!c) return '—';
+  switch(c.kind){
+    case 'clock': return 'clk';
+    case 'level': return c.v?'1':'0';
+    case 'bus':   return c.label||'=';
+    case 'x':     return 'x';
+    case 'z':     return 'Z';
+  }
+}
+
+function showCell(cell){
+  const svg=document.getElementById('svg');
+  const x=LABELW+cell*CW;
+  const cur=document.getElementById('cursor'), col=document.getElementById('col');
+  cur.setAttribute('x1',x+CW/2); cur.setAttribute('x2',x+CW/2); cur.setAttribute('visibility','visible');
+  col.setAttribute('x',x); col.setAttribute('visibility','visible');
+  const ro=document.getElementById('readout'); ro.innerHTML='';
+  ro.appendChild(chip('cyc',cell,true));
+  MODEL.rows.forEach(r=>ro.appendChild(chip(r.name, valueAt(r.cells[cell]))));
+}
+function chip(name,val,isCyc){
+  const s=document.createElement('span'); s.className='chip'+(isCyc?' cyc0':'');
+  s.innerHTML=name+' <b>'+val+'</b>'; return s;
+}
+function hideCursor(){
+  document.getElementById('cursor').setAttribute('visibility','hidden');
+  document.getElementById('col').setAttribute('visibility','hidden');
+  document.getElementById('readout').innerHTML='<span class="chip">cursor 없음 — 파형 위로 마우스</span>';
+}
+
+function onMove(e){
+  const svg=document.getElementById('svg'); const r=svg.getBoundingClientRect();
+  const scale=r.width/svg.viewBox.baseVal.width;
+  const mx=(e.clientX-r.left)/scale;
+  let cell=Math.floor((mx-LABELW)/CW);
+  if(cell<0||cell>=MODEL.n){ if(!PLAYING) hideCursor(); return; }
+  showCell(cell);
+}
+
+let PLAYING=null;
+function play(){
+  stopPlay(); let cell=0;
+  PLAYING=setInterval(()=>{ showCell(cell); cell++; if(cell>=MODEL.n) stopPlay(); }, 450);
+}
+function stopPlay(){ if(PLAYING){clearInterval(PLAYING);PLAYING=null;} }
+
+function reRender(){
+  const err=document.getElementById('err'); err.textContent='';
+  try{
+    const spec=JSON.parse(document.getElementById('spec').value);
+    render(buildModel(spec));
+  }catch(ex){ err.textContent='JSON 오류: '+ex.message; }
+}
+
+// boot
+document.getElementById('spec').value=JSON.stringify(DEFAULT,null,2);
+render(buildModel(DEFAULT));
+</script>
+</body></html>

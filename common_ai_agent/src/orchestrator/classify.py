@@ -118,6 +118,19 @@ _STALE_SIM_DEBUG_ARTIFACT_HINTS = (
     "compare artifact older than fresh sim evidence",
     "classification artifact older than fresh sim evidence",
 )
+_TB_MISSING_EQUIVALENCE_HINTS = (
+    "missing equivalence goals",
+    "missing equivalence_goals",
+    "missing verify/equivalence_goals.json",
+    "verify/equivalence_goals.json is missing",
+    "equivalence_goals.json missing",
+    "tb_generator_input",
+)
+_TB_MISSING_FL_HINTS = (
+    "missing functional model",
+    "missing model/functional_model.py",
+    "functional_model.py missing",
+)
 
 
 def _text_has_any(text: str, hints) -> bool:
@@ -356,6 +369,27 @@ def classify_failure(
             "owner": "tb_bug",
             "next_workflow": "sim_debug",
             "reason": "sim failed; sim_debug must classify mismatches before repair",
+            "confidence": "medium",
+        }
+    if stage in ("tb", "tb-gen", "ssot-tb", "ssot-tb-cocotb"):
+        if _text_has_any(combined_error_text, _TB_MISSING_EQUIVALENCE_HINTS):
+            return {
+                "owner": "fl-model-gen",
+                "next_workflow": "equivalence",
+                "reason": "tb-gen is blocked on missing verify/equivalence_goals.json; generate FL/equivalence goals before TB repair",
+                "confidence": "high",
+            }
+        if _text_has_any(combined_error_text, _TB_MISSING_FL_HINTS):
+            return {
+                "owner": "fl-model-gen",
+                "next_workflow": "equivalence",
+                "reason": "tb-gen is blocked on missing FunctionalModel/equivalence inputs; regenerate FL/equivalence artifacts first",
+                "confidence": "high",
+            }
+        return {
+            "owner": "tb_bug",
+            "next_workflow": "tb-gen",
+            "reason": "tb-gen failed after required upstream artifacts were present; repair TB artifacts",
             "confidence": "medium",
         }
     if stage in ("sim_debug", "sim-debug"):

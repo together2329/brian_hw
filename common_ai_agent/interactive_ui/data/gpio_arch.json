@@ -1,0 +1,225 @@
+{
+  "top": "atlas_flow_gpio_demo",
+  "description": "8-bit GPIO output controlled by a single APB-Lite CSR (DATA). Demonstrates the SSOT-driven FL.step() cycle-accurate co-sim path.",
+  "clock_reset": {
+    "clock": "PCLK",
+    "freq_mhz": 50,
+    "reset": "PRESETn",
+    "reset_polarity": "active_low",
+    "reset_type": "async_assert_sync_deassert"
+  },
+  "interfaces": [
+    {
+      "name": "apb_slave",
+      "type": "APB-Lite",
+      "role": "slave",
+      "ports": [
+        {
+          "name": "PADDR",
+          "width": 4,
+          "dir": "input"
+        },
+        {
+          "name": "PSEL",
+          "width": 1,
+          "dir": "input"
+        },
+        {
+          "name": "PENABLE",
+          "width": 1,
+          "dir": "input"
+        },
+        {
+          "name": "PWRITE",
+          "width": 1,
+          "dir": "input"
+        },
+        {
+          "name": "PWDATA",
+          "width": 32,
+          "dir": "input"
+        },
+        {
+          "name": "PRDATA",
+          "width": 32,
+          "dir": "output"
+        },
+        {
+          "name": "PREADY",
+          "width": 1,
+          "dir": "output"
+        },
+        {
+          "name": "PSLVERR",
+          "width": 1,
+          "dir": "output"
+        }
+      ]
+    },
+    {
+      "name": "gpio_output",
+      "type": "custom",
+      "role": null,
+      "ports": [
+        {
+          "name": "gpio_out",
+          "width": 8,
+          "dir": "output"
+        }
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "id": "csr_decode",
+      "kind": "control",
+      "stage": "S0_DECODE",
+      "cycle": 0,
+      "action": "Address decode and access-phase capture (psel & penable).",
+      "source_refs": [
+        "registers.register_list"
+      ]
+    },
+    {
+      "id": "gpio_drive",
+      "kind": "datapath",
+      "stage": "S1_UPDATE",
+      "cycle": 1,
+      "action": "On write, latch pwdata into DATA. gpio_out tracks DATA.",
+      "source_refs": [
+        "function_model.transactions.FM1"
+      ]
+    }
+  ],
+  "registers": [
+    {
+      "name": "DATA",
+      "offset": "0x0",
+      "width": 32,
+      "access": "rw",
+      "reset": 0,
+      "desc": "GPIO output data register (low GPIO_WIDTH bits drive gpio_out)",
+      "write_side_effects": [
+        "Lower 8 bits update gpio_out on the next rising PCLK after access phase completes."
+      ],
+      "fields": [
+        {
+          "name": "data",
+          "msb": 7,
+          "lsb": 0,
+          "access": "rw",
+          "reset": 0,
+          "effect": "Drives gpio_out",
+          "desc": "GPIO output value"
+        },
+        {
+          "name": "reserved_31_8",
+          "msb": 31,
+          "lsb": 8,
+          "access": "reserved",
+          "reset": 0,
+          "effect": "ignore",
+          "desc": "Reserved"
+        }
+      ]
+    }
+  ],
+  "dataflow": [
+    {
+      "source": "pwdata",
+      "sink": "gpio_out",
+      "path": "PWDATA \u2192 DATA register (registered) \u2192 gpio_out (combinational)",
+      "width_in": 32,
+      "width_out": 8
+    }
+  ],
+  "transactions": [
+    {
+      "id": "FM1",
+      "name": "apb_write_data",
+      "preconditions": [
+        "psel == 1",
+        "penable == 1",
+        "pwrite == 1",
+        "paddr == 0"
+      ],
+      "inputs": [
+        "pwdata"
+      ],
+      "outputs": [
+        "DATA register updates to pwdata & 0xff; gpio_out tracks DATA"
+      ],
+      "output_rules": [
+        {
+          "port": "PREADY",
+          "expr": 1,
+          "width": 1,
+          "desc": "APB always-ready slave"
+        },
+        {
+          "port": "PSLVERR",
+          "expr": 0,
+          "width": 1,
+          "desc": "No slave error in this demo"
+        },
+        {
+          "port": "gpio_out",
+          "expr": "pwdata & 0xff",
+          "width": 8,
+          "desc": "gpio_out reflects new DATA value"
+        }
+      ]
+    },
+    {
+      "id": "FM2",
+      "name": "idle_or_read",
+      "preconditions": [
+        "pwrite == 0 or psel == 0 or penable == 0"
+      ],
+      "inputs": [
+        "paddr"
+      ],
+      "outputs": [
+        "gpio_out holds previous DATA; PRDATA returns DATA on read; PREADY=1; PSLVERR=0"
+      ],
+      "output_rules": [
+        {
+          "port": "PREADY",
+          "expr": 1,
+          "width": 1,
+          "desc": null
+        },
+        {
+          "port": "PSLVERR",
+          "expr": 0,
+          "width": 1,
+          "desc": null
+        },
+        {
+          "port": "gpio_out",
+          "expr": "gpio_data & 0xff",
+          "width": 8,
+          "desc": null
+        },
+        {
+          "port": "PRDATA",
+          "expr": "gpio_data if (psel == 1 and penable == 1 and pwrite == 0 and paddr == 0) else 0",
+          "width": 32,
+          "desc": null
+        }
+      ]
+    }
+  ],
+  "latency": {
+    "apb_write": {
+      "min_cycles": 1,
+      "max_cycles": 1,
+      "description": "DATA updates one cycle after access phase rising edge"
+    },
+    "apb_read": {
+      "min_cycles": 0,
+      "max_cycles": 0,
+      "description": "PRDATA is combinational from DATA in access phase"
+    }
+  }
+}

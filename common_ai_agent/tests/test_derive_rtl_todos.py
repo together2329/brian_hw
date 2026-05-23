@@ -121,6 +121,35 @@ def test_direct_name_owner_match_ignores_short_tokens():
     assert derive._direct_name_owner_match("path.tx.stage_0", modules) is None
 
 
+def test_generic_ssot_prose_does_not_become_static_rtl_terms():
+    derive = _load_derive()
+
+    assert (
+        derive._evidence_terms(
+            "dataflow.source",
+            "dataflow.source.source_0",
+            "declared io_list request/control interfaces",
+        )
+        == []
+    )
+    assert (
+        derive._evidence_terms(
+            "function_model.output",
+            "function_model.transactions.FM1.outputs.output_0",
+            "Architectural output matches feature definition",
+        )
+        == []
+    )
+    assert (
+        derive._evidence_terms(
+            "function_model.output",
+            "function_model.transactions.FM1.outputs.error",
+            "Auto-injected placeholder rule for observable state error (repair_ssot_schema rule_expr_completeness pass; TB scoreboard expr)",
+        )
+        == []
+    )
+
+
 def test_placeholder_audit_accepts_not_implemented_in_comment(tmp_path: Path):
     derive = _load_derive()
     ip_dir = tmp_path / "ip"

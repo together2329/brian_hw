@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>fsm state-transition diagram</title>
+<style>
+  :root{--bg:#0d1117;--fg:#e6edf3;--mute:#8b949e;--accent:#58a6ff;--ok:#3fb950;--warn:#d29922;--line:#30363d;--panel:#161b22;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:ui-monospace,SFMono-Regular,Menlo,"Cascadia Mono",Consolas,monospace;font-size:13px;line-height:1.5;}
+  .bar{padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .bar .ttl{font-weight:700;}
+  .bar .tag{font-size:10px;color:var(--mute);}
+  button{background:var(--accent);color:#000;border:0;padding:6px 13px;border-radius:5px;font-family:inherit;font-weight:700;cursor:pointer;}
+  button.ghost{background:transparent;color:var(--accent);border:1px solid var(--line);}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  .toggle{background:transparent;color:var(--mute);border:1px solid var(--line);}
+  .toggle.on{background:var(--ok);color:#000;border-color:var(--ok);}
+  .sep{width:1px;height:22px;background:var(--line);margin:0 2px;}
+  .main{display:flex;flex-wrap:wrap;align-items:stretch;}
+  .stage{padding:14px;overflow:auto;flex:1 1 520px;min-width:320px;}
+  .side{flex:1 1 280px;min-width:260px;border-left:1px solid var(--line);background:var(--panel);padding:14px;display:flex;flex-direction:column;gap:14px;}
+  svg{display:block;font-family:inherit;}
+  .edge{fill:none;stroke:var(--mute);stroke-width:1.6;}
+  .edge.hot{stroke:var(--accent);stroke-width:2.2;}
+  .edge.fired{stroke:var(--ok);stroke-width:2.6;}
+  .edgeLbl{fill:var(--mute);font-size:10.5px;}
+  .edgeLbl.hot{fill:var(--accent);}
+  .edgeLbl.fired{fill:var(--ok);}
+  .edgeLblBg{fill:var(--bg);}
+  .node{cursor:pointer;}
+  .node circle{fill:var(--panel);stroke:var(--line);stroke-width:1.8;transition:stroke .15s,fill .15s;}
+  .node.sel circle{stroke:var(--accent);stroke-width:2.4;}
+  .node.active circle{fill:#10243e;stroke:var(--accent);stroke-width:3;}
+  .node.fired circle{stroke:var(--ok);stroke-width:3;}
+  .node text{fill:var(--fg);font-size:13px;font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none;}
+  .node.active text{fill:var(--accent);}
+  .resetLbl{fill:var(--mute);font-size:9.5px;text-anchor:middle;}
+  h3{margin:0 0 6px;font-size:11px;color:var(--mute);font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+  .panelBox{border:1px solid var(--line);border-radius:6px;padding:10px;background:var(--bg);}
+  .cur{font-size:22px;font-weight:700;color:var(--accent);}
+  .cur small{font-size:10px;color:var(--mute);font-weight:400;display:block;text-transform:uppercase;letter-spacing:.5px;}
+  .trow{font-size:11.5px;padding:5px 0;border-bottom:1px solid var(--line);}
+  .trow:last-child{border-bottom:0;}
+  .trow .to{color:var(--accent);font-weight:700;}
+  .trow.fired .to{color:var(--ok);}
+  .trow .cond{color:var(--mute);}
+  .trow.fired .cond{color:var(--fg);}
+  .empty{color:var(--mute);font-size:11px;}
+  .chip{font-size:11px;border:1px solid var(--line);border-radius:4px;padding:2px 7px;color:var(--mute);display:inline-block;}
+  .chip b{color:var(--fg);font-weight:700;}
+  .chip.ok{border-color:var(--ok);color:var(--ok);}
+  .chip.warn{border-color:var(--warn);color:var(--warn);}
+  .log{border-top:1px solid var(--line);background:var(--panel);padding:10px 14px;min-height:40px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .note{font-size:11px;color:var(--mute);font-style:italic;}
+  .editor{padding:12px 14px;border-top:1px solid var(--line);background:var(--bg);}
+  .editor textarea{width:100%;height:160px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:12px;padding:10px;resize:vertical;}
+  .editor .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .err{color:var(--warn);font-size:11px;}
+  .legend{font-size:10px;color:var(--mute);}
+  .legend code{color:var(--accent);}
+</style></head>
+<body>
+<div class="bar">
+  <span class="ttl">⬡ fsm state-transition</span>
+  <span class="sep"></span>
+  <span class="tag" style="color:var(--fg)">in:</span>
+  <button class="toggle" id="t_psel" onclick="toggleIn('psel')">psel=0</button>
+  <button class="toggle" id="t_penable" onclick="toggleIn('penable')">penable=0</button>
+  <span class="sep"></span>
+  <button onclick="step()">⏭ Step</button>
+  <button class="ghost" onclick="autorun()">▶ Auto-run</button>
+  <button class="ghost" onclick="resetFsm()">↺ Reset</button>
+  <span class="tag">상태를 클릭하면 해당 transition 강조 · 입력 설정 후 Step · 단일 HTML, 의존성 0</span>
+</div>
+
+<div class="main">
+  <div class="stage"><svg id="svg"></svg></div>
+  <div class="side">
+    <div class="panelBox">
+      <h3>current state</h3>
+      <div class="cur" id="curState">IDLE<small>reset state</small></div>
+    </div>
+    <div>
+      <h3 id="selTitle">selected: IDLE</h3>
+      <div class="panelBox" id="transPanel"></div>
+    </div>
+    <div>
+      <h3>note</h3>
+      <div class="note" id="noteBox"></div>
+    </div>
+  </div>
+</div>
+
+<div class="log" id="log"><span class="chip">reset — IDLE. 입력을 설정하고 ⏭ Step 을 누르세요.</span></div>
+
+<div class="editor">
+  <div class="row">
+    <span class="legend">스펙 편집 → 렌더. <code>states</code> 첫 항목이 reset 상태 · <code>condition</code>: <code>psel == N and penable == M</code> 형태만 파싱 (eval 안 함)</span>
+    <button onclick="reRender()">↻ Render</button>
+  </div>
+  <textarea id="spec" spellcheck="false"></textarea>
+  <div class="err" id="err"></div>
+</div>
+
+<script>
+const SVGNS='http://www.w3.org/2000/svg';
+const R=42, W=620, H=380; // svg canvas + node radius
+
+// embedded SSOT (atlas_flow_gpio_demo / apb_phase), kept editable via textarea
+const DEFAULT = {
+  "top":"atlas_flow_gpio_demo",
+  "fsm":{"apb_phase":{
+    "states":["IDLE","SETUP","ACCESS"],
+    "transitions":[
+      {"from":"IDLE","to":"SETUP","condition":"psel == 1 and penable == 0"},
+      {"from":"SETUP","to":"ACCESS","condition":"psel == 1 and penable == 1"},
+      {"from":"ACCESS","to":"IDLE","condition":"psel == 0"},
+      {"from":"IDLE","to":"IDLE","condition":"psel == 0"}
+    ],
+    "note":"Standard APB-Lite slave handshake. Always-ready (PREADY=1 in ACCESS)."
+  }}
+};
+
+let MODEL=null;     // {states:[name], pos:{name:{x,y}}, transitions:[{from,to,condition,parsed}], note, reset}
+let CURRENT=null;   // current active state name
+let SELECTED=null;  // clicked/selected state name
+let INPUTS={psel:0,penable:0};
+let AUTO=null;
+
+// --- parse "psel == 1 and penable == 0" into {psel:1, penable:0} (only ==, only and) ---
+function parseCond(cond){
+  const out={};
+  cond.split(/\band\b/).forEach(part=>{
+    const m=part.match(/([a-zA-Z_]\w*)\s*==\s*(\d+)/);
+    if(m) out[m[1]]=parseInt(m[2],10);
+  });
+  return out; // e.g. {psel:1} or {psel:1,penable:0}
+}
+function condHolds(parsed,inputs){
+  for(const k in parsed){ if((inputs[k]??0)!==parsed[k]) return false; }
+  return true;
+}
+
+// --- layout: pick the first declared fsm; lay states out left-to-right with vertical offset ---
+function buildModel(spec){
+  const top=spec.top||'fsm';
+  const fsmKey=Object.keys(spec.fsm)[0];
+  const fsm=spec.fsm[fsmKey];
+  const states=fsm.states.slice();
+  const transitions=(fsm.transitions||[]).map(t=>({...t, parsed:parseCond(t.condition)}));
+  // layout: spread across width, alternate y for visual separation
+  const pos={};
+  const n=states.length;
+  const yTop=120, yBot=250;
+  states.forEach((s,i)=>{
+    const x = 90 + (n>1 ? i*(W-180)/(n-1) : 0);
+    const y = (i%2===0)? yTop : yBot;
+    pos[s]={x,y};
+  });
+  return {top, fsmKey, states, pos, transitions, note:fsm.note||'', reset:states[0]};
+}
+
+function svgEl(tag,attrs){const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
+
+function render(model){
+  MODEL=model;
+  const svg=document.getElementById('svg');
+  svg.setAttribute('width',W); svg.setAttribute('height',H);
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.innerHTML='';
+
+  // arrowhead defs (three tints: mute/accent/ok)
+  const defs=svgEl('defs',{});
+  [['ah','var(--mute)'],['ah_hot','var(--accent)'],['ah_fired','var(--ok)']].forEach(([id,col])=>{
+    const m=svgEl('marker',{id,markerWidth:9,markerHeight:9,refX:7.5,refY:3,orient:'auto',markerUnits:'strokeWidth'});
+    const p=svgEl('path',{d:'M0,0 L7.5,3 L0,6 Z',fill:col}); m.appendChild(p); defs.appendChild(m);
+  });
+  svg.appendChild(defs);
+
+  // edges first (under nodes). group self-loops separately.
+  model.transitions.forEach((t,ti)=>{ drawEdge(svg,t,ti); });
+
+  // reset incoming arrow into reset state (from "nothing")
+  drawResetArrow(svg, model.reset);
+
+  // nodes
+  model.states.forEach(s=>drawNode(svg,s,model.pos[s]));
+
+  refreshHighlights();
+}
+
+function drawNode(svg,name,p){
+  const g=svgEl('g',{class:'node'}); g.id='node_'+name;
+  g.appendChild(svgEl('circle',{cx:p.x,cy:p.y,r:R}));
+  const t=svgEl('text',{x:p.x,y:p.y}); t.textContent=name; g.appendChild(t);
+  g.onclick=()=>selectState(name);
+  svg.appendChild(g);
+}
+
+function drawResetArrow(svg,name){
+  const p=MODEL.pos[name];
+  // approach from upper-left toward node
+  const sx=p.x-R-46, sy=p.y-R-22;
+  const ex=p.x-R*0.72, ey=p.y-R*0.72;
+  svg.appendChild(svgEl('path',{class:'edge',d:`M${sx},${sy} L${ex},${ey}`,'marker-end':'url(#ah)'}));
+  const lbl=svgEl('text',{class:'resetLbl',x:sx-2,y:sy-4}); lbl.textContent='reset'; svg.appendChild(lbl);
+}
+
+function drawEdge(svg,t,ti){
+  const a=MODEL.pos[t.from], b=MODEL.pos[t.to];
+  let pathD, lx, ly;
+  if(t.from===t.to){
+    // self-loop: arc on top of the node
+    const cx=a.x, cy=a.y;
+    const x0=cx-R*0.5, y0=cy-R*0.86;
+    const x1=cx+R*0.5, y1=cy-R*0.86;
+    pathD=`M${x0},${y0} C${cx-R*1.1},${cy-R*2.2} ${cx+R*1.1},${cy-R*2.2} ${x1},${y1}`;
+    lx=cx; ly=cy-R*2.05;
+  } else {
+    // straight-ish edge between circle edges, with slight curve to dodge labels
+    const dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy)||1, ux=dx/d, uy=dy/d;
+    const sx=a.x+ux*R, sy=a.y+uy*R, ex=b.x-ux*R, ey=b.y-uy*R;
+    // perpendicular bow
+    const px=-uy, py=ux, bow=24;
+    const mx=(sx+ex)/2+px*bow, my=(sy+ey)/2+py*bow;
+    pathD=`M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+    lx=mx+px*8; ly=my+py*8;
+  }
+  const pth=svgEl('path',{class:'edge',d:pathD,'marker-end':'url(#ah)'}); pth.id='edge_'+ti;
+  svg.appendChild(pth);
+  // label with bg rect for readability
+  const g=svgEl('g',{}); g.id='lblg_'+ti;
+  const txt=svgEl('text',{class:'edgeLbl',x:lx,y:ly,'text-anchor':'middle'}); txt.id='lbl_'+ti;
+  txt.textContent=t.condition; g.appendChild(txt);
+  svg.appendChild(g);
+  // bg rect sized after layout
+  requestAnimationFrame(()=>{
+    try{
+      const bb=txt.getBBox();
+      const r=svgEl('rect',{class:'edgeLblBg',x:bb.x-3,y:bb.y-1,width:bb.width+6,height:bb.height+2,rx:2});
+      g.insertBefore(r,txt);
+    }catch(e){/* getBBox may fail if not laid out; skip bg */}
+  });
+}
+
+// --- highlight state: re-derive classes from CURRENT / SELECTED / lastFired ---
+let LAST_FIRED=-1; // transition index that fired on last step
+function refreshHighlights(){
+  // nodes
+  MODEL.states.forEach(s=>{
+    const g=document.getElementById('node_'+s); if(!g) return;
+    g.classList.toggle('active', s===CURRENT);
+    g.classList.toggle('sel', s===SELECTED);
+    g.classList.remove('fired');
+  });
+  // edges: outgoing of SELECTED -> hot; fired -> fired
+  MODEL.transitions.forEach((t,ti)=>{
+    const e=document.getElementById('edge_'+ti), l=document.getElementById('lbl_'+ti);
+    if(!e) return;
+    e.classList.remove('hot','fired'); if(l) l.classList.remove('hot','fired');
+    e.setAttribute('marker-end','url(#ah)');
+    if(ti===LAST_FIRED){ e.classList.add('fired'); if(l) l.classList.add('fired'); e.setAttribute('marker-end','url(#ah_fired)'); }
+    else if(SELECTED && t.from===SELECTED){ e.classList.add('hot'); if(l) l.classList.add('hot'); e.setAttribute('marker-end','url(#ah_hot)'); }
+  });
+  // fired target node ring
+  if(LAST_FIRED>=0 && MODEL.transitions[LAST_FIRED]){
+    const g=document.getElementById('node_'+MODEL.transitions[LAST_FIRED].to);
+    if(g) g.classList.add('fired');
+  }
+  document.getElementById('curState').innerHTML = CURRENT + '<small>'+(CURRENT===MODEL.reset?'reset state':'active')+'</small>';
+}
+
+function selectState(name){
+  SELECTED=name;
+  document.getElementById('selTitle').textContent='selected: '+name;
+  // build transition panel
+  const box=document.getElementById('transPanel'); box.innerHTML='';
+  const outs=MODEL.transitions.map((t,ti)=>({t,ti})).filter(o=>o.t.from===name);
+  if(!outs.length){ box.innerHTML='<div class="empty">outgoing transition 없음 (terminal)</div>'; }
+  else outs.forEach(o=>{
+    const d=document.createElement('div');
+    d.className='trow'+(o.ti===LAST_FIRED?' fired':'');
+    d.innerHTML='→ <span class="to">'+o.t.to+'</span><br><span class="cond">'+o.t.condition+'</span>';
+    box.appendChild(d);
+  });
+  refreshHighlights();
+}
+
+// --- evaluate current state's transitions against INPUTS; first match wins ---
+function evalStep(){
+  const outs=MODEL.transitions.map((t,ti)=>({t,ti})).filter(o=>o.t.from===CURRENT);
+  for(const o of outs){
+    if(condHolds(o.t.parsed,INPUTS)) return o; // {t,ti}
+  }
+  return null;
+}
+
+function step(){
+  const fired=evalStep();
+  if(!fired){
+    LAST_FIRED=-1;
+    setLog('warn','no transition / hold @ '+CURRENT,'psel='+INPUTS.psel+' penable='+INPUTS.penable);
+    SELECTED=CURRENT; selectState(CURRENT);
+    return;
+  }
+  const from=CURRENT, to=fired.t.to;
+  LAST_FIRED=fired.ti;
+  CURRENT=to;
+  SELECTED=to;
+  selectState(to);
+  setLog('ok', from+' → '+to, fired.t.condition);
+}
+
+function setLog(kind,headline,detail){
+  const log=document.getElementById('log'); log.innerHTML='';
+  const c1=document.createElement('span'); c1.className='chip '+(kind==='ok'?'ok':'warn'); c1.innerHTML='<b>'+headline+'</b>'; log.appendChild(c1);
+  if(detail){ const c2=document.createElement('span'); c2.className='chip'; c2.innerHTML='when '+detail; log.appendChild(c2); }
+  const c3=document.createElement('span'); c3.className='chip'; c3.innerHTML='inputs psel=<b>'+INPUTS.psel+'</b> penable=<b>'+INPUTS.penable+'</b>'; log.appendChild(c3);
+}
+
+function toggleIn(name){
+  INPUTS[name]=INPUTS[name]?0:1;
+  const b=document.getElementById('t_'+name);
+  b.textContent=name+'='+INPUTS[name];
+  b.classList.toggle('on',!!INPUTS[name]);
+}
+function setIn(name,v){
+  INPUTS[name]=v?1:0;
+  const b=document.getElementById('t_'+name);
+  b.textContent=name+'='+INPUTS[name];
+  b.classList.toggle('on',!!INPUTS[name]);
+}
+
+function resetFsm(){
+  if(AUTO){clearInterval(AUTO);AUTO=null;}
+  CURRENT=MODEL.reset; SELECTED=MODEL.reset; LAST_FIRED=-1;
+  setIn('psel',0); setIn('penable',0);
+  selectState(MODEL.reset);
+  setLog('warn','reset → '+MODEL.reset,'');
+}
+
+// canned stimulus driving a full IDLE -> SETUP -> ACCESS -> IDLE write handshake
+function autorun(){
+  if(AUTO){clearInterval(AUTO);AUTO=null;}
+  resetFsm();
+  // sequence of input vectors applied before each step
+  const seq=[
+    {psel:1,penable:0}, // IDLE  -> SETUP  (setup phase)
+    {psel:1,penable:1}, // SETUP -> ACCESS (access phase, PREADY=1)
+    {psel:0,penable:0}, // ACCESS-> IDLE   (deselect)
+    {psel:0,penable:0}  // IDLE  -> IDLE   (self-loop, stay)
+  ];
+  let i=0;
+  AUTO=setInterval(()=>{
+    if(i>=seq.length){ clearInterval(AUTO); AUTO=null; setLog('ok','auto-run done','handshake complete'); return; }
+    setIn('psel',seq[i].psel); setIn('penable',seq[i].penable);
+    step();
+    i++;
+  }, 850);
+}
+
+function reRender(){
+  const err=document.getElementById('err'); err.textContent='';
+  try{
+    const spec=JSON.parse(document.getElementById('spec').value);
+    if(!spec.fsm||typeof spec.fsm!=='object') throw new Error('missing "fsm" object');
+    const model=buildModel(spec);
+    if(!model.states.length) throw new Error('fsm has no states');
+    render(model);
+    CURRENT=model.reset; SELECTED=model.reset; LAST_FIRED=-1;
+    document.getElementById('noteBox').textContent=model.note||'(no note)';
+    selectState(model.reset);
+    setLog('warn','rendered '+model.fsmKey,model.states.length+' states / '+model.transitions.length+' transitions');
+  }catch(ex){ err.textContent='spec 오류: '+ex.message; }
+}
+
+// boot
+document.getElementById('spec').value=JSON.stringify(DEFAULT,null,2);
+(function boot(){
+  const model=buildModel(DEFAULT);
+  render(model);
+  CURRENT=model.reset; SELECTED=model.reset;
+  document.getElementById('noteBox').textContent=model.note;
+  selectState(model.reset);
+})();
+</script>
+</body></html>
