@@ -1,4 +1,4 @@
-// fresh_rule_ip.sv — SSOT-authored RTL for the double_value rule
+// fresh_rule_ip.sv — SSOT RTL for the double_value rule
 module fresh_rule_ip (
     input  logic       clk,
     input  logic       rst_n,
@@ -17,7 +17,7 @@ module fresh_rule_ip (
     logic [8:0] doubled_value;
     logic [7:0] accepted_count_next;
 
-    // ready is a live reset-derived contract signal: low while reset is asserted and high for all active cycles.
+    // ready is a live reset-derived contract signal: low during reset and high during active cycles.
     assign ready = rst_n;
     assign valid_sample = valid & ready;
     assign value = data_in;
@@ -31,7 +31,7 @@ module fresh_rule_ip (
             result_valid <= 1'b0;
             accepted_count <= ACCEPTED_COUNT_RESET_VALUE;
         end else begin
-            // valid_sample is the SSOT acceptance point for the latency-1 transaction.
+            // valid_sample is the SSOT acceptance point producing the latency-1 transaction.
             result_valid <= valid_sample;
             if (valid_sample) begin
                 result <= doubled_value;

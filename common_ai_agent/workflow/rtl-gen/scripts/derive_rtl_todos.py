@@ -1662,7 +1662,15 @@ def _is_repair_generated_fm_marker(value: Any) -> bool:
 
 
 def _is_repair_generated_fm_task(category: str, value: Any) -> bool:
-    return category.startswith("function_model.") and _is_repair_generated_fm_marker(value)
+    return (
+        category.startswith("function_model.")
+        or category == "workflow_todo.rtl_gen"
+    ) and _is_repair_generated_fm_marker(value)
+
+
+def _is_fm_observed_marker_term(term: str) -> bool:
+    lower = str(term or "").strip().lower()
+    return bool(re.fullmatch(r"fm\d+_observed", lower) or re.fullmatch(r"fm\d+", lower)) or lower == "observed"
 
 
 def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
@@ -1799,6 +1807,8 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
             if token.startswith("FM_"):
                 terms.update(_split_design_token(token))
     terms = {term for term in terms if term.lower() not in EVIDENCE_STOPWORDS | REFERENCE_STOPWORDS}
+    if category.startswith("function_model.") or category == "workflow_todo.rtl_gen":
+        terms = {term for term in terms if not _is_fm_observed_marker_term(term)}
     return sorted(terms)[:16]
 
 
