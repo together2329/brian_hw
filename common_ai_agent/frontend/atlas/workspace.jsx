@@ -2924,7 +2924,22 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       );
       if (!active) return !opts.requireSession;
       if (!eventSession) return !opts.requireSession;
-      return eventSession === active;
+      if (eventSession === active) return true;
+      // Tail match: the WebSocket connection is already scoped to one
+      // session_id (cross-user isolation lives there), so this per-message
+      // filter only needs to disambiguate sessions the SAME user switches
+      // between in one tab. A strict `===` silently drops the entire token
+      // stream when the owner prefix or a transient segment differs (e.g.
+      // active='brian/new_axi/orchestrator' vs event='admin/new_axi/...'
+      // after an IP switch). Comparing the meaningful (ip, workflow) tail
+      // keeps real cross-IP filtering while not eating valid responses.
+      const tail = (s) => {
+        const parts = String(s || '').split('/').filter(Boolean);
+        return parts.slice(-2).join('/');
+      };
+      const et = tail(eventSession);
+      const at = tail(active);
+      return !!et && et === at;
     };
     // Hello payload — server tells us which center-column layout the
     // user has configured (.config: ATLAS_CENTER_LAYOUT=classic|tabbed).
