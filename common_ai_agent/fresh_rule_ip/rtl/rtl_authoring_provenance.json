@@ -1,23 +1,24 @@
 {
-  "schema_version": 1,
-  "type": "rtl_authoring_provenance",
   "agent": "common_ai_agent",
-  "workflow": "rtl-gen",
-  "surface": "headless_common_engine",
-  "model_profile": "atlas_api_worker",
-  "generated_at": "2026-05-23T17:12:00Z",
-  "updated_at": "2026-05-23T17:34:30Z",
-  "ip": "fresh_rule_ip",
-  "ssot": "yaml/fresh_rule_ip.ssot.yaml",
   "filelist": "list/fresh_rule_ip.f",
+  "generated_at": "2026-05-23T17:12:00Z",
+  "ip": "fresh_rule_ip",
+  "model_profile": "atlas_api_worker",
+  "notes": "LLM-authored RTL generated directly from canonical SSOT, authoring packets, and current rtl_todo_plan.",
+  "refresh_reason": "SSOT metadata gate update refreshed rtl_todo_plan hash without changing RTL files.",
   "rtl_files": [
     "rtl/fresh_rule_ip.sv"
   ],
+  "schema_version": 1,
+  "ssot": "yaml/fresh_rule_ip.ssot.yaml",
+  "surface": "headless_common_engine",
   "todo_plan": "rtl/rtl_todo_plan.json",
-  "todo_plan_sha256": "7042f53e23232b32ce65345962bdcf50547271ce4da7a0c226228c73f38dc8cf",
+  "todo_plan_sha256": "a0bcac4cc0692bd6cd97d0d7416e667e8e8ae023ae00064215840cf973d4895a",
   "toolchain": {
-    "rtl_compile_report": "workflow/rtl-gen/scripts/rtl_compile_report.py",
-    "dut_lint_report": "workflow/lint/scripts/dut_lint_report.py"
+    "dut_lint_report": "workflow/lint/scripts/dut_lint_report.py",
+    "rtl_compile_report": "workflow/rtl-gen/scripts/rtl_compile_report.py"
   },
-  "notes": "LLM-authored RTL generated directly from canonical SSOT, authoring packets, and current rtl_todo_plan."
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-05-23T17:36:20Z",
+  "workflow": "rtl-gen"
 }
