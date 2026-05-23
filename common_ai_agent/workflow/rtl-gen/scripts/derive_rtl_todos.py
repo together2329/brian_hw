@@ -8001,6 +8001,12 @@ def _default_todo_completion(task: dict[str, Any], ip_dir: Path, *, audit_rtl: b
         "owner RTL file/module declaration evidence",
         "static RTL evidence audit when evidence_terms are required",
     ]
+    if _is_repair_generated_fm_task_record(task):
+        return (
+            "pass",
+            "Repair-generated FunctionModel fm*_observed marker is advisory traceability, not required RTL behavior.",
+            basis + ["policy_tags.repair_generated_fm_marker"],
+        )
     if not audit_rtl:
         return "planned", "RTL audit has not run yet.", basis
     owner_issue = _owner_file_completion_issue(ip_dir, task)
