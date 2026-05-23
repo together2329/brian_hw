@@ -82,16 +82,6 @@ const normalizeAtlasFontMode = (value) => {
   const v = String(value || '').trim().toLowerCase();
   return ATLAS_FONT_MODE_OPTIONS.some(o => o.key === v) ? v : '';
 };
-const atlasIsWindowsPlatform = () => {
-  try {
-    if (document.documentElement.getAttribute('data-platform') === 'windows') return true;
-    return /Windows|Win32|Win64|WOW64/i.test(
-      `${navigator.userAgent || ''} ${navigator.platform || ''}`
-    );
-  } catch (_) {
-    return false;
-  }
-};
 const normalizeAtlasRunMode = (value) => {
   const v = String(value || '').trim().toLowerCase().replace(/_/g, '-');
   if (v === 'eng') return 'engineering';
@@ -221,14 +211,15 @@ const App = () => {
     catch (_) { return 'en'; }
   });
   const [fontMode, setFontMode] = React.useState(() => {
+    // Default to 'mono' (SF Mono — the orchestrator-chat demo look). Only a
+    // font the user explicitly picked from the dropdown overrides it; a
+    // stale non-user-set value falls through to mono.
     try {
       const saved = normalizeAtlasFontMode(localStorage.getItem('atlasFontMode'));
       const userSet = localStorage.getItem('atlasFontModeUserSet') === '1';
       if (saved && userSet) return saved;
-      if (saved === 'mono' && !userSet) return atlasIsWindowsPlatform() ? 'windows' : 'sans';
-      if (saved) return saved;
-      return atlasIsWindowsPlatform() ? 'windows' : 'sans';
-    } catch (_) { return 'sans'; }
+      return 'mono';
+    } catch (_) { return 'mono'; }
   });
   const [fontScale, setFontScale] = React.useState(() => {
     try {

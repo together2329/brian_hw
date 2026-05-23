@@ -372,6 +372,25 @@ def _fix_md(text: str) -> str:
         _i0 = _j0
     raw_lines = _p0_out
 
+    # -- Pass 0.5: decide which lone-backtick lines may become fences --
+    # A lone "`" line is only meaningful as a fence delimiter when it has a
+    # matching partner (an open/close PAIR). Promote such pairs to ``` fences;
+    # an UNPAIRED straggler must NOT be promoted. Otherwise it opens a fence
+    # that Pass 3b dutifully auto-closes at EOF, turning the entire rest of the
+    # message into one giant code block — raw markdown (headings, table pipes)
+    # then leaks out verbatim on a grey monokai background.
+    _lone_bt_idx: list[int] = []
+    _scan_in_fence = False
+    for _k, _l in enumerate(raw_lines):
+        _s = _l.strip()
+        if _s.startswith("```"):
+            _scan_in_fence = not _scan_in_fence
+            continue
+        if not _scan_in_fence and _s == "`":
+            _lone_bt_idx.append(_k)
+    # Keep only complete pairs; an odd trailing straggler is dropped.
+    _lone_bt_promote = set(_lone_bt_idx[: (len(_lone_bt_idx) // 2) * 2])
+
     # -- Pass 1: per-line pre-fixes (uses index for lookahead) --
     #        NOTE: tracks code fences to avoid corrupting code content.
     pre: list[str] = []
@@ -394,9 +413,14 @@ def _fix_md(text: str) -> str:
             i += 1
             continue
 
-        # Lone backtick -> triple fence
+        # Lone backtick -> triple fence (only paired delimiters; see Pass 0.5).
+        # Both members of a pair are promoted symmetrically here, so we must
+        # NOT flip _p1_in_fence — doing so would route the closing partner into
+        # the in-fence skip above and leave it un-promoted (odd fence count).
         if stripped == "`":
-            pre.append("```")
+            if i in _lone_bt_promote:
+                pre.append("```")
+            # else: unpaired straggler — drop it so it cannot open a fence
             i += 1
             continue
 
