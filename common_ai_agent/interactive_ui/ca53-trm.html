@@ -315,7 +315,8 @@ const DEFAULT = {
     { "group": "Memory system","items": ["Separate L1 I-cache (illustrative 32 KB, 2-way) and L1 D-cache (illustrative 32 KB, 4-way)", "Shared, unified L2 cache (illustrative 128 KB–2 MB, 16-way)", "Snoop Control Unit (SCU) maintaining L1 coherency", "Optional Accelerator Coherency Port (ACP) slave", "MMU with separate TLBs, 40-bit physical addressing"] },
     { "group": "Interfaces",   "items": ["AMBA 4 ACE coherent master interface (128-bit, illustrative)", "GIC CPU interface (GICv3/v4 optional)", "ARM Generic Timer (per-core)"] },
     { "group": "Debug & trace","items": ["CoreSight-compliant debug (APB)", "PMUv3 performance monitors", "ETMv4 instruction trace over ATB"] },
-    { "group": "RAS / power",  "items": ["Per-core and cluster power-down with state retention (illustrative)", "Dynamic + static power management hooks"] }
+    { "group": "RAS / power",  "items": ["Per-core and cluster power-down with state retention (illustrative)", "Dynamic + static power management hooks"] },
+    { "group": "Implementation options (configurable)", "items": ["1 to 4 cores per cluster", "L1 I/D cache size 8/16/32/64 KB (illustrative)", "L2 cache 128 KB–2 MB or absent", "Cryptography Extension present/absent", "Accelerator Coherency Port (ACP) present/absent", "GICv3/v4 system-register CPU interface optional", "Optional ECC/parity on L1 and L2 RAMs", "Configurable reset endianness and CPUECTLR options"] }
   ],
   "block": {
     "cluster": "Cortex-A53 MPCore cluster",
@@ -383,15 +384,55 @@ const DEFAULT = {
           { "name": "M",   "msb": 0,  "lsb": 0,  "reset": "0", "desc": "MMU enable" }
         ]
       },
-      { "name": "CPACR_EL1",      "encoding": "S3_0_C1_C0_2", "access": "RW", "desc": "Architectural feature access (FP/SIMD trap) control." },
+      {
+        "name": "CPACR_EL1", "encoding": "S3_0_C1_C0_2", "access": "RW", "reset": "0x00000000",
+        "desc": "Architectural Feature Access Control — FP/SIMD and trace trap control.",
+        "fields": [
+          { "name": "TTA",  "msb": 28, "lsb": 28, "desc": "Trap trace register accesses" },
+          { "name": "FPEN", "msb": 21, "lsb": 20, "desc": "FP/SIMD trap control (0b11 = no trap)" }
+        ]
+      },
       { "name": "TTBR0_EL1",      "encoding": "S3_0_C2_C0_0", "access": "RW", "desc": "Translation Table Base Register 0 (EL1)." },
       { "name": "TTBR1_EL1",      "encoding": "S3_0_C2_C0_1", "access": "RW", "desc": "Translation Table Base Register 1 (EL1)." },
       { "name": "TCR_EL1",        "encoding": "S3_0_C2_C0_2", "access": "RW", "desc": "Translation Control Register (EL1)." },
       { "name": "ESR_EL1",        "encoding": "S3_0_C5_C2_0", "access": "RW", "desc": "Exception Syndrome Register (EL1)." },
       { "name": "FAR_EL1",        "encoding": "S3_0_C6_C0_0", "access": "RW", "desc": "Fault Address Register (EL1)." },
       { "name": "VBAR_EL1",       "encoding": "S3_0_C12_C0_0","access": "RW", "desc": "Vector Base Address Register (EL1)." },
-      { "name": "CTR_EL0",        "encoding": "S3_3_C0_C0_1", "access": "RO", "desc": "Cache Type Register." },
-      { "name": "ID_AA64PFR0_EL1","encoding": "S3_0_C0_C4_0", "access": "RO", "desc": "AArch64 Processor Feature Register 0 (FP/SIMD/EL support)." }
+      {
+        "name": "CTR_EL0", "encoding": "S3_3_C0_C0_1", "access": "RO",
+        "desc": "Cache Type Register — minimum cache line sizes and policies.",
+        "fields": [
+          { "name": "CWG",      "msb": 27, "lsb": 24, "desc": "Cache write-back granule (log2 words)" },
+          { "name": "ERG",      "msb": 23, "lsb": 20, "desc": "Exclusives reservation granule" },
+          { "name": "DminLine", "msb": 19, "lsb": 16, "desc": "Smallest D-cache line (log2 words)" },
+          { "name": "L1Ip",     "msb": 15, "lsb": 14, "desc": "L1 instruction cache policy" },
+          { "name": "IminLine", "msb": 3,  "lsb": 0,  "desc": "Smallest I-cache line (log2 words)" }
+        ]
+      },
+      {
+        "name": "ID_AA64PFR0_EL1", "encoding": "S3_0_C0_C4_0", "access": "RO",
+        "desc": "AArch64 Processor Feature Register 0 — exception-level and FP/SIMD support.",
+        "fields": [
+          { "name": "GIC",     "msb": 27, "lsb": 24, "desc": "System-register GIC CPU interface (0b0001 = v3/v4)" },
+          { "name": "AdvSIMD", "msb": 23, "lsb": 20, "desc": "Advanced SIMD (0b0000 = implemented)" },
+          { "name": "FP",      "msb": 19, "lsb": 16, "desc": "Floating-point (0b0000 = implemented)" },
+          { "name": "EL3",     "msb": 15, "lsb": 12, "desc": "EL3 exception level support" },
+          { "name": "EL2",     "msb": 11, "lsb": 8,  "desc": "EL2 exception level support" },
+          { "name": "EL1",     "msb": 7,  "lsb": 4,  "desc": "EL1 (0b0010 = AArch64 + AArch32)" },
+          { "name": "EL0",     "msb": 3,  "lsb": 0,  "desc": "EL0 (0b0010 = AArch64 + AArch32)" }
+        ]
+      },
+      { "name": "ACTLR_EL1",      "encoding": "S3_0_C1_C0_1",  "access": "RW", "desc": "Auxiliary Control Register (IMPLEMENTATION DEFINED)." },
+      { "name": "MAIR_EL1",       "encoding": "S3_0_C10_C2_0", "access": "RW", "desc": "Memory Attribute Indirection Register (EL1)." },
+      { "name": "AMAIR_EL1",      "encoding": "S3_0_C10_C3_0", "access": "RW", "desc": "Auxiliary Memory Attribute Indirection Register (EL1)." },
+      { "name": "CONTEXTIDR_EL1", "encoding": "S3_0_C13_C0_1", "access": "RW", "desc": "Context ID Register (EL1)." },
+      { "name": "TPIDR_EL0",      "encoding": "S3_3_C13_C0_2", "access": "RW", "desc": "Software Thread ID Register (EL0)." },
+      { "name": "CNTFRQ_EL0",     "encoding": "S3_3_C14_C0_0", "access": "RW", "desc": "Counter-timer Frequency Register." },
+      { "name": "CNTKCTL_EL1",    "encoding": "S3_0_C14_C1_0", "access": "RW", "desc": "Counter-timer Kernel Control Register." },
+      { "name": "PMCR_EL0",       "encoding": "S3_3_C9_C12_0", "access": "RW", "desc": "Performance Monitors Control Register." },
+      { "name": "CLIDR_EL1",      "encoding": "S3_1_C0_C0_1",  "access": "RO", "desc": "Cache Level ID Register." },
+      { "name": "CSSELR_EL1",     "encoding": "S3_2_C0_C0_0",  "access": "RW", "desc": "Cache Size Selection Register." },
+      { "name": "CCSIDR_EL1",     "encoding": "S3_1_C0_C0_0",  "access": "RO", "desc": "Current Cache Size ID Register." }
     ]
   },
   "timing": {
