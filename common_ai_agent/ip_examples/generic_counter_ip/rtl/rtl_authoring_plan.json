@@ -7,7 +7,26 @@
     ],
     "blocked_by_llm_work": [],
     "blocked_by_locked_truth": [],
-    "blocked_by_tool_evidence": [],
+    "blocked_by_tool_evidence": [
+      {
+        "gate_kind": "common_ai_agent_authoring",
+        "owner_module": "generic_counter_ip",
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "gate_kind": "dynamic_todo_closure",
+        "owner_module": "generic_counter_ip",
+        "reason": "1 required non-closure TODO(s) remain open.",
+        "source": "gate_todo",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ],
     "connection_contract_gap": {
       "machine_readable_contract_count": 0,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
@@ -25,19 +44,65 @@
         "suggested_rows": 0
       }
     },
-    "deferred_human_qa_allowed": false,
+    "deferred_human_qa_allowed": true,
     "draft_allowed": true,
-    "gate_status": "pass",
+    "gate_status": "fail",
     "hard_blockers": [],
-    "open_required_todos": 0,
-    "pass_allowed": true,
+    "open_required_todos": 2,
+    "pass_allowed": false,
     "pass_rule": "rtl-gen may claim PASS only when every required TODO and every locked-truth gate has pass status.",
     "stop_conditions": [
       "Do not edit SSOT/FL/coverage/interface/performance authority artifacts without human approval.",
       "Do not claim rtl-gen PASS while pass_allowed is false.",
       "Do not sign off top integration while required connection contracts are missing."
     ],
-    "tool_evidence_plan": []
+    "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_authoring_provenance.json",
+        "artifacts": [
+          "generic_counter_ip/rtl/rtl_authoring_provenance.json",
+          "generic_counter_ip/rtl/rtl_todo_plan.json"
+        ],
+        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+        "commands": [
+          "python3 src/headless_workflow.py --root . --ip generic_counter_ip --stages rtl-gen",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py generic_counter_ip --root . --audit-rtl"
+        ],
+        "gate_kind": "common_ai_agent_authoring",
+        "prerequisites": [
+          "An LLM authoring pass emitted or repaired DUT RTL files."
+        ],
+        "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+        "stage_sequence": [
+          "ssot-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0006"
+      },
+      {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "artifacts": [
+          "generic_counter_ip/rtl/rtl_todo_plan.json",
+          "generic_counter_ip/rtl/rtl_authoring_status.md"
+        ],
+        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py generic_counter_ip --root . --audit-rtl"
+        ],
+        "gate_kind": "dynamic_todo_closure",
+        "prerequisites": [
+          "All non-closure required TODOs have pass status."
+        ],
+        "reason": "1 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "stage_sequence": [
+          "audit-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ]
   },
   "ip": "generic_counter_ip",
   "packet_dir": "rtl/authoring_packets",
@@ -45,9 +110,123 @@
     {
       "execution_policy": {
         "blocked_by_locked_truth": [],
+        "blocked_by_tool_evidence": [
+          {
+            "gate_kind": "common_ai_agent_authoring",
+            "owner_module": "generic_counter_ip",
+            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
+          {
+            "gate_kind": "dynamic_todo_closure",
+            "owner_module": "generic_counter_ip",
+            "reason": "1 required non-closure TODO(s) remain open.",
+            "source": "packet_task",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "status": "open",
+            "task_id": "RTL-0019"
+          }
+        ],
+        "contract_blocked_open_count": 0,
+        "deferred_human_qa_allowed": true,
+        "draft_allowed": false,
+        "evidence_closure_allowed": true,
+        "human_locked_open_count": 0,
+        "integration_signoff_allowed": true,
+        "llm_actionable": false,
+        "llm_actionable_open_count": 0,
+        "open_required_count": 2,
+        "pass_allowed": false,
+        "stop_conditions": [
+          "Close this packet only after every required task in the packet has pass status.",
+          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+          "Never use a fixed RTL template as the implementation."
+        ],
+        "tool_evidence_open_count": 2,
+        "tool_evidence_plan": [
+          {
+            "artifact": "rtl/rtl_authoring_provenance.json",
+            "artifacts": [
+              "generic_counter_ip/rtl/rtl_authoring_provenance.json",
+              "generic_counter_ip/rtl/rtl_todo_plan.json"
+            ],
+            "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
+            "commands": [
+              "python3 src/headless_workflow.py --root . --ip generic_counter_ip --stages rtl-gen",
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py generic_counter_ip --root . --audit-rtl"
+            ],
+            "gate_kind": "common_ai_agent_authoring",
+            "prerequisites": [
+              "An LLM authoring pass emitted or repaired DUT RTL files."
+            ],
+            "reason": "RTL authoring provenance is incomplete: todo_plan_sha256",
+            "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+            "stage_sequence": [
+              "ssot-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0006"
+          },
+          {
+            "artifact": "rtl/rtl_todo_plan.json",
+            "artifacts": [
+              "generic_counter_ip/rtl/rtl_todo_plan.json",
+              "generic_counter_ip/rtl/rtl_authoring_status.md"
+            ],
+            "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+            "commands": [
+              "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py generic_counter_ip --root . --audit-rtl"
+            ],
+            "gate_kind": "dynamic_todo_closure",
+            "prerequisites": [
+              "All non-closure required TODOs have pass status."
+            ],
+            "reason": "1 required non-closure TODO(s) remain open.",
+            "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+            "stage_sequence": [
+              "audit-rtl"
+            ],
+            "status": "open",
+            "task_id": "RTL-0019"
+          }
+        ],
+        "work_allowed": true
+      },
+      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+      "kind": "gate",
+      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
+      "owner_file": "rtl/generic_counter_ip.sv",
+      "owner_module": "generic_counter_ip",
+      "packet_id": "rtl_gate_tool_evidence",
+      "summary": {
+        "categories": {
+          "rtl_gate.rtl_gen": 4
+        },
+        "module_slice": {},
+        "open_required_count": 2,
+        "required_count": 4,
+        "source_refs": [
+          "quality_gates.rtl_gen.common_ai_agent_authoring",
+          "quality_gates.rtl_gen.dut_compile",
+          "quality_gates.rtl_gen.dut_lint",
+          "quality_gates.rtl_gen.dynamic_todo_closure"
+        ],
+        "status_counts": {
+          "open": 2,
+          "pass": 2
+        },
+        "task_count": 4
+      }
+    },
+    {
+      "execution_policy": {
+        "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
+        "deferred_human_qa_allowed": true,
         "draft_allowed": true,
         "evidence_closure_allowed": false,
         "human_locked_open_count": 0,
@@ -55,7 +234,7 @@
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
         "open_required_count": 0,
-        "pass_allowed": true,
+        "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -116,7 +295,7 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
+        "deferred_human_qa_allowed": true,
         "draft_allowed": false,
         "evidence_closure_allowed": true,
         "human_locked_open_count": 0,
@@ -124,7 +303,7 @@
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
         "open_required_count": 0,
-        "pass_allowed": true,
+        "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -169,7 +348,7 @@
         "blocked_by_locked_truth": [],
         "blocked_by_tool_evidence": [],
         "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
+        "deferred_human_qa_allowed": true,
         "draft_allowed": false,
         "evidence_closure_allowed": true,
         "human_locked_open_count": 0,
@@ -177,7 +356,7 @@
         "llm_actionable": false,
         "llm_actionable_open_count": 0,
         "open_required_count": 0,
-        "pass_allowed": true,
+        "pass_allowed": false,
         "stop_conditions": [
           "Close this packet only after every required task in the packet has pass status.",
           "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -205,54 +384,6 @@
           "quality_gates.rtl_gen.workflow_todo_contract",
           "quality_gates.rtl_gen.owner_traceability",
           "quality_gates.rtl_gen.manifest_connection_contract_evidence"
-        ],
-        "status_counts": {
-          "pass": 4
-        },
-        "task_count": 4
-      }
-    },
-    {
-      "execution_policy": {
-        "blocked_by_locked_truth": [],
-        "blocked_by_tool_evidence": [],
-        "contract_blocked_open_count": 0,
-        "deferred_human_qa_allowed": false,
-        "draft_allowed": false,
-        "evidence_closure_allowed": true,
-        "human_locked_open_count": 0,
-        "integration_signoff_allowed": true,
-        "llm_actionable": false,
-        "llm_actionable_open_count": 0,
-        "open_required_count": 0,
-        "pass_allowed": true,
-        "stop_conditions": [
-          "Close this packet only after every required task in the packet has pass status.",
-          "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
-          "Never use a fixed RTL template as the implementation."
-        ],
-        "tool_evidence_open_count": 0,
-        "tool_evidence_plan": [],
-        "work_allowed": true
-      },
-      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
-      "kind": "gate",
-      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
-      "owner_file": "rtl/generic_counter_ip.sv",
-      "owner_module": "generic_counter_ip",
-      "packet_id": "rtl_gate_tool_evidence",
-      "summary": {
-        "categories": {
-          "rtl_gate.rtl_gen": 4
-        },
-        "module_slice": {},
-        "open_required_count": 0,
-        "required_count": 4,
-        "source_refs": [
-          "quality_gates.rtl_gen.common_ai_agent_authoring",
-          "quality_gates.rtl_gen.dut_compile",
-          "quality_gates.rtl_gen.dut_lint",
-          "quality_gates.rtl_gen.dynamic_todo_closure"
         ],
         "status_counts": {
           "pass": 4
@@ -292,7 +423,7 @@
   "status_markdown": "rtl/rtl_authoring_status.md",
   "summary": {
     "connection_contract_suggestions_present": false,
-    "deferred_human_qa_allowed": false,
+    "deferred_human_qa_allowed": true,
     "gate_packets": 3,
     "human_locked_packets": 0,
     "human_locked_tasks": 0,
@@ -303,7 +434,7 @@
     "next_llm_packets": [],
     "packet_task_limit": 48,
     "packets": 4,
-    "pass_allowed": true,
+    "pass_allowed": false,
     "pending_connection_contract_suggestions": 0,
     "recommended_packet_batch_limit": 4,
     "reference_profile_present": false,
@@ -311,8 +442,8 @@
     "required_tasks": 28,
     "sliced_module_packets": 0,
     "target_scale_present": false,
-    "tool_evidence_packets": 0,
-    "tool_evidence_tasks": 0,
+    "tool_evidence_packets": 1,
+    "tool_evidence_tasks": 2,
     "total_tasks": 28,
     "unowned_packets": 0
   },
