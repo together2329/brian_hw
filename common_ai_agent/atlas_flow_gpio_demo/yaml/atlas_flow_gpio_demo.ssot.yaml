@@ -24,6 +24,7 @@ sub_modules:
     file: rtl/atlas_flow_gpio_demo.sv
     ownership: manifest
     ssot_gen: true
+    wiring_only: true
     source_sections: [io_list, registers, function_model]
     implements: [io_list.interfaces.apb_slave, registers.register_list, function_model.transactions]
     register_refs: [registers.register_list]
@@ -75,6 +76,10 @@ io_list:
       clock_domain: pclk
       reset_domain: presetn
       description: 8-bit GPIO output pins driven by DATA register
+      protocol:
+        drive_rule: "gpio_out is continuously driven from DATA[7:0]."
+        timing_rule: "gpio_out updates combinationally after DATA_q changes on the write access rising edge."
+        handshake_rule: "No ready/valid handshake; output is always valid after reset deassertion."
       ports:
         - { name: gpio_out, width: 8, direction: output, description: GPIO output (mirrors DATA register) }
 
@@ -182,7 +187,7 @@ function_model:
         - { name: prdata_rule,   port: PRDATA,  expr: "gpio_data if (psel == 1 and penable == 1 and pwrite == 0 and paddr == 0) else 0", width: 32 }
       state_updates:
         - { name: gpio_data, expr: gpio_data, width: 8 }
-      side_effects: []
+      side_effects: ["No architectural state changes; DATA/gpio_data holds previous value."]
       error_cases: []
   invariants:
     - gpio_out always equals DATA register low 8 bits.
@@ -230,19 +235,59 @@ dataflow:
     - { id: sequence_0, source: pwdata, sink: gpio_out, path: "PWDATA → DATA register (registered) → gpio_out (combinational)" }
 
 power:
-  domains: [PD_MAIN]
+  domains:
+    - { name: PD_MAIN, voltage: nominal, clock_domains: [PCLK], isolation: not_required_single_domain }
   modes: ["ON"]
+  power_states:
+    - { name: ON, entry: "PRESETn deasserted", exit: "PRESETn asserted", guarantees: ["APB slave and gpio_out active"] }
+  clock_gating:
+    required: false
+    rationale: "Demo IP has no low-power mode."
+  reset_retention:
+    retention_required: false
+    reset_value_source: "registers.DATA.reset"
+  upf_required: false
   note: Single domain, always on.
 
 security:
+  classification: non_secure_demo_peripheral
   classifications: []
+  assets:
+    - { name: DATA_register, protection: "External APB fabric controls access; IP has no internal privilege model." }
+  threat_model:
+    - { threat: "Unprivileged write", mitigation: "Handled by external APB fabric; IP records no secret state." }
+  privilege_model: "External bus fabric enforces privilege; this IP implements no internal privilege levels."
+  safety_goals:
+    - "No hidden state; reset clears gpio_out and DATA."
   note: No protected registers in this demo.
 
 error_handling:
   error_sources:
     - { id: ERR_NONE, condition: "No error sources in this minimal demo", architectural_effect: "PSLVERR always 0" }
+  propagation:
+    - "No errors are generated; PSLVERR remains 0 for all accesses."
+  recovery:
+    - { action: reset, clears: [DATA], preserves: [], description: "PRESETn clears DATA and gpio_out." }
 
 debug_observability:
+  waveform_must_probe:
+    - PCLK
+    - PRESETn
+    - PSEL
+    - PENABLE
+    - PWRITE
+    - PADDR
+    - PWDATA
+    - PRDATA
+    - gpio_out
+    - DATA_q
+  status_outputs:
+    - gpio_out
+  trace_events:
+    - { name: data_write, trigger: "PSEL && PENABLE && PWRITE && PADDR==0" }
+    - { name: data_read, trigger: "PSEL && PENABLE && !PWRITE && PADDR==0" }
+  debug_registers:
+    - DATA
   signals:
     - { name: DATA, source: registers.DATA, description: GPIO data register }
 
@@ -251,13 +296,64 @@ dft:
 
 synthesis:
   target: { technology: generic, frequency_mhz: 50 }
+  dialect: systemverilog_2012
+  top_module: atlas_flow_gpio_demo
+  technology:
+    pdk: generic
+    standard_cell_library: generic
+  constraints:
+    - "No inferred latches."
+    - "All architectural flops reset by PRESETn."
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 50
+  required_outputs:
+    - syn/out/atlas_flow_gpio_demo.v
+    - syn/out/area.rpt
+    - syn/out/timing_summary.rpt
 
 integration:
   top_ports: [PCLK, PRESETn, PADDR, PSEL, PENABLE, PWRITE, PWDATA, PRDATA, PREADY, PSLVERR, gpio_out]
+  bus_attachment:
+    control: "APB-Lite slave"
+    data: "gpio_out custom output"
+  connections: []
+  address_map_requirements:
+    alignment_bytes: 4
+    decode_owner: "SoC interconnect or APB master"
+    illegal_access_response: "Benign zero read and PSLVERR=0 for this demo."
+  dependencies:
+    external_modules: []
+    external_clocks: [PCLK]
+    external_resets: [PRESETn]
+  integration_notes:
+    - "Connect PCLK/PRESETn to the APB clock/reset domain."
+    - "gpio_out is always valid after reset deassertion."
 
 quality_gates:
+  ssot:
+    pass: "All required engineering SSOT sections are present, substantive, and free of live TBD placeholders."
+    evidence: ["verify_ssot engineering PASS", "check_ssot_disk.sh PASS"]
+  rtl:
+    pass: "RTL implements the DATA register, APB zero-wait behavior, readback, and gpio_out mirror contract."
+    evidence: ["rtl/atlas_flow_gpio_demo.sv", "rtl/rtl_contract.json", "list/atlas_flow_gpio_demo.f"]
   rtl_gen:
     manifest_hygiene: "tb_manifest.rtl_sources must list every .sv file under atlas_flow_gpio_demo/rtl/."
+    pass: "RTL-gen owns and verifies the RTL implementation against the SSOT contract."
+    evidence: ["rtl/atlas_flow_gpio_demo.sv", "rtl/rtl_contract.json", "list/atlas_flow_gpio_demo.f"]
+  dv:
+    pass: "DV scenarios cover reset, DATA writes, readback, and gpio_out mirror behavior."
+    evidence: ["test_requirements.scenarios", "verify/equivalence_goals.json", "sim/scoreboard_events.jsonl"]
+  tb_gen:
+    pass: "Generated TB drives declared scenarios and compares RTL outputs against FunctionalModel."
+    evidence: ["tb/cocotb/test_atlas_flow_gpio_demo.py", "sim/scoreboard_events.jsonl"]
+  sim:
+    pass: "Simulation completes with TESTS=1 PASS=1 FAIL=0 and zero scoreboard failures."
+    evidence: ["tb/cocotb/results.xml", "sim/scoreboard_events.jsonl"]
+  coverage:
+    pass: "Function and cycle coverage bins declared in test_requirements.coverage_goals are hit by passing sim evidence."
+    evidence: ["cov/fcov_plan.json", "cov/coverage.json", "sim/scoreboard_events.jsonl"]
 
 test_requirements:
   scenarios:
@@ -312,9 +408,120 @@ test_requirements:
     function:
       target_pct: 100
       model: function_model
+      bins:
+        - { id: FCOV_FM1_WRITE, source_ref: function_model.transactions.FM1, class: transaction, description: "APB DATA write observed" }
+        - { id: FCOV_FM2_READ_IDLE, source_ref: function_model.transactions.FM2, class: transaction, description: "Read/idle hold behavior observed" }
     cycle:
       target_pct: 100
       model: cycle_model
+      bins:
+        - { id: CCOV_WRITE_LATENCY, source_ref: cycle_model.latency.apb_write, class: latency, description: "Write latency observed" }
+        - { id: CCOV_PREADY_ALWAYS, source_ref: cycle_model.handshake_rules.PREADY, class: handshake, description: "PREADY always asserted" }
+        - { id: CCOV_RESET, source_ref: cycle_model.reset, class: reset, description: "Reset clears DATA/gpio_out" }
 
 workflow_todos:
-  - { id: DEMO_DONE, description: "Created via the ATLAS flow trial demo flow", status: planned }
+  fl-model-gen: []
+  rtl-gen:
+    - id: RTL_IMPLEMENT_GPIO_MIRROR
+      content: "Implement APB DATA register and gpio_out mirror"
+      detail: "Implement atlas_flow_gpio_demo.sv with PCLK/PRESETn APB-Lite slave, DATA register at offset 0, zero-wait PREADY, PSLVERR=0, PRDATA readback, and gpio_out=DATA[7:0]."
+      criteria:
+        - "RTL top ports match io_list."
+        - "APB write to offset 0 updates DATA/gpio_out."
+        - "APB read from offset 0 returns DATA."
+        - "Reset clears DATA and gpio_out."
+      source_refs: [io_list, registers.DATA, function_model.transactions.FM1, function_model.transactions.FM2]
+  tb-gen:
+    - id: TB_COVER_GPIO_SCENARIOS
+      content: "Generate cocotb scoreboard for reset and DATA write/read scenarios"
+      detail: "Drive SC1-SC5 and compare PREADY, PSLVERR, PRDATA, and gpio_out against the FunctionalModel."
+      criteria:
+        - "All declared scenarios are exercised."
+        - "Scoreboard reports zero mismatches."
+      source_refs: [test_requirements.scenarios, function_model]
+
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single PCLK domain - no CDC required."
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single active-low PRESETn reset domain - no RDC required."
+
+timing:
+  target_clocks:
+    - { name: PCLK, frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.1 }
+  latency_budget:
+    register_access_cycles: { min: 1, max: 1, measured_from: "PSEL && PENABLE", measured_to: "PREADY" }
+    gpio_update_cycles: { min: 1, max: 1, measured_from: "APB write access", measured_to: "gpio_out update" }
+  throughput:
+    sustained_writes_per_cycle: 1
+    conditions: "APB master presents one access phase per cycle."
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "PADDR PSEL PENABLE PWRITE PWDATA", clock: PCLK, delay_ns: 0.2, source: "demo timing budget" }
+    outputs:
+      - { ports: "PRDATA PREADY PSLVERR gpio_out", clock: PCLK, delay_ns: 0.2, source: "demo timing budget" }
+  false_paths:
+    - { from: PRESETn, to: all_registers, reason: "async reset assertion" }
+  multicycle_paths: []
+
+coding_rules:
+  verilog_style: systemverilog_2012
+  file_extension: .sv
+  conventions:
+    - "Use ANSI SystemVerilog ports."
+    - "Use nonblocking assignments in sequential logic."
+    - "No inferred latches."
+    - "Reset architectural state from PRESETn."
+  lint_waivers: []
+
+reuse_modules: []
+
+custom:
+  assumptions:
+    - "This is a minimal demo IP; APB privilege and address decode above offset 0 are handled externally or return benign values."
+  notes:
+    - "Created for ATLAS flow smoke testing."
+
+dir_structure:
+  output_dirs:
+    req: req/
+    yaml: yaml/
+    rtl: rtl/
+    list: list/
+    model: model/
+    verify: verify/
+    tb: tb/
+    sim: sim/
+  yaml_dir: yaml/
+
+filelist:
+  headers: []
+  rtl:
+    - rtl/atlas_flow_gpio_demo.sv
+  sim:
+    - tb/test_atlas_flow_gpio_demo.py
+  docs:
+    - req/atlas_flow_gpio_demo_requirements.md
+
+traceability:
+  yaml_to_output:
+    - { yaml: top_module.name, output: rtl/atlas_flow_gpio_demo.sv }
+    - { yaml: function_model.transactions.FM1, output: model/functional_model.py }
+    - { yaml: test_requirements.scenarios, output: tb/test_atlas_flow_gpio_demo.py }
+  requirement_to_yaml:
+    - { requirement: REQ1_APB_INTERFACE, yaml: io_list.interfaces.apb_slave }
+    - { requirement: REQ2_DATA_REGISTER, yaml: registers.register_list.DATA }
+    - { requirement: REQ3_GPIO_OUTPUT, yaml: function_model.state_variables.gpio_data }
+
+generation_flow:
+  steps:
+    - { name: verify_ssot, command: "verify_ssot atlas_flow_gpio_demo --mode engineering", description: "Validate engineering SSOT." }
+    - { name: emit_fl_model, command: "python3 workflow/fl-model-gen/scripts/emit_fl_model.py atlas_flow_gpio_demo --root .", description: "Generate FunctionalModel." }
+    - { name: emit_equivalence_goals, command: "python3 workflow/fl-model-gen/scripts/emit_equivalence_goals.py atlas_flow_gpio_demo --root .", description: "Generate equivalence goals." }
+    - { name: emit_tb, command: "python3 workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py atlas_flow_gpio_demo --root .", description: "Generate goal-driven TB scoreboard." }
+    - { name: sim, command: "cd atlas_flow_gpio_demo/tb/cocotb && COCOTB_TESTCASE=test_reset_defaults python3 test_runner.py", description: "Run bounded reset/default scenario first." }

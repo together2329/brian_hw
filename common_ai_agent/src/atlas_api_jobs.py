@@ -2865,10 +2865,6 @@ def _refresh_rtl_authoring_provenance_for_job(job: dict[str, Any], project_root:
     ip_dir = _ip_dir_for(project_root, ip)
     if not ip_dir.is_dir():
         return False
-    provenance_path = ip_dir / "rtl" / "rtl_authoring_provenance.json"
-    filelist_path = ip_dir / "list" / f"{ip}.f"
-    if provenance_path.is_file() and filelist_path.is_file():
-        return False
     if job.get("_rtl_provenance_refresh_attempted"):
         return False
     job["_rtl_provenance_refresh_attempted"] = True

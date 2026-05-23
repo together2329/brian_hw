@@ -1,0 +1,6 @@
+TESTS=1 PASS=1 FAIL=0
+results=atlas_flow_gpio_demo/sim/results.xml
+scoreboard=atlas_flow_gpio_demo/sim/scoreboard_events.jsonl
+coverage_functional=atlas_flow_gpio_demo/cov/coverage_functional.json
+waveforms=atlas_flow_gpio_demo/sim/atlas_flow_gpio_demo.vcd
+0 errors, 0 warnings

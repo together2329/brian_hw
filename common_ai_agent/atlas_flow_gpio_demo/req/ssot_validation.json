@@ -1,0 +1,24 @@
+{
+  "schema_version": "ssot_validation.v2",
+  "ip": "atlas_flow_gpio_demo",
+  "mode": "engineering",
+  "ssot": "atlas_flow_gpio_demo/yaml/atlas_flow_gpio_demo.ssot.yaml",
+  "ok": true,
+  "blockers": [],
+  "warnings": [
+    {
+      "severity": "warning",
+      "id": "ssot.canonical_order",
+      "path": "$",
+      "message": "Canonical sections are present but not in the standard order.",
+      "fix": "Run repair_ssot_schema.py <ip> --mode engineering or reorder sections to match ssot-template.yaml."
+    }
+  ],
+  "check_ssot_disk": {
+    "ok": true,
+    "returncode": 0,
+    "stdout": "[check_ssot_disk] PASS: atlas_flow_gpio_demo/yaml/atlas_flow_gpio_demo.ssot.yaml = 21815B, 34 sections, 0 TBDs, mode=engineering\n",
+    "stderr": ""
+  },
+  "preview_contract": "warn"
+}

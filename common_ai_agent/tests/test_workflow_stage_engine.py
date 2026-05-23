@@ -2633,6 +2633,83 @@ def test_dynamic_rtl_todos_gate_accepts_parameterized_width_for_numeric_ssot(tmp
     assert plan["top_io_contract_evidence"]["top_parameters"] == {"DATA_W": 8, "RESULT_W": 9}
 
 
+def test_dynamic_rtl_todos_gate_accepts_symbolic_ssot_width_alias(tmp_path: Path):
+    ip = "dynamic_top_io_symbolic_alias_gate"
+    ip_dir = tmp_path / ip
+    for subdir in ("yaml", "rtl", "list"):
+        (ip_dir / subdir).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        "\n".join(
+            [
+                "top_module:",
+                f"  name: {ip}",
+                "clocks:",
+                "  - {name: clk}",
+                "resets:",
+                "  - {name: rst_n}",
+                "io_list:",
+                "  interfaces:",
+                "    - name: stream",
+                "      ports:",
+                "        - {name: data_i, direction: input, width: AXI_DATA_W}",
+                "        - {name: data_o, direction: output, width: AXI_DATA_W}",
+                "function_model:",
+                "  transactions:",
+                "    - id: FM_RUN",
+                "      inputs: [data_i]",
+                "      outputs: [data_o]",
+                "cycle_model:",
+                "  latency: 1",
+                "filelist:",
+                "  rtl:",
+                f"    - rtl/{ip}.sv",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}_param.vh").write_text(
+        "`define ALIAS_AXI_DATA_W 32\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(
+        "\n".join(
+            [
+                f'`include "{ip}_param.vh"',
+                f"module {ip} #(",
+                "  parameter integer DATA_W = `ALIAS_AXI_DATA_W",
+                ") (",
+                "  input wire clk,",
+                "  input wire rst_n,",
+                "  input wire [DATA_W-1:0] data_i,",
+                "  output wire [DATA_W-1:0] data_o",
+                ");",
+                "  assign data_o = rst_n ? data_i : {DATA_W{1'b0}};",
+                "endmodule",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+
+    subprocess.run(
+        [sys.executable, str(DERIVE_RTL_TODOS), ip, "--root", str(tmp_path), "--audit-rtl"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    plan = json.loads((ip_dir / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    top_task = next(
+        task
+        for task in plan["tasks"]
+        if (task.get("gate_todo") or {}).get("kind") == "top_io_contract_evidence"
+    )
+    assert top_task["todo_completion"]["status"] == "pass"
+    assert plan["top_io_contract_evidence"]["status"] == "pass"
+    assert plan["top_io_contract_evidence"]["top_parameters"] == {"DATA_W": 32}
+
+
 def test_dynamic_rtl_todos_gate_rejects_constant_top_output_without_ssot_tieoff(tmp_path: Path):
     ip = "dynamic_top_output_drive_gate"
     ip_dir = tmp_path / ip

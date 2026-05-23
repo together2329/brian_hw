@@ -612,3 +612,61 @@ def test_artifact_recovery_recognizes_signoff_stage_outputs(tmp_path: Path) -> N
         )
         assert recovered, stage
         assert detail.startswith("recovered from artifact:")
+
+
+def test_rtl_artifact_recovery_refreshes_stale_provenance_with_existing_filelist(tmp_path: Path) -> None:
+    ip = "demo_ip"
+    ip_dir = tmp_path / ip
+    for rel in ("yaml", "rtl", "list"):
+        (ip_dir / rel).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        "\n".join(
+            [
+                "top_module:",
+                f"  name: {ip}",
+                "sub_modules:",
+                f"  - name: {ip}",
+                f"    file: rtl/{ip}.sv",
+                "    ownership: manifest",
+                f"  - name: {ip}_engine",
+                f"    file: rtl/{ip}_engine.sv",
+                "    ownership: manifest",
+                "filelist:",
+                "  rtl:",
+                f"    - rtl/{ip}.sv",
+                f"    - rtl/{ip}_engine.sv",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(f"module {ip}; endmodule\n", encoding="utf-8")
+    (ip_dir / "rtl" / f"{ip}_engine.sv").write_text(f"module {ip}_engine; endmodule\n", encoding="utf-8")
+    (ip_dir / "rtl" / "rtl_todo_plan.json").write_text('{"type":"rtl_todo_plan","tasks":[]}\n', encoding="utf-8")
+    (ip_dir / "rtl" / "rtl_authoring_plan.json").write_text('{"packets":[]}\n', encoding="utf-8")
+    (ip_dir / "rtl" / "rtl_authoring_provenance.json").write_text(
+        json.dumps(
+            {
+                "type": "rtl_authoring_provenance",
+                "agent": "common_ai_agent",
+                "workflow": "rtl-gen",
+                "surface": "headless_common_engine",
+                "todo_plan_sha256": "stale",
+                "rtl_files": [f"rtl/{ip}.sv"],
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+    job = {"ip": ip, "stage_id": "rtl", "workflow": "rtl-gen", "model": "glm-5.1"}
+
+    assert jobs._refresh_rtl_authoring_provenance_for_job(job, tmp_path) is True
+
+    provenance = json.loads((ip_dir / "rtl" / "rtl_authoring_provenance.json").read_text(encoding="utf-8"))
+    assert provenance["rtl_files"] == [f"rtl/{ip}.sv", f"rtl/{ip}_engine.sv"]
+    assert provenance["todo_plan_sha256"] != "stale"
+    assert (ip_dir / "list" / f"{ip}.f").read_text(encoding="utf-8").splitlines() == [
+        f"rtl/{ip}.sv",
+        f"rtl/{ip}_engine.sv",
+    ]

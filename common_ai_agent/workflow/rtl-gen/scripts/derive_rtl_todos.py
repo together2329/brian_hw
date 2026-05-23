@@ -5342,7 +5342,50 @@ def _eval_int_expr(expr: Any, params: dict[str, int]) -> int | None:
         return None
 
 
-def _sv_declared_parameter_defaults_from_module_body(body: str) -> dict[str, int]:
+def _sv_int_literal_to_int(text: str) -> int | None:
+    value = str(text or "").strip().replace("_", "")
+    if not value:
+        return None
+    sized = re.fullmatch(r"\d+'s?([bBdDhHoO])([0-9a-fA-FxzXZ?]+)", value)
+    if sized:
+        base_ch = sized.group(1).lower()
+        digits = sized.group(2).lower()
+        if re.search(r"[xz?]", digits):
+            return None
+        base = {"b": 2, "d": 10, "h": 16, "o": 8}[base_ch]
+        try:
+            return int(digits, base)
+        except ValueError:
+            return None
+    if re.fullmatch(r"\d+", value):
+        return int(value)
+    return None
+
+
+def _sv_macro_int_defines(text: str) -> dict[str, int]:
+    defines: dict[str, int] = {}
+    clean = _strip_sv_comments(text)
+    for match in re.finditer(r"^\s*`define\s+([A-Za-z_][A-Za-z0-9_]*)\s+([^\n]+)", clean, flags=re.M):
+        name = match.group(1)
+        raw_value = match.group(2).split(None, 1)[0]
+        value = _sv_int_literal_to_int(raw_value)
+        if value is not None:
+            defines[name] = value
+    return defines
+
+
+def _replace_sv_macro_refs(expr: Any, defines: dict[str, int]) -> str:
+    text = str(expr or "").strip()
+    if not text or not defines:
+        return text
+    return re.sub(
+        r"`([A-Za-z_][A-Za-z0-9_]*)",
+        lambda match: str(defines.get(match.group(1), match.group(0))),
+        text,
+    )
+
+
+def _sv_declared_parameter_defaults_from_module_body(body: str, defines: dict[str, int] | None = None) -> dict[str, int]:
     clean = _strip_sv_comments(body)
     header_match = re.search(r"\((?P<header>.*?)\)\s*;", clean, flags=re.S)
     header = clean[:header_match.end()] if header_match else clean
@@ -5359,7 +5402,7 @@ def _sv_declared_parameter_defaults_from_module_body(body: str) -> dict[str, int
         for name, expr in raw.items():
             if name in resolved:
                 continue
-            value = _eval_int_expr(expr, resolved)
+            value = _eval_int_expr(_replace_sv_macro_refs(expr, defines or {}), resolved)
             if value is not None:
                 resolved[name] = value
                 progressed = True
@@ -5847,6 +5890,22 @@ def _collect_top_io_contracts(doc: dict[str, Any]) -> list[dict[str, Any]]:
     return contracts
 
 
+def _sv_identifier_terms(expr: str) -> list[str]:
+    return re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", str(expr or ""))
+
+
+def _symbolic_width_alias_matches(actual_range: str, expected_width: str) -> bool:
+    expected = _normalize_expr(expected_width)
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", expected):
+        return False
+    expected_norm = expected.lower().replace("_", "")
+    for symbol in _sv_identifier_terms(actual_range):
+        symbol_norm = symbol.lower().replace("_", "")
+        if symbol_norm and (expected_norm.endswith(symbol_norm) or symbol_norm.endswith(expected_norm)):
+            return True
+    return False
+
+
 def _width_matches_contract(actual_range: str, expected_width: str, params: dict[str, int] | None = None) -> bool:
     width = str(expected_width or "").strip()
     if not width:
@@ -5870,6 +5929,9 @@ def _width_matches_contract(actual_range: str, expected_width: str, params: dict
         lsb = _eval_int_expr(range_match.group(2), param_values)
         if msb is not None and lsb is not None:
             return abs(msb - lsb) + 1 == int(expected)
+    if range_match and not simple_width:
+        if _symbolic_width_alias_matches(actual, expected):
+            return True
     return expected in actual
 
 
@@ -6472,6 +6534,9 @@ def _audit_rtl_implementation_depth(ip_dir: Path, plan: dict[str, Any]) -> dict[
 
 def _audit_top_io_contracts(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any]:
     sources = _read_rtl_sources(ip_dir)
+    defines: dict[str, int] = {}
+    for text in sources.values():
+        defines.update(_sv_macro_int_defines(text))
     declarations: dict[str, str] = {}
     port_details_by_module: dict[str, dict[str, dict[str, str]]] = {}
     params_by_module: dict[str, dict[str, int]] = {}
@@ -6479,7 +6544,7 @@ def _audit_top_io_contracts(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any
         for module_name, body in _sv_module_bodies(text).items():
             declarations[module_name] = rel
             port_details_by_module[module_name] = _sv_declared_port_details_from_module_body(body)
-            params_by_module[module_name] = _sv_declared_parameter_defaults_from_module_body(body)
+            params_by_module[module_name] = _sv_declared_parameter_defaults_from_module_body(body, defines)
 
     top = str(plan.get("top") or ip_dir.name)
     roots = sorted(_top_aliases(top) & set(declarations))

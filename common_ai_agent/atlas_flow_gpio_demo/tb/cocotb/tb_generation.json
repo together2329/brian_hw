@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_generation",
+  "status": "pass",
+  "ip": "atlas_flow_gpio_demo",
+  "generated_at": "2026-05-23T11:42:40Z",
+  "manifest": "atlas_flow_gpio_demo/tb/cocotb/tb_manifest.json",
+  "test": "atlas_flow_gpio_demo/tb/cocotb/test_atlas_flow_gpio_demo.py",
+  "runner": "atlas_flow_gpio_demo/tb/cocotb/test_runner.py",
+  "goals": 23,
+  "rtl_sources": 1
+}

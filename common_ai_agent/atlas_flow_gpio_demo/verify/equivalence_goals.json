@@ -1,0 +1,1884 @@
+{
+  "ip": "atlas_flow_gpio_demo",
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "source_of_truth": {
+    "ssot": "atlas_flow_gpio_demo/yaml/atlas_flow_gpio_demo.ssot.yaml",
+    "functional_model": "atlas_flow_gpio_demo/model/functional_model.py",
+    "functional_model_exists": true,
+    "cycle_model_section": "cycle_model",
+    "decomposition": "atlas_flow_gpio_demo/model/decomposition.json",
+    "coverage_plan": "atlas_flow_gpio_demo/cov/fcov_plan.json",
+    "authority_contract": {
+      "rule": "LLM repair loops are allowed when a general criterion has objective machine evidence: PASS/FAIL/DIFF, coverage gap, lint diagnostic, assertion failure, stale evidence, traceability gap, or measured performance gap. Human gates own intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff.",
+      "general_evaluation_criteria": [
+        {
+          "id": "traceability",
+          "criterion": "Every generated artifact traces to SSOT requirement, function_model, cycle_model, interface, coverage, or quality_gates refs.",
+          "machine_evidence": [
+            "source refs in decomposition/equivalence goals",
+            "artifact manifests"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "functional_equivalence",
+          "criterion": "RTL observable behavior matches FunctionalModel results for every required transaction/scenario.",
+          "machine_evidence": [
+            "scoreboard_events.jsonl",
+            "fl_rtl_compare.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "module_equivalence",
+          "criterion": "Each behavior-owning RTL module has module-boundary evidence before top-level signoff.",
+          "machine_evidence": [
+            "scope.level=module scoreboard rows",
+            "module goal status"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "coverage_closure",
+          "criterion": "SSOT coverage goals are hit by passing RTL-observed scoreboard evidence.",
+          "machine_evidence": [
+            "fcov_plan.json",
+            "coverage.json",
+            "scoreboard coverage_refs"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "interface_protocol",
+          "criterion": "Ports, handshakes, ordering, reset, and error protocol obey SSOT io_list/cycle_model/interface contract.",
+          "machine_evidence": [
+            "protocol goals",
+            "assertion failures",
+            "waveform evidence"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "lint_compile",
+          "criterion": "DUT-only RTL compile/lint has zero unwaived errors, warnings, and style diagnostics.",
+          "machine_evidence": [
+            "rtl_compile.json",
+            "dut_lint.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "simulation_evidence",
+          "criterion": "Simulation results are fresh, bounded, non-stale, and tied to structured scoreboard goals.",
+          "machine_evidence": [
+            "results.xml",
+            "scoreboard_events.jsonl",
+            "stale_evidence checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "performance_cycle",
+          "criterion": "Cycle/performance targets from cycle_model/timing are measured or explicitly escalated.",
+          "machine_evidence": [
+            "latency/throughput measurements",
+            "CL/performance sweep reports"
+          ],
+          "llm_loop_allowed": "candidate_search_only"
+        },
+        {
+          "id": "debug_observability",
+          "criterion": "Waveforms and debug probes are sufficient to inspect reset, interface activity, state, outputs, and failures.",
+          "machine_evidence": [
+            "VCD/FST presence",
+            "debug_observability goals",
+            "waveform parser summary"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "maintainability",
+          "criterion": "Generated RTL/TB is structured by SSOT-owned modules, avoids fixed IP templates, and remains reviewable.",
+          "machine_evidence": [
+            "module contracts",
+            "dynamic todo plan",
+            "filelist/manifest checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "human_decision",
+          "criterion": "Intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff are human-owned.",
+          "machine_evidence": [
+            "human_gate questions/answers",
+            "approval state"
+          ],
+          "llm_loop_allowed": false
+        }
+      ],
+      "locked_artifacts": [
+        {
+          "name": "requirement",
+          "path": "atlas_flow_gpio_demo/req/",
+          "owner": "human",
+          "change_rule": "Human owns intent, scope, priority, tradeoffs, and final acceptance."
+        },
+        {
+          "name": "ssot_spec",
+          "path": "atlas_flow_gpio_demo/yaml/atlas_flow_gpio_demo.ssot.yaml",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Behavior, interface, coverage goal, and waiver changes require human gate."
+        },
+        {
+          "name": "functional_model",
+          "path": "atlas_flow_gpio_demo/model/functional_model.py",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "FunctionalModel is the golden oracle; sim-debug cannot change it to match RTL."
+        },
+        {
+          "name": "coverage_plan",
+          "path": "atlas_flow_gpio_demo/cov/fcov_plan.json",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "LLM may add tests to hit bins, but cannot weaken or delete bins without approval."
+        },
+        {
+          "name": "interface_contract",
+          "path": "atlas_flow_gpio_demo/yaml/atlas_flow_gpio_demo.ssot.yaml#io_list",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Protocol and port contract changes require human approval."
+        },
+        {
+          "name": "performance_target",
+          "path": "atlas_flow_gpio_demo/yaml/atlas_flow_gpio_demo.ssot.yaml#cycle_model",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "LLM may sweep candidates, but target/tradeoff changes require human approval."
+        }
+      ],
+      "llm_editable_artifacts": [
+        "atlas_flow_gpio_demo/rtl/",
+        "atlas_flow_gpio_demo/tb/",
+        "atlas_flow_gpio_demo/sim/",
+        "atlas_flow_gpio_demo/reports/",
+        "atlas_flow_gpio_demo/vectors/"
+      ],
+      "loopable_evidence_points": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "loopable_oracles": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "non_loopable_decisions": [
+        "change requirement intent or scope",
+        "change SSOT behavioral rule",
+        "change FunctionalModel golden semantics",
+        "change coverage goal or waiver",
+        "change interface contract",
+        "change performance target or architecture tradeoff",
+        "final signoff"
+      ]
+    }
+  },
+  "summary": {
+    "total": 23,
+    "required": 23,
+    "optional": 0,
+    "blocked": 0,
+    "unverified": 0,
+    "module_total": 1,
+    "module_required": 1,
+    "module_blocked": 0,
+    "module_unverified": 0
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM1",
+      "title": "Transaction apb_write_data matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_register_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model",
+        "atlas_flow_gpio_demo_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_fm1_write",
+        "function_apb_write_data"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write_data",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "paddr == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "DATA register updates to pwdata & 0xff; gpio_out tracks DATA",
+          "pready_rule",
+          "pslverr_rule",
+          "gpio_out_rule"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "DATA register updated",
+          "gpio_data"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM2",
+      "title": "Transaction idle_or_read matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[1]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_register_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model",
+        "atlas_flow_gpio_demo_error_model"
+      ],
+      "coverage_refs": [
+        "fcov_fm2_read_idle",
+        "function_idle_or_read"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "idle_or_read",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "pwrite == 0 or psel == 0 or penable == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "gpio_out holds previous DATA; PRDATA returns DATA on read; PREADY=1; PSLVERR=0",
+          "pready_rule",
+          "pslverr_rule",
+          "gpio_out_rule",
+          "prdata_rule"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "No architectural state changes; DATA/gpio_data holds previous value.",
+          "gpio_data"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC1",
+      "title": "Scenario SC1: APB write 0x55 to DATA",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo",
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_register_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model",
+        "atlas_flow_gpio_demo_error_model",
+        "atlas_flow_gpio_demo_security_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write_data",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "APB write 0x55 to offset 0; observe gpio_out=0x55 next cycle.",
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "paddr == 0"
+        ],
+        "machine_spec": {
+          "timeline": [
+            {
+              "csr_write": {
+                "offset": 0,
+                "data": 85
+              }
+            }
+          ]
+        }
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "DATA=0x55, gpio_out=0x55, PREADY=1, PSLVERR=0",
+          "DATA register updates to pwdata & 0xff; gpio_out tracks DATA",
+          "pready_rule",
+          "pslverr_rule",
+          "gpio_out_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "DATA register updated",
+          "gpio_data"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC2",
+      "title": "Scenario SC2: APB write 0xAA",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo",
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_register_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model",
+        "atlas_flow_gpio_demo_error_model",
+        "atlas_flow_gpio_demo_security_model"
+      ],
+      "coverage_refs": [
+        "SC2_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write_data",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "APB write 0xAA; observe gpio_out=0xAA.",
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "paddr == 0"
+        ],
+        "machine_spec": {
+          "timeline": [
+            {
+              "csr_write": {
+                "offset": 0,
+                "data": 170
+              }
+            }
+          ]
+        }
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "DATA=0xAA, gpio_out=0xAA",
+          "DATA register updates to pwdata & 0xff; gpio_out tracks DATA",
+          "pready_rule",
+          "pslverr_rule",
+          "gpio_out_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "DATA register updated",
+          "gpio_data"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC3",
+      "title": "Scenario SC3: Reset behaviour",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo",
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_register_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model",
+        "atlas_flow_gpio_demo_error_model",
+        "atlas_flow_gpio_demo_security_model"
+      ],
+      "coverage_refs": [
+        "SC3_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC3",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert PRESETn low; observe DATA=0, gpio_out=0."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "DATA=0, gpio_out=0 after reset deassertion.",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC4",
+      "title": "Scenario SC4: APB write all-zeros",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo",
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_register_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model",
+        "atlas_flow_gpio_demo_error_model",
+        "atlas_flow_gpio_demo_security_model"
+      ],
+      "coverage_refs": [
+        "SC4_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write_data",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "APB write 0x00 to DATA.",
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "paddr == 0"
+        ],
+        "machine_spec": {
+          "timeline": [
+            {
+              "csr_write": {
+                "offset": 0,
+                "data": 0
+              }
+            }
+          ]
+        }
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "DATA=0, gpio_out=0",
+          "DATA register updates to pwdata & 0xff; gpio_out tracks DATA",
+          "pready_rule",
+          "pslverr_rule",
+          "gpio_out_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "DATA register updated",
+          "gpio_data"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC5",
+      "title": "Scenario SC5: APB write maximum",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[4]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo",
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_register_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model",
+        "atlas_flow_gpio_demo_error_model",
+        "atlas_flow_gpio_demo_security_model"
+      ],
+      "coverage_refs": [
+        "SC5_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write_data",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "APB write 0xFF; observe gpio_out=0xFF (all bits set).",
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "paddr == 0"
+        ],
+        "machine_spec": {
+          "timeline": [
+            {
+              "csr_write": {
+                "offset": 0,
+                "data": 255
+              }
+            }
+          ]
+        }
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "DATA=0xFF, gpio_out=0xFF",
+          "DATA register updates to pwdata & 0xff; gpio_out tracks DATA",
+          "pready_rule",
+          "pslverr_rule",
+          "gpio_out_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "DATA register updated",
+          "gpio_data"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "title": "Cycle/handshake rule handshake_0",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[0]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_pready_always",
+        "cycle_handshake_0",
+        "cycle_handshake_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_0",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'PREADY', 'rule': 'Always asserted (1). 0-wait-state slave.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'apb_write': {'min_cycles': 1, 'max_cycles': 1, 'description': 'DATA updates one cycle after access phase rising edge'}, 'apb_read': {'min_cycles': 0, 'max_cycles': 0, 'description': 'PRDATA is combinational from DATA in access phase'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "title": "Cycle/handshake rule handshake_1",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[1]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_fsm_model"
+      ],
+      "coverage_refs": [
+        "ccov_pready_always",
+        "cycle_handshake_0",
+        "cycle_handshake_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_1",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'PRDATA', 'rule': 'Valid in access phase for reads. Mirrors DATA when paddr==0.'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'apb_write': {'min_cycles': 1, 'max_cycles': 1, 'description': 'DATA updates one cycle after access phase rising edge'}, 'apb_read': {'min_cycles': 0, 'max_cycles': 0, 'description': 'PRDATA is combinational from DATA in access phase'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "title": "Ordering rule ordering_0",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_0",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "DATA update occurs on the rising edge that completes the ACCESS phase (PSEL=1, PENABLE=1, PWRITE=1)."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'apb_write': {'min_cycles': 1, 'max_cycles': 1, 'description': 'DATA updates one cycle after access phase rising edge'}, 'apb_read': {'min_cycles': 0, 'max_cycles': 0, 'description': 'PRDATA is combinational from DATA in access phase'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "title": "Ordering rule ordering_1",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[1]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_1",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "gpio_out follows DATA combinationally \u2014 same cycle as DATA update."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'apb_write': {'min_cycles': 1, 'max_cycles': 1, 'description': 'DATA updates one cycle after access phase rising edge'}, 'apb_read': {'min_cycles': 0, 'max_cycles': 0, 'description': 'PRDATA is combinational from DATA in access phase'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_DATA",
+      "title": "Register access DATA",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[0]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo_register_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed",
+        "fcov_fm1_write",
+        "ccov_reset",
+        "function_apb_write_data",
+        "cycle_handshake_1",
+        "cycle_latency_apb_write",
+        "cycle_latency_apb_read",
+        "cycle_pipeline_s1_update",
+        "cycle_ordering_0",
+        "cycle_ordering_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'DATA', 'offset': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'data', 'description': 'GPIO output data register (low GPIO_WIDTH bits drive gpio_out)', 'write_side_effects': ['Lower 8 bits update gpio_out on the next rising PCLK after access phase completes.'], 'fields': [{'name': 'data', 'bits': [7, 0], 'access': 'rw', 'reset': 0, 'write_effect': 'Drives gpio_out', 'description': 'GPIO output value'}, {'name': 'reserved_31_8', 'bits': [31, 8], 'access': 'reserved', 'reset': 0, 'read_value': 0, 'write_effect': 'ignore', 'description': 'Reserved'}]}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "title": "Error policy None",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[0]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_error_model"
+      ],
+      "coverage_refs": [
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "None",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "{'id': 'ERR_NONE', 'condition': 'No error sources in this minimal demo', 'architectural_effect': 'PSLVERR always 0'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "['No errors are generated; PSLVERR remains 0 for all accesses.']"
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_APB_PHASE_IDLE_TO_SETUP_0",
+      "title": "FSM transition apb_phase: IDLE -> SETUP",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.apb_phase.transitions[0]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo_fsm_model"
+      ],
+      "coverage_refs": [
+        "fcov_fm2_read_idle",
+        "function_idle_or_read",
+        "fsm_apb_phase_idle_to_setup_0",
+        "fsm_apb_phase_setup_to_access_1",
+        "fsm_apb_phase_access_to_idle_2",
+        "fsm_apb_phase_idle_to_idle_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_phase_IDLE_to_SETUP_0",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "apb_phase state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_APB_PHASE_SETUP_TO_ACCESS_1",
+      "title": "FSM transition apb_phase: SETUP -> ACCESS",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.apb_phase.transitions[1]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_1",
+        "cycle_latency_apb_write",
+        "cycle_latency_apb_read",
+        "cycle_pipeline_s0_decode",
+        "cycle_ordering_0",
+        "fsm_apb_phase_idle_to_setup_0",
+        "fsm_apb_phase_setup_to_access_1",
+        "fsm_apb_phase_access_to_idle_2",
+        "fsm_apb_phase_idle_to_idle_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_phase_SETUP_to_ACCESS_1",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "apb_phase state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_APB_PHASE_ACCESS_TO_IDLE_2",
+      "title": "FSM transition apb_phase: ACCESS -> IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.apb_phase.transitions[2]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo_fsm_model"
+      ],
+      "coverage_refs": [
+        "fcov_fm2_read_idle",
+        "function_idle_or_read",
+        "cycle_handshake_1",
+        "cycle_latency_apb_write",
+        "cycle_latency_apb_read",
+        "cycle_pipeline_s0_decode",
+        "cycle_ordering_0",
+        "fsm_apb_phase_idle_to_setup_0",
+        "fsm_apb_phase_setup_to_access_1",
+        "fsm_apb_phase_access_to_idle_2",
+        "fsm_apb_phase_idle_to_idle_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_phase_ACCESS_to_IDLE_2",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "psel == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "apb_phase state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_APB_PHASE_IDLE_TO_IDLE_3",
+      "title": "FSM transition apb_phase: IDLE -> IDLE",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.apb_phase.transitions[3]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo_fsm_model"
+      ],
+      "coverage_refs": [
+        "fcov_fm2_read_idle",
+        "function_idle_or_read",
+        "fsm_apb_phase_idle_to_setup_0",
+        "fsm_apb_phase_setup_to_access_1",
+        "fsm_apb_phase_access_to_idle_2",
+        "fsm_apb_phase_idle_to_idle_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_phase_IDLE_to_IDLE_3",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "psel == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "apb_phase state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "title": "Required debug/waveform observability exists",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "debug_observability.waveform_must_probe"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_register_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model",
+        "atlas_flow_gpio_demo_error_model"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "debug_probe_capture",
+        "required_fields": [
+          "waveform_path"
+        ],
+        "constraints": [
+          "PCLK",
+          "PRESETn",
+          "PSEL",
+          "PENABLE",
+          "PWRITE",
+          "PADDR",
+          "PWDATA",
+          "PRDATA",
+          "gpio_out",
+          "DATA_q"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "waveform contains required probes"
+        ],
+        "latency": "throughout simulation window",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Waveform includes SSOT-required debug probes",
+        "sim_debug can inspect those probes around checked scenarios"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "tb",
+          "coverage",
+          "rtl",
+          "ssot",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_MODULE_ATLAS_FLOW_GPIO_DEMO",
+      "title": "Module atlas_flow_gpio_demo functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "atlas_flow_gpio_demo",
+        "rtl_file": "rtl/atlas_flow_gpio_demo.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.prdata",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.pipeline.s0_decode",
+        "cycle_model.pipeline.s1_update",
+        "cycle_model.reset",
+        "features.apb_csr_access",
+        "features.gpio_drive",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.state_variables.gpio_data",
+        "function_model.transactions",
+        "function_model.transactions.FM1",
+        "function_model.transactions.FM2",
+        "function_model.transactions.fm1",
+        "function_model.transactions.fm1.inputs.input_0",
+        "function_model.transactions.fm1.output_rules.gpio_out_rule",
+        "function_model.transactions.fm1.output_rules.pready_rule",
+        "function_model.transactions.fm1.output_rules.pslverr_rule",
+        "function_model.transactions.fm1.outputs.output_0",
+        "function_model.transactions.fm1.preconditions.precondition_0",
+        "function_model.transactions.fm1.preconditions.precondition_1",
+        "function_model.transactions.fm1.preconditions.precondition_2",
+        "function_model.transactions.fm1.preconditions.precondition_3",
+        "function_model.transactions.fm1.side_effects.side_effect_0",
+        "function_model.transactions.fm1.state_updates.gpio_data",
+        "function_model.transactions.fm2",
+        "function_model.transactions.fm2.inputs.input_0",
+        "function_model.transactions.fm2.output_rules.gpio_out_rule",
+        "function_model.transactions.fm2.output_rules.prdata_rule",
+        "function_model.transactions.fm2.output_rules.pready_rule",
+        "function_model.transactions.fm2.output_rules.pslverr_rule",
+        "function_model.transactions.fm2.outputs.output_0",
+        "function_model.transactions.fm2.preconditions.precondition_0",
+        "function_model.transactions.fm2.side_effects.side_effect_0",
+        "function_model.transactions.fm2.state_updates.gpio_data",
+        "io_list",
+        "io_list.interfaces.apb_slave",
+        "parameters.apb_addr_width",
+        "parameters.apb_data_width",
+        "parameters.gpio_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.data"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "apb_write_data",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "paddr == 0",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "DATA register updates to pwdata & 0xff; gpio_out tracks DATA",
+          "pready_rule",
+          "pslverr_rule",
+          "gpio_out_rule"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "DATA register updated",
+          "gpio_data"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_WRITE_LATENCY",
+      "title": "Functional coverage bin ccov_write_latency: Write latency observed",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.apb_write"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo",
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_register_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model",
+        "atlas_flow_gpio_demo_error_model",
+        "atlas_flow_gpio_demo_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_write_latency"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write_data",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "paddr == 0",
+          "Write latency observed"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "DATA register updates to pwdata & 0xff; gpio_out tracks DATA",
+          "pready_rule",
+          "pslverr_rule",
+          "gpio_out_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "DATA register updated",
+          "gpio_data"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "title": "Functional coverage bin cycle_backpressure_0: No backpressure \u2014 PREADY=1 always.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure[0]"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo",
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_register_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model",
+        "atlas_flow_gpio_demo_error_model",
+        "atlas_flow_gpio_demo_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_backpressure_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write_data",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "paddr == 0",
+          "No backpressure \u2014 PREADY=1 always."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "DATA register updates to pwdata & 0xff; gpio_out tracks DATA",
+          "pready_rule",
+          "pslverr_rule",
+          "gpio_out_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "DATA register updated",
+          "gpio_data"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "title": "Functional coverage bin cycle_perf_frequency_mhz: 50",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.frequency_mhz"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo",
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_register_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model",
+        "atlas_flow_gpio_demo_error_model",
+        "atlas_flow_gpio_demo_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write_data",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "paddr == 0",
+          "50"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "DATA register updates to pwdata & 0xff; gpio_out tracks DATA",
+          "pready_rule",
+          "pslverr_rule",
+          "gpio_out_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "DATA register updated",
+          "gpio_data"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "title": "Functional coverage bin cycle_perf_throughput: {'writes_per_cycle': 1, 'condition': 'APB master keeps PSEL/PENABLE asserted'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.throughput"
+      ],
+      "decomposition_refs": [
+        "atlas_flow_gpio_demo",
+        "atlas_flow_gpio_demo_protocol_model",
+        "atlas_flow_gpio_demo_register_model",
+        "atlas_flow_gpio_demo_datapath_model",
+        "atlas_flow_gpio_demo_fsm_model",
+        "atlas_flow_gpio_demo_error_model",
+        "atlas_flow_gpio_demo_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_throughput"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "apb_write_data",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1",
+          "penable == 1",
+          "pwrite == 1",
+          "paddr == 0",
+          "{'writes_per_cycle': 1, 'condition': 'APB master keeps PSEL/PENABLE asserted'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "DATA register updates to pwdata & 0xff; gpio_out tracks DATA",
+          "pready_rule",
+          "pslverr_rule",
+          "gpio_out_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "DATA register updated",
+          "gpio_data"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    }
+  ]
+}
