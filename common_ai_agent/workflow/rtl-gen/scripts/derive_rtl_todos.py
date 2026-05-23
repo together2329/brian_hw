@@ -1676,6 +1676,8 @@ def _is_fm_observed_marker_term(term: str) -> bool:
 def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
     if _is_repair_generated_fm_task(category, value):
         return []
+    if category == "function_model.invariant":
+        return []
 
     terms: set[str] = set()
     protocol_alias_seen = False
