@@ -4,27 +4,18 @@
 
 - Top: fresh_rule_ip
 - Packets: 4
-- LLM-actionable tasks: 31
-- Human-locked tasks: 4
-- Tool-evidence tasks: 4
+- LLM-actionable tasks: 0
+- Human-locked tasks: 0
+- Tool-evidence tasks: 3
 - Deferred human QA allowed: True
 - PASS allowed: False
 - Target scale locked: False
 - Pending connection-contract suggestions: 0
 - Recommended packet batch limit: 4
 
-## Next LLM Packets
-
-- module__fresh_rule_ip: rtl/authoring_packets/module__fresh_rule_ip.json (llm_open=22, human_locked=0)
-- rtl_gate_evidence_closure: rtl/authoring_packets/rtl_gate_evidence_closure.json (llm_open=9, human_locked=0)
-
 ## Tool Evidence Queue
 
-- rtl_gate_tool_evidence: tool_evidence=4, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
-
-## Human-Locked Queue
-
-- rtl_gate_human_closure: human_locked=4, json=rtl/authoring_packets/rtl_gate_human_closure.json
+- rtl_gate_tool_evidence: tool_evidence=3, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
 
 ## Rules
 

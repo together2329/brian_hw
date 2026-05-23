@@ -129,39 +129,30 @@
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [
       {
-        "gate_kind": "common_ai_agent_authoring",
-        "owner_module": "fresh_rule_ip",
-        "reason": "RTL audit has not run yet.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "status": "planned",
-        "task_id": "RTL-0006"
-      },
-      {
         "gate_kind": "dut_compile",
         "owner_module": "fresh_rule_ip",
-        "reason": "RTL audit has not run yet.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/fresh_rule_ip.sv; rerun DUT compile after the final RTL edit.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0017"
       },
       {
         "gate_kind": "dut_lint",
         "owner_module": "fresh_rule_ip",
-        "reason": "RTL audit has not run yet.",
+        "reason": "lint/dut_lint.json is older than current RTL source rtl/fresh_rule_ip.sv; rerun DUT lint after the final RTL edit.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0018"
       },
       {
         "gate_kind": "dynamic_todo_closure",
         "owner_module": "fresh_rule_ip",
-        "reason": "RTL audit has not run yet.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "source": "packet_task",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0019"
       }
     ],
@@ -173,38 +164,15 @@
     "integration_signoff_allowed": true,
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
-    "open_required_count": 4,
+    "open_required_count": 3,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
       "Never use a fixed RTL template as the implementation."
     ],
-    "tool_evidence_open_count": 4,
+    "tool_evidence_open_count": 3,
     "tool_evidence_plan": [
-      {
-        "artifact": "rtl/rtl_authoring_provenance.json",
-        "artifacts": [
-          "fresh_rule_ip/rtl/rtl_authoring_provenance.json",
-          "fresh_rule_ip/rtl/rtl_todo_plan.json"
-        ],
-        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-        "commands": [
-          "python3 src/headless_workflow.py --root . --ip fresh_rule_ip --stages rtl-gen",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py fresh_rule_ip --root . --audit-rtl"
-        ],
-        "gate_kind": "common_ai_agent_authoring",
-        "prerequisites": [
-          "An LLM authoring pass emitted or repaired DUT RTL files."
-        ],
-        "reason": "RTL audit has not run yet.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "stage_sequence": [
-          "ssot-rtl"
-        ],
-        "status": "planned",
-        "task_id": "RTL-0006"
-      },
       {
         "artifact": "rtl/rtl_compile.json",
         "artifacts": [
@@ -220,13 +188,13 @@
         "prerequisites": [
           "fresh_rule_ip/list/fresh_rule_ip.f covers the current DUT RTL sources."
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/fresh_rule_ip.sv; rerun DUT compile after the final RTL edit.",
         "source_ref": "quality_gates.rtl_gen.dut_compile",
         "stage_sequence": [
           "ssot-rtl",
           "dut_compile"
         ],
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0017"
       },
       {
@@ -243,13 +211,13 @@
         "prerequisites": [
           "fresh_rule_ip/list/fresh_rule_ip.f covers the current DUT RTL/header sources."
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "lint/dut_lint.json is older than current RTL source rtl/fresh_rule_ip.sv; rerun DUT lint after the final RTL edit.",
         "source_ref": "quality_gates.rtl_gen.dut_lint",
         "stage_sequence": [
           "lint",
           "dut_lint"
         ],
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0018"
       },
       {
@@ -266,12 +234,12 @@
         "prerequisites": [
           "All non-closure required TODOs have pass status."
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
         "stage_sequence": [
           "audit-rtl"
         ],
-        "status": "planned",
+        "status": "open",
         "task_id": "RTL-0019"
       }
     ],
@@ -298,7 +266,7 @@
       "rtl_gate.rtl_gen": 4
     },
     "module_slice": {},
-    "open_required_count": 4,
+    "open_required_count": 3,
     "required_count": 4,
     "source_refs": [
       "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -307,7 +275,8 @@
       "quality_gates.rtl_gen.dynamic_todo_closure"
     ],
     "status_counts": {
-      "planned": 4
+      "open": 3,
+      "pass": 1
     },
     "task_count": 4
   },
@@ -345,6 +314,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.common_ai_agent_authoring"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 9,
         "evidence_basis": [
@@ -352,9 +325,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -388,6 +361,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.dut_compile"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 7,
         "evidence_basis": [
@@ -395,9 +372,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/fresh_rule_ip.sv; rerun DUT compile after the final RTL edit.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -432,6 +409,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.dut_lint"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -439,9 +420,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "lint/dut_lint.json is older than current RTL source rtl/fresh_rule_ip.sv; rerun DUT lint after the final RTL edit.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     },
     {
@@ -473,6 +454,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.dynamic_todo_closure"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -480,9 +465,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "required": true,
-        "status": "planned"
+        "status": "open"
       }
     }
   ],

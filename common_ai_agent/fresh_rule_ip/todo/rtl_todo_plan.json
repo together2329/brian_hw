@@ -13,7 +13,7 @@
     "type": "rtl_connection_contract_suggestions"
   },
   "gate": {
-    "all_required_todos_pass": true,
+    "all_required_todos_pass": false,
     "audit_rtl": true,
     "blocking_questions": 0,
     "criteria": [
@@ -35,12 +35,12 @@
       "Gate: DUT-only lint report passes after the final RTL edit",
       "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
     ],
-    "open_required_todos": 0,
+    "open_required_todos": 3,
     "orphan_tasks": 0,
     "static_missing": 0,
-    "status": "pass"
+    "status": "fail"
   },
-  "generated_at": "2026-05-23T17:38:20Z",
+  "generated_at": "2026-05-23T17:54:32Z",
   "ip": "fresh_rule_ip",
   "manifest_hierarchy_evidence": {
     "connection_contract_count": 0,
@@ -1120,9 +1120,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/fresh_rule_ip.sv; rerun DUT compile after the final RTL edit.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1170,9 +1170,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
+        "reason": "lint/dut_lint.json is older than current RTL source rtl/fresh_rule_ip.sv; rerun DUT lint after the final RTL edit.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -1217,9 +1217,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Every required non-closure TODO has pass status.",
+        "reason": "2 required non-closure TODO(s) remain open.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -2263,11 +2263,30 @@
     }
   ],
   "todo_completion": {
-    "all_required_todos_pass": true,
+    "all_required_todos_pass": false,
     "audit_rtl": true,
-    "open_required_tasks": 0,
-    "open_tasks": [],
-    "required_passed": 39,
+    "open_required_tasks": 3,
+    "open_tasks": [
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/fresh_rule_ip.sv; rerun DUT compile after the final RTL edit.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "task_id": "RTL-0017"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "lint/dut_lint.json is older than current RTL source rtl/fresh_rule_ip.sv; rerun DUT lint after the final RTL edit.",
+        "source_ref": "quality_gates.rtl_gen.dut_lint",
+        "task_id": "RTL-0018"
+      },
+      {
+        "category": "rtl_gate.rtl_gen",
+        "reason": "2 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "task_id": "RTL-0019"
+      }
+    ],
+    "required_passed": 36,
     "required_total": 39,
     "rule": "rtl-gen may not claim PASS until every required SSOT-derived TODO has pass status."
   },

@@ -134,9 +134,9 @@
     "evidence_closure_allowed": true,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 9,
-    "open_required_count": 9,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
     "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
@@ -168,7 +168,7 @@
       "rtl_gate.rtl_gen": 9
     },
     "module_slice": {},
-    "open_required_count": 9,
+    "open_required_count": 0,
     "required_count": 9,
     "source_refs": [
       "quality_gates.rtl_gen.static_rtl_evidence",
@@ -182,7 +182,7 @@
       "quality_gates.rtl_gen.manifest_signal_flow_evidence"
     ],
     "status_counts": {
-      "planned": 9
+      "pass": 9
     },
     "task_count": 9
   },
@@ -217,6 +217,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.static_rtl_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 6,
         "evidence_basis": [
@@ -224,9 +228,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Static DUT RTL evidence audit has no missing required task.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -258,6 +262,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.owner_logic_structure_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -265,9 +273,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Behavior-owner RTL modules contain real implementation structure.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -302,6 +310,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.rtl_placeholder_free_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 8,
         "evidence_basis": [
@@ -309,9 +321,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "RTL sources contain no placeholder markers or disallowed default-policy constructs.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -343,6 +355,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.top_io_contract_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -350,9 +366,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "SSOT top IO contracts match the RTL top declaration.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -384,6 +400,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.top_output_drive_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -391,9 +411,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "SSOT top outputs have non-placeholder RTL drive evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -425,6 +445,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.top_input_consumption_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -432,9 +456,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "SSOT top inputs have RTL consumption evidence.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -466,6 +490,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_hierarchy_integration"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -473,9 +501,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -507,6 +535,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_port_connection_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -514,9 +546,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Every reachable manifest child instance has named, non-empty port connections.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     },
     {
@@ -548,6 +580,10 @@
         "quality_gates",
         "quality_gates.rtl_gen.manifest_signal_flow_evidence"
       ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
       "todo_completion": {
         "criteria_total": 5,
         "evidence_basis": [
@@ -555,9 +591,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "RTL audit has not run yet.",
+        "reason": "Manifest child port maps carry live non-placeholder RTL signal flow.",
         "required": true,
-        "status": "planned"
+        "status": "pass"
       }
     }
   ],
