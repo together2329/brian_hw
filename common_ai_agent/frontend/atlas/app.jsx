@@ -989,12 +989,12 @@ const App = () => {
   React.useEffect(() => {
     if (authState !== 'authed' || execMode !== 'orchestrator') return;
     const parsed = splitActiveNamespace();
-    const parsedWf = parsed.workflow || WORKFLOW_DEFAULT;
-    if (parsedWf === 'orchestrator') return;
+    const parsedWf = normalizeSession(parsed.workflow || '');
+    if (parsedWf && parsedWf !== WORKFLOW_DEFAULT) return;
     const owner = loggedInOwner() || parsed.sessionId || activeSessionId || 'default';
     const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
     activateNamespace(owner, ip, 'orchestrator', true, { preserveRunning: true });
-  }, [authState, execMode, activeNamespace, activeIp, activeSessionId, activateNamespace, loggedInOwner, splitActiveNamespace]);
+  }, [authState, execMode, activeNamespace, activeIp, activeSessionId, activateNamespace, loggedInOwner, normalizeSession, splitActiveNamespace]);
 
   // Synthetic / reserved namespace segments that should never show
   // up in the ip_id dropdown. 'soc' is the SoC architect placeholder,

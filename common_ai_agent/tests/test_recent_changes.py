@@ -1494,7 +1494,10 @@ class TestAtlasPipelineOrchestratorNamespace(unittest.TestCase):
         self.assertIn("const defaultWorkflow = execMode === 'orchestrator' ? 'orchestrator' : WORKFLOW_DEFAULT;", src)
         self.assertIn("activateNamespace(owner, ip, 'orchestrator', true, { preserveRunning: true });", src)
         self.assertIn("activeWorkflow={currentWorkflow()}", src)
-        self.assertIn("parsedWf !== 'orchestrator'", src)
+        self.assertIn("const parsedWf = normalizeSession(parsed.workflow || '');", src)
+        self.assertIn("if (parsedWf && parsedWf !== WORKFLOW_DEFAULT) return;", src)
+        self.assertIn("const preserveRunning = execMode === 'orchestrator';", src)
+        self.assertIn("activateNamespace(owner, ip, wf, true, { preserveRunning });", src)
         self.assertIn("const ORCHESTRATOR_FLOW_STAGE", data_src)
         self.assertIn("return [ORCHESTRATOR_FLOW_STAGE].concat(deduped);", data_src)
 
