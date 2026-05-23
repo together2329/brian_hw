@@ -3308,7 +3308,8 @@ def create_app():
         if not base:
             return JSONResponse({"ok": False, "error": "BASE_URL not configured"},
                                 status_code=500)
-        url = base + "/models"
+        is_codex_backend = "chatgpt.com/backend-api/codex" in base.lower()
+        url = base + ("/models?client_version=0.0.0" if is_codex_backend else "/models")
 
         def _probe():
             import http.client as _hc
@@ -3319,6 +3320,12 @@ def create_app():
             conn = conn_cls(host, port, timeout=4)
             try:
                 headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+                if is_codex_backend:
+                    try:
+                        from src.llm_client import build_api_headers as _build_api_headers
+                    except Exception:
+                        from llm_client import build_api_headers as _build_api_headers  # type: ignore
+                    headers = _build_api_headers(api_key)
                 conn.request("GET", u.path + (("?" + u.query) if u.query else ""),
                              headers=headers)
                 resp = conn.getresponse()

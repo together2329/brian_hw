@@ -634,10 +634,12 @@ def warmup_connection() -> None:
 
         conn = _make_https_conn(host, timeout=10)
         base_path = parsed.path.rstrip('/') or '/'
-        conn.request("GET", base_path, headers={
-            "Authorization": f"Bearer {config.API_KEY}",
-            "Connection": "keep-alive",
-        })
+        headers = {"Authorization": f"Bearer {config.API_KEY}"}
+        if _is_codex_backend_url(config.BASE_URL):
+            base_path = f"{base_path}/models?client_version=0.0.0"
+            headers = build_api_headers(config.API_KEY)
+        headers["Connection"] = "keep-alive"
+        conn.request("GET", base_path, headers=headers)
         resp = conn.getresponse()
         resp.read()  # drain so connection is reusable
         _http_conn_pool[host] = conn
@@ -1351,6 +1353,57 @@ def build_api_headers(api_key: str, extra_headers: dict = None) -> dict:
     return headers
 
 
+def _is_codex_backend_url(url: str = "") -> bool:
+    target = str(url or getattr(config, "BASE_URL", "") or "").lower()
+    return "chatgpt.com/backend-api/codex" in target
+
+
+def _refresh_codex_oauth_headers(url: str = "", extra_headers: dict = None) -> Optional[dict]:
+    """Force-refresh ChatGPT OAuth and return fresh Codex request headers."""
+    if not _is_codex_backend_url(url):
+        return None
+    try:
+        from src.opencode_backend import get_credentials
+    except Exception:
+        return None
+    try:
+        cred = get_credentials("openai", auto_refresh=True, force_refresh=True)
+    except TypeError:
+        cred = get_credentials("openai", auto_refresh=True)
+    except Exception:
+        return None
+    if not (cred and cred.get("access")):
+        return None
+    try:
+        config.API_KEY = cred["access"]
+        os.environ["LLM_API_KEY"] = cred["access"]
+        if cred.get("accountId"):
+            setattr(config, "OPENCODE_ACCOUNT_ID", cred.get("accountId") or "")
+            os.environ["OPENCODE_ACCOUNT_ID"] = cred.get("accountId") or ""
+    except Exception:
+        pass
+    return build_api_headers(cred["access"], extra_headers=extra_headers)
+
+
+def _persistent_post_with_auth_retry(url: str, headers: dict, body: bytes, timeout: int = 300):
+    """POST once; on Codex OAuth 401/403 force-refresh and retry once."""
+    try:
+        return _persistent_post(url, headers, body, timeout=timeout)
+    except _PersistentHTTPError as exc:
+        if exc.code not in (401, 403) or not _is_codex_backend_url(url):
+            raise
+        refreshed = _refresh_codex_oauth_headers(url)
+        if not refreshed:
+            raise
+        retry_headers = dict(headers or {})
+        retry_headers.update(refreshed)
+        try:
+            _http_conn_pool.pop(urllib.parse.urlparse(url).netloc, None)
+        except Exception:
+            pass
+        return _persistent_post(url, retry_headers, body, timeout=timeout)
+
+
 def get_provider_config(provider_id: str = None, model_id: str = None) -> ProviderConfig:
     """
     Get provider configuration for a specific provider/model.
@@ -1567,7 +1620,7 @@ def _execute_streaming_request_responses(url: str, headers: Dict, data: Dict, me
 
         try:
             _body = json.dumps(data).encode('utf-8')
-            response = _persistent_post(url, headers, _body, timeout=config.STREAM_API_TIMEOUT)
+            response = _persistent_post_with_auth_retry(url, headers, _body, timeout=config.STREAM_API_TIMEOUT)
             global _active_stream_response
             _active_stream_response = response
             _inactivity_s = getattr(config, 'STREAM_INACTIVITY_TIMEOUT', 120)
@@ -2271,7 +2324,7 @@ def _collect_responses_raw(
         raw_body = json.dumps(data).encode("utf-8")
         timeout = config.STREAM_API_TIMEOUT if data.get("stream") else config.NONSTREAM_API_TIMEOUT
         t_connect = time.perf_counter()
-        response = _persistent_post(url, headers, raw_body, timeout=timeout)
+        response = _persistent_post_with_auth_retry(url, headers, raw_body, timeout=timeout)
         connected_at = time.perf_counter()
 
         if data.get("stream"):
@@ -2449,7 +2502,7 @@ def _execute_streaming_request(url: str, headers: Dict, data: Dict, messages: Li
 
         try:
             _body = json.dumps(data).encode('utf-8')
-            response = _persistent_post(url, headers, _body, timeout=config.STREAM_API_TIMEOUT)
+            response = _persistent_post_with_auth_retry(url, headers, _body, timeout=config.STREAM_API_TIMEOUT)
             global _active_stream_response
             _active_stream_response = response
             _inactivity_s = getattr(config, 'STREAM_INACTIVITY_TIMEOUT', 120)
@@ -2933,7 +2986,7 @@ def call_llm_for_agent(
 
     try:
         _body = json.dumps(data).encode('utf-8')
-        response = _persistent_post(url, headers, _body, timeout=config.NONSTREAM_API_TIMEOUT)
+        response = _persistent_post_with_auth_retry(url, headers, _body, timeout=config.NONSTREAM_API_TIMEOUT)
         result = json.loads(response.read().decode('utf-8'))
         content = result["choices"][0]["message"]["content"]
         return _strip_metadata_tokens(content).strip()
@@ -3065,7 +3118,7 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
 
         try:
             _body = json.dumps(data).encode('utf-8')
-            response = _persistent_post(url, headers, _body, timeout=config.NONSTREAM_API_TIMEOUT)
+            response = _persistent_post_with_auth_retry(url, headers, _body, timeout=config.NONSTREAM_API_TIMEOUT)
             result = json.loads(response.read().decode('utf-8'))
         except (urllib.error.HTTPError, socket.timeout, urllib.error.URLError, ssl.SSLError):
             if _spinner:
@@ -3158,7 +3211,7 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     try:
         _body = json.dumps(data).encode('utf-8')
         _t_connect = time.time()
-        response = _persistent_post(url, headers, _body, timeout=config.NONSTREAM_API_TIMEOUT)
+        response = _persistent_post_with_auth_retry(url, headers, _body, timeout=config.NONSTREAM_API_TIMEOUT)
         _t_connected = time.time()
         _ns_connect = _t_connected - _t_connect
         if _perf:
@@ -3901,7 +3954,7 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
             _perf_ttft = None
             _perf_gen_elapsed = None
             _perf_chunks = 0
-            response = _persistent_post(url, headers, _post_body, timeout=config.STREAM_API_TIMEOUT)
+            response = _persistent_post_with_auth_retry(url, headers, _post_body, timeout=config.STREAM_API_TIMEOUT)
             global _active_stream_response
             _active_stream_response = response
             _inactivity_s = getattr(config, 'STREAM_INACTIVITY_TIMEOUT', 120)
@@ -4556,7 +4609,7 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
             full_content = []
             _prefix_printed = False
             _raw_t_connect = time.perf_counter()
-            response = _persistent_post(url, headers, _raw_body, timeout=config.STREAM_API_TIMEOUT)
+            response = _persistent_post_with_auth_retry(url, headers, _raw_body, timeout=config.STREAM_API_TIMEOUT)
             try:
                 _raw_connected = time.perf_counter()
                 _raw_t_first = None
@@ -4632,7 +4685,7 @@ def call_llm_raw(prompt="", temperature=0.7, model=None, messages=None, stop=Non
 
         _raw_t_connect = time.perf_counter()
         try:
-            response = _persistent_post(url, headers, _raw_body, timeout=config.NONSTREAM_API_TIMEOUT)
+            response = _persistent_post_with_auth_retry(url, headers, _raw_body, timeout=config.NONSTREAM_API_TIMEOUT)
             _raw_connected = time.perf_counter()
             result = json.loads(response.read().decode('utf-8'))
             _raw_t_end = time.perf_counter()
@@ -4721,7 +4774,7 @@ def call_llm_api(messages, temperature=0.7, max_tokens=None, model=None, show_re
         )
         try:
             raw_body = json.dumps(data).encode('utf-8')
-            response = _persistent_post(url, headers, raw_body, timeout=config.NONSTREAM_API_TIMEOUT)
+            response = _persistent_post_with_auth_retry(url, headers, raw_body, timeout=config.NONSTREAM_API_TIMEOUT)
             result = json.loads(response.read().decode('utf-8'))
         except Exception as e:
             err = f"Error calling LLM: {e}"
@@ -4773,7 +4826,7 @@ def call_llm_api(messages, temperature=0.7, max_tokens=None, model=None, show_re
 
     try:
         raw_body = json.dumps(data).encode('utf-8')
-        response = _persistent_post(url, headers, raw_body, timeout=config.NONSTREAM_API_TIMEOUT)
+        response = _persistent_post_with_auth_retry(url, headers, raw_body, timeout=config.NONSTREAM_API_TIMEOUT)
         result = json.loads(response.read().decode('utf-8'))
     except Exception as e:
         return ("", f"Error calling LLM: {e}")
@@ -4950,7 +5003,7 @@ def get_token_count_from_api(messages):
         }
         _set_max_output_tokens(data, 1)  # Minimal output to save cost
 
-        response = _persistent_post(url, headers, json.dumps(data).encode('utf-8'), timeout=10)
+        response = _persistent_post_with_auth_retry(url, headers, json.dumps(data).encode('utf-8'), timeout=10)
         result = json.loads(response.read().decode('utf-8'))
 
         # Extract token count from usage
@@ -5172,7 +5225,7 @@ def get_embedding(text: str, model: str = None) -> List[float]:
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            response = _persistent_post(url, headers, json.dumps(data).encode('utf-8'), timeout=30)
+            response = _persistent_post_with_auth_retry(url, headers, json.dumps(data).encode('utf-8'), timeout=30)
             result = json.loads(response.read().decode('utf-8'))
             embedding = result["data"][0]["embedding"]
 

@@ -367,6 +367,33 @@ def _collect(gen):
 
 
 class TestCallLLMRawResponsesPath:
+    def test_codex_403_forces_oauth_refresh_and_retries_once(self, monkeypatch):
+        calls = []
+
+        def fake_post(url, headers, body, timeout):
+            calls.append(headers.get("Authorization"))
+            if len(calls) == 1:
+                raise lc._PersistentHTTPError(url, 403, "Forbidden", b"forbidden")
+            return _FakeJSONResponse({"ok": True})
+
+        monkeypatch.setattr(lc.config, "BASE_URL", "https://chatgpt.com/backend-api/codex", raising=False)
+        monkeypatch.setattr(lc, "_persistent_post", fake_post)
+        monkeypatch.setattr(
+            lc,
+            "_refresh_codex_oauth_headers",
+            lambda url="", extra_headers=None: {"Authorization": "Bearer new-token"},
+        )
+
+        response = lc._persistent_post_with_auth_retry(
+            "https://chatgpt.com/backend-api/codex/responses",
+            {"Authorization": "Bearer old-token"},
+            b"{}",
+            timeout=1,
+        )
+
+        assert response.read() == b'{"ok": true}'
+        assert calls == ["Bearer old-token", "Bearer new-token"]
+
     def test_gpt5_raw_call_uses_codex_responses_not_chat(self, monkeypatch):
         captured = {}
 

@@ -394,9 +394,13 @@ def _refresh_runtime_globals():
     g = globals()
     g['BASE_URL'] = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
     g['API_KEY'] = os.getenv("LLM_API_KEY", "your-openai-api-key-here")
+    g['LLM_PROVIDER'] = os.getenv("LLM_PROVIDER", "openai").lower()
     g['MODEL_NAME'] = os.getenv("LLM_MODEL_NAME", "gpt-4o-mini")
     g['PRIMARY_MODEL'] = os.getenv("PRIMARY_MODEL", g['MODEL_NAME'])
     g['SECONDARY_MODEL'] = os.getenv("SECONDARY_MODEL", g['MODEL_NAME'])
+    g['USE_RESPONSES_API'] = os.getenv("USE_RESPONSES_API", "false").lower() in ("true", "1", "yes")
+    g['USE_OPENCODE_OAUTH'] = os.getenv("USE_OPENCODE_OAUTH", "true").lower() == "true"
+    g['OPENCODE_ACCOUNT_ID'] = os.getenv("OPENCODE_ACCOUNT_ID", "")
     g['CURSOR_AGENT_ENABLE'] = os.getenv("CURSOR_AGENT_ENABLE", "false").lower() == "true"
     g['CURSOR_AGENT_MODEL'] = os.getenv("CURSOR_AGENT_MODEL", "auto")
     g['CURSOR_AGENT_YOLO'] = os.getenv("CURSOR_AGENT_YOLO", "false").lower() == "true"
@@ -624,15 +628,17 @@ def set_active_profile(name: str) -> bool:
     `deactivate_opencode_oauth` may be undefined when this is called at
     early bootstrap; we guard with globals() to stay import-safe.
     """
+    if not get_profile(name):
+        return False
+    _deact = globals().get("deactivate_opencode_oauth")
+    if callable(_deact) and globals().get("USE_OPENCODE_OAUTH"):
+        _deact()
     ok = _apply_profile(name)
     if ok:
         mark_runtime_model_override()
         _deact_cli = globals().get("deactivate_cli_backends")
         if callable(_deact_cli):
             _deact_cli()
-        _deact = globals().get("deactivate_opencode_oauth")
-        if callable(_deact) and globals().get("USE_OPENCODE_OAUTH"):
-            _deact()
     return ok
 
 

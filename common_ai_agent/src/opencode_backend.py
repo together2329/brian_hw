@@ -146,7 +146,11 @@ def _refresh(refresh_token: str) -> dict:
 # Public API
 # ──────────────────────────────────────────────────────────────────────────
 
-def get_credentials(provider: str = "openai", auto_refresh: bool = True) -> Optional[dict]:
+def get_credentials(
+    provider: str = "openai",
+    auto_refresh: bool = True,
+    force_refresh: bool = False,
+) -> Optional[dict]:
     """
     Read the credential for `provider` from opencode's auth.json. When the
     access token is missing or within 60s of expiry, refresh via
@@ -166,7 +170,7 @@ def get_credentials(provider: str = "openai", auto_refresh: bool = True) -> Opti
     access = cred.get("access", "")
     expires = int(cred.get("expires", 0) or 0)
     now_ms = int(time.time() * 1000)
-    needs_refresh = (not access) or (expires and expires < now_ms + 60_000)
+    needs_refresh = force_refresh or (not access) or (expires and expires < now_ms + 60_000)
 
     if needs_refresh and auto_refresh and cred.get("refresh"):
         try:
