@@ -1801,6 +1801,37 @@ def test_scoreboard_uses_goal_specific_comparison_policy_for_reset_debug_and_cyc
     assert "pslverr" in cycle_mismatch
 
 
+def test_scoreboard_waives_repair_generated_fm_observed_markers():
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, f"scoreboard_repair_marker_{time.time_ns()}")
+    compare = scoreboard_mod.EquivalenceScoreboard.compare
+
+    repair_marker_expected = {
+        "goal_id": "EQ_TRANSACTION_FM2",
+        "goal_kind": "transaction",
+        "title": "Transaction feature_2 matches FunctionalModel",
+        "observables": [
+            "Architectural output matches feature definition",
+            {
+                "state": "fm2_observed",
+                "expr": "1",
+                "description": (
+                    "Repair marker making this transaction machine-checkable; "
+                    "ssot-gen should replace with IP-specific architectural state/output equations before signoff."
+                ),
+            },
+        ],
+        "model_result": {
+            "resp": 0,
+            "sample_accepted": 1,
+            "state_updates": {"fm2_observed": 1},
+        },
+        "state_updates": ["Architectural state updates according to FSM/control policy", "fm2_observed"],
+        "stimulus_contract": {"transaction_type": "feature_2"},
+    }
+
+    assert compare(None, repair_marker_expected, {"fm2_observed": 0, "rsp_data": 7, "rsp_valid": 1}) == (True, "")
+
+
 def test_scoreboard_error_scenario_selects_error_transaction(tmp_path: Path):
     ip = "scoreboard_error_kind_ip"
     ip_dir = tmp_path / ip
