@@ -1763,6 +1763,14 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
         for quoted in re.findall(r"`([A-Za-z_][A-Za-z0-9_]*)`", text):
             if _looks_like_design_token(quoted):
                 terms.update(_split_design_token(quoted))
+        if category == "function_model.invariant":
+            # Invariants are often sentence-level policy such as "Data movement
+            # follows dataflow"; a capitalized prose word is not a live RTL
+            # identifier. Keep only explicit design-token shaped names.
+            for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text):
+                if "_" in token and _looks_like_design_token(token):
+                    terms.update(_split_design_token(token))
+            return
         if category in {"cycle_model.observability", "cycle_model.ordering"}:
             # Free-form cycle-model prose is guidance for model/coverage
             # alignment, not a request to mint RTL identifiers from words in
