@@ -36,16 +36,15 @@ from src.orchestrator.ui_formatter import format_tool_call
 
 
 # ----------------------------------------------------------------------
-# Chat persister — writes assistant turns + tool labels to chat_messages.
+# Chat persister — writes replayable raw stream rows to chat_messages.
 # ----------------------------------------------------------------------
 
 
 class _ChatPersister:
-    """Writes assistant turns and tool-call status lines to ``chat_messages``
-    so the chat panel can render them alongside the human's posts.
+    """Writes assistant/tool/reasoning rows to ``chat_messages``.
 
-    One row per assistant turn (accumulated across stream chunks), one row
-    per tool call (rendered via :func:`ui_formatter.format_tool_call`).
+    These rows are the DB replay path for reconnects. Store the terminal-like
+    call/result text directly, not translated status summaries.
     Insertion is best-effort: a DB failure must not break the LLM stream or
     the tool dispatch, since chat is observability, not control flow."""
 
@@ -56,7 +55,7 @@ class _ChatPersister:
         self._display_name = "orchestrator"
         self._lock = threading.Lock()
 
-    def flush_assistant_turn(self, content: str) -> None:
+    def _record(self, *, content: str, role: str, display_name: str = "") -> None:
         text = (content or "").strip()
         if not text:
             return
@@ -66,30 +65,35 @@ class _ChatPersister:
                     ip_id=self._ip_id,
                     user_id=self._user_id,
                     content=text,
-                    display_name=self._display_name,
-                    role="assistant",
+                    display_name=display_name or self._display_name,
+                    role=role,
                 )
         except Exception:
             pass
+
+    def flush_assistant_turn(self, content: str) -> None:
+        self._record(content=content, role="assistant")
+
+    def flush_thought(self, content: str) -> None:
+        self._record(content=content, role="thought")
 
     def record_tool_call(self, tool_name: str, args: Dict[str, Any]) -> None:
         try:
             line = format_tool_call(tool_name, args)
         except Exception:
             line = str(tool_name or "tool")
-        if not line:
-            return
-        try:
-            with self._lock:
-                self._db.record_chat_message(
-                    ip_id=self._ip_id,
-                    user_id=self._user_id,
-                    content=line,
-                    display_name=self._display_name,
-                    role="tool",
-                )
-        except Exception:
-            pass
+        self._record(content=line, role="tool", display_name=str(tool_name or "tool"))
+
+    def record_tool_result(self, tool_name: str, result_text: str) -> None:
+        text = str(result_text or "").strip()
+        if not text:
+            text = "(empty)"
+        if "\n" in text:
+            first, rest = text.split("\n", 1)
+            text = f"└─ {first}\n{rest}"
+        else:
+            text = f"└─ {text}"
+        self._record(content=text, role="tool_result", display_name=str(tool_name or "tool"))
 
 
 # ----------------------------------------------------------------------
@@ -157,6 +161,7 @@ def _bind_orchestrator_tools(
     db: Any,
     collector: _OrderedStepCollector,
     budgets: BudgetTracker,
+    chat_writer: Optional[_ChatPersister] = None,
 ) -> Dict[str, Callable]:
     """Return ``{tool_name: callable(args_str, pre_parsed_kwargs=None) -> str}``.
 
@@ -187,6 +192,8 @@ def _bind_orchestrator_tools(
                 evidence_summary=summary,
                 verdict=verdict,
             )
+            if chat_writer is not None:
+                chat_writer.record_tool_result(name, summary)
             return summary
 
         return _call
@@ -251,6 +258,12 @@ def _bind_orchestrator_tools(
         user_seed = getattr(ctx, "user_seed", "") or ""
         if user_seed and not payload_in.get("user_seed"):
             payload_in["user_seed"] = user_seed
+        ctx_user_id = getattr(ctx, "user_id", "") or ""
+        ctx_session_id = getattr(ctx, "session_id", "") or ""
+        if ctx_user_id and not payload_in.get("db_user_id"):
+            payload_in["db_user_id"] = ctx_user_id
+        if ctx_session_id and not payload_in.get("orchestrator_session_id"):
+            payload_in["orchestrator_session_id"] = ctx_session_id
         return orch_tools.dispatch_workflow(
             workflow=workflow,
             ip=kw.get("ip", ctx.ip_name),
@@ -487,13 +500,18 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
 
     collector = _OrderedStepCollector(db, ctx.run_id)
     budgets = BudgetTracker()
+    chat_writer = _ChatPersister(db=db, ctx=ctx)
     tool_callables = _bind_orchestrator_tools(
-        ctx=ctx, runner=runner, db=db, collector=collector, budgets=budgets,
+        ctx=ctx,
+        runner=runner,
+        db=db,
+        collector=collector,
+        budgets=budgets,
+        chat_writer=chat_writer,
     )
     yield_run_handler = _make_yield_run_handler(
         ctx=ctx, runner=runner, db=db, collector=collector
     )
-    chat_writer = _ChatPersister(db=db, ctx=ctx)
 
     # execute_tool_fn — intercept yield_run before falling through to the
     # production dispatcher. The dispatcher only ever sees the 8 orchestrator
@@ -508,7 +526,9 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
         args = _coerce_args(args_str, pre_parsed_kwargs)
         chat_writer.record_tool_call(tool_name, args)
         if tool_name == "yield_run":
-            return yield_run_handler(args)
+            summary = yield_run_handler(args)
+            chat_writer.record_tool_result(tool_name, summary)
+            return summary
         return tool_dispatcher.dispatch_tool(
             tool_name,
             args_str,
@@ -525,6 +545,7 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
         started = time.monotonic()
         schemas = tool_schemas() if getattr(config, "ENABLE_NATIVE_TOOL_CALLS", False) else None
         content_buf: list[str] = []
+        reasoning_buf: list[str] = []
         try:
             for chunk in llm_client.chat_completion_stream(
                 messages=messages,
@@ -535,8 +556,15 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
             ):
                 if isinstance(chunk, str):
                     content_buf.append(chunk)
+                elif (
+                    isinstance(chunk, tuple)
+                    and len(chunk) == 2
+                    and chunk[0] == "reasoning"
+                ):
+                    reasoning_buf.append(str(chunk[1] or ""))
                 yield chunk
         finally:
+            chat_writer.flush_thought("".join(reasoning_buf))
             chat_writer.flush_assistant_turn("".join(content_buf))
             try:
                 tokens_input = int(getattr(llm_client, "last_input_tokens", 0) or 0)
@@ -596,6 +624,12 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
     # + 1 kwarg) but the underlying implementation needs ``cfg`` + ``execute_tool_fn``
     # bound — same pattern as ``src/main.py:1072``.
     def _execute_parallel(actions, tracker, agent_mode="normal"):
+        try:
+            count = len(actions)
+        except Exception:
+            count = 0
+        if count > 1:
+            chat_writer.flush_thought(f"⚡ {count} actions (parallel)")
         return parallel_executor.execute_actions_parallel(
             actions,
             tracker=tracker,
@@ -738,6 +772,8 @@ class OrchestratorReactLoop:
                 error_sink.append(exc)
                 raise
             if isinstance(reply, dict) and reply.get("tool_calls"):
+                if chat_writer is not None:
+                    chat_writer.flush_thought(str(reply.get("reasoning") or ""))
                 native = []
                 for i, tc in enumerate(reply["tool_calls"]):
                     args = tc.get("arguments")
@@ -756,6 +792,8 @@ class OrchestratorReactLoop:
             content = ""
             if isinstance(reply, dict):
                 content = str(reply.get("content") or "")
+                if chat_writer is not None:
+                    chat_writer.flush_thought(str(reply.get("reasoning") or ""))
             elif isinstance(reply, str):
                 content = reply
             if content:

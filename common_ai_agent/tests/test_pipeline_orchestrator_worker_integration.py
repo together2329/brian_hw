@@ -595,6 +595,72 @@ def test_orchestrator_dispatch_workflow_tool_creates_pipeline_job(
         jobs._jobs.clear()
 
 
+def test_orchestrator_dispatch_workflow_tool_uses_payload_session_owner(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core import tools
+    from core.atlas_db import AtlasDB
+
+    ip = "tool_payload_owner_ip"
+    (tmp_path / ip / "rtl").mkdir(parents=True)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("rtl") as (rtl_url, rtl_worker):
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.delenv("ATLAS_ACTIVE_SESSION", raising=False)
+        monkeypatch.delenv("ATLAS_ACTIVE_USER", raising=False)
+        monkeypatch.setenv("WORKER_URL_RTL_GEN", rtl_url)
+
+        _make_client(tmp_path, monkeypatch)
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            owner = db.ensure_user_by_username("happy2")
+
+        raw = tools.dispatch_workflow(
+            workflow="rtl-gen",
+            ip=ip,
+            payload={
+                "db_user_id": owner["id"],
+                "orchestrator_session_id": f"happy2/{ip}/orchestrator",
+            },
+            reason="dispatch from current orchestrator session",
+        )
+        result = json.loads(raw)
+
+        assert result["ok"] is True
+        assert result["user_id"] == "happy2"
+        assert result["db_user_id"] == owner["id"]
+        assert len(rtl_worker.runs_for_workflow("rtl-gen")) == 1
+        payload = rtl_worker.requests[0]["payload"]
+        assert payload["session"].startswith(f"happy2/{ip}/pipeline/{result['pipeline_id']}/")
+        assert payload["user_id"] == "happy2"
+        assert payload["db_user_id"] == owner["id"]
+
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            run = db._fetchone(
+                """
+                SELECT s.user_id AS session_user_id,
+                       w.owner_user_id AS workspace_owner_user_id
+                  FROM workflow_runs r
+                  JOIN sessions s ON s.id = r.session_id
+                  JOIN workspaces w ON w.id = r.workspace_id
+                 WHERE r.workflow = ?
+                 ORDER BY r.started_at DESC
+                 LIMIT 1
+                """,
+                ("rtl-gen",),
+            )
+        assert run is not None
+        assert run["session_user_id"] == owner["id"]
+        assert run["workspace_owner_user_id"] == owner["id"]
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
 def test_orchestrator_custom_rtl_prompt_keeps_ssot_rtl_driver(
     tmp_path: Path,
     monkeypatch,

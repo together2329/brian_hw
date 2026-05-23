@@ -22,6 +22,16 @@ const TOOL_THEME = {
   todo_note:         { glyph: '☑', color: TOOL_ACCENT },
   scaffold_ip:       { glyph: '◆', color: TOOL_ACCENT },
   ask_user:          { glyph: '⏸', color: TOOL_ACCENT },
+  dispatch_workflow: { glyph: '▶', color: TOOL_ACCENT },
+  read_pipeline_state: { glyph: '⌕', color: TOOL_ACCENT },
+  read_evidence:     { glyph: '▤', color: TOOL_ACCENT },
+  read_artifact:     { glyph: '▤', color: TOOL_ACCENT },
+  yield_run:         { glyph: '⏸', color: TOOL_ACCENT },
+  wait_job:          { glyph: '⏳', color: TOOL_ACCENT },
+  mark_downstream_stale: { glyph: '↻', color: TOOL_ACCENT },
+  write_handoff:     { glyph: '⇢', color: TOOL_ACCENT },
+  classify_failure:  { glyph: '◇', color: TOOL_ACCENT },
+  import_document:   { glyph: '▤', color: TOOL_ACCENT },
   read_doc:          { glyph: '▤', color: TOOL_ACCENT },
   git_diff:          { glyph: '◇', color: TOOL_ACCENT },
   git_status:        { glyph: '◇', color: TOOL_ACCENT },
@@ -3099,9 +3109,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       if (buf.trim()) setFeed(l => [...l, { kind: 'agent', text: buf, createdAt: Date.now() }]);
       streamBufferRef.current = '';
       setStreamText('');
-      // Parse "▶ tool_name  args…" → capture tool name so ToolCard can
+      // Parse "▶/⏺ tool_name  args…" → capture tool name so ToolCard can
       // pair this with its tool_result obs and pick a theme color.
-      const am = t.match(/^▶\s*(\S+)\s*(.*)$/);
+      const am = t.match(/^[▶⏺]\s*(\S+)\s*(.*)$/);
       const toolName = _normalizeToolName(am ? am[1] : '');
       const argsText = (am ? (am[2] || '') : '').replace(/^\?\s+/, '').trim();
       setWorkspaceTelemetry(prev => ({
@@ -3443,8 +3453,20 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             if (!content) return null;
             const created = Number((msg && msg.created_at) || 0);
             const createdAt = created > 0 ? created * 1000 : 0;
+            const payloadTool = String(payload.tool || payload.name || payload.display_name || '').trim();
             if (role === 'assistant') return { kind: 'agent', text: content, createdAt };
-            if (role === 'tool') return { kind: 'action', text: content.startsWith('▶') ? content : `▶ ${content}`, createdAt };
+            if (role === 'thought' || role === 'reasoning') return { kind: 'thought', text: content, createdAt };
+            if (role === 'tool') {
+              const call = content.match(/^[▶⏺]\s*([A-Za-z_][\w.-]*)\s*(?:\(([\s\S]*)\))?\s*$/)
+                || content.match(/^([A-Za-z_][\w.-]*)\s*\(([\s\S]*)\)\s*$/);
+              if (!call) return null;
+              const tool = _normalizeToolName(call[1]) || 'tool';
+              const args = call[2] === undefined ? '' : `(${String(call[2] || '').trim()})`;
+              return { kind: 'action', text: content, tool, args, createdAt };
+            }
+            if (role === 'tool_result' || role === 'observation' || role === 'obs') {
+              return { kind: 'obs', text: content, tool: payloadTool, createdAt };
+            }
             return null;
           });
         const fresh = [];
@@ -5239,7 +5261,7 @@ const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '' }) => {
 };
 
 const _parseJsonObject = (text) => {
-  const raw = String(text || '').trim();
+  const raw = String(text || '').trim().replace(/^└─\s*/, '');
   if (!raw || !raw.startsWith('{')) return null;
   try {
     const parsed = JSON.parse(raw);
@@ -5307,7 +5329,7 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   const borderColor = status === 'err' ? '#f85149' : theme.color;
   const rawArgsText = action && action.text
     ? action.text
-        .replace(/^▶\s*/, '')
+        .replace(/^[▶⏺]\s*/, '')
         .replace(tool ? new RegExp('^' + tool.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*') : /^\?\s*/, '')
     : '';
   let argsText = rawArgsText;

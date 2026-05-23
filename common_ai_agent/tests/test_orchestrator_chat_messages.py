@@ -1,13 +1,12 @@
 """Phase 3.5+ — orchestrator chat-message persistence.
 
-The orchestrator's React loop yields two kinds of user-facing output:
+The orchestrator's React loop yields replayable user-facing output:
 1. Assistant content (the LLM's natural-language reply).
-2. Tool calls (e.g. ``dispatch_workflow`` → "🚀 SSOT 실행 중 ...").
+2. Raw tool calls and tool results.
+3. Reasoning text when the provider exposes it.
 
-Both must land in ``chat_messages`` so the pipeline chat panel can render
-them. These tests drive the loop with a fake LLM that emits content + a
-tool call and assert ``db.list_chat_messages`` returns rows in order with
-the right roles and rendered text.
+These rows must land in ``chat_messages`` without Korean/status summaries so
+the pipeline chat panel can replay the same flow after reconnects.
 """
 
 from __future__ import annotations
@@ -143,12 +142,16 @@ class TestToolCallLabelsPersist:
         tool_rows = [r for r in rows if _payload_of(r).get("role") == "tool"]
         assert len(tool_rows) >= 1
         rendered = _payload_of(tool_rows[0])["content"]
-        # The formatter mentions the workflow, ip, and model.
-        assert "ssot-gen" in rendered
-        assert "pl330" in rendered
-        assert "glm-5.1" in rendered
-        assert "effort=high" in rendered
+        assert rendered.startswith("⏺ dispatch_workflow(")
+        assert 'workflow="ssot-gen"' in rendered
+        assert 'ip="pl330"' in rendered
+        assert 'model="glm-5.1"' in rendered
+        assert 'reasoning_effort="high"' in rendered
         assert seen["model"] == "glm-5.1"
+
+        result_rows = [r for r in rows if _payload_of(r).get("role") == "tool_result"]
+        assert result_rows
+        assert _payload_of(result_rows[0])["content"].startswith("└─ ")
 
     def test_dispatch_workflow_summary_exposes_worker_model_effort(self, monkeypatch):
         def fake_bridge(**kw):
@@ -189,8 +192,8 @@ class TestToolCallLabelsPersist:
     def test_unknown_tool_falls_back_to_name_with_args(self):
         # Direct formatter test — pure helper, no DB.
         line = format_tool_call("some_new_tool", {"foo": "bar"})
-        assert line.startswith("some_new_tool(")
-        assert "foo=bar" in line
+        assert line.startswith("⏺ some_new_tool(")
+        assert 'foo="bar"' in line
 
 
 class TestOrderAndRoles:
@@ -212,12 +215,22 @@ class TestOrderAndRoles:
 
         rows = _list_room_messages_chronological(db, ctx.ip_id)
         observable = [r for r in rows
-                      if _payload_of(r).get("role") in {"assistant", "tool"}]
+                      if _payload_of(r).get("role") in {"assistant", "tool", "tool_result"}]
         roles_seq = [_payload_of(r).get("role") for r in observable]
-        # Expect: tool("dispatch..."), assistant("ssot 작업을 시작했어요")
-        assert roles_seq == ["tool", "assistant"]
+        assert roles_seq == ["tool", "tool_result", "assistant"]
 
         texts = [_payload_of(r)["content"] for r in observable]
-        assert "ssot-gen" in texts[0]
-        assert "pl330" in texts[0]
-        assert texts[1] == "ssot 작업을 시작했어요"
+        assert 'workflow="ssot-gen"' in texts[0]
+        assert 'ip="pl330"' in texts[0]
+        assert texts[1].startswith("└─ ")
+        assert texts[2] == "ssot 작업을 시작했어요"
+
+    def test_reasoning_persists_without_summary(self, db, ctx):
+        caller = _scripted({"reasoning": "checking state\nthen deciding", "content": "done"})
+        OrchestratorReactLoop(db, ctx, llm_caller=caller).run(max_steps=3)
+
+        rows = _list_room_messages_chronological(db, ctx.ip_id)
+        thought_rows = [r for r in rows if _payload_of(r).get("role") == "thought"]
+        assert [_payload_of(r)["content"] for r in thought_rows] == [
+            "checking state\nthen deciding"
+        ]

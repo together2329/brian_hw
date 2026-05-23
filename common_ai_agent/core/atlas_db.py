@@ -3694,7 +3694,9 @@ class AtlasDB:
         ``role`` distinguishes posters on the same chat_message timeline:
         - ``"user"`` (default): human-authored — preserves prior behavior.
         - ``"assistant"``: orchestrator LLM natural-language reply.
-        - ``"tool"``: rendered tool-call status line.
+        - ``"thought"``: exposed reasoning text.
+        - ``"tool"``: raw terminal-style tool-call line.
+        - ``"tool_result"``: raw terminal-style tool result/observation.
         Stored in the payload so existing readers ignoring it still work."""
         ip_value = ip_id or ""
         payload = {

@@ -2491,6 +2491,10 @@ def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
             "pipeline_index": job.get("pipeline_index", 0),
             "scope_path": job.get("scope_path", ""),
             "user_id":   job.get("user_id", ""),
+            "db_user_id": job.get("db_user_id", ""),
+            "db_session_id": job.get("db_session_id", ""),
+            "trigger_source": job.get("trigger_source", ""),
+            "orchestrator_run_id": job.get("orchestrator_run_id", ""),
         }
         if job.get("template"):
             body["template"] = job["template"]
@@ -4879,25 +4883,45 @@ def register_jobs_routes(
             else _resolve_pipeline_schedule(req_schedule, resolved)
         )
 
-        _raw_owner = _active_tool_owner()
+        context_session = normalize_session_name(str(
+            body.get("orchestrator_session_id")
+            or body.get("session_id")
+            or body.get("session")
+            or ""
+        ))
+        context_owner = ""
+        if context_session and "/" in context_session:
+            context_owner = normalize_session_name(context_session.split("/", 1)[0])
+        context_db_user = str(body.get("db_user_id") or "").strip()
+        _raw_owner = context_owner or _active_tool_owner()
         owner_display_id = normalize_session_name(_raw_owner) or "local-admin"
-        owner_user_id = _raw_owner
+        owner_user_id = context_db_user or _raw_owner
         chat_context = ""
         try:
             from core.atlas_db import AtlasDB
 
             pr_for_chat = project_root()
             with AtlasDB(_atlas_job_db_path(pr_for_chat)) as db:
-                owner_user_id = _canonical_user_id(db, _raw_owner)
+                owner_user_id = _canonical_user_id(db, context_db_user or _raw_owner)
+                owner_row = db.get_user(owner_user_id) if owner_user_id else None
+                if owner_row and not context_owner:
+                    owner_display_id = normalize_session_name(
+                        str(owner_row.get("username") or owner_row.get("display_name") or "")
+                    ) or owner_display_id
                 db.upsert_workspace(
                     pr_for_chat.name or "default",
                     owner_user_id=owner_user_id,
                     local_path=str(pr_for_chat),
                 )
+                chat_owner_ids: list[str] = []
+                for candidate in (owner_user_id, context_db_user, _raw_owner, context_owner):
+                    text = str(candidate or "").strip()
+                    if text and text not in chat_owner_ids:
+                        chat_owner_ids.append(text)
                 rows = _recent_chat_context_for_ip(
                     db,
                     ip_name=ip_name,
-                    owner_user_ids=[owner_user_id, _raw_owner],
+                    owner_user_ids=chat_owner_ids,
                     limit=8,
                 )
                 rows = list(reversed(rows))
@@ -5238,7 +5262,7 @@ def register_jobs_routes(
 
     # ── /api/orchestrator/chat/messages ────────────────────────────
     #
-    # Poll natural-language chat messages (role=assistant/user/tool) for an IP.
+    # Poll replayable chat messages (assistant/user/thought/tool/tool_result) for an IP.
     # Frontend polls every 1.5s while orchestrator is active.
 
     _CHAT_IP_RE = re.compile(r'^[A-Za-z][A-Za-z0-9_]*$')
