@@ -22,21 +22,11 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
-- Tool-evidence blockers:
-  - common_ai_agent_authoring: RTL audit has not run yet.
-  - dut_compile: RTL audit has not run yet.
-  - dut_lint: RTL audit has not run yet.
-  - dynamic_todo_closure: RTL audit has not run yet.
-- Tool-evidence runbook:
-  - common_ai_agent_authoring: stages=ssot-rtl; artifact=fresh_rule_ip/rtl/rtl_authoring_provenance.json
-  - dut_compile: stages=ssot-rtl, dut_compile; artifact=fresh_rule_ip/rtl/rtl_compile.json
-  - dut_lint: stages=lint, dut_lint; artifact=fresh_rule_ip/lint/dut_lint.json
-  - dynamic_todo_closure: stages=audit-rtl; artifact=fresh_rule_ip/rtl/rtl_todo_plan.json
 - SSOT top IO contracts: 8
 
 ## Tasks
@@ -45,13 +35,13 @@
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: RTL authoring provenance proves common_ai_agent rtl-gen ownership.
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -68,13 +58,13 @@ Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true
@@ -89,13 +79,13 @@ Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: DUT-only lint artifact passed with zero errors, warnings, and suppression violations.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -111,13 +101,13 @@ Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: planned
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dynamic_todo_closure
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_module.
-- Current reason: RTL audit has not run yet.
+- Current reason: Every required non-closure TODO has pass status.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero
