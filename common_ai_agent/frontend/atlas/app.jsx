@@ -222,10 +222,12 @@ const App = () => {
     } catch (_) { return 'mono'; }
   });
   const [fontScale, setFontScale] = React.useState(() => {
+    // Default to 'compact' (13px base) — matches the orchestrator-chat demo
+    // the user signed off on. The size dropdown bumps it up from here.
     try {
       const saved = localStorage.getItem('atlasFontScale');
-      return ['compact', 'normal', 'large', 'xl'].includes(saved) ? saved : 'large';
-    } catch (_) { return 'large'; }
+      return ['compact', 'normal', 'large', 'xl'].includes(saved) ? saved : 'compact';
+    } catch (_) { return 'compact'; }
   });
   const [resolution, setResolution] = React.useState(() => {
     try {
@@ -2126,10 +2128,10 @@ const App = () => {
             className="dir-select mini"
             value={fontScale}
             onChange={e => setFontScale(e.currentTarget.value)}>
-            <option value="compact">S</option>
-            <option value="normal">M</option>
-            <option value="large">L</option>
-            <option value="xl">XL</option>
+            <option value="compact">13px</option>
+            <option value="normal">14px</option>
+            <option value="large">15px</option>
+            <option value="xl">16px</option>
           </select>
         </label>
         <label className="dir-select-wrap" title="Change virtual canvas resolution">

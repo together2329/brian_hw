@@ -1460,6 +1460,53 @@ class TestFixMdTreeFencing(unittest.TestCase):
         self.assertNotIn("    - ❌", result)
 
 
+class TestFixMdLoneBacktickPairing(unittest.TestCase):
+    """A lone ``\\``` line is only a fence delimiter when it has a matching
+    partner. An UNPAIRED straggler must not be promoted to a ``` fence — else
+    Pass 3b auto-closes it at EOF and the whole rest of the message renders as
+    one giant grey code block with raw markdown leaking out verbatim."""
+
+    def _fix(self, text: str) -> str:
+        try:
+            from lib.textual_ui import _fix_md
+            return _fix_md(text)
+        except ImportError:
+            self.skipTest("lib.textual_ui not importable (Textual not installed)")
+
+    @staticmethod
+    def _fence_count(result: str) -> int:
+        return sum(1 for l in result.splitlines() if l.strip().startswith("```"))
+
+    def test_unpaired_lone_backtick_does_not_open_fence(self):
+        """The reported bug: a single stray ``\\``` swallowed the rest of the doc."""
+        text = "mental model:\n`\n즉, 이 시스템은:\n\n# 소유권 규칙\n\n| A | B |\n|-|-|\n| x | y |\n"
+        result = self._fix(text)
+        self.assertEqual(self._fence_count(result), 0, "stray backtick must not open a fence")
+        # Heading + table must remain real markdown, not fenced code content
+        self.assertIn("# 소유권 규칙", result)
+
+    def test_paired_lone_backticks_become_balanced_fence(self):
+        """Two lone backticks intended as a code fence still work, balanced."""
+        text = "예시:\n`\ndef foo():\n    return 1\n`\n다음.\n"
+        result = self._fix(text)
+        self.assertEqual(self._fence_count(result), 2)
+        self.assertIn("def foo():", result)
+
+    def test_three_lone_backticks_pair_then_drop_straggler(self):
+        """One pair fences; the odd trailing straggler is dropped, not promoted."""
+        text = "a\n`\ncode\n`\nb\n`\nc\n\n# Heading\n"
+        result = self._fix(text)
+        self.assertEqual(self._fence_count(result), 2)
+        self.assertIn("# Heading", result)
+
+    def test_real_triple_fence_unaffected(self):
+        """A genuine ```python block is untouched by the lone-backtick logic."""
+        text = "```python\nprint(1)\n```\n\n# Heading\n"
+        result = self._fix(text)
+        self.assertEqual(self._fence_count(result), 2)
+        self.assertIn("print(1)", result)
+
+
 class TestReactLoopPromptOnlyReminder(unittest.TestCase):
     """Prompt-only reminders should not rewrite saved conversation history."""
 

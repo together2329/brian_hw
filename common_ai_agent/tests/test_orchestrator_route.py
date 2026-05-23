@@ -115,6 +115,39 @@ def test_second_chat_to_same_ip_is_appended(tmp_path, monkeypatch, stub_runner):
     assert first.json()["run_id"] == second.json()["run_id"]
 
 
+def test_chat_body_ip_wins_over_generic_for_phrase(
+    tmp_path, monkeypatch, stub_runner
+):
+    client = _make_client(tmp_path, monkeypatch)
+
+    resp = client.post(
+        "/api/pipeline/orchestrator/chat",
+        json={
+            "ip": "mctp_axi",
+            "message": "Continue automatically without asking for permission.",
+        },
+    )
+
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["ip"] == "mctp_axi"
+    assert stub_runner.calls[0]["ip_name"] == "mctp_axi"
+
+
+def test_chat_explicit_ip_marker_can_override_body_ip(
+    tmp_path, monkeypatch, stub_runner
+):
+    client = _make_client(tmp_path, monkeypatch)
+
+    resp = client.post(
+        "/api/pipeline/orchestrator/chat",
+        json={"ip": "ipA", "message": "continue for ip ipB"},
+    )
+
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["ip"] == "ipB"
+    assert stub_runner.calls[0]["ip_name"] == "ipB"
+
+
 def test_status_chat_fast_path_records_assistant_reply_without_runner(
     tmp_path, monkeypatch, stub_runner
 ):

@@ -3493,6 +3493,36 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     return () => { dead = true; clearInterval(t); };
   }, [workflow, activeIp]);
 
+  // ── Brief live-worker strip for the orchestrator chat ───────────────────
+  // Shows which workers the orchestrator currently has running, inline in
+  // the chat (sourced from the same snapshot the Workers tab polls). Each
+  // chip is a click-through to that worker's own session for full detail.
+  const [orchWorkers, setOrchWorkers] = React.useState([]);
+  React.useEffect(() => {
+    const ip = String(activeIp || '').trim();
+    if (String(workflow || '') !== 'orchestrator' || !ip || ip.toLowerCase() === 'default') {
+      setOrchWorkers([]);
+      return undefined;
+    }
+    let dead = false;
+    const poll = async () => {
+      if (dead || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
+      try {
+        const snap = await workspaceFetchWorkerSnapshot({ ip, activeOnly: true });
+        if (dead) return;
+        const all = Array.isArray(snap && snap.workers) ? snap.workers : [];
+        setOrchWorkers(all.filter(w =>
+          Number(w.running_count || 0) > 0 ||
+          Number(w.pending_count || 0) > 0 ||
+          Number(w.queued_count || 0) > 0
+        ));
+      } catch (_) {}
+    };
+    poll();
+    const t = setInterval(poll, 3000);
+    return () => { dead = true; clearInterval(t); };
+  }, [workflow, activeIp]);
+
   const navigateInputHistory = (delta) => {
     if (!inputHistory.length) return false;
     let idx = inputHistoryIndexRef.current;

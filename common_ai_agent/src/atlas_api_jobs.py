@@ -4634,18 +4634,17 @@ def register_jobs_routes(
         })
 
     def _extract_ip_from_orchestrator_message(message: str, fallback: str = "") -> str:
-        # Prefer an IP token spelled out in the message body over the dropdown
-        # fallback. Patterns: `for ip <ip>`, `for <ip>`, `ip=<ip>`, `on <ip>`.
-        # The handler downstream still validates the result against
-        # `^[A-Za-z][A-Za-z0-9_]*$`, so only tokens shaped that way are
-        # accepted here — otherwise we fall back to the dropdown ip.
+        # Prefer explicit IP markers in the message body over the dropdown
+        # fallback. Do not treat generic English phrases like "for permission"
+        # as an IP override; the selected/body IP is more reliable in chatty
+        # orchestrator prompts.
         candidate = ""
         msg = str(message or "")
         token_re = r"([A-Za-z][A-Za-z0-9_]*)"
         patterns = (
             rf"\bfor\s+ip\s+{token_re}\b",
+            rf"\bip\s+{token_re}\b",
             rf"\bip\s*=\s*{token_re}\b",
-            rf"\bfor\s+{token_re}\b",
             rf"\bon\s+{token_re}\b",
         )
         for pat in patterns:

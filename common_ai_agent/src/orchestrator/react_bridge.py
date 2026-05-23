@@ -436,7 +436,11 @@ def _make_yield_run_handler(
                     f"{summary}\n\n"
                     "[user messages received while waiting]\n"
                     f"{joined}\n"
-                    "[/user messages received while waiting]"
+                    "[/user messages received while waiting]\n"
+                    "→ ACTION REQUIRED: reply to the user now in plain text "
+                    "(1-4 sentences, their language) addressing the message "
+                    "above BEFORE any other tool call. A silent tool-only "
+                    "response here is a failure."
                 )
         collector.append(
             tool_name="yield_run", args=args, verdict=reason,

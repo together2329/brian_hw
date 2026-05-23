@@ -140,11 +140,11 @@ html[data-theme="light"] {
   --ui-agent-line-height: 1.72;
 }
 [data-font-scale="large"] {
-  --ui-font-size: 14.5px;
-  --ui-control-font-size: 12.5px;
-  --ui-small-font-size: 11.5px;
-  --ui-agent-font-size: 15.5px;
-  --ui-code-font-size: 13.5px;
+  --ui-font-size: 15px;
+  --ui-control-font-size: 13px;
+  --ui-small-font-size: 12px;
+  --ui-agent-font-size: 16px;
+  --ui-code-font-size: 14px;
   --ui-line-height: 1.58;
   --ui-agent-line-height: 1.76;
 }
