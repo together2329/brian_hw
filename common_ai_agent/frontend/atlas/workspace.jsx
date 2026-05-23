@@ -2870,6 +2870,24 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       return;
     }
 
+    const isOrch = String(workflow || '') === 'orchestrator';
+    const orchIp = String(activeIp || '').trim();
+    if (isOrch && orchIp && orchIp.toLowerCase() !== 'default' && !raw.startsWith('/')) {
+      setFeed(f => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+      setStreaming(true);
+      awaitingRunStartRef.current = true;
+      fetch('/api/pipeline/orchestrator/chat', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: raw, ip: orchIp }),
+      })
+        .then(r => r.json().catch(() => ({})))
+        .then(d => { if (d && d.error) setFeed(f => [...f, { kind: 'agent', text: `[orchestrator] ${d.error}` }]); })
+        .catch(e => setFeed(f => [...f, { kind: 'agent', text: `[orchestrator] ${String(e)}` }]));
+      return;
+    }
+
     setFeed(f => [...f, { kind: 'user', text: raw }]);
     setStreaming(true);
     awaitingRunStartRef.current = true;
@@ -3369,6 +3387,42 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       subs.forEach(u => u && u());
     };
   }, [activateAskUserSession, refreshSsotQa]);
+
+  // ── Orchestrator HTTP polling (DB-backed, survives WiFi drops) ──────────
+  const orchSeenRef = React.useRef(new Set());
+  const orchSinceRef = React.useRef(0);
+  React.useEffect(() => {
+    const ip = String(activeIp || '').trim();
+    if (String(workflow || '') !== 'orchestrator' || !ip || ip.toLowerCase() === 'default') return undefined;
+    orchSeenRef.current = new Set();
+    orchSinceRef.current = 0;
+    let dead = false;
+    const poll = async () => {
+      if (dead || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
+      try {
+        const r = await fetch(`/api/orchestrator/chat/messages?ip=${encodeURIComponent(ip)}&since=${orchSinceRef.current}&limit=50`, { credentials: 'include', cache: 'no-store' });
+        if (!r.ok) return;
+        const d = await r.json();
+        const msgs = Array.isArray(d.messages) ? d.messages : [];
+        const fresh = [];
+        for (const m of msgs) {
+          const id = m.id || '';
+          const role = (m.payload && m.payload.role) || '';
+          const content = (m.payload && m.payload.content) || '';
+          if (!id || orchSeenRef.current.has(id)) continue;
+          orchSeenRef.current.add(id);
+          if (role === 'assistant' && content) {
+            fresh.push({ kind: 'agent', text: content, createdAt: (m.created_at || 0) * 1000 });
+          }
+        }
+        if (typeof d.next_since === 'number') orchSinceRef.current = d.next_since;
+        if (fresh.length) { setFeed(f => [...f, ...fresh]); setStreaming(false); }
+      } catch (_) {}
+    };
+    poll();
+    const t = setInterval(poll, 1500);
+    return () => { dead = true; clearInterval(t); };
+  }, [workflow, activeIp]);
 
   const navigateInputHistory = (delta) => {
     if (!inputHistory.length) return false;
