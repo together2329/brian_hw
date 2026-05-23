@@ -127,7 +127,7 @@ const atlasNavigationIntent = () => {
 };
 const atlasShouldHoldDashboardActivation = () => {
   const intent = atlasNavigationIntent();
-  return !intent.hasContext;
+  return intent.view === 'dashboard' && !intent.hasContext;
 };
 
 // ── PipelineRunningChip ───────────────────────────────────────────
@@ -282,6 +282,27 @@ const App = () => {
       }));
     } catch (_) {}
   }, [runMode, execMode]);
+  React.useEffect(() => {
+    const clearBootAssetBanner = () => {
+      try {
+        if (
+          window.React &&
+          window.ReactDOM &&
+          window.Babel &&
+          window.marked &&
+          window.mermaid &&
+          window.DOMPurify &&
+          window.Prism &&
+          typeof window.__atlasClearAssetLoadErrors === 'function'
+        ) {
+          window.__atlasClearAssetLoadErrors();
+        }
+      } catch (_) {}
+    };
+    clearBootAssetBanner();
+    const t = setTimeout(clearBootAssetBanner, 500);
+    return () => clearTimeout(t);
+  }, []);
   const chooseUiLang = React.useCallback((next) => {
     setUiLang(next === 'ko' ? 'ko' : 'en');
     try { localStorage.setItem('atlasUiLangUserSet', '1'); } catch (_) {}
@@ -1103,6 +1124,19 @@ const App = () => {
         setActiveSessionId(authOwner);
         setActiveNamespace('');
         setActiveIp(WORKFLOW_DEFAULT);
+        return;
+      }
+      const eventSession = normalizeSession(
+        (ev && ev.detail && typeof ev.detail === 'object' && ev.detail.session) || ''
+      );
+      const liveSession = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
+      if (
+        ev &&
+        (ev.type === 'atlas-conversation-loaded' || ev.type === 'atlas-session-loaded') &&
+        eventSession &&
+        liveSession &&
+        eventSession !== liveSession
+      ) {
         return;
       }
       const ctx = window.CONTEXT || {};

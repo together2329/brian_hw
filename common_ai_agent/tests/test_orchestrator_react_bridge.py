@@ -74,6 +74,8 @@ EXPECTED_CALLABLES = {
     "write_handoff",
     "mark_downstream_stale",
     "import_document",
+    "web_search",
+    "web_fetch",
 }
 
 
@@ -101,7 +103,7 @@ class TestAvailableToolsReplaced:
         assert set(bridge.deps.available_tools.keys()) == EXPECTED_CALLABLES
 
     def test_no_generic_agent_tools_leaked(self, bridge):
-        forbidden = {"read_file", "write_file", "edit_file", "web_search",
+        forbidden = {"read_file", "write_file", "edit_file",
                      "todo_write", "todo_update", "spawn_subagent",
                      "parallel_todo_dispatch", "dispatch_workflow_v1"}
         leaked = forbidden & set(bridge.deps.available_tools.keys())

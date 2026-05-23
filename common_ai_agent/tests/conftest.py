@@ -22,6 +22,7 @@ collect_ignore_glob = [
     "test_lib/test_readline_autocomplete.py",
     "test_e2e.py",
     "test_worker_cmux.py",  # needs cmux env; run manually with `pytest tests/test_worker_cmux.py`
+    "test_performance.py",  # imports memory.py / procedural_memory.py (modules removed)
 ]
 
 

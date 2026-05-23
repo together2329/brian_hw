@@ -66,6 +66,75 @@ skips the dead-import paths automatically (see §5).
 
 ---
 
+## 0.5 Test execution sequence (at a glance)
+
+### Mode → Test slice tree
+
+```
+./scripts/run_tests.sh {mode}
+├─ smoke (5s)
+│  ├─ tests/test_production_parity.py::test_atlas_ui_imports_cleanly_as_main_module
+│  ├─ tests/test_orchestrator_react_loop.py
+│  ├─ tests/test_atlas_db.py::test_atlas_db_concurrent_writers
+│  └─ ... (36 total, ~10s)
+│
+├─ quick (3 min) — DEFAULT
+│  └─ smoke + frontend + selective workflow/orchestrator suites
+│
+├─ full (5 min)
+│  └─ quick + load-gated tests (skipped if ATLAS_LOAD_TEST ≠ 1)
+│
+├─ live (15 min)
+│  └─ full + real-LLM calls (needs .env, asks cost before running)
+│
+├─ frontend (1.6 min)
+│  └─ cd frontend/atlas && npx vitest run (9 JSX cases)
+│
+├─ load (ATLAS_LOAD_TEST=1, ~3 min)
+│  ├─ test_lazy_worker_cold_start_storm.py (12-way spawn, 4 cases)
+│  ├─ test_lazy_worker_real_cold_start.py (benchmark)
+│  └─ test_lazy_worker_memory_leak.py (benchmark)
+│
+└─ mutation (overnight)
+   └─ mutmut: core/atlas_db.py + src/atlas_api_jobs.py (see §7)
+```
+
+### CI jobs
+
+| Job | Trigger | Command | Suite size | Timeout |
+|---|---|---|---|---|
+| `python-smoke` | push/PR, matrix py3.9+py3.11 | `./scripts/run_tests.sh smoke` | 36 cases | 5 min |
+| `python-quick` | push to main / PR `full-ci` label | `./scripts/run_tests.sh quick` | 90+ cases | 15 min |
+| `frontend` | push/PR | `cd frontend/atlas && npx vitest run` | 9 cases | 5 min |
+
+### Developer workflow (edit → CI → release)
+
+1. **Local edit** → modify source code
+2. **smoke** → `./scripts/run_tests.sh smoke` (~10s sanity check)
+3. **frontend** → if touched JSX: `./scripts/run_tests.sh frontend` (~1.6s)
+4. **push to branch** → GitHub Actions fires all 3 CI jobs in parallel
+5. **PR review** → CI completes (smoke + quick + frontend green)
+6. **merge to main** → GitHub re-runs all 3 jobs as final gate
+7. **weekly load sweep** → manual `ATLAS_LOAD_TEST=1 ./scripts/run_tests.sh load` (cold-start + memory)
+8. **monthly mutation** → manual `./scripts/run_tests.sh mutation` (overnight; see [[mutation-baseline-2026-05-23]])
+9. **pre-release** → `./scripts/run_tests.sh live --yes` (all LLM paths, costs estimated)
+
+### Test inventory snapshot
+
+| Layer | Suite | File count | Case count | Tools |
+|---|---|---|---|---|
+| **DB / Storage** | A | 6 files | 50+ cases | pytest, SQLite |
+| **Orchestrator** | C | 20 files | 84 cases | pytest, uvicorn, httpx |
+| **Worker / Dispatch** | D | 12 files | 60+ cases | pytest, multiprocessing, threading |
+| **Pipeline / DAG** | E | 7 files | 35+ cases | pytest, YAML |
+| **Frontend** | K | 3 JSX files | 9 cases | vitest, @testing-library/react, jsdom |
+| **Production parity** | O | 1 file | 4 cases | pytest, subprocess, SIGTERM/SIGKILL |
+| **LLM cost** | I | embedded | 1 dryrun | static analysis, no network |
+| **Load / Stress** | O | 2 files | 2 benchmarks | pytest, RSS sampling, real processes |
+| **TOTAL ACTIVE** | — | **161 files** | **300+ cases** | pytest 7.x, vitest 1.x |
+
+---
+
 ## 1. Category summary
 
 | # | Category | Test files | Primary owner code |
@@ -144,6 +213,7 @@ skips the dead-import paths automatically (see §5).
 | Worker LLM cost roll-up | `core/agent_server.py` + DB | `test_worker_llm_cost.py` | |
 | ReAct loop LLM call persistence | `core/react_loop.py` + DB | `test_react_loop_worker_llm_call_persist.py` | |
 | IP block dedup (avoid double-spawn) | `src/atlas_api_jobs.py` | `test_ipblocks_dedup_worker_path.py` | |
+| Workflow tool inventory | `core/tools.py:filtered_available_tools`, `core/tools_web.py:WEB_TOOLS`, `workflow/*/workspace.json:WORKFLOW_DISABLED_TOOLS` | **`test_workflow_tool_inventory.py`** (27 cases) | Catches "I don't have web_search" lie; asserts baseline+web tools present in all 12 worker workflows; checks orchestrator dispatch_workflow enum vs _DEFAULT_WORKER_PORTS drift. Smoke-mode. |
 
 ### E. Workflow Stages / Pipeline DAG
 
@@ -319,10 +389,12 @@ after 5 s). Escape hatch: `ATLAS_SKIP_SUBPROCESS_TESTS=1`.
 | Logging → stdout + RotatingFileHandler (`.session/atlas-dispatch.log`) | `src/atlas_api_jobs.py:_dispatch_logger` | covered by existing dispatch tests | ✅ Pass |
 | Direct dispatch lazy-spawn hook (`_ensure_lazy_worker_callback`) | `core/tools.py:_dispatch_workflow_direct_fallback`, `src/atlas_api_jobs.py:register_jobs_routes` | `test_dispatch_seed_direct.py`, `test_agent_worker_dispatch_fallback.py` | ✅ Pass |
 | `default` IP placeholder → 400 | `src/atlas_api_jobs.py:_extract_ip_from_orchestrator_message` | `test_orchestrator_chat_ip_extraction.py` | ✅ Pass |
+| Multi-user job isolation (H2 + H3 leak fix) | `src/atlas_api_jobs.py:api_jobs` (H2: add `request` param + user filter), `src/atlas_api_jobs.py:api_pipeline_state` (H3: already filtered at line 4077) | **`test_multiuser_job_isolation.py`** (4 cases: per-user isolation, local-admin all-visible, pipeline state cross-contamination, unauthenticated 401) | ✅ Pass |
 | Dashboard IP-row click → workspace | `frontend/atlas/user-dashboard.jsx` | `test_atlas_user_dashboard.py` (rendering) — UI click manual | ⚠ manual verification |
 | WORKERS · ORCH sidebar panel | `frontend/atlas/workspace.jsx:AgentStatusPanel` | none direct (UI) | ⚠ manual verification |
 | Orchestrator chat “select IP” warning banner | `frontend/atlas/workspace.jsx:renderPromptRow` | none direct (UI) | ⚠ manual verification |
 | `.dir-select-wrap.run-policy` accent border removed | `frontend/atlas/styles.css` | none (cosmetic) | ⚠ manual verification |
+| Orchestrator gets `web_search` + `web_fetch` (12 tools) — orchestrator can search the web and fetch URLs directly without round-tripping through a worker. Added schemas to `tool_schemas()`, wrappers in `tools.py`, and handlers in `react_bridge._make_tool_handlers`. | `src/orchestrator/prompts.py`, `src/orchestrator/tools.py`, `src/orchestrator/react_bridge.py` | **`test_workflow_tool_inventory.py::TestOrchestratorToolSet::test_orchestrator_exposes_web_search`**, `test_orchestrator_schema_count_at_least_twelve` | ✅ Pass |
 | `_jobs` rehydration on boot (`_rehydrate_jobs_from_db`) — reconciles orphaned `status='running'` DB rows after orchestrator restart; healthy+busy workers rescued, others marked error. Env: none (always on). | `src/atlas_api_jobs.py:_rehydrate_jobs_from_db`, called from `register_jobs_routes` | **`test_jobs_rehydration.py`** (3 cases: rescued count, DB error status, 1-hour cutoff) | ✅ Pass |
 | Lazy-worker idle TTL (`ATLAS_LAZY_WORKER_IDLE_TTL_SEC`, default 600 s) — reaper probes alive workers; if `running_count=0` for ≥ TTL seconds, calls `proc.terminate()` and removes from `_LAZY_WORKER_PROCS`. Set to `0` to disable. Tracks `_LAZY_WORKER_LAST_BUSY[url]` (monotonic). | `src/atlas_api_jobs.py:_lazy_worker_reaper_loop`, `_ensure_lazy_worker`, `_LAZY_WORKER_LAST_BUSY`, `_LAZY_WORKER_IDLE_TTL_SEC` | **`test_lazy_worker_idle_ttl.py`** (4 cases: terminate called, removed from procs, busy worker untouched, TTL=0 disables) | ✅ Pass |
 | Real cold-start storm (load mode) — 12 uvicorn subprocesses spawned simultaneously on ports 5621-5632; measures time-to-last-ready and peak RSS per PID. Gate: `ATLAS_LOAD_TEST=1`. | `src/main.py --serve`, `core/agent_server.py` | **`test_lazy_worker_real_cold_start.py`** (1 benchmark case) | SKIPS-ON-ENV (`ATLAS_LOAD_TEST`) |

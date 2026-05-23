@@ -653,6 +653,7 @@ def test_orchestrator_mode_post_toggles_env_and_state_payload(
     import os
 
     monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
+    monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "1")
     ip = "toggle_ip"
     (tmp_path / ip).mkdir()
     client = _make_client(tmp_path, monkeypatch)
@@ -666,6 +667,7 @@ def test_orchestrator_mode_post_toggles_env_and_state_payload(
     assert r.status_code == 200
     assert r.json() == {"enabled": False, "mode": None}
     assert os.environ.get("ATLAS_ORCHESTRATOR_MODE") == "0"
+    assert os.environ.get("ATLAS_SINGLE_MAIN_LOOP") == "1"
 
     # /api/pipeline/state must reflect the new mode on the next call
     # (the endpoint clears the 2 s micro-cache so this is immediate).
@@ -677,6 +679,7 @@ def test_orchestrator_mode_post_toggles_env_and_state_payload(
     r = client.post("/api/pipeline/orchestrator_mode", json={"enabled": True})
     assert r.status_code == 200
     assert r.json() == {"enabled": True, "mode": "json"}
+    assert os.environ.get("ATLAS_SINGLE_MAIN_LOOP") == "0"
     on = client.get(f"/api/pipeline/state?ip={ip}").json()
     assert on["orchestrator"]["enabled"] is True
     assert on["orchestrator"]["mode"] == "json"
@@ -706,6 +709,7 @@ def test_pipeline_run_policy_get_post_and_state_payload(tmp_path: Path, monkeypa
 
     monkeypatch.delenv("ATLAS_RUN_MODE", raising=False)
     monkeypatch.delenv("ATLAS_ORCHESTRATOR_MODE", raising=False)
+    monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "1")
     ip = "policy_ip"
     (tmp_path / ip).mkdir()
     client = _make_client(tmp_path, monkeypatch)
@@ -726,10 +730,12 @@ def test_pipeline_run_policy_get_post_and_state_payload(tmp_path: Path, monkeypa
     assert os.environ.get("ATLAS_EXEC_MODE") == "orchestrator"
     assert os.environ.get("ATLAS_DEFAULT_EXEC_MODE") == "orchestrator"
     assert os.environ.get("ATLAS_ORCHESTRATOR_MODE") == "1"
+    assert os.environ.get("ATLAS_SINGLE_MAIN_LOOP") == "0"
     saved_config = (tmp_path / ".config").read_text(encoding="utf-8")
     assert "ATLAS_RUN_MODE=starter" in saved_config
     assert "ATLAS_EXEC_MODE=orchestrator" in saved_config
     assert "ATLAS_DEFAULT_EXEC_MODE=orchestrator" in saved_config
+    assert "ATLAS_SINGLE_MAIN_LOOP=0" in saved_config
 
     state = client.get(f"/api/pipeline/state?ip={ip}").json()
     assert state["run_mode"] == "starter"

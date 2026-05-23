@@ -91,6 +91,91 @@ def test_workers_route_returns_12_workers(tmp_path: Path, monkeypatch) -> None:
     )
 
 
+def test_workers_route_active_only_skips_idle_worker_fanout(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import urllib.request
+
+    import atlas_api_jobs as jobs
+
+    probed_urls: list[str] = []
+
+    def _fake_urlopen(req, timeout=None):
+        probed_urls.append(getattr(req, "full_url", str(req)))
+        return _JsonResponse({"status": "ok"})
+
+    monkeypatch.setattr(urllib.request, "urlopen", _fake_urlopen)
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+    with jobs._HEALTH_CACHE_LOCK:
+        jobs._HEALTH_CACHE.clear()
+
+    client = _make_client(tmp_path, monkeypatch)
+    resp = client.get("/api/orchestrator/workers?ip=pl330&active_only=1")
+    assert resp.status_code == 200, resp.text
+
+    data = resp.json()
+    assert data["active_only"] is True
+    assert data["count"] == 0
+    assert data["workers"] == []
+    assert probed_urls == []
+
+
+def test_workers_route_active_only_probes_visible_active_workflows_only(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import urllib.request
+
+    import atlas_api_jobs as jobs
+
+    probed_urls: list[str] = []
+
+    def _fake_urlopen(req, timeout=None):
+        probed_urls.append(getattr(req, "full_url", str(req)))
+        return _JsonResponse({
+            "status": "ok",
+            "workflow": "rtl-gen",
+            "model": "gpt-5.3-codex",
+        })
+
+    monkeypatch.setattr(urllib.request, "urlopen", _fake_urlopen)
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["active-rtl"] = {
+            "job_id": "active-rtl",
+            "run_id": "run_active",
+            "workflow": "rtl-gen",
+            "stage_id": "rtl",
+            "status": "running",
+            "ip": "pl330",
+            "user_id": "u",
+            "model": "gpt-5.3-codex",
+            "session": "u/pl330/rtl-gen",
+            "started_at": 1.0,
+        }
+    with jobs._HEALTH_CACHE_LOCK:
+        jobs._HEALTH_CACHE.clear()
+
+    client = _make_client(tmp_path, monkeypatch)
+    try:
+        resp = client.get("/api/orchestrator/workers?ip=pl330&active_only=1")
+        assert resp.status_code == 200, resp.text
+
+        workers = resp.json()["workers"]
+        assert [w["workflow"] for w in workers] == ["rtl-gen"]
+        assert workers[0]["running_count"] == 1
+        assert [item["job_id"] for item in workers[0]["running"]] == ["active-rtl"]
+        assert len(probed_urls) == 1
+        assert probed_urls[0].endswith("/health")
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+        with jobs._HEALTH_CACHE_LOCK:
+            jobs._HEALTH_CACHE.clear()
+
+
 def test_workers_route_marks_workflow_and_model_mismatch(tmp_path: Path, monkeypatch) -> None:
     import urllib.request
 

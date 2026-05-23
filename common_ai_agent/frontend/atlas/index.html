@@ -2,6 +2,7 @@
 <html data-dir="A" data-theme="dark" data-screen-label="ATLAS">
 <head>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="atlas-backend" content="live">
 <title>ATLAS</title>
 <script>
@@ -51,6 +52,7 @@
   <script>
     (function () {
       var lines = [];
+      var entries = [];
       var box = null;
       function ensureBox() {
         if (box) return box;
@@ -69,7 +71,7 @@
         var close = document.createElement('button');
         close.textContent = '× dismiss';
         close.style.cssText = 'position:absolute;right:10px;top:6px;background:transparent;color:#fde7e7;border:1px solid #f87171;border-radius:3px;padding:2px 8px;cursor:pointer;font:inherit';
-        close.onclick = function () { box.remove(); box = null; lines.length = 0; };
+        close.onclick = function () { box.remove(); box = null; lines.length = 0; entries.length = 0; };
         box.appendChild(close);
         document.body.appendChild(box);
         return box;
@@ -82,6 +84,7 @@
         line.textContent = '[' + ts + '] ' + label + ': ' + detail;
         b.appendChild(line);
         lines.push(label + ': ' + detail);
+        entries.push({ label: label, detail: detail, node: line });
       }
       window.addEventListener('error', function (ev) {
         // Element load failure: ev.target is the failing script/link/img/etc.
@@ -124,6 +127,21 @@
       };
       // Expose so future scripts can call from anywhere.
       window.__atlasReportError = append;
+      window.__atlasClearAssetLoadErrors = function () {
+        try {
+          if (!entries.length) return;
+          var assetOnly = entries.every(function (entry) {
+            return /^(script|stylesheet|image|asset) load failed$/.test(String(entry.label || ''));
+          });
+          if (!assetOnly) return;
+          if (box) {
+            box.remove();
+            box = null;
+          }
+          lines.length = 0;
+          entries.length = 0;
+        } catch (_) {}
+      };
     })();
   </script>
 
@@ -252,10 +270,23 @@
     function scale() {
       const s = document.getElementById('scaler');
       const res = applyAtlasResolution();
+      // On narrow (mobile) viewports skip the fixed-canvas scale transform
+      // and let the inner React tree reflow naturally via CSS media queries.
+      if (window.innerWidth < 900) {
+        s.style.transform = 'none';
+        s.style.width = '100vw';
+        s.style.height = '100dvh';
+        s.style.position = 'static';
+        return;
+      }
       const sx = window.innerWidth  / res.width;
       const sy = window.innerHeight / res.height;
       // Use scaleX/scaleY independently so both dimensions hit the edges.
       s.style.transform = `scale(${sx}, ${sy})`;
+      // Restore desktop positioning in case we transitioned from mobile.
+      s.style.width = res.width + 'px';
+      s.style.height = res.height + 'px';
+      s.style.position = 'absolute';
     }
     window.addEventListener('resize', scale);
     window.addEventListener('atlas-resolution-changed', scale);

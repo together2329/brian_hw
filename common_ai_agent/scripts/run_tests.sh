@@ -55,6 +55,7 @@ case "$MODE" in
       tests/test_orchestrator_chat_ip_extraction.py \
       tests/test_chat_full_multiuser_system.py \
       tests/test_production_parity.py::test_atlas_ui_imports_cleanly_as_main_module \
+      tests/test_workflow_tool_inventory.py \
       -q --tb=short ${PYTEST_EXTRA[@]+"${PYTEST_EXTRA[@]}"}
     ;;
 

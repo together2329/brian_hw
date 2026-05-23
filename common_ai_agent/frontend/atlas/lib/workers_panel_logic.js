@@ -1,25 +1,36 @@
-// workers_panel_logic.js — Workers grid summary + tone helpers.
-// Works as both an ES module (vitest/Node) and a plain <script> (browser UMD).
+// workers_panel_logic.js — Workers grid summary + tone helpers (browser plain script).
+// For ES module imports (vitest), see workers_panel_logic.mjs.
 
-export function summarizeWorkers(list) {
-  const total = list.length;
-  const upCount = list.filter(w => String(w.status || '') === 'ok').length;
-  return { total, upCount };
-}
+(function () {
+  function summarizeWorkers(list) {
+    var total = list.length;
+    var upCount = list.filter(function (w) { return String(w.status || '') === 'ok'; }).length;
+    return { total: total, upCount: upCount };
+  }
 
-export function workerTone(w) {
-  const s = String(w.status || '');
-  if (s === 'ok' && Number(w.running_count || 0) > 0) return 'active';
-  if (s === 'ok') return 'done';
-  if (s === 'mismatch') return 'err';
-  return 'pending';
-}
+  function workerTone(w) {
+    var s = String(w.status || '');
+    if (s === 'ok' && Number(w.running_count || 0) > 0) return 'active';
+    if (s === 'ok') return 'done';
+    if (s === 'mismatch') return 'err';
+    return 'pending';
+  }
 
-export function portFromUrl(url) {
-  const m = String(url || '').match(/:(\d+)(?:\/|$)/);
-  return m ? m[1] : '';
-}
+  function portFromUrl(url) {
+    var m = String(url || '').match(/:(\d+)(?:\/|$)/);
+    return m ? m[1] : '';
+  }
 
-if (typeof window !== 'undefined') {
-  window.AtlasWorkersLogic = { summarizeWorkers, workerTone, portFromUrl };
-}
+  var api = {
+    summarizeWorkers: summarizeWorkers,
+    workerTone: workerTone,
+    portFromUrl: portFromUrl,
+  };
+
+  if (typeof window !== 'undefined') {
+    window.AtlasWorkersLogic = api;
+  }
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = api;
+  }
+})();

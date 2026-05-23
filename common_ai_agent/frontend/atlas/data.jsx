@@ -661,6 +661,12 @@
     return `${owner}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`;
   }
 
+  const SESSION_STATE_CACHE_MS = 1200;
+  const CHAT_SWITCH_LIMIT = 80;
+  const WORKER_SNAPSHOT_CACHE_MS = 1500;
+  const sessionStateCache = new Map();
+  const workerSnapshotCache = new Map();
+
   async function refreshSessionState(session, hydrateConversation = true, opts = {}) {
     const sid = normalizeSessionName(session || window.ACTIVE_SESSION || 'default');
     if (!sid) return null;
@@ -670,14 +676,30 @@
       catch (_) { return 'conversation'; }
     })();
     const limit = (opts && Number(opts.limit)) || (mode === 'recent' ? 50 : 200);
+    const force = !!(opts && opts.force);
+    const url = '/api/session/state'
+      + '?session=' + encodeURIComponent(sid)
+      + '&limit=' + encodeURIComponent(String(limit))
+      + '&mode='  + encodeURIComponent(mode);
     try {
-      const url = '/api/session/state'
-        + '?session=' + encodeURIComponent(sid)
-        + '&limit=' + encodeURIComponent(String(limit))
-        + '&mode='  + encodeURIComponent(mode);
-      const r = await fetch(url);
-      if (!r.ok) return null;
-      const d = await r.json();
+      const now = Date.now();
+      const cached = sessionStateCache.get(url);
+      let d = null;
+      if (!force && cached && cached.promise) {
+        d = await cached.promise;
+      } else if (!force && cached && cached.data && (now - cached.at) < SESSION_STATE_CACHE_MS) {
+        d = cached.data;
+      } else {
+        const promise = fetch(url).then(async (r) => {
+          if (!r.ok) return null;
+          return r.json();
+        });
+        sessionStateCache.set(url, { promise, data: cached && cached.data, at: (cached && cached.at) || 0 });
+        d = await promise;
+        if (d) sessionStateCache.set(url, { data: d, at: Date.now(), promise: null });
+        else sessionStateCache.delete(url);
+      }
+      if (!d) return null;
       const responseSession = normalizeSessionName(d.session || sid) || sid;
       const currentSession = normalizeSessionName(window.ACTIVE_SESSION || '') || sid;
       if (currentSession !== sid && currentSession !== responseSession) {
@@ -705,6 +727,47 @@
       return d;
     } catch (e) {
       return null;
+    }
+  }
+
+  function refreshActiveConversation(session, opts = {}) {
+    return refreshSessionState(session, true, {
+      mode: 'conversation',
+      limit: CHAT_SWITCH_LIMIT,
+      ...(opts || {}),
+    });
+  }
+
+  function workerSnapshotUrl(opts = {}) {
+    const params = new URLSearchParams();
+    const activeOnly = opts.activeOnly !== false && opts.active_only !== false;
+    if (activeOnly) params.set('active_only', '1');
+    const ip = String(opts.ip || '').trim();
+    if (ip && ip !== 'default') params.set('ip', ip);
+    const query = params.toString();
+    return `/api/orchestrator/workers${query ? `?${query}` : ''}`;
+  }
+
+  async function fetchWorkerSnapshot(opts = {}) {
+    const url = workerSnapshotUrl(opts);
+    const force = !!opts.force;
+    const ttl = Number(opts.ttlMs || opts.ttl_ms || WORKER_SNAPSHOT_CACHE_MS);
+    const now = Date.now();
+    const cached = workerSnapshotCache.get(url);
+    if (!force && cached && cached.promise) return cached.promise;
+    if (!force && cached && cached.data && (now - cached.at) < ttl) return cached.data;
+    const promise = fetch(url, { cache: 'no-store' }).then(async (r) => {
+      if (!r.ok) throw new Error(`workers ${r.status}`);
+      return r.json();
+    });
+    workerSnapshotCache.set(url, { promise, data: cached && cached.data, at: (cached && cached.at) || 0 });
+    try {
+      const data = await promise;
+      workerSnapshotCache.set(url, { data, at: Date.now(), promise: null });
+      return data;
+    } catch (e) {
+      workerSnapshotCache.delete(url);
+      throw e;
     }
   }
   function asTreeNode(entry, depth) {
@@ -741,10 +804,16 @@
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FILE_TREE' }));
       return;
     }
-    window.FILE_TREE_LOADING = true;
-    window.FILE_TREE_ERROR = '';
-    window.FILE_TREE_EMPTY_REASON = '';
-    window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FILE_TREE' }));
+    const quiet = !!(opts && opts.quiet && Array.isArray(window.FILE_TREE) && window.FILE_TREE.length);
+    if (!quiet) {
+      window.FILE_TREE_LOADING = true;
+      window.FILE_TREE_ERROR = '';
+      window.FILE_TREE_EMPTY_REASON = '';
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FILE_TREE' }));
+    } else {
+      window.FILE_TREE_ERROR = '';
+      window.FILE_TREE_EMPTY_REASON = '';
+    }
     // When the user has narrowed to a sub-scope we go recursive so the
     // panel shows every file inside, not just the top level. At the
     // project root we keep it shallow (94 top-level entries already
@@ -766,7 +835,7 @@
           const d = await r.json();
           message = d.error || d.detail || message;
         } catch (_) {}
-        window.FILE_TREE = [];
+        if (!quiet) window.FILE_TREE = [];
         window.FILE_TREE_ERROR = message;
         window.FILE_TREE_EMPTY_REASON = '';
         window.FILE_TREE_LOADING = false;
@@ -794,7 +863,7 @@
         window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FILE_TREE' }));
       }
     } catch (e) {
-      window.FILE_TREE = [];
+      if (!quiet) window.FILE_TREE = [];
       window.FILE_TREE_ERROR = String(e && e.message || e || 'file tree request failed');
       window.FILE_TREE_EMPTY_REASON = '';
       window.FILE_TREE_LOADING = false;
@@ -1071,8 +1140,8 @@
   // Public API for workspace.jsx so it can pull a fresh slice on demand.
   window.atlasData = {
     refreshFileTree, refreshTodos, refreshSsotList, refreshHealth,
-    refreshSlashCommands, refreshWorkflows, refreshSessionState, sessionFor,
-    refreshProgress, normalizeSessionName,
+    refreshSlashCommands, refreshWorkflows, refreshSessionState, refreshActiveConversation,
+    fetchWorkerSnapshot, sessionFor, refreshProgress, normalizeSessionName,
     refreshWorkflowStagesForPolicy: () => {
       window.FLOW_STAGES = flowStagesForExecMode(window.FLOW_STAGES || DEFAULT_FLOW_STAGES);
       window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'FLOW_STAGES' }));
@@ -1118,7 +1187,7 @@
     },
     setActiveSession: (session) => {
       const sid = setActiveSessionName(session);
-      return refreshSessionState(sid);
+      return refreshActiveConversation(sid);
     },
   };
 
@@ -1182,7 +1251,7 @@
     } catch (_) {}
   }
 
-  const _refFiles = debounce(() => refreshFileTree(window.SCOPE_PATH || ''), 250);
+  const _refFiles = debounce(() => refreshFileTree(window.SCOPE_PATH || '', { quiet: true }), 250);
   const _refSsot  = debounce(refreshSsotList, 250);
   const _refTodos = debounce(refreshTodos, 250);
 
@@ -1350,7 +1419,7 @@
           const sid = normalizeSessionName(window.ACTIVE_SESSION || '') || sessionFor(window.SCOPE_PATH || '', ws);
           if (sid === _lastWs) return;
           _lastWs = sid;
-          return refreshSessionState(sid, true);
+          return refreshActiveConversation(sid);
         });
       };
       window.backend.subscribe('commands_changed', () => {
@@ -1389,7 +1458,7 @@
     // backgrounded tab anyway.
     setInterval(() => {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
-      refreshFileTree(window.SCOPE_PATH || '');
+      refreshFileTree(window.SCOPE_PATH || '', { quiet: true });
       refreshTodos();
       refreshSsotList();
       refreshProgress();

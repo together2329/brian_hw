@@ -40,6 +40,22 @@ function readPipeWidth(key, fallback, min, max) {
   }
 }
 
+async function pipelineFetchWorkerSnapshot(opts = {}) {
+  const api = window.atlasData || {};
+  if (typeof api.fetchWorkerSnapshot === 'function') {
+    return api.fetchWorkerSnapshot(opts);
+  }
+  const params = new URLSearchParams();
+  const activeOnly = opts.activeOnly !== false && opts.active_only !== false;
+  if (activeOnly) params.set('active_only', '1');
+  const ip = String(opts.ip || '').trim();
+  if (ip && ip !== 'default') params.set('ip', ip);
+  const query = params.toString();
+  const r = await fetch(`/api/orchestrator/workers${query ? `?${query}` : ''}`, { cache: 'no-store' });
+  if (!r.ok) throw new Error(`workers ${r.status}`);
+  return r.json();
+}
+
 (function injectPipelineHelpers() {
   // Hard-coded copy of _PIPELINE_STAGE_DEPS from src/atlas_api_jobs.py.
   // The frontend can't introspect Python; refresh by hand if the
@@ -1005,10 +1021,7 @@ function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }) {
     let dead = false;
     const fetchAll = async () => {
       try {
-        const u = `/api/orchestrator/workers${ip ? `?ip=${encodeURIComponent(ip)}` : ''}`;
-        const r = await fetch(u);
-        if (!r.ok) return;
-        const j = await r.json();
+        const j = await pipelineFetchWorkerSnapshot({ ip, activeOnly: true });
         if (!dead) setData(j || { workers: [] });
       } catch (_) {}
       try {

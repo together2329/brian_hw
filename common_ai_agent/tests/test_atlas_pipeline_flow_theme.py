@@ -55,15 +55,75 @@ def test_atlas_worker_sidebar_polls_current_ip_scope() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
 
     assert "const workerIp = (() => {" in workspace
-    assert "fetch(`/api/orchestrator/workers${query}`" in workspace
+    assert "workspaceFetchWorkerSnapshot({ ip: workerIp, activeOnly: true })" in workspace
     assert "}, [activeIp]);" in workspace
 
 
-def test_atlas_session_switches_hydrate_chat_history() -> None:
+def test_atlas_worker_panels_share_cached_worker_snapshot_fetch() -> None:
+    atlas_dir = PROJECT_ROOT / "frontend" / "atlas"
+    data = (atlas_dir / "data.jsx").read_text()
+    workspace = (atlas_dir / "workspace.jsx").read_text()
+    pipeline = (atlas_dir / "pipeline.jsx").read_text()
+
+    assert "const workerSnapshotCache = new Map()" in data
+    assert "fetchWorkerSnapshot, sessionFor" in data
+    assert "workspaceFetchWorkerSnapshot({ ip, activeOnly: true, force: manual })" in workspace
+    assert "WorkerOrchestraBar" in pipeline
+    assert "pipelineFetchWorkerSnapshot({ ip, activeOnly: true })" in pipeline
+
+
+def test_atlas_session_switches_hydrate_chat_history_without_full_reload() -> None:
+    data = (PROJECT_ROOT / "frontend" / "atlas" / "data.jsx").read_text()
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
 
     # Workflow, pipeline, and ask_user session switches must re-read the
     # destination session conversation. Keeping hydrateConversation=false here
     # makes chat look empty/stale after moving between screens or workflows.
     assert "window.atlasData.refreshSessionState(sid, false)" not in workspace
-    assert "window.atlasData.refreshSessionState(sid);" in workspace
+    assert "function refreshActiveConversation(session, opts = {})" in data
+    assert "limit: CHAT_SWITCH_LIMIT" in data
+    assert "refreshChatSession(sid)" in workspace
+    assert "refreshChatSession(newNamespace)" in workspace
+
+
+def test_atlas_background_file_refresh_is_quiet() -> None:
+    data = (PROJECT_ROOT / "frontend" / "atlas" / "data.jsx").read_text()
+
+    assert "opts.quiet" in data
+    assert "refreshFileTree(window.SCOPE_PATH || '', { quiet: true })" in data
+    assert "if (!quiet) window.FILE_TREE = []" in data
+
+
+def test_atlas_prompt_send_prefers_current_ip_workflow_session() -> None:
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+
+    # The first message after an IP/workflow switch used to prefer stale
+    # activeNamespace over the visible IP/workflow, so it could run in
+    # <user>/default/<workflow> and be filtered out of the current chat.
+    assert "const canonicalSession = (window.atlasData && window.atlasData.sessionFor)" in workspace
+    assert "window.atlasData.sessionFor(promptScope, promptWorkflow)" in workspace
+    assert "canonicalSession,\n        window.ACTIVE_SESSION" in workspace
+    assert "activeSession,\n        activeNamespace" in workspace
+
+
+def test_atlas_conversation_hydration_rejects_stale_session_payloads() -> None:
+    atlas_dir = PROJECT_ROOT / "frontend" / "atlas"
+    app = (atlas_dir / "app.jsx").read_text()
+    workspace = (atlas_dir / "workspace.jsx").read_text()
+
+    # Cloudflare reconnects can deliver a late conversation snapshot for a
+    # previous namespace. That snapshot must not reset the active IP/workflow
+    # selectors or replace the current chat feed.
+    assert "eventSession !== liveSession" in app
+    assert "ev.type === 'atlas-conversation-loaded' || ev.type === 'atlas-session-loaded'" in app
+    assert "if (session && activeNow && session !== activeNow) return;" in workspace
+
+
+def test_atlas_conversation_hydration_accepts_text_only_messages() -> None:
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+
+    # Some persisted conversation rows store display text in `text` instead
+    # of OpenAI-style `content`. Hydration must render those rows after a
+    # reload/tunnel reconnect instead of leaving the chat blank.
+    assert "const rawContent = m.content !== undefined ? m.content : m.text;" in workspace
+    assert "typeof rawContent === 'string' ? rawContent" in workspace

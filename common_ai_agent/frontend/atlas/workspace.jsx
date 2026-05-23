@@ -86,6 +86,32 @@ const WORKFLOW_RESULT_TOOLS = new Set([
   'signoff',
 ]);
 const _isWorkflowResultTool = (tool) => WORKFLOW_RESULT_TOOLS.has(String(tool || '').toLowerCase());
+const refreshChatSession = (session, opts) => {
+  const api = window.atlasData || {};
+  if (typeof api.refreshActiveConversation === 'function') {
+    return api.refreshActiveConversation(session, opts);
+  }
+  if (typeof api.refreshSessionState === 'function') {
+    return api.refreshSessionState(session, true, opts || {});
+  }
+  return null;
+};
+
+const workspaceFetchWorkerSnapshot = async (opts = {}) => {
+  const api = window.atlasData || {};
+  if (typeof api.fetchWorkerSnapshot === 'function') {
+    return api.fetchWorkerSnapshot(opts);
+  }
+  const params = new URLSearchParams();
+  const activeOnly = opts.activeOnly !== false && opts.active_only !== false;
+  if (activeOnly) params.set('active_only', '1');
+  const ip = String(opts.ip || '').trim();
+  if (ip && ip !== 'default') params.set('ip', ip);
+  const query = params.toString();
+  const r = await fetch(`/api/orchestrator/workers${query ? `?${query}` : ''}`, { cache: 'no-store' });
+  if (!r.ok) throw new Error(`workers ${r.status}`);
+  return r.json();
+};
 const INPUT_HISTORY_LIMIT = 200;
 const QA_HISTORY_LIMIT = 50;
 const QA_HISTORY_LEGACY_STORAGE_KEY = 'atlasQaHistory';
@@ -1383,6 +1409,14 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   const [rightW, setRightW, toggleRight] = useResizable(360, 'atlasRightW', 260, 600);
   const [splitRightW, setSplitRightW] = useResizable(520, 'atlasSplitRightW', 300, 900, false);
 
+  // Mobile drawer state — left/right panels slide in over content on narrow viewports.
+  const [leftDrawerOpen,  setLeftDrawerOpen]  = React.useState(false);
+  const [rightDrawerOpen, setRightDrawerOpen] = React.useState(false);
+  const [mobileHintDismissed, setMobileHintDismissed] = React.useState(() => {
+    try { return localStorage.getItem('atlasMobileHintDismissed') === '1'; } catch (_) { return false; }
+  });
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 900;
+
   // File-tree sort mode — 'name' (alphabetical, dirs first; default) or
   // 'recent' (most recently modified first, regardless of dir/file).
   // Persisted across reloads.
@@ -1463,9 +1497,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         else if (typeof window.backend.connect === 'function') window.backend.connect(sid);
       } catch (_) {}
     }
-    if (window.atlasData && window.atlasData.refreshSessionState) {
-      window.atlasData.refreshSessionState(sid);
-    }
+    refreshChatSession(sid);
   }, [activeNamespace]);
 
   const refreshFeed = (newIntent /*, newWorkflow */) => {
@@ -1484,20 +1516,38 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     window.ACTIVE_SESSION = sid;
     setActiveSession(sid);
     try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
-    if (window.atlasData && window.atlasData.refreshSessionState) {
-      window.atlasData.refreshSessionState(sid);
-    }
+    refreshChatSession(sid);
     return sid;
   }, []);
 
   const sendPrompt = React.useCallback((text, sessionOverride) => {
     if (window.backend) {
+      const promptWorkflow = String(
+        workflow
+        || activeWorkflow
+        || workflowFromSession(window.ACTIVE_SESSION || activeSessionRef.current || activeNamespace || '')
+        || defaultWorkflowForExecMode()
+        || ''
+      ).trim();
+      const promptScope = (() => {
+        const scoped = normalizeUiSession(window.SCOPE_PATH || '');
+        if (scoped && scoped !== 'default') return scoped;
+        const activeIp = String(window.ACTIVE_IP || '').trim();
+        if (activeIp && activeIp !== 'default') return activeIp;
+        const parts = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || '').split('/').filter(Boolean);
+        const ip = parts.length >= 3 ? parts[1] : '';
+        return ip && ip !== 'default' ? ip : '';
+      })();
+      const canonicalSession = (window.atlasData && window.atlasData.sessionFor)
+        ? window.atlasData.sessionFor(promptScope, promptWorkflow)
+        : '';
       const session = resolveSession(
         sessionOverride,
-        activeNamespace,
+        canonicalSession,
         window.ACTIVE_SESSION,
         activeSessionRef.current,
         activeSession,
+        activeNamespace,
       );
       // crypto.randomUUID is secure-context only (localhost / https).
       // Accessing it from http://<lan-ip>/ throws — fall back to
@@ -1521,7 +1571,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         ui_lang: window.ATLAS_UI_LANG || uiLang,
       });
     }
-  }, [activeNamespace, activeSession, resolveSession, uiLang]);
+  }, [activeNamespace, activeSession, activeWorkflow, resolveSession, uiLang, workflow]);
 
   const switchToDefaultSession = React.useCallback(() => {
     const sid = (window.atlasData && window.atlasData.sessionFor)
@@ -1530,9 +1580,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     window.ACTIVE_SESSION = sid;
     setActiveSession(sid);
     try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
-    if (window.atlasData && window.atlasData.refreshSessionState) {
-      window.atlasData.refreshSessionState(sid);
-    }
+    refreshChatSession(sid);
     return sid;
   }, []);
 
@@ -1561,9 +1609,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     streamBufferRef.current = '';
     setStreamText('');
 
-    if (window.atlasData && window.atlasData.refreshSessionState) {
-      window.atlasData.refreshSessionState(newNamespace);
-    }
+    refreshChatSession(newNamespace);
 
     window.dispatchEvent(new CustomEvent('atlas-session-switched', { detail: { sessionId: owner, namespace: newNamespace } }));
   }, [activeSession]);
@@ -2075,9 +2121,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     if (row?.ip && window.atlasData?.setScopePath) {
       window.atlasData.setScopePath(row.ip);
     }
-    if (window.atlasData?.refreshSessionState) {
-      window.atlasData.refreshSessionState(sid);
-    }
+    refreshChatSession(sid);
     setWorkflow('ssot-gen');
     refreshSsotQa(sid);
   }, [refreshSsotQa]);
@@ -2107,9 +2151,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     if (eventWorkflow) {
       setWorkflow(eventWorkflow);
     }
-    if (window.atlasData?.refreshSessionState) {
-      window.atlasData.refreshSessionState(sid);
-    }
+    refreshChatSession(sid);
   }, [flowMatchesCurrentSession]);
 
   // Force a re-render when the live data layer (data.jsx) refreshes
@@ -2173,9 +2215,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
       const nextWorkflow = workflowFromSession(sid);
       setWorkflow(nextWorkflow && nextWorkflow !== 'default' ? nextWorkflow : defaultWorkflowForExecMode());
-      if (window.atlasData && window.atlasData.refreshSessionState) {
-        window.atlasData.refreshSessionState(sid);
-      }
+      refreshChatSession(sid);
     };
     window.addEventListener('atlas-session-switched', onSessionSwitched);
     return () => window.removeEventListener('atlas-session-switched', onSessionSwitched);
@@ -2205,6 +2245,8 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     const onConvLoaded = (ev) => {
       const msgs = (ev.detail && ev.detail.messages) || [];
       const session = normalizeUiSession(ev.detail && ev.detail.session || '');
+      const activeNow = normalizeUiSession(window.ACTIVE_SESSION || activeSessionRef.current || '');
+      if (session && activeNow && session !== activeNow) return;
       const telemetry = workspaceTelemetryFromMessages(msgs);
       if (telemetry.count || telemetry.result) {
         setWorkspaceTelemetry(prev => ({
@@ -2222,8 +2264,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       const newFeed = [];
       for (const m of msgs) {
         const role = m.role;
-        const content = typeof m.content === 'string' ? m.content
-          : Array.isArray(m.content) ? m.content.map(c => c.text || '').join('')
+        const rawContent = m.content !== undefined ? m.content : m.text;
+        const content = typeof rawContent === 'string' ? rawContent
+          : Array.isArray(rawContent) ? rawContent.map(c => c.text || '').join('')
           : '';
         if (role === 'user' && content) {
           newFeed.push({ kind: 'user', text: content });
@@ -2607,9 +2650,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       window.ACTIVE_SESSION = sid;
       setActiveSession(sid);
       try { localStorage.setItem('atlasActiveSession', sid); } catch (_) {}
-      if (window.atlasData && window.atlasData.refreshSessionState) {
-        window.atlasData.refreshSessionState(sid);
-      }
+      refreshChatSession(sid);
       setFeed(f => [...f, { kind: 'agent', text: `Session set to \`${sid}\`.` }]);
       _clearStreaming();
       return;
@@ -3861,9 +3902,40 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       padding: 16,
       height: '100%', overflow: 'hidden',
     }}>
+      {/* Mobile: hint banner, drawer toggles, and backdrop */}
+      {isMobile && !mobileHintDismissed && (
+        <div className="atlas-mobile-hint" style={{ gridColumn: '1 / -1' }}>
+          <span>ATLAS is optimized for desktop. Some panes may not be available.</span>
+          <button
+            aria-label="Dismiss mobile hint"
+            onClick={() => {
+              setMobileHintDismissed(true);
+              try { localStorage.setItem('atlasMobileHintDismissed', '1'); } catch (_) {}
+            }}
+          >×</button>
+        </div>
+      )}
+      {isMobile && (
+        <>
+          <button
+            className="ws-drawer-toggle left"
+            aria-label="Open left panel"
+            onClick={() => { setLeftDrawerOpen(o => !o); setRightDrawerOpen(false); }}
+          >☰</button>
+          <button
+            className="ws-drawer-toggle right"
+            aria-label="Open right panel"
+            onClick={() => { setRightDrawerOpen(o => !o); setLeftDrawerOpen(false); }}
+          >⚙</button>
+          <div
+            className={'ws-drawer-backdrop' + (leftDrawerOpen || rightDrawerOpen ? ' visible' : '')}
+            onClick={() => { setLeftDrawerOpen(false); setRightDrawerOpen(false); }}
+          />
+        </>
+      )}
       {/* LEFT — Mode/Workflow + Files (collapsed when leftW===0 OR sim_debug) */}
       {effLeftW > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
+        <div className={'ws-left-panel' + (isMobile ? (leftDrawerOpen ? ' drawer-open' : '') : '')} style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
         <div className="box">
           <div className="box-h">
             <span>▸ mode</span>
@@ -4851,7 +4923,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
 
       {/* RIGHT — ATLAS status + SSOT/Todo/Diff (hidden when sim_debug or collapsed) */}
       {effRightW > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
+        <div className={'ws-right-panel' + (isMobile ? (rightDrawerOpen ? ' drawer-open' : '') : '')} style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
         <AgentStatusPanel intent={intent} workflow={workflow} activeIp={activeIp}
                           onCollapse={toggleRight} />
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -15226,10 +15298,7 @@ const OrchestratorWorkflowPane = ({ activeIp }) => {
     const manual = !!(options && options.manual);
     if (manual) setLoading(true);
     try {
-      const query = ip && ip !== 'default' ? `?ip=${encodeURIComponent(ip)}` : '';
-      const r = await fetch(`/api/orchestrator/workers${query}`, { cache: 'no-store' });
-      if (!r.ok) throw new Error(`workers ${r.status}`);
-      const j = await r.json();
+      const j = await workspaceFetchWorkerSnapshot({ ip, activeOnly: true, force: manual });
       setSnapshot(j || { orchestrator: {}, workers: [] });
       setError('');
     } catch (e) {
@@ -16053,13 +16122,7 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
       if (dead) return;
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       try {
-        const query = workerIp ? `?ip=${encodeURIComponent(workerIp)}` : '';
-        const r = await fetch(`/api/orchestrator/workers${query}`, { cache: 'no-store' });
-        if (!r.ok) {
-          if (!dead) setWorkersError(`HTTP ${r.status}`);
-          return;
-        }
-        const j = await r.json();
+        const j = await workspaceFetchWorkerSnapshot({ ip: workerIp, activeOnly: true });
         const list = Array.isArray(j && j.workers) ? j.workers : [];
         if (!dead) {
           setLiveWorkers(list);

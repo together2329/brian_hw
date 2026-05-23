@@ -5562,3 +5562,182 @@ pre, code,
 /* Stage rail labels: keep weight >= 500 for readability at small sizes */
 .pipe-stage-rail-name  { font-weight: max(500, var(--ui-control-weight, 500)); }
 .pipe-stage-rail-state { letter-spacing: 0.04em; }
+
+/* ── Mobile responsive layout (≤ 900px) ──────────────────────────────────
+   The 1920×1080 fixed canvas + scale() transform is disabled on narrow
+   viewports (the JS scale() function returns early when innerWidth < 900).
+   These rules make the inner React tree reflow for phone-sized screens.
+   Desktop layout is UNCHANGED — all rules are scoped to max-width:900px.   */
+@media (max-width: 900px) {
+  /* Kill the fixed canvas sizing; let the app fill the viewport naturally */
+  html, body {
+    overflow: auto;
+    height: 100%;
+    width: 100%;
+  }
+
+  #scaler {
+    transform: none !important;
+    width: 100vw !important;
+    height: auto !important;
+    min-height: 100dvh;
+    position: static !important;
+  }
+
+  /* App root: switch from fixed 1920px to fluid */
+  .app {
+    width: 100vw;
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+  }
+
+  /* ── Mobile hint banner ── */
+  .atlas-mobile-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: color-mix(in oklch, var(--accent) 12%, var(--bg-2));
+    border-bottom: 1px solid color-mix(in oklch, var(--accent) 30%, var(--line));
+    font-size: 12px;
+    color: var(--fg-mute);
+    position: sticky;
+    top: 0;
+    z-index: 200;
+  }
+  .atlas-mobile-hint button {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: var(--fg-mute);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Workspace 5-track grid → single column stack ── */
+  .app-main > div[style*="grid"] {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 8px !important;
+    gap: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide splitter handles on mobile */
+  .ws-splitter { display: none !important; }
+
+  /* Left and right panels hidden by default; shown when drawer is open */
+  .ws-left-panel  { display: none; }
+  .ws-right-panel { display: none; }
+  .ws-left-panel.drawer-open,
+  .ws-right-panel.drawer-open {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    z-index: 300;
+    width: 85vw;
+    max-width: 340px;
+    background: var(--panel);
+    box-shadow: var(--shadow-pop);
+    overflow-y: auto;
+    padding: 12px;
+    gap: 12px;
+  }
+  .ws-left-panel.drawer-open  { left: 0; }
+  .ws-right-panel.drawer-open { right: 0; }
+
+  /* Drawer backdrop */
+  .ws-drawer-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 299;
+  }
+  .ws-drawer-backdrop.visible { display: block; }
+
+  /* Drawer toggle buttons */
+  .ws-drawer-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--fg-dim);
+    font-size: 18px;
+    position: fixed;
+    z-index: 250;
+    bottom: 72px;
+  }
+  .ws-drawer-toggle.left  { left: 8px; }
+  .ws-drawer-toggle.right { right: 8px; }
+  .ws-drawer-toggle:active { background: var(--bg-3); }
+
+  /* Center column: full width */
+  .ws-center-panel {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Top bar: allow horizontal scroll instead of overflow-hidden */
+  .dir-switcher {
+    overflow-x: auto;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+  }
+
+  /* Tab bar: horizontal scroll */
+  .ws-tab-bar {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .ws-tab-bar::-webkit-scrollbar { display: none; }
+
+  /* Chat input: full width, sticky bottom */
+  .prompt-row {
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+    background: var(--field-bg);
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    margin: 0 -8px;
+    padding: 10px 14px;
+  }
+
+  /* Touch targets */
+  .dir-btn,
+  .btn,
+  .ws-drawer-toggle,
+  .atlas-mobile-hint button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Tab chips: taller for touch */
+  .tab-chip { min-height: 44px; padding: 0 10px; }
+
+  /* Scrollbar: wider thumb on touch */
+  *::-webkit-scrollbar { width: 4px; height: 4px; }
+}
+/* ── End mobile styles ────────────────────────────────────────────────── */

@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { workerTone } from '../lib/workers_panel_logic.js';
+import { workerTone } from '../lib/workers_panel_logic.mjs';
 
 // cfgFor() — rendering concern only, stays inline in test
 function cfgFor(t) {

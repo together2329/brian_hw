@@ -3470,6 +3470,31 @@ def register_jobs_routes(
         user = request.scope.get("user") or {}
         return str(user.get("id") or "").strip()
 
+    def _job_visible_to_request(
+        job: dict[str, Any],
+        request_user: str,
+        request_db_user: str,
+    ) -> bool:
+        """Return True if *job* belongs to the authenticated user.
+
+        In single-user mode (ATLAS_MULTI_USER not set or disabled) every job is
+        visible.  In multi-user mode a job is visible when either its
+        ``db_user_id`` or its ``user_id`` matches the resolved request identity.
+        Jobs with *no* user affiliation are treated as private (not public) so
+        that orphaned entries don't leak across accounts.
+        """
+        if not _multi_user_enabled():
+            return True
+        if not request_user and not request_db_user:
+            return False
+        job_db_user = str(job.get("db_user_id") or "").strip()
+        if job_db_user:
+            return bool(request_db_user and job_db_user == request_db_user)
+        job_user = str(job.get("user_id") or "").strip()
+        if job_user:
+            return bool(request_user and job_user == request_user)
+        return False
+
     def _default_job_session_for_owner(owner: str, ip: str, workflow: str) -> str:
         if _multi_user_enabled() and owner and owner != "local-admin":
             return f"{owner}/{ip}/{workflow}" if ip else f"{owner}/{workflow}"
@@ -4045,9 +4070,15 @@ def register_jobs_routes(
                 return ("failed", row.get("error_summary"))
             return (None, None)
 
-        # snapshot of running jobs for this ip
+        # snapshot of running jobs for this ip, scoped to the authenticated user
+        _ps_request_user = _request_username(request)
+        _ps_request_db_user = _request_db_user_id(request) or ""
         with _jobs_lock:
-            ip_jobs = [dict(j) for j in _jobs.values() if j.get("ip") == ip]
+            ip_jobs = [
+                dict(j) for j in _jobs.values()
+                if j.get("ip") == ip
+                and _job_visible_to_request(j, _ps_request_user, _ps_request_db_user)
+            ]
         progress_debug = _combine_progress_debug(
             progress_debug,
             _summarize_worker_progress(ip_jobs),
@@ -5154,12 +5185,14 @@ def register_jobs_routes(
         os.environ["ATLAS_ORCHESTRATOR_MODE"] = "1" if body["enabled"] else "0"
         os.environ["ATLAS_EXEC_MODE"] = "orchestrator" if body["enabled"] else "single-worker"
         os.environ["ATLAS_DEFAULT_EXEC_MODE"] = os.environ["ATLAS_EXEC_MODE"]
+        os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "0" if body["enabled"] else "1"
         if persist_config_values is not None:
             try:
                 persist_config_values({
                     "ATLAS_EXEC_MODE": os.environ["ATLAS_EXEC_MODE"],
                     "ATLAS_DEFAULT_EXEC_MODE": os.environ["ATLAS_DEFAULT_EXEC_MODE"],
                     "ATLAS_ORCHESTRATOR_MODE": os.environ["ATLAS_ORCHESTRATOR_MODE"],
+                    "ATLAS_SINGLE_MAIN_LOOP": os.environ["ATLAS_SINGLE_MAIN_LOOP"],
                 })
             except Exception:
                 pass
@@ -5271,8 +5304,32 @@ def register_jobs_routes(
 
         params = dict(request.query_params)
         ip = (params.get("ip") or "").strip()
+        active_only = str(
+            params.get("active_only")
+            or params.get("active")
+            or params.get("running_only")
+            or ""
+        ).strip().lower() in {"1", "true", "yes", "on"}
         request_user = _request_username(request)
         request_db_user = _request_db_user_id(request)
+        if _multi_user_enabled() and not request_user and not request_db_user:
+            return JSONResponse({
+                "ip": ip or None,
+                "orchestrator": {
+                    "enabled": _orchestrator_mode_enabled(),
+                    "mode": "json" if _orchestrator_mode_enabled() else None,
+                    "active_target": None,
+                    "active_corr": None,
+                    "last_kind": None,
+                    "model": ORCHESTRATOR_MODEL,
+                    "reasoning_effort": ORCHESTRATOR_REASONING_EFFORT,
+                    "profile": orchestrator_profile_name(),
+                },
+                "workers": [],
+                "count": 0,
+                "active_only": active_only,
+                "authenticated": False,
+            })
 
         # Workflows the orchestrator can dispatch. Order matches canonical pipeline.
         workflows = list(_DEFAULT_WORKER_PORTS.keys())
@@ -5282,18 +5339,8 @@ def register_jobs_routes(
             # probe traffic ~Nx without changing user-visible latency.
             return _probe_worker_health_cached(url, timeout=2.0)
 
-        def _job_visible_to_request(job: dict[str, Any]) -> bool:
-            if not _multi_user_enabled():
-                return True
-            if not request_user and not request_db_user:
-                return True
-            job_db_user = str(job.get("db_user_id") or "").strip()
-            if job_db_user:
-                return bool(request_db_user and job_db_user == request_db_user)
-            job_user = str(job.get("user_id") or "").strip()
-            if job_user:
-                return bool(request_user and job_user == request_user)
-            return False
+        def _job_visible(job: dict[str, Any]) -> bool:
+            return _job_visible_to_request(job, request_user, request_db_user)
 
         def _visible_worker_jobs(workflow: str) -> list[dict[str, Any]]:
             active_states = {"pending", "queued", "running", "blocked"}
@@ -5307,7 +5354,7 @@ def register_jobs_routes(
                     continue
                 if str(job.get("status") or "").strip() not in active_states:
                     continue
-                if not _job_visible_to_request(job):
+                if not _job_visible(job):
                     continue
                 out.append({
                     "job_id": job.get("job_id") or "",
@@ -5334,7 +5381,16 @@ def register_jobs_routes(
                 wf: _visible_worker_jobs(wf)
                 for wf in workflows
             }
+            if active_only:
+                workflows_to_probe = [
+                    wf for wf in workflows
+                    if visible_by_workflow.get(wf)
+                ]
+            else:
+                workflows_to_probe = workflows
             for wf in workflows:
+                if wf not in workflows_to_probe:
+                    continue
                 active_list = visible_by_workflow.get(wf) or []
                 default_session = _default_job_session_for_owner(request_user, ip, wf)
                 expected_worker_owner, _expected_worker_partition = _workflow_worker_owner_keys(
@@ -5493,6 +5549,7 @@ def register_jobs_routes(
             },
             "workers": workers,
             "count": len(workers),
+            "active_only": active_only,
         })
 
     # ── /api/pipeline/run_policy ────────────────────────────────────
@@ -5538,12 +5595,14 @@ def register_jobs_routes(
             os.environ["ATLAS_EXEC_MODE"] = exec_mode
             os.environ["ATLAS_DEFAULT_EXEC_MODE"] = exec_mode
             os.environ["ATLAS_ORCHESTRATOR_MODE"] = "1" if exec_mode == "orchestrator" else "0"
+            os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "1" if exec_mode == "single-worker" else "0"
             if persist_config_values is not None:
                 try:
                     persist_config_values({
                         "ATLAS_EXEC_MODE": exec_mode,
                         "ATLAS_DEFAULT_EXEC_MODE": exec_mode,
                         "ATLAS_ORCHESTRATOR_MODE": "1" if exec_mode == "orchestrator" else "0",
+                        "ATLAS_SINGLE_MAIN_LOOP": "1" if exec_mode == "single-worker" else "0",
                     })
                 except Exception:
                     pass
@@ -5742,17 +5801,25 @@ def register_jobs_routes(
     # ── /api/jobs ──────────────────────────────────────────────────
 
     @app.get("/api/jobs")
-    async def api_jobs():
+    async def api_jobs(request: Request):
         """Aggregate job status across all dispatched workers.
 
         For each tracked job, poll the worker's /status/{run_id} (with a
         small 1.5s per-job cache to avoid hammering during a 2-second
         frontend poll cycle) and return the merged list.  Sorted by
         started_at descending so the most-recent job is first.
+
+        In multi-user mode the response is scoped to the authenticated user;
+        in single-user / local-admin mode all jobs are returned as before.
         """
         pr  = project_root()
         snapshot, _ = _refresh_tracked_jobs(pr)
-        out = [_public_job(job) for job in snapshot]
+        request_user = _request_username(request)
+        request_db_user = _request_db_user_id(request)
+        out = [
+            _public_job(job) for job in snapshot
+            if _job_visible_to_request(job, request_user, request_db_user)
+        ]
         out.sort(key=lambda j: j.get("started_at", 0), reverse=True)
         return JSONResponse({"jobs": out, "count": len(out)})
 

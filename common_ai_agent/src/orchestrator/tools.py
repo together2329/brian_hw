@@ -838,3 +838,34 @@ def import_document(
         "sha256": sha256,
     }
     return result, _safe_json(result)
+
+
+# ----------------------------------------------------------------------
+# web_search / web_fetch — direct orchestrator access to the web
+# ----------------------------------------------------------------------
+
+
+def web_search(query: str, limit: int = 5) -> ToolResult:
+    """Search the web via cursor-cli and return results as text."""
+    try:
+        from core.tools_web import web_search as _impl  # type: ignore
+        result_text = _impl(query=query, limit=int(limit), lang="en")
+        return (
+            {"ok": True, "results": result_text},
+            f"web_search query={query!r} limit={limit}",
+        )
+    except Exception as exc:
+        return ({"ok": False, "error": str(exc)}, "web_search failed")
+
+
+def web_fetch(url: str, formats: str = "markdown") -> ToolResult:
+    """Fetch a URL and return its content as markdown."""
+    try:
+        from core.tools_web import web_fetch as _impl  # type: ignore
+        result_text = _impl(url=url, formats=formats)
+        return (
+            {"ok": True, "content": result_text},
+            f"web_fetch url={url!r}",
+        )
+    except Exception as exc:
+        return ({"ok": False, "error": str(exc)}, "web_fetch failed")

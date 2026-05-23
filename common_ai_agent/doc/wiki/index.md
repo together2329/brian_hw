@@ -13,6 +13,8 @@ This section is additive; it does not replace the reading order below.
 |---|---|
 | Overall source-of-truth map | [[common-ai-agent-map]] |
 | What owns SSOT/RTL/TB/sim/coverage artifacts | [[workflow-ownership-and-boundaries]] |
+| How to verify test quality / which test gates which feature | [[atlas-test-feature-coverage]] |
+| 2026-05-23 test-hardening session summary | [[atlas-test-hardening-2026-05-23]] |
 | How to run/debug the visible product flow | [[atlas-pipeline-screen]] + [[pipeline-progress-debugging]] |
 | How to control the visible in-app browser | [[atlas-browser-control-runbook]] |
 | How Pipeline worker detail opens real workspaces | [[atlas-pipeline-worker-workspace-jump]] |

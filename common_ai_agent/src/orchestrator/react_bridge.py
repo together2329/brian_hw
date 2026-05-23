@@ -343,6 +343,8 @@ def _bind_orchestrator_tools(
         "write_handoff":         _wrap("write_handoff",         _write_handoff),
         "mark_downstream_stale": _wrap("mark_downstream_stale", _mark_downstream_stale),
         "import_document":       _wrap("import_document",       _import_document),
+        "web_search":            _wrap("web_search",            lambda **kw: orch_tools.web_search(query=kw.get("query", ""), limit=kw.get("limit", 5))),
+        "web_fetch":             _wrap("web_fetch",             lambda **kw: orch_tools.web_fetch(url=kw.get("url", ""), formats=kw.get("formats", "markdown"))),
     }
 
 

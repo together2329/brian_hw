@@ -1089,6 +1089,70 @@ def test_websocket_slash_command_executes_without_agent_prompt(tmp_path, monkeyp
     assert session._inbox.empty()
 
 
+def test_websocket_prompt_explicit_session_rebinds_before_queueing(tmp_path, monkeypatch):
+    import queue
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    default_session_id = "alice/default/default"
+    target_session_id = "alice/ip_alpha/rtl-gen"
+    default_session = app.state.bridge._ensure_session(default_session_id)
+    target_session = app.state.bridge._ensure_session(target_session_id)
+
+    def receive_agent_received(ws):
+        seen = []
+        for _ in range(4):
+            msg = ws.receive_json()
+            seen.append(msg)
+            if msg.get("type") == "agent_received":
+                return msg
+        raise AssertionError(f"agent_received not seen: {seen!r}")
+
+    with client.websocket_connect(f"/ws/agent?session_id={default_session_id}") as ws:
+        assert ws.receive_json()["type"] == "hello"
+        ws.send_json({
+            "type": "prompt",
+            "session": target_session_id,
+            "text": "Hi",
+            "msg_id": "cloudflare-first-prompt",
+        })
+        ack = receive_agent_received(ws)
+
+        assert ack["session_id"] == target_session_id
+        assert ack["msg_id"] == "cloudflare-first-prompt"
+        assert target_session._inbox.get_nowait() == "Hi"
+        assert default_session._inbox.empty()
+        assert len(default_session.clients) == 0
+        assert len(target_session.clients) == 1
+
+        ws.send_json({
+            "type": "prompt",
+            "session": target_session_id,
+            "text": "Hi again",
+            "msg_id": "cloudflare-first-prompt",
+        })
+        duplicate_ack = receive_agent_received(ws)
+
+        assert duplicate_ack["session_id"] == target_session_id
+        assert target_session._inbox.empty()
+        try:
+            default_session._inbox.get_nowait()
+        except queue.Empty:
+            pass
+        else:
+            raise AssertionError("stale default session received explicit-session prompt")
+
+
 def test_no_arg_stage_slash_uses_websocket_session_ip(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 

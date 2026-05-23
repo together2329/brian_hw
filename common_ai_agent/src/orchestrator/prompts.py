@@ -65,6 +65,9 @@ You have these tools:
 10. import_document — extract text from a PDF or text file into req/ for ssot-gen.
     Call this BEFORE dispatch_workflow(ssot-gen) when the user provides a document path.
     Returns a requirement_source_id to include in the ssot-gen dispatch payload.
+11. web_search — search the web for current information (EDA tool changes, IEEE standards,
+    vendor docs, anything beyond training cutoff). Pass query and optional limit.
+12. web_fetch — fetch a URL and return its content as markdown.
 
 End-state contract:
 - Call dispatch_workflow with workflow="__final__" and payload={"state": "completed"|
@@ -83,7 +86,7 @@ def build_system_prompt(extra_context: str = "") -> str:
 
 
 def tool_schemas() -> List[Dict[str, Any]]:
-    """OpenAI-compatible function-calling schemas for the 8 orchestrator tools."""
+    """OpenAI-compatible function-calling schemas for the 12 orchestrator tools."""
     return [
         {
             "type": "function",
@@ -295,6 +298,55 @@ def tool_schemas() -> List[Dict[str, Any]]:
                         },
                     },
                     "required": ["ip", "path"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "web_search",
+                "description": (
+                    "Search the web for current information. Use when the user's question "
+                    "requires data that may not be in the codebase or the orchestrator's "
+                    "training cutoff (e.g. recent EDA tool changes, IEEE standard updates, "
+                    "vendor docs)."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "Search query string.",
+                        },
+                        "limit": {
+                            "type": "integer",
+                            "default": 5,
+                            "description": "Maximum number of results (1-20, default 5).",
+                        },
+                    },
+                    "required": ["query"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "web_fetch",
+                "description": "Fetch a URL and return its content as markdown.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "url": {
+                            "type": "string",
+                            "description": "URL to fetch.",
+                        },
+                        "formats": {
+                            "type": "string",
+                            "default": "markdown",
+                            "description": "Return format (default: 'markdown').",
+                        },
+                    },
+                    "required": ["url"],
                 },
             },
         },

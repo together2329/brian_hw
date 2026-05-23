@@ -6644,12 +6644,36 @@ def _dispatch_workflow_direct_fallback(
         # Lazy-spawn the per-workflow worker if the orchestrator is the
         # first caller. Prefer the registered bridge; when the bridge was
         # never installed, fall back to atlas_api_jobs' small direct helper.
+        session_name = _direct_dispatch_session(target, ip=ip or "", scope=scope or "")
+        session_parts = [p for p in session_name.split("/") if p]
+        session_owner = session_parts[0] if session_parts else ""
         resolved_url = target
         if callable(_resolve_worker):
             try:
                 resolved_url = _resolve_worker(target)
             except Exception:
                 resolved_url = target
+        try:
+            try:
+                from src import atlas_api_jobs as _atlas_api_jobs  # type: ignore
+            except Exception:
+                import atlas_api_jobs as _atlas_api_jobs  # type: ignore
+            resolve_for_job = getattr(_atlas_api_jobs, "_resolve_worker_url_for_job", None)
+            if callable(resolve_for_job):
+                scoped_url = resolve_for_job(
+                    target,
+                    session_name=session_name,
+                    user_id=session_owner,
+                    db_user_id=(
+                        os.environ.get("ATLAS_ACTIVE_DB_USER_ID", "")
+                        or os.environ.get("ATLAS_DB_USER_ID", "")
+                    ),
+                    exec_mode=exec_mode or "orchestrator",
+                )
+                if scoped_url:
+                    resolved_url = scoped_url
+        except Exception:
+            pass
         lazy_project_root = _atlas_project_root() or os.getcwd()
         if _ensure_lazy_worker_callback is not None:
             try:
@@ -6687,9 +6711,8 @@ def _dispatch_workflow_direct_fallback(
                     "ip": ip or "",
                     "scope": scope or "",
                     "status": "error",
-                        "result": {"error": f"lazy worker spawn failed: {exc}"},
+                    "result": {"error": f"lazy worker spawn failed: {exc}"},
                 }, ""
-        session_name = _direct_dispatch_session(target, ip=ip or "", scope=scope or "")
         project_root = lazy_project_root
         scope_path = ""
         if ip:
@@ -6698,7 +6721,7 @@ def _dispatch_workflow_direct_fallback(
             scope_path = str(scope)
         if _truthy_env("ATLAS_DIRECT_WORKER_SYNC"):
             result = worker_call(
-                worker=target,
+                worker=resolved_url,
                 task=task,
                 model=model or "",
                 workflow=target,
@@ -6710,7 +6733,7 @@ def _dispatch_workflow_direct_fallback(
             run_id = result.get("run_id", "") if isinstance(result, dict) else ""
         else:
             result = worker_start(
-                worker=target,
+                worker=resolved_url,
                 task=task,
                 model=model or "",
                 workflow=target,

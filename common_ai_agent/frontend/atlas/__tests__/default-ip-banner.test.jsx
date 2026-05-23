@@ -10,7 +10,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { shouldShowSelectIpBanner, BANNER_TITLE, BANNER_DETAIL } from '../lib/banner_logic.js';
+import { shouldShowSelectIpBanner, BANNER_TITLE, BANNER_DETAIL } from '../lib/banner_logic.mjs';
 
 function OrchestratorIpBanner({ workflow, activeIp }) {
   const orchestratorIdle = shouldShowSelectIpBanner({ workflow, activeIp });

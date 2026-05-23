@@ -1,13 +1,20 @@
-// dashboard_helpers.js — Dashboard openIp payload builder.
-// Works as both an ES module (vitest/Node) and a plain <script> (browser UMD).
+// dashboard_helpers.js — Dashboard openIp payload builder (browser plain script).
+// For ES module imports (vitest), see dashboard_helpers.mjs.
 
-export function buildOpenIpPayload(row, workflowValue) {
-  const wf = workflowValue(row);
-  const payload = { id: row.session_id || '', ip: row.ip };
-  if (wf) payload.workflow = wf;
-  return payload;
-}
+(function () {
+  function buildOpenIpPayload(row, workflowValue) {
+    var wf = workflowValue(row);
+    var payload = { id: row.session_id || '', ip: row.ip };
+    if (wf) payload.workflow = wf;
+    return payload;
+  }
 
-if (typeof window !== 'undefined') {
-  window.AtlasDashboardHelpers = { buildOpenIpPayload };
-}
+  var api = { buildOpenIpPayload: buildOpenIpPayload };
+
+  if (typeof window !== 'undefined') {
+    window.AtlasDashboardHelpers = api;
+  }
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = api;
+  }
+})();

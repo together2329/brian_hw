@@ -11,7 +11,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { buildOpenIpPayload } from '../lib/dashboard_helpers.js';
+import { buildOpenIpPayload } from '../lib/dashboard_helpers.mjs';
 
 // Mocked dashboard data shape matching /api/user/dashboard response
 const MOCK_DASHBOARD = {

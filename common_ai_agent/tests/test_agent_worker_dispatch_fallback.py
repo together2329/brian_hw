@@ -45,6 +45,17 @@ def _clear_worker_env(monkeypatch):
     ):
         monkeypatch.delenv(key, raising=False)
     agent_client.set_coordinator("")
+    try:
+        import src.atlas_api_jobs as atlas_jobs
+        atlas_jobs._SESSION_WORKER_PORTS.clear()
+        atlas_jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
+    except Exception:
+        pass
+
+
+def _assert_scoped_worker_url(url: str, legacy_url: str) -> None:
+    assert url.startswith("http://127.0.0.1:")
+    assert url != legacy_url
 
 
 def test_worker_call_resolves_ssot_gen_alias_to_orchestrator_port(monkeypatch):
@@ -101,13 +112,51 @@ def test_dispatch_workflow_uses_direct_worker_when_ui_bridge_missing(monkeypatch
     assert data["workflow"] == "ssot-gen"
     assert data["run_id"] == "run-ssot"
     assert data["session"] == "default/new_axi/ssot-gen"
-    assert calls[0]["worker"] == "ssot-gen"
+    _assert_scoped_worker_url(data["worker_url"], "http://127.0.0.1:5621")
+    assert calls[0]["worker"] == data["worker_url"]
     assert calls[0]["workflow"] == "ssot-gen"
     assert calls[0]["model"] == "glm-5.1"
     assert calls[0]["session"] == "default/new_axi/ssot-gen"
     assert calls[0]["ip"] == "new_axi"
     assert "IP: new_axi" in calls[0]["task"]
     assert "Quality pass for new_axi SSOT." in calls[0]["task"]
+
+
+def test_dispatch_workflow_direct_fallback_scopes_worker_url_by_active_user(monkeypatch):
+    _clear_worker_env(monkeypatch)
+    monkeypatch.setattr(tools, "_dispatch_workflow_callback", None)
+    calls = []
+
+    def fake_worker_start(**kwargs):
+        calls.append(kwargs)
+        return {
+            "status": "pending",
+            "run_id": f"run-{len(calls)}",
+            "worker": kwargs["worker"],
+        }
+
+    monkeypatch.setattr(agent_client, "worker_start", fake_worker_start)
+
+    monkeypatch.setenv("ATLAS_ACTIVE_SESSION", "brian/new_axi/orchestrator")
+    first = json.loads(tools.dispatch_workflow(
+        workflow="rtl-gen",
+        ip="new_axi",
+        prompt="Generate RTL.",
+    ))
+    monkeypatch.setenv("ATLAS_ACTIVE_SESSION", "happygrowth/new_axi/orchestrator")
+    second = json.loads(tools.dispatch_workflow(
+        workflow="rtl-gen",
+        ip="new_axi",
+        prompt="Generate RTL.",
+    ))
+
+    assert first["session"] == "brian/new_axi/rtl-gen"
+    assert second["session"] == "happygrowth/new_axi/rtl-gen"
+    _assert_scoped_worker_url(calls[0]["worker"], "http://127.0.0.1:5623")
+    _assert_scoped_worker_url(calls[1]["worker"], "http://127.0.0.1:5623")
+    assert calls[0]["worker"] != calls[1]["worker"]
+    assert first["worker_url"] == calls[0]["worker"]
+    assert second["worker_url"] == calls[1]["worker"]
 
 
 def test_dispatch_workflow_lazy_starts_via_registered_callback(monkeypatch, tmp_path):
@@ -139,10 +188,11 @@ def test_dispatch_workflow_lazy_starts_via_registered_callback(monkeypatch, tmp_
     data = json.loads(output)
 
     assert data["ok"] is True
+    _assert_scoped_worker_url(data["worker_url"], "http://127.0.0.1:5621")
     assert lazy_calls == [
-        ("http://127.0.0.1:5621", "ssot-gen", str(tmp_path))
+        (data["worker_url"], "ssot-gen", str(tmp_path))
     ]
-    assert worker_starts[0]["worker"] == "ssot-gen"
+    assert worker_starts[0]["worker"] == data["worker_url"]
 
 
 def test_dispatch_workflow_lazy_starts_via_atlas_jobs_when_callback_missing(
@@ -182,8 +232,9 @@ def test_dispatch_workflow_lazy_starts_via_atlas_jobs_when_callback_missing(
     data = json.loads(output)
 
     assert data["ok"] is True
+    _assert_scoped_worker_url(data["worker_url"], "http://127.0.0.1:5621")
     assert lazy_calls == [
-        ("http://127.0.0.1:5621", "ssot-gen", str(tmp_path))
+        (data["worker_url"], "ssot-gen", str(tmp_path))
     ]
 
 
@@ -210,7 +261,7 @@ def test_dispatch_workflow_reports_lazy_spawn_failure(monkeypatch, tmp_path):
 
     assert data["ok"] is False
     assert data["source"] == "direct_worker_lazy_spawn_failed"
-    assert data["worker"] == "http://127.0.0.1:5621"
+    _assert_scoped_worker_url(data["worker"], "http://127.0.0.1:5621")
     assert "spawn exploded" in data["result"]["error"]
 
 
@@ -255,7 +306,8 @@ def test_dispatch_workflow_direct_fallback_routes_cl_model_to_fl_worker(monkeypa
     assert data["workflow"] == "fl-model-gen"
     assert data["worker"] == "fl-model-gen"
     assert data["session"] == "default/new_axi/fl-model-gen"
-    assert calls[0]["worker"] == "fl-model-gen"
+    _assert_scoped_worker_url(data["worker_url"], "http://127.0.0.1:5622")
+    assert calls[0]["worker"] == data["worker_url"]
     assert calls[0]["workflow"] == "fl-model-gen"
     assert "/ssot-cycle-model new_axi" in calls[0]["task"]
     assert "/ssot-dual-fcov new_axi" in calls[0]["task"]
@@ -288,7 +340,8 @@ def test_dispatch_workflow_direct_fallback_routes_equiv_goals_to_fl_worker(monke
     assert data["ok"] is True
     assert data["workflow"] == "fl-model-gen"
     assert data["worker"] == "fl-model-gen"
-    assert calls[0]["worker"] == "fl-model-gen"
+    _assert_scoped_worker_url(data["worker_url"], "http://127.0.0.1:5622")
+    assert calls[0]["worker"] == data["worker_url"]
     assert calls[0]["workflow"] == "fl-model-gen"
     assert "/ssot-equiv-goals new_axi" in calls[0]["task"]
     assert "Generate equivalence goals." in calls[0]["task"]
@@ -320,7 +373,8 @@ def test_dispatch_workflow_direct_fallback_routes_model_bundle_to_fl_worker(monk
     assert data["ok"] is True
     assert data["workflow"] == "fl-model-gen"
     assert data["worker"] == "fl-model-gen"
-    assert calls[0]["worker"] == "fl-model-gen"
+    _assert_scoped_worker_url(data["worker_url"], "http://127.0.0.1:5622")
+    assert calls[0]["worker"] == data["worker_url"]
     assert "/ssot-fl-model new_axi" in calls[0]["task"]
     assert "/ssot-cycle-model new_axi" in calls[0]["task"]
     assert "/ssot-dual-fcov new_axi" in calls[0]["task"]
@@ -352,7 +406,8 @@ def test_orchestrator_tool_uses_direct_worker_when_bridge_missing(monkeypatch):
 
     assert result["ok"] is True
     assert result["source"] == "direct_worker_fallback"
-    assert calls[0]["worker"] == "ssot-gen"
+    _assert_scoped_worker_url(result["worker_url"], "http://127.0.0.1:5621")
+    assert calls[0]["worker"] == result["worker_url"]
     assert "IP: new_axi" in calls[0]["task"]
     assert "Quality pass for new_axi SSOT." in calls[0]["task"]
     assert "direct_worker_fallback" in summary
