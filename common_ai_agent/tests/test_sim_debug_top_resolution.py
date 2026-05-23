@@ -81,6 +81,100 @@ def test_goal_scoreboard_runner_emits_icarus_vcd_helper_without_dut_wrapper() ->
     assert "waves = False" in module.RUNNER_PY
 
 
+def test_goal_scoreboard_generation_removes_stale_sim_evidence(tmp_path: Path) -> None:
+    script = PROJECT_ROOT / "workflow" / "tb-gen" / "scripts" / "emit_goal_scoreboard_cocotb.py"
+    spec = importlib.util.spec_from_file_location("emit_goal_scoreboard_cocotb_test_stale", script)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+
+    ip = "demo_ip"
+    ip_dir = tmp_path / ip
+    for rel in ("yaml", "verify", "rtl", "list", "sim", "cov"):
+        (ip_dir / rel).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        """
+top_module:
+  name: demo_top
+io_list:
+  clock_domains:
+    - ports:
+        - {name: clk, direction: input, width: 1}
+  resets:
+    - ports:
+        - {name: rst_n, direction: input, width: 1}
+  interfaces:
+    - ports:
+        - {name: req_valid, direction: input, width: 1}
+        - {name: rsp_data, direction: output, width: 8}
+function_model:
+  transactions:
+    - id: FM1
+      name: primary
+      output_rules:
+        - {name: rsp_data, port: rsp_data, expr: req_valid, width: 8}
+cycle_model:
+  latency: 1
+""",
+        encoding="utf-8",
+    )
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(
+        json.dumps(
+            {
+                "goals": [
+                    {
+                        "goal_id": "EQ_TRANSACTION_FM1",
+                        "blocked": False,
+                        "kind": "transaction",
+                        "stimulus_contract": {
+                            "required_fields": ["req_valid"],
+                            "transaction_type": "FM1",
+                        },
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_contract.json").write_text(
+        json.dumps(
+            {
+                "type": "generic_ssot_rule_rtl_contract",
+                "contract": {
+                    "clock": "clk",
+                    "reset": "rst_n",
+                    "reset_active": "low",
+                    "input_map": {"req_valid": "req_valid"},
+                    "outputs": [{"name": "rsp_data", "port": "rsp_data", "width": 8}],
+                    "transaction": "FM1",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "demo_top.sv").write_text(
+        "module demo_top(input logic clk, input logic rst_n, input logic req_valid, output logic [7:0] rsp_data);\n"
+        "  assign rsp_data = {7'b0, req_valid};\n"
+        "endmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "list" / f"{ip}.f").write_text("rtl/demo_top.sv\n", encoding="utf-8")
+    stale_paths = [
+        ip_dir / "sim" / "scoreboard_events.jsonl",
+        ip_dir / "sim" / "fl_rtl_compare.json",
+        ip_dir / "sim" / "mismatch_classification.json",
+        ip_dir / "sim" / "results.xml",
+        ip_dir / "cov" / "coverage_functional.json",
+    ]
+    for path in stale_paths:
+        path.write_text("stale\n", encoding="utf-8")
+
+    module.emit(ip, tmp_path)
+
+    assert (ip_dir / "tb" / "cocotb" / f"test_{ip}.py").is_file()
+    assert all(not path.exists() for path in stale_paths)
+
+
 def test_hierarchy_normalizes_symlinked_filelist_sources(tmp_path: Path, monkeypatch) -> None:
     import src.atlas_ui as atlas_ui
 

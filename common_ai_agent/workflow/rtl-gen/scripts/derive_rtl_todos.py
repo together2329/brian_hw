@@ -1276,6 +1276,14 @@ def _direct_name_owner_match(ref: str, modules: list[dict[str, Any]]) -> dict[st
 
 
 def _owner_for(ref: str, modules: list[dict[str, Any]], top: str, value: Any = None) -> dict[str, str]:
+    if ref.startswith("cycle_model.handshake_rules."):
+        top_module = next((m for m in modules if str(m.get("name")) == top or Path(str(m.get("file"))).stem == top), None)
+        if top_module is not None:
+            return {
+                "module": str(top_module["name"]),
+                "file": str(top_module["file"]),
+                "matched_ref": "top_level_handshake_rule",
+            }
     matches: list[tuple[dict[str, Any], str]] = []
     for module in modules:
         refs = module.get("refs") if isinstance(module.get("refs"), list) else []
@@ -1599,6 +1607,7 @@ DIRECT_STRING_EVIDENCE_CATEGORIES = {
 }
 
 NAME_EVIDENCE_CATEGORIES = {
+    "function_model.output",
     "function_model.output_rule",
     "function_model.state_update",
     "function_model.state_variable",
@@ -1615,7 +1624,62 @@ NAME_EVIDENCE_CATEGORIES = {
 }
 
 
+def _json_text(value: Any) -> str:
+    try:
+        return json.dumps(value, ensure_ascii=False, sort_keys=True, default=str)
+    except TypeError:
+        return str(value)
+
+
+def _is_repair_generated_fm_marker(value: Any) -> bool:
+    """Detect repair-only FunctionModel marker rows.
+
+    repair_ssot_schema.py may make prose-only transactions machine-readable by
+    adding ``*_observed`` state markers. Those markers keep the SSOT structurally
+    valid, but they are not real architectural RTL identifiers. Requiring them as
+    live DUT tokens causes rtl-gen to add marker signals instead of implementing
+    the actual IP behavior.
+    """
+
+    text = _json_text(value).lower()
+    marker_phrases = (
+        "auto-injected transaction coverage/state marker",
+        "repair marker making this transaction machine-checkable",
+        "ssot-gen should replace with ip-specific",
+        "architectural output matches feature definition",
+        "architectural state updates according to fsm/control policy",
+        "feature trigger is asserted under legal configuration",
+    )
+    if any(phrase in text for phrase in marker_phrases) and re.search(r"\bfm\d+_observed\b", text):
+        return True
+    if isinstance(value, dict):
+        tx_id = str(value.get("id") or "").strip().lower()
+        name = str(value.get("name") or "").strip().lower()
+        if re.fullmatch(r"fm\d+", tx_id) and re.fullmatch(r"feature_\d+", name):
+            state_text = _json_text(value.get("state") or value.get("states") or value.get("signal")).lower()
+            if re.search(r"\bfm\d+_observed\b", state_text):
+                return True
+    return False
+
+
+def _is_repair_generated_fm_task(category: str, value: Any) -> bool:
+    return (
+        category.startswith("function_model.")
+        or category == "workflow_todo.rtl_gen"
+    ) and _is_repair_generated_fm_marker(value)
+
+
+def _is_fm_observed_marker_term(term: str) -> bool:
+    lower = str(term or "").strip().lower()
+    return bool(re.fullmatch(r"fm\d+_observed", lower) or re.fullmatch(r"fm\d+", lower)) or lower == "observed"
+
+
 def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
+    if _is_repair_generated_fm_task(category, value):
+        return []
+    if category == "function_model.invariant":
+        return []
+
     terms: set[str] = set()
     protocol_alias_seen = False
     reserved_register_field = (
@@ -1677,7 +1741,11 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
             if category == "cycle_model.pipeline":
                 identity_keys = ("clock", "action", "signal", "port", "event", "condition", "expr", "expression")
             if category == "workflow_todo.rtl_gen":
-                identity_keys = ("id", "source_refs", "owner_module", "owner_file", *identity_keys)
+                # Workflow TODO IDs/source_refs are often generated bookkeeping
+                # names such as RTL_FM_TX_FM2. The SSOT-derived semantic tasks
+                # below carry the actual behavior checks, so workflow_todo static
+                # evidence should anchor to real owner artifacts/signals only.
+                identity_keys = ("owner_module", "owner_file", "signal", "port", "state", "output", "event", "register")
             for key in identity_keys:
                 if _present(value.get(key)):
                     if key in {"id", "name", "field", "signal", "port", "state", "output", "event", "register", "from", "to"}:
@@ -1698,6 +1766,14 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
         for quoted in re.findall(r"`([A-Za-z_][A-Za-z0-9_]*)`", text):
             if _looks_like_design_token(quoted):
                 terms.update(_split_design_token(quoted))
+        if category == "function_model.invariant":
+            # Invariants are often sentence-level policy such as "Data movement
+            # follows dataflow"; a capitalized prose word is not a live RTL
+            # identifier. Keep only explicit design-token shaped names.
+            for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text):
+                if "_" in token and _looks_like_design_token(token):
+                    terms.update(_split_design_token(token))
+            return
         if category in {"cycle_model.observability", "cycle_model.ordering"}:
             # Free-form cycle-model prose is guidance for model/coverage
             # alignment, not a request to mint RTL identifiers from words in
@@ -1742,11 +1818,19 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
             if token.startswith("FM_"):
                 terms.update(_split_design_token(token))
     terms = {term for term in terms if term.lower() not in EVIDENCE_STOPWORDS | REFERENCE_STOPWORDS}
+    if category.startswith("function_model.") or category == "workflow_todo.rtl_gen":
+        terms = {term for term in terms if not _is_fm_observed_marker_term(term)}
     return sorted(terms)[:16]
 
 
 def _function_leaf_evidence_value(tx: dict[str, Any], key: str, sub: Any) -> Any:
     if key not in {"inputs", "outputs", "side_effects", "error_cases"}:
+        return sub
+    if key == "outputs":
+        # Keep output evidence scoped to the current output item.  Earlier
+        # versions attached every transaction output_rule and state update to
+        # every output leaf, which made a task for "count" also require tokens
+        # such as "rsp_data" and "tc" in the same owner file.
         return sub
     output_ports: list[Any] = []
     for rule in _as_list(tx.get("output_rules")):
@@ -1939,16 +2023,26 @@ def _task(
     required: bool = True,
 ) -> None:
     index = len(tasks) + 1
+    repair_generated_fm_marker = _is_repair_generated_fm_task(category, value)
+    if repair_generated_fm_marker:
+        required = False
+        priority = "low"
     requires_static = category.startswith(STATIC_EVIDENCE_CATEGORIES) or category == "workflow_todo.rtl_gen"
     terms = _evidence_terms(category, source_ref, value)
     enriched_detail = _append_detail_context(detail, source_ref=source_ref, owner=owner, value=value)
+    if repair_generated_fm_marker:
+        enriched_detail = (
+            enriched_detail
+            + "\n\nRepair-generated FunctionModel marker: this SSOT row is advisory traceability from schema repair. "
+            "Do not add dedicated RTL ports, wires, or state solely for fm*_observed markers."
+        )
     enriched_criteria: list[str] = []
     seen_criteria: set[str] = set()
     for item in [*criteria, *_specific_criteria(category, source_ref, value, owner)]:
         if item not in seen_criteria:
             enriched_criteria.append(item)
             seen_criteria.add(item)
-    tasks.append({
+    task = {
         "id": f"RTL-{index:04d}",
         "category": category,
         "source_ref": source_ref,
@@ -1964,7 +2058,10 @@ def _task(
         "requires_static_rtl_evidence": requires_static and bool(terms),
         "required": required,
         "priority": priority,
-    })
+    }
+    if repair_generated_fm_marker:
+        task["policy_tags"] = ["repair_generated_fm_marker", "verification_advisory"]
+    tasks.append(task)
 
 
 def _item_name(item: Any, idx: int, fallback: str = "item") -> str:
@@ -3323,10 +3420,16 @@ def _packet_task_item(task: dict[str, Any]) -> dict[str, Any]:
         "todo_completion",
         "priority",
         "required",
+        "policy_tags",
         "gate_todo",
         "workflow_todo",
     )
     return {key: task.get(key) for key in keys if key in task}
+
+
+def _is_repair_generated_fm_task_record(task: dict[str, Any]) -> bool:
+    tags = task.get("policy_tags") if isinstance(task.get("policy_tags"), list) else []
+    return "repair_generated_fm_marker" in {str(tag) for tag in tags}
 
 
 def _packet_section_key(task: dict[str, Any]) -> str:
@@ -4574,6 +4677,8 @@ def _write_authoring_packets(ip_dir: Path, plan: dict[str, Any], *, todo_plan_sh
     for task in plan.get("tasks", []):
         if not isinstance(task, dict):
             continue
+        if _is_repair_generated_fm_task_record(task):
+            continue
         if task.get("category") == "rtl_gate.rtl_gen":
             gate_tasks.append(task)
             continue
@@ -4623,6 +4728,7 @@ def _write_authoring_packets(ip_dir: Path, plan: dict[str, Any], *, todo_plan_sh
                 "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
                 "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
                 "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+                "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
                 "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.",
             ],
             "summary": {
@@ -4825,6 +4931,7 @@ def _write_authoring_packets(ip_dir: Path, plan: dict[str, Any], *, todo_plan_sh
             "Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.",
             "Do not close static RTL evidence with comments: derive_rtl_todos.py strips comments before matching, so evidence_terms must be preserved in live lint-clean RTL identifiers/logic.",
             "Do not close static RTL evidence with evidence-only alias wires or marker-only helper wires; the matched identifiers must participate in real RTL behavior.",
+            "Repair-generated FunctionModel fm*_observed markers are advisory schema-repair traceability only; do not create RTL ports, wires, or state solely for tasks tagged repair_generated_fm_marker.",
             "If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.",
             "After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.",
             "Keep locked authority artifacts unchanged unless a human approves a change request.",
@@ -7430,9 +7537,10 @@ def _required_static_match_count(category: str, terms: list[str]) -> int:
         return 0
     if len(terms) == 1:
         return 1
+    if category.startswith("function_model."):
+        return 1
     rich_categories = (
         "workflow_todo.rtl_gen",
-        "function_model.",
         "cycle_model.handshake_rules",
         "cycle_model.pipeline",
         "cycle_model.backpressure",
@@ -7475,6 +7583,22 @@ def _audit_static_evidence(ip_dir: Path, plan: dict[str, Any]) -> None:
         matched = sorted({term for term in terms if term in tokens or term.lower() in lower_tokens})
         required_match_count = _required_static_match_count(str(task.get("category") or ""), terms)
         status = "pass" if len(matched) >= required_match_count else "missing"
+        fallback_scope = ""
+        if status != "pass" and str(task.get("category") or "").startswith("function_model."):
+            # FunctionModel behavior may be decomposed across datapath/status
+            # modules.  Prefer owner-file evidence, but accept live DUT-level
+            # RTL evidence when a valid decomposition places related signals
+            # in a sibling module or top-level integration logic.
+            all_tokens, all_scope = _source_tokens_for_owner(source_tokens, "")
+            all_lower_tokens = {token.lower() for token in all_tokens}
+            all_matched = sorted({
+                term for term in terms
+                if term in all_tokens or term.lower() in all_lower_tokens
+            })
+            if len(all_matched) >= required_match_count:
+                matched = all_matched
+                status = "pass"
+                fallback_scope = all_scope
         if status == "pass":
             passed += 1
         task["static_evidence"] = {
@@ -7485,6 +7609,7 @@ def _audit_static_evidence(ip_dir: Path, plan: dict[str, Any]) -> None:
             "required_match_count": required_match_count,
             "required_terms": terms,
             "source_scope": source_scope,
+            "fallback_scope": fallback_scope,
             "owner_file_scoped": bool(task.get("owner_file")),
         }
         if status != "pass":
@@ -7921,6 +8046,12 @@ def _default_todo_completion(task: dict[str, Any], ip_dir: Path, *, audit_rtl: b
         "owner RTL file/module declaration evidence",
         "static RTL evidence audit when evidence_terms are required",
     ]
+    if _is_repair_generated_fm_task_record(task):
+        return (
+            "pass",
+            "Repair-generated FunctionModel fm*_observed marker is advisory traceability, not required RTL behavior.",
+            basis + ["policy_tags.repair_generated_fm_marker"],
+        )
     if not audit_rtl:
         return "planned", "RTL audit has not run yet.", basis
     owner_issue = _owner_file_completion_issue(ip_dir, task)

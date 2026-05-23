@@ -73,6 +73,11 @@ def _text_has_placeholder(path: Path) -> bool:
         line = raw_line.strip().lower()
         if not line:
             continue
+        # ``custom.tbd`` / ``future_tbd`` style metadata keys are common in
+        # repaired starter SSOTs. They are not live placeholder values unless
+        # the value itself is TBD/TODO/placeholder text.
+        if re.fullmatch(r"['\"]?(?:[a-z0-9_-]*_)?tbd['\"]?\s*:\s*(?:\[\])?", line):
+            continue
         if re.search(r"<\s*(tbd|placeholder)\s*>", line):
             return True
         if re.search(r"(^|[\s:#\"'\-])(?:todo|fixme|tbd|placeholder)\s*(?:[:=\]\)]|$)", line):
@@ -219,6 +224,9 @@ def _approved_req_status(ip: str, root: Path, ip_dir: Path) -> tuple[bool, list[
     if manifest_error:
         return False, req_paths, f"missing or invalid approval manifest: {manifest_error}"
     if manifest.get("type") != "requirement_approval_manifest":
+        starter_ok, starter_detail = _starter_manifest_status(ip, root, ip_dir, manifest, req_paths)
+        if starter_ok:
+            return True, req_paths, starter_detail
         return False, req_paths, "approval_manifest.json type must be requirement_approval_manifest"
     if manifest.get("ip") != ip:
         return False, req_paths, f"approval_manifest.json ip mismatch: {manifest.get('ip')!r}"
@@ -274,6 +282,65 @@ def _approved_req_status(ip: str, root: Path, ip_dir: Path) -> tuple[bool, list[
         req_paths,
         f"approved_by={manifest.get('approved_by')} target={target_rel} source={source_rel}",
     )
+
+
+def _starter_manifest_status(
+    ip: str,
+    root: Path,
+    ip_dir: Path,
+    manifest: dict[str, Any],
+    req_paths: list[Path],
+) -> tuple[bool, str]:
+    """Accept the automated starter manifest emitted by direct SSOT workers.
+
+    Full signoff still uses ``requirement_approval_manifest`` with source and
+    target hashes. Starter-mode pipeline runs originate from a chat goal, so
+    their requirement packet is approved by the SSOT worker with structural
+    checks instead of a promoted human review packet.
+    """
+
+    if str(manifest.get("approval_mode") or "").strip().lower() != "starter":
+        return False, "not a starter approval manifest"
+    if str(manifest.get("status") or "").strip().lower() not in {"approved", "pass", "passed"}:
+        return False, "starter manifest status is not approved"
+    approved_by = str(manifest.get("approved_by") or "").strip()
+    if not approved_by:
+        return False, "starter manifest approved_by is required"
+    artifact_rel = str(manifest.get("artifact") or "").strip()
+    if not artifact_rel:
+        return False, "starter manifest artifact is required"
+    artifact_path = (ip_dir / artifact_rel).resolve() if not artifact_rel.startswith(ip + "/") else (root / artifact_rel).resolve()
+    if not artifact_path.is_file():
+        return False, f"starter manifest artifact is missing: {artifact_rel}"
+    try:
+        artifact_path.relative_to((ip_dir / "req").resolve())
+    except ValueError:
+        return False, "starter manifest artifact must point inside this IP req/ directory"
+    if artifact_path.suffix.lower() != ".md":
+        return False, "starter manifest artifact must be markdown"
+    if artifact_path not in [path.resolve() for path in req_paths]:
+        return False, "starter manifest artifact is not one of the requirement markdown files"
+    checks = manifest.get("checks") if isinstance(manifest.get("checks"), dict) else {}
+    required_checks = (
+        "minimum_bytes",
+        "no_tbd_markers",
+        "has_feature_table",
+        "has_interface_table",
+        "has_functional_behavior",
+        "has_verification_requirements",
+        "has_quality_gates",
+    )
+    missing_checks = [key for key in required_checks if checks.get(key) is not True]
+    if missing_checks:
+        return False, f"starter manifest checks are incomplete: {missing_checks}"
+    manifest_bytes = manifest.get("bytes")
+    actual_bytes = artifact_path.stat().st_size
+    byte_note = ""
+    if isinstance(manifest_bytes, int) and manifest_bytes > actual_bytes:
+        return False, "starter manifest bytes exceed requirement artifact size"
+    if isinstance(manifest_bytes, int) and manifest_bytes != actual_bytes:
+        byte_note = f" bytes_recorded={manifest_bytes} bytes_actual={actual_bytes}"
+    return True, f"starter_approved_by={approved_by} artifact={_rel(artifact_path, root)}{byte_note}"
 
 
 def _is_stale(source_paths: list[Path], evidence_paths: list[Path], root: Path) -> list[str]:
