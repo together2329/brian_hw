@@ -1683,6 +1683,10 @@ def _workflow_worker_per_owner_enabled(exec_mode: str = "") -> bool:
     return True
 
 
+def _safe_worker_key_part(value: str, fallback: str = "local-admin") -> str:
+    return re.sub(r"[^A-Za-z0-9_.@+-]+", "_", str(value or "")).strip("_") or fallback
+
+
 def _workflow_worker_owner_keys(
     *,
     session_name: str = "",
@@ -1692,9 +1696,11 @@ def _workflow_worker_owner_keys(
     parts = [p for p in str(session_name or "").strip("/").split("/") if p]
     session_owner = parts[0] if parts else ""
     owner_name = str(user_id or session_owner or "local-admin").strip() or "local-admin"
-    partition_key = str(db_user_id or owner_name).strip() or "local-admin"
-    safe_owner = re.sub(r"[^A-Za-z0-9_.@+-]+", "_", owner_name).strip("_") or "local-admin"
-    safe_partition = re.sub(r"[^A-Za-z0-9_.@+-]+", "_", partition_key).strip("_") or safe_owner
+    identity_key = str(db_user_id or owner_name).strip() or "local-admin"
+    session_scope = "/".join(parts) or owner_name
+    partition_key = f"{identity_key}:{session_scope}"
+    safe_owner = _safe_worker_key_part(owner_name, "local-admin")
+    safe_partition = _safe_worker_key_part(partition_key, safe_owner)
     return safe_owner, safe_partition
 
 
@@ -2105,7 +2111,7 @@ def _ensure_lazy_worker(job: dict[str, Any]) -> None:
                 env["ATLAS_EXEC_MODE"] = "orchestrator"
                 env["ATLAS_ORCHESTRATOR_MODE"] = "1"
                 env["ATLAS_SINGLE_MAIN_LOOP"] = "0"
-                # A workflow worker process owns one user/workflow lane.
+                # A workflow worker process owns one user/session/workflow lane.
                 # Parallelism comes from separate worker processes; each
                 # individual process stays single-run to avoid process-global
                 # session/TODO state bleed inside the ReAct runtime.

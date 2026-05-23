@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock
 
+import pytest
 from fastapi.testclient import TestClient
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -19,17 +20,50 @@ _EXPECTED_WORKFLOWS = [
 ]
 
 
+@pytest.fixture(autouse=True)
+def _isolate_worker_route_state(monkeypatch):
+    # These tests assert explicit worker-routing modes. Do not let a
+    # developer shell's production env leak into the route behavior.
+    monkeypatch.delenv("ATLAS_WORKFLOW_WORKER_PER_USER", raising=False)
+    monkeypatch.delenv("ATLAS_WORKFLOW_WORKER_PER_SESSION", raising=False)
+    try:
+        import atlas_api_jobs as jobs
+    except Exception:
+        jobs = None
+    if jobs is not None:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+        jobs._SESSION_WORKER_PORTS.clear()
+        jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
+        with jobs._HEALTH_CACHE_LOCK:
+            jobs._HEALTH_CACHE.clear()
+    yield
+    if jobs is not None:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+        jobs._SESSION_WORKER_PORTS.clear()
+        jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
+        with jobs._HEALTH_CACHE_LOCK:
+            jobs._HEALTH_CACHE.clear()
+
+
 def _make_client(tmp_path: Path, monkeypatch) -> TestClient:
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
+    monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "0")
     monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
 
     client = TestClient(atlas_ui.create_app())
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
+    monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "0")
     reg = client.post("/api/auth/register", json={"username": "u", "password": "pw"})
     assert reg.status_code == 200, reg.text
     return client
@@ -338,6 +372,79 @@ def test_workers_route_uses_request_user_worker_url_when_idle(
     jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
 
 
+def test_same_user_same_session_workflow_reuses_one_worker_process(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import urllib.request
+
+    import atlas_api_jobs as jobs
+
+    _clear_worker_url_env(monkeypatch)
+    monkeypatch.setenv("ATLAS_WORKFLOW_WORKER_PER_USER", "1")
+    monkeypatch.setenv("ATLAS_LAZY_WORKERS", "0")
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
+    monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "0")
+    monkeypatch.setenv("ATLAS_WORKFLOW_WORKER_PORT_BASE", "6100")
+    monkeypatch.setenv("ATLAS_WORKFLOW_WORKER_PORT_SPAN", "200")
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+    jobs._SESSION_WORKER_PORTS.clear()
+    jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
+
+    (tmp_path / "ip_a").mkdir(parents=True)
+
+    run_calls: list[dict] = []
+
+    def _fake_urlopen(req, timeout=None):
+        url = getattr(req, "full_url", str(req))
+        if url.endswith("/run"):
+            payload = json.loads((getattr(req, "data", b"") or b"{}").decode("utf-8"))
+            run_calls.append({"url": url, "payload": payload})
+            return _JsonResponse({"run_id": f"run_{len(run_calls)}"})
+        if url.endswith("/health"):
+            return _JsonResponse({
+                "status": "ok",
+                "workflow": "rtl-gen",
+                "model": "gpt-5.3-codex",
+                "owner": "u",
+            })
+        if "/status/" in url:
+            return _JsonResponse({"status": "running"})
+        return _JsonResponse({"status": "ok"})
+
+    monkeypatch.setattr(urllib.request, "urlopen", _fake_urlopen)
+
+    client = _make_client(tmp_path, monkeypatch)
+    first = client.post("/api/job/dispatch", json={
+        "workflow": "rtl-gen",
+        "ip": "ip_a",
+        "exec_mode": "orchestrator",
+    })
+    second = client.post("/api/job/dispatch", json={
+        "workflow": "rtl-gen",
+        "ip": "ip_a",
+        "exec_mode": "orchestrator",
+    })
+    assert first.status_code == 200, first.text
+    assert second.status_code == 200, second.text
+
+    first_body = first.json()
+    second_body = second.json()
+    assert first_body["worker"] == second_body["worker"]
+    assert first_body["status"] == "running"
+    assert second_body["status"] == "already_running"
+    assert second_body["run_id"] == first_body["run_id"]
+    assert len(run_calls) == 1
+    assert run_calls[0]["payload"]["session"].startswith("u/ip_a/")
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+    jobs._SESSION_WORKER_PORTS.clear()
+    jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
+
+
 def test_workers_route_masks_health_from_other_owner(
     tmp_path: Path,
     monkeypatch,
@@ -481,7 +588,7 @@ def test_multiuser_dispatch_uses_separate_worker_process_urls_per_user(
     jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
 
 
-def test_same_user_same_workflow_queues_on_one_worker_process(
+def test_same_user_different_sessions_use_separate_worker_processes(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
@@ -542,11 +649,13 @@ def test_same_user_same_workflow_queues_on_one_worker_process(
 
     first_body = first.json()
     second_body = second.json()
-    assert first_body["worker"] == second_body["worker"]
+    assert first_body["worker"] != second_body["worker"]
     assert first_body["status"] == "running"
-    assert second_body["status"] == "queued"
-    assert second_body["run_id"] == ""
-    assert len(run_calls) == 1
+    assert second_body["status"] == "running"
+    assert second_body["run_id"] != ""
+    assert len(run_calls) == 2
+    assert run_calls[0]["payload"]["session"].startswith("u/ip_a/")
+    assert run_calls[1]["payload"]["session"].startswith("u/ip_b/")
 
     with jobs._jobs_lock:
         jobs._jobs.clear()

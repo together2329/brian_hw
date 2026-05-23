@@ -6702,6 +6702,37 @@ def create_app():
 
     # POST /api/ssot/qa/answer registered via register_ssot_routes() (see atlas_api_ssot.py).
 
+    _soc_cache_lock = threading.Lock()
+    _soc_build_lock = threading.Lock()
+    _soc_cache: dict[tuple[str, str, str], tuple[float, dict[str, Any]]] = {}
+    try:
+        _SOC_CACHE_TTL_SEC = max(
+            0.0,
+            float(os.environ.get("ATLAS_SOC_CACHE_TTL_SEC", "15.0") or "15.0"),
+        )
+    except ValueError:
+        _SOC_CACHE_TTL_SEC = 15.0
+
+    def _soc_cache_get(key: tuple[str, str, str]) -> dict[str, Any] | None:
+        if _SOC_CACHE_TTL_SEC <= 0:
+            return None
+        now = time.monotonic()
+        with _soc_cache_lock:
+            hit = _soc_cache.get(key)
+            if not hit:
+                return None
+            ts, payload = hit
+            if now - ts > _SOC_CACHE_TTL_SEC:
+                _soc_cache.pop(key, None)
+                return None
+            return payload
+
+    def _soc_cache_set(key: tuple[str, str, str], payload: dict[str, Any]) -> None:
+        if _SOC_CACHE_TTL_SEC <= 0:
+            return
+        with _soc_cache_lock:
+            _soc_cache[key] = (time.monotonic(), payload)
+
     @app.get("/api/soc")
     def api_soc(scope: str = "", ip: str = ""):
         """Build a SoC-Architect-friendly view of the project's IPs.
@@ -6762,6 +6793,18 @@ def create_app():
             def _kind_from_role(role):
                 if not isinstance(role, str): return None
                 return _ROLE_TO_KIND.get(role.strip().upper())
+
+            def _soc_rel(path: Path) -> str:
+                try:
+                    resolved = Path(path).resolve()
+                except Exception:
+                    return str(path)
+                for base in (PROJECT_ROOT, SOURCE_ROOT):
+                    try:
+                        return resolved.relative_to(base.resolve()).as_posix()
+                    except Exception:
+                        continue
+                return resolved.as_posix()
 
             # YAML hex literals like `0x8000_0000` are parsed by PyYAML
             # to a Python int. Re-format as a hex string with 4-digit
@@ -7173,7 +7216,7 @@ def create_app():
                     listed = rel in entry_set or resolved_rel in entry_set
                     if exists:
                         try:
-                            listed = listed or path.relative_to(PROJECT_ROOT).as_posix() in entry_set
+                            listed = listed or _soc_rel(path) in entry_set
                         except Exception:
                             pass
                     include_header = False
@@ -7204,12 +7247,12 @@ def create_app():
                     "approved": approved,
                     "total": len(modules),
                     "pct": _pct(approved, len(modules)),
-                    "filelist": fpath.relative_to(PROJECT_ROOT).as_posix() if fpath else "",
+                    "filelist": _soc_rel(fpath) if fpath else "",
                     "manifest_mismatches": len(mismatches),
                     "manifest_mismatch_details": mismatches,
                     "blocked": bool(blocked_doc),
                     "blocker": str(blocked_doc.get("reason") or "") if blocked_doc else "",
-                    "blocker_source": blocked_path.relative_to(PROJECT_ROOT).as_posix() if blocked_doc else "",
+                    "blocker_source": _soc_rel(blocked_path) if blocked_doc else "",
                     "questions": blocked_doc.get("questions") if isinstance(blocked_doc.get("questions"), list) else [],
                     "next_action": str(blocked_doc.get("next_action") or "") if blocked_doc else "",
                     "modules": modules,
@@ -7236,7 +7279,7 @@ def create_app():
                         "errors": 1,
                         "diagnostics": 0,
                         "style_violations": 0,
-                        "source": report_path.relative_to(PROJECT_ROOT).as_posix(),
+                        "source": _soc_rel(report_path),
                         "tool": "",
                         "command": "",
                         "criteria": "fresh DUT RTL compile report from <ip>/rtl/rtl_compile.json",
@@ -7254,7 +7297,7 @@ def create_app():
                     "style_violations": int(report.get("style_violations") or 0),
                     "style_violation_details": report.get("style_violation_details") or [],
                     "returncode": int(report.get("returncode") or 0),
-                    "source": report_path.relative_to(PROJECT_ROOT).as_posix(),
+                    "source": _soc_rel(report_path),
                     "tool": str(report.get("tool") or ""),
                     "command": str(report.get("command") or ""),
                     "criteria": "fresh DUT RTL compile report from <ip>/rtl/rtl_compile.json; warnings, Icarus sorry diagnostics, and procedural parameterized part-selects are blockers",
@@ -7413,7 +7456,7 @@ def create_app():
                     "suppression_violations": diag.get("suppression_violations", 0),
                     "warning_budget": warning_budget,
                     "waivers": waivers,
-                    "source": latest.relative_to(PROJECT_ROOT).as_posix() if latest else "",
+                    "source": _soc_rel(latest) if latest else "",
                     "source_kind": source_kind,
                     "tool": tool,
                     "command": command,
@@ -7543,7 +7586,7 @@ def create_app():
                                 "tests": len(cases),
                                 "failures": source_fail,
                                 "errors": source_err,
-                                "source": pth.relative_to(PROJECT_ROOT).as_posix(),
+                                "source": _soc_rel(pth),
                             })
                     except Exception:
                         parsed_xml = False
@@ -7566,7 +7609,7 @@ def create_app():
                                 "tests": int(tests_attr.group(1)),
                                 "failures": int(fail_attr.group(1)) if fail_attr else 0,
                                 "errors": int(err_attr.group(1)) if err_attr else 0,
-                                "source": pth.relative_to(PROJECT_ROOT).as_posix(),
+                                "source": _soc_rel(pth),
                             })
                         elif names:
                             has_valid_result_xml = True
@@ -7574,7 +7617,7 @@ def create_app():
                                 "tests": len(names),
                                 "failures": len(source_failed),
                                 "errors": 0,
-                                "source": pth.relative_to(PROJECT_ROOT).as_posix(),
+                                "source": _soc_rel(pth),
                             })
                 def _sid_matches_name(sid: str, name: str) -> bool:
                     if not sid:
@@ -7749,7 +7792,7 @@ def create_app():
                 enough = total_bytes >= 1000 and not placeholder
                 return {
                     "status": "ok" if files and enough else ("partial" if files else "pending"),
-                    "files": [p.relative_to(PROJECT_ROOT).as_posix() for p in files[:12]],
+                    "files": [_soc_rel(p) for p in files[:12]],
                     "bytes": total_bytes,
                     "placeholder": placeholder,
                     "criteria": "REQ capture exists under <ip>/req, has substantive content, and contains no TBD/TODO/FIXME placeholders",
@@ -7798,8 +7841,8 @@ def create_app():
                 )
                 return {
                     "status": status,
-                    "source": model_path.relative_to(PROJECT_ROOT).as_posix() if exists else "",
-                    "check_source": check_path.relative_to(PROJECT_ROOT).as_posix() if check_path.is_file() else "",
+                    "source": _soc_rel(model_path) if exists else "",
+                    "check_source": _soc_rel(check_path) if check_path.is_file() else "",
                     "bytes": size,
                     "has_apply": has_api,
                     "self_check": check,
@@ -7826,7 +7869,7 @@ def create_app():
                 )
                 return {
                     "status": status,
-                    "source": path.relative_to(PROJECT_ROOT).as_posix() if path.is_file() else "",
+                    "source": _soc_rel(path) if path.is_file() else "",
                     "units": len(units) if isinstance(units, list) else 0,
                     "kinds": kinds,
                     "criteria": "FL model decomposition traces protocol/register/memory/datapath/FSM/error/security units to SSOT sections",
@@ -7849,7 +7892,7 @@ def create_app():
                 )
                 return {
                     "status": status,
-                    "source": path.relative_to(PROJECT_ROOT).as_posix() if path.is_file() else "",
+                    "source": _soc_rel(path) if path.is_file() else "",
                     "bins": len(bins) if isinstance(bins, list) else 0,
                     "classes": classes,
                     "summary": doc.get("summary") if isinstance(doc, dict) else {},
@@ -7968,9 +8011,9 @@ def create_app():
                     "loopable_oracles": authority_contract.get("loopable_oracles") if isinstance(authority_contract.get("loopable_oracles"), list) else [],
                     "missing_evidence": compare_summary.get("missing_evidence") if isinstance(compare_summary.get("missing_evidence"), list) else [],
                     "stale_evidence": stale_evidence,
-                    "evidence": goals_path.relative_to(PROJECT_ROOT).as_posix() if goals_path.is_file() else "",
-                    "compare_evidence": compare_path.relative_to(PROJECT_ROOT).as_posix() if compare_path.is_file() else "",
-                    "classification_evidence": classify_path.relative_to(PROJECT_ROOT).as_posix() if classify_path.is_file() else "",
+                    "evidence": _soc_rel(goals_path) if goals_path.is_file() else "",
+                    "compare_evidence": _soc_rel(compare_path) if compare_path.is_file() else "",
+                    "classification_evidence": _soc_rel(classify_path) if classify_path.is_file() else "",
                     "next_action": (
                         "none; all equivalence goals passed"
                         if status == "pass" else
@@ -8030,7 +8073,7 @@ def create_app():
                         if audit_path.stat().st_mtime + 0.5 < newest.stat().st_mtime:
                             try:
                                 stale_evidence.append(
-                                    f"{audit_path.relative_to(PROJECT_ROOT)} older than {newest.relative_to(PROJECT_ROOT)}"
+                                    f"{_soc_rel(audit_path)} older than {_soc_rel(newest)}"
                                 )
                             except ValueError:
                                 stale_evidence.append("goal audit artifact is older than a source artifact")
@@ -8047,7 +8090,7 @@ def create_app():
                     status = "pending"
                 return {
                     "status": status,
-                    "source": audit_path.relative_to(PROJECT_ROOT).as_posix() if audit_path.is_file() else "",
+                    "source": _soc_rel(audit_path) if audit_path.is_file() else "",
                     "total_checks": int(summary.get("total_checks") or 0) if isinstance(summary, dict) else 0,
                     "passed_checks": int(summary.get("passed_checks") or 0) if isinstance(summary, dict) else 0,
                     "failed_checks": int(summary.get("failed_checks") or 0) if isinstance(summary, dict) else 0,
@@ -8548,7 +8591,7 @@ def create_app():
                     "source": "strict-ssot-progress-gate",
                 }
 
-            def _build_module(leaf_ssot_path):
+            def _build_module(leaf_ssot_path, *, deep: bool = True):
                 """Read a leaf <ip>/yaml/<ip>.ssot.yaml → architect module dict."""
                 p = leaf_ssot_path
                 ip_dir = p.parent
@@ -8591,7 +8634,7 @@ def create_app():
                         return "left"
                     return ["right", "left", "top", "bottom"][idx % 4]
 
-                if _yaml is not None:
+                if _yaml is not None and deep:
                     try:
                         loaded_doc = _yaml.safe_load(p.read_text(encoding="utf-8", errors="replace")) or {}
                         if isinstance(loaded_doc, dict):
@@ -8650,7 +8693,7 @@ def create_app():
                     rtl_detail = "rtl directory exists but no RTL files" if rtl_dir.is_dir() else "no rtl directory"
                 elif not list_path.is_file():
                     rtl_st = "partial"
-                    rtl_detail = f"RTL files exist but filelist missing: {list_path.relative_to(PROJECT_ROOT)}"
+                    rtl_detail = f"RTL files exist but filelist missing: {_soc_rel(list_path)}"
                 else:
                     missing = []
                     try:
@@ -8670,11 +8713,11 @@ def create_app():
                         rtl_detail = "filelist has missing entries: " + ", ".join(missing[:3])
                     else:
                         rtl_st = "ok"
-                        rtl_detail = f"filelist OK: {list_path.relative_to(PROJECT_ROOT)}"
+                        rtl_detail = f"filelist OK: {_soc_rel(list_path)}"
                 sim_dir = ip_dir / "sim"
                 sim_files = []
                 if sim_dir.is_dir():
-                    sim_files = list(sim_dir.rglob("*.log")) + list(sim_dir.rglob("*.vcd"))
+                    sim_files = _collect_matches(sim_dir, ["*.log", "*.vcd"], recursive=True, limit=32)
                 sim_history = []
                 hist = sim_dir / "history.json"
                 if hist.is_file():
@@ -8688,11 +8731,7 @@ def create_app():
                 cocotb_dir = tb_dir / "cocotb"
                 tb_files = []
                 if tb_dir.is_dir():
-                    tb_files = (
-                        list(tb_dir.rglob("*.py"))
-                        + list(tb_dir.rglob("*.sv"))
-                        + list(tb_dir.rglob("*.v"))
-                    )
+                    tb_files = _collect_matches(tb_dir, ["*.py", "*.sv", "*.v"], recursive=True, limit=64)
                 cov_json = ip_dir / "cov" / "coverage.json"
                 cov_detail = ""
                 sim_debug_st = "pending"
@@ -8732,19 +8771,16 @@ def create_app():
                 sim_result_artifacts = []
                 sim_coverage_artifacts = []
                 if sim_dir.is_dir():
-                    sim_wave_artifacts.extend(list(sim_dir.rglob("*.vcd")))
-                    sim_wave_artifacts.extend(list(sim_dir.rglob("*.fst")))
-                    sim_coverage_artifacts.extend(list(sim_dir.rglob("coverage_report.*")))
-                    sim_result_artifacts.extend(list(sim_dir.rglob("*results.xml")))
+                    sim_wave_artifacts.extend(_collect_matches(sim_dir, ["*.vcd", "*.fst"], recursive=True, limit=32))
+                    sim_coverage_artifacts.extend(_collect_matches(sim_dir, ["coverage_report.*"], recursive=True, limit=16))
+                    sim_result_artifacts.extend(_collect_matches(sim_dir, ["*results.xml"], recursive=True, limit=16))
                 cocotb_build = ip_dir / "tb" / "cocotb"
                 if cocotb_build.is_dir():
-                    sim_wave_artifacts.extend(list(cocotb_build.rglob("*.vcd")))
-                    sim_wave_artifacts.extend(list(cocotb_build.rglob("*.fst")))
-                    sim_result_artifacts.extend(list(cocotb_build.rglob("*results.xml")))
+                    sim_wave_artifacts.extend(_collect_matches(cocotb_build, ["*.vcd", "*.fst"], recursive=True, limit=32))
+                    sim_result_artifacts.extend(_collect_matches(cocotb_build, ["*results.xml"], recursive=True, limit=16))
                 cov_dir = ip_dir / "cov"
                 if cov_dir.is_dir():
-                    sim_coverage_artifacts.extend(list(cov_dir.rglob("coverage.json")))
-                    sim_coverage_artifacts.extend(list(cov_dir.rglob("toggle.json")))
+                    sim_coverage_artifacts.extend(_collect_matches(cov_dir, ["coverage.json", "toggle.json"], recursive=True, limit=16))
                 sim_debug_artifacts = sim_wave_artifacts + sim_result_artifacts + sim_coverage_artifacts
                 if sim_result_artifacts and (sim_wave_artifacts or sim_coverage_artifacts):
                     sim_debug_st = "ok"
@@ -8757,6 +8793,78 @@ def create_app():
                         f"{len(sim_debug_artifacts)} debug artifact(s); "
                         "needs result XML plus waveform or coverage artifact"
                     )
+                if not deep:
+                    fast_status = {
+                        "req": "unknown",
+                        "ssot": ssot_st,
+                        "fl_model": "unknown",
+                        "fl_decomp": "unknown",
+                        "fcov_plan": "unknown",
+                        "equivalence_goals": "unknown",
+                        "goal_audit": "unknown",
+                        "rtl": rtl_st,
+                        "compile": "unknown",
+                        "lint": "unknown",
+                        "tb": tb_st,
+                        "sim_debug": sim_debug_st,
+                        "coverage": "unknown",
+                        "signoff": "pending",
+                    }
+                    fast_detail = {
+                        "req": "not scanned in project overview",
+                        "ssot": f"parsed {_soc_rel(p)}",
+                        "fl_model": "not scanned in project overview",
+                        "fl_decomp": "not scanned in project overview",
+                        "fcov_plan": "not scanned in project overview",
+                        "equivalence_goals": "not scanned in project overview",
+                        "goal_audit": "not scanned in project overview",
+                        "rtl": rtl_detail,
+                        "compile": "not scanned in project overview",
+                        "lint": "not scanned in project overview",
+                        "tb": (
+                            f"{len(tb_files)} TB artifact(s)"
+                            + (" under tb/cocotb" if cocotb_dir.is_dir() else "")
+                            + cov_detail
+                            if tb_files else "no tb artifacts"
+                        ),
+                        "sim_debug": sim_debug_detail,
+                        "coverage": "not scanned in project overview",
+                        "signoff": "open IP scope for strict gate",
+                    }
+                    fast_source = {key: "fast-filesystem-scan" for key in fast_status}
+                    top_meta = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+                    ssot_kind = str(top_meta.get("type") or "").strip()
+                    fast_gate = {
+                        "status": fast_status,
+                        "detail": fast_detail,
+                        "source": "fast-filesystem-scan",
+                        "simple_summary": {},
+                    }
+                    return {
+                        "id": ip_name,
+                        "name": top,
+                        "label": top,
+                        "kind": _kind_for(ssot_kind or ip_name),
+                        "params": params,
+                        "status": fast_status,
+                        "status_detail": fast_detail,
+                        "status_source": fast_source,
+                        "artifact_status": fast_status,
+                        "artifact_detail": fast_detail,
+                        "artifact_source": fast_source,
+                        "interfaces": interfaces,
+                        "addr": addr,
+                        "rtl_files": [_soc_rel(f) for f in rtl_files],
+                        "ssot_path": _soc_rel(p),
+                        "ip_dir": _soc_rel(ip_dir),
+                        "clocks": clocks_n,
+                        "resets": resets_n,
+                        "sim_history": sim_history,
+                        "ssot_mtime": p.stat().st_mtime,
+                        "progress": {},
+                        "signoff": fast_gate,
+                        "simple_summary": {},
+                    }
                 req_prog = _req_progress(ip_dir)
                 fl_model_prog = _fl_model_progress(ip_dir, doc)
                 fl_decomp_prog = _fl_decomp_progress(ip_dir)
@@ -8778,7 +8886,7 @@ def create_app():
                 artifact_detail = {
                     "req": f"{len(req_prog.get('files', []))} requirement artifact(s), {req_prog.get('bytes', 0)}B",
                     "ssot": (
-                        f"parsed {p.relative_to(PROJECT_ROOT)}"
+                        f"parsed {_soc_rel(p)}"
                         + ("; approved via .session state" if ssot_state.get("approved") else "")
                     ),
                     "fl_model": fl_model_prog.get("source") or "no executable FL model",
@@ -8865,9 +8973,9 @@ def create_app():
                     },
                     "interfaces": interfaces,
                     "addr": addr,
-                    "rtl_files": [f.relative_to(PROJECT_ROOT).as_posix() for f in rtl_files],
-                    "ssot_path": p.relative_to(PROJECT_ROOT).as_posix(),
-                    "ip_dir": ip_dir.relative_to(PROJECT_ROOT).as_posix(),
+                    "rtl_files": [_soc_rel(f) for f in rtl_files],
+                    "ssot_path": _soc_rel(p),
+                    "ip_dir": _soc_rel(ip_dir),
                     "clocks": clocks_n,
                     "resets": resets_n,
                     "sim_history": sim_history,
@@ -8963,6 +9071,24 @@ def create_app():
                 else ""
             )
 
+            def _accept_leaf_path(candidate: Path, seen: set[Path]) -> Path | None:
+                try:
+                    resolved = candidate.resolve()
+                    resolved.relative_to(PROJECT_ROOT)
+                except Exception:
+                    try:
+                        resolved.relative_to(SOURCE_ROOT)
+                    except Exception:
+                        return None
+                if resolved in seen or not resolved.is_file():
+                    return None
+                if resolved.name == "soc.ssot.yaml":
+                    return None
+                if any(part in SKIP_DIRS or part.startswith(".") for part in resolved.parts):
+                    return None
+                seen.add(resolved)
+                return resolved
+
             def _scoped_leaf_paths(ip_name: str) -> list[Path]:
                 if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip_name or ""):
                     return []
@@ -8970,46 +9096,76 @@ def create_app():
                 out: list[Path] = []
                 bases = [PROJECT_ROOT, SOURCE_ROOT, PROJECT_ROOT / "common_ai_agent"]
                 for base in bases:
+                    if not base.is_dir():
+                        continue
                     candidates = [
                         base / ip_name / "yaml" / f"{ip_name}.ssot.yaml",
-                        *(base.glob(f"*/{ip_name}/yaml/{ip_name}.ssot.yaml") if base.is_dir() else []),
+                        *base.glob(f"*/{ip_name}/yaml/{ip_name}.ssot.yaml"),
                     ]
                     for candidate in candidates:
-                        try:
-                            resolved = candidate.resolve()
-                            resolved.relative_to(PROJECT_ROOT)
-                        except Exception:
-                            try:
-                                resolved.relative_to(SOURCE_ROOT)
-                            except Exception:
-                                continue
-                        if resolved in seen or not resolved.is_file():
-                            continue
-                        if any(part in SKIP_DIRS or part.startswith(".") for part in resolved.parts):
-                            continue
-                        seen.add(resolved)
-                        out.append(resolved)
+                        accepted = _accept_leaf_path(candidate, seen)
+                        if accepted is not None:
+                            out.append(accepted)
+                return out
+
+            def _project_leaf_paths() -> list[Path]:
+                seen: set[Path] = set()
+                out: list[Path] = []
+                bases = [PROJECT_ROOT, SOURCE_ROOT, PROJECT_ROOT / "common_ai_agent"]
+                for base in bases:
+                    if not base.is_dir():
+                        continue
+                    for pattern in ("*/yaml/*.ssot.yaml", "*/*/yaml/*.ssot.yaml"):
+                        for candidate in base.glob(pattern):
+                            accepted = _accept_leaf_path(candidate, seen)
+                            if accepted is not None:
+                                out.append(accepted)
+                return out
+
+            def _collect_matches(root: Path, patterns: list[str], *, recursive: bool = False, limit: int = 64) -> list[Path]:
+                if not root.is_dir() or limit <= 0:
+                    return []
+                out: list[Path] = []
+                for pattern in patterns:
+                    try:
+                        iterator = root.rglob(pattern) if recursive else root.glob(pattern)
+                        for item in iterator:
+                            out.append(item)
+                            if len(out) >= limit:
+                                return out
+                    except OSError:
+                        continue
                 return out
 
             if want_ip:
-                modules = [_build_module(p) for p in _scoped_leaf_paths(want_ip)]
-                modules.sort(key=lambda m: m["id"])
-                cluster = {
-                    "id": "ips", "name": "ips", "label": "Project IPs",
-                    "x": 60, "y": 80, "w": 1200, "h": 600,
-                    "status": _aggregate_status(modules),
-                    "modules": modules,
-                }
-                return JSONResponse({
-                    "name": project_name,
-                    "version": "live",
-                    "clusters": [cluster] if modules else [],
-                    "busses": [],
-                    "addrMap": [],
-                    "module_count": len(modules),
-                    "source": "scoped-dir-walk",
-                    "scope": want_ip,
-                })
+                cache_key = ("scoped", str(PROJECT_ROOT), want_ip)
+                cached = _soc_cache_get(cache_key)
+                if cached is not None:
+                    return JSONResponse(cached)
+                with _soc_build_lock:
+                    cached = _soc_cache_get(cache_key)
+                    if cached is not None:
+                        return JSONResponse(cached)
+                    modules = [_build_module(p) for p in _scoped_leaf_paths(want_ip)]
+                    modules.sort(key=lambda m: m["id"])
+                    cluster = {
+                        "id": "ips", "name": "ips", "label": "Project IPs",
+                        "x": 60, "y": 80, "w": 1200, "h": 600,
+                        "status": _aggregate_status(modules),
+                        "modules": modules,
+                    }
+                    payload = {
+                        "name": project_name,
+                        "version": "live",
+                        "clusters": [cluster] if modules else [],
+                        "busses": [],
+                        "addrMap": [],
+                        "module_count": len(modules),
+                        "source": "scoped-dir-walk",
+                        "scope": want_ip,
+                    }
+                    _soc_cache_set(cache_key, payload)
+                    return JSONResponse(payload)
 
             # ── Tier 1: SoC-level SSOT exists → use it as the spine ──
             if _yaml is not None and soc_path.is_file():
@@ -9034,7 +9190,7 @@ def create_app():
                     leaf = inst.get("ssot")
                     leaf_path = (PROJECT_ROOT / leaf) if leaf else None
                     if leaf_path and leaf_path.is_file():
-                        m = _build_module(leaf_path)
+                        m = _build_module(leaf_path, deep=False)
                     else:
                         # No leaf SSOT yet — minimal stub.
                         m = {
@@ -9149,110 +9305,116 @@ def create_app():
                 })
 
             # ── Tier 2: no soc.ssot.yaml → fall back to dir-walk ──
-            modules = []
-            for p in PROJECT_ROOT.rglob("*.ssot.yaml"):
-                if any(part in SKIP_DIRS or part.startswith(".")
-                       for part in p.parts):
-                    continue
-                if p.name == "soc.ssot.yaml": continue  # handled above
-                modules.append(_build_module(p))
-            seen_ids = {m.get("id") for m in modules}
-            session_root = PROJECT_ROOT / ".session"
-            if session_root.is_dir():
-                for state_path in session_root.rglob("ssot-gen/state.json"):
-                    # Only accept owner-scoped trees:
-                    #     .session/<owner>/<ip>/ssot-gen/state.json   (4 parts)
-                    # Legacy bare-IP layouts written by pre-owner
-                    # backends:
-                    #     .session/<ip>/ssot-gen/state.json           (3 parts)
-                    # used to leak ip_name = '<ip>' into the SoC view
-                    # forever, even after the user wiped that owner
-                    # from disk. Skip anything shorter than 4 segments.
-                    try:
-                        rel_parts = state_path.relative_to(session_root).parts
-                    except Exception:
-                        continue
-                    if len(rel_parts) != 4 or rel_parts[2] != "ssot-gen":
-                        continue
-                    ip_name = rel_parts[1]
-                    if ip_name in seen_ids or not _valid_ip_name(ip_name):
-                        continue
-                    try:
-                        state = json.loads(state_path.read_text(encoding="utf-8"))
-                        if not isinstance(state, dict):
+            cache_key = ("fallback", str(PROJECT_ROOT), str(SOURCE_ROOT))
+            cached = _soc_cache_get(cache_key)
+            if cached is not None:
+                return JSONResponse(cached)
+            with _soc_build_lock:
+                cached = _soc_cache_get(cache_key)
+                if cached is not None:
+                    return JSONResponse(cached)
+                modules = []
+                for p in _project_leaf_paths():
+                    modules.append(_build_module(p, deep=False))
+                seen_ids = {m.get("id") for m in modules}
+                session_root = PROJECT_ROOT / ".session"
+                if session_root.is_dir():
+                    for state_path in session_root.glob("*/*/ssot-gen/state.json"):
+                        # Only accept owner-scoped trees:
+                        #     .session/<owner>/<ip>/ssot-gen/state.json   (4 parts)
+                        # Legacy bare-IP layouts written by pre-owner
+                        # backends:
+                        #     .session/<ip>/ssot-gen/state.json           (3 parts)
+                        # used to leak ip_name = '<ip>' into the SoC view
+                        # forever, even after the user wiped that owner
+                        # from disk. Skip anything shorter than 4 segments.
+                        try:
+                            rel_parts = state_path.relative_to(session_root).parts
+                        except Exception:
+                            continue
+                        if len(rel_parts) != 4 or rel_parts[2] != "ssot-gen":
+                            continue
+                        ip_name = rel_parts[1]
+                        if ip_name in seen_ids or not _valid_ip_name(ip_name):
+                            continue
+                        try:
+                            state = json.loads(state_path.read_text(encoding="utf-8"))
+                            if not isinstance(state, dict):
+                                state = {}
+                        except Exception:
                             state = {}
-                    except Exception:
-                        state = {}
-                    status = (
-                        "approved" if state.get("approved")
-                        else "answered" if str(state.get("status") or "").lower() == "answered"
-                        else "planned"
-                    )
-                    raw_kind = str(state.get("kind") or ip_name)
-                    low_kind = raw_kind.lower()
-                    if any(s in low_kind for s in (
-                        "i2c", "uart", "spi", "gpio", "timer", "pwm",
-                        "peripheral", "controller",
-                    )):
-                        module_kind = "periph"
-                    else:
-                        module_kind = _kind_for(raw_kind)
-                    modules.append({
-                        "id": ip_name,
-                        "name": ip_name,
-                        "label": ip_name,
-                        "kind": module_kind,
-                        "params": [],
-                        "status": {
-                            "ssot": status,
-                            "rtl": "pending",
-                            "tb": "pending",
-                            "sim": "pending",
-                        },
-                        "status_detail": {
-                            "ssot": (
-                                f"{status}; waiting for /to-ssot {ip_name}"
-                                if status == "approved"
-                                else f"answered; press /to-ssot {ip_name} to generate"
-                                if status == "answered"
-                                else f"planned; answer Web Q&A, then press /to-ssot {ip_name}"
-                            ),
-                            "rtl": "blocked until SSOT ok",
-                            "tb": "blocked until RTL/TB generation",
-                            "sim": "blocked until TB/SIM generation",
-                        },
-                        "status_source": {
-                            "ssot": ".session-state",
-                            "rtl": "filesystem-artifact",
-                            "tb": "filesystem-artifact",
-                            "sim": "filesystem-artifact",
-                        },
-                        "interfaces": [],
-                        "addr": "",
-                        "rtl_files": [],
-                        "ssot_path": f"{ip_name}/yaml/{ip_name}.ssot.yaml",
-                        "ip_dir": ip_name,
-                        "clocks": 0,
-                        "resets": 0,
-                        "sim_history": [],
-                        "ssot_mtime": state_path.stat().st_mtime,
-                    })
-            modules.sort(key=lambda m: m["id"])
-            cluster = {
-                "id": "ips", "name": "ips", "label": "Project IPs",
-                "x": 60, "y": 80, "w": 1200, "h": 600,
-                "status": _aggregate_status(modules),
-                "modules": modules,
-            }
-            return JSONResponse({
-                "name": project_name,
-                "version": "live",
-                "clusters": [cluster] if modules else [],
-                "busses": [],
-                "addrMap": [],
-                "module_count": len(modules),
-                "source": "dir-walk",
-            })
+                        status = (
+                            "approved" if state.get("approved")
+                            else "answered" if str(state.get("status") or "").lower() == "answered"
+                            else "planned"
+                        )
+                        raw_kind = str(state.get("kind") or ip_name)
+                        low_kind = raw_kind.lower()
+                        if any(s in low_kind for s in (
+                            "i2c", "uart", "spi", "gpio", "timer", "pwm",
+                            "peripheral", "controller",
+                        )):
+                            module_kind = "periph"
+                        else:
+                            module_kind = _kind_for(raw_kind)
+                        modules.append({
+                            "id": ip_name,
+                            "name": ip_name,
+                            "label": ip_name,
+                            "kind": module_kind,
+                            "params": [],
+                            "status": {
+                                "ssot": status,
+                                "rtl": "pending",
+                                "tb": "pending",
+                                "sim": "pending",
+                            },
+                            "status_detail": {
+                                "ssot": (
+                                    f"{status}; waiting for /to-ssot {ip_name}"
+                                    if status == "approved"
+                                    else f"answered; press /to-ssot {ip_name} to generate"
+                                    if status == "answered"
+                                    else f"planned; answer Web Q&A, then press /to-ssot {ip_name}"
+                                ),
+                                "rtl": "blocked until SSOT ok",
+                                "tb": "blocked until RTL/TB generation",
+                                "sim": "blocked until TB/SIM generation",
+                            },
+                            "status_source": {
+                                "ssot": ".session-state",
+                                "rtl": "filesystem-artifact",
+                                "tb": "filesystem-artifact",
+                                "sim": "filesystem-artifact",
+                            },
+                            "interfaces": [],
+                            "addr": "",
+                            "rtl_files": [],
+                            "ssot_path": f"{ip_name}/yaml/{ip_name}.ssot.yaml",
+                            "ip_dir": ip_name,
+                            "clocks": 0,
+                            "resets": 0,
+                            "sim_history": [],
+                            "ssot_mtime": state_path.stat().st_mtime,
+                        })
+                modules.sort(key=lambda m: m["id"])
+                cluster = {
+                    "id": "ips", "name": "ips", "label": "Project IPs",
+                    "x": 60, "y": 80, "w": 1200, "h": 600,
+                    "status": _aggregate_status(modules),
+                    "modules": modules,
+                }
+                payload = {
+                    "name": project_name,
+                    "version": "live",
+                    "clusters": [cluster] if modules else [],
+                    "busses": [],
+                    "addrMap": [],
+                    "module_count": len(modules),
+                    "source": "dir-walk",
+                }
+                _soc_cache_set(cache_key, payload)
+                return JSONResponse(payload)
         except Exception as e:
             return JSONResponse({"error": str(e), "clusters": []}, status_code=500)
 

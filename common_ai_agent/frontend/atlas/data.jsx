@@ -1076,12 +1076,18 @@
           const prevActiveSession = String(_prev.activeSession || '').trim();
           const scopeChanged = !!(nextActiveSession && prevActiveSession && nextActiveSession !== prevActiveSession);
           const keep = (value) => (scopeChanged ? 0 : value);
+          const stable = (key, value) => {
+            const next = Number(value || 0);
+            if (scopeChanged) return next;
+            const prev = Number(_prev[key] || 0);
+            return Number.isFinite(next) ? Math.max(prev, next) : prev;
+          };
           return {
-            tokens: (d.tokens != null) ? Number(d.tokens || 0) : keep(Number(_prev.tokens || 0)),
-            tokensIn: (d.tokens_in != null) ? Number(d.tokens_in || 0) : keep(Number(_prev.tokensIn || 0)),
-            tokensCache: (d.tokens_cache != null) ? Number(d.tokens_cache || 0) : keep(Number(_prev.tokensCache || 0)),
-            tokensOut: (d.tokens_out != null) ? Number(d.tokens_out || 0) : keep(Number(_prev.tokensOut || 0)),
-            costUsd: (d.cost_usd != null) ? Number(d.cost_usd || 0) : keep(Number(_prev.costUsd || 0)),
+            tokens: (d.tokens != null) ? stable('tokens', d.tokens) : keep(Number(_prev.tokens || 0)),
+            tokensIn: (d.tokens_in != null) ? stable('tokensIn', d.tokens_in) : keep(Number(_prev.tokensIn || 0)),
+            tokensCache: (d.tokens_cache != null) ? stable('tokensCache', d.tokens_cache) : keep(Number(_prev.tokensCache || 0)),
+            tokensOut: (d.tokens_out != null) ? stable('tokensOut', d.tokens_out) : keep(Number(_prev.tokensOut || 0)),
+            costUsd: (d.cost_usd != null) ? stable('costUsd', d.cost_usd) : keep(Number(_prev.costUsd || 0)),
           };
         })(),
         frontend:    d.frontend  || '',

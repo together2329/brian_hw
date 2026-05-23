@@ -562,6 +562,16 @@ const App = () => {
   // Auth gate — mounts LoginScreen until /api/users/me returns 200.
   const [authState, setAuthState] = React.useState('checking');
   React.useEffect(() => {
+    const onAuthRequired = () => {
+      setAuthState('unauth');
+      setBootSteps(s => (s.ws === 'fail' ? s : { ...s, ws: 'fail' }));
+    };
+    try { window.addEventListener('atlas:auth_required', onAuthRequired); } catch (_) {}
+    return () => {
+      try { window.removeEventListener('atlas:auth_required', onAuthRequired); } catch (_) {}
+    };
+  }, []);
+  React.useEffect(() => {
     let cancelled = false;
     fetch('/api/users/me', { cache: 'no-store' })
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
@@ -997,6 +1007,15 @@ const App = () => {
     const holdActivation = atlasShouldHoldDashboardActivation();
     const nextIps = new Set([WORKFLOW_DEFAULT]);
     const acceptIp = (id) => id && (id === WORKFLOW_DEFAULT || !RESERVED_IP_NAMES.has(id));
+    const rememberedNamespace = normalizeSession(
+      window.ACTIVE_SESSION ||
+      activeNamespace ||
+      (() => { try { return localStorage.getItem('atlasActiveSession') || ''; } catch (_) { return ''; } })()
+    );
+    const rememberedParts = splitSessionNamespace(rememberedNamespace);
+    const rememberedIp = rememberedParts.ipId === 'soc' ? WORKFLOW_DEFAULT : rememberedParts.ipId;
+    if (acceptIp(rememberedIp)) nextIps.add(rememberedIp);
+    if (acceptIp(activeIp)) nextIps.add(activeIp);
     try {
       const r = await fetch('/api/session/list', { cache: 'no-store' });
       if (r.ok) {
@@ -1029,11 +1048,13 @@ const App = () => {
     // (have yaml/, rtl/, tb/, or sim/) and skips framework dirs. That
     // matches the user's mental model: "IP_ID lists IPs the backend
     // is running over, nothing more."
+    let ipListOk = false;
     try {
       const ipOwner = normalizeSession(currentUserSession || '');
       const ipUrl = '/api/ip/list' + (ipOwner ? `?session_id=${encodeURIComponent(ipOwner)}` : '');
       const r2 = await fetch(ipUrl, { cache: 'no-store' });
       if (r2.ok) {
+        ipListOk = true;
         const d2 = await r2.json();
         for (const it of (Array.isArray(d2.items) ? d2.items : [])) {
           if (acceptIp(it.name)) nextIps.add(it.name);
@@ -1069,11 +1090,20 @@ const App = () => {
         if (b === WORKFLOW_DEFAULT) return 1;
         return a.localeCompare(b);
       });
-      setIpOptions(sortedIps);
-      window.IP_OPTIONS = sortedIps;
+      setIpOptions(prev => {
+        const merged = new Set(sortedIps);
+        if (!ipListOk) (prev || []).forEach(ip => { if (acceptIp(ip)) merged.add(ip); });
+        const next = Array.from(merged).sort((a, b) => {
+          if (a === WORKFLOW_DEFAULT) return -1;
+          if (b === WORKFLOW_DEFAULT) return 1;
+          return a.localeCompare(b);
+        });
+        window.IP_OPTIONS = next;
+        return next;
+      });
       setActiveSessionId(currentUserSession || 'default');
       setActiveNamespace('');
-      setActiveIp(WORKFLOW_DEFAULT);
+      setActiveIp(activeIp && activeIp !== WORKFLOW_DEFAULT ? activeIp : WORKFLOW_DEFAULT);
       return;
     }
     const parsedLive = splitSessionNamespace(liveNamespace);
@@ -1100,10 +1130,21 @@ const App = () => {
       if (b === WORKFLOW_DEFAULT) return 1;
       return a.localeCompare(b);
     });
-    setIpOptions(sortedIps);
     // Expose for inline-code-chip click validation in workspace.jsx so
-    // only IPs that actually exist on disk become clickable.
-    window.IP_OPTIONS = sortedIps;
+    // only IPs that actually exist on disk become clickable. If the backend
+    // roster probe fails during reconnect, keep the previous visible list
+    // instead of making the User IP ID dropdown look empty.
+    setIpOptions(prev => {
+      const merged = new Set(sortedIps);
+      if (!ipListOk) (prev || []).forEach(ip => { if (acceptIp(ip)) merged.add(ip); });
+      const next = Array.from(merged).sort((a, b) => {
+        if (a === WORKFLOW_DEFAULT) return -1;
+        if (b === WORKFLOW_DEFAULT) return 1;
+        return a.localeCompare(b);
+      });
+      window.IP_OPTIONS = next;
+      return next;
+    });
     setActiveSessionId(currentUserSession || parsedLive.sessionId || 'default');
     setActiveNamespace(liveNamespace);
     setActiveIp(parsedLive.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsedLive.ipId || WORKFLOW_DEFAULT));
@@ -1159,10 +1200,32 @@ const App = () => {
         const initialUrlNamespace = normalizeSession(initialUrlNamespaceRef.current || '');
         const parsedUrl = splitSessionNamespace(initialUrlNamespace);
         const parsedCtx = splitSessionNamespace(ctxSession);
+        const browserNamespace = normalizeSession(
+          window.ACTIVE_SESSION ||
+          activeNamespace ||
+          (() => { try { return localStorage.getItem('atlasActiveSession') || ''; } catch (_) { return ''; } })()
+        );
+        const parsedBrowser = splitSessionNamespace(browserNamespace);
         const urlStillOwnsBoot = !!(
           initialUrlNamespace &&
           ctxSession !== initialUrlNamespace &&
           (!parsedUrl.sessionId || !parsedCtx.sessionId || parsedUrl.sessionId === parsedCtx.sessionId)
+        );
+        const ctxIsDefaultPlaceholder = !!(
+          parsedCtx.sessionId &&
+          (!parsedCtx.ipId || parsedCtx.ipId === WORKFLOW_DEFAULT) &&
+          (!parsedCtx.workflow || parsedCtx.workflow === WORKFLOW_DEFAULT)
+        );
+        const browserHasRealIp = !!(
+          parsedBrowser.sessionId &&
+          parsedBrowser.ipId &&
+          parsedBrowser.ipId !== WORKFLOW_DEFAULT &&
+          parsedBrowser.ipId !== 'soc'
+        );
+        const browserSameOwner = !!(
+          browserNamespace &&
+          parsedBrowser.sessionId &&
+          (!parsedCtx.sessionId || parsedCtx.sessionId === parsedBrowser.sessionId || parsedBrowser.sessionId === authOwner)
         );
         // During login and fast screen changes, /healthz can briefly report
         // the process bootstrap namespace (often default/<ip>/<wf>). In
@@ -1177,6 +1240,8 @@ const App = () => {
         const userPickIsFresh = (Date.now() - userPickAtRef.current) < 5000;
         if (urlStillOwnsBoot) {
           namespace = initialUrlNamespace;
+        } else if (ctxIsDefaultPlaceholder && browserHasRealIp && browserSameOwner) {
+          namespace = browserNamespace;
         } else if (authOwner && ctxOwner && ctxOwner !== authOwner && ctxOwner !== 'local-admin') {
           namespace = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
         } else if (userPickIsFresh) {

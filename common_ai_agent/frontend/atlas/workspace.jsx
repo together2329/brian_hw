@@ -1781,11 +1781,25 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
           if (cancelled || !j || !healthMatchesCurrentUser(j)) return;
           setWorkspaceTelemetry(prev => ({
             ...prev,
-            tokensIn: j.tokens_in != null ? Number(j.tokens_in || 0) : Number(prev.tokensIn || 0),
-            tokensCache: j.tokens_cache != null ? Number(j.tokens_cache || 0) : Number(prev.tokensCache || 0),
-            tokensOut: j.tokens_out != null ? Number(j.tokens_out || 0) : Number(prev.tokensOut || 0),
-            costUsd: j.cost_usd != null ? Number(j.cost_usd || 0) : Number(prev.costUsd || 0),
-            model: j.model || j.base_model || prev.model || '',
+            ...(() => {
+              const nextSession = normalizeUiSession(j.active_session || '');
+              const prevSession = normalizeUiSession(prev.activeSession || '');
+              const changed = !!(nextSession && prevSession && nextSession !== prevSession);
+              const stable = (key, value) => {
+                const next = Number(value || 0);
+                if (changed) return next;
+                const old = Number(prev[key] || 0);
+                return Number.isFinite(next) ? Math.max(old, next) : old;
+              };
+              return {
+                activeSession: nextSession || prev.activeSession || '',
+                tokensIn: j.tokens_in != null ? stable('tokensIn', j.tokens_in) : Number(prev.tokensIn || 0),
+                tokensCache: j.tokens_cache != null ? stable('tokensCache', j.tokens_cache) : Number(prev.tokensCache || 0),
+                tokensOut: j.tokens_out != null ? stable('tokensOut', j.tokens_out) : Number(prev.tokensOut || 0),
+                costUsd: j.cost_usd != null ? stable('costUsd', j.cost_usd) : Number(prev.costUsd || 0),
+                model: j.model || j.base_model || prev.model || '',
+              };
+            })(),
           }));
         })
         .catch(() => {});
@@ -1809,17 +1823,32 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     costUsd: 0,
     lastCostDelta: 0,
     model: '',
+    activeSession: '',
   });
   React.useEffect(() => {
     const syncContextUsage = () => {
       const ctx = window.CONTEXT || {};
       setWorkspaceTelemetry(prev => ({
         ...prev,
-        tokensIn: ctx.tokensIn != null ? Number(ctx.tokensIn || 0) : Number(prev.tokensIn || 0),
-        tokensCache: ctx.tokensCache != null ? Number(ctx.tokensCache || 0) : Number(prev.tokensCache || 0),
-        tokensOut: ctx.tokensOut != null ? Number(ctx.tokensOut || 0) : Number(prev.tokensOut || 0),
-        costUsd: ctx.costUsd != null ? Number(ctx.costUsd || 0) : Number(prev.costUsd || 0),
-        model: ctx.model || prev.model || '',
+        ...(() => {
+          const nextSession = normalizeUiSession(ctx.activeSession || '');
+          const prevSession = normalizeUiSession(prev.activeSession || '');
+          const changed = !!(nextSession && prevSession && nextSession !== prevSession);
+          const stable = (key, value) => {
+            const next = Number(value || 0);
+            if (changed) return next;
+            const old = Number(prev[key] || 0);
+            return Number.isFinite(next) ? Math.max(old, next) : old;
+          };
+          return {
+            activeSession: nextSession || prev.activeSession || '',
+            tokensIn: ctx.tokensIn != null ? stable('tokensIn', ctx.tokensIn) : Number(prev.tokensIn || 0),
+            tokensCache: ctx.tokensCache != null ? stable('tokensCache', ctx.tokensCache) : Number(prev.tokensCache || 0),
+            tokensOut: ctx.tokensOut != null ? stable('tokensOut', ctx.tokensOut) : Number(prev.tokensOut || 0),
+            costUsd: ctx.costUsd != null ? stable('costUsd', ctx.costUsd) : Number(prev.costUsd || 0),
+            model: ctx.model || prev.model || '',
+          };
+        })(),
       }));
     };
     window.addEventListener('atlas-data-changed', syncContextUsage);
@@ -16143,15 +16172,63 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
   const [savingEffort, setSavingEffort] = React.useState(false);
   const [savingModel, setSavingModel] = React.useState(false);
   const [settingsError, setSettingsError] = React.useState('');
+  const numericValue = (value, fallback = 0) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  };
+  const sessionPartsFor = (session) => normalizeUiSession(session).split('/').filter(Boolean);
+  const shouldPreserveBrowserCounters = (incomingSession) => {
+    const incoming = sessionPartsFor(incomingSession);
+    const browserSession = normalizeUiSession(window.ACTIVE_SESSION || '');
+    const browser = sessionPartsFor(browserSession);
+    const incomingOwner = incoming[0] || '';
+    const browserOwner = browser[0] || '';
+    const incomingIp = incoming.length >= 3 ? incoming[incoming.length - 2] : '';
+    const incomingWf = incoming[incoming.length - 1] || '';
+    const browserIp = browser.length >= 3 ? browser[browser.length - 2] : '';
+    const incomingIsDefault = !!incomingOwner
+      && (!incomingIp || incomingIp === 'default')
+      && (!incomingWf || incomingWf === 'default');
+    const browserHasIp = !!browserOwner && !!browserIp && browserIp !== 'default' && browserIp !== 'soc';
+    return incomingIsDefault && browserHasIp && (!incomingOwner || !browserOwner || incomingOwner === browserOwner);
+  };
+  const mergeStableContext = (prev, extra) => {
+    const prevCtx = prev || {};
+    const clean = {};
+    Object.entries(extra || {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) clean[key] = value;
+    });
+    const globalCtx = window.CONTEXT || {};
+    const merged = Object.assign({}, prevCtx, globalCtx, clean);
+    const prevSession = normalizeUiSession(prevCtx.activeSession || '');
+    const incomingSession = normalizeUiSession(clean.activeSession || globalCtx.activeSession || merged.activeSession || '');
+    const browserSession = normalizeUiSession(window.ACTIVE_SESSION || '');
+    const preserveBrowser = shouldPreserveBrowserCounters(incomingSession);
+    const effectiveSession = preserveBrowser
+      ? (browserSession || prevSession || incomingSession)
+      : (incomingSession || browserSession || prevSession);
+    const sameSession = !prevSession || !effectiveSession || prevSession === effectiveSession;
+    if (effectiveSession) merged.activeSession = effectiveSession;
+
+    const counters = ['tokens', 'tokensIn', 'tokensCache', 'tokensOut', 'costUsd'];
+    if (preserveBrowser && prevSession) {
+      counters.forEach(key => {
+        if (prevCtx[key] !== undefined && prevCtx[key] !== null) merged[key] = numericValue(prevCtx[key], 0);
+      });
+    } else if (sameSession) {
+      counters.forEach(key => {
+        const next = numericValue(merged[key], NaN);
+        const prevVal = numericValue(prevCtx[key], 0);
+        merged[key] = Number.isFinite(next) ? Math.max(prevVal, next) : prevVal;
+      });
+    }
+    return merged;
+  };
   React.useEffect(() => {
     let alive = true;
     const syncContext = (extra) => {
       if (!alive) return;
-      const clean = {};
-      Object.entries(extra || {}).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) clean[key] = value;
-      });
-      setLiveContext(prev => Object.assign({}, prev || {}, window.CONTEXT || {}, clean));
+      setLiveContext(prev => mergeStableContext(prev, extra));
     };
     const poll = () => {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
@@ -16290,9 +16367,11 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
       setSavingModel(false);
     }
   };
-  const ctxUsed = (_ctx.tokens || 0) / 1000;             // → K tokens
-  const ctxMax  = Math.max(1, (_ctx.maxTokens || 1000000) / 1000);  // → K
+  const ctxUsed = numericValue(_ctx.tokens, 0) / 1000;             // K tokens
+  const ctxMax  = Math.max(1, numericValue(_ctx.maxTokens, 1000000) / 1000);  // K
   const pct = Math.min(100, Math.round((ctxUsed / ctxMax) * 100));
+  const ctxUsedLabel = ctxUsed >= 1000 ? (ctxUsed / 1000).toFixed(2) + 'M' : ctxUsed.toFixed(1) + 'K';
+  const ctxMaxLabel = ctxMax >= 1000 ? (ctxMax / 1000) + 'M' : ctxMax + 'K';
   const selectStyle = {
     width: '100%',
     minWidth: 0,
@@ -16301,7 +16380,7 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
     fontSize: 10,
   };
   return (
-    <div className="box" style={{ flexShrink: 0 }}>
+    <div className="box tab-nums" style={{ flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
       <div className="box-h" style={{ padding: '6px 12px' }}>
         <span style={{ color: 'var(--accent)', fontWeight: 700 }}>ATLAS</span>
         <span style={{ flex: 1 }} />
@@ -16380,11 +16459,11 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
         <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 8, marginBottom: 4, marginTop: 6 }}>
           <span className="mute">Context</span>
           <span>
-            <span style={{ color: 'var(--fg)' }}>
-              {ctxUsed >= 1000 ? (ctxUsed/1000).toFixed(2) + 'M' : ctxUsed.toFixed(1) + 'K'}
+            <span style={{ color: 'var(--fg)', display: 'inline-block', minWidth: 48, textAlign: 'right' }}>
+              {ctxUsedLabel}
             </span>
-            <span className="mute"> / {ctxMax >= 1000 ? (ctxMax/1000) + 'M' : ctxMax + 'K'} · </span>
-            <span className={pct > 70 ? 'warn' : 'ok'}>{pct}%</span>
+            <span className="mute"> / {ctxMaxLabel} · </span>
+            <span className={pct > 70 ? 'warn' : 'ok'} style={{ display: 'inline-block', minWidth: 30, textAlign: 'right' }}>{pct}%</span>
           </span>
         </div>
         <div style={{ marginLeft: 72, marginBottom: 10, height: 4, background: 'var(--bg-2)', borderRadius: 1, overflow: 'hidden' }}>
@@ -16404,9 +16483,9 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
           const pi = _ctx.pricing ? _ctx.pricing.input  : 0;
           const pc = _ctx.pricing ? _ctx.pricing.cache  : 0;
           const po = _ctx.pricing ? _ctx.pricing.output : 0;
-          const tiRaw = _ctx.tokensIn || 0;
-          const tc = _ctx.tokensCache || 0;
-          const to = _ctx.tokensOut   || 0;
+          const tiRaw = numericValue(_ctx.tokensIn, 0);
+          const tc = numericValue(_ctx.tokensCache, 0);
+          const to = numericValue(_ctx.tokensOut, 0);
           // tokensIn is raw prompt tokens from provider usage and includes
           // the cached subset. The ledger's Input row should show/bill only
           // uncached input; Cached is displayed and charged separately.
@@ -16415,7 +16494,7 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
           const cCach = tc * pc / 1e6;
           const cOut  = to * po / 1e6;
           const cCalc = cIn + cCach + cOut;
-          const cTot = Number(_ctx.costUsd || 0) > 0 ? Number(_ctx.costUsd) : cCalc;
+          const cTot = numericValue(_ctx.costUsd, 0) > 0 ? numericValue(_ctx.costUsd, 0) : cCalc;
           return (
             <>
               <div className="mute" style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>
@@ -16425,7 +16504,7 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
                   </span>
                 )}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr 70px', gap: 4, fontSize: 'var(--ui-control-font-size)', lineHeight: 1.55 }}>
+              <div data-role="cost" style={{ display: 'grid', gridTemplateColumns: '64px minmax(56px, 1fr) 76px', gap: 4, fontSize: 'var(--ui-control-font-size)', lineHeight: 1.55, fontVariantNumeric: 'tabular-nums' }}>
                 <span className="mute">Input</span>
                 <span style={{ color: 'var(--fg)', textAlign: 'right' }}>{fmt(ti)}</span>
                 <span style={{ color: 'var(--fg)', textAlign: 'right' }}>{usd(cIn)}</span>

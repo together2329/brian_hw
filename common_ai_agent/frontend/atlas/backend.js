@@ -52,6 +52,32 @@
   const ACK_TIMEOUT_MS = 3000;
   const MAX_RETRIES = 1;
 
+  function clearPendingAcks() {
+    pendingAcks.forEach((entry) => {
+      try { clearTimeout(entry.timer); } catch (_) {}
+    });
+    pendingAcks.clear();
+  }
+  function isAuthClose(ev) {
+    const code = ev && Number(ev.code);
+    const reason = String((ev && ev.reason) || '').toLowerCase();
+    return code === 1008 && (reason.includes('unauth') || reason.includes('forbidden'));
+  }
+  function emitAuthRequired(ev) {
+    const detail = {
+      state: 'auth_required',
+      code: ev && ev.code,
+      reason: (ev && ev.reason) || 'login required',
+    };
+    connectionState = 'auth_required';
+    liveQueue = [];
+    clearPendingAcks();
+    emit('connection', detail);
+    try {
+      window.dispatchEvent(new CustomEvent('atlas:auth_required', { detail }));
+    } catch (_) {}
+  }
+
   function _rawSend(msg) {
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
     else liveQueue.push(msg);
@@ -128,8 +154,13 @@
       }
       emit(msg.type, msg);
     };
-    ws.onclose = () => {
+    ws.onclose = (ev) => {
       if (socket !== ws || epoch !== wsEpoch) return;
+      if (isAuthClose(ev)) {
+        ws = null;
+        emitAuthRequired(ev);
+        return;
+      }
       connectionState = 'closed';
       ws = null;
       emit('connection', { state: 'closed' });
@@ -177,6 +208,8 @@
   function liveDisconnect() {
     clearTimeout(reconnectTimer);
     wsEpoch += 1;
+    liveQueue = [];
+    clearPendingAcks();
     const socket = ws;
     ws = null;
     if (socket) {
