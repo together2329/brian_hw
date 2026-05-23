@@ -376,6 +376,103 @@ def register_sessions_routes(
         })
 
     # ── /api/session/history ───────────────────────────────────────
+    def _session_triple(session: str) -> tuple[str, str, str]:
+        parts = [part for part in normalize_session_name(str(session or "")).split("/") if part]
+        if len(parts) >= 3:
+            return parts[0], parts[-2], parts[-1]
+        return "", "", ""
+
+    def _chat_row_to_conversation_message(row: dict[str, Any]) -> dict[str, Any]:
+        payload = row.get("payload") or {}
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except Exception:
+                payload = {}
+        role = str((payload or {}).get("role") or "user").strip() or "user"
+        content = str((payload or {}).get("content") or "")
+        return {
+            "id": row.get("id"),
+            "role": role,
+            "agent": str((payload or {}).get("display_name") or ""),
+            "created_at": row.get("created_at"),
+            "content": content,
+            "text": content,
+            "source": "orchestrator_chat",
+        }
+
+    def _orchestrator_chat_messages_for_session(
+        session: str,
+        user_id: str,
+        limit: int,
+    ) -> list[dict[str, Any]]:
+        """Return per-IP orchestrator chat rows for an orchestrator namespace.
+
+        Pipeline/orchestrator chat is stored as trace ``chat_message`` rows
+        keyed by IP, while the normal workspace hydrate path reads
+        ``.session/<owner>/<ip>/<workflow>/conversation.json`` or DB
+        conversation messages.  Merging this read-side view keeps the
+        orchestrator chat visible after workflow and pipeline screen switches.
+        """
+        _owner, ip, workflow = _session_triple(session)
+        if workflow != "orchestrator" or not ip or ip == "default":
+            return []
+        if limit == 0:
+            return []
+        bound = 200 if limit < 0 else max(1, min(int(limit or 200), 500))
+        try:
+            PROJECT_ROOT = project_root()
+            with _atlas_db() as db:
+                workspace = db.upsert_workspace(
+                    PROJECT_ROOT.name or "default",
+                    owner_user_id=user_id or "default",
+                    local_path=str(PROJECT_ROOT),
+                )
+                ip_row = db.upsert_ip_block(workspace["id"], ip)
+                rows = db.list_chat_messages(ip_id=ip_row["id"], limit=bound)
+        except Exception:
+            return []
+        rows = list(reversed(rows))
+        return [_chat_row_to_conversation_message(row) for row in rows]
+
+    def _merge_orchestrator_chat_messages(
+        session: str,
+        messages: list[dict[str, Any]],
+        user_id: str,
+        limit: int,
+    ) -> tuple[list[dict[str, Any]], bool]:
+        chat_messages = _orchestrator_chat_messages_for_session(session, user_id, limit)
+        if not chat_messages:
+            return messages, False
+        seen = {
+            (
+                str(m.get("role") or ""),
+                str(m.get("content") or m.get("text") or ""),
+                str(m.get("id") or ""),
+            )
+            for m in messages
+            if isinstance(m, dict)
+        }
+        merged = list(messages)
+        for msg in chat_messages:
+            key = (
+                str(msg.get("role") or ""),
+                str(msg.get("content") or msg.get("text") or ""),
+                str(msg.get("id") or ""),
+            )
+            if key not in seen:
+                merged.append(msg)
+                seen.add(key)
+        try:
+            merged.sort(key=lambda m: float(m.get("created_at") or 0))
+        except Exception:
+            pass
+        if limit == 0:
+            merged = []
+        elif limit > 0 and len(merged) > limit:
+            merged = merged[-limit:]
+        return merged, True
+
     def _db_conversation_messages(
         session_id: str,
         user_id: str = "",
@@ -450,12 +547,18 @@ def register_sessions_routes(
                 db_msgs = []
             elif limit > 0 and len(db_msgs) > limit:
                 db_msgs = db_msgs[-limit:]
+            db_msgs, chat_merged = _merge_orchestrator_chat_messages(
+                session,
+                db_msgs,
+                _request_user_id(request),
+                limit,
+            )
             return JSONResponse({
                 "messages": db_msgs,
                 "session": session,
                 "path": "",
                 "exists": True,
-                "source": "db",
+                "source": "db+orchestrator_chat" if chat_merged else "db",
                 "truncated_to": limit,
             })
         hpath = sdir / "conversation.json"
@@ -481,9 +584,17 @@ def register_sessions_routes(
             msgs = []
         elif limit > 0 and len(msgs) > limit:
             msgs = msgs[-limit:]
+        msgs, chat_merged = _merge_orchestrator_chat_messages(
+            session,
+            msgs,
+            _request_user_id(request),
+            limit,
+        )
         return JSONResponse({"messages": msgs, "session": session,
                              "path": hpath.relative_to(PROJECT_ROOT).as_posix(),
-                             "exists": True, "source": "file", "truncated_to": limit})
+                             "exists": True,
+                             "source": "file+orchestrator_chat" if chat_merged else "file",
+                             "truncated_to": limit})
 
     # ── /api/session/state ─────────────────────────────────────────
     @app.get("/api/session/state")
@@ -557,6 +668,14 @@ def register_sessions_routes(
                 messages = []
             elif limit > 0 and len(messages) > limit:
                 messages = messages[-limit:]
+        messages, chat_merged = _merge_orchestrator_chat_messages(
+            session,
+            messages,
+            _request_user_id(request),
+            -1 if mode_norm == "full" else limit,
+        )
+        if chat_merged:
+            conversation_source = f"{conversation_source}+orchestrator_chat"
 
         todo_state = _read_json(sdir / "todo.json", {"todos": []})
         if isinstance(todo_state, list):

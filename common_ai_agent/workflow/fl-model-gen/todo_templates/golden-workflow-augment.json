@@ -2,6 +2,7 @@
   "name": "golden-workflow-augment",
   "description": "IP-agnostic workflow-level patches to fl-model-gen that lift FL emission to true golden authority (T1/T2/T4)",
   "lock_additions": true,
+  "tasks": [],
   "items": [
     {
       "content": "Remove name-heuristic state autoincrement in emit_fl_model.py::_apply_primary",

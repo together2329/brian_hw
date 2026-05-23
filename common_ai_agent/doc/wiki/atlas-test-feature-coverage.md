@@ -365,11 +365,21 @@ These tests `self.skipTest(...)` when their environment is unavailable. **Do not
 
 ## 7. Coverage gaps and follow-ups
 
-1. Add a **load test** for orchestrator cold-start: spawn 12 lazy workers simultaneously and assert all reach ready within 45s. Today `ATLAS_LAZY_WORKER_START_TIMEOUT=15` could blow up under contention.
-2. Add a **reaper test**: kill a lazy worker mid-job, expect the matching `_jobs` entry to flip to `status="error"` within `ATLAS_LAZY_WORKER_REAPER_INTERVAL=5s`.
-3. Add a **default-IP banner test** in `frontend/atlas/`: snapshot the warning text when `workflow=orchestrator && ip=default`.
-4. ~~Convert §5.3 CLI scripts to pytest~~ — moved to `scripts/cli_tests/` (no longer hit by default sweep).
-5. Decide whether `tests/test_agents/` (§5.1) should be deleted or whether `agents.sub_agents.*` is being resurrected; if resurrected, restore the module; if not, delete the 6 files in one PR.
+Closed (2026-05-23):
+1. ~~Cold-start load test~~ → `tests/test_lazy_worker_cold_start_storm.py` (4 cases)
+2. ~~Reaper test~~ → `tests/test_lazy_worker_reaper.py` (6 cases)
+3. ~~Concurrent DB writer stress~~ → `tests/test_atlas_db_concurrent_writers.py` (50-thread stress, 2 cases)
+4. ~~Convert §5.3 CLI scripts to pytest~~ → moved to `scripts/cli_tests/` (no longer hit by default sweep)
+5. ~~Long `--ignore=` flag list~~ → `tests/conftest.py:collect_ignore_glob` handles it; `pytest tests/` Just Works
+6. ~~No single entry point~~ → `./scripts/run_tests.sh {quick|full|live|smoke}`
+
+Still open:
+- **Default-IP banner snapshot test** in `frontend/atlas/` — blocked on a JSX test runner. Add `vitest` + `@testing-library/react` (separate PR).
+- **Dashboard IP-row click handler** — same JSX blocker.
+- **AgentStatusPanel WORKERS panel render** — same blocker.
+- **`atlas-dispatch.log` rotation** — write 6 MB to the logger and assert backup files appear.
+- **single-worker env injection** — add `tests/test_single_worker_env_injection.py` that imports `atlas_ui` with the lazy single-worker flag and asserts `WORKER_URL_DEFAULT` is set.
+- **Decide on `tests/test_agents/`** — `agents.sub_agents.*` is gone; either restore the module or `git rm` the 6 files (see §5.1). Currently silently skipped by `collect_ignore_glob`.
 
 ---
 

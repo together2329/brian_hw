@@ -9,7 +9,7 @@
     },
     {
       "content": "[LINT] Run lint — get full error and warning list",
-      "detail": "Run the canonical lint command:\n  python3 ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip> --top <top_module>\nThe report runs both pyslang compile diagnostics and Verilator --lint-only.\nCreate <ip>/lint/ folder if it does not exist.\nRecord:\n- [ ] Total errors\n- [ ] Total warnings\n- [ ] Per-tool breakdown\nDo not fix anything yet — get the complete picture first.\nGate: Lint output captured.",
+      "detail": "Run the canonical lint command using <ip>/list/<ip>.f filelist for source file resolution:\n  python3 ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip> --top <top_module>\nThe report runs both pyslang compile diagnostics and Verilator --lint-only against all files listed in <ip>/list/<ip>.f.\nCreate <ip>/lint/ folder if it does not exist.\nRecord:\n- [ ] Total errors\n- [ ] Total warnings\n- [ ] Per-tool breakdown\nDo not fix anything yet — get the complete picture first.\nGate: Lint output captured.",
       "priority": "high"
     },
     {

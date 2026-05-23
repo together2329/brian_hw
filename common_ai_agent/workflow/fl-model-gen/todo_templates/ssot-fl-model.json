@@ -2,6 +2,7 @@
   "name": "ssot-fl-model",
   "description": "SSOT to executable functional model, decomposition, and FCOV plan without fixed-IP shortcuts",
   "lock_additions": true,
+  "tasks": [],
   "items": [
     {
       "content": "Read and validate <ip>/yaml/<ip>.ssot.yaml as the only source of truth",

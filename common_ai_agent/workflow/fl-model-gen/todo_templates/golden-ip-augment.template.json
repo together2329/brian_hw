@@ -2,6 +2,7 @@
   "name": "golden-ip-augment",
   "description": "Catalog of conditional per-IP TODO templates instantiated by emit_golden_todos.py. The actual per-IP todo list lives at <ip>/golden/golden_todos_tracker.json — this file is metadata describing what the emitter may produce.",
   "lock_additions": false,
+  "tasks": [],
   "templates": [
     {
       "id": "GLD_AUG_CL_EMIT",

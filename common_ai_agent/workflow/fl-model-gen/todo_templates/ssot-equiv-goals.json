@@ -2,6 +2,7 @@
   "name": "ssot-equiv-goals",
   "description": "Generate generic SSOT-traced FL-vs-RTL equivalence goals before TB generation",
   "lock_additions": true,
+  "tasks": [],
   "items": [
     {
       "content": "Read SSOT, FL model, decomposition, and FCOV plan as the equivalence source of truth",

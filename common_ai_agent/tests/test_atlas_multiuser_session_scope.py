@@ -166,6 +166,64 @@ def test_session_activate_records_db_control_plane_namespace(tmp_path, monkeypat
         assert listed["alice/spi_core/orchestrator"]["workflow"] == "orchestrator"
 
 
+def test_orchestrator_session_state_includes_ip_chat_ledger(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    response = _activate(client, "alice", "spi_core", "orchestrator")
+    assert response.status_code == 200, response.text
+    user_id = client.get("/api/users/me").json()["user"]["id"]
+    with AtlasDB() as db:
+        workspace = db.upsert_workspace(
+            tmp_path.name,
+            owner_user_id=user_id,
+            local_path=str(tmp_path),
+        )
+        ip_row = db.upsert_ip_block(workspace["id"], "spi_core")
+        db.record_chat_message(
+            ip_row["id"],
+            user_id,
+            "pipeline question",
+            display_name="alice",
+        )
+        db.record_chat_message(
+            ip_row["id"],
+            user_id,
+            "pipeline answer",
+            display_name="orchestrator",
+            role="assistant",
+        )
+
+    state = client.get(
+        "/api/session/state",
+        params={"session": "alice/spi_core/orchestrator"},
+    )
+    assert state.status_code == 200, state.text
+    conversation = state.json()["conversation"]
+    assert conversation["source"].endswith("+orchestrator_chat")
+    contents = [m.get("content") for m in conversation["messages"]]
+    assert "pipeline question" in contents
+    assert "pipeline answer" in contents
+
+    history = client.get(
+        "/api/session/history",
+        params={"session": "alice/spi_core/orchestrator"},
+    )
+    assert history.status_code == 200, history.text
+    assert history.json()["source"].endswith("+orchestrator_chat")
+    assert "pipeline answer" in [m.get("content") for m in history.json()["messages"]]
+
+
 def test_session_activate_owner_alias_keeps_db_user_id_distinct(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
     from core.atlas_db import AtlasDB

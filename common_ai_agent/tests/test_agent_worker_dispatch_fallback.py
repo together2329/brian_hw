@@ -37,6 +37,9 @@ def _clear_worker_env(monkeypatch):
         "ATLAS_DEFAULT_EXEC_MODE",
         "ATLAS_LAZY_WORKERS",
         "ATLAS_PROJECT_ROOT",
+        "ATLAS_ACTIVE_SESSION",
+        "ATLAS_DEFAULT_SESSION_ID",
+        "ATLAS_USER_SESSION_ID",
         "ATLAS_WORKER_LAZY_START",
         "WORKER_URL_DEFAULT",
     ):
