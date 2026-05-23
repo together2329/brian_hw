@@ -22,9 +22,9 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: True
+- PASS allowed: False
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 0
+- LLM-actionable open tasks: 22
 - Human-locked open tasks: 0
 - Owner refs: top_module, function_model, cycle_model
 - SSOT top IO contracts: 8
@@ -35,13 +35,13 @@
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: rtl_flow.seed
 - Source ref: top_module
 - Detail: Use rtl_todo_plan.json derived from the current SSOT as the implementation checklist. Seed tasks are not the work breakdown; expand directly from the dynamic plan.
 SSOT ref: top_module.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_module.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - rtl_todo_plan.json was regenerated from the current SSOT
   - Every required task in the plan is either implemented, evidenced, or escalated
@@ -54,14 +54,14 @@ Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_module.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: rtl_flow.top
 - Source ref: io_list
 - Detail: The top wrapper must expose the SSOT ports and connect every owned RTL file without hiding active behavior behind constants.
 SSOT ref: io_list.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_module.
 SSOT item context: value=fresh_rule_ip.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Top module name matches SSOT top_module
   - Every SSOT top-level port appears with matching direction and width
@@ -74,14 +74,14 @@ SSOT item context: value=fresh_rule_ip.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: function_model.state_variable
 - Source ref: function_model.state_variables.accepted_count
 - Detail: Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.
 SSOT ref: function_model.state_variables.accepted_count.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.
 SSOT item context: name=accepted_count; width=8; reset=0.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - State has a flop/register/memory owner in RTL
   - Reset value matches SSOT
@@ -96,14 +96,14 @@ SSOT item context: name=accepted_count; width=8; reset=0.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: function_model.transaction
 - Source ref: function_model.transactions.FM_PRIMARY
 - Detail: Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.
 SSOT ref: function_model.transactions.FM_PRIMARY.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.
 SSOT item context: id=FM_PRIMARY; name=primary_behavior.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Acceptance/precondition logic is explicit in RTL
   - All outputs and side effects occur exactly once per accepted transaction
@@ -116,14 +116,14 @@ SSOT item context: id=FM_PRIMARY; name=primary_behavior.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: function_model.output
 - Source ref: function_model.transactions.FM_PRIMARY.outputs.output_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PRIMARY.outputs.output_0.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.
 SSOT item context: id=FM_PRIMARY; name=primary_behavior; port=["result"]; signal=["result", "value"]; state=["accepted_count"].
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -137,14 +137,14 @@ SSOT item context: id=FM_PRIMARY; name=primary_behavior; port=["result"]; signal
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: function_model.output_rule
 - Source ref: function_model.transactions.FM_PRIMARY.output_rules.result
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PRIMARY.output_rules.result.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.
 SSOT item context: name=result; port=result; expr=value * 2; width=9.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -161,14 +161,14 @@ SSOT item context: name=result; port=result; expr=value * 2; width=9.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: function_model.state_update
 - Source ref: function_model.transactions.FM_PRIMARY.state_updates.accepted_count
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PRIMARY.state_updates.accepted_count.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.
 SSOT item context: name=accepted_count; expr=accepted_count + 1; width=8.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -184,14 +184,14 @@ SSOT item context: name=accepted_count; expr=accepted_count + 1; width=8.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: function_model.side_effect
 - Source ref: function_model.transactions.FM_PRIMARY.side_effects.side_effect_0
 - Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
 SSOT ref: function_model.transactions.FM_PRIMARY.side_effects.side_effect_0.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via function_model.
 SSOT item context: id=FM_PRIMARY; name=primary_behavior; port=["result"]; signal=["accepted_count increments on each sampled transaction", "value"]; state=["accepted_count"].
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL owner logic is identifiable for this SSOT leaf
   - Reset/enable/error behavior is consistent with the parent transaction
@@ -205,14 +205,14 @@ SSOT item context: id=FM_PRIMARY; name=primary_behavior; port=["result"]; signal
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: cycle_model.latency
 - Source ref: cycle_model.latency
 - Detail: Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.
 SSOT ref: cycle_model.latency.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via cycle_model.
 SSOT item context: value=1.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL sequential logic uses the SSOT clock/reset phase
   - Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence
@@ -226,14 +226,14 @@ SSOT item context: value=1.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: cycle_model.handshake_rules
 - Source ref: cycle_model.handshake_rules.valid_sample
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.valid_sample.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via cycle_model.
 SSOT item context: name=valid_sample.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL contains the control/state/handshake logic for this cycle rule
   - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
@@ -247,14 +247,14 @@ SSOT item context: name=valid_sample.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: features.item
 - Source ref: features.double_value
 - Detail: Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.
 SSOT ref: features.double_value.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.
 SSOT item context: name=double_value.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Feature trigger/control/data behavior has RTL owner logic
   - Feature observability and error behavior match SSOT
@@ -267,13 +267,13 @@ SSOT item context: name=double_value.
 
 - Priority: high
 - Required: True
-- Status: pass
+- Status: planned
 - Category: equivalence.module
 - Source ref: sub_modules.fresh_rule_ip.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.fresh_rule_ip.module_equivalence.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via module_equivalence.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff
@@ -288,14 +288,14 @@ Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via module_equivalence.
 
 - Priority: normal
 - Required: True
-- Status: pass
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.clock_domains.main.ports.clk
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.clock_domains.main.ports.clk.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.
 SSOT item context: name=clk; width=1; direction=input.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -310,14 +310,14 @@ SSOT item context: name=clk; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: pass
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.resets.rst_n.ports.rst_n
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.resets.rst_n.ports.rst_n.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.
 SSOT item context: name=rst_n; width=1; direction=input.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -332,14 +332,14 @@ SSOT item context: name=rst_n; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: pass
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.rule_io.ports.valid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.rule_io.ports.valid.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.
 SSOT item context: name=valid; width=1; direction=input.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -354,14 +354,14 @@ SSOT item context: name=valid; width=1; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: pass
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.rule_io.ports.data_in
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.rule_io.ports.data_in.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.
 SSOT item context: name=data_in; width=8; direction=input.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -376,14 +376,14 @@ SSOT item context: name=data_in; width=8; direction=input.
 
 - Priority: normal
 - Required: True
-- Status: pass
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.rule_io.ports.result
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.rule_io.ports.result.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.
 SSOT item context: name=result; width=9; direction=output.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -398,14 +398,14 @@ SSOT item context: name=result; width=9; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: pass
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.rule_io.ports.ready
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.rule_io.ports.ready.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.
 SSOT item context: name=ready; width=1; direction=output.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -420,14 +420,14 @@ SSOT item context: name=ready; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: pass
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.rule_io.ports.result_valid
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.rule_io.ports.result_valid.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.
 SSOT item context: name=result_valid; width=1; direction=output.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -442,14 +442,14 @@ SSOT item context: name=result_valid; width=1; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: pass
+- Status: planned
 - Category: io_list.port
 - Source ref: io_list.interfaces.rule_io.ports.accepted_count
 - Detail: The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.
 SSOT ref: io_list.interfaces.rule_io.ports.accepted_count.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.
 SSOT item context: name=accepted_count; width=8; direction=output.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL declaration matches SSOT direction and width
   - Active input controls are consumed by behavior or explicitly justified
@@ -464,14 +464,14 @@ SSOT item context: name=accepted_count; width=8; direction=output.
 
 - Priority: normal
 - Required: True
-- Status: pass
+- Status: planned
 - Category: test_requirements.scenario
 - Source ref: test_requirements.scenarios.SC_RULE_DOUBLE
 - Detail: Scenario expectations must be traceable to RTL-observed signals for cocotb/pyuvm scoreboard checks.
 SSOT ref: test_requirements.scenarios.SC_RULE_DOUBLE.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.
 SSOT item context: id=SC_RULE_DOUBLE; name=double sampled input; expected=result equals FunctionalModel result and result_valid pulses.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - RTL exposes enough signals/status/outputs for the scenario checker
   - FunctionalModel expected result and RTL observed result can be compared
@@ -485,14 +485,14 @@ SSOT item context: id=SC_RULE_DOUBLE; name=double sampled input; expected=result
 
 - Priority: normal
 - Required: True
-- Status: pass
+- Status: planned
 - Category: coverage.functional_bin
 - Source ref: test_requirements.coverage_goals.planned_bins.FCOV_RULE_DOUBLE
 - Detail: Coverage can pass only when a scoreboard row with RTL-observed evidence hits this SSOT bin.
 SSOT ref: test_requirements.coverage_goals.planned_bins.FCOV_RULE_DOUBLE.
 Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via single_owner.
 SSOT item context: id=FCOV_RULE_DOUBLE.
-- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Current reason: RTL audit has not run yet.
 - Criteria:
   - Bin has a scoreboard coverage_refs entry
   - Scoreboard row includes concrete rtl_observed DUT signals
