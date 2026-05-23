@@ -1417,6 +1417,20 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   });
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 900;
 
+  // Mobile header CustomEvent listeners — MobileHeader in app.jsx fires these
+  // so the ☰ and ⋮ buttons in the compact header open the existing drawers.
+  React.useEffect(() => {
+    if (!isMobile) return undefined;
+    const onLeft  = () => { setLeftDrawerOpen(o => !o); setRightDrawerOpen(false); };
+    const onRight = () => { setRightDrawerOpen(o => !o); setLeftDrawerOpen(false); };
+    window.addEventListener('atlas:mobile-left-drawer',  onLeft);
+    window.addEventListener('atlas:mobile-right-drawer', onRight);
+    return () => {
+      window.removeEventListener('atlas:mobile-left-drawer',  onLeft);
+      window.removeEventListener('atlas:mobile-right-drawer', onRight);
+    };
+  }, [isMobile]);
+
   // File-tree sort mode — 'name' (alphabetical, dirs first; default) or
   // 'recent' (most recently modified first, regardless of dir/file).
   // Persisted across reloads.
