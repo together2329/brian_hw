@@ -245,6 +245,22 @@ def test_repair_generated_fm_markers_are_not_authoring_work(tmp_path: Path):
         owner=owner,
         value={"name": "count", "expr": "count_q"},
     )
+    derive._task(
+        tasks,
+        category="workflow_todo.rtl_gen",
+        source_ref="workflow_todos.rtl-gen[8]",
+        title="Implement transaction marker FM2",
+        detail="Repair marker workflow TODO from SSOT schema repair.",
+        criteria=["Do not create marker-only RTL"],
+        owner=owner,
+        value={
+            "id": "RTL_FM_TX_FM2",
+            "content": "Implement state update `fm2_observed` from FunctionalModel expression",
+            "detail": "Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.",
+            "owner_module": "counter_reg",
+            "owner_file": "rtl/counter_reg.sv",
+        },
+    )
 
     plan = {"schema_version": 1, "ip": "counter", "top": "counter", "tasks": tasks, "gate": {"status": "fail"}}
     derive._update_todo_completion(plan, tmp_path, audit_rtl=True)
@@ -253,6 +269,8 @@ def test_repair_generated_fm_markers_are_not_authoring_work(tmp_path: Path):
     assert "repair_generated_fm_marker" in tasks[0]["policy_tags"]
     assert tasks[0]["todo_completion"]["status"] == "pass"
     assert tasks[1]["required"] is True
+    assert tasks[2]["required"] is False
+    assert tasks[2]["todo_completion"]["status"] == "pass"
 
     authoring_plan = derive._write_authoring_packets(tmp_path, plan, todo_plan_sha256="unit-test")
     packet_tasks = []
@@ -262,6 +280,7 @@ def test_repair_generated_fm_markers_are_not_authoring_work(tmp_path: Path):
 
     assert packet_tasks
     assert all("fm2_observed" not in str(task.get("source_ref", "")) for task in packet_tasks)
+    assert all("RTL_FM_TX_FM2" not in str(task.get("workflow_todo", "")) for task in packet_tasks)
     assert any(task.get("source_ref") == "function_model.transactions.FM1.output_rules.count" for task in packet_tasks)
 
 
