@@ -2050,8 +2050,8 @@ def _ensure_lazy_worker_for_direct_dispatch(
         "workflow": wf,
         "session": f"direct/{wf}" if wf else "direct",
         "project_root": pr,
-        "model": _worker_model_default_for(wf),
-        "reasoning_effort": _worker_reasoning_effort_default_for(wf),
+        "model": _worker_model_for(wf),
+        "reasoning_effort": _worker_reasoning_effort_for(wf),
     }
     _ensure_lazy_worker(job)
 

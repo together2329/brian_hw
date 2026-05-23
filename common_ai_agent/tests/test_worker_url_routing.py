@@ -255,8 +255,7 @@ class TestOrchestratorModePerWorkflowPorts(unittest.TestCase):
 @unittest.skipIf(_resolve_worker_url is None, "atlas_api_jobs could not be imported")
 class TestLazyWorkerStart(unittest.TestCase):
     def setUp(self):
-        os.environ.pop("WORKER_URL_DEFAULT", None)
-        os.environ.pop("WORKER_URL_RTL_GEN", None)
+        self._clear_worker_overrides()
         os.environ["ATLAS_LAZY_WORKERS"] = "1"
         os.environ["ATLAS_EXEC_MODE"] = "orchestrator"
         os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "0"
@@ -266,9 +265,17 @@ class TestLazyWorkerStart(unittest.TestCase):
         os.environ.pop("ATLAS_LAZY_WORKERS", None)
         os.environ.pop("ATLAS_EXEC_MODE", None)
         os.environ.pop("ATLAS_SINGLE_MAIN_LOOP", None)
-        os.environ.pop("WORKER_URL_DEFAULT", None)
-        os.environ.pop("WORKER_URL_RTL_GEN", None)
+        self._clear_worker_overrides()
         _m._LAZY_WORKER_PROCS.clear()
+
+    def _clear_worker_overrides(self):
+        for key in (
+            "ATLAS_WORKER_MODEL_SSOT_GEN",
+            "ATLAS_WORKER_REASONING_EFFORT_SSOT_GEN",
+            "WORKER_URL_DEFAULT",
+            "WORKER_URL_RTL_GEN",
+        ):
+            os.environ.pop(key, None)
 
     def _job(self, root: str, worker: str = "http://127.0.0.1:5623") -> dict:
         return {
@@ -356,6 +363,8 @@ class TestLazyWorkerStart(unittest.TestCase):
     def test_direct_dispatch_lazy_helper_resolves_alias(self):
         with tempfile.TemporaryDirectory() as tmp:
             jobs = []
+            os.environ["ATLAS_WORKER_MODEL_SSOT_GEN"] = "glm-5.1"
+            os.environ["ATLAS_WORKER_REASONING_EFFORT_SSOT_GEN"] = "high"
 
             def _capture(job):
                 jobs.append(job)
@@ -372,6 +381,8 @@ class TestLazyWorkerStart(unittest.TestCase):
             self.assertEqual(jobs[0]["workflow"], "ssot-gen")
             self.assertEqual(jobs[0]["session"], "direct/ssot-gen")
             self.assertEqual(jobs[0]["project_root"], tmp)
+            self.assertEqual(jobs[0]["model"], "glm-5.1")
+            self.assertEqual(jobs[0]["reasoning_effort"], "high")
 
 
 if __name__ == "__main__":
