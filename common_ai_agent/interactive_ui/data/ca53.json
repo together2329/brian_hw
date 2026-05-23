@@ -35,7 +35,8 @@
     { "group": "Memory system","items": ["Separate L1 I-cache (illustrative 32 KB, 2-way) and L1 D-cache (illustrative 32 KB, 4-way)", "Shared, unified L2 cache (illustrative 128 KB–2 MB, 16-way)", "Snoop Control Unit (SCU) maintaining L1 coherency", "Optional Accelerator Coherency Port (ACP) slave", "MMU with separate TLBs, 40-bit physical addressing"] },
     { "group": "Interfaces",   "items": ["AMBA 4 ACE coherent master interface (128-bit, illustrative)", "GIC CPU interface (GICv3/v4 optional)", "ARM Generic Timer (per-core)"] },
     { "group": "Debug & trace","items": ["CoreSight-compliant debug (APB)", "PMUv3 performance monitors", "ETMv4 instruction trace over ATB"] },
-    { "group": "RAS / power",  "items": ["Per-core and cluster power-down with state retention (illustrative)", "Dynamic + static power management hooks"] }
+    { "group": "RAS / power",  "items": ["Per-core and cluster power-down with state retention (illustrative)", "Dynamic + static power management hooks"] },
+    { "group": "Implementation options (configurable)", "items": ["1 to 4 cores per cluster", "L1 I/D cache size 8/16/32/64 KB (illustrative)", "L2 cache 128 KB–2 MB or absent", "Cryptography Extension present/absent", "Accelerator Coherency Port (ACP) present/absent", "GICv3/v4 system-register CPU interface optional", "Optional ECC/parity on L1 and L2 RAMs", "Configurable reset endianness and CPUECTLR options"] }
   ],
   "block": {
     "cluster": "Cortex-A53 MPCore cluster",
