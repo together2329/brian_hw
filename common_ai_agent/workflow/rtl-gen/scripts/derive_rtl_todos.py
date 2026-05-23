@@ -4650,6 +4650,8 @@ def _write_authoring_packets(ip_dir: Path, plan: dict[str, Any], *, todo_plan_sh
     for task in plan.get("tasks", []):
         if not isinstance(task, dict):
             continue
+        if _is_repair_generated_fm_task_record(task):
+            continue
         if task.get("category") == "rtl_gate.rtl_gen":
             gate_tasks.append(task)
             continue
@@ -4699,6 +4701,7 @@ def _write_authoring_packets(ip_dir: Path, plan: dict[str, Any], *, todo_plan_sh
                 "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
                 "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
                 "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+                "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
                 "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.",
             ],
             "summary": {
@@ -4901,6 +4904,7 @@ def _write_authoring_packets(ip_dir: Path, plan: dict[str, Any], *, todo_plan_sh
             "Generate real RTL; do not instantiate a fixed IP template or copy boilerplate as the implementation.",
             "Do not close static RTL evidence with comments: derive_rtl_todos.py strips comments before matching, so evidence_terms must be preserved in live lint-clean RTL identifiers/logic.",
             "Do not close static RTL evidence with evidence-only alias wires or marker-only helper wires; the matched identifiers must participate in real RTL behavior.",
+            "Repair-generated FunctionModel fm*_observed markers are advisory schema-repair traceability only; do not create RTL ports, wires, or state solely for tasks tagged repair_generated_fm_marker.",
             "If reference_profile is present, use it only to understand implementation scale and decomposition gaps; never copy or clone reference RTL.",
             "After the top RTL exists, prioritize missing manifest child RTL packets before residual top-module slices.",
             "Keep locked authority artifacts unchanged unless a human approves a change request.",

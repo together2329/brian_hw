@@ -14,6 +14,7 @@
 - For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.
 - Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.
 - Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.
+- Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.
 - Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json.
 
 ## Context
