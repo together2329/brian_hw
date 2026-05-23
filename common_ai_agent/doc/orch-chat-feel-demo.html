@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>orchestrator chat feel demo</title>
+<style>
+  :root{--bg:#0d1117;--fg:#e6edf3;--mute:#8b949e;--accent:#58a6ff;--ok:#3fb950;--line:#30363d;--panel:#161b22;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.5;}
+  .wrap{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);height:100vh;}
+  .pane{background:var(--bg);display:flex;flex-direction:column;min-height:0;}
+  .hd{padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel);font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+  .hd .tag{font-size:10px;color:var(--mute);font-weight:400;}
+  .feed{flex:1;overflow:auto;padding:14px;}
+  .msg{margin-bottom:14px;}
+  .you{border-left:3px solid var(--accent);padding-left:10px;color:var(--fg);}
+  .agent{padding-left:13px;white-space:pre-wrap;}
+  .thought{padding-left:13px;color:var(--mute);font-style:italic;white-space:pre-wrap;}
+  .tool{padding-left:13px;color:var(--accent);}
+  .foot{font-size:10px;color:var(--mute);margin-top:5px;padding-left:13px;}
+  .caret{display:inline-block;width:7px;background:var(--accent);animation:blink 1s steps(2) infinite;}
+  @keyframes blink{0%,50%{opacity:1}50.01%,100%{opacity:0}}
+  .ctl{padding:10px 14px;border-top:1px solid var(--line);background:var(--panel);display:flex;gap:8px;align-items:center;}
+  button{background:var(--accent);color:#000;border:0;padding:7px 14px;border-radius:5px;font-family:inherit;font-weight:700;cursor:pointer;}
+  .pollbadge{font-size:10px;color:var(--mute);}
+</style></head>
+<body>
+<div class="ctl" style="grid-column:1/-1;background:var(--bg);border-bottom:1px solid var(--line);">
+  <button onclick="run()">▶ "Hi, what can you do?" 보내기</button>
+  <span class="pollbadge">두 화면이 같은 DB 데이터를 받지만 렌더 방식이 다릅니다 — 느낌 비교용</span>
+</div>
+<div class="wrap">
+  <div class="pane">
+    <div class="hd">A · DB 통째로 (현재)<span class="tag">poll 1.5s → 완성본 툭</span></div>
+    <div class="feed" id="feedA"></div>
+  </div>
+  <div class="pane">
+    <div class="hd">B · 타이핑 스트리밍 느낌 (제안)<span class="tag">DB 데이터 + 글자별 애니메이션</span></div>
+    <div class="feed" id="feedB"></div>
+  </div>
+</div>
+<script>
+// Same orchestrator response, as it lands in the DB (rich rows).
+const ROWS = [
+  {role:'thought', text:'Inspecting pipeline state for new_axi — no stages run yet, deciding first action.'},
+  {role:'tool', text:'⏺ read_pipeline_state(ip="new_axi")'},
+  {role:'agent', text:'Hi — I’m here and ready.\n\nFor `new_axi` you can ask me to:\n- `status` — inspect pipeline state\n- `run to green` — execute the full flow\n- `dispatch ssot-gen` — run a specific worker\n- `why did rtl fail?` — inspect evidence'},
+];
+const FOOTER = 'Hephaestus · gpt-5.5 · ';
+
+function el(cls,txt){const d=document.createElement('div');d.className='msg '+cls;d.textContent=txt;return d;}
+function userMsg(feed){feed.appendChild(el('you','Hi, what can you do?'));}
+function clearAll(){feedA.innerHTML='';feedB.innerHTML='';}
+
+// A: DB dump — wait the full generate time, then append everything at once.
+async function renderA(){
+  const feed=feedA; userMsg(feed);
+  const t0=performance.now();
+  // simulate poll lag + generation: nothing appears for ~2.6s, then all rows pop in.
+  await sleep(2600);
+  ROWS.forEach(r=>{ if(r.role==='agent') feed.appendChild(el('agent',r.text)); });
+  const sec=((performance.now()-t0)/1000).toFixed(1);
+  const f=document.createElement('div');f.className='foot';f.textContent='■ '+FOOTER+sec+'s';feed.appendChild(f);
+  feed.scrollTop=feed.scrollHeight;
+}
+
+// B: faux-stream — rich rows appear progressively, agent text types out.
+async function renderB(){
+  const feed=feedB; userMsg(feed);
+  const t0=performance.now();
+  await sleep(700); // first poll picks up the thought
+  for(const r of ROWS){
+    if(r.role==='thought'){ const d=el('thought','');feed.appendChild(d); await typeInto(d,r.text,8); await sleep(250);}
+    else if(r.role==='tool'){ feed.appendChild(el('tool',r.text)); await sleep(400);}
+    else if(r.role==='agent'){
+      const d=document.createElement('div');d.className='msg agent';feed.appendChild(d);
+      const caret=document.createElement('span');caret.className='caret';caret.innerHTML='&nbsp;';
+      await typeInto(d,r.text,14,caret);
+    }
+    feed.scrollTop=feed.scrollHeight;
+  }
+  const sec=((performance.now()-t0)/1000).toFixed(1);
+  const f=document.createElement('div');f.className='foot';f.textContent='■ '+FOOTER+sec+'s';feed.appendChild(f);
+  feed.scrollTop=feed.scrollHeight;
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+async function typeInto(node,text,perChar,caret){
+  for(let i=0;i<text.length;i++){
+    node.textContent=text.slice(0,i+1);
+    if(caret) node.appendChild(caret);
+    if(i%2===0) await sleep(perChar);
+    feedB.scrollTop=feedB.scrollHeight;
+  }
+  if(caret&&caret.parentNode) caret.remove();
+}
+function run(){clearAll();renderA();renderB();}
+run();
+</script>
+</body></html>
