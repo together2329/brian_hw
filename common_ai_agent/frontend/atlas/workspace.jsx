@@ -3422,26 +3422,6 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       const sessionId = sessionParts[0] || 'default';
       fn(sessionId, targetIp, targetWf, true);
     }));
-    subs.push(window.backend.subscribe('orchestrator_chat', (m) => {
-      if (String(workflow || '') !== 'orchestrator') return;
-      const role = String(m.role || '').toLowerCase();
-      const content = String(m.content || '').trim();
-      if (!content) return;
-      const key = `orch:${m.ts || ''}:${content.slice(0, 40)}`;
-      if (orchSeenRef.current.has(key)) return;
-      orchSeenRef.current.add(key);
-      const createdAt = m.ts ? m.ts * 1000 : Date.now();
-      if (role === 'assistant') {
-        setFeed(f => [...f, { kind: 'agent', text: content, createdAt }]);
-        setStreaming(false);
-      } else if (role === 'thought' || role === 'reasoning') {
-        setFeed(f => [...f, { kind: 'thought', text: content, createdAt }]);
-      } else if (role === 'tool') {
-        setFeed(f => [...f, { kind: 'action', text: content, createdAt }]);
-      } else if (role === 'tool_result' || role === 'observation') {
-        setFeed(f => [...f, { kind: 'obs', text: content, createdAt }]);
-      }
-    }));
     return () => {
       if (_streamTimer) clearTimeout(_streamTimer);
       if (_reasonRaf) cancelAnimationFrame(_reasonRaf);

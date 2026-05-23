@@ -16522,16 +16522,6 @@ def create_app():
         bridge=bridge,
         permissions=_ChatPermissionPolicy(_chat_db),
     )
-    try:
-        from orchestrator.react_bridge import set_orchestrator_chat_broadcast  # noqa: WPS433
-        def _bcast_orch_chat(evt):
-            try:
-                bridge.broadcast_all(evt)
-            except Exception:
-                pass
-        set_orchestrator_chat_broadcast(_bcast_orch_chat)
-    except Exception:
-        pass
     # SSOT API (/api/ssot, /api/ssot/qa, /api/ssot/qa/sessions,
     # /api/ssot/qa/answer) lives in src/atlas_api_ssot.py.
     from atlas_api_ssot import register_ssot_routes  # noqa: WPS433
