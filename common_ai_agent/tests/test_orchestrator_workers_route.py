@@ -93,3 +93,78 @@ def test_workers_route_marks_workflow_and_model_mismatch(tmp_path: Path, monkeyp
     assert rtl["model_mismatch"] is True
     assert rtl["bound_workflow"] == "lint"
     assert rtl["worker_health_model"] == "glm-5.1"
+
+
+def test_workers_route_scopes_running_jobs_to_request_user(tmp_path: Path, monkeypatch) -> None:
+    import urllib.request
+
+    import atlas_api_jobs as jobs
+    from core.atlas_db import AtlasDB
+
+    def _fake_urlopen(req, timeout=None):
+        url = getattr(req, "full_url", str(req))
+        body = {
+            "status": "ok",
+            "runs": 2,
+            "running": [{"run_id": "foreign-health-run"}],
+            "running_models": ["private-model"],
+        }
+        if "5623" in url:
+            body.update({"workflow": "rtl-gen", "model": "gpt-5.3-codex"})
+        mock_resp = MagicMock()
+        mock_resp.read.return_value = json.dumps(body).encode("utf-8")
+        mock_resp.__enter__ = lambda s: s
+        mock_resp.__exit__ = MagicMock(return_value=False)
+        return mock_resp
+
+    monkeypatch.setattr(urllib.request, "urlopen", _fake_urlopen)
+
+    client = _make_client(tmp_path, monkeypatch)
+    login = client.post("/api/auth/login", json={"username": "u", "password": "pw"})
+    assert login.status_code == 200, login.text
+    with AtlasDB(tmp_path / "atlas.db") as db:
+        user = db.get_user_by_username("u")
+    assert user is not None
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["mine"] = {
+            "job_id": "mine",
+            "run_id": "run_mine",
+            "workflow": "rtl-gen",
+            "stage_id": "rtl",
+            "status": "running",
+            "ip": "pl330",
+            "user_id": "u",
+            "db_user_id": user["id"],
+            "model": "gpt-5.3-codex",
+            "session": "u/pl330/rtl-gen",
+            "started_at": 2.0,
+        }
+        jobs._jobs["other"] = {
+            "job_id": "other",
+            "run_id": "run_other",
+            "workflow": "rtl-gen",
+            "stage_id": "rtl",
+            "status": "running",
+            "ip": "pl330",
+            "user_id": "other",
+            "db_user_id": "other-user-id",
+            "model": "private-model",
+            "session": "other/pl330/rtl-gen",
+            "started_at": 3.0,
+        }
+
+    try:
+        resp = client.get("/api/orchestrator/workers?ip=pl330")
+        assert resp.status_code == 200, resp.text
+        rtl = next(item for item in resp.json()["workers"] if item["workflow"] == "rtl-gen")
+        assert rtl["running_count"] == 1
+        assert [item["job_id"] for item in rtl["running"]] == ["mine"]
+        assert rtl["worker_running_models"] == ["gpt-5.3-codex"]
+        assert "foreign-health-run" not in json.dumps(rtl)
+        assert "other" not in json.dumps(rtl)
+        assert "private-model" not in json.dumps(rtl)
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()

@@ -88,13 +88,18 @@ case "$MODE" in
     python3 -m pytest "${BASE_ARGS[@]}" ${PYTEST_EXTRA[@]+"${PYTEST_EXTRA[@]}"}
     ;;
 
+  frontend)
+    echo "[run_tests] mode=frontend (vitest JSX component tests)"
+    cd frontend/atlas && npx vitest run
+    ;;
+
   help|-h|--help)
     sed -n '2,20p' "$0"
     exit 0
     ;;
 
   *)
-    echo "[run_tests] unknown mode: $MODE (try 'quick', 'full', 'live', 'smoke', or 'help')" >&2
+    echo "[run_tests] unknown mode: $MODE (try 'quick', 'full', 'live', 'smoke', 'frontend', or 'help')" >&2
     exit 2
     ;;
 esac

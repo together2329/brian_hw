@@ -275,6 +275,8 @@ skips the dead-import paths automatically (see §5).
 | WORKERS · ORCH sidebar panel | `frontend/atlas/workspace.jsx:AgentStatusPanel` | none direct (UI) | ⚠ manual verification |
 | Orchestrator chat “select IP” warning banner | `frontend/atlas/workspace.jsx:renderPromptRow` | none direct (UI) | ⚠ manual verification |
 | `.dir-select-wrap.run-policy` accent border removed | `frontend/atlas/styles.css` | none (cosmetic) | ⚠ manual verification |
+| `_jobs` rehydration on boot (`_rehydrate_jobs_from_db`) — reconciles orphaned `status='running'` DB rows after orchestrator restart; healthy+busy workers rescued, others marked error. Env: none (always on). | `src/atlas_api_jobs.py:_rehydrate_jobs_from_db`, called from `register_jobs_routes` | **`test_jobs_rehydration.py`** (3 cases: rescued count, DB error status, 1-hour cutoff) | ✅ Pass |
+| Lazy-worker idle TTL (`ATLAS_LAZY_WORKER_IDLE_TTL_SEC`, default 600 s) — reaper probes alive workers; if `running_count=0` for ≥ TTL seconds, calls `proc.terminate()` and removes from `_LAZY_WORKER_PROCS`. Set to `0` to disable. Tracks `_LAZY_WORKER_LAST_BUSY[url]` (monotonic). | `src/atlas_api_jobs.py:_lazy_worker_reaper_loop`, `_ensure_lazy_worker`, `_LAZY_WORKER_LAST_BUSY`, `_LAZY_WORKER_IDLE_TTL_SEC` | **`test_lazy_worker_idle_ttl.py`** (4 cases: terminate called, removed from procs, busy worker untouched, TTL=0 disables) | ✅ Pass |
 
 ---
 
@@ -285,33 +287,35 @@ Closed (added 2026-05-23):
 - ~~Orchestrator-mode cold-start storm~~ → `test_lazy_worker_cold_start_storm.py` (4 cases)
 - ~~50-way concurrent DB writer~~ → `test_atlas_db_concurrent_writers.py` (2 cases)
 
+Closed (added 2026-05-23 — vitest + @testing-library/react setup in `frontend/atlas/`):
+- ~~Dashboard IP-row click navigation~~ → `__tests__/dashboard-ip-row-click.test.jsx`
+- ~~AgentStatusPanel WORKERS section~~ → `__tests__/workers-sidebar-panel.test.jsx`
+- ~~Orchestrator chat "select IP" warning banner~~ → `__tests__/default-ip-banner.test.jsx`
+
 Still open (no automated coverage; manual or new tests needed):
 
-- **Dashboard IP-row click navigation** — `test_atlas_user_dashboard.py` validates the payload shape but not the click handler. Needs a JSX test runner (none configured today).
-- **AgentStatusPanel WORKERS section** — same blocker; no JSX test infra.
-- **Orchestrator chat "select IP" warning banner** — same blocker.
 - **`.dir-select-wrap.run-policy` border change** — cosmetic, low priority.
 - **`atlas-dispatch.log` rotation correctness** — relies on stdlib RotatingFileHandler defaults; could add a synthetic 6 MB write test.
 - **single-worker `WORKER_URL_DEFAULT=http://127.0.0.1:5601` env injection** — checked only indirectly via `_worker_url_is_shared_default`. A focused test on the env-set side of `atlas_ui.py:_single_worker_mode` branch would catch regressions.
 
-To close the JSX-side gaps, run `npm init` + install `vitest` + `@testing-library/react` and add a `frontend/__tests__/` folder. There is no JS toolchain in the repo today (browser-Babel only), so this is a separate setup task.
+Run JSX tests with: `./scripts/run_tests.sh frontend` (or `cd frontend/atlas && npx vitest run`).
 
 ---
 
 ## 5. Deprecated / broken / CLI-only test files
 
-### 5.1 DELETE candidates (dead imports — module `agents.sub_agents` removed)
+### 5.1 DELETED 2026-05-23 (dead imports — module `agents.sub_agents` removed in 69c75003)
 
 | File | Failing import |
 |---|---|
 | `tests/test_agents/test_explore_agent_improved.py` | `agents.sub_agents.explore_agent` |
 | `tests/test_agents/test_plan_agent_improved.py` | `agents.sub_agents.plan_agent` |
-| `tests/test_agents/test_explore_agent.py` | conditional `agents.sub_agents.*` (lines 31, 104, 137, 180, 227) |
+| `tests/test_agents/test_explore_agent.py` | conditional `agents.sub_agents.*` |
 | `tests/test_integration/test_agent_iterations.py` | `agents.sub_agents.explore_agent`, `agents.sub_agents.plan_agent` |
 | `tests/test_core/test_context_logging.py` | `agents.sub_agents.explore_agent` |
 | `tests/test_core/test_debug_config.py` | `agents.sub_agents.base` |
 
-Action: `git rm` these 6 files.
+All 6 removed via `git rm`. `conftest.py` entries for these files also removed.
 
 ### 5.2 Intentionally broken (manual-only)
 
@@ -379,7 +383,7 @@ Still open:
 - **AgentStatusPanel WORKERS panel render** — same blocker.
 - **`atlas-dispatch.log` rotation** — write 6 MB to the logger and assert backup files appear.
 - **single-worker env injection** — add `tests/test_single_worker_env_injection.py` that imports `atlas_ui` with the lazy single-worker flag and asserts `WORKER_URL_DEFAULT` is set.
-- **Decide on `tests/test_agents/`** — `agents.sub_agents.*` is gone; either restore the module or `git rm` the 6 files (see §5.1). Currently silently skipped by `collect_ignore_glob`.
+- ~~**Decide on `tests/test_agents/`**~~ — 6 dead-import files removed 2026-05-23 (see §5.1). `test_agents/test_sub_agents.py` kept (covers live `core/tools.py` task-tool path).
 
 ---
 

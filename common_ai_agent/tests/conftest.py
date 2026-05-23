@@ -13,16 +13,10 @@ sys.path.insert(0, _project_root)                        # core.*, lib.*, agents
 import pytest
 
 
-# Directories under tests/ that import dead modules or were never updated
-# after the agents.* package was removed. Listed here so `pytest tests/`
-# just works for a new contributor without 7 --ignore flags. The files
-# themselves remain in the repo so the deletion can be tracked
-# separately in `doc/wiki/atlas-test-feature-coverage.md` §5.1.
+# Directories under tests/ that import dead modules or need special env.
+# Listed here so `pytest tests/` just works for a new contributor without
+# explicit --ignore flags.
 collect_ignore_glob = [
-    "test_agents/*",
-    "test_core/test_context_logging.py",
-    "test_core/test_debug_config.py",
-    "test_integration/test_agent_iterations.py",
     "test_integration/test_rag_interactive.py",
     "test_lib/test_deep_think.py",
     "test_lib/test_readline_autocomplete.py",

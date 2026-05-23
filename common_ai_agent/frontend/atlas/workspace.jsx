@@ -15213,8 +15213,9 @@ const OrchestratorWorkflowPane = ({ activeIp }) => {
   const [error, setError] = React.useState('');
   const ip = String(activeIp || window.SCOPE_PATH || '').trim();
 
-  const refresh = React.useCallback(async () => {
-    setLoading(true);
+  const refresh = React.useCallback(async (options = {}) => {
+    const manual = !!(options && options.manual);
+    if (manual) setLoading(true);
     try {
       const query = ip && ip !== 'default' ? `?ip=${encodeURIComponent(ip)}` : '';
       const r = await fetch(`/api/orchestrator/workers${query}`, { cache: 'no-store' });
@@ -15225,7 +15226,7 @@ const OrchestratorWorkflowPane = ({ activeIp }) => {
     } catch (e) {
       setError(e && e.message ? e.message : String(e));
     } finally {
-      setLoading(false);
+      if (manual) setLoading(false);
     }
   }, [ip]);
 
@@ -15283,8 +15284,8 @@ const OrchestratorWorkflowPane = ({ activeIp }) => {
             <span className="mute">workers</span>
             <span>{running.length} running · {mismatch.length} mismatch · {down.length} down</span>
           </div>
-          <button className="btn" type="button" onClick={refresh} disabled={loading} style={{ padding: '3px 8px', fontSize: 10, justifySelf: 'start' }}>
-            {loading ? 'refreshing' : 'refresh'}
+          <button className="btn" type="button" onClick={() => refresh({ manual: true })} disabled={loading} style={{ padding: '3px 8px', fontSize: 10, justifySelf: 'start' }}>
+            refresh
           </button>
           {error && (
             <div style={{ color: 'var(--err)', fontFamily: 'var(--mono)', fontSize: 10 }}>{error}</div>

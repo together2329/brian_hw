@@ -75,6 +75,14 @@ _HEALTH_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
 _HEALTH_CACHE_TTL = float(
     os.environ.get("ATLAS_HEALTH_PROBE_CACHE_SEC", "1.5") or 1.5
 )
+# Idle TTL: if a worker reports running_count=0 for this many seconds
+# the reaper terminates it.  Set ATLAS_LAZY_WORKER_IDLE_TTL_SEC=0 to disable.
+_LAZY_WORKER_IDLE_TTL_SEC = float(
+    os.environ.get("ATLAS_LAZY_WORKER_IDLE_TTL_SEC", "600") or "600"
+)
+# Monotonic timestamp of last observed busy moment per worker URL.
+# Populated when worker is spawned; updated by reaper probes.
+_LAZY_WORKER_LAST_BUSY: dict[str, float] = {}
 
 
 def _dispatch_logger() -> logging.Logger:
@@ -1853,11 +1861,39 @@ def _lazy_worker_reaper_loop() -> None:
                 except Exception:
                     rc = None
                 if rc is None:
+                    # Process alive — probe for idle-TTL if TTL is enabled.
+                    if _LAZY_WORKER_IDLE_TTL_SEC > 0:
+                        health = _probe_worker_health(url, timeout=1.5)
+                        now_mono = time.monotonic()
+                        try:
+                            running_count = int(health.get("running_count") or 0)
+                        except Exception:
+                            running_count = -1
+                        with _LAZY_WORKER_LOCK:
+                            if running_count > 0:
+                                _LAZY_WORKER_LAST_BUSY[url] = now_mono
+                            last_busy = _LAZY_WORKER_LAST_BUSY.get(url, now_mono)
+                        idle_sec = now_mono - last_busy
+                        if running_count == 0 and idle_sec >= _LAZY_WORKER_IDLE_TTL_SEC:
+                            _LOG.info(
+                                f"[lazy-worker] idle-ttl url={url} "
+                                f"terminating after {idle_sec:.0f}s idle"
+                            )
+                            with _LAZY_WORKER_LOCK:
+                                cur = _LAZY_WORKER_PROCS.get(url)
+                                if cur is proc:
+                                    _LAZY_WORKER_PROCS.pop(url, None)
+                                    _LAZY_WORKER_LAST_BUSY.pop(url, None)
+                            try:
+                                proc.terminate()
+                            except Exception:
+                                pass
                     continue
                 with _LAZY_WORKER_LOCK:
                     cur = _LAZY_WORKER_PROCS.get(url)
                     if cur is proc:
                         _LAZY_WORKER_PROCS.pop(url, None)
+                    _LAZY_WORKER_LAST_BUSY.pop(url, None)
                 failed = _mark_jobs_failed_for_worker(url, f"rc={rc}")
                 _LOG.info(
                     f"[lazy-worker] reap url={url} pid={proc.pid} rc={rc} "
@@ -1966,6 +2002,7 @@ def _ensure_lazy_worker(job: dict[str, Any]) -> None:
                             pass
                 with _LAZY_WORKER_LOCK:
                     _LAZY_WORKER_PROCS[key] = proc
+                    _LAZY_WORKER_LAST_BUSY[key] = time.monotonic()
                 _register_lazy_worker_atexit()
                 _ensure_lazy_worker_reaper()
                 _LOG.info(
@@ -3081,6 +3118,94 @@ def _refresh_tracked_jobs(project_root_path: Path | None = None) -> tuple[list[d
             _finish_job_db_run(job, job.get("status"))
             _advance_pipeline_from(job)
     return snapshot, changed
+
+
+# ── Boot-time rehydration ────────────────────────────────────────────
+
+def _rehydrate_jobs_from_db(db: Any) -> None:
+    """Reconcile in-memory _jobs against DB rows left running after a restart.
+
+    Fetches workflow_runs with status='running' started within the last hour.
+    For each row, probes the worker's /health endpoint:
+      - Healthy with running_count > 0 → re-insert into _jobs as running.
+      - Otherwise → mark DB row 'error' with 'orphaned by orchestrator restart'.
+
+    Logs: [rehydrate] N jobs reconciled (rescued=R, marked-error=E)
+    """
+    cutoff = time.time() - 3600.0
+    try:
+        rows = db._fetchall(
+            "SELECT * FROM workflow_runs WHERE status = ? AND started_at >= ?",
+            ("running", cutoff),
+        )
+    except Exception as exc:
+        _LOG.info(f"[rehydrate] DB query failed: {exc}")
+        return
+
+    rescued = 0
+    marked_error = 0
+    for row in rows:
+        run = dict(row)
+        run_id = str(run.get("id") or "")
+        if not run_id:
+            continue
+
+        # Build a minimal job dict from the DB row so _finish_job_db_run works.
+        input_summary: dict[str, Any] = {}
+        try:
+            raw = run.get("input_summary") or "{}"
+            input_summary = json.loads(raw) if isinstance(raw, str) else {}
+        except Exception:
+            pass
+
+        job: dict[str, Any] = {
+            "job_id": run_id,
+            "workflow_run_id": run_id,
+            "workflow": str(run.get("workflow") or input_summary.get("workflow") or ""),
+            "status": "running",
+            "worker": str(input_summary.get("worker") or ""),
+            "db_session_id": str(run.get("session_id") or ""),
+            "db_workspace_id": str(run.get("workspace_id") or ""),
+            "db_ip_id": str(run.get("ip_id") or ""),
+            "db_user_id": str(input_summary.get("user_id") or ""),
+            "project_root": str(input_summary.get("project_root") or "."),
+            "ip": str(input_summary.get("ip") or ""),
+            "stage_id": str(input_summary.get("stage_id") or ""),
+            "pipeline_id": str(input_summary.get("pipeline_id") or ""),
+        }
+
+        worker_url = job["worker"].rstrip("/")
+        alive = False
+        if worker_url:
+            health = _probe_worker_health(worker_url, timeout=1.5)
+            if str(health.get("status") or "") == "ok":
+                rc = health.get("running_count")
+                try:
+                    alive = int(rc or 0) > 0
+                except Exception:
+                    alive = False
+
+        if alive:
+            with _jobs_lock:
+                _jobs[run_id] = job
+            rescued += 1
+        else:
+            reason = "orphaned by orchestrator restart"
+            job["status"] = "error"
+            job["error"] = reason
+            job["finished_at"] = time.time()
+            # Update directly via the already-open db connection so the
+            # correct DB file is always written (avoids path lookup from job).
+            try:
+                db.finish_workflow_run(run_id, "error", error_summary=reason)
+            except Exception as exc2:
+                _LOG.info(f"[rehydrate] finish_job_db_run failed run_id={run_id}: {exc2}")
+            marked_error += 1
+
+    _LOG.info(
+        f"[rehydrate] {rescued + marked_error} jobs reconciled "
+        f"(rescued={rescued}, marked-error={marked_error})"
+    )
 
 
 # ── Factory ─────────────────────────────────────────────────────────
@@ -4749,6 +4874,17 @@ def register_jobs_routes(
             )
         _atlas_tools.set_ensure_lazy_worker_callback(_ensure_lazy_worker_for_direct)
 
+    # ── Boot-time job rehydration ─────────────────────────────────
+    # Runs once at startup. Reconciles any workflow_runs left in
+    # status='running' from a previous orchestrator session.
+    try:
+        from core.atlas_db import AtlasDB
+        _rehydrate_db_path = _atlas_job_db_path(project_root())
+        with AtlasDB(_rehydrate_db_path) as _rehydrate_db:
+            _rehydrate_jobs_from_db(_rehydrate_db)
+    except Exception as _rehydrate_exc:
+        _LOG.info(f"[rehydrate] skipped (db unavailable): {_rehydrate_exc}")
+
     # ── /api/pipeline/orchestrator_mode ───────────────────────────
 
     @app.get("/api/pipeline/orchestrator_mode")
@@ -4886,6 +5022,8 @@ def register_jobs_routes(
 
         params = dict(request.query_params)
         ip = (params.get("ip") or "").strip()
+        request_user = _request_username(request)
+        request_db_user = _request_db_user_id(request)
 
         # Workflows the orchestrator can dispatch. Order matches canonical pipeline.
         workflows = list(_DEFAULT_WORKER_PORTS.keys())
@@ -4894,6 +5032,49 @@ def register_jobs_routes(
             # Cached fan-out: with N UI tabs polling every 3s, this dropped
             # probe traffic ~Nx without changing user-visible latency.
             return _probe_worker_health_cached(url, timeout=2.0)
+
+        def _job_visible_to_request(job: dict[str, Any]) -> bool:
+            if not _multi_user_enabled():
+                return True
+            if not request_user and not request_db_user:
+                return True
+            job_db_user = str(job.get("db_user_id") or "").strip()
+            if job_db_user:
+                return bool(request_db_user and job_db_user == request_db_user)
+            job_user = str(job.get("user_id") or "").strip()
+            if job_user:
+                return bool(request_user and job_user == request_user)
+            return False
+
+        def _visible_worker_jobs(workflow: str) -> list[dict[str, Any]]:
+            active_states = {"pending", "queued", "running", "blocked"}
+            out: list[dict[str, Any]] = []
+            with _jobs_lock:
+                candidates = list(_jobs.values())
+            for job in candidates:
+                if str(job.get("workflow") or "").strip() != workflow:
+                    continue
+                if ip and str(job.get("ip") or "").strip() != ip:
+                    continue
+                if str(job.get("status") or "").strip() not in active_states:
+                    continue
+                if not _job_visible_to_request(job):
+                    continue
+                out.append({
+                    "job_id": job.get("job_id") or "",
+                    "run_id": job.get("run_id") or "",
+                    "pipeline_id": job.get("pipeline_id") or "",
+                    "pipeline_run_id": job.get("pipeline_run_id") or job.get("pipeline_id") or "",
+                    "pipeline_index": job.get("pipeline_index"),
+                    "workflow": job.get("workflow") or "",
+                    "stage_id": job.get("stage_id") or "",
+                    "ip": job.get("ip") or "",
+                    "status": job.get("status") or "",
+                    "model": job.get("model") or "",
+                    "session": job.get("session") or "",
+                    "started_at": job.get("started_at") or 0,
+                })
+            return sorted(out, key=lambda item: float(item.get("started_at") or 0), reverse=True)
 
         async def _gather() -> list[dict[str, Any]]:
             loop = asyncio.get_event_loop()
@@ -4904,8 +5085,7 @@ def register_jobs_routes(
             out = []
             for wf, url, t in tasks:
                 health = await t
-                running = health.get("running") if isinstance(health, dict) else []
-                running_list = running if isinstance(running, list) else []
+                running_list = _visible_worker_jobs(wf)
                 health_status = str(health.get("status", "unreachable"))
                 default_model = _worker_model_default_for(wf)
                 expected_model = _worker_model_for(wf)
@@ -4916,7 +5096,7 @@ def register_jobs_routes(
                 health_model = str(health.get("model") or "").strip()
                 running_models = [
                     str(item).strip()
-                    for item in (health.get("running_models") or [])
+                    for item in (job.get("model") for job in running_list)
                     if str(item).strip()
                 ]
                 model_mismatch = (

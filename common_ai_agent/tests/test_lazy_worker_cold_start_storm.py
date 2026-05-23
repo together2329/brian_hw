@@ -100,16 +100,21 @@ def _reset_lazy_worker_state(monkeypatch):
     """
     monkeypatch.setattr(_mod, "_LAZY_WORKER_PROCS", {})
     monkeypatch.setattr(_mod, "_LAZY_WORKER_URL_LOCKS", {})
+    monkeypatch.setattr(_mod, "_LAZY_WORKER_LAST_BUSY", {})
     monkeypatch.setattr(_mod, "_LAZY_WORKER_REAPER_STARTED", False)
     monkeypatch.setattr(
         _mod, "_LAZY_WORKER_SPAWN_SEM", threading.Semaphore(_SPAWN_PARALLEL)
     )
+    # Disable idle-TTL so the fast-looping reaper does not terminate
+    # freshly-spawned workers before the storm test can assert spawn counts.
+    monkeypatch.setattr(_mod, "_LAZY_WORKER_IDLE_TTL_SEC", 0.0)
     # Speed up the ready-wait polling loop (L2011: time.sleep(0.25))
     monkeypatch.setattr(time, "sleep", lambda _s: None)
     yield
     # Clean up any leftover procs dict entries
     _mod._LAZY_WORKER_PROCS.clear()
     _mod._LAZY_WORKER_URL_LOCKS.clear()
+    _mod._LAZY_WORKER_LAST_BUSY.clear()
 
 
 # ── tests ─────────────────────────────────────────────────────────────────────
