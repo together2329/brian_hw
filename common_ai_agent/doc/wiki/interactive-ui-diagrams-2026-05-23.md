@@ -11,6 +11,7 @@ Open `interactive_ui/index.html` for the gallery.
 
 | file | what | data | interaction |
 |------|------|------|-------------|
+| `ssot-explorer.html` | **all SSOT sections in one IP datasheet** | `data/gpio_ssot.json` | nav + per-section diagrams, function-model live evaluator, editable master spec |
 | `chat-feel-demo.html` | chat UX: DB-dump vs typing-stream | static | replay |
 | `timing-diagram.html` | WaveDrom-style waveform | editable JSON | hover readout, ▶ sweep |
 | `timing-compare.html` | **SSOT-expected vs VCD-actual** diff | `data/gpio_*.json` | cell diff, ⚠ inject-violation |
@@ -26,6 +27,11 @@ Open `interactive_ui/index.html` for the gallery.
 - `ssot_to_wavespec.py` — SSOT YAML → expected APB handshake from the
   `protocol` contract + register map; idle-only control signals become
   don't-care (`x`) so the diff doesn't flag unconstrained cycles. Needs `pyyaml`.
+- `ssot_to_archspec.py` — SSOT → rich block-diagram spec (interfaces, blocks
+  mapped to pipeline stages, register fields, dataflow widths, function-model
+  contract, latency, clock/reset). Feeds `architecture-diagram.html`. `pyyaml`.
+- `ssot_to_explorer.py` — SSOT → consolidated all-sections spec (overview,
+  registers, function/cycle model, fsm, timing). Feeds `ssot-explorer.html`. `pyyaml`.
 
 Wave tokens: `p` clock · `0/1` level · `.` hold · `=` bus(+`data` label) ·
 `x` don't-care (never flagged) · `z` hi-Z.

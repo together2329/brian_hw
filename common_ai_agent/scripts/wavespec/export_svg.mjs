@@ -41,6 +41,26 @@ for (const name of FILES) {
   );
   await page.close();
 }
+
+// ssot-explorer is a full document (tables + multiple diagrams), not a single
+// diagram — capture it as a full-page PNG (also an E2E load test in real Chrome).
+{
+  const name = 'ssot-explorer';
+  const page = await ctx.newPage();
+  const errs = [];
+  page.on('pageerror', e => errs.push(String(e)));
+  await page.goto('file://' + path.join(ROOT, 'interactive_ui', name + '.html'));
+  await page.waitForTimeout(400);
+  const dest = path.join(OUT, name + '.png');
+  await page.screenshot({ path: dest, fullPage: true });
+  const bytes = fs.statSync(dest).size;
+  const ok = bytes > 5000 && errs.length === 0;
+  if (!ok) fail++;
+  console.log((ok ? 'PASS ' : 'FAIL ') + name.padEnd(22), 'fullpage png=' + bytes + 'B',
+    errs.length ? ('ERR:' + errs[0]) : '');
+  await page.close();
+}
+
 await browser.close();
 console.log(fail ? ('\n' + fail + ' FAILED') : '\nAll exports OK');
 process.exit(fail ? 1 : 0);
