@@ -104,7 +104,14 @@
           { "name": "M",   "msb": 0,  "lsb": 0,  "reset": "0", "desc": "MMU enable" }
         ]
       },
-      { "name": "CPACR_EL1",      "encoding": "S3_0_C1_C0_2", "access": "RW", "desc": "Architectural feature access (FP/SIMD trap) control." },
+      {
+        "name": "CPACR_EL1", "encoding": "S3_0_C1_C0_2", "access": "RW", "reset": "0x00000000",
+        "desc": "Architectural Feature Access Control — FP/SIMD and trace trap control.",
+        "fields": [
+          { "name": "TTA",  "msb": 28, "lsb": 28, "desc": "Trap trace register accesses" },
+          { "name": "FPEN", "msb": 21, "lsb": 20, "desc": "FP/SIMD trap control (0b11 = no trap)" }
+        ]
+      },
       { "name": "TTBR0_EL1",      "encoding": "S3_0_C2_C0_0", "access": "RW", "desc": "Translation Table Base Register 0 (EL1)." },
       { "name": "TTBR1_EL1",      "encoding": "S3_0_C2_C0_1", "access": "RW", "desc": "Translation Table Base Register 1 (EL1)." },
       { "name": "TCR_EL1",        "encoding": "S3_0_C2_C0_2", "access": "RW", "desc": "Translation Control Register (EL1)." },
