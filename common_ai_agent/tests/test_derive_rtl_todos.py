@@ -256,7 +256,7 @@ def test_repair_generated_fm_markers_are_not_authoring_work(tmp_path: Path):
 
     authoring_plan = derive._write_authoring_packets(tmp_path, plan, todo_plan_sha256="unit-test")
     packet_tasks = []
-    for packet in authoring_plan["authoring_packets"]:
+    for packet in authoring_plan["packets"]:
         packet_json = tmp_path / packet["json"]
         packet_tasks.extend(derive._safe_read_json(packet_json)["tasks"])
 
