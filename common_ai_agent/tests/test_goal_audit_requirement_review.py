@@ -113,6 +113,116 @@ def test_goal_audit_rejects_req_phase_marker_without_requirement_markdown(
     assert audit["stop_condition"]["req_ok"] is False
 
 
+def test_goal_audit_accepts_starter_requirement_manifest(tmp_path: Path) -> None:
+    mod = _load_module()
+    ip = "counter_ref"
+    req_dir = tmp_path / ip / "req"
+    req_dir.mkdir(parents=True)
+    req = req_dir / f"{ip}_requirements.md"
+    req.write_text(
+        "# Starter Requirements\n\n"
+        + (
+            "Feature: an 8-bit synchronous up counter samples enable on the rising clock edge, "
+            "uses a synchronous reset, rolls over from 255 to 0, drives terminal-count from the "
+            "current count value, and must close RTL compile, lint, simulation, coverage, and "
+            "place-and-route evidence before signoff.\n"
+        )
+        * 8,
+        encoding="utf-8",
+    )
+    (req_dir / "approval_manifest.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "ip": ip,
+                "artifact": f"req/{ip}_requirements.md",
+                "status": "approved",
+                "approved_by": "ssot-gen-automated-pipeline",
+                "approval_mode": "starter",
+                "bytes": req.stat().st_size,
+                "checks": {
+                    "minimum_bytes": True,
+                    "no_tbd_markers": True,
+                    "has_feature_table": True,
+                    "has_interface_table": True,
+                    "has_functional_behavior": True,
+                    "has_verification_requirements": True,
+                    "has_quality_gates": True,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    ok, _, detail = mod._approved_req_status(ip, tmp_path, tmp_path / ip)
+
+    assert ok is True
+    assert "starter_approved_by=ssot-gen-automated-pipeline" in detail
+
+
+def test_goal_audit_accepts_starter_manifest_when_requirement_grew(tmp_path: Path) -> None:
+    mod = _load_module()
+    ip = "counter_ref"
+    req_dir = tmp_path / ip / "req"
+    req_dir.mkdir(parents=True)
+    req = req_dir / f"{ip}_requirements.md"
+    req.write_text(
+        "# Starter Requirements\n\n"
+        + (
+            "Feature table: counter width reset enable rollover terminal count. "
+            "Interface table: clk rst_n req_valid req_data rsp_ready rsp_data. "
+            "Functional behavior: reset hold increment rollover. "
+            "Verification requirements: compile lint sim coverage goal audit. "
+            "Quality gates: all evidence must pass before signoff.\n"
+        )
+        * 12,
+        encoding="utf-8",
+    )
+    recorded_bytes = req.stat().st_size - 10
+    (req_dir / "approval_manifest.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "ip": ip,
+                "artifact": f"req/{ip}_requirements.md",
+                "status": "approved",
+                "approved_by": "ssot-gen-automated-pipeline",
+                "approval_mode": "starter",
+                "bytes": recorded_bytes,
+                "checks": {
+                    "minimum_bytes": True,
+                    "no_tbd_markers": True,
+                    "has_feature_table": True,
+                    "has_interface_table": True,
+                    "has_functional_behavior": True,
+                    "has_verification_requirements": True,
+                    "has_quality_gates": True,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    ok, _, detail = mod._approved_req_status(ip, tmp_path, tmp_path / ip)
+
+    assert ok is True
+    assert f"bytes_recorded={recorded_bytes}" in detail
+
+
+def test_goal_audit_placeholder_scan_ignores_metadata_tbd_key(tmp_path: Path) -> None:
+    mod = _load_module()
+    ssot = tmp_path / "ip" / "yaml" / "ip.ssot.yaml"
+    ssot.parent.mkdir(parents=True)
+    ssot.write_text(
+        "custom:\n"
+        "  tbd:\n"
+        "  - Future optional load-enable feature is outside this starter counter scope\n",
+        encoding="utf-8",
+    )
+
+    assert mod._text_has_placeholder(ssot) is False
+
+
 def test_goal_audit_rejects_approved_req_when_review_decision_still_open(
     tmp_path: Path,
 ) -> None:

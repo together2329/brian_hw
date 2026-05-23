@@ -2984,8 +2984,25 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         }),
       })
         .then(r => r.json().catch(() => ({})))
-        .then(d => { if (d && d.error) setFeed(f => [...f, { kind: 'agent', text: `[orchestrator] ${d.error}` }]); })
-        .catch(e => setFeed(f => [...f, { kind: 'agent', text: `[orchestrator] ${String(e)}` }]));
+        .then(d => {
+          if (d && d.error) {
+            setFeed(f => [...f, { kind: 'agent', text: `[orchestrator] ${d.error}` }]);
+            setStreaming(false);
+            return;
+          }
+          // The status fast-path answers synchronously in the HTTP body and only
+          // persists to the DB (no live WS emit). With the socket open the
+          // faux-stream poll is off, so render the reply here or the user sees
+          // nothing. Also stop the "Agent running" spinner — this turn is done.
+          if (d && d.reply && String(d.reply).trim()) {
+            setFeed(f => [...f, { kind: 'agent', text: String(d.reply), createdAt: Date.now() }]);
+            setStreaming(false);
+          }
+        })
+        .catch(e => {
+          setFeed(f => [...f, { kind: 'agent', text: `[orchestrator] ${String(e)}` }]);
+          setStreaming(false);
+        });
       return;
     }
 
@@ -3631,6 +3648,47 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     const t = setInterval(poll, 1200);
     return () => { dead = true; clearInterval(t); };
   }, [workflow, activeIp, appendLiveFeedEntries]);
+
+  // ── Stop the "Agent running" spinner when the orchestrator run ends ─────
+  // The run can finish (completed/blocked/error) OR park (yielded) — in all
+  // cases it is no longer actively thinking, so clear `streaming`. Without
+  // this, an errored run (e.g. a 403 from a bad model) writes its error to the
+  // chat but the spinner spins forever. Guard against the start-up race with
+  // orchRunSeenRef: only clear once we've observed the run actually exist.
+  const orchRunSeenRef = React.useRef(false);
+  React.useEffect(() => {
+    const ip = String(activeIp || '').trim();
+    if (String(workflow || '') !== 'orchestrator' || !ip || ip.toLowerCase() === 'default') return undefined;
+    orchRunSeenRef.current = false;
+    let dead = false;
+    let nullPolls = 0;
+    const poll = async () => {
+      if (dead || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
+      try {
+        const r = await fetch(`/api/orchestrator/active_run?ip=${encodeURIComponent(ip)}`, { credentials: 'include', cache: 'no-store' });
+        if (!r.ok) return;
+        const d = await r.json();
+        const run = d && d.run;
+        const status = run ? String(run.status || '') : '';
+        // Stop-states (run no longer actively thinking): terminal OR parked.
+        // 'paused' = ask_user waiting for the user; 'yielded' = parked on a job/timer.
+        const stop = ['error', 'completed', 'blocked', 'cancelled', 'failed', 'yielded', 'paused', 'awaiting_user', 'waiting'].includes(status);
+        if (run) { orchRunSeenRef.current = true; nullPolls = 0; }
+        else { nullPolls += 1; }
+        // Clear the "Agent running" spinner when: a live run hits a stop status,
+        // OR active_run is null after we saw the run, OR it has stayed null for a
+        // few polls (fast/untracked runs finish before active_run ever shows
+        // them — the ~6s grace avoids the brief start-up gap before it registers).
+        if ((run && stop) || (!run && (orchRunSeenRef.current || nullPolls >= 3))) {
+          awaitingRunStartRef.current = false;
+          setStreaming(s => (s ? false : s));
+        }
+      } catch (_) {}
+    };
+    poll();
+    const t = setInterval(poll, 2000);
+    return () => { dead = true; clearInterval(t); };
+  }, [workflow, activeIp]);
 
   // ── Brief live-worker strip for the orchestrator chat ───────────────────
   // Shows which workers the orchestrator currently has running, inline in

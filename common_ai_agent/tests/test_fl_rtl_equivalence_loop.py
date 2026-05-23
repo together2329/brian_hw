@@ -1053,6 +1053,74 @@ def test_tb_manifest_allows_inout_observable_output(tmp_path: Path):
     assert manifest["inout_ports"] == ["gpio_pins"]
 
 
+def test_tb_manifest_resolves_generic_data_width_alias_to_width_parameter(tmp_path: Path):
+    ip = "counter_width_alias_ip"
+    ip_dir = tmp_path / ip
+    for subdir in ("yaml", "verify", "rtl", "list"):
+        (ip_dir / subdir).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "top_module": {"name": ip},
+                "parameters": [{"name": "WIDTH", "value": 8}],
+                "io_list": {
+                    "clock_domains": [{"ports": [{"name": "clk", "direction": "input", "width": 1}]}],
+                    "resets": [{"ports": [{"name": "rst_n", "direction": "input", "width": 1}]}],
+                    "interfaces": [
+                        {
+                            "name": "control_data",
+                            "type": "native_valid_ready",
+                            "ports": [
+                                {"name": "req_valid", "direction": "input", "width": 1},
+                                {"name": "req_ready", "direction": "output", "width": 1},
+                                {"name": "req_data", "direction": "input", "width": "DATA_WIDTH"},
+                                {"name": "rsp_valid", "direction": "output", "width": 1},
+                                {"name": "rsp_ready", "direction": "input", "width": 1},
+                                {"name": "rsp_data", "direction": "output", "width": "DATA_WIDTH"},
+                                {"name": "error", "direction": "output", "width": 1},
+                            ],
+                        }
+                    ],
+                },
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(
+        json.dumps({"goals": [{"goal_id": "EQ_COUNTER", "blocked": False}]}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_contract.json").write_text(
+        json.dumps(
+            {
+                "type": "generic_ssot_rule_rtl_contract",
+                "contract": {
+                    "clock": "clk",
+                    "reset": "rst_n",
+                    "reset_active": "low",
+                    "sample_condition": "req_valid && req_ready",
+                    "input_map": {"req_data": "req_data", "rsp_ready": "rsp_ready"},
+                    "outputs": [{"name": "rsp_data", "port": "rsp_data", "width": "DATA_WIDTH"}],
+                    "special_outputs": {"ready_output": "req_ready", "output_valid": "rsp_valid"},
+                },
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(f"module {ip}; endmodule\n", encoding="utf-8")
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+    tb_mod = _load_module(TB_GEN_PATH, f"tb_gen_width_alias_{time.time_ns()}")
+
+    manifest, questions = tb_mod._build_manifest(ip, tmp_path)
+
+    assert questions == []
+    assert manifest["port_widths"]["req_data"] == 8
+    assert manifest["port_widths"]["rsp_data"] == 8
+
+
 def test_generated_driver_releases_inout_except_input_capture(monkeypatch):
     import types
 
@@ -1295,6 +1363,140 @@ def test_generated_driver_handles_fsm_reset_transitions_without_false_reset(monk
     assert Dut.i_hready.value == 1
     assert Dut.i_hresp.value == 0
     assert Dut.i_hrdata.value == 0
+
+
+def test_generated_counter_stimulus_honors_sample_constraints_and_reset_clears(monkeypatch):
+    import types
+
+    class AwaitableTrigger:
+        def __await__(self):
+            if False:
+                yield None
+            return None
+
+    cocotb_mod = types.ModuleType("cocotb")
+    cocotb_mod.test = lambda: (lambda fn: fn)
+    cocotb_mod.start_soon = lambda _awaitable: None
+    binary_mod = types.ModuleType("cocotb.binary")
+    binary_mod.BinaryValue = lambda value: value
+    clock_mod = types.ModuleType("cocotb.clock")
+    clock_mod.Clock = lambda *_args, **_kwargs: types.SimpleNamespace(start=lambda: None)
+    triggers_mod = types.ModuleType("cocotb.triggers")
+    triggers_mod.ClockCycles = lambda *_args, **_kwargs: AwaitableTrigger()
+    triggers_mod.FallingEdge = lambda *_args, **_kwargs: AwaitableTrigger()
+    triggers_mod.ReadOnly = lambda *_args, **_kwargs: AwaitableTrigger()
+    triggers_mod.RisingEdge = lambda *_args, **_kwargs: AwaitableTrigger()
+    monkeypatch.setitem(sys.modules, "cocotb", cocotb_mod)
+    monkeypatch.setitem(sys.modules, "cocotb.binary", binary_mod)
+    monkeypatch.setitem(sys.modules, "cocotb.clock", clock_mod)
+    monkeypatch.setitem(sys.modules, "cocotb.triggers", triggers_mod)
+
+    tb_mod = _load_module(TB_GEN_PATH, f"tb_gen_counter_sample_{time.time_ns()}")
+    ns: dict[str, object] = {}
+    exec(tb_mod.TEST_PY, ns)
+    assert "await _apply_goal_preconditions(dut, manifest, goal)" in tb_mod.TEST_PY
+    assert "if _cycle_idx == 0:" in tb_mod.TEST_PY
+    assert "_clear_sample_inputs(dut, manifest)" in tb_mod.TEST_PY
+
+    manifest = {
+        "clock": "clk",
+        "reset": "rst_n",
+        "reset_active": "low",
+        "input_ports": ["clk", "rst_n", "req_valid", "req_data", "rsp_ready"],
+        "output_ports": ["rsp_data"],
+        "input_map": {
+            "req_valid": "req_valid",
+            "req_data": "req_data",
+            "rsp_ready": "rsp_ready",
+        },
+        "sample_inputs": ["req_valid"],
+        "port_widths": {
+            "clk": 1,
+            "rst_n": 1,
+            "req_valid": 1,
+            "req_data": 8,
+            "rsp_ready": 1,
+            "rsp_data": 8,
+        },
+    }
+    hold_goal = {
+        "goal_id": "EQ_SCENARIO_HOLD",
+        "kind": "transaction",
+        "stimulus_contract": {
+            "transaction_type": "feature_0",
+            "required_fields": ["kind"],
+            "constraints": ["rst_n is deasserted (high)", "req_valid is low OR en is deasserted"],
+        },
+    }
+    increment_goal = {
+        "goal_id": "EQ_TRANSACTION_INCREMENT",
+        "kind": "transaction",
+        "stimulus_contract": {
+            "transaction_type": "feature_1",
+            "required_fields": ["kind"],
+            "constraints": ["req_valid is high (count enable asserted)"],
+        },
+    }
+
+    hold_stimulus = ns["_stimulus_for_goal"](hold_goal, manifest, 0)
+    increment_stimulus = ns["_stimulus_for_goal"](increment_goal, manifest, 1)
+    assert hold_stimulus["_sample_active"] is False
+    assert hold_stimulus["req_valid"] == 0
+    assert increment_stimulus["_sample_active"] is True
+    assert increment_stimulus["req_valid"] == 1
+    assert increment_stimulus["req_data"] != 0
+
+    protocol_goal = {
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+        "kind": "protocol",
+        "stimulus_contract": {
+            "transaction_type": "handshake_1",
+            "required_fields": ["cycle", "observed_signals"],
+            "constraints": ["rsp_valid payload remains stable until rsp_ready is sampled asserted."],
+        },
+    }
+    protocol_stimulus = ns["_stimulus_for_goal"](protocol_goal, manifest, 2)
+    assert protocol_stimulus["req_data"] == 0
+
+    error_policy_goal = {
+        "goal_id": "EQ_ERROR_NONE",
+        "kind": "error",
+        "stimulus_contract": {
+            "transaction_type": "None",
+            "required_fields": ["fault_condition"],
+            "constraints": ["error_handling recovery policy without a representable error input"],
+        },
+    }
+    error_policy_stimulus = ns["_stimulus_for_goal"](error_policy_goal, manifest, 3)
+    assert error_policy_stimulus["req_data"] == 0
+
+    scenario_error_goal = {
+        "goal_id": "EQ_SCENARIO_SC04",
+        "kind": "transaction",
+        "stimulus_contract": {
+            "transaction_type": "SC04",
+            "required_fields": ["scenario_id", "kind"],
+            "constraints": ["Inject each declared error_handling.error_sources condition."],
+        },
+    }
+    scenario_error_stimulus = ns["_stimulus_for_goal"](scenario_error_goal, manifest, 4)
+    assert scenario_error_stimulus["req_data"] == 0
+
+    class Signal:
+        def __init__(self):
+            self.value = None
+
+    class Dut:
+        clk = Signal()
+        rst_n = Signal()
+        req_valid = Signal()
+        req_data = Signal()
+        rsp_ready = Signal()
+
+    Dut.req_valid.value = 1
+    asyncio.run(ns["_reset_dut"](Dut, manifest, release=True))
+    assert Dut.rst_n.value == 1
+    assert Dut.req_valid.value == 0
 
 
 def test_generated_apb_goal_stimulus_uses_ssot_register_offsets_without_register_fallback(tmp_path: Path, monkeypatch):
@@ -2998,6 +3200,47 @@ def test_direct_ssot_equivalence_goals_publish_authority_and_module_progress(tmp
     assert equiv_progress["general_evaluation_criteria"]
     assert equiv_progress["locked_artifacts"]
     assert equiv_progress["loopable_evidence_points"]
+
+
+def test_fl_decomposition_complete_ignores_non_equivalence_helper_blockers() -> None:
+    mod = _load_module(
+        REPO / "workflow" / "fl-model-gen" / "scripts" / "emit_fl_model.py",
+        "emit_fl_model_helper_blocker",
+    )
+    ip = "counter_ref"
+    ssot = {
+        "top_module": {"name": ip, "file": f"rtl/{ip}.sv"},
+        "sub_modules": [
+            {
+                "name": ip,
+                "file": f"rtl/{ip}.sv",
+                "function_model_refs": ["function_model.transactions.INC"],
+                "cycle_model_refs": ["cycle_model.pipeline.UPDATE"],
+            },
+            {
+                "name": "reset_mux",
+                "file": "rtl/reset_mux.sv",
+                "implements": "mux",
+            },
+        ],
+        "function_model": {
+            "transactions": [
+                {
+                    "id": "INC",
+                    "output_rules": [{"name": "count", "expr": "count + 1"}],
+                    "state_updates": [{"state": "count", "expr": "count + 1"}],
+                }
+            ]
+        },
+        "cycle_model": {"pipeline": [{"stage": "UPDATE", "action": "sample enable"}]},
+    }
+
+    decomp = mod._decomposition(ssot, ip)
+    reset_mux = next(item for item in decomp["module_contracts"] if item["name"] == "reset_mux")
+
+    assert reset_mux["blocked"] is True
+    assert reset_mux["requires_module_equivalence"] is False
+    assert decomp["complete"] is True
 
 
 def test_module_equivalence_requires_module_scope_scoreboard_row(tmp_path: Path):

@@ -5231,6 +5231,89 @@ def test_rtl_stage_uses_dynamic_todo_gate_before_generation(tmp_path: Path):
     assert (tmp_path / ip / "rtl" / "rtl_blocked.json").is_file()
 
 
+def test_rtl_stage_refreshes_existing_provenance_after_deriving_plan(tmp_path: Path, monkeypatch):
+    ip = "rtl_stage_refresh_order"
+    ip_dir = tmp_path / ip
+    for subdir in ("yaml", "rtl", "list"):
+        (ip_dir / subdir).mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        "\n".join(
+            [
+                "top_module:",
+                f"  name: {ip}",
+                "sub_modules:",
+                f"  - name: {ip}",
+                f"    file: rtl/{ip}.sv",
+                "    ownership: manifest",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(
+        (
+            f"module {ip}(input logic clk, input logic rst_n, output logic [7:0] count);\n"
+            "  always_ff @(posedge clk or negedge rst_n) begin\n"
+            "    if (!rst_n) count <= 8'd0;\n"
+            "    else count <= count + 8'd1;\n"
+            "  end\n"
+            "endmodule\n"
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / "rtl_authoring_provenance.json").write_text(
+        json.dumps(
+            {
+                "type": "rtl_authoring_provenance",
+                "agent": "common_ai_agent",
+                "workflow": "rtl-gen",
+                "surface": "headless_common_engine",
+                "todo_plan_sha256": "stale",
+                "rtl_files": [f"rtl/{ip}.sv"],
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    engine = WorkflowStageEngine(tmp_path)
+    labels: list[str] = []
+
+    def fake_run_tool(label: str, command: list[str], timeout_s: int = 180) -> ToolRun:
+        labels.append(label)
+        if label == "derive_rtl_todos":
+            (ip_dir / "rtl" / "rtl_todo_plan.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "type": "rtl_todo_plan",
+                        "summary": {"total_tasks": 0, "required_tasks": 0},
+                        "gate": {
+                            "status": "pass",
+                            "open_required_todos": 0,
+                            "all_required_todos_pass": True,
+                        },
+                        "todo_completion": {
+                            "open_required_tasks": 0,
+                            "all_required_todos_pass": True,
+                        },
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+        return ToolRun(label=label, command=command, returncode=0)
+
+    monkeypatch.setattr(engine, "_run_tool", fake_run_tool)
+
+    result = engine.run_stage("ssot-rtl", ip)
+
+    assert result.runs[0].label == "derive_rtl_todos"
+    assert result.runs[1].label == "refresh_rtl_provenance"
+    assert result.runs[2].label == "rtl_preflight"
+    assert labels.index("refresh_rtl_provenance") < labels.index("rtl_preflight")
+
+
 def test_rtl_stage_reports_orphan_groups_from_blocker(tmp_path: Path):
     ip = "rtl_stage_orphan_groups"
     _write_dynamic_todo_ssot(tmp_path, ip)

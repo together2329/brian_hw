@@ -982,7 +982,10 @@ def _decomposition(ssot: dict[str, Any], ip: str) -> dict[str, Any]:
         "function_cycle_ref_count": len(leaf_refs),
         "authority_contract": _authority_contract(ip),
         "drives": ["rtl_module_plan", "tb_environment_plan", "functional_coverage_plan"],
-        "complete": bool(units) and not orphan_refs and all(not item.get("blocked") for item in module_contracts),
+        "complete": bool(units) and not orphan_refs and all(
+            not item.get("blocked") or item.get("requires_module_equivalence") is False
+            for item in module_contracts
+        ),
     }
 
 

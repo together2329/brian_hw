@@ -204,6 +204,76 @@ def test_generic_ssot_prose_does_not_become_static_rtl_terms():
     )
 
 
+def test_function_output_leaf_evidence_does_not_inherit_sibling_terms():
+    derive = _load_derive()
+    tx = {
+        "id": "FM3",
+        "name": "increment",
+        "outputs": [{"name": "count", "expr": "count"}],
+        "output_rules": [{"name": "rsp_data", "port": "rsp_data", "expr": "count"}],
+        "state_updates": [{"name": "tc", "expr": "tc"}],
+    }
+
+    value = derive._function_leaf_evidence_value(tx, "outputs", {"name": "count", "expr": "count"})
+    terms = derive._evidence_terms(
+        "function_model.output",
+        "function_model.transactions.FM3.outputs.count",
+        value,
+    )
+
+    assert "count" in terms
+    assert "rsp_data" not in terms
+    assert "tc" not in terms
+
+
+def test_function_model_static_evidence_can_fall_back_to_live_dut_scope(tmp_path: Path):
+    derive = _load_derive()
+    ip_dir = tmp_path / "demo_ip"
+    rtl_dir = ip_dir / "rtl"
+    rtl_dir.mkdir(parents=True)
+    (rtl_dir / "counter_reg.sv").write_text(
+        "module counter_reg(input logic clk, output logic [7:0] count);\n"
+        "  always_ff @(posedge clk) count <= count + 1'b1;\n"
+        "endmodule\n",
+        encoding="utf-8",
+    )
+    (rtl_dir / "tc_comparator.sv").write_text(
+        "module tc_comparator(input logic [7:0] count, output logic tc);\n"
+        "  assign tc = (count == 8'hff);\n"
+        "endmodule\n",
+        encoding="utf-8",
+    )
+    plan = {
+        "tasks": [
+            {
+                "id": "RTL-0001",
+                "required": True,
+                "category": "function_model.state_variable",
+                "source_ref": "function_model.state_variables.tc",
+                "owner_file": "rtl/counter_reg.sv",
+                "evidence_terms": ["tc"],
+                "requires_static_rtl_evidence": True,
+            }
+        ]
+    }
+
+    derive._audit_static_evidence(ip_dir, plan)
+
+    task = plan["tasks"][0]
+    assert task["static_evidence"]["status"] == "pass"
+    assert task["static_evidence"]["fallback_scope"] == "all_sources_without_owner"
+    assert plan["static_rtl_evidence"]["missing"] == 0
+
+
+def test_function_model_static_evidence_needs_one_live_trace_token():
+    derive = _load_derive()
+
+    assert derive._required_static_match_count(
+        "function_model.output",
+        ["MAX", "tc"],
+    ) == 1
+
+
 def test_workflow_todo_evidence_ignores_synthetic_todo_ids():
     derive = _load_derive()
 

@@ -1607,6 +1607,7 @@ DIRECT_STRING_EVIDENCE_CATEGORIES = {
 }
 
 NAME_EVIDENCE_CATEGORIES = {
+    "function_model.output",
     "function_model.output_rule",
     "function_model.state_update",
     "function_model.state_variable",
@@ -1824,6 +1825,12 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
 
 def _function_leaf_evidence_value(tx: dict[str, Any], key: str, sub: Any) -> Any:
     if key not in {"inputs", "outputs", "side_effects", "error_cases"}:
+        return sub
+    if key == "outputs":
+        # Keep output evidence scoped to the current output item.  Earlier
+        # versions attached every transaction output_rule and state update to
+        # every output leaf, which made a task for "count" also require tokens
+        # such as "rsp_data" and "tc" in the same owner file.
         return sub
     output_ports: list[Any] = []
     for rule in _as_list(tx.get("output_rules")):
@@ -7530,9 +7537,10 @@ def _required_static_match_count(category: str, terms: list[str]) -> int:
         return 0
     if len(terms) == 1:
         return 1
+    if category.startswith("function_model."):
+        return 1
     rich_categories = (
         "workflow_todo.rtl_gen",
-        "function_model.",
         "cycle_model.handshake_rules",
         "cycle_model.pipeline",
         "cycle_model.backpressure",
@@ -7575,6 +7583,22 @@ def _audit_static_evidence(ip_dir: Path, plan: dict[str, Any]) -> None:
         matched = sorted({term for term in terms if term in tokens or term.lower() in lower_tokens})
         required_match_count = _required_static_match_count(str(task.get("category") or ""), terms)
         status = "pass" if len(matched) >= required_match_count else "missing"
+        fallback_scope = ""
+        if status != "pass" and str(task.get("category") or "").startswith("function_model."):
+            # FunctionModel behavior may be decomposed across datapath/status
+            # modules.  Prefer owner-file evidence, but accept live DUT-level
+            # RTL evidence when a valid decomposition places related signals
+            # in a sibling module or top-level integration logic.
+            all_tokens, all_scope = _source_tokens_for_owner(source_tokens, "")
+            all_lower_tokens = {token.lower() for token in all_tokens}
+            all_matched = sorted({
+                term for term in terms
+                if term in all_tokens or term.lower() in all_lower_tokens
+            })
+            if len(all_matched) >= required_match_count:
+                matched = all_matched
+                status = "pass"
+                fallback_scope = all_scope
         if status == "pass":
             passed += 1
         task["static_evidence"] = {
@@ -7585,6 +7609,7 @@ def _audit_static_evidence(ip_dir: Path, plan: dict[str, Any]) -> None:
             "required_match_count": required_match_count,
             "required_terms": terms,
             "source_scope": source_scope,
+            "fallback_scope": fallback_scope,
             "owner_file_scoped": bool(task.get("owner_file")),
         }
         if status != "pass":

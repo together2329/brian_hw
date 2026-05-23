@@ -1074,6 +1074,7 @@ class WorkflowStageEngine:
     def _run_rtl(self, ip: str) -> StageEngineResult:
         script = self.workflow_root / "rtl-gen" / "scripts" / "ssot_to_rtl.py"
         todo_script = self.workflow_root / "rtl-gen" / "scripts" / "derive_rtl_todos.py"
+        refresh_script = self.workflow_root / "rtl-gen" / "scripts" / "refresh_rtl_provenance.py"
         top = self.top_name(ip)
         try:
             ssot_doc = yaml.safe_load(self.ssot_path(ip).read_text(encoding="utf-8", errors="replace")) or {}
@@ -1088,6 +1089,16 @@ class WorkflowStageEngine:
                 timeout_s=90,
             )
         ]
+        derive_run = runs[-1]
+        provenance_path = self.ip_dir(ip) / "rtl" / "rtl_authoring_provenance.json"
+        if provenance_path.is_file():
+            runs.append(
+                self._run_tool(
+                    "refresh_rtl_provenance",
+                    [sys.executable, str(refresh_script), ip, "--root", str(self.project_root)],
+                    timeout_s=90,
+                )
+            )
         compile_rc = lint_rc = None
         runs.append(
             self._run_tool(
@@ -1104,7 +1115,8 @@ class WorkflowStageEngine:
                 timeout_s=180,
             )
         )
-        if runs[-1].returncode == 0:
+        preflight_run = runs[-1]
+        if preflight_run.returncode == 0:
             compile_script = self.workflow_root / "rtl-gen" / "scripts" / "rtl_compile_report.py"
             lint_script = self.workflow_root / "lint" / "scripts" / "dut_lint_report.py"
             runs.append(self._run_tool("dut_compile", [sys.executable, str(compile_script), ip, "--top", top, "--project-root", str(self.project_root)], timeout_s=180))
@@ -1126,6 +1138,7 @@ class WorkflowStageEngine:
                     timeout_s=90,
                 )
             )
+        audit_run = runs[-1]
 
         blocked_path = self.ip_dir(ip) / "rtl" / "rtl_blocked.json"
         blocked_doc = _read_json(blocked_path) if blocked_path.is_file() else {}
@@ -1154,11 +1167,11 @@ class WorkflowStageEngine:
                 status = "human_gate"
                 headline = "[SSOT QUESTION] rtl-gen BLOCKED"
         elif (
-            runs[0].returncode == 0
-            and runs[1].returncode == 0
+            derive_run.returncode == 0
+            and preflight_run.returncode == 0
             and compile_rc == 0
             and lint_rc == 0
-            and runs[-1].returncode == 0
+            and audit_run.returncode == 0
             and todo_gate.get("status") == "pass"
             and todo_completion.get("all_required_todos_pass") is True
             and rtl_progress.get("status") == "pass"
@@ -1166,7 +1179,7 @@ class WorkflowStageEngine:
         ):
             status = "pass"
             headline = "[RTL RESULT] PASS - generated RTL and DUT-only compile/lint evidence"
-        elif runs[1].returncode == 0:
+        elif preflight_run.returncode == 0:
             status = "fail"
             headline = "[RTL RESULT] FAIL - LLM-authored RTL needs rtl-gen repair"
         else:

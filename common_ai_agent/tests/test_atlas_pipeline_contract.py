@@ -62,6 +62,14 @@ def test_fl_model_workflow_prompt_is_stage_specific() -> None:
     assert len({fl_prompt, cl_prompt, eq_prompt}) == 3
 
 
+def test_rtl_workflow_prompt_requires_final_stage_driver_after_repairs() -> None:
+    prompt = jobs._default_workflow_prompt("rtl-gen", "demo_ip", "rtl")
+
+    assert "run /ssot-rtl demo_ip" in prompt
+    assert "rerun /ssot-rtl demo_ip as the final validation step" in prompt
+    assert "standalone compile/lint evidence alone" in prompt
+
+
 def test_ssot_gen_rtl_blocker_prompt_uses_resolver_driver() -> None:
     prompt = jobs._workflow_prompt_with_stage_driver(
         workflow="ssot-gen",
@@ -358,6 +366,173 @@ def test_stage_engine_failure_overrides_completed_artifact_recovery(tmp_path: Pa
 
     assert failed is True
     assert "logs/stage_engine/sim-debug.json status=fail" in reason
+
+
+def test_unreachable_worker_recovery_is_gated_before_downstream_advance(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import urllib.error
+    import urllib.request
+
+    ip = "recovered_fail_ip"
+    pipeline_id = "pipe-recover-gate"
+    rtl_job = {
+        "job_id": "rtl-job",
+        "pipeline_id": pipeline_id,
+        "stage_id": "rtl",
+        "workflow": "rtl-gen",
+        "status": "running",
+        "run_id": "run-lost",
+        "worker": "http://127.0.0.1:9",
+        "pipeline_index": 0,
+        "depends_on": [],
+        "_last_polled": 0,
+    }
+    tb_job = {
+        "job_id": "tb-job",
+        "pipeline_id": pipeline_id,
+        "stage_id": "tb",
+        "workflow": "tb-gen",
+        "status": "queued",
+        "pipeline_index": 1,
+        "depends_on": ["rtl-job"],
+    }
+    dispatched: list[str] = []
+
+    def fake_urlopen(*_args, **_kwargs):
+        raise urllib.error.URLError("Connection refused")
+
+    def fake_failure(job: dict, _project_root: Path) -> tuple[bool, str]:
+        if job.get("stage_id") == "rtl":
+            return True, f"{ip}/logs/stage_engine/ssot-rtl.json gate status=fail"
+        return False, ""
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(jobs, "_job_artifact_recovery", lambda _job, _pr: (True, "recovered from artifact"))
+    monkeypatch.setattr(jobs, "_job_artifact_failure", fake_failure)
+    monkeypatch.setattr(jobs, "_dispatch_job_to_worker", lambda job: dispatched.append(job["stage_id"]))
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs[rtl_job["job_id"]] = rtl_job
+        jobs._jobs[tb_job["job_id"]] = tb_job
+    try:
+        jobs._refresh_tracked_jobs(tmp_path)
+
+        assert rtl_job["status"] == "error"
+        assert "stage evidence failed" in rtl_job["error"]
+        assert tb_job["status"] == "blocked"
+        assert dispatched == []
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_dead_lazy_worker_uses_recovered_evidence_before_advancing(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    ip = "dead_worker_recovered_ip"
+    pipeline_id = "pipe-dead-worker"
+    worker_url = "http://127.0.0.1:7777"
+    rtl_job = {
+        "job_id": "rtl-job",
+        "pipeline_id": pipeline_id,
+        "stage_id": "rtl",
+        "workflow": "rtl-gen",
+        "status": "running",
+        "worker": worker_url,
+        "pipeline_index": 0,
+        "depends_on": [],
+        "project_root": str(tmp_path),
+    }
+    tb_job = {
+        "job_id": "tb-job",
+        "pipeline_id": pipeline_id,
+        "stage_id": "tb",
+        "workflow": "tb-gen",
+        "status": "queued",
+        "pipeline_index": 1,
+        "depends_on": ["rtl-job"],
+        "project_root": str(tmp_path),
+    }
+    dispatched: list[str] = []
+
+    monkeypatch.setattr(jobs, "_job_artifact_recovery", lambda _job, _pr: (True, "recovered from artifact"))
+    monkeypatch.setattr(jobs, "_job_artifact_failure", lambda _job, _pr: (False, ""))
+    monkeypatch.setattr(jobs, "_dispatch_job_to_worker", lambda job: dispatched.append(job["stage_id"]))
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs[rtl_job["job_id"]] = rtl_job
+        jobs._jobs[tb_job["job_id"]] = tb_job
+    try:
+        transitioned = jobs._mark_jobs_failed_for_worker(worker_url, "rc=-15")
+
+        assert transitioned == 1
+        assert rtl_job["status"] == "completed"
+        assert tb_job["status"] == "pending"
+        assert dispatched == ["tb"]
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_dead_lazy_worker_recovered_artifact_still_honors_gate_failure(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    ip = "dead_worker_failed_ip"
+    pipeline_id = "pipe-dead-worker-fail"
+    worker_url = "http://127.0.0.1:8888"
+    rtl_job = {
+        "job_id": "rtl-job",
+        "pipeline_id": pipeline_id,
+        "stage_id": "rtl",
+        "workflow": "rtl-gen",
+        "status": "running",
+        "worker": worker_url,
+        "pipeline_index": 0,
+        "depends_on": [],
+        "project_root": str(tmp_path),
+    }
+    tb_job = {
+        "job_id": "tb-job",
+        "pipeline_id": pipeline_id,
+        "stage_id": "tb",
+        "workflow": "tb-gen",
+        "status": "queued",
+        "pipeline_index": 1,
+        "depends_on": ["rtl-job"],
+        "project_root": str(tmp_path),
+    }
+    dispatched: list[str] = []
+
+    def fake_failure(job: dict, _project_root: Path) -> tuple[bool, str]:
+        if job.get("stage_id") == "rtl":
+            return True, f"{ip}/logs/stage_engine/ssot-rtl.json gate status=fail"
+        return False, ""
+
+    monkeypatch.setattr(jobs, "_job_artifact_recovery", lambda _job, _pr: (True, "recovered from artifact"))
+    monkeypatch.setattr(jobs, "_job_artifact_failure", fake_failure)
+    monkeypatch.setattr(jobs, "_dispatch_job_to_worker", lambda job: dispatched.append(job["stage_id"]))
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs[rtl_job["job_id"]] = rtl_job
+        jobs._jobs[tb_job["job_id"]] = tb_job
+    try:
+        transitioned = jobs._mark_jobs_failed_for_worker(worker_url, "rc=-15")
+
+        assert transitioned == 1
+        assert rtl_job["status"] == "error"
+        assert "stage evidence failed" in rtl_job["error"]
+        assert tb_job["status"] == "blocked"
+        assert dispatched == []
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
 
 
 def test_coverage_blocked_artifact_is_not_reported_as_pass(tmp_path: Path) -> None:

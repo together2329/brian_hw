@@ -83,14 +83,32 @@ def _load_yaml(path: Path) -> dict[str, Any]:
     return doc
 
 
-def _width_value(width: Any) -> int:
+def _width_value(width: Any, params: dict[str, int] | None = None) -> int:
     if isinstance(width, bool):
         return 1
     if isinstance(width, int):
         return max(width, 1)
+    params = dict(params or {})
+    for alias_name, target_name in {
+        "DATA_WIDTH": "WIDTH",
+        "COUNT_WIDTH": "WIDTH",
+        "RESULT_WIDTH": "WIDTH",
+    }.items():
+        if alias_name not in params and target_name in params:
+            params[alias_name] = params[target_name]
     text = str(width or "1").strip()
     if text.isdigit():
         return max(int(text), 1)
+    if text in params:
+        return max(int(params[text]), 1)
+    expr = text
+    for name, value in sorted(params.items(), key=lambda item: len(item[0]), reverse=True):
+        expr = re.sub(rf"\b{re.escape(str(name))}\b", str(int(value)), expr)
+    if re.fullmatch(r"[0-9+\-*/() ]+", expr):
+        try:
+            return max(int(eval(expr, {"__builtins__": {}}, {})), 1)
+        except Exception:
+            pass
     if "/" in text:
         left, right = text.split("/", 1)
         try:
@@ -232,12 +250,10 @@ def _as_ports(ssot: dict[str, Any]) -> list[dict[str, Any]]:
         if direction not in {"input", "output", "inout"}:
             direction = "input"
         width = raw.get("width", 1)
-        if isinstance(width, str) and width in params:
-            width = params[width]
         ports.append({
             "name": _ident(name),
             "direction": direction,
-            "width": _width_value(width),
+            "width": _width_value(width, params),
         })
 
     for raw in ssot.get("ports") or []:
@@ -1012,6 +1028,26 @@ def _constraint_field_value(manifest: dict[str, Any], goal: dict[str, Any], fiel
             return inactive_reset
         if any(token in text for token in ("rst asserted", "reset asserted", "reset active")):
             return active_reset
+    if (
+        low in {"valid", "req_valid", "in_valid", "sample", "enable", "en"}
+        or low.endswith(("_valid", "_sample", "_enable", "_en"))
+    ):
+        if (
+            f"{low}islow" in compact
+            or f"{low}isdeasserted" in compact
+            or f"{low}deasserted" in compact
+            or f"{low}==0" in compact
+            or f"{low}=0" in compact
+        ):
+            return 0
+        if (
+            f"{low}ishigh" in compact
+            or f"{low}isasserted" in compact
+            or f"{low}asserted" in compact
+            or f"{low}==1" in compact
+            or f"{low}=1" in compact
+        ):
+            return 1
     if low.endswith("_hready") or low == "hready":
         if f"{low}==0" in compact or f"{low}=0" in compact or f"deassert{low}" in compact:
             return 0
@@ -1564,6 +1600,17 @@ def _stimulus_value_for_field(manifest: dict[str, Any], field: str, idx: int, go
             value = 0x5A000000 + idx
         elif "memory" in text and route.startswith(("mem", "memory")):
             value = 0x5A000000 + idx
+    elif low in {"req_data", "request_data", "cmd_data"} or low.endswith(("_req_data", "_request_data", "_cmd_data")):
+        observation_only = (
+            goal_kind in {"protocol", "timing", "coverage", "error"}
+            or str(goal.get("goal_id") or "").startswith(("EQ_PROTOCOL_", "EQ_TIMING_", "EQ_COVERAGE_", "EQ_ERROR_"))
+            or any(token in text for token in ("error_handling", "error and recovery", "recovery policy", "fault_condition"))
+        )
+        mutating_count = any(token in text for token in ("increment", "rollover", "count enable", "req_valid is high"))
+        if observation_only and not mutating_count:
+            value = 0
+        elif mutating_count:
+            value = max(int(value), 1)
     constraint_value = _constraint_field_value(manifest, goal, field)
     if constraint_value is not None:
         value = constraint_value
@@ -1655,6 +1702,10 @@ def _stimulus_for_goal(goal: dict[str, Any], manifest: dict[str, Any], idx: int)
         data = stimulus.get("data", stimulus.get("value", _stimulus_value_for_field(manifest, "data", idx, goal)))
         stimulus.setdefault("data", data)
         stimulus.setdefault("value", data)
+    for port in manifest.get("sample_inputs") or []:
+        constraint_value = _constraint_field_value(manifest, goal, str(port))
+        if constraint_value is not None:
+            sample_active = bool(constraint_value)
     _set_sample_activity(stimulus, manifest, sample_active)
     return stimulus
 
@@ -1708,6 +1759,37 @@ async def _reset_dut(dut, manifest: dict[str, Any], *, release: bool = True) -> 
     if not release:
         return
     _set_signal(dut, reset, inactive)
+    _clear_sample_inputs(dut, manifest)
+
+
+async def _apply_goal_preconditions(dut, manifest: dict[str, Any], goal: dict[str, Any]) -> None:
+    """Drive simple state preconditions that cannot be expressed by one vector.
+
+    Generic SSOT starter goals often include transaction preconditions such as
+    ``count == MAX``.  The DUT may not expose a direct state preload port, so
+    exercise the public increment handshake to reach that state before the
+    actual scoreboard sample.
+    """
+    contract = goal.get("stimulus_contract") if isinstance(goal.get("stimulus_contract"), dict) else {}
+    text = " ".join(str(item).lower() for item in contract.get("constraints") or [])
+    compact = re.sub(r"\s+", "", text)
+    if "count==max" not in compact:
+        return
+    input_ports = set(manifest.get("input_ports") or [])
+    if not {"req_valid", "req_data"}.issubset(input_ports):
+        return
+    clock = manifest["clock"]
+    width = max(_port_width(manifest, "rsp_data"), _port_width(manifest, "req_data"), 1)
+    max_count = (1 << width) - 1
+    for _ in range(max_count):
+        await FallingEdge(getattr(dut, clock))
+        _set_signal(dut, "req_valid", 1)
+        _set_signal(dut, "req_data", _fit_port_value(manifest, "req_data", 1))
+        if "rsp_ready" in input_ports:
+            _set_signal(dut, "rsp_ready", 1)
+        await RisingEdge(getattr(dut, clock))
+    await FallingEdge(getattr(dut, clock))
+    _clear_sample_inputs(dut, manifest)
 
 
 def _drive_inputs(dut, manifest: dict[str, Any], stimulus: dict[str, Any]) -> None:
@@ -2075,6 +2157,7 @@ async def fl_rtl_equivalence_goals(dut):
                                 _cl.csr_write(int(cw.get("offset", cw.get("addr", 0))), int(cw.get("data", cw.get("value", 0))))
                             except Exception:
                                 pass
+            await _apply_goal_preconditions(dut, manifest, goal)
             await FallingEdge(getattr(dut, clock))
             _drive_inputs(dut, manifest, stimulus)
             _cycles = _goal_wait_cycles(goal, manifest)
@@ -2086,11 +2169,28 @@ async def fl_rtl_equivalence_goals(dut):
                 _val = int(stimulus.get(_field, stimulus.get(_port, 0)))
                 _cl_inputs[_field] = _val
                 _cl_inputs[_port] = _val
-            for _ in range(_cycles):
+            for _cycle_idx in range(_cycles):
                 await RisingEdge(getattr(dut, clock))
+                if _cycle_idx == 0:
+                    _step_inputs = _cl_inputs
+                    if bool(stimulus.get("_sample_active", True)) and (manifest.get("sample_inputs") or []):
+                        _clear_sample_inputs(dut, manifest)
+                else:
+                    _step_inputs = {}
+                    for _field, _port in (manifest.get("input_map") or {}).items():
+                        _val = int(_idle_input_value(manifest, str(_port)))
+                        _step_inputs[_field] = _val
+                        _step_inputs[_port] = _val
                 if _cl is not None:
                     try:
-                        _cl_result = _cl.step(_cl_inputs)
+                        _next_cl_result = _cl.step(_step_inputs)
+                        if not (
+                            isinstance(_next_cl_result, dict)
+                            and _next_cl_result.get("kind") in ("idle", "step_unresolved")
+                        ):
+                            _cl_result = _next_cl_result
+                        elif _cl_result is None:
+                            _cl_result = _next_cl_result
                     except Exception:
                         _cl_result = None
         await ReadOnly()
@@ -2344,6 +2444,8 @@ def emit(ip: str, root: Path) -> dict[str, Any]:
     ip_dir = root / ip
     manifest, questions = _build_manifest(ip, root)
     tb_dir = ip_dir / "tb" / "cocotb"
+    sim_dir = ip_dir / "sim"
+    cov_dir = ip_dir / "cov"
     tb_dir.mkdir(parents=True, exist_ok=True)
     if questions:
         _write_blocked(ip_dir, ip, questions)
@@ -2355,6 +2457,16 @@ def emit(ip: str, root: Path) -> dict[str, Any]:
     blocked = tb_dir / "tb_blocked.json"
     if blocked.exists():
         blocked.unlink()
+    for stale in (
+        sim_dir / "scoreboard_events.jsonl",
+        sim_dir / "fl_rtl_compare.json",
+        sim_dir / "mismatch_classification.json",
+        sim_dir / "results.xml",
+        tb_dir / "results.xml",
+        cov_dir / "coverage_functional.json",
+    ):
+        if stale.exists():
+            stale.unlink()
 
     files = {
         "transactions.py": TRANSACTIONS_PY,

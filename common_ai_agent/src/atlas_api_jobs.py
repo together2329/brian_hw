@@ -1959,29 +1959,43 @@ def _get_url_lock(url: str) -> threading.RLock:
 
 
 def _mark_jobs_failed_for_worker(worker_url: str, reason: str) -> int:
-    """Mark any `_jobs` entries dispatched to a dead worker as error.
+    """Reconcile any `_jobs` entries dispatched to a dead worker.
 
     Returns the number of jobs that were transitioned out of `running`.
     Used by the reaper when it notices `proc.poll() != None`.
     """
     key = worker_url.rstrip("/")
-    failed = 0
     now = time.time()
     with _jobs_lock:
-        for jid, job in _jobs.items():
-            if str(job.get("status") or "") != "running":
-                continue
-            if str(job.get("worker") or "").rstrip("/") != key:
-                continue
+        candidates = [
+            job
+            for job in _jobs.values()
+            if str(job.get("status") or "") == "running"
+            and str(job.get("worker") or "").rstrip("/") == key
+        ]
+    transitioned = 0
+    for job in candidates:
+        project_root = Path(job.get("project_root") or os.environ.get("ATLAS_PROJECT_ROOT") or ".").resolve()
+        recovered, detail = _job_artifact_recovery(job, project_root)
+        if recovered:
+            job["status"] = "completed"
+            job["error"] = ""
+            job["result_summary"] = detail
+            job["finished_at"] = now
+            _enforce_completion_evidence_gate(job, project_root)
+            if job.get("status") == "completed":
+                _ensure_stage_artifact_version_for_job(job, project_root)
+        else:
             job["status"] = "error"
             job["error"] = f"worker process died: {reason}"
             job["finished_at"] = now
-            try:
-                _finish_job_db_run(job, "error", job["error"])
-            except Exception:
-                pass
-            failed += 1
-    return failed
+        try:
+            _finish_job_db_run(job, job.get("status"), job.get("error") or None)
+        except Exception:
+            pass
+        _advance_pipeline_from(job)
+        transitioned += 1
+    return transitioned
 
 
 def _lazy_worker_reaper_loop() -> None:
@@ -2302,8 +2316,16 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
             "visible goal instead of searching indefinitely. The first successful content-changing "
             f"tool call should write {ip}/yaml/{ip}.ssot.yaml with concrete draft sections, including "
             "machine-readable function_model output_rules/state_updates and sub_modules ownership refs. "
+            f"Also write {ip}/req/{ip}_requirements.md (at least 1000 bytes, no TODO/TBD markers) "
+            f"and {ip}/req/approval_manifest.json using either the strict requirement_approval_manifest "
+            "schema (type/ip/approved_by/approved_at_utc/source/source_sha256/target/target_sha256) "
+            "or, for starter-mode chat goals without a review packet, a starter approval manifest with "
+            "approval_mode=starter, status=approved, artifact=req/<ip>_requirements.md, bytes, and all "
+            "requirement quality checks true. "
             f"Then run python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering "
             f"and python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. "
+            "Do not leave live `custom.tbd` or TBD-key sections in the final SSOT; convert out-of-scope ideas "
+            "to `custom.future_considerations` or concrete assumptions. "
             f"If {ip}/rtl/rtl_blocked.json exists, answer each blocker inline so SSOT-gen can incorporate "
             "the decisions, then rerun /repair-ssot and validation before handing back to rtl-gen. "
             "Finish with an [SSOT HANDOFF] summarizing assumptions, remaining TBDs, validation evidence, "
@@ -2323,7 +2345,9 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
         ),
         "rtl": (
             f"run /ssot-rtl {ip}; regenerate RTL from yaml/{ip}.ssot.yaml in the active IP root "
-            "and close dynamic RTL TODOs, compile, and lint gates"
+            "and close dynamic RTL TODOs, compile, and lint gates. If you edit RTL after the "
+            f"first stage-driver run or after sim-debug evidence, rerun /ssot-rtl {ip} as the "
+            "final validation step; do not report DONE from standalone compile/lint evidence alone"
         ),
         "lint": f"run /lint-ip {ip}; report and fix root-cause RTL lint errors and warnings",
         "tb": (
@@ -3380,7 +3404,10 @@ def _refresh_tracked_jobs(project_root_path: Path | None = None) -> tuple[list[d
                     job["result_summary"] = detail
                     job["finished_at"] = now
                     job["_poll_fail_count"] = 0
-                    _finish_job_db_run(job, "completed")
+                    _enforce_completion_evidence_gate(job, pr)
+                    if job.get("status") == "completed":
+                        _ensure_stage_artifact_version_for_job(job, pr)
+                    _finish_job_db_run(job, job.get("status"))
                     _advance_pipeline_from(job)
                     changed = True
                 else:
