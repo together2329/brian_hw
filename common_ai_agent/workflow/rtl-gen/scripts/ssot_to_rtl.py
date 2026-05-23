@@ -3524,7 +3524,7 @@ def generate(ip: str, root: Path, mode: str = "signoff") -> None:
             return
         _write_starter_llm_handoff_artifacts(ip_dir, ip, top, contract, soft_gates, deferred_questions)
         _write_blocked(ip_dir, ip, top, [_question(
-            "STARTER_LLM_RTL_AUTHORING_REQUIRED",
+            "LLM_RTL_IMPLEMENTATION_REQUIRED",
             "Author Starter RTL with an LLM/worker, then run compile and sim gates.",
             "Starter relaxes gate depth only. RTL must be real LLM-authored RTL, not template output or rule-compiled YAML.",
             [
@@ -3535,7 +3535,7 @@ def generate(ip: str, root: Path, mode: str = "signoff") -> None:
             "Use LLM-authored RTL for Starter IP; keep rule contracts as authoring and verification evidence.",
             "Prevents Starter from becoming a YAML-to-RTL generator DSL while preserving relaxed Starter gates.",
         )])
-        print(f"[RTL HANDOFF] starter needs LLM-authored RTL for {ip}: rtl/starter_llm_rtl_handoff.json")
+        print(f"[RTL BLOCKED] [RTL HANDOFF] starter needs LLM-authored RTL for {ip}: rtl/starter_llm_rtl_handoff.json")
         raise SystemExit(2)
 
     contract_questions = _rtl_contract_questions(doc, top)
