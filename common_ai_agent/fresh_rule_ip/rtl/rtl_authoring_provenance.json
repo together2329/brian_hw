@@ -13,7 +13,7 @@
   "ssot": "yaml/fresh_rule_ip.ssot.yaml",
   "surface": "headless_common_engine",
   "todo_plan": "rtl/rtl_todo_plan.json",
-  "todo_plan_sha256": "718b782db1c36e9aa1079dcd72d7f2f75678232a5657c0d30eb4090aae06534b",
+  "todo_plan_sha256": "819a3a788d6f102cc601146cc62d1a6695b7597d6d47b5a83293864d0317f5b2",
   "toolchain": {
     "dut_lint_report": "workflow/lint/scripts/dut_lint_report.py",
     "rtl_compile_report": "workflow/rtl-gen/scripts/rtl_compile_report.py"
