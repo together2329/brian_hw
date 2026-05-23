@@ -9,7 +9,11 @@
      them installed locally, but do not depend on remote font downloads. */
   --windows-sans: 'Segoe UI Variable Text', 'Segoe UI', 'Malgun Gothic', 'Noto Sans KR', Arial, 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
   --windows-mono: 'Cascadia Mono', 'Cascadia Code', Consolas, 'D2Coding', 'Courier New', 'Segoe UI Emoji', 'Segoe UI Symbol', monospace;
-  --mono-base: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, var(--windows-mono);
+  /* SF Mono first so the whole UI matches the orchestrator-chat look the
+     user signed off on (doc/orch-chat-feel-demo.html used
+     ui-monospace, SFMono-Regular, Menlo). JetBrains/IBM Plex remain as
+     fallbacks for machines without SF Mono. */
+  --mono-base: ui-monospace, SFMono-Regular, Menlo, 'JetBrains Mono', 'IBM Plex Mono', var(--windows-mono);
   --sans: 'Inter', 'Noto Sans KR', 'Apple SD Gothic Neo', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, var(--windows-sans);
   /* Default UI font is sans-serif so prose-heavy panels (chat, ask_user,
      status pills, headers) read like a chat client instead of a terminal.
@@ -17,8 +21,11 @@
      utility class.  Sizes intentionally pinned to the original 1920x1080
      fixed canvas — the #scaler in index.html scales the whole layout
      uniformly to fill the viewport, so font sizes here just need to
-     match the layout the inline pixel widths were designed for. */
-  --mono: var(--sans);
+     match the layout the inline pixel widths were designed for.
+     Default unified to monospace (SF Mono) per user preference — the
+     whole UI now reads like the orchestrator-chat demo. Switch the FONT
+     dropdown to "sans" for the older chat-client look. */
+  --mono: var(--mono-base);
   --code-font: var(--mono-base);
   --ui-font-size: 14.5px;
   --ui-control-font-size: 12.5px;
@@ -72,7 +79,7 @@ html[data-platform="windows"] {
      1920px canvas remains dense but readable on common 100-125% DPI setups. */
   --sans: var(--windows-sans);
   --mono-base: var(--windows-mono);
-  --mono: var(--sans);
+  --mono: var(--mono-base);
   --code-font: var(--mono-base);
   --enh-sans: 'Segoe UI Variable Text', 'Segoe UI', 'Malgun Gothic', sans-serif;
   --enh-mono: 'Cascadia Mono', 'Cascadia Code', Consolas, monospace;
