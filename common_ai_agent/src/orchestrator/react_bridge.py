@@ -369,6 +369,39 @@ def _bind_orchestrator_tools(
 def _make_yield_run_handler(
     *, ctx: Any, runner: Any, db: Any, collector: _OrderedStepCollector
 ) -> Callable[[Dict[str, Any]], str]:
+    def _latest_step_index() -> int:
+        try:
+            steps = db.list_orchestrator_steps(ctx.run_id, limit=1000)
+        except Exception:
+            return -1
+        indexes: list[int] = []
+        for step in steps or []:
+            try:
+                indexes.append(int(step.get("step_index")))
+            except Exception:
+                continue
+        return max(indexes) if indexes else -1
+
+    def _user_replies_after(step_index: int) -> list[str]:
+        try:
+            steps = db.list_orchestrator_steps(ctx.run_id, limit=1000)
+        except Exception:
+            return []
+        replies: list[str] = []
+        for step in steps or []:
+            try:
+                idx = int(step.get("step_index"))
+            except Exception:
+                idx = -1
+            if idx <= step_index:
+                continue
+            if str(step.get("tool_name") or "") != "user_reply":
+                continue
+            text = str(step.get("user_reply") or "").strip()
+            if text:
+                replies.append(text[:2000])
+        return replies
+
     def _handle(args: Dict[str, Any]) -> str:
         if runner is None or not hasattr(runner, "register_waker"):
             collector.append(
@@ -388,16 +421,28 @@ def _make_yield_run_handler(
             else None,
         )
         db.update_orchestrator_run(ctx.run_id, status="yielded")
+        before_wait_step_index = _latest_step_index()
         try:
             reason = waker.wait()
         finally:
             runner.unregister_waker(ctx.run_id)
         db.update_orchestrator_run(ctx.run_id, status="running")
+        summary = f"woken: {reason}"
+        if str(reason or "").startswith("user_message"):
+            replies = _user_replies_after(before_wait_step_index)
+            if replies:
+                joined = "\n".join(f"- {reply}" for reply in replies)
+                summary = (
+                    f"{summary}\n\n"
+                    "[user messages received while waiting]\n"
+                    f"{joined}\n"
+                    "[/user messages received while waiting]"
+                )
         collector.append(
             tool_name="yield_run", args=args, verdict=reason,
-            evidence_summary=f"woken: {reason}",
+            evidence_summary=summary,
         )
-        return f"woken: {reason}"
+        return summary
 
     return _handle
 

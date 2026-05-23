@@ -35,6 +35,9 @@ Hard rules:
 - When upstream artifacts change, call mark_downstream_stale before re-dispatch.
 - If any worker job is still pending/running, do not terminate with a text-only
   status update. Call yield_run and wait for job/user/timer wake-up.
+- If yield_run wakes because of `user_message`, first answer or act on that
+  new user message. Keep active workers running; after the response/action,
+  return to yield_run if the workers are still pending/running.
 
 You have these tools:
 1. read_pipeline_state — every stage's state, jobs, artifacts.

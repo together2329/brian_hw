@@ -193,6 +193,45 @@ class TestYieldRunInterception:
         assert not t.is_alive(), "yield_run did not wake"
         assert wake_reason and "job_complete" in wake_reason[0]
 
+    def test_yield_run_user_wake_includes_new_user_message(self, db, runner, ctx):
+        bridge = build_orchestrator_deps(ctx=ctx, runner=runner, db=db)
+        wake_reason: list[str] = []
+
+        def yield_in_thread():
+            reply = bridge.deps.execute_tool_fn(
+                "yield_run",
+                "",
+                pre_parsed_kwargs={
+                    "wake_on": {
+                        "job_ids": ["job-watched-1"],
+                        "user_message": True,
+                        "after_seconds": 5.0,
+                    }
+                },
+            )
+            wake_reason.append(reply)
+
+        t = threading.Thread(target=yield_in_thread, daemon=True)
+        t.start()
+        for _ in range(20):
+            if runner._wakers.get(ctx.run_id):
+                break
+            threading.Event().wait(0.02)
+
+        db.append_orchestrator_step(
+            ctx.run_id,
+            tool_name="user_reply",
+            user_reply="Say Hi",
+            verdict="user_input",
+        )
+        runner._wakers[ctx.run_id].wake("user_message")
+
+        t.join(timeout=2)
+        assert not t.is_alive(), "yield_run did not wake"
+        assert wake_reason
+        assert "woken: user_message" in wake_reason[0]
+        assert "Say Hi" in wake_reason[0]
+
     def test_yield_run_paused_status_during_wait(self, db, runner, ctx):
         bridge = build_orchestrator_deps(ctx=ctx, runner=runner, db=db)
         observed: list[str] = []
