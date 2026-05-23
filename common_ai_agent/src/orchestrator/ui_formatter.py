@@ -37,11 +37,14 @@ def _fmt_dispatch_workflow(args: Dict[str, Any]) -> str:
     workflow = _short(args.get("workflow") or args.get("name") or "?", 40)
     ip = _short(args.get("ip") or "", 40)
     model = _short(args.get("model") or "", 30)
+    effort = _short(args.get("reasoning_effort") or args.get("effort") or "", 30)
     bits = [workflow]
     if ip:
         bits.append(ip)
     if model:
         bits.append(model)
+    if effort:
+        bits.append(f"effort={effort}")
     suffix = " / ".join(bits)
     return f"🚀 {workflow} 실행 중 ({suffix})"
 

@@ -260,6 +260,9 @@ def _bind_orchestrator_tools(
             schedule=kw.get("schedule", "auto"),
             reason=kw.get("reason", ""),
             orchestrator_run_id=ctx.run_id,
+            model=kw.get("model", ""),
+            run_mode=kw.get("run_mode", ""),
+            exec_mode=kw.get("exec_mode", ""),
         )
 
     def _wait_job(**kw):

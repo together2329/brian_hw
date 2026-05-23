@@ -674,9 +674,6 @@ html[data-platform="windows"] .app {
   min-width: 100px;
   max-width: 120px;
 }
-.dir-select-wrap.run-policy {
-  border-color: color-mix(in oklch, var(--accent) 38%, var(--line));
-}
 .dir-select:focus {
   border-color: var(--accent);
 }
@@ -1454,6 +1451,21 @@ html[data-platform="windows"] .app {
 .tool-card .tool-card-glyph { font-size: 15px; line-height: 1; }
 .tool-card .tool-card-tool  { color: #fbbf24; font-weight: 700; }
 .tool-card .tool-card-args  { color: var(--fg-mute); font-size: var(--ui-font-size); flex: 1; min-width: 0; }
+.tool-card .tool-card-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.tool-card .tool-card-meta span {
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1px 4px;
+  color: var(--fg-mute);
+  font-size: var(--ui-small-font-size);
+  white-space: nowrap;
+}
 .tool-card .tool-card-status { font-size: var(--ui-font-size); }
 .tool-card .tool-card-ts    {
   position: absolute; top: 4px; right: 6px;
@@ -1690,6 +1702,10 @@ html[data-platform="windows"] .app {
 }
 [data-theme="light"] .tool-card .tool-card-tool {
   color: var(--fg);
+}
+[data-theme="light"] .tool-card .tool-card-meta span {
+  border-color: #d8e1ec;
+  color: var(--fg-mute);
 }
 [data-theme="light"] .tool-card-sep {
   background: #d8e1ec;

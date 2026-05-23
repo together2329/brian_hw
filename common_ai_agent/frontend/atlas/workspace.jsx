@@ -267,6 +267,36 @@ const workspaceMessageText = (content) => {
   return '';
 };
 
+const workspaceToolArgValueText = (value) => {
+  try {
+    const text = JSON.stringify(value);
+    return text === undefined ? String(value) : text;
+  } catch (_) {
+    return String(value);
+  }
+};
+
+const workspaceToolArgsText = (args) => {
+  if (typeof args === 'string') {
+    const raw = args.trim();
+    if (raw.startsWith('{') && raw.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return workspaceToolArgsText(parsed);
+        }
+      } catch (_) {}
+    }
+    return args;
+  }
+  if (args && typeof args === 'object' && !Array.isArray(args)) {
+    return Object.entries(args)
+      .map(([k, v]) => `${k}=${workspaceToolArgValueText(v)}`)
+      .join(', ');
+  }
+  return args == null ? '' : String(args);
+};
+
 const workspaceTelemetryFromMessages = (messages) => {
   const out = { count: 0, last: '', status: '', result: '' };
   for (const m of (Array.isArray(messages) ? messages : [])) {
@@ -2203,13 +2233,11 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             for (const tc of m.tool_calls) {
               const fn = _normalizeToolName((tc.function && tc.function.name) || tc.name) || 'tool';
               const args = (tc.function && tc.function.arguments) || tc.arguments || '';
-              const argsShort = typeof args === 'string'
-                ? args.slice(0, 120)
-                : JSON.stringify(args).slice(0, 120);
+              const argsText = workspaceToolArgsText(args);
               // Stamp `tool` so the render-time pre-pass can pair this
               // hydrated action with the next 'tool'-role obs into a
               // single ToolCard (matching the live shape).
-              newFeed.push({ kind: 'action', text: `▶ ${fn} ${argsShort}`, tool: fn, args: argsShort });
+              newFeed.push({ kind: 'action', text: `▶ ${fn} ${argsText}`, tool: fn, args: argsText });
             }
           }
         } else if (role === 'tool' && content) {
@@ -3750,7 +3778,31 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       <LiveAgentPreview text={streamText} />
     </div>
   );
-  const renderPromptRow = () => (
+  const renderPromptRow = () => {
+    const orchestratorIdle = workflow === 'orchestrator' &&
+      (!activeIp || String(activeIp).toLowerCase() === 'default');
+    return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      {orchestratorIdle ? (
+        <div style={{
+          padding: '6px 12px',
+          margin: '0 0 6px',
+          border: '1px solid var(--warn)',
+          background: 'color-mix(in oklch, var(--warn) 14%, transparent)',
+          color: 'var(--warn)',
+          fontSize: 11,
+          fontFamily: 'var(--mono)',
+          borderRadius: 2,
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}
+          title="The orchestrator needs a real IP to know what to work on. The placeholder 'default' carries no SSOT/RTL data so it loops back without dispatching."
+        >
+          <span style={{ fontWeight: 700 }}>⚠ Select an IP</span>
+          <span className="mute" style={{ color: 'var(--fg-mute)' }}>
+            orchestrator needs a real IP — pick one from the IP_ID dropdown or click <b>+ IP</b> at the top to create one. Messages with <code>default</code> are rejected.
+          </span>
+        </div>
+      ) : null}
     <div className="prompt-row">
       <span className="ps" style={{ color: 'var(--fg-mute)' }}>❯</span>
       <textarea ref={inputRef} value={input}
@@ -3784,7 +3836,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         )}
       </span>
     </div>
+    </div>
   );
+  };
   const filePanelIp = activeIp || '';
   const visibleFileTree = filePanelIp ? (window.FILE_TREE || []) : [];
   const filePanelStatus = filePanelIp
@@ -4983,6 +5037,60 @@ const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '' }) => {
   );
 };
 
+const _parseJsonObject = (text) => {
+  const raw = String(text || '').trim();
+  if (!raw || !raw.startsWith('{')) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+  } catch (_) {
+    return null;
+  }
+};
+
+const _firstMetaValue = (...values) => {
+  for (const value of values) {
+    if (Array.isArray(value)) {
+      const compact = value.map(v => String(v || '').trim()).filter(Boolean);
+      if (compact.length) return compact.join(', ');
+    } else {
+      const text = String(value || '').trim();
+      if (text) return text;
+    }
+  }
+  return '';
+};
+
+const _argMetaValue = (argsText, name) => {
+  const re = new RegExp(`(?:^|[,\\s])${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^,\\s]+))`);
+  const match = String(argsText || '').match(re);
+  return match ? (match[1] || match[2] || match[3] || '').trim() : '';
+};
+
+const _dispatchWorkflowMeta = (tool, obsText, argsText) => {
+  if (String(tool || '') !== 'dispatch_workflow') return null;
+  const parsed = _parseJsonObject(obsText);
+  const jobs = Array.isArray(parsed?.jobs) ? parsed.jobs.filter(j => j && typeof j === 'object') : [];
+  const model = _firstMetaValue(
+    parsed?.model,
+    parsed?.models,
+    jobs.map(j => j.model),
+    _argMetaValue(argsText, 'model')
+  );
+  const effort = _firstMetaValue(
+    parsed?.reasoning_effort,
+    parsed?.reasoning_efforts,
+    parsed?.effort,
+    jobs.map(j => j.reasoning_effort),
+    _argMetaValue(argsText, 'reasoning_effort'),
+    _argMetaValue(argsText, 'effort')
+  );
+  const worker = _firstMetaValue(parsed?.worker, parsed?.workers, jobs.map(j => j.worker));
+  const execMode = _firstMetaValue(parsed?.exec_mode, jobs.map(j => j.exec_mode));
+  if (!model && !effort && !worker && !execMode) return null;
+  return { model, effort, worker, execMode };
+};
+
 // ToolCard: pairs an action entry with its obs entry into a single
 // connected card with tool-themed left border + glyph + status badge.
 // Either half can be missing (action-only when blocked, obs-only is
@@ -5015,12 +5123,13 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
       || argsText.match(/^\s*([^\s"',{}\[\]]+\.(?:sv|v|vh|svh|yaml|yml|md|f|txt|log|json|py|sdc|upf|tcl))/i);
     argsText = pathMatch ? pathMatch[1] : '';
   }
+  const dispatchMeta = _dispatchWorkflowMeta(tool, obsText, argsText);
   const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
   // Tool results default to OPEN. The user needs to see the result/cost
   // trail without hunting through collapsed cards; large bodies remain
   // bounded by .tool-output-pre max-height.
   const isReplaceTool = tool && _DIFF_RESULT_TOOL_RE.test(tool);
-  const showFullArgsByDefault = !!tool && /^(run_command|todo_update)$/i.test(tool);
+  const showFullArgsByDefault = !!tool && /^(run_command|todo_update|dispatch_workflow)$/i.test(tool);
   const obsLines = obs ? obsText.split('\n') : [];
   const obsIsMulti = obsLines.length > 1;
   // Command and todo updates are useful as the primary payload, so show
@@ -5055,6 +5164,14 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
       >
         <span className="tool-card-glyph" style={{ color: 'var(--fg)' }}>{theme.glyph}</span>
         <span className="tool-card-tool">{_toolDisplay(tool)}</span>
+        {dispatchMeta && (
+          <span className="tool-card-meta">
+            {dispatchMeta.model && <span>model {dispatchMeta.model}</span>}
+            {dispatchMeta.effort && <span>effort {dispatchMeta.effort}</span>}
+            {dispatchMeta.execMode && <span>{dispatchMeta.execMode}</span>}
+            {dispatchMeta.worker && <span>{dispatchMeta.worker.replace(/^https?:\/\//, '')}</span>}
+          </span>
+        )}
         {argsText && (
           <span
             className={`tool-card-args${showArgsExpanded ? '' : ' trunc'}`}

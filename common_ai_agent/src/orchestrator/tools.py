@@ -44,6 +44,46 @@ def _safe_json(value: Any, cap: int = _EVIDENCE_CAP) -> str:
         return _truncate(repr(value), cap)
 
 
+def _uniq_nonempty(values: Any) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for value in values or []:
+        text = str(value or "").strip()
+        if text and text not in seen:
+            seen.add(text)
+            out.append(text)
+    return out
+
+
+def _one_or_many(values: list[str]) -> Any:
+    if not values:
+        return ""
+    if len(values) == 1:
+        return values[0]
+    return values
+
+
+def _dispatch_summary_payload(result: Dict[str, Any]) -> Dict[str, Any]:
+    jobs = [j for j in (result.get("jobs") or []) if isinstance(j, dict)]
+    job_ids = _uniq_nonempty(j.get("job_id") for j in jobs)
+    models = _uniq_nonempty(j.get("model") for j in jobs)
+    efforts = _uniq_nonempty(j.get("reasoning_effort") for j in jobs)
+    workers = _uniq_nonempty(j.get("worker") for j in jobs)
+    return {
+        "ok": result.get("ok"),
+        "source": result.get("source"),
+        "pipeline_run_id": result.get("pipeline_run_id"),
+        "job_ids": job_ids,
+        "model": _one_or_many(models),
+        "reasoning_effort": _one_or_many(efforts),
+        "worker": _one_or_many(workers),
+        "schedule": result.get("schedule"),
+        "run_mode": result.get("run_mode"),
+        "exec_mode": result.get("exec_mode"),
+        "error": result.get("error"),
+    }
+
+
 def _is_valid_ip_name(ip: str) -> bool:
     return bool(_IP_NAME_RE.fullmatch(str(ip or "")))
 
@@ -246,17 +286,17 @@ def dispatch_workflow(
                     exec_mode=exec_mode,
                 )
                 if isinstance(result, dict):
-                    summary = _safe_json(
-                        {
-                            "ok": result.get("ok"),
-                            "source": result.get("source"),
-                            "workflow": result.get("workflow"),
-                            "status": result.get("status"),
-                            "error": (result.get("result") or {}).get("error")
-                            if isinstance(result.get("result"), dict)
-                            else None,
-                        }
-                    )
+                    summary_payload = _dispatch_summary_payload(result)
+                    summary_payload.update({
+                        "workflow": result.get("workflow"),
+                        "status": result.get("status"),
+                        "model": summary_payload.get("model") or model or "",
+                        "worker": summary_payload.get("worker") or result.get("worker"),
+                        "error": (result.get("result") or {}).get("error")
+                        if isinstance(result.get("result"), dict)
+                        else result.get("error"),
+                    })
+                    summary = _safe_json(summary_payload)
                     return result, summary
                 if skip_reason:
                     return (
@@ -295,15 +335,7 @@ def dispatch_workflow(
     )
     if not isinstance(result, dict):
         return {"ok": False, "raw": str(result)}, "non-dict result"
-    job_ids = [j.get("job_id") for j in (result.get("jobs") or []) if isinstance(j, dict)]
-    summary = _safe_json(
-        {
-            "ok": result.get("ok"),
-            "pipeline_run_id": result.get("pipeline_run_id"),
-            "job_ids": job_ids,
-            "error": result.get("error"),
-        }
-    )
+    summary = _safe_json(_dispatch_summary_payload(result))
     return result, summary
 
 

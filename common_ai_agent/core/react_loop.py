@@ -486,6 +486,11 @@ def run_react_agent_impl(
         # observation (preview, full result, etc.) and would duplicate the
         # event on the WS.
 
+    def _web_tool_args_summary(tool_name: str, args_display: str, summary: str) -> str:
+        if str(tool_name or "") == "dispatch_workflow":
+            return str(args_display or summary or "")
+        return summary
+
     # Use injected ESC functions if provided (for testing), else use EscapeWatcher
     _esc_check = deps.esc_check_fn if deps.esc_check_fn is not None else EscapeWatcher.check
     _esc_start = deps.esc_start_fn if deps.esc_start_fn is not None else EscapeWatcher.start
@@ -1651,7 +1656,10 @@ def run_react_agent_impl(
                     # Skip header for diff tools: their output already starts with Update(file)
                     if tool_name not in _DIFF_TOOLS:
                         print(format_tool_header(tool_name, summary))
-                        if deps.emit_tool_fn: deps.emit_tool_fn(f"▶ {tool_name}  {summary}")
+                        if deps.emit_tool_fn:
+                            deps.emit_tool_fn(
+                                f"▶ {tool_name}  {_web_tool_args_summary(tool_name, args_str, summary)}"
+                            )
                     # Mirror the raw observation to web UIs regardless of which
                     # local formatter the terminal path uses below.
                     if deps.emit_tool_result_fn:
@@ -1786,7 +1794,9 @@ def run_react_agent_impl(
                         suffix = ''
                         if _is_plan_blocked:   suffix = ' [blocked: plan]'
                         if _is_normal_blocked: suffix = ' [blocked: exec]'
-                        deps.emit_tool_fn(f"▶ {tool_name}  {summary}{suffix}")
+                        deps.emit_tool_fn(
+                            f"▶ {tool_name}  {_web_tool_args_summary(tool_name, _args_display, summary)}{suffix}"
+                        )
 
                     if _is_plan_blocked:
                         if tool_name == "todo_update":

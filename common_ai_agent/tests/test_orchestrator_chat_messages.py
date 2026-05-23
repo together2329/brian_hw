@@ -12,6 +12,8 @@ the right roles and rendered text.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from core.atlas_db import AtlasDB
@@ -120,7 +122,13 @@ class TestToolCallLabelsPersist:
             raising=False,
         )
         caller = _scripted(
-            _tool_call("dispatch_workflow", workflow="ssot-gen", ip="pl330", model="glm-5.1"),
+            _tool_call(
+                "dispatch_workflow",
+                workflow="ssot-gen",
+                ip="pl330",
+                model="glm-5.1",
+                reasoning_effort="high",
+            ),
             {"content": "kicked off"},
         )
         OrchestratorReactLoop(db, ctx, llm_caller=caller).run(max_steps=5)
@@ -133,6 +141,43 @@ class TestToolCallLabelsPersist:
         assert "ssot-gen" in rendered
         assert "pl330" in rendered
         assert "glm-5.1" in rendered
+        assert "effort=high" in rendered
+
+    def test_dispatch_workflow_summary_exposes_worker_model_effort(self, monkeypatch):
+        def fake_bridge(**kw):
+            return {
+                "ok": True,
+                "source": "dispatch_workflow_tool",
+                "pipeline_run_id": "pipe1",
+                "schedule": "serial",
+                "run_mode": "engineering",
+                "exec_mode": "single-worker",
+                "jobs": [
+                    {
+                        "job_id": "job1",
+                        "model": "glm-5.1",
+                        "reasoning_effort": "high",
+                        "worker": "http://127.0.0.1:5621",
+                    }
+                ],
+            }
+
+        monkeypatch.setattr(
+            orch_tools, "_dispatch_workflow_bridge",
+            lambda: fake_bridge,
+            raising=False,
+        )
+        result, summary = orch_tools.dispatch_workflow(
+            workflow="ssot-gen",
+            ip="new_axi",
+            prompt="Quality pass for new_axi SSOT.",
+        )
+
+        payload = json.loads(summary)
+        assert result["ok"] is True
+        assert payload["model"] == "glm-5.1"
+        assert payload["reasoning_effort"] == "high"
+        assert payload["worker"] == "http://127.0.0.1:5621"
 
     def test_unknown_tool_falls_back_to_name_with_args(self):
         # Direct formatter test — pure helper, no DB.
