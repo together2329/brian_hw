@@ -78,24 +78,90 @@
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
-    "blocked_by_tool_evidence": [],
+    "blocked_by_tool_evidence": [
+      {
+        "gate_kind": "dut_compile",
+        "owner_module": "generic_counter_ip",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT compile after the final RTL edit.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "status": "open",
+        "task_id": "RTL-0017"
+      },
+      {
+        "gate_kind": "dynamic_todo_closure",
+        "owner_module": "generic_counter_ip",
+        "reason": "1 required non-closure TODO(s) remain open.",
+        "source": "packet_task",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": false,
+    "deferred_human_qa_allowed": true,
     "draft_allowed": false,
     "evidence_closure_allowed": true,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
-    "open_required_count": 0,
-    "pass_allowed": true,
+    "open_required_count": 2,
+    "pass_allowed": false,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
       "Never use a fixed RTL template as the implementation."
     ],
-    "tool_evidence_open_count": 0,
-    "tool_evidence_plan": [],
+    "tool_evidence_open_count": 2,
+    "tool_evidence_plan": [
+      {
+        "artifact": "rtl/rtl_compile.json",
+        "artifacts": [
+          "generic_counter_ip/rtl/rtl_compile.json",
+          "generic_counter_ip/rtl/rtl_compile.log"
+        ],
+        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py generic_counter_ip --top generic_counter_ip --project-root .",
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py generic_counter_ip --root . --audit-rtl"
+        ],
+        "gate_kind": "dut_compile",
+        "prerequisites": [
+          "generic_counter_ip/list/generic_counter_ip.f covers the current DUT RTL sources."
+        ],
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT compile after the final RTL edit.",
+        "source_ref": "quality_gates.rtl_gen.dut_compile",
+        "stage_sequence": [
+          "ssot-rtl",
+          "dut_compile"
+        ],
+        "status": "open",
+        "task_id": "RTL-0017"
+      },
+      {
+        "artifact": "rtl/rtl_todo_plan.json",
+        "artifacts": [
+          "generic_counter_ip/rtl/rtl_todo_plan.json",
+          "generic_counter_ip/rtl/rtl_authoring_status.md"
+        ],
+        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
+        "commands": [
+          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py generic_counter_ip --root . --audit-rtl"
+        ],
+        "gate_kind": "dynamic_todo_closure",
+        "prerequisites": [
+          "All non-closure required TODOs have pass status."
+        ],
+        "reason": "1 required non-closure TODO(s) remain open.",
+        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+        "stage_sequence": [
+          "audit-rtl"
+        ],
+        "status": "open",
+        "task_id": "RTL-0019"
+      }
+    ],
     "work_allowed": true
   },
   "ip": "generic_counter_ip",
@@ -119,7 +185,7 @@
       "rtl_gate.rtl_gen": 4
     },
     "module_slice": {},
-    "open_required_count": 0,
+    "open_required_count": 2,
     "required_count": 4,
     "source_refs": [
       "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -128,7 +194,8 @@
       "quality_gates.rtl_gen.dynamic_todo_closure"
     ],
     "status_counts": {
-      "pass": 4
+      "open": 2,
+      "pass": 2
     },
     "task_count": 4
   },
@@ -224,9 +291,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
+        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/generic_counter_ip.sv; rerun DUT compile after the final RTL edit.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     },
     {
@@ -317,9 +384,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "Every required non-closure TODO has pass status.",
+        "reason": "1 required non-closure TODO(s) remain open.",
         "required": true,
-        "status": "pass"
+        "status": "open"
       }
     }
   ],
