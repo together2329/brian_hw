@@ -17,8 +17,6 @@ module fresh_rule_ip (
     logic [8:0] doubled_value;
     logic [7:0] accepted_count_next;
 
-    // ready is a live reset-derived contract signal: low while reset is asserted and high for all active cycles.
-    assign ready = rst_n;
     assign valid_sample = valid & ready;
     assign value = data_in;
     // SSOT double_value: exact unsigned multiply by two uses a left shift; result widens to 9 bits with no rounding or saturation.
@@ -29,9 +27,11 @@ module fresh_rule_ip (
         if (!rst_n) begin
             result <= RESULT_RESET_VALUE;
             result_valid <= 1'b0;
+            ready <= 1'b0;
             accepted_count <= ACCEPTED_COUNT_RESET_VALUE;
         end else begin
-            // valid_sample is the SSOT acceptance point for the latency-1 transaction.
+            // Ready remains asserted after reset; valid_sample is the SSOT acceptance point for the transaction.
+            ready <= 1'b1;
             result_valid <= valid_sample;
             if (valid_sample) begin
                 result <= doubled_value;

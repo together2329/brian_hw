@@ -22,7 +22,7 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
@@ -231,7 +231,7 @@ SSOT item context: value=1.
 - Source ref: cycle_model.handshake_rules.valid_sample
 - Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
 SSOT ref: cycle_model.handshake_rules.valid_sample.
-Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via cycle_model.
+Owner: fresh_rule_ip in rtl/fresh_rule_ip.sv via top_level_handshake_rule.
 SSOT item context: name=valid_sample.
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:

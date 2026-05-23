@@ -2375,12 +2375,28 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
             }
           }
         } else if (role === 'tool' && content) {
-          newFeed.push({
-            kind: 'obs',
-            text: content.slice(0, 8000),
-            tool: m.name || '',
-            truncated: content.length > 8000,
-          });
+          // A 'tool' message can be a tool CALL display line ("⏺ tool(args)")
+          // or a tool RESULT. Parse calls into action entries (so HandoffCard /
+          // the readable tool-call summaries apply) instead of dumping the raw
+          // "⏺ dispatch_workflow(...)" line as an untyped observation.
+          const parsedCall = /^[▶⏺]/.test(content)
+            ? (window.AtlasOrchestratorChatLogic?.toolEntryFromDisplayLine?.(content) || null)
+            : null;
+          if (parsedCall) {
+            newFeed.push({
+              kind: 'action',
+              text: parsedCall.text || content,
+              tool: parsedCall.tool,
+              args: parsedCall.args,
+            });
+          } else {
+            newFeed.push({
+              kind: 'obs',
+              text: content.slice(0, 8000),
+              tool: m.name || '',
+              truncated: content.length > 8000,
+            });
+          }
         }
       }
       // Drop a turn-end divider so the user can tell where the
@@ -3603,7 +3619,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
         if (!r.ok) return;
         const d = await r.json();
         const jobs = (Array.isArray(d.jobs) ? d.jobs : [])
-          .filter(job => String(job?.ip || '') === ip)
+          // Only actual stage workers — never the orchestrator's own run, whose
+          // tool calls already render cleanly via the orchestrator_chat path
+          // (re-appending them here would duplicate them as raw, untyped entries).
+          .filter(job => String(job?.ip || '') === ip && String(job?.workflow || '').toLowerCase() !== 'orchestrator')
           .slice(0, 30);
         await Promise.all(jobs.map(pollWorkerLog));
       } catch (_) {}
@@ -5809,8 +5828,10 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
   const tool = _normalizeToolName((action && action.tool) || (obs && obs.tool) || '');
   // Orchestrator handoffs get a dedicated labeled card instead of the raw
   // "key={json}" args line — see HandoffCard.
-  const liveRaw = !!((action && action.live) || (obs && obs.live));
-  if (!liveRaw && (tool === 'dispatch_workflow' || tool === 'write_handoff')) {
+  // dispatch_workflow / write_handoff are ALWAYS orchestrator tool calls — use
+  // the labeled HandoffCard even for live entries (raw rendering is for worker
+  // ReAct steps, whose tool is the workflow name, never these).
+  if (tool === 'dispatch_workflow' || tool === 'write_handoff') {
     return <HandoffCard action={action} obs={obs} tool={tool} />;
   }
   const theme = _toolTheme(tool);

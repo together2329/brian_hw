@@ -87,6 +87,27 @@ def test_owner_for_breaks_tie_via_name_token_overlap():
     assert tx_pipe["module"] == "uart_lite_tx"
 
 
+def test_handshake_rule_owner_defaults_to_top_module():
+    derive = _load_derive()
+    modules = [
+        {
+            "name": "counter_reg",
+            "file": "rtl/counter_reg.sv",
+            "refs": ["cycle_model", "function_model"],
+        },
+        {
+            "name": "counter_top",
+            "file": "rtl/counter_top.sv",
+            "refs": ["top_module", "io_list", "integration"],
+        },
+    ]
+
+    owner = derive._owner_for("cycle_model.handshake_rules.req_valid_req_ready", modules, "counter_top")
+
+    assert owner["module"] == "counter_top"
+    assert owner["matched_ref"] == "top_level_handshake_rule"
+
+
 def test_direct_name_owner_match_falls_back_when_refs_missing():
     derive = _load_derive()
     modules = [
@@ -148,6 +169,50 @@ def test_generic_ssot_prose_does_not_become_static_rtl_terms():
         )
         == []
     )
+    assert (
+        derive._evidence_terms(
+            "function_model.state_update",
+            "function_model.transactions.FM2.state_updates.fm2_observed",
+            {
+                "name": "fm2_observed",
+                "expr": "1",
+                "description": "Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.",
+            },
+        )
+        == []
+    )
+    assert (
+        derive._evidence_terms(
+            "function_model.output",
+            "function_model.transactions.FM2.outputs.output_0",
+            {
+                "id": "FM2",
+                "name": "feature_2",
+                "signal": ["Architectural output matches feature definition"],
+                "state": ["fm2_observed"],
+            },
+        )
+        == []
+    )
+
+
+def test_workflow_todo_evidence_ignores_synthetic_todo_ids():
+    derive = _load_derive()
+
+    terms = derive._evidence_terms(
+        "workflow_todo.rtl_gen",
+        "workflow_todos.rtl-gen[8]",
+        {
+            "id": "RTL_FM_TX_FM2",
+            "source_refs": ["function_model.transactions.FM2"],
+            "owner_module": "counter_reg",
+            "owner_file": "rtl/counter_reg.sv",
+        },
+    )
+
+    assert "FM2" not in terms
+    assert "RTL_FM_TX_FM2" not in terms
+    assert {"counter_reg", "reg"} <= set(terms)
 
 
 def test_placeholder_audit_accepts_not_implemented_in_comment(tmp_path: Path):

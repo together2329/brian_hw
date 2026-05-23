@@ -14,7 +14,9 @@ try {
   await gotoWorkspace(page, { ip: 'mctp_axi', workflow: 'orchestrator' });
   await page.evaluate(() => { const e=[...document.querySelectorAll('button,span,div,[role="tab"]')].find(x=>(x.textContent||'').trim().toUpperCase()==='CHAT'&&x.offsetParent);if(e)e.click(); });
   await page.waitForTimeout(800);
-  await page.evaluate((m)=>window.dispatchEvent(new CustomEvent('atlas-conversation-loaded',{detail:{messages:m,session:'brian/mctp_axi/orchestrator'}})), messages);
+  // inject WITHOUT a session field so onConvLoaded accepts it regardless of the
+  // logged-in owner (admin vs brian) — sameActiveSession is true when session=''.
+  await page.evaluate((m)=>window.dispatchEvent(new CustomEvent('atlas-conversation-loaded',{detail:{messages:m}})), messages);
   await page.waitForTimeout(1200);
   const before = await page.evaluate((mk)=>document.body.innerText.includes(mk), MARK);
   assert(before, 'orchestrator content present before switch (injected)');

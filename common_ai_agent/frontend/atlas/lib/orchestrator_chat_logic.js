@@ -153,6 +153,12 @@
     var argsText = (action && typeof action.args === 'string') ? action.args
       : (action && typeof action.text === 'string') ? action.text : '';
     var payload = (a && a.payload && typeof a.payload === 'object') ? a.payload : null;
+    if (!payload) {
+      // write_handoff carries the task in a nested payload={...} blob even on
+      // the flattened "key=val" string path — pull it out so task/reason show.
+      var pm = String(argsText || '').match(/payload\s*=\s*(\{[\s\S]*?\})/);
+      if (pm) { try { var pj = JSON.parse(pm[1]); if (pj && typeof pj === 'object') payload = pj; } catch (_) {} }
+    }
     var stages = (a && Array.isArray(a.stages))
       ? a.stages.map(function (s) { return String(s || '').trim(); }).filter(Boolean) : [];
     var workflow = hFirstMetaValue(a && a.workflow, hArgMetaValue(argsText, 'workflow'));

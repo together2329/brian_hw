@@ -156,7 +156,13 @@ export function handoffFields(action, obs) {
   if (!a && action && typeof action.args === 'string') a = _hParseJsonObject(action.args);
   const argsText = (action && typeof action.args === 'string') ? action.args
     : (action && typeof action.text === 'string') ? action.text : '';
-  const payload = (a && a.payload && typeof a.payload === 'object') ? a.payload : null;
+  let payload = (a && a.payload && typeof a.payload === 'object') ? a.payload : null;
+  if (!payload) {
+    // write_handoff carries the task in a nested payload={...} blob even on
+    // the flattened "key=val" string path — pull it out so task/reason show.
+    const pm = String(argsText || '').match(/payload\s*=\s*(\{[\s\S]*?\})/);
+    if (pm) { try { const pj = JSON.parse(pm[1]); if (pj && typeof pj === 'object') payload = pj; } catch (_) {} }
+  }
   const stages = (a && Array.isArray(a.stages))
     ? a.stages.map(s => String(s || '').trim()).filter(Boolean) : [];
   const workflow = _hFirstMetaValue(a && a.workflow, _hArgMetaValue(argsText, 'workflow'));

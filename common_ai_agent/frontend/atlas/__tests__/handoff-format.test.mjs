@@ -74,5 +74,46 @@ describe('handoffFields — dispatch / write_handoff labeled rendering', () => {
     expect(handoffStatusColor('completed')).toBe('#3fb950');
     expect(handoffStatusColor('blocked')).toBe('#f85149');
     expect(handoffStatusColor('queued')).toBe('#8b949e');
+    // case-insensitive + variants
+    expect(handoffStatusColor('PASSED')).toBe('#3fb950');
+    expect(handoffStatusColor('in_progress')).toBe('#58a6ff');
+    expect(handoffStatusColor('')).toBe('#8b949e');
+    expect(handoffStatusColor(undefined)).toBe('#8b949e');
+  });
+
+  // ── Robustness / edge cases ────────────────────────────────────────────
+  it('never throws on null/empty inputs', () => {
+    expect(() => handoffFields(null, null)).not.toThrow();
+    expect(handoffFields(null, null)).toEqual({ sent: { target: '', fanout: false, ip: '', task: '', reason: '', schedule: '' }, result: null });
+    expect(handoffFields({}, {})).toMatchObject({ result: null });
+  });
+
+  it('strips a leading "└─ " before parsing the result JSON', () => {
+    const obs = { text: '└─ {"workflow":"sim","status":"completed","job_id":"j9"}' };
+    const { result } = handoffFields({ tool: 'dispatch_workflow', argsRaw: { ip: 'x', workflow: 'sim' } }, obs);
+    expect(result).toMatchObject({ workflow: 'sim', status: 'completed', job: 'j9' });
+  });
+
+  it('handles single-quoted values in the flattened text form', () => {
+    const action = { tool: 'dispatch_workflow', args: "ip='uart_tx', workflow='rtl-gen', reason='go'" };
+    const { sent } = handoffFields(action, null);
+    expect(sent.target).toBe('rtl-gen');
+    expect(sent.ip).toBe('uart_tx');
+    expect(sent.reason).toBe('go');
+  });
+
+  it('reads worker from a workers[] array and survives non-JSON obs', () => {
+    const wk = handoffFields({ tool: 'dispatch_workflow', argsRaw: { ip: 'x', workflow: 'lint' } },
+      { text: '{"status":"running","workers":["admin/x/lint"]}' });
+    expect(wk.result.worker).toBe('admin/x/lint');
+    const nan = handoffFields({ tool: 'dispatch_workflow', argsRaw: { ip: 'x', workflow: 'lint' } }, { text: 'some plain log line' });
+    expect(nan.result).toBeNull();
+  });
+
+  it('a single job in jobs[] does not trigger per-stage rendering', () => {
+    const { result } = handoffFields({ tool: 'dispatch_workflow', argsRaw: { ip: 'x', workflow: 'sim' } },
+      { text: '{"jobs":[{"workflow":"sim","status":"running","job_id":"j1"}]}' });
+    expect(result.jobs).toBeUndefined();
+    expect(result.status).toBe('running');
   });
 });

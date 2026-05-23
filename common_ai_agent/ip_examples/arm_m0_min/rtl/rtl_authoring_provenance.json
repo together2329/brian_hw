@@ -1,30 +1,33 @@
 {
-  "schema_version": 1,
-  "type": "rtl_authoring_provenance",
   "agent": "common_ai_agent",
-  "workflow": "rtl-gen",
-  "surface": "headless_common_engine",
-  "model_profile": "gpt-5.3-codex",
+  "authoring_packets": [],
+  "contract_files": [
+    "rtl/rtl_contract.json"
+  ],
   "effort": "medium",
-  "generated_at": "2026-05-15T10:41:22Z",
-  "updated_at": "2026-05-15T10:41:22Z",
-  "ip": "arm_m0_min",
-  "ssot": "yaml/arm_m0_min.ssot.yaml",
   "filelist": "list/arm_m0_min.f",
+  "generated_at": "2026-05-15T10:41:22Z",
+  "generation_note": "Headless common engine recorded LLM-authored RTL artifacts from rtl_authoring_plan packets.",
   "header_files": [],
+  "ip": "arm_m0_min",
+  "model": "glm-5.1",
+  "model_profile": "gpt-5.3-codex",
   "note": "All RTL files were authored by common_ai_agent rtl-gen from arm_m0_min/yaml/arm_m0_min.ssot.yaml using the canonical SSOT-driven RTL generation path.",
   "refresh_reason": "Initial canonical authoring run completed; compile=0 errors, lint=0 errors/warnings.",
   "rtl_files": [
-    "rtl/arm_m0_min.sv",
-    "rtl/arm_m0_min_alu.sv",
-    "rtl/arm_m0_min_branch.sv",
-    "rtl/arm_m0_min_ex.sv",
-    "rtl/arm_m0_min_id.sv",
     "rtl/arm_m0_min_if.sv",
-    "rtl/arm_m0_min_mem_if.sv",
-    "rtl/arm_m0_min_rf.sv"
+    "rtl/arm_m0_min_id.sv",
+    "rtl/arm_m0_min_ex.sv",
+    "rtl/arm_m0_min_rf.sv",
+    "rtl/arm_m0_min.sv"
   ],
+  "schema_version": 1,
+  "ssot": "yaml/arm_m0_min.ssot.yaml",
+  "surface": "headless_common_engine",
   "todo_plan": "rtl/rtl_todo_plan.json",
-  "todo_plan_sha256": "1baeab31bcea69525358f8da93d9931e4a55a6d138306875da9731f82204c051",
-  "toolchain": "atlas rtl-gen via common_ai_agent"
+  "todo_plan_sha256": "a70eeedfb17c143e2e962a82c44a8b0edf3adcdded649e82f935de86a45a7092",
+  "toolchain": "atlas rtl-gen via common_ai_agent",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-05-23T20:02:56Z",
+  "workflow": "rtl-gen"
 }

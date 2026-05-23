@@ -24,18 +24,39 @@ try {
     log(`chat history found on ip=${target} (${msgs.length} msgs)`);
     const rolesPresent = [...new Set(msgs.map(m => String((m.payload || {}).role || '').toLowerCase()).filter(Boolean))];
     await gotoWorkspace(page, { ip: target, workflow: 'orchestrator' });
+    // The chat feed mounts under the center CHAT tab; orchestrator workflow
+    // lands on the worker-status tab, where the feed isn't rendered.
+    await page.evaluate(() => {
+      const el = [...document.querySelectorAll('button,span,div,[role="tab"]')]
+        .find(x => (x.textContent || '').trim().toUpperCase() === 'CHAT' && x.offsetParent !== null);
+      if (el) el.click();
+    });
     await page.waitForTimeout(4000); // let the 1s poller hydrate the feed
 
-    const dom = await page.evaluate(() => {
-      const kinds = [...document.querySelectorAll('[data-kind]')].map(e => e.getAttribute('data-kind'));
-      return { count: kinds.length, kinds: [...new Set(kinds)] };
-    });
-    assert(dom.count > 0, `feed rendered entries with [data-kind] (got ${dom.count})`);
+    // Feed entries are class-marked, not [data-kind] (that attr only exists in
+    // the code-fold tree view). Map each kind to its real DOM marker.
+    const KIND_SELECTORS = {
+      agent:   '.feed-entry-agent, .md-agent',
+      thought: '.react-block.thought',
+      action:  '.react-block.action, .tool-card',          // tool-card = fused action+obs / handoff
+      // A result renders standalone (.react-block.obs) or fused inside a tool
+      // card. Fused single-line results have no body class, but the card draws
+      // a .tool-card-sep separator only when it carries a result; markdown/pre
+      // bodies and the handoff result block are the multi-line/special forms.
+      obs:     '.react-block.obs, .md-tool-result, .tool-output-pre, .handoff-result, .tool-card-sep',
+    };
+    const dom = await page.evaluate((sel) => {
+      const present = {};
+      for (const k of Object.keys(sel)) present[k] = document.querySelectorAll(sel[k]).length;
+      const totalFeed = document.querySelectorAll('.feed-entry, .react-block, .tool-card').length;
+      return { present, totalFeed };
+    }, KIND_SELECTORS);
+    assert(dom.totalFeed > 0, `feed rendered entries (got ${dom.totalFeed})`);
 
     for (const role of rolesPresent) {
       const kind = ROLE_TO_KIND[role];
       if (!kind) continue;
-      assert(dom.kinds.includes(kind), `role "${role}" → DOM kind "${kind}" present (kinds: ${dom.kinds.join(',')})`);
+      assert((dom.present[kind] || 0) > 0, `role "${role}" → DOM kind "${kind}" present (counts: ${JSON.stringify(dom.present)})`);
     }
     await shoot(page, 'chat-render.png');
   }

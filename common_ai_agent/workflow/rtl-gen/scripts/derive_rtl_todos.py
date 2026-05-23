@@ -1276,6 +1276,14 @@ def _direct_name_owner_match(ref: str, modules: list[dict[str, Any]]) -> dict[st
 
 
 def _owner_for(ref: str, modules: list[dict[str, Any]], top: str, value: Any = None) -> dict[str, str]:
+    if ref.startswith("cycle_model.handshake_rules."):
+        top_module = next((m for m in modules if str(m.get("name")) == top or Path(str(m.get("file"))).stem == top), None)
+        if top_module is not None:
+            return {
+                "module": str(top_module["name"]),
+                "file": str(top_module["file"]),
+                "matched_ref": "top_level_handshake_rule",
+            }
     matches: list[tuple[dict[str, Any], str]] = []
     for module in modules:
         refs = module.get("refs") if isinstance(module.get("refs"), list) else []
@@ -1615,7 +1623,48 @@ NAME_EVIDENCE_CATEGORIES = {
 }
 
 
+def _json_text(value: Any) -> str:
+    try:
+        return json.dumps(value, ensure_ascii=False, sort_keys=True, default=str)
+    except TypeError:
+        return str(value)
+
+
+def _is_repair_generated_fm_marker(value: Any) -> bool:
+    """Detect repair-only FunctionModel marker rows.
+
+    repair_ssot_schema.py may make prose-only transactions machine-readable by
+    adding ``*_observed`` state markers. Those markers keep the SSOT structurally
+    valid, but they are not real architectural RTL identifiers. Requiring them as
+    live DUT tokens causes rtl-gen to add marker signals instead of implementing
+    the actual IP behavior.
+    """
+
+    text = _json_text(value).lower()
+    marker_phrases = (
+        "auto-injected transaction coverage/state marker",
+        "repair marker making this transaction machine-checkable",
+        "ssot-gen should replace with ip-specific",
+        "architectural output matches feature definition",
+        "architectural state updates according to fsm/control policy",
+        "feature trigger is asserted under legal configuration",
+    )
+    if any(phrase in text for phrase in marker_phrases) and re.search(r"\bfm\d+_observed\b", text):
+        return True
+    if isinstance(value, dict):
+        tx_id = str(value.get("id") or "").strip().lower()
+        name = str(value.get("name") or "").strip().lower()
+        if re.fullmatch(r"fm\d+", tx_id) and re.fullmatch(r"feature_\d+", name):
+            state_text = _json_text(value.get("state") or value.get("states") or value.get("signal")).lower()
+            if re.search(r"\bfm\d+_observed\b", state_text):
+                return True
+    return False
+
+
 def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
+    if category.startswith("function_model.") and _is_repair_generated_fm_marker(value):
+        return []
+
     terms: set[str] = set()
     protocol_alias_seen = False
     reserved_register_field = (
@@ -1677,7 +1726,11 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
             if category == "cycle_model.pipeline":
                 identity_keys = ("clock", "action", "signal", "port", "event", "condition", "expr", "expression")
             if category == "workflow_todo.rtl_gen":
-                identity_keys = ("id", "source_refs", "owner_module", "owner_file", *identity_keys)
+                # Workflow TODO IDs/source_refs are often generated bookkeeping
+                # names such as RTL_FM_TX_FM2. The SSOT-derived semantic tasks
+                # below carry the actual behavior checks, so workflow_todo static
+                # evidence should anchor to real owner artifacts/signals only.
+                identity_keys = ("owner_module", "owner_file", "signal", "port", "state", "output", "event", "register")
             for key in identity_keys:
                 if _present(value.get(key)):
                     if key in {"id", "name", "field", "signal", "port", "state", "output", "event", "register", "from", "to"}:
