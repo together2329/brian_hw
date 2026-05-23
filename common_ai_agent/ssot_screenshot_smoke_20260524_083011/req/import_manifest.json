@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "kind": "manual-smoke",
+  "artifacts": [],
+  "candidate_facts": {
+    "purpose": "valid-ready byte XOR transform",
+    "interface": "valid/ready plus data_in, command, result, result_valid, accepted_count"
+  },
+  "filled_decisions": ["purpose", "clock_reset", "parameters", "bus_interface", "register_map", "memory_map", "interrupt", "submodule_structure", "test_expectation", "machine_rules"],
+  "conflicts": [],
+  "workflow_todo_summary": {"ssot-gen": 1}
+}

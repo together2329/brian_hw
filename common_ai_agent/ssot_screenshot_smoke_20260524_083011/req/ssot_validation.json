@@ -1,0 +1,16 @@
+{
+  "schema_version": "ssot_validation.v2",
+  "ip": "ssot_screenshot_smoke_20260524_083011",
+  "mode": "engineering",
+  "ssot": "ssot_screenshot_smoke_20260524_083011/yaml/ssot_screenshot_smoke_20260524_083011.ssot.yaml",
+  "ok": true,
+  "blockers": [],
+  "warnings": [],
+  "check_ssot_disk": {
+    "ok": true,
+    "returncode": 0,
+    "stdout": "[check_ssot_disk] PASS: ssot_screenshot_smoke_20260524_083011/yaml/ssot_screenshot_smoke_20260524_083011.ssot.yaml = 42479B, 34 sections, 0 TBDs, mode=engineering\n",
+    "stderr": ""
+  },
+  "preview_contract": "strict"
+}

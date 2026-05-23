@@ -1,0 +1,1075 @@
+top_module:
+  name: ssot_screenshot_smoke_20260524_083011
+  file: rtl/ssot_screenshot_smoke_20260524_083011.sv
+  version: '1.0'
+  type: peripheral
+  description: Accept one byte-oriented valid-ready transaction when valid and ready are high; output result equals data_in XOR command and assert result_valid on the accepted transaction.
+  reference_spec: ATLAS Web Q&A state plus per-IP wiki/import evidence
+  target:
+    technology: generic
+    clock_freq_mhz: 100
+    area_um2: not_constrained
+    power_mw: not_constrained
+sub_modules:
+- name: ssot_screenshot_smoke_20260524_083011_behavior_contract
+  ownership: conceptual
+  ssot_gen: false
+  rtl_emit: false
+  description: Conceptual owner for SSOT function-model behavior implemented by the generated RTL.
+  source_sections:
+  - function_model
+  - cycle_model
+  - features
+  - test_requirements
+  - dataflow
+  - fsm
+  - decomposition
+  function_model_refs:
+  - function_model.transactions.FM_RESET
+  - function_model.transactions.FM_PRIMARY
+  - function_model.transactions.FM_CSR
+  - function_model.state_variables
+  cycle_model_refs:
+  - cycle_model
+  feature_refs:
+  - features
+  dataflow_refs:
+  - dataflow
+  fsm_refs:
+  - fsm
+  decomposition_refs:
+  - decomposition
+  test_refs:
+  - test_requirements
+- name: ssot_screenshot_smoke_20260524_083011_input_accept
+  ownership: conceptual
+  ssot_gen: false
+  rtl_emit: false
+  description: Conceptual functional decomposition unit `input_accept` from approved Q&A; implemented inside the single generated top module for this revision.
+  source_sections: &id001
+  - function_model
+  - cycle_model
+  - features
+  - test_requirements
+  function_model_refs:
+  - function_model.transactions.FM_PRIMARY
+  cycle_model_refs:
+  - cycle_model.handshake_rules
+  - cycle_model.pipeline
+  test_refs:
+  - test_requirements.scenarios
+- name: ssot_screenshot_smoke_20260524_083011_xor_datapath
+  ownership: conceptual
+  ssot_gen: false
+  rtl_emit: false
+  description: Conceptual functional decomposition unit `xor_datapath` from approved Q&A; implemented inside the single generated top module for this revision.
+  source_sections: &id002
+  - function_model
+  - cycle_model
+  - features
+  - test_requirements
+  function_model_refs:
+  - function_model.transactions.FM_PRIMARY
+  cycle_model_refs:
+  - cycle_model.handshake_rules
+  - cycle_model.pipeline
+  test_refs:
+  - test_requirements.scenarios
+- name: ssot_screenshot_smoke_20260524_083011_result_status
+  ownership: conceptual
+  ssot_gen: false
+  rtl_emit: false
+  description: Conceptual functional decomposition unit `result_status` from approved Q&A; implemented inside the single generated top module for this revision.
+  source_sections: &id003
+  - function_model
+  - cycle_model
+  - features
+  - test_requirements
+  function_model_refs:
+  - function_model.transactions.FM_PRIMARY
+  cycle_model_refs:
+  - cycle_model.handshake_rules
+  - cycle_model.pipeline
+  test_refs:
+  - test_requirements.scenarios
+- name: ssot_screenshot_smoke_20260524_083011
+  file: rtl/ssot_screenshot_smoke_20260524_083011.sv
+  ownership: manifest
+  ssot_gen: true
+  wiring_only: true
+  description: Top-level integration module matching SSOT top_module
+  implements:
+  - top_module
+  - integration
+  source_sections: &id004
+  - top_module
+  - io_list
+  - decomposition
+  - integration
+  decomposition_refs:
+  - decomposition
+  dataflow_refs:
+  - dataflow
+decomposition:
+  strategy: manifest_owned_leaf_decomposition
+  owners:
+  - module: ssot_screenshot_smoke_20260524_083011_input_accept
+    file: rtl/ssot_screenshot_smoke_20260524_083011_input_accept.sv
+    responsibility: Conceptual functional decomposition unit `input_accept` from approved Q&A; implemented inside the single generated top module for this revision.
+    source_sections: *id001
+  - module: ssot_screenshot_smoke_20260524_083011_xor_datapath
+    file: rtl/ssot_screenshot_smoke_20260524_083011_xor_datapath.sv
+    responsibility: Conceptual functional decomposition unit `xor_datapath` from approved Q&A; implemented inside the single generated top module for this revision.
+    source_sections: *id002
+  - module: ssot_screenshot_smoke_20260524_083011_result_status
+    file: rtl/ssot_screenshot_smoke_20260524_083011_result_status.sv
+    responsibility: Conceptual functional decomposition unit `result_status` from approved Q&A; implemented inside the single generated top module for this revision.
+    source_sections: *id003
+  - module: ssot_screenshot_smoke_20260524_083011
+    file: rtl/ssot_screenshot_smoke_20260524_083011.sv
+    responsibility: Top-level integration module matching SSOT top_module
+    source_sections: *id004
+  integration_policy: Top-level wiring must be backed by integration.connections or sub_modules[].connections before signoff.
+  source_refs:
+  - sub_modules
+  - function_model
+  - cycle_model
+  - integration
+rtl_contract:
+  owner: ssot-gen
+  type: generic_structured_rule_contract
+  transaction: FM_PRIMARY
+  clock: clk
+  reset: rst_n
+  reset_active: low
+  sample_condition: (valid) and ready
+  input_map:
+    valid: valid
+    data_in: data_in
+  output_map:
+    busy: busy
+    error: error
+    accepted_count: accepted_count
+    ready: ready
+    result: result
+    result_valid: result_valid
+  ready_output: ready
+  output_valid: ''
+  output_rules:
+  - &id005
+    name: busy
+    expr: busy
+    width: 1
+    port: busy
+    description: Scoreboard-observable busy output mirrors function_model busy state.
+  - &id006
+    name: error
+    expr: error
+    width: 1
+    port: error
+    description: Scoreboard-observable error output mirrors function_model error state.
+  - name: accepted_count
+    port: accepted_count
+    expr: accepted_count
+    width: 16
+    description: Externally observable function_model state is driven from the RTL state register.
+  state_updates: &id007
+  - name: busy
+    expr: '1'
+    width: 1
+    reset: 0
+    description: Primary accepted transaction marks the IP busy until the cycle_model response point.
+  contract_invariants:
+  - ready is asserted whenever reset is deasserted and the SSOT does not define backpressure.
+  - result and result_valid update only when sample_condition is true.
+  - accepted_count increments once per accepted transaction.
+parameters:
+- name: DATA_WIDTH
+  default: 8
+  type: int
+  description: 'Approved parameter from Web Q&A: DATA_WIDTH=8'
+  drives:
+  - rtl
+  - tb
+  - coverage
+- name: COMMAND_WIDTH
+  default: 8
+  type: int
+  description: 'Approved parameter from Web Q&A: COMMAND_WIDTH=8'
+  drives:
+  - rtl
+  - tb
+  - coverage
+- name: COUNT_WIDTH
+  default: 16
+  type: int
+  description: 'Approved parameter from Web Q&A: COUNT_WIDTH=16'
+  drives:
+  - rtl
+  - tb
+  - coverage
+- name: ADDR_WIDTH
+  default: 4
+  type: int
+  description: 'Approved parameter from Web Q&A: ADDR_WIDTH=4'
+  drives:
+  - rtl
+  - tb
+  - coverage
+io_list:
+  clock_domains:
+  - name: primary_clk
+    frequency_mhz: 100
+    description: clk 100MHz, rst_n active-low asynchronous assert and synchronous deassert.
+    ports:
+    - name: clk
+      width: 1
+      direction: input
+      description: Primary clock
+  resets:
+  - name: rst_n
+    polarity: active_low
+    sync_async: async_assert_sync_deassert
+    description: clk 100MHz, rst_n active-low asynchronous assert and synchronous deassert.
+    ports:
+    - name: rst_n
+      width: 1
+      direction: input
+      description: Primary reset
+  interfaces:
+  - name: valid_ready_transaction
+    type: valid_ready
+    role: sink
+    description: Native valid/ready transaction interface derived from approved Web Q&A.
+    protocol:
+      accept: A transaction is accepted when valid and ready are both high.
+      backpressure: ready may deassert to stall acceptance; inputs remain stable while stalled.
+      response: Observable outputs update according to function_model output_rules after acceptance.
+    ports:
+    - name: valid
+      width: 1
+      direction: input
+      description: Input transaction valid
+    - name: ready
+      width: 1
+      direction: output
+      description: Input transaction ready
+      allow_constant: true
+      tieoff: 1'b1
+      constant_value: 1'b1
+    - name: data_in
+      width: 8
+      direction: input
+      description: Input transaction payload
+    - name: result
+      width: 8
+      direction: output
+      description: Primary result observable
+    - name: result_valid
+      width: 1
+      direction: output
+      description: Result valid pulse
+    - name: accepted_count
+      width: 16
+      direction: output
+      description: Accepted transaction count
+    clock_domain: primary_clk
+    reset_domain: rst_n
+  - name: debug_status
+    type: custom
+    role: output
+    description: Minimal waveform and status observability required by SSOT quality gates
+    protocol:
+      sampling: busy and error are sampled in the primary clock domain.
+      reset: debug status returns to function_model reset values on reset.
+      visibility: Signals are waveform-observable for debug and scoreboard triage.
+    ports:
+    - name: busy
+      width: 1
+      direction: output
+      description: IP is processing an accepted transaction or packet
+    - name: error
+      width: 1
+      direction: output
+      description: Sticky or current error indication
+    clock_domain: primary_clk
+    reset_domain: rst_n
+features:
+- name: approved_primary_behavior
+  trigger: A valid protocol transaction, packet, or command is accepted on the external interface.
+  datapath: Accept one byte-oriented valid-ready transaction when valid and ready are high; output result equals data_in XOR command and assert result_valid on the accepted transaction.
+  control: Control state follows the approved function_model and cycle_model sections.
+  output: Externally observable outputs, status, counters, interrupts, and/or responses match the approved behavior.
+dataflow:
+  source: approved external input/control interfaces
+  sequence:
+  - accept transaction or packet using cycle_model handshake
+  - apply function_model transaction and update internal state
+  - publish response/status/interrupt/debug outputs
+  sinks:
+  - external outputs
+  - register reads
+  - interrupt/status/debug observability
+  notes: Accept one byte-oriented valid-ready transaction when valid and ready are high; output result equals data_in XOR command and assert result_valid on the accepted transaction.
+function_model:
+  purpose: Cycle-independent reference model that rtl-gen and tb-gen must implement and compare against.
+  state_variables:
+  - name: busy
+    source: accepted transaction or packet in progress
+    reset: 0
+    description: Processing state
+  - name: error
+    source: approved error/malformed condition
+    reset: 0
+    description: Error indication
+  - name: accepted_count
+    source: valid_ready_transaction
+    width: 16
+    reset: 0
+    description: Number of accepted valid/ready transactions.
+    output: true
+  transactions:
+  - id: FM_RESET
+    name: reset
+    preconditions:
+    - reset asserted
+    inputs:
+    - clock
+    - reset
+    outputs:
+    - busy == 0
+    - error == 0
+    - registers and counters equal approved reset defaults
+    - name: accepted_count
+      port: accepted_count
+      expr: '0'
+      description: 'Auto-injected placeholder rule for observable state ''accepted_count'' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).'
+    side_effects:
+    - clears transient protocol state
+    - clears pending non-retained status
+    error_cases: []
+    output_rules:
+    - name: accepted_count
+      port: accepted_count
+      expr: '0'
+      width: 16
+      description: 'Auto-injected placeholder rule for observable state ''accepted_count'' (repair_ssot_schema rule_expr_completeness pass; advisory: downstream TB/scoreboard treats this as 0 unless overridden).'
+  - id: FM_PRIMARY
+    name: primary_behavior
+    preconditions:
+    - valid input transaction or packet is accepted
+    inputs:
+    - external interface signals
+    - configuration/register state
+    outputs:
+    - Accept one byte-oriented valid-ready transaction when valid and ready are high; output result equals data_in XOR command and assert result_valid on the accepted transaction.
+    - name: busy
+      port: busy
+      expr: busy
+      description: Scoreboard-observable busy output mirrors function_model busy state.
+    - name: error
+      port: error
+      expr: error
+      description: Scoreboard-observable error output mirrors function_model error state.
+    side_effects:
+    - updates status, counters, events, and observable outputs according to approved Q&A
+    error_cases:
+    - condition: malformed input or invalid control policy
+      result: error status follows error_handling section
+    output_rules:
+    - *id005
+    - *id006
+    state_updates: *id007
+  - id: FM_CSR
+    name: control_status_access
+    preconditions:
+    - firmware/control bus access is accepted
+    inputs:
+    - address
+    - write data
+    - write enable
+    - byte strobes
+    outputs:
+    - read data and side effects match registers.register_list
+    - name: error
+      port: error
+      expr: error
+      description: CSR illegal access or malformed transaction status is visible on error.
+    side_effects:
+    - RW and W1C fields update exactly as specified
+    error_cases:
+    - condition: unsupported address or illegal access
+      result: bus error/status error according to error_handling
+    output_rules:
+    - name: error
+      expr: error
+      width: 1
+      port: error
+      description: CSR illegal access or malformed transaction status is visible on error.
+    state_updates:
+    - name: error
+      expr: error
+      width: 1
+      reset: 0
+      description: CSR transaction preserves or updates error according to register/error policy.
+  invariants:
+  - No output, counter, status bit, or interrupt may change except as a consequence of an approved transaction, event, reset, or CSR side effect.
+  - The function_model is the scoreboard source of truth for tb-gen.
+  - Any behavior not represented here must be escalated to ssot-gen before RTL signoff.
+  reference_model_hint: Generate a Python FunctionalModel.apply(txn) from state_variables and transactions, then compare every RTL-observable result against it.
+cycle_model:
+  purpose: Cycle-accurate protocol, reset, latency, and observability contract for rtl-gen.
+  executable: python
+  backend_policy: Use the repo-owned pure-Python deterministic stepper; FunctionalModel remains the behavioral oracle.
+  clock: clk
+  reset:
+    signal: rst_n
+    polarity: active_low
+    assertion: async_assert_sync_deassert
+    deassertion: State may accept new work after reset deassertion and any required synchronization.
+  latency:
+    control_access:
+      min_cycles: 1
+      max_cycles: protocol_backpressure_bound
+      description: CSR/control latency is bounded by protocol ready/valid phases.
+    primary_transaction:
+      min_cycles: 1
+      max_cycles: implementation_defined_by_function_model
+      description: Primary behavior completes when output/status event is observed.
+  handshake_rules:
+  - signal: valid_ready
+    rule: A transfer is accepted only on valid && ready or the equivalent approved protocol phase.
+  - signal: outputs
+    rule: Outputs remain stable while downstream backpressure prevents acceptance.
+  pipeline:
+  - stage: S0_ACCEPT
+    cycle: 0
+    action: Accept protocol transaction/beat/command under approved handshake.
+  - stage: S1_UPDATE
+    cycle: 0..N
+    action: Update function_model state and datapath/control state.
+  - stage: S2_OBSERVE
+    cycle: N..M
+    action: Publish output response, status, interrupt, counter, or debug event.
+  ordering:
+  - Accepted transactions preserve externally visible ordering unless an explicit reordering feature is listed.
+  - CSR side effects occur in program order at the accepted control transaction boundary.
+  backpressure:
+  - Input data and control state remain stable while the selected protocol applies backpressure.
+  performance:
+    frequency_mhz: 100
+    throughput:
+      sustained_beats_per_cycle: 1
+      condition: No downstream or internal backpressure
+    outstanding:
+      max: 1
+      description: Default one accepted operation until Q&A declares deeper buffering
+    depth:
+      pipeline_stages: 3
+      queue_depth: 1
+      description: Accept/update/observe default cycle structure
+  observability:
+  - busy
+  - error
+  - all protocol valid/ready signals
+  - all CSR side-effect points
+clock_reset_domains:
+  domains:
+  - name: primary_clk
+    clock: clk
+    frequency_mhz: 100
+    description: clk 100MHz, rst_n active-low asynchronous assert and synchronous deassert.
+  reset_scheme:
+    signal: rst_n
+    description: clk 100MHz, rst_n active-low asynchronous assert and synchronous deassert.
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: Approved Q&A describes a single clock domain unless later SSOT revision adds crossings.
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: Approved Q&A describes a single reset domain unless later SSOT revision adds crossings.
+registers:
+  config:
+    register_width: 8
+    memory_mapped_registers: false
+    note: No firmware-visible CSR registers in this smoke revision.
+  no_registers: true
+  reason: No firmware-visible CSR registers in this smoke revision.
+  register_list: []
+  policy: No firmware-visible registers are declared; add register_list before CSR behavior is implemented.
+memory:
+  instances: []
+  note: No local RAM or FIFO; only flop state for accepted_count, busy, result_valid, and error.
+interrupts:
+  sources: []
+  output:
+    signal: none
+    polarity: not_applicable
+    type: none
+  note: No interrupt output in this smoke revision.
+fsm:
+  control:
+    states:
+    - IDLE
+    - ACCEPT
+    - PROCESS
+    - RESPOND
+    - ERROR
+    transitions:
+    - from: IDLE
+      to: ACCEPT
+      condition: approved protocol transaction is accepted
+    - from: ACCEPT
+      to: PROCESS
+      condition: function_model primary transaction begins
+    - from: PROCESS
+      to: RESPOND
+      condition: observable output/status is ready
+    - from: PROCESS
+      to: ERROR
+      condition: error_handling condition detected
+    - from: RESPOND
+      to: IDLE
+      condition: response/status event observed and no further work pending
+    - from: ERROR
+      to: IDLE
+      condition: approved clear/reset policy completes
+timing:
+  target_clocks:
+  - name: clk
+    frequency_mhz: 100
+    duty_cycle: 0.5
+    uncertainty_ns: 0.2
+  latency_budget:
+    control_access_cycles:
+      min: 1
+      max: protocol_bound
+      measured_from: accepted control transaction
+      measured_to: response visible
+    primary_transaction_cycles:
+      min: 1
+      max: implementation_bound_from_cycle_model
+      measured_from: accepted input
+      measured_to: observable result/event
+  throughput:
+    goal: Sustain one accepted transaction whenever upstream valid and downstream/internal ready permit.
+  timing_exceptions: []
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports:
+    - sta/out/timing.rpt
+    - sta/out/wns.json
+power:
+  domains:
+  - name: PD_MAIN
+    voltage: nominal
+    clock_domains:
+    - primary_clk
+    isolation: not_required_single_domain
+  clock_gating:
+    required: false
+    rationale: No explicit low-power mode was approved in Web Q&A.
+  reset_retention:
+    retention_required: false
+    reset_value_source: function_model state_variables
+  power_states:
+  - name: 'ON'
+    entry: reset deasserted
+    exit: reset asserted or integration power-down
+    guarantees:
+    - function_model behavior active
+  upf_required: false
+security:
+  classification: non_secure_leaf_ip
+  assets:
+  - name: configuration_state
+    protection: CSR/control state changes only through approved access policy.
+  - name: observable_results
+    protection: Results/status/interrupts must reflect function_model without silent corruption.
+  threat_model:
+  - threat: illegal access or malformed input
+    mitigation: error_handling path and DV malformed/error scenarios
+  - threat: state corruption across reset/backpressure
+    mitigation: cycle_model reset and stable-backpressure checks
+  privilege_model: Integration-level privilege policy is outside this leaf IP unless explicitly added to registers/security.
+  safety_goals:
+  - No silent data/status corruption
+  - No unbounded protocol deadlock under approved handshakes
+error_handling:
+  error_sources:
+  - id: ERR_MALFORMED_OR_ILLEGAL
+    condition: malformed input, illegal CSR access, or function_model error case
+    architectural_effect: error status and optional interrupt follow approved policy
+  propagation:
+  - Errors are visible through status/debug outputs and bus response or interrupt when the approved interface supports it.
+  recovery:
+  - action: reset or approved clear/control operation
+    clears:
+    - error
+    - pending interrupt/status
+    preserves:
+    - configuration state unless reset policy says otherwise
+debug_observability:
+  waveform_must_probe:
+  - clk
+  - rst_n
+  - busy
+  - error
+  - all valid/ready or protocol phase signals
+  - all CSR side-effect state
+  status_outputs:
+  - busy
+  - error
+  trace_events:
+  - name: accepted_transaction
+    trigger: protocol transaction accepted
+  - name: observable_result
+    trigger: function_model output/status event occurs
+  - name: error_detected
+    trigger: error_handling condition detected
+  debug_registers: []
+integration:
+  bus_attachment:
+    control: Native valid-ready interface with valid, ready, data_in, command, result, result_valid, accepted_count, busy, and error; no APB or AXI interface.
+    data: Accept one byte-oriented valid-ready transaction when valid and ready are high; output result equals data_in XOR command and assert result_valid on the accepted transaction.
+  address_map_requirements:
+    memory_map: No local RAM or FIFO; only flop state for accepted_count, busy, result_valid, and error.
+  dependencies:
+    external_modules: []
+    external_clocks:
+    - clk
+    external_resets:
+    - rst_n
+  connections: []
+  connection_contract_status: missing machine-readable module wiring; child RTL drafts may proceed from owner packets, but top integration/signoff must stay blocked until SSOT authors integration.connections or sub_modules[].connections with module/port/signal records
+  integration_notes:
+  - Do not modify SoC/RISC-V development files during leaf IP generation.
+  - Top integration owns base address assignment and system-level routing.
+dft:
+  scan_required: false
+  scan_ports: []
+  test_mode_ports: []
+  controllability:
+    reset: rst_n
+    clocks:
+    - clk
+  observability:
+    required_internal_points:
+    - busy
+    - error
+    - function_model state variables
+  mbist_required: false
+  notes: No explicit DFT requirement approved; maintain reset controllability and waveform observability.
+synthesis:
+  dialect: systemverilog_2012
+  top_module: ssot_screenshot_smoke_20260524_083011
+  constraints:
+  - No inferred latches
+  - No combinational loops on ready/valid or bus response paths
+  - All sequential state has reset behavior matching function_model
+  - DUT-only lint must pass before TB/sim signoff
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 100
+  required_outputs:
+  - syn/out/area.rpt
+  - syn/out/timing_summary.rpt
+  - sta/out/wns.json
+  tool_flow: yosys
+  target_technology: sky130_fd_sc_hd
+  target_library: sky130_fd_sc_hd
+  liberty_env_var: SKY130_LIB
+  corner:
+    name: sky130_fd_sc_hd__ss_100C_1v40
+    process: ss
+    temperature_c: 100
+    voltage_v: 1.4
+  library_policy: Use the SKY130_LIB environment variable to locate the SS corner Liberty file for the declared sky130_fd_sc_hd target library; synthesis and STA must stop if the file is unreadable or does not match the declared corner.
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: met3
+    vertical: met2
+  cts_buf_list:
+  - sky130_fd_sc_hd__clkbuf_4
+  - sky130_fd_sc_hd__clkbuf_8
+  routing:
+    signal_layers:
+      min: met1
+      max: met5
+    drc_waivers: []
+coding_rules:
+  verilog_style: systemverilog_2012
+  file_extension: .sv
+  parameter_header: rtl/ssot_screenshot_smoke_20260524_083011_param.vh
+  conventions:
+  - Flatten external protocol ports unless the SSOT explicitly approves interface constructs.
+  - Separate protocol/control/datapath/status responsibilities according to sub_modules.
+  - Avoid style-only lint violations by using default nettype discipline and explicit widths.
+  - 'Generated RTL uses the project SystemVerilog subset in .sv files: input logic/output logic ports, internal logic, localparam state encoding, always @ blocks.'
+  - Do not use typedef, enum, always_ff, always_comb, package, import, function, task, for, or while in generated RTL.
+  lint_waivers: []
+reuse_modules: []
+custom:
+  approved_web_decisions: &id008
+    purpose: Accept one byte-oriented valid-ready transaction when valid and ready are high; output result equals data_in XOR command and assert result_valid on the accepted transaction.
+    clock_reset: clk 100MHz, rst_n active-low asynchronous assert and synchronous deassert.
+    parameters: DATA_WIDTH=8, COMMAND_WIDTH=8, COUNT_WIDTH=16, ADDR_WIDTH=4
+    bus_interface: Native valid-ready interface with valid, ready, data_in, command, result, result_valid, accepted_count, busy, and error; no APB or AXI interface.
+    register_map: No firmware-visible CSR registers in this smoke revision.
+    memory_map: No local RAM or FIFO; only flop state for accepted_count, busy, result_valid, and error.
+    interrupt: No interrupt output in this smoke revision.
+    submodule_structure: 'Single generated top-level module; conceptual units only: input_accept, xor_datapath, result_status.'
+    test_expectation: reset clears busy error result_valid and accepted_count; nominal transaction data_in XOR command produces result and increments accepted_count; valid low holds state; backpressure not applied because ready is always high after reset; malformed unknowns are treated as error in downstream DV if driven
+    machine_rules: sample_condition=valid; output result=data_in ^ command; output result_valid=1; output ready=1; output accepted_count=accepted_count + 1; state accepted_count=accepted_count + 1; state busy=0; state error=0
+  atlas_decisions: *id008
+  atlas_decision_sources: {}
+  atlas_imports: []
+  atlas_import_conflicts: []
+  atlas_import_context:
+    policy: SSOT generation must reconcile approved Web Q&A with per-IP wiki navigation, import manifest, imported markdown/source excerpts, conflicts, notes, logs, and linked implementation/verification artifacts.
+    read_order: &id009
+    - ssot_screenshot_smoke_20260524_083011/wiki/index.md
+    - ssot_screenshot_smoke_20260524_083011/wiki/_graph.json
+    - ssot_screenshot_smoke_20260524_083011/wiki/import-evidence.md
+    - ssot_screenshot_smoke_20260524_083011/req/import_manifest.json
+    - ssot_screenshot_smoke_20260524_083011/wiki/log.md
+    - ssot_screenshot_smoke_20260524_083011/wiki/notes.md
+    available_paths:
+    - path: ssot_screenshot_smoke_20260524_083011/wiki/index.md
+      exists: true
+      size_bytes: 230
+    - path: ssot_screenshot_smoke_20260524_083011/wiki/_graph.json
+      exists: false
+    - path: ssot_screenshot_smoke_20260524_083011/wiki/import-evidence.md
+      exists: true
+      size_bytes: 119
+    - path: ssot_screenshot_smoke_20260524_083011/req/import_manifest.json
+      exists: true
+      size_bytes: 490
+    - path: ssot_screenshot_smoke_20260524_083011/wiki/log.md
+      exists: false
+    - path: ssot_screenshot_smoke_20260524_083011/wiki/notes.md
+      exists: false
+    manifest_summary: &id010
+      path: ssot_screenshot_smoke_20260524_083011/req/import_manifest.json
+      schema_version: '1.0'
+      updated_at: null
+      kind: manual-smoke
+      artifact_count: 0
+      candidate_fact_keys:
+      - interface
+      - purpose
+      filled_decisions:
+      - purpose
+      - clock_reset
+      - parameters
+      - bus_interface
+      - register_map
+      - memory_map
+      - interrupt
+      - submodule_structure
+      - test_expectation
+      - machine_rules
+      conflict_count: 0
+      next: null
+      workflow_todo_summary:
+        ssot-gen: 1
+    candidate_facts:
+      purpose: valid-ready byte XOR transform
+      interface: valid/ready plus data_in, command, result, result_valid, accepted_count
+    source_excerpts: {}
+    conflicts: []
+    wiki_page_summaries:
+      wiki_index: '# ssot_screenshot_smoke_20260524_083011 wiki index Minimal approved ATLAS SSOT screenshot smoke. Source of truth is the approved Web Q&A state under .session/local-admin/ssot_screenshot_smoke_20260524_083011/ssot-gen/state.json.'
+      import_evidence: '# Import Evidence No external import. This smoke run uses approved decisions captured in the ATLAS Web To SSOT state.'
+      import_manifest: '{ "schema_version": "1.0", "kind": "manual-smoke", "artifacts": [], "candidate_facts": { "purpose": "valid-ready byte XOR transform", "interface": "valid/ready plus data_in, command, result, result_valid, accepted_count" }, "filled_decisions": ["purpose", "clock_reset", "parameters", "bus_interface", "register_map", "memory_map", "interrupt", "submodule_structure", "test_expectation", "machine_rules"], "conflicts": [], "workflow_todo_summary": {"ssot-gen": 1} }'
+    wiki_graph_summary: &id011
+      path: ssot_screenshot_smoke_20260524_083011/wiki/_graph.json
+      schema_version: null
+      generated_at: null
+      node_count: null
+      edge_count: null
+    wiki_nodes: []
+    atlas_import_batches: 0
+  optional_behavior_policy:
+    resolution: No optional RTL behavior is implied by prose. Features not explicitly approved are disabled for this revision unless represented by an explicit SSOT parameter, register field, or feature row with reset default and coverage bins.
+    source: ATLAS Web Q&A state
+    downstream_rule: rtl-gen, tb-gen, sim-debug, and coverage must treat this policy as the only optional-behavior authority.
+  assumptions:
+  - Any behavior not explicitly approved in Web Q&A is treated as integration-owned or must be escalated before signoff.
+  - The deterministic SSOT bridge creates a reviewable draft; downstream LLM workflows may refine within the same approved facts.
+dir_structure:
+  output_dirs:
+    rtl: rtl/
+    list: list/
+    tb: tb/
+    sim: sim/
+    cov: cov/
+    lint: lint/
+  yaml_dir: yaml/
+  generators_dir: generators/
+filelist:
+  rtl:
+  - rtl/ssot_screenshot_smoke_20260524_083011.sv
+  list:
+  - list/ssot_screenshot_smoke_20260524_083011.f
+  tb:
+  - tb/cocotb/test_ssot_screenshot_smoke_20260524_083011.py
+  - tb/cocotb/test_runner.py
+  sim:
+  - sim/ssot_screenshot_smoke_20260524_083011.vcd
+  - sim/results.xml
+  cov:
+  - cov/coverage.json
+  - cov/fcov_plan.json
+  headers:
+  - rtl/ssot_screenshot_smoke_20260524_083011_param.vh
+  coverage:
+  - cov/coverage.json
+test_requirements:
+  scenarios:
+  - id: SC01
+    name: reset contract
+    stimulus: Assert and release the declared reset while all external interfaces remain idle.
+    expected: Architectural state, status, outputs, and debug observability match function_model reset outputs.
+    checker: Reset checker compares all declared reset-visible state against function_model and cycle_model reset rules.
+    coverage:
+    - function_model.reset
+    - cycle_model.reset
+  - id: SC02
+    name: primary approved behavior
+    stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.
+    expected: Externally observable result/status/side effects match the function_model primary transaction.
+    checker: FL-vs-RTL scoreboard compares observable outputs and state updates from the locked function_model.
+    coverage:
+    - function_model.primary
+    - features
+    - dataflow
+  - id: SC03
+    name: cycle handshake and backpressure
+    stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.
+    expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.
+    checker: Protocol monitor and scoreboard check cycle_model.handshake_rules, ordering, and latency budget.
+    coverage:
+    - cycle_model.handshake_rules
+    - cycle_model.ordering
+    - backpressure
+  - id: SC04
+    name: error and recovery policy
+    stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.
+    expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.
+    checker: Negative checker compares error result and recovery state against function_model error_cases.
+    coverage:
+    - error_handling.error_sources
+    - function_model.error_cases
+  - id: SC05
+    name: debug and trace observability
+    stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.
+    expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.
+    checker: Waveform/trace checker validates debug_observability entries and traceability.yaml_to_output rows.
+    coverage:
+    - debug_observability
+    - traceability
+  - id: SC06
+    name: function_model transaction FM_RESET
+    stimulus: Drive preconditions for function_model transaction `FM_RESET`.
+    expected: Outputs and side effects match `FM_RESET` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_RESET
+  - id: SC07
+    name: function_model transaction FM_PRIMARY
+    stimulus: Drive preconditions for function_model transaction `FM_PRIMARY`.
+    expected: Outputs and side effects match `FM_PRIMARY` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_PRIMARY
+  - id: SC08
+    name: function_model transaction FM_CSR
+    stimulus: Drive preconditions for function_model transaction `FM_CSR`.
+    expected: Outputs and side effects match `FM_CSR` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_CSR
+  scoreboard_checks: 8
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+      description: Behavioral coverage for function_model transactions, architectural state updates, outputs, errors, and CSR/control effects.
+      bins:
+      - id: FCOV_PRIMARY_TRANSACTION
+        source_ref: function_model.transactions.FM_PRIMARY
+        class: transaction
+        description: Primary approved function_model transaction observed by scoreboard
+    cycle:
+      target_pct: 100
+      model: cycle_model
+      description: Cycle coverage for cycle_model handshake, latency, ordering, backpressure, protocol phase, and FSM timing behavior.
+      bins:
+      - id: CCOV_PRIMARY_HANDSHAKE
+        source_ref: cycle_model.handshake_rules
+        class: handshake
+        description: Primary cycle_model handshake rule observed by checker/waveform evidence
+    functional: 'Legacy alias: coverage_goals.function and coverage_goals.cycle must both close.'
+    evidence: Function/cycle closure uses cov/fcov_plan.json, cov/coverage_functional.json, sim/scoreboard_events.jsonl, and cov/coverage.json. Tool-instrumented structural metrics are optional unless an explicit SSOT metric goal with matching tool evidence is added.
+    scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence
+quality_gates:
+  ssot:
+    pass: All production SSOT sections validate with check_ssot_disk.sh and no unresolved open-decision markers.
+    evidence:
+    - check_ssot_disk.sh PASS
+  rtl:
+    pass: RTL implements function_model/cycle_model and DUT-only compile/lint pass with fresh evidence.
+    evidence:
+    - list/<ip>.f
+    - rtl compile report
+    - dut lint report
+  rtl_gen:
+    profile: standard
+    pass: rtl-gen execution_policy.pass_allowed is true, every required SSOT-derived RTL TODO is closed, and provenance proves common_ai_agent rtl-gen authored the RTL without fixed-template fallback behavior.
+    evidence:
+    - rtl/rtl_authoring_plan.json
+    - logs/rtl-gen/rtl_todo_plan.json
+    - rtl/provenance.json
+    - rtl_compile.json
+    - lint/dut_lint.json
+  dv:
+    pass: Every SSOT scenario has an executable cocotb/pyuvm test, checker, FL-vs-RTL equivalence goal, and scoreboard comparison.
+    evidence:
+    - verify/equivalence_goals.json
+    - sim/scoreboard_events.jsonl
+    - tb/cocotb/results.xml
+    - sim/results.xml
+  coverage:
+    pass: Functional coverage bins meet planned threshold and limitations are zero or explicitly waived.
+    evidence:
+    - cov/coverage.json
+    - cov/fcov_plan.json
+  eda:
+    pass: Synthesis/STA/DFT evidence is produced or explicitly out-of-scope for this leaf signoff.
+    evidence:
+    - syn/out/area.rpt
+    - sta/out/wns.json
+  signoff:
+    pass: SSOT, FL/equivalence, RTL, lint, DV, simulation, coverage, and required EDA gates pass with fresh artifacts.
+    evidence:
+    - ATLAS /api/progress signoff PASS
+traceability:
+  import_and_wiki_evidence:
+    read_order: *id009
+    manifest_summary: *id010
+    wiki_graph_summary: *id011
+    source_rule: Downstream agents must use this wiki/import evidence to locate source requirements, but approved SSOT fields remain the authority for implementation.
+  yaml_to_output:
+  - yaml: top_module
+    output: RTL top module, filelist, TB top binding
+  - yaml: io_list
+    output: RTL port list and protocol monitors
+  - yaml: registers
+    output: CSR RTL, firmware-visible behavior, CSR tests
+  - yaml: function_model
+    output: Python FunctionalModel.apply(txn), scoreboard expected results
+  - yaml: cycle_model
+    output: Protocol timing assertions, latency/backpressure tests, waveform checks
+  - yaml: function_model/cycle_model/test_requirements
+    output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
+  - yaml: test_requirements.scenarios
+    output: cocotb/pyuvm tests and functional coverage bins
+  - yaml: quality_gates
+    output: ATLAS progress pass/fail criteria
+  - yaml: timing
+    output: STA constraints and latency pass/fail criteria
+  - yaml: security
+    output: Threat mitigations and negative tests
+  - yaml: error_handling
+    output: Fault RTL paths and DV error scenarios
+  - yaml: debug_observability
+    output: VCD probes and sim_debug inspection
+workflow_todos:
+  rtl-gen:
+  - id: RTL_IMPLEMENT_APPROVED_BEHAVIOR
+    content: Implement every approved SSOT behavior in RTL-owned manifest modules
+    detail: Use function_model transactions, cycle_model timing, interfaces, registers, error handling, debug observability, and sub_modules ownership to implement the DUT without placeholder tie-offs or fixed IP templates.
+    criteria:
+    - Every required rtl_todo_plan task reaches todo_completion.status=pass after audit
+    - DUT-only compile/lint reports are fresh and clean after the final RTL edit
+    - 'RTL preserves SSOT authority: SSOT, FunctionalModel, coverage goals, interface rules, and performance targets are not edited to make RTL pass'
+    source_refs:
+    - function_model
+    - cycle_model
+    - sub_modules
+    - quality_gates.rtl
+    - quality_gates.rtl_gen
+    owner_module: ssot_screenshot_smoke_20260524_083011_core
+    owner_file: rtl/ssot_screenshot_smoke_20260524_083011.sv
+    priority: high
+    required: true
+  - id: RTL_RESOLVE_CONNECTION_CONTRACTS
+    content: Resolve production multi-module connection contracts before top integration signoff
+    detail: The SSOT may declare manifest child modules before machine-readable wiring is approved. Child module drafts may proceed from owner packets; top wiring, PASS, and signoff must remain blocked until SSOT authors integration.connections or sub_modules[].connections records.
+    criteria:
+    - integration.connections or sub_modules[].connections lists every active child module connection as module/port/signal data
+    - rtl_authoring_plan.execution_policy.connection_contract_gap.status becomes ok
+    - Top/gate authoring packet integration_signoff_allowed is true after rerunning rtl-gen TODO derivation
+    source_refs:
+    - integration.connections
+    - sub_modules[].connections
+    - quality_gates.rtl_gen
+    owner_module: ssot_screenshot_smoke_20260524_083011
+    owner_file: rtl/ssot_screenshot_smoke_20260524_083011.sv
+    priority: high
+    required: true
+    answer_schema:
+      format: YAML or JSON
+      root_key: connection_contracts
+      item_required_fields:
+      - module
+      - port
+      - signal
+      item_optional_fields:
+      - instance
+      - direction
+      - source_ref
+      - allow_constant
+      - allow_unused
+      - tieoff
+      - reason
+      rule: Only approved rows become SSOT wiring contracts; do not infer missing wiring from RTL.
+    example_answer:
+      connection_contracts:
+      - module: ssot_screenshot_smoke_20260524_083011_engine
+        instance: u_engine
+        port: done_o
+        signal: done
+        source_ref: integration.connections.done_o
+  tb-gen: []
+  sim_debug: []
+generation_flow:
+  steps:
+  - name: verify_ssot
+    command: python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" ssot_screenshot_smoke_20260524_083011 --root "$ATLAS_PROJECT_ROOT" --mode ${ATLAS_RUN_MODE:-signoff}
+    description: Validate SSOT structure, Preview fields, and quality gates at the selected Run Mode
+  - name: handoff_fl_model
+    command: /ssot-fl-model ssot_screenshot_smoke_20260524_083011
+    description: Generate FunctionalModel, decomposition, and FCOV plan from SSOT
+  - name: handoff_equivalence_goals
+    command: /ssot-equiv-goals ssot_screenshot_smoke_20260524_083011
+    description: Derive FL-vs-RTL equivalence goals before TB generation
+  - name: handoff_rtl
+    command: /ssot-rtl ssot_screenshot_smoke_20260524_083011
+    description: Generate RTL from validated SSOT
+  - name: handoff_tb
+    command: /ssot-tb-cocotb ssot_screenshot_smoke_20260524_083011
+    description: Generate cocotb/pyuvm verification from validated SSOT
+  - name: handoff_sim_debug
+    command: /wf sim_debug
+    description: Run simulation, waveform, and coverage inspection
