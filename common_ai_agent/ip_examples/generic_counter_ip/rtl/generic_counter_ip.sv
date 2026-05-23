@@ -7,19 +7,20 @@ module generic_counter_ip (
     input  logic [7:0] data_in,
     output logic [8:0] value
 );
-    logic [8:0] data_in_wide;
-    logic [8:0] double_value_comb;
+    logic [8:0] fm_value_wide;
+    logic [8:0] fm_value_doubled;
 
-    // SSOT function_model.transactions[0]: primary_behavior doubles the input.
-    // Widen before the exact left shift so unsigned inputs such as 10 produce 20.
-    assign data_in_wide      = {1'b0, data_in};
-    assign double_value_comb = data_in_wide << 1;
+    // EQ_DOUBLE / function_model.transactions[0]: FunctionalModel.apply returns
+    // value * 2.  The SSOT latency is 1, so register the doubled value from the
+    // current input on this clock edge rather than subtracting or using stale data.
+    assign fm_value_wide    = {1'b0, data_in};
+    assign fm_value_doubled = fm_value_wide << 1;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             value <= 9'h000;
         end else begin
-            value <= double_value_comb;
+            value <= fm_value_doubled;
         end
     end
 endmodule
