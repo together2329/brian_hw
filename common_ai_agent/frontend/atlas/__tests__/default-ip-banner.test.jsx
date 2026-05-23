@@ -4,19 +4,16 @@
  * The banner renders inside workspace.jsx's renderPromptRow() when:
  *   workflow === 'orchestrator' && (!activeIp || activeIp.toLowerCase() === 'default')
  *
- * Because workspace.jsx is a 16k-line browser-globals script (no ES exports),
- * we inline the minimal component that reproduces the exact conditional logic
- * from lines 3782-3804 of workspace.jsx. The production code is not modified.
+ * Decision logic is imported from lib/banner_logic.js (shared with browser via
+ * window.AtlasBannerLogic UMD shim), so drift between tests and source is caught.
  */
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+import { shouldShowSelectIpBanner, BANNER_TITLE, BANNER_DETAIL } from '../lib/banner_logic.js';
 
-// Minimal reproduction of workspace.jsx renderPromptRow() banner logic (lines 3782-3804)
 function OrchestratorIpBanner({ workflow, activeIp }) {
-  const orchestratorIdle =
-    workflow === 'orchestrator' &&
-    (!activeIp || String(activeIp).toLowerCase() === 'default');
+  const orchestratorIdle = shouldShowSelectIpBanner({ workflow, activeIp });
 
   if (!orchestratorIdle) return null;
 
@@ -25,11 +22,9 @@ function OrchestratorIpBanner({ workflow, activeIp }) {
       data-testid="ip-banner"
       title="The orchestrator needs a real IP to know what to work on. The placeholder 'default' carries no SSOT/RTL data so it loops back without dispatching."
     >
-      <span style={{ fontWeight: 700 }}>⚠ Select an IP</span>
+      <span style={{ fontWeight: 700 }}>{BANNER_TITLE}</span>
       <span>
-        orchestrator needs a real IP — pick one from the IP_ID dropdown or click{' '}
-        <b>+ IP</b> at the top to create one. Messages with <code>default</code> are
-        rejected.
+        {BANNER_DETAIL}
       </span>
     </div>
   );

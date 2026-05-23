@@ -175,6 +175,14 @@
   <!-- VCD parser (pure JS, no Babel — ships as plain script). -->
   <script src="vcd-parser.js"></script>
 
+  <!-- Pure-logic helpers: ES-module exports + window.Atlas* UMD shims.
+       Loaded BEFORE JSX modules so workspace.jsx / user-dashboard.jsx
+       can call window.AtlasBannerLogic, window.AtlasDashboardHelpers,
+       window.AtlasWorkersLogic at runtime. -->
+  <script type="module" src="lib/banner_logic.js"></script>
+  <script type="module" src="lib/dashboard_helpers.js"></script>
+  <script type="module" src="lib/workers_panel_logic.js"></script>
+
   <!-- App modules (Babel-transpiled in-browser) -->
   <!-- LoginScreen — registers window.LoginScreen, consumed by app.jsx
        when /api/users/me returns 401. -->

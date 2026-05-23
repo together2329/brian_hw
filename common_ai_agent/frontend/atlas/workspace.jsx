@@ -1405,7 +1405,10 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
   React.useEffect(() => {
     try { localStorage.setItem('atlasFileExpand', fileExpand); } catch (_) {}
     if (window.atlasData && window.atlasData.refreshFileTree) {
-      window.atlasData.refreshFileTree(window.SCOPE_PATH || '', { recursive: true });
+      const scope = String(window.SCOPE_PATH || '').trim();
+      if (scope && scope !== 'default') {
+        window.atlasData.refreshFileTree(scope, { recursive: true });
+      }
     }
   }, [fileExpand]);
   const [collapsedFileDirs, setCollapsedFileDirs] = React.useState(() => new Set());
@@ -1461,7 +1464,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       } catch (_) {}
     }
     if (window.atlasData && window.atlasData.refreshSessionState) {
-      window.atlasData.refreshSessionState(sid, false);
+      window.atlasData.refreshSessionState(sid);
     }
   }, [activeNamespace]);
 
@@ -2105,7 +2108,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       setWorkflow(eventWorkflow);
     }
     if (window.atlasData?.refreshSessionState) {
-      window.atlasData.refreshSessionState(sid, false);
+      window.atlasData.refreshSessionState(sid);
     }
   }, [flowMatchesCurrentSession]);
 
@@ -2171,7 +2174,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       const nextWorkflow = workflowFromSession(sid);
       setWorkflow(nextWorkflow && nextWorkflow !== 'default' ? nextWorkflow : defaultWorkflowForExecMode());
       if (window.atlasData && window.atlasData.refreshSessionState) {
-        window.atlasData.refreshSessionState(sid, false);
+        window.atlasData.refreshSessionState(sid);
       }
     };
     window.addEventListener('atlas-session-switched', onSessionSwitched);
@@ -3779,8 +3782,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     </div>
   );
   const renderPromptRow = () => {
-    const orchestratorIdle = workflow === 'orchestrator' &&
-      (!activeIp || String(activeIp).toLowerCase() === 'default');
+    const orchestratorIdle = window.AtlasBannerLogic
+      ? window.AtlasBannerLogic.shouldShowSelectIpBanner({ workflow, activeIp })
+      : (workflow === 'orchestrator' && (!activeIp || String(activeIp).toLowerCase() === 'default'));
     return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {orchestratorIdle ? (
@@ -3839,7 +3843,9 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
     </div>
   );
   };
-  const filePanelIp = activeIp || '';
+  const filePanelIp = (activeIp && String(activeIp).trim() !== 'default')
+    ? String(activeIp).trim()
+    : '';
   const visibleFileTree = filePanelIp ? (window.FILE_TREE || []) : [];
   const filePanelStatus = filePanelIp
     ? (window.FILE_TREE_ERROR
@@ -4846,7 +4852,7 @@ const Workspace = ({ dir, onScreen, uiLang = 'ko', activeNamespace = '', activeW
       {/* RIGHT — ATLAS status + SSOT/Todo/Diff (hidden when sim_debug or collapsed) */}
       {effRightW > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden', minWidth: 0 }}>
-        <AgentStatusPanel intent={intent} workflow={workflow}
+        <AgentStatusPanel intent={intent} workflow={workflow} activeIp={activeIp}
                           onCollapse={toggleRight} />
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div className="box-h" style={{ padding: 0 }}>
@@ -5124,6 +5130,7 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
     argsText = pathMatch ? pathMatch[1] : '';
   }
   const dispatchMeta = _dispatchWorkflowMeta(tool, obsText, argsText);
+  const isDispatchTool = String(tool || '').toLowerCase() === 'dispatch_workflow';
   const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
   // Tool results default to OPEN. The user needs to see the result/cost
   // trail without hunting through collapsed cards; large bodies remain
@@ -5159,6 +5166,7 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
           cursor: 'pointer',
           userSelect: 'none',
           alignItems: showArgsExpanded ? 'flex-start' : 'center',
+          flexWrap: isDispatchTool ? 'wrap' : undefined,
         } : undefined}
         title={headClickable ? (obsOpen ? 'click to collapse' : 'click to expand') : undefined}
       >
@@ -5177,6 +5185,7 @@ const _ToolCardRaw = ({ action, obs, summaryMode = true }) => {
             className={`tool-card-args${showArgsExpanded ? '' : ' trunc'}`}
             style={{
               color: 'var(--fg)',
+              ...(isDispatchTool ? { flexBasis: '100%' } : {}),
               ...(showArgsExpanded ? {
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
@@ -15244,11 +15253,16 @@ const OrchestratorWorkflowPane = ({ activeIp }) => {
   const orch = snapshot.orchestrator || {};
   const workers = Array.isArray(snapshot.workers) ? snapshot.workers : [];
   const running = workers.filter(w => Number(w.running_count || 0) > 0);
+  const queued = workers.filter(w => Number(w.queued_count || 0) > 0);
+  const pending = workers.filter(w => Number(w.pending_count || 0) > 0);
   const mismatch = workers.filter(w => w.status === 'mismatch');
   const down = workers.filter(w => w.status && w.status !== 'ok' && w.status !== 'mismatch');
   const stateColor = (w) => {
     if (w.status === 'mismatch') return 'var(--warn)';
     if (w.status === 'ok' && Number(w.running_count || 0) > 0) return 'var(--accent)';
+    if (w.status === 'ok' && Number(w.pending_count || 0) > 0) return 'var(--warn)';
+    if (w.status === 'ok' && Number(w.queued_count || 0) > 0) return 'var(--fg-mute)';
+    if (w.status === 'ok' && Number(w.blocked_count || 0) > 0) return 'var(--err)';
     if (w.status === 'ok') return 'var(--ok)';
     return 'var(--err)';
   };
@@ -15256,6 +15270,9 @@ const OrchestratorWorkflowPane = ({ activeIp }) => {
     if (w.status === 'mismatch') return 'mismatch';
     if (w.status !== 'ok') return w.status || 'down';
     if (Number(w.running_count || 0) > 0) return 'running';
+    if (Number(w.pending_count || 0) > 0) return 'starting';
+    if (Number(w.queued_count || 0) > 0) return 'queued';
+    if (Number(w.blocked_count || 0) > 0) return 'blocked';
     return 'idle';
   };
 
@@ -15282,7 +15299,7 @@ const OrchestratorWorkflowPane = ({ activeIp }) => {
             <span className="mute">last</span>
             <span className="trunc">{orch.last_kind || '-'}</span>
             <span className="mute">workers</span>
-            <span>{running.length} running · {mismatch.length} mismatch · {down.length} down</span>
+            <span>{running.length} running · {pending.length} starting · {queued.length} queued · {mismatch.length} mismatch · {down.length} down</span>
           </div>
           <button className="btn" type="button" onClick={() => refresh({ manual: true })} disabled={loading} style={{ padding: '3px 8px', fontSize: 10, justifySelf: 'start' }}>
             refresh
@@ -15355,7 +15372,7 @@ const WorkflowReportPane = ({ workflow, activeIp }) => {
     const scope = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
     const leaf = scope.split('/').filter(Boolean).pop() || '';
     if (leaf && leaf !== 'default' && leaf !== workflow) return leaf;
-    return direct;
+    return '';
   }, [activeIp, workflow]);
   const ip = String(inferredIp || '').trim();
   const [dataTick, setDataTick] = React.useState(0);
@@ -15373,8 +15390,9 @@ const WorkflowReportPane = ({ workflow, activeIp }) => {
 
   React.useEffect(() => {
     if (!window.atlasData?.refreshFileTree) return;
+    if (!ip) return;
     try {
-      window.atlasData.refreshFileTree(ip || window.SCOPE_PATH || '', { recursive: true });
+      window.atlasData.refreshFileTree(ip, { recursive: true });
     } catch (_) {}
   }, [workflow, ip]);
 
@@ -15952,7 +15970,7 @@ const ConvModeSelector = () => {
 };
 
 // ── ATLAS status panel ─────────────────────────────────────────────
-const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
+const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
   // Live context — populated by /healthz + WS 'context' events.
   const [liveContext, setLiveContext] = React.useState(() => Object.assign({}, window.CONTEXT || {}));
   const _ctx = liveContext;
@@ -16024,11 +16042,19 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
   // per worker. Pauses while the tab is hidden.
   React.useEffect(() => {
     let dead = false;
+    const workerIp = (() => {
+      const direct = String(activeIp || '').trim();
+      if (direct && direct !== 'default') return direct;
+      const scoped = String(window.SCOPE_PATH || '').replace(/^\/+|\/+$/g, '');
+      const leaf = scoped.split('/').filter(Boolean).pop() || '';
+      return leaf && leaf !== 'default' ? leaf : '';
+    })();
     const poll = async () => {
       if (dead) return;
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       try {
-        const r = await fetch('/api/orchestrator/workers', { cache: 'no-store' });
+        const query = workerIp ? `?ip=${encodeURIComponent(workerIp)}` : '';
+        const r = await fetch(`/api/orchestrator/workers${query}`, { cache: 'no-store' });
         if (!r.ok) {
           if (!dead) setWorkersError(`HTTP ${r.status}`);
           return;
@@ -16046,7 +16072,7 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
     poll();
     const id = setInterval(poll, 3000);
     return () => { dead = true; clearInterval(id); };
-  }, []);
+  }, [activeIp]);
   React.useEffect(() => {
     let alive = true;
     const refresh = () => {
@@ -16276,16 +16302,28 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
 
         {/* ── orchestrator workers (live lazy-spawn state) ──────── */}
         {(() => {
-          const upCount = liveWorkers.filter(w => String(w.status || '') === 'ok').length;
-          const total = liveWorkers.length;
-          const portFromUrl = (u) => {
+          const _wl = window.AtlasWorkersLogic;
+          const { total, upCount } = _wl
+            ? _wl.summarizeWorkers(liveWorkers)
+            : { total: liveWorkers.length, upCount: liveWorkers.filter(w => String(w.status || '') === 'ok').length };
+          const _portFromUrl = _wl ? _wl.portFromUrl : (u) => {
             const m = String(u || '').match(/:(\d+)(?:\/|$)/);
             return m ? m[1] : '';
           };
-          const portShort = (w) => portFromUrl(w.url) || (String(w.workflow || '').slice(0, 4));
+          const portShort = (w) => _portFromUrl(w.url) || (String(w.workflow || '').slice(0, 4));
           const tone = (w) => {
+            if (_wl) {
+              // workerTone covers ok/mismatch/pending; extend locally for queued/pending counts
+              const s = String(w.status || '');
+              if (s === 'ok' && Number(w.running_count || 0) > 0) return 'active';
+              if (s === 'ok' && Number(w.pending_count || 0) > 0) return 'pending';
+              if (s === 'ok' && Number(w.queued_count || 0) > 0) return 'queued';
+              return _wl.workerTone(w);
+            }
             const s = String(w.status || '');
             if (s === 'ok' && Number(w.running_count || 0) > 0) return 'active';
+            if (s === 'ok' && Number(w.pending_count || 0) > 0) return 'pending';
+            if (s === 'ok' && Number(w.queued_count || 0) > 0) return 'queued';
             if (s === 'ok') return 'done';
             if (s === 'mismatch') return 'err';
             return 'pending';
@@ -16294,6 +16332,7 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
             t === 'active'  ? { color: 'var(--accent)', glyph: '●', bg: 'color-mix(in oklch, var(--accent) 14%, transparent)', border: 'var(--accent)' } :
             t === 'done'    ? { color: 'var(--ok)',     glyph: '✓', bg: 'color-mix(in oklch, var(--ok) 12%, transparent)',     border: 'var(--ok)' } :
             t === 'err'     ? { color: 'var(--err)',    glyph: '✗', bg: 'color-mix(in oklch, var(--err) 14%, transparent)',    border: 'var(--err)' } :
+            t === 'queued'  ? { color: 'var(--fg-mute)',glyph: '◌', bg: 'color-mix(in oklch, var(--fg-mute) 9%, transparent)', border: 'var(--line)' } :
                               { color: 'var(--fg-mute)',glyph: '○', bg: 'transparent',                                          border: 'var(--line)' }
           );
           return (
@@ -16325,6 +16364,9 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
                     const cfg = cfgFor(tone(w));
                     const label = String(w.workflow || '').slice(0, 6) || portShort(w);
                     const running = Number(w.running_count || 0);
+                    const pending = Number(w.pending_count || 0);
+                    const queued = Number(w.queued_count || 0);
+                    const active = running || pending || queued;
                     return (
                       <div key={w.url || w.workflow} style={{
                         border: `1px solid ${cfg.border}`, borderRadius: 2,
@@ -16336,6 +16378,8 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
                           `${w.url || ''}\n` +
                           `status: ${w.status || '-'}` +
                           (running ? `\nrunning jobs: ${running}` : '') +
+                          (pending ? `\nstarting jobs: ${pending}` : '') +
+                          (queued ? `\nqueued jobs: ${queued}` : '') +
                           (w.bound_workflow ? `\nbound: ${w.bound_workflow}` : '')
                         }
                       >
@@ -16343,7 +16387,7 @@ const AgentStatusPanel = ({ intent, workflow, onCollapse }) => {
                           {cfg.glyph} {label}
                         </div>
                         <div className="mute" style={{ fontSize: 9, marginTop: 1 }}>
-                          {portShort(w)}{running ? ` · ${running}` : ''}
+                          {portShort(w)}{active ? ` · ${running ? running : pending ? 's' + pending : 'q' + queued}` : ''}
                         </div>
                       </div>
                     );

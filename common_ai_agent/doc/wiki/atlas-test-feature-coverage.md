@@ -13,6 +13,20 @@
 - **Tests** = pytest files in `tests/` that exercise it
 - **Status** = one of `OK · LIVE-LLM · SKIPS-ON-ENV · DEPRECATED · CLI-ONLY`
 
+### CI
+
+Every push and pull request to `main` or `feature/*` runs two automated jobs via `.github/workflows/tests.yml`:
+
+| Job | Trigger | Command | Timeout |
+|---|---|---|---|
+| `python-smoke` | all pushes/PRs, Python 3.9 + 3.11 matrix | `./scripts/run_tests.sh smoke` | 5 min |
+| `python-quick` | push to `main` or PR labeled `full-ci` | `./scripts/run_tests.sh quick` | 15 min |
+| `frontend` | all pushes/PRs | `cd frontend/atlas && npx vitest run` | 5 min |
+
+Deps installed from `requirements-test.txt` (pytest, fastapi, uvicorn, httpx, anthropic, pyyaml, aiofiles). Badge: `https://github.com/together2329/brian_hw/actions/workflows/tests.yml/badge.svg`
+
+---
+
 ### How to verify quality (anyone landing on this repo)
 
 One command does everything:
@@ -21,9 +35,26 @@ One command does everything:
 ./scripts/run_tests.sh smoke   # 5 critical paths, ~10s — sanity check
 ./scripts/run_tests.sh full    # everything except real-LLM workers, ~5 min
 ./scripts/run_tests.sh live    # real LLM calls (needs .env, costs money)
+./scripts/run_tests.sh load    # real subprocess load tests (cold-start + memory leak, ~3 min, needs ATLAS_LOAD_TEST=1)
 ```
 
 The `quick` slice is what CI / a new contributor should run. `live` is gated by an `LLM_API_KEY` check.
+
+#### Cost estimation
+
+Before committing to a `live` run, preview the estimated cost with no network calls:
+
+```bash
+python3 scripts/llm_cost_dryrun.py --mode live
+```
+
+`run_tests.sh live` automatically runs this estimator and prompts `Continue with ~$X estimated cost? [y/N]` before making any LLM calls. Pass `--yes` to skip the prompt (CI / scripted runs):
+
+```bash
+./scripts/run_tests.sh live --yes
+```
+
+The estimate is conservative: 4,000 input + 2,000 output tokens per test case, no cache credit. Actual spend is typically lower.
 
 Run a single file directly:
 ```
@@ -261,6 +292,23 @@ skips the dead-import paths automatically (see §5).
 
 ## 3. Recent changes (2026-05-23) and the tests that gate them
 
+### Production parity (subprocess launch) — `tests/test_production_parity.py`
+
+Launches `src/atlas_ui.py` as a real subprocess to catch sys.path / env-var drift that pytest's
+in-process imports cannot see. All four tests use a `subprocess_guard` fixture (SIGTERM → SIGKILL
+after 5 s). Escape hatch: `ATLAS_SKIP_SUBPROCESS_TESTS=1`.
+
+| Test | Verifies | Mode |
+|---|---|---|
+| `test_atlas_ui_imports_cleanly_as_main_module` | `exec(open('src/atlas_ui.py').read())` with `--help` raises no `ImportError`/`ModuleNotFoundError` | smoke + quick + full |
+| `test_atlas_ui_launches_and_healthz_responds` | `--exec o` on port 13900 — `GET /healthz` returns 200 (skips if `requests` absent) | quick + full |
+| `test_lazy_single_worker_does_not_spawn_eagerly` | `--exec s` prints `[single-worker] lazy mode:` and does NOT bind port 5601 | quick + full |
+| `test_env_inheritance_smoke` | `ATLAS_SINGLE_WORKER_EAGER=1` propagates and triggers `[single-worker] spawned main-loop worker` | quick + full |
+
+---
+
+### Change table
+
 | Change | Files | Gating tests | Status |
 |---|---|---|---|
 | Lazy single-worker mode (`[single-worker] lazy mode: ...`) | `src/atlas_ui.py:17929-18006` | `test_worker_url_routing.py`, `test_dispatch_seed_direct.py` | ✅ Pass |
@@ -277,6 +325,8 @@ skips the dead-import paths automatically (see §5).
 | `.dir-select-wrap.run-policy` accent border removed | `frontend/atlas/styles.css` | none (cosmetic) | ⚠ manual verification |
 | `_jobs` rehydration on boot (`_rehydrate_jobs_from_db`) — reconciles orphaned `status='running'` DB rows after orchestrator restart; healthy+busy workers rescued, others marked error. Env: none (always on). | `src/atlas_api_jobs.py:_rehydrate_jobs_from_db`, called from `register_jobs_routes` | **`test_jobs_rehydration.py`** (3 cases: rescued count, DB error status, 1-hour cutoff) | ✅ Pass |
 | Lazy-worker idle TTL (`ATLAS_LAZY_WORKER_IDLE_TTL_SEC`, default 600 s) — reaper probes alive workers; if `running_count=0` for ≥ TTL seconds, calls `proc.terminate()` and removes from `_LAZY_WORKER_PROCS`. Set to `0` to disable. Tracks `_LAZY_WORKER_LAST_BUSY[url]` (monotonic). | `src/atlas_api_jobs.py:_lazy_worker_reaper_loop`, `_ensure_lazy_worker`, `_LAZY_WORKER_LAST_BUSY`, `_LAZY_WORKER_IDLE_TTL_SEC` | **`test_lazy_worker_idle_ttl.py`** (4 cases: terminate called, removed from procs, busy worker untouched, TTL=0 disables) | ✅ Pass |
+| Real cold-start storm (load mode) — 12 uvicorn subprocesses spawned simultaneously on ports 5621-5632; measures time-to-last-ready and peak RSS per PID. Gate: `ATLAS_LOAD_TEST=1`. | `src/main.py --serve`, `core/agent_server.py` | **`test_lazy_worker_real_cold_start.py`** (1 benchmark case) | SKIPS-ON-ENV (`ATLAS_LOAD_TEST`) |
+| Long-running memory leak detection (load mode) — 1 worker, 100 /run calls, RSS sampled every 20 calls; asserts final RSS < 1.5× baseline. Gate: `ATLAS_LOAD_TEST=1`. | `src/main.py --serve`, `core/agent_server.py` | **`test_lazy_worker_memory_leak.py`** (1 benchmark case) | SKIPS-ON-ENV (`ATLAS_LOAD_TEST`) |
 
 ---
 
@@ -291,6 +341,10 @@ Closed (added 2026-05-23 — vitest + @testing-library/react setup in `frontend/
 - ~~Dashboard IP-row click navigation~~ → `__tests__/dashboard-ip-row-click.test.jsx`
 - ~~AgentStatusPanel WORKERS section~~ → `__tests__/workers-sidebar-panel.test.jsx`
 - ~~Orchestrator chat "select IP" warning banner~~ → `__tests__/default-ip-banner.test.jsx`
+
+Closed (added 2026-05-23 — load mode):
+- ~~**Orchestrator-mode cold-start storm**~~ → `test_lazy_worker_real_cold_start.py` (12-way real spawn; gate `ATLAS_LOAD_TEST=1`)
+- ~~**Long-running memory leak**~~ → `test_lazy_worker_memory_leak.py` (100 /run calls, RSS growth cap; gate `ATLAS_LOAD_TEST=1`)
 
 Still open (no automated coverage; manual or new tests needed):
 
@@ -376,6 +430,7 @@ Closed (2026-05-23):
 4. ~~Convert §5.3 CLI scripts to pytest~~ → moved to `scripts/cli_tests/` (no longer hit by default sweep)
 5. ~~Long `--ignore=` flag list~~ → `tests/conftest.py:collect_ignore_glob` handles it; `pytest tests/` Just Works
 6. ~~No single entry point~~ → `./scripts/run_tests.sh {quick|full|live|smoke}`
+7. **Mutation baseline attempted (2026-05-23)** — mutmut 3.3.1 installed; `setup.cfg [mutmut]` and `scripts/run_tests.sh mutation` mode configured. Baseline run timed out at 9 min (cap: 5 min) during stats-collection phase before any mutation was tested. See [`doc/wiki/mutation-baseline-2026-05-23.md`](mutation-baseline-2026-05-23.md) for full details and re-run instructions.
 
 Still open:
 - **Default-IP banner snapshot test** in `frontend/atlas/` — blocked on a JSX test runner. Add `vitest` + `@testing-library/react` (separate PR).

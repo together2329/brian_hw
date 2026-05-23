@@ -7,6 +7,8 @@
 #   ./scripts/run_tests.sh full        # everything except live LLM (~5 min)
 #   ./scripts/run_tests.sh live        # full + live LLM workers (~10 min, needs .env)
 #   ./scripts/run_tests.sh smoke       # 5 fastest critical paths (~30s)
+#   ./scripts/run_tests.sh load        # real subprocess load tests (slow — minutes)
+#   ./scripts/run_tests.sh mutation    # mutmut mutation testing (minutes to hours; needs pip3 install mutmut)
 #   ./scripts/run_tests.sh -- <args>   # pass args directly to pytest
 #
 # What it does:
@@ -52,6 +54,7 @@ case "$MODE" in
       tests/test_orchestrator_dispatch_seed.py \
       tests/test_orchestrator_chat_ip_extraction.py \
       tests/test_chat_full_multiuser_system.py \
+      tests/test_production_parity.py::test_atlas_ui_imports_cleanly_as_main_module \
       -q --tb=short ${PYTEST_EXTRA[@]+"${PYTEST_EXTRA[@]}"}
     ;;
 
@@ -84,8 +87,51 @@ case "$MODE" in
       echo "[run_tests] ERROR: no LLM API key in env. Configure .env first." >&2
       exit 2
     fi
+
+    # ── Cost estimate + confirmation gate ─────────────────────────────────
+    # Skip when --yes flag is present (non-interactive / CI usage).
+    _YES=0
+    for _arg in "$@"; do
+      [[ "$_arg" == "--yes" || "$_arg" == "-y" ]] && _YES=1
+    done
+
+    _DRYRUN_OUT=$(python3 "$(dirname "$0")/llm_cost_dryrun.py" --mode live 2>&1)
+    echo "$_DRYRUN_OUT" | grep -v "^DRYRUN_TOTAL_USD="
+    _TOTAL_USD=$(echo "$_DRYRUN_OUT" | grep "^DRYRUN_TOTAL_USD=" | cut -d= -f2)
+
+    if [[ "$_YES" -eq 0 ]]; then
+      printf "\nContinue with ~\$%s estimated cost? [y/N] " "${_TOTAL_USD:-?}"
+      read -r _CONFIRM </dev/tty
+      if [[ "$_CONFIRM" != "y" && "$_CONFIRM" != "Y" ]]; then
+        echo "[run_tests] Aborted by user." >&2
+        exit 1
+      fi
+    fi
+    # ── End cost gate ──────────────────────────────────────────────────────
+
     export ATLAS_RUN_REAL_LLM_TDD=1
     python3 -m pytest "${BASE_ARGS[@]}" ${PYTEST_EXTRA[@]+"${PYTEST_EXTRA[@]}"}
+    ;;
+
+  load)
+    echo "[run_tests] mode=load (real subprocess load tests, slow — minutes)"
+    ATLAS_LOAD_TEST=1 python3 -m pytest \
+      tests/test_lazy_worker_real_cold_start.py \
+      tests/test_lazy_worker_memory_leak.py \
+      -v --tb=short ${PYTEST_EXTRA[@]+"${PYTEST_EXTRA[@]}"}
+    ;;
+
+  mutation)
+    echo "[run_tests] mode=mutation (mutmut, slow — minutes to hours)"
+    MUTMUT_BIN=/Users/brian/Library/Python/3.9/bin/mutmut
+    if command -v mutmut &>/dev/null; then
+      MUTMUT_BIN=mutmut
+    elif [[ ! -x "$MUTMUT_BIN" ]]; then
+      echo "[run_tests] ERROR: mutmut not found. Run: pip3 install mutmut" >&2
+      exit 2
+    fi
+    "$MUTMUT_BIN" run
+    "$MUTMUT_BIN" results
     ;;
 
   frontend)
@@ -99,7 +145,7 @@ case "$MODE" in
     ;;
 
   *)
-    echo "[run_tests] unknown mode: $MODE (try 'quick', 'full', 'live', 'smoke', 'frontend', or 'help')" >&2
+    echo "[run_tests] unknown mode: $MODE (try 'quick', 'full', 'live', 'smoke', 'load', 'mutation', 'frontend', or 'help')" >&2
     exit 2
     ;;
 esac

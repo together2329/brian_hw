@@ -4,12 +4,14 @@
  * user-dashboard.jsx is a browser-globals script. We inline the minimal
  * component that reproduces the openIp() handler logic (lines 277-288)
  * and the IP inventory table row (lines 374-447) that calls it.
- * The production file is not modified.
+ * Payload building logic is imported from lib/dashboard_helpers.js (shared
+ * with browser via window.AtlasDashboardHelpers UMD shim).
  */
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { buildOpenIpPayload } from '../lib/dashboard_helpers.js';
 
 // Mocked dashboard data shape matching /api/user/dashboard response
 const MOCK_DASHBOARD = {
@@ -37,9 +39,7 @@ function MinimalDashboard({ data, onActivateSession }) {
 
   const openIp = (row) => {
     if (onActivateSession) {
-      const workflow = workflowValue(row);
-      const payload = { id: row.session_id || '', ip: row.ip };
-      if (workflow) payload.workflow = workflow;
+      const payload = buildOpenIpPayload(row, workflowValue);
       onActivateSession(payload);
     }
   };

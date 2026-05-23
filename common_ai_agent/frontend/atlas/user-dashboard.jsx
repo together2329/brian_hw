@@ -276,12 +276,14 @@ const AtlasUserDashboard = ({
   };
   const openIp = (row) => {
     if (onActivateSession) {
-      const workflow = workflowValue(row);
-      const payload = {
-        id: row.session_id || '',
-        ip: row.ip,
-      };
-      if (workflow) payload.workflow = workflow;
+      const payload = window.AtlasDashboardHelpers
+        ? window.AtlasDashboardHelpers.buildOpenIpPayload(row, workflowValue)
+        : (() => {
+            const wf = workflowValue(row);
+            const p = { id: row.session_id || '', ip: row.ip };
+            if (wf) p.workflow = wf;
+            return p;
+          })();
       onActivateSession(payload);
     }
     if (onOpenScreen) onOpenScreen('workspace');

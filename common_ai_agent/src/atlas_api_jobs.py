@@ -1643,6 +1643,105 @@ def _worker_url_is_shared_default(workflow: str, worker_url: str) -> bool:
     return not _workflow_specific_worker_url(workflow) and worker_url.rstrip("/") == default_url
 
 
+_SESSION_WORKER_PORT_LOCK = threading.Lock()
+_SESSION_WORKER_PORTS: dict[str, int] = {}
+_SESSION_WORKER_KEYS_BY_PORT: dict[int, str] = {}
+
+
+def _env_enabled_default(name: str, default: bool) -> bool:
+    raw = os.environ.get(name)
+    if raw is None or not raw.strip():
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _multi_user_env_enabled() -> bool:
+    raw = os.environ.get("ATLAS_MULTI_USER")
+    if raw is None or not raw.strip():
+        return True
+    return raw.strip().lower() not in {"0", "false", "no", "off"}
+
+
+def _workflow_worker_per_owner_enabled(exec_mode: str = "") -> bool:
+    explicit = os.environ.get("ATLAS_WORKFLOW_WORKER_PER_USER")
+    if explicit is None:
+        explicit = os.environ.get("ATLAS_WORKFLOW_WORKER_PER_SESSION")
+    if explicit is not None:
+        if explicit.strip().lower() not in {"1", "true", "yes", "on"}:
+            return False
+    elif not (
+        _multi_user_env_enabled()
+        and _env_enabled_default("ATLAS_MULTI_USER_PROC", True)
+    ):
+        return False
+
+    effective_exec = _normalize_exec_mode(exec_mode) or _current_exec_mode()
+    if effective_exec != "orchestrator":
+        return False
+    if _truthy_env("ATLAS_SINGLE_MAIN_LOOP"):
+        return False
+    return True
+
+
+def _workflow_worker_owner_keys(
+    *,
+    session_name: str = "",
+    user_id: str = "",
+    db_user_id: str = "",
+) -> tuple[str, str]:
+    parts = [p for p in str(session_name or "").strip("/").split("/") if p]
+    session_owner = parts[0] if parts else ""
+    owner_name = str(user_id or session_owner or "local-admin").strip() or "local-admin"
+    partition_key = str(db_user_id or owner_name).strip() or "local-admin"
+    safe_owner = re.sub(r"[^A-Za-z0-9_.@+-]+", "_", owner_name).strip("_") or "local-admin"
+    safe_partition = re.sub(r"[^A-Za-z0-9_.@+-]+", "_", partition_key).strip("_") or safe_owner
+    return safe_owner, safe_partition
+
+
+def _session_scoped_worker_url(
+    workflow: str,
+    *,
+    session_name: str = "",
+    user_id: str = "",
+    db_user_id: str = "",
+    exec_mode: str = "",
+) -> str:
+    wf = str(workflow or "").strip()
+    if wf not in _DEFAULT_WORKER_PORTS:
+        return ""
+    if _workflow_specific_worker_url(wf) or os.environ.get("WORKER_URL_DEFAULT"):
+        return ""
+    if not _workflow_worker_per_owner_enabled(exec_mode):
+        return ""
+
+    _owner_name, partition_key = _workflow_worker_owner_keys(
+        session_name=session_name,
+        user_id=user_id,
+        db_user_id=db_user_id,
+    )
+    key = f"{partition_key}:{wf}"
+    with _SESSION_WORKER_PORT_LOCK:
+        existing = _SESSION_WORKER_PORTS.get(key)
+        if existing:
+            return f"http://127.0.0.1:{existing}"
+
+        base = int(os.environ.get("ATLAS_WORKFLOW_WORKER_PORT_BASE", "5700") or "5700")
+        span = max(32, int(os.environ.get("ATLAS_WORKFLOW_WORKER_PORT_SPAN", "2000") or "2000"))
+        digest = hashlib.sha256(key.encode("utf-8", errors="ignore")).hexdigest()
+        candidate = base + (int(digest[:8], 16) % span)
+        reserved = set(_DEFAULT_WORKER_PORTS.values()) | {_DEFAULT_SINGLE_MAIN_LOOP_PORT}
+        for offset in range(span):
+            port = base + ((candidate - base + offset) % span)
+            if port in reserved:
+                continue
+            bound_key = _SESSION_WORKER_KEYS_BY_PORT.get(port)
+            if not bound_key or bound_key == key:
+                _SESSION_WORKER_PORTS[key] = port
+                _SESSION_WORKER_KEYS_BY_PORT[port] = key
+                return f"http://127.0.0.1:{port}"
+    return ""
+
+
 def _resolve_worker_url(workflow: str) -> str:
     """Same precedence as core.delegate_runner.HTTPWorkerDelegate."""
     if _truthy_env("ATLAS_SINGLE_MAIN_LOOP") or _current_exec_mode() == "single-worker":
@@ -1658,6 +1757,24 @@ def _resolve_worker_url(workflow: str) -> str:
         if port:
             return f"http://127.0.0.1:{port}"
     return os.environ.get("WORKER_URL_DEFAULT", "http://localhost:8001")
+
+
+def _resolve_worker_url_for_job(
+    workflow: str,
+    *,
+    session_name: str = "",
+    user_id: str = "",
+    db_user_id: str = "",
+    exec_mode: str = "",
+) -> str:
+    scoped = _session_scoped_worker_url(
+        workflow,
+        session_name=session_name,
+        user_id=user_id,
+        db_user_id=db_user_id,
+        exec_mode=exec_mode,
+    )
+    return scoped or _resolve_worker_url(workflow)
 
 
 def _lazy_workers_enabled() -> bool:
@@ -1934,6 +2051,18 @@ def _ensure_lazy_worker(job: dict[str, Any]) -> None:
     mismatch = _worker_workflow_mismatch(workflow, health)
     if mismatch:
         raise RuntimeError(f"worker mismatch at {worker_url}: {mismatch}")
+    expected_owner = str(job.get("worker_owner") or "").strip()
+    health_owner = str(health.get("owner") or "").strip()
+    if (
+        str(health.get("status") or "") == "ok"
+        and expected_owner
+        and health_owner
+        and health_owner != expected_owner
+    ):
+        raise RuntimeError(
+            f"worker owner mismatch at {worker_url}: "
+            f"bound owner {health_owner!r} cannot run owner {expected_owner!r}"
+        )
     if str(health.get("status") or "") == "ok":
         return
     target = _local_worker_target(worker_url)
@@ -1950,6 +2079,12 @@ def _ensure_lazy_worker(job: dict[str, Any]) -> None:
     with url_lock:
         health = _probe_worker_health(worker_url, timeout=0.7)
         if str(health.get("status") or "") == "ok":
+            health_owner = str(health.get("owner") or "").strip()
+            if expected_owner and health_owner and health_owner != expected_owner:
+                raise RuntimeError(
+                    f"worker owner mismatch at {worker_url}: "
+                    f"bound owner {health_owner!r} cannot run owner {expected_owner!r}"
+                )
             return
         with _LAZY_WORKER_LOCK:
             proc = _LAZY_WORKER_PROCS.get(key)
@@ -1972,6 +2107,11 @@ def _ensure_lazy_worker(job: dict[str, Any]) -> None:
                 env["ATLAS_EXEC_MODE"] = "orchestrator"
                 env["ATLAS_ORCHESTRATOR_MODE"] = "1"
                 env["ATLAS_SINGLE_MAIN_LOOP"] = "0"
+                # A workflow worker process owns one user/workflow lane.
+                # Parallelism comes from separate worker processes; each
+                # individual process stays single-run to avoid process-global
+                # session/TODO state bleed inside the ReAct runtime.
+                env.setdefault("AGENT_SERVER_MAX_CONCURRENT", "1")
                 py_path = str(_SOURCE_ROOT)
                 env["PYTHONPATH"] = (
                     f"{py_path}{os.pathsep}{env.get('PYTHONPATH', '')}"
@@ -2393,6 +2533,144 @@ def _dispatch_job_to_worker(job: dict[str, Any]) -> None:
             _finish_job_db_run(live, "error", live["error"])
 
 
+_WORKER_BUSY_STATES = {"pending", "running"}
+
+
+def _worker_url_key_for_job(job: dict[str, Any]) -> str:
+    return str(job.get("worker") or "").strip().rstrip("/")
+
+
+def _worker_busy_locked(worker_url: str, *, exclude_job_id: str = "") -> bool:
+    key = str(worker_url or "").strip().rstrip("/")
+    if not key:
+        return False
+    excluded = str(exclude_job_id or "").strip()
+    for other in _jobs.values():
+        if excluded and str(other.get("job_id") or "") == excluded:
+            continue
+        if _worker_url_key_for_job(other) != key:
+            continue
+        if str(other.get("status") or "").strip() in _WORKER_BUSY_STATES:
+            return True
+    return False
+
+
+def _prepare_queued_job_locked(candidate: dict[str, Any]) -> bool:
+    """Return True when a queued job's dependencies are satisfied.
+
+    This is intentionally worker-agnostic: the caller still decides whether
+    the worker URL is free. Keeping dependency readiness separate from worker
+    availability lets multiple users enqueue the same workflow safely without
+    losing DAG semantics inside one pipeline run.
+    """
+    pipeline_id = str(candidate.get("pipeline_id") or "").strip()
+    if not pipeline_id:
+        return True
+
+    jobs_by_id = {
+        str(j.get("job_id")): j
+        for j in _jobs.values()
+        if str(j.get("pipeline_id") or "") == pipeline_id
+    }
+    deps = _job_dependency_ids(candidate)
+    if not deps:
+        return True
+
+    dep_jobs = [jobs_by_id.get(dep, {}) for dep in deps]
+    dep_statuses = [str(dep_job.get("status") or "") for dep_job in dep_jobs]
+    for dep_job in dep_jobs:
+        status = str(dep_job.get("status") or "")
+        if status not in {"error", "cancelled", "blocked"}:
+            continue
+        if _job_allows_failed_dependency(candidate, dep_job):
+            continue
+        candidate["status"] = "blocked"
+        candidate["error"] = "blocked by failed dependency"
+        candidate["finished_at"] = time.time()
+        _finish_job_db_run(candidate, "blocked", candidate["error"])
+        return False
+
+    ready = all(
+        status == "completed" or _job_allows_failed_dependency(candidate, dep_job)
+        for status, dep_job in zip(dep_statuses, dep_jobs)
+    )
+    if not ready:
+        return False
+
+    for dep in deps:
+        upstream = jobs_by_id.get(dep, {})
+        if upstream:
+            _copy_artifact_version_context(candidate, upstream)
+    if candidate.get("stage_id") in _RTL_VERSION_DOWNSTREAM_STAGES:
+        for dep in deps:
+            upstream = jobs_by_id.get(dep, {})
+            if upstream.get("rtl_version_id"):
+                _copy_rtl_version_context(candidate, upstream)
+                break
+    return True
+
+
+def _start_job_when_worker_free(job: dict[str, Any]) -> dict[str, Any]:
+    should_dispatch = False
+    with _jobs_lock:
+        live = _jobs.get(str(job.get("job_id") or ""), job)
+        if str(live.get("status") or "") not in {"queued", "pending"}:
+            return live
+        if not _prepare_queued_job_locked(live):
+            return live
+        if _worker_busy_locked(
+            str(live.get("worker") or ""),
+            exclude_job_id=str(live.get("job_id") or ""),
+        ):
+            live["status"] = "queued"
+            live["queue_reason"] = "worker_busy"
+            live["queued_at"] = live.get("queued_at") or time.time()
+            live["started_at"] = 0.0
+            return live
+        live["status"] = "pending"
+        live["queue_reason"] = ""
+        live["started_at"] = time.time()
+        live["_last_polled"] = 0.0
+        should_dispatch = True
+    if should_dispatch:
+        _dispatch_job_to_worker(live)
+    return live
+
+
+def _drain_ready_worker_queue() -> None:
+    ready: list[dict[str, Any]] = []
+    with _jobs_lock:
+        candidates = [
+            j for j in _jobs.values()
+            if str(j.get("status") or "") == "queued"
+        ]
+        candidates.sort(
+            key=lambda j: (
+                str(j.get("worker") or ""),
+                float(j.get("queued_at") or j.get("created_at") or 0),
+                int(j.get("pipeline_index") or 0),
+                str(j.get("job_id") or ""),
+            )
+        )
+        for candidate in candidates:
+            if not _prepare_queued_job_locked(candidate):
+                continue
+            if _worker_busy_locked(
+                str(candidate.get("worker") or ""),
+                exclude_job_id=str(candidate.get("job_id") or ""),
+            ):
+                candidate["queue_reason"] = "worker_busy"
+                candidate["queued_at"] = candidate.get("queued_at") or time.time()
+                continue
+            candidate["status"] = "pending"
+            candidate["queue_reason"] = ""
+            candidate["started_at"] = time.time()
+            candidate["_last_polled"] = 0.0
+            ready.append(candidate)
+    for job in ready:
+        _dispatch_job_to_worker(job)
+
+
 def _advance_pipeline_from(job: dict[str, Any]) -> None:
     # Wake any orchestrator yield_run waker watching this job. Lazy/defensive:
     # the runner singleton may not be initialised (CLI runs, isolated tests),
@@ -2409,6 +2687,7 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
 
     pipeline_id = job.get("pipeline_id") or ""
     if not pipeline_id:
+        _drain_ready_worker_queue()
         return
     if job.get("status") in ("error", "cancelled", "blocked"):
         reason = f"blocked by {job.get('workflow')} {job.get('status')}"
@@ -2420,52 +2699,7 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
         return
     else:
         _ensure_stage_artifact_version_for_job(job, Path(job.get("project_root") or ".").resolve())
-    ready_jobs: list[dict[str, Any]] = []
-    with _jobs_lock:
-        jobs_by_id = {
-            str(j.get("job_id")): j
-            for j in _jobs.values()
-            if j.get("pipeline_id") == pipeline_id
-        }
-        candidates = [j for j in jobs_by_id.values() if j.get("status") == "queued"]
-        candidates.sort(key=lambda j: j.get("pipeline_index", 0))
-        for candidate in candidates:
-            deps = _job_dependency_ids(candidate)
-            dep_jobs = [jobs_by_id.get(dep, {}) for dep in deps]
-            dep_statuses = [dep_job.get("status", "") for dep_job in dep_jobs]
-            blocked_by_dependency = False
-            for dep_job in dep_jobs:
-                status = dep_job.get("status", "")
-                if status not in {"error", "cancelled", "blocked"}:
-                    continue
-                if _job_allows_failed_dependency(candidate, dep_job):
-                    continue
-                blocked_by_dependency = True
-                break
-            if blocked_by_dependency:
-                candidate["status"] = "blocked"
-                candidate["error"] = "blocked by failed dependency"
-                candidate["finished_at"] = time.time()
-                _finish_job_db_run(candidate, "blocked", candidate["error"])
-                continue
-            if deps and all(
-                status == "completed" or _job_allows_failed_dependency(candidate, dep_job)
-                for status, dep_job in zip(dep_statuses, dep_jobs)
-            ):
-                for dep in deps:
-                    upstream = jobs_by_id.get(dep, {})
-                    if upstream:
-                        _copy_artifact_version_context(candidate, upstream)
-                if candidate.get("stage_id") in _RTL_VERSION_DOWNSTREAM_STAGES:
-                    for dep in deps:
-                        upstream = jobs_by_id.get(dep, {})
-                        if upstream.get("rtl_version_id"):
-                            _copy_rtl_version_context(candidate, upstream)
-                            break
-                candidate["status"] = "pending"
-                ready_jobs.append(candidate)
-    for ready_job in ready_jobs:
-        _dispatch_job_to_worker(ready_job)
+    _drain_ready_worker_queue()
 
 
 def _orchestrator_mode_enabled() -> bool:
@@ -3351,7 +3585,18 @@ def register_jobs_routes(
             session_dir.mkdir(parents=True, exist_ok=True)
         except OSError:
             pass
-        worker_url = worker_override or _resolve_worker_url(workflow)
+        worker_owner, worker_partition = _workflow_worker_owner_keys(
+            session_name=session_name,
+            user_id=user_id,
+            db_user_id=db_user_id,
+        )
+        worker_url = worker_override or _resolve_worker_url_for_job(
+            workflow,
+            session_name=session_name,
+            user_id=user_id,
+            db_user_id=db_user_id,
+            exec_mode=exec_mode,
+        )
         boundary = (
             f"[ATLAS ARCHITECT WORKFLOW CONTEXT]\n"
             f"- ip: {ip or '(soc)'}\n"
@@ -3372,10 +3617,13 @@ def register_jobs_routes(
             f"Do not edit other IP directories or unrelated workflows.\n"
             f"- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\n"
         )
+        now = time.time()
         job: dict[str, Any] = {
             "job_id":         uuid.uuid4().hex[:12],
             "run_id":         "",
             "worker":         worker_url,
+            "worker_owner":   worker_owner,
+            "worker_partition": worker_partition,
             "workflow":       workflow,
             "stage_id":       stage_id,
             "template":       template,
@@ -3390,8 +3638,11 @@ def register_jobs_routes(
             "source_root":     str(_SOURCE_ROOT),
             "worker_command": _worker_launch_command(worker_url, workflow, session_name, pr, model, reasoning_effort),
             "prompt":         boundary + (prompt or _default_workflow_prompt(workflow, ip, stage_id)),
-            "started_at":     time.time() if auto_start else 0.0,
-            "status":         "pending" if auto_start else "queued",
+            "created_at":     now,
+            "queued_at":      now,
+            "started_at":     0.0,
+            "status":         "queued",
+            "queue_reason":   "ready" if auto_start else "dependency_wait",
             "iterations":     0,
             "files_modified": [],
             "result_summary": "",
@@ -3416,7 +3667,7 @@ def register_jobs_routes(
         with _jobs_lock:
             _jobs[job["job_id"]] = job
         if auto_start:
-            _dispatch_job_to_worker(job)
+            _start_job_when_worker_free(job)
         return job
 
     # ── /api/job/dispatch ──────────────────────────────────────────
@@ -5063,6 +5314,8 @@ def register_jobs_routes(
                 out.append({
                     "job_id": job.get("job_id") or "",
                     "run_id": job.get("run_id") or "",
+                    "worker": job.get("worker") or "",
+                    "worker_owner": job.get("worker_owner") or "",
                     "pipeline_id": job.get("pipeline_id") or "",
                     "pipeline_run_id": job.get("pipeline_run_id") or job.get("pipeline_id") or "",
                     "pipeline_index": job.get("pipeline_index"),
@@ -5079,13 +5332,62 @@ def register_jobs_routes(
         async def _gather() -> list[dict[str, Any]]:
             loop = asyncio.get_event_loop()
             tasks = []
+            visible_by_workflow = {
+                wf: _visible_worker_jobs(wf)
+                for wf in workflows
+            }
             for wf in workflows:
-                url = _resolve_worker_url(wf)
-                tasks.append((wf, url, loop.run_in_executor(None, _probe, url)))
+                active_list = visible_by_workflow.get(wf) or []
+                default_session = _default_job_session_for_owner(request_user, ip, wf)
+                expected_worker_owner, _expected_worker_partition = _workflow_worker_owner_keys(
+                    session_name=default_session,
+                    user_id=request_user,
+                    db_user_id=request_db_user,
+                )
+                url = (
+                    str(((active_list[0] if active_list else {}) or {}).get("worker") or "").strip()
+                    or _resolve_worker_url_for_job(
+                        wf,
+                        session_name=default_session,
+                        user_id=request_user,
+                        db_user_id=request_db_user,
+                        exec_mode="orchestrator",
+                    )
+                )
+                tasks.append((wf, url, expected_worker_owner, loop.run_in_executor(None, _probe, url)))
             out = []
-            for wf, url, t in tasks:
+            for wf, url, expected_worker_owner, t in tasks:
                 health = await t
-                running_list = _visible_worker_jobs(wf)
+                health_owner = str(health.get("owner") or "").strip()
+                owner_mismatch = (
+                    _workflow_worker_per_owner_enabled("orchestrator")
+                    and str(health.get("status") or "") == "ok"
+                    and bool(expected_worker_owner)
+                    and bool(health_owner)
+                    and health_owner != expected_worker_owner
+                )
+                if owner_mismatch:
+                    health = {
+                        "status": "unreachable",
+                        "error": "worker is bound to another user/session",
+                    }
+                active_list = visible_by_workflow.get(wf) or []
+                running_list = [
+                    job for job in active_list
+                    if str(job.get("status") or "") == "running"
+                ]
+                pending_list = [
+                    job for job in active_list
+                    if str(job.get("status") or "") == "pending"
+                ]
+                queued_list = [
+                    job for job in active_list
+                    if str(job.get("status") or "") == "queued"
+                ]
+                blocked_list = [
+                    job for job in active_list
+                    if str(job.get("status") or "") == "blocked"
+                ]
                 health_status = str(health.get("status", "unreachable"))
                 default_model = _worker_model_default_for(wf)
                 expected_model = _worker_model_for(wf)
@@ -5138,9 +5440,17 @@ def register_jobs_routes(
                     "toolchain": _workflow_toolchain_for(wf),
                     "profile": health.get("profile"),
                     "uptime_s": health.get("uptime_s"),
-                    "total_runs": health.get("runs"),
+                    "total_runs": len(active_list) if _multi_user_enabled() else health.get("runs"),
+                    "active_jobs": active_list,
                     "running": running_list,
                     "running_count": len(running_list),
+                    "pending": pending_list,
+                    "pending_count": len(pending_list),
+                    "queued": queued_list,
+                    "queued_count": len(queued_list),
+                    "blocked": blocked_list,
+                    "blocked_count": len(blocked_list),
+                    "active_count": len(active_list),
                     "error": health.get("error"),
                 })
             return out

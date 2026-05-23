@@ -1,25 +1,16 @@
 /**
  * Behavior test for AgentStatusPanel workers grid.
  *
- * workspace.jsx (line 15955) is a 16k-line browser-globals script. We inline
- * the minimal component that reproduces the worker grid logic from lines
- * 16280-16351 (tone() → cfgFor() → grid cells). The production file is not
- * modified.
+ * workspace.jsx is a 16k-line browser-globals script. Worker tone/summary
+ * logic is imported from lib/workers_panel_logic.js (shared with browser via
+ * window.AtlasWorkersLogic UMD shim), so drift between tests and source is caught.
  */
 import React, { useState, useEffect } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { workerTone } from '../lib/workers_panel_logic.js';
 
-// tone() logic from workspace.jsx:16286-16292
-function tone(w) {
-  const s = String(w.status || '');
-  if (s === 'ok' && Number(w.running_count || 0) > 0) return 'active';
-  if (s === 'ok') return 'done';
-  if (s === 'mismatch') return 'err';
-  return 'pending';
-}
-
-// cfgFor() from workspace.jsx:16293-16298
+// cfgFor() — rendering concern only, stays inline in test
 function cfgFor(t) {
   if (t === 'active') return { color: 'var(--accent)', glyph: '●', className: 'accent' };
   if (t === 'done')   return { color: 'var(--ok)',     glyph: '✓', className: 'done' };
@@ -60,7 +51,7 @@ function WorkersGrid({ fetchUrl = '/api/orchestrator/workers' }) {
           style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}
         >
           {liveWorkers.map((w) => {
-            const cfg = cfgFor(tone(w));
+            const cfg = cfgFor(workerTone(w));
             const label = String(w.workflow || '').slice(0, 6);
             return (
               <div

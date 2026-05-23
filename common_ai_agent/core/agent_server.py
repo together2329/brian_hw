@@ -149,6 +149,7 @@ _START_TIME = time.time()
 _SERVER_PORT: int = 8000
 _SERVER_WORKFLOW: str = ""    # Workflow this worker was started with (--workflow). Empty = unrestricted.
 _SERVER_ACCEPT_ANY_WORKFLOW: bool = False  # When True (--all-workflows), each /run sets up the requested workflow's workspace before executing, matching the May-12 single-main-loop pattern.
+_SERVER_SESSION: str = ""
 _worker_todo_tracker = None   # TodoTracker instance shared across all runs on this worker
 
 # Log directory for persistent audit trail
@@ -1862,6 +1863,11 @@ def create_app():
             body["workflow"] = _SERVER_WORKFLOW
         if _SERVER_ACCEPT_ANY_WORKFLOW:
             body["all_workflows"] = True
+        if _SERVER_SESSION:
+            body["session"] = _SERVER_SESSION
+            parts = [p for p in _SERVER_SESSION.split("/") if p]
+            if parts:
+                body["owner"] = parts[0]
         # Best-effort model name — read from common env vars set at startup.
         model_name = (
             os.environ.get("LLM_MODEL_NAME", "")
@@ -2367,6 +2373,7 @@ def serve(port: int = 8000, host: str = "0.0.0.0", verbose: bool = False,
                           pattern where one worker handles every workflow.
     """
     global _VERBOSE, _VERBOSE_FILTER, _SERVER_PORT, _SERVER_WORKFLOW
+    global _SERVER_SESSION
     global _SERVER_ACCEPT_ANY_WORKFLOW, _worker_todo_tracker
     _SERVER_ACCEPT_ANY_WORKFLOW = bool(all_workflows)
     # --all-workflows is mutually exclusive with workflow binding: an
@@ -2375,13 +2382,14 @@ def serve(port: int = 8000, host: str = "0.0.0.0", verbose: bool = False,
     _VERBOSE = verbose or os.getenv("AGENT_SERVER_VERBOSE", "").lower() in ("1", "true", "yes")
     _VERBOSE_FILTER = os.getenv("AGENT_SERVER_VERBOSE_FILTER", "")
     _SERVER_PORT = port
+    _SERVER_SESSION = normalize_session_name(session_name or f"worker_{port}")
 
     # ── Session setup (same as main agent) ──
     try:
         from core.session_setup import setup_session
         import config as _cfg
         from lib.todo_tracker import TodoTracker
-        active_session = session_name or f"worker_{port}"
+        active_session = _SERVER_SESSION
         setup_session(active_session)
         _worker_todo_tracker = TodoTracker.load(Path(_cfg.TODO_FILE)) if _cfg.ENABLE_TODO_TRACKING else None
         # Expose via main module so _get_todo_tracker() in tools.py finds it
