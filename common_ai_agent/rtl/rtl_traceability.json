@@ -1,0 +1,646 @@
+{
+  "authoring_packets": [
+    {
+      "json": "rtl/authoring_packets/rtl_gate_tool_evidence.json",
+      "markdown": "rtl/authoring_packets/rtl_gate_tool_evidence.md",
+      "packet_id": "rtl_gate_tool_evidence"
+    },
+    {
+      "json": "rtl/authoring_packets/module__fresh_rule_ip.json",
+      "markdown": "rtl/authoring_packets/module__fresh_rule_ip.md",
+      "packet_id": "module__fresh_rule_ip"
+    },
+    {
+      "json": "rtl/authoring_packets/rtl_gate_evidence_closure.json",
+      "markdown": "rtl/authoring_packets/rtl_gate_evidence_closure.md",
+      "packet_id": "rtl_gate_evidence_closure"
+    },
+    {
+      "json": "rtl/authoring_packets/rtl_gate_human_closure.json",
+      "markdown": "rtl/authoring_packets/rtl_gate_human_closure.md",
+      "packet_id": "rtl_gate_human_closure"
+    }
+  ],
+  "authoring_plan": "rtl/rtl_authoring_plan.json",
+  "gate": {
+    "all_required_todos_pass": false,
+    "audit_rtl": true,
+    "blocking_questions": 0,
+    "criteria": [
+      "Gate: SSOT function_model and cycle_model are present before RTL generation",
+      "Gate: SSOT-authored rtl-gen workflow TODOs are well formed",
+      "Gate: every SSOT-derived RTL behavior has an owner module",
+      "Gate: RTL is authored by common_ai_agent rtl-gen, not by direct operator edits",
+      "Gate: required SSOT behavior has static DUT RTL evidence after audit",
+      "Gate: behavior-owner RTL modules contain real implementation structure",
+      "Gate: RTL sources contain no placeholder markers or disallowed generated-RTL constructs",
+      "Gate: SSOT top IO contracts match the RTL top module",
+      "Gate: SSOT top outputs are driven by real RTL logic",
+      "Gate: SSOT top inputs are consumed by RTL logic or child inputs",
+      "Gate: manifest-owned RTL modules are integrated into the top hierarchy",
+      "Gate: manifest-owned child instances have machine-checkable port connections",
+      "Gate: manifest child port connections carry live RTL signal flow",
+      "Gate: SSOT connection contracts match RTL child port maps",
+      "Gate: DUT-only RTL compile report passes after the final RTL edit",
+      "Gate: DUT-only lint report passes after the final RTL edit",
+      "Gate: every required rtl_todo_plan item is closed before rtl-gen PASS"
+    ],
+    "open_required_todos": 2,
+    "orphan_tasks": 0,
+    "static_missing": 0,
+    "status": "fail"
+  },
+  "generated_at": "2026-05-23T20:12:33Z",
+  "ip": "fresh_rule_ip",
+  "rows": [
+    {
+      "category": "rtl_flow.seed",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "top_module",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0001"
+    },
+    {
+      "category": "rtl_flow.top",
+      "evidence_terms": [
+        "fresh",
+        "fresh_rule_ip",
+        "ip"
+      ],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "io_list",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0002"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.ssot_required_sections",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0003"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.workflow_todo_contract",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0004"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.owner_traceability",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0005"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0006"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.static_rtl_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0007"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0008"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.rtl_placeholder_free_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0009"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.top_io_contract_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0010"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.top_output_drive_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0011"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.top_input_consumption_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0012"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.manifest_hierarchy_integration",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0013"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.manifest_port_connection_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0014"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.manifest_signal_flow_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0015"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.manifest_connection_contract_evidence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0016"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.dut_compile",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0017"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.dut_lint",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0018"
+    },
+    {
+      "category": "rtl_gate.rtl_gen",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0019"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "io_list.clock_domains.main.ports.clk",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0020"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "io_list.resets.rst_n.ports.rst_n",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0021"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "io_list.interfaces.rule_io.ports.valid",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0022"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "io_list.interfaces.rule_io.ports.data_in",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0023"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "io_list.interfaces.rule_io.ports.result",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0024"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "io_list.interfaces.rule_io.ports.ready",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0025"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "io_list.interfaces.rule_io.ports.result_valid",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0026"
+    },
+    {
+      "category": "io_list.port",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "io_list.interfaces.rule_io.ports.accepted_count",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0027"
+    },
+    {
+      "category": "function_model.state_variable",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "count"
+      ],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "function_model.state_variables.accepted_count",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "source_scope": "rtl/fresh_rule_ip.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0028"
+    },
+    {
+      "category": "function_model.transaction",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "function_model.transactions.FM_PRIMARY",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0029"
+    },
+    {
+      "category": "function_model.output",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "count",
+        "result",
+        "value"
+      ],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "function_model.transactions.FM_PRIMARY.outputs.output_0",
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count",
+          "result",
+          "value"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "count",
+          "result",
+          "value"
+        ],
+        "source_scope": "rtl/fresh_rule_ip.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0030"
+    },
+    {
+      "category": "function_model.output_rule",
+      "evidence_terms": [
+        "result"
+      ],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "function_model.transactions.FM_PRIMARY.output_rules.result",
+      "static_evidence": {
+        "matched_count": 1,
+        "matched_terms": [
+          "result"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "result"
+        ],
+        "source_scope": "rtl/fresh_rule_ip.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0031"
+    },
+    {
+      "category": "function_model.state_update",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "count"
+      ],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "function_model.transactions.FM_PRIMARY.state_updates.accepted_count",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "count"
+        ],
+        "source_scope": "rtl/fresh_rule_ip.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0032"
+    },
+    {
+      "category": "function_model.side_effect",
+      "evidence_terms": [
+        "accepted",
+        "accepted_count",
+        "count",
+        "result",
+        "value"
+      ],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "function_model.transactions.FM_PRIMARY.side_effects.side_effect_0",
+      "static_evidence": {
+        "matched_count": 5,
+        "matched_terms": [
+          "accepted",
+          "accepted_count",
+          "count",
+          "result",
+          "value"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "accepted",
+          "accepted_count",
+          "count",
+          "result",
+          "value"
+        ],
+        "source_scope": "rtl/fresh_rule_ip.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0033"
+    },
+    {
+      "category": "cycle_model.latency",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "cycle_model.latency",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0034"
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "evidence_terms": [
+        "sample",
+        "valid",
+        "valid_sample"
+      ],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "cycle_model.handshake_rules.valid_sample",
+      "static_evidence": {
+        "matched_count": 3,
+        "matched_terms": [
+          "sample",
+          "valid",
+          "valid_sample"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "sample",
+          "valid",
+          "valid_sample"
+        ],
+        "source_scope": "rtl/fresh_rule_ip.sv",
+        "status": "pass"
+      },
+      "task_id": "RTL-0035"
+    },
+    {
+      "category": "features.item",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "features.double_value",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0036"
+    },
+    {
+      "category": "equivalence.module",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "sub_modules.fresh_rule_ip.module_equivalence",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0037"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "test_requirements.scenarios.SC_RULE_DOUBLE",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0038"
+    },
+    {
+      "category": "coverage.functional_bin",
+      "evidence_terms": [],
+      "owner_file": "rtl/fresh_rule_ip.sv",
+      "owner_module": "fresh_rule_ip",
+      "source_ref": "test_requirements.coverage_goals.planned_bins.FCOV_RULE_DOUBLE",
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "task_id": "RTL-0039"
+    }
+  ],
+  "schema_version": 1,
+  "top": "fresh_rule_ip",
+  "type": "rtl_traceability_matrix"
+}
