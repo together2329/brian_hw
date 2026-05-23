@@ -23,8 +23,15 @@
     /* Theme tokens — literal is first-paint fallback before styles.css loads. */
     background: var(--bg, #000);
     color: var(--fg, #e6edf3);
-    width: 100vw; height: 100vh;
+    width: 100vw; height: 100dvh;
+    /* 100dvh follows the dynamic viewport so the iOS Safari URL bar
+       (and bottom toolbar) do not clip the sticky-top mobile header
+       or the sticky-bottom chat input. 100vh would point at the
+       largest possible viewport and hide controls behind the URL bar. */
     overflow: hidden;
+  }
+  @supports not (height: 100dvh) {
+    html, body { height: 100vh; }
   }
   /* Full-screen, no letterbox: scale uniformly so the 1920x1080 design
      covers the whole viewport. Anything taller/wider than the design's

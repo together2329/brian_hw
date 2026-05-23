@@ -5749,16 +5749,21 @@ pre, code,
     position: sticky;
     top: 0;
     z-index: 310;
-    height: 52px;
-    min-height: 52px;
-    max-height: 52px;
+    /* The iOS Safari URL bar overlays the top of the visual viewport on
+       portrait, hiding the original 52px header. padding-top adds the
+       safe-area inset; height grows to accommodate it. */
+    height: calc(52px + env(safe-area-inset-top, 0px));
+    min-height: calc(52px + env(safe-area-inset-top, 0px));
+    max-height: calc(52px + env(safe-area-inset-top, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
     width: 100%;
     background: var(--bg-2);
     border-bottom: 1px solid var(--line);
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 0 6px;
+    padding-right: 6px;
+    padding-left: max(6px, env(safe-area-inset-left, 0px));
     box-sizing: border-box;
     flex-shrink: 0;
   }
