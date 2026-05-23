@@ -11,8 +11,9 @@ module generic_counter_ip (
     logic [8:0] fm_value_doubled;
 
     // EQ_DOUBLE / function_model.transactions[0]: FunctionalModel.apply returns
-    // value * 2.  The SSOT latency is 1, so register the doubled value from the
-    // current input on this clock edge rather than subtracting or using stale data.
+    // value * 2.  The SSOT latency is 1, so register the exact doubled value
+    // from the current input on this clock edge; no decrement/stale sample is
+    // permitted by the FL-vs-RTL goal or scoreboard evidence.
     assign fm_value_wide    = {1'b0, data_in};
     assign fm_value_doubled = fm_value_wide << 1;
 
