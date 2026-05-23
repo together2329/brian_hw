@@ -993,7 +993,9 @@ class EquivalenceScoreboard:
         # model_result. This unblocks UART tx_serial cycling, AHB CPU PC
         # tracking, and similar multi-cycle behaviour without falling back
         # to hardcoded protocol heuristics.
-        cycle_view = self._cycle_expected(fl_expected, rtl_observed)
+        cycle_view = None
+        if hasattr(self, "_cycle_expected"):
+            cycle_view = self._cycle_expected(fl_expected, rtl_observed)
         if isinstance(cycle_view, dict) and cycle_view:
             verdict, mismatch = _dict_overlap_compare(cycle_view, rtl_observed)
             if verdict is not None:
@@ -1008,7 +1010,8 @@ class EquivalenceScoreboard:
                 return verdict, mismatch
         if isinstance(model_result, dict):
             view = _expected_observable_view(model_result, rtl_observed, fl_expected)
-            view = self._mirror_view_via_input_map(view)
+            if hasattr(self, "_mirror_view_via_input_map"):
+                view = self._mirror_view_via_input_map(view)
             view = _filtered_expected_view(view, rtl_observed, fl_expected)
             verdict, mismatch = _dict_overlap_compare(view, rtl_observed)
             if verdict is not None:
