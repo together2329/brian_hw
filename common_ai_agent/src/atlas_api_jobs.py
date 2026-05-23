@@ -3312,6 +3312,7 @@ def _refresh_tracked_jobs(project_root_path: Path | None = None) -> tuple[list[d
                 with _u.urlopen(req, timeout=5) as resp:
                     s = json.loads(resp.read().decode("utf-8"))
                 job["_last_polled"] = now
+                job["_poll_fail_count"] = 0  # reset: worker answered
                 before = job.get("status")
                 job["status"] = s.get("status", job["status"])
                 changed = changed or job.get("status") != before
@@ -3345,11 +3346,39 @@ def _refresh_tracked_jobs(project_root_path: Path | None = None) -> tuple[list[d
                     job["error"] = ""
                     job["result_summary"] = detail
                     job["finished_at"] = now
+                    job["_poll_fail_count"] = 0
                     _finish_job_db_run(job, "completed")
                     _advance_pipeline_from(job)
                     changed = True
                 else:
                     job["error"] = f"poll failed: {e}"
+                    # A worker that exited mid-run (Connection refused) with no
+                    # recoverable artifact would otherwise leave the job pinned
+                    # at "running" forever, so the orchestrator's wait_job never
+                    # advances. After several consecutive unreachable polls,
+                    # declare the job failed so the loop can re-dispatch or
+                    # escalate instead of hanging the whole pipeline.
+                    is_unreachable = (
+                        "Connection refused" in str(e)
+                        or "urlopen error" in str(e)
+                        or "Max retries" in str(e)
+                    )
+                    if is_unreachable:
+                        job["_poll_fail_count"] = int(job.get("_poll_fail_count", 0)) + 1
+                        fail_limit = int(
+                            os.environ.get("ATLAS_JOB_POLL_FAIL_LIMIT", "5") or "5"
+                        )
+                        if job["_poll_fail_count"] >= max(1, fail_limit):
+                            job["status"] = "error"
+                            job["error"] = (
+                                f"worker unreachable for {job['_poll_fail_count']} "
+                                f"consecutive polls (exited mid-run, no valid "
+                                f"artifact): {detail or e}"
+                            )
+                            job["finished_at"] = now
+                            _finish_job_db_run(job, "error", job["error"])
+                            _advance_pipeline_from(job)
+                            changed = True
         if job.get("status") == "completed":
             before_gate = job.get("status")
             _enforce_completion_evidence_gate(job, pr)
