@@ -1330,6 +1330,7 @@ class WorkflowStageEngine:
         ]
         self._append_artifacts(lines, artifacts)
         if blocked_doc:
+            lines += ["", f"blocker: {ip}/rtl/rtl_blocked.json"]
             if llm_only_blocked:
                 lines += ["", "next: queued rtl-gen authoring loop with dynamic TODO packet evidence."]
             else:
