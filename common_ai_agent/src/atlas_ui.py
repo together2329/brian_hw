@@ -26,6 +26,7 @@ import asyncio
 import collections
 import contextlib
 import contextvars
+import errno
 import faulthandler
 import hashlib
 import html as html_lib
@@ -37,6 +38,7 @@ import queue
 import re
 import signal
 import shlex
+import socket
 import subprocess
 import sys
 import threading
@@ -17463,12 +17465,83 @@ def create_app():
 
 
 # ── Entry point ────────────────────────────────────────────────────
+def _local_ipv4_addresses() -> list[str]:
+    """Return local IPv4 bind candidates for clearer startup errors."""
+
+    addrs: set[str] = {"127.0.0.1"}
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            ip = str(info[4][0] or "").strip()
+            if ip:
+                addrs.add(ip)
+    except Exception:
+        pass
+    try:
+        proc = subprocess.run(
+            ["ifconfig"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=1,
+        )
+        for ip in re.findall(r"\binet\s+(\d+\.\d+\.\d+\.\d+)\b", proc.stdout or ""):
+            addrs.add(ip)
+    except Exception:
+        pass
+    return sorted(addrs, key=lambda ip: (ip.startswith("127."), ip))
+
+
+def _lan_ipv4_addresses() -> list[str]:
+    return [ip for ip in _local_ipv4_addresses() if not ip.startswith("127.")]
+
+
+def _bind_help(host: str, port: int) -> str:
+    ips = _local_ipv4_addresses()
+    lan = _lan_ipv4_addresses()
+    options = ["127.0.0.1", "0.0.0.0", *lan]
+    option_text = ", ".join(dict.fromkeys(options))
+    return (
+        f"Cannot bind {host}:{port} because that address is not assigned to this Mac.\n"
+        f"Current local IPv4 addresses: {', '.join(ips) or '(none)'}.\n"
+        f"Use one of: --host {option_text}."
+    )
+
+
+def _assert_bind_target_available(host: str, port: int, label: str) -> None:
+    bind_host = str(host or "127.0.0.1").strip() or "127.0.0.1"
+    family = socket.AF_INET6 if ":" in bind_host and bind_host != "0.0.0.0" else socket.AF_INET
+    sock = socket.socket(family, socket.SOCK_STREAM)
+    try:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind((bind_host, int(port)))
+    except OSError as exc:
+        err = getattr(exc, "errno", None)
+        if err in {errno.EADDRNOTAVAIL, 49, 99}:
+            sys.exit(f"{label}: {_bind_help(bind_host, int(port))}")
+        if err in {errno.EADDRINUSE, 48, 98}:
+            sys.exit(f"{label}: port {port} is already in use on {bind_host}.")
+        sys.exit(f"{label}: cannot bind {bind_host}:{port}: {exc}")
+    finally:
+        sock.close()
+
+
+def _access_url(host: str, port: int, path: str = "") -> str:
+    display_host = str(host or "127.0.0.1").strip() or "127.0.0.1"
+    if display_host in {"0.0.0.0", "::"}:
+        lan = _lan_ipv4_addresses()
+        if lan:
+            display_host = lan[0]
+    return f"http://{display_host}:{port}{path}"
+
+
 def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     """Start the Atlas web UI server and run the agent in a worker thread.
 
     Wires brian_hw/common_ai_agent/src/main.py's _textual_* callbacks so the
     existing ReAct loop streams to all connected WS clients.
     """
+    _assert_bind_target_available(host, port, "ATLAS UI")
+
     import uvicorn
     import main as _main  # noqa: WPS433  (intentional runtime import)
     from core.atlas_multiuser import changed_paths_from_tool_result
@@ -18125,7 +18198,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     except Exception:
         pass
 
-    print(f"\n  ATLAS UI → http://{host}:{port}\n")
+    print(f"\n  ATLAS UI → {_access_url(host, port)}\n")
     print(
         "  [stdin] commands: 'status' (snapshot), 'heal' "
         "(force agent_running=False + drain inbox), 'sessions' "
@@ -18301,6 +18374,9 @@ def _launch_admin_server(admin_port: str, admin_host: str) -> subprocess.Popen:
     except ValueError:
         sys.exit(f"--admin: expected optional port number, got {admin_port!r}")
 
+    bind_host = str(admin_host or "127.0.0.1")
+    _assert_bind_target_available(bind_host, port, "ATLAS admin")
+
     admin_script = Path(__file__).resolve().with_name("atlas_admin.py")
     proc = subprocess.Popen(
         [
@@ -18309,7 +18385,7 @@ def _launch_admin_server(admin_port: str, admin_host: str) -> subprocess.Popen:
             "--port",
             str(port),
             "--host",
-            str(admin_host or "127.0.0.1"),
+            bind_host,
             "--root",
             str(SOURCE_ROOT),
         ],
@@ -18319,7 +18395,7 @@ def _launch_admin_server(admin_port: str, admin_host: str) -> subprocess.Popen:
     atexit.register(lambda p=proc: (p.terminate() if p.poll() is None else None))
     print(
         f"\n  [admin] launched standalone admin server -> "
-        f"http://{admin_host or '127.0.0.1'}:{port}/admin",
+        f"{_access_url(bind_host, port, '/admin')}",
         flush=True,
     )
     return proc
@@ -18487,6 +18563,7 @@ def main() -> None:
                 _set_runtime_reasoning_effort(_normalize_reasoning_effort(orchestrator_effort))
             except ValueError:
                 print(f"[atlas_ui] ignoring unknown reasoning effort: {orchestrator_effort}", file=sys.stderr)
+    _assert_bind_target_available(args.host, args.port, "ATLAS UI")
     if args.admin:
         _launch_admin_server(args.admin, args.admin_host or args.host)
     run_atlas_ui(port=args.port, host=args.host)

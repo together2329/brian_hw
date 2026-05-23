@@ -21,7 +21,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import errno
 import os
+import re
+import socket
+import subprocess
 import sys
 import time
 import uuid
@@ -36,6 +40,67 @@ _ROOT = _SRC.parent
 for _p in (str(_ROOT), str(_SRC)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
+
+
+def _local_ipv4_addresses() -> list[str]:
+    addrs: set[str] = {"127.0.0.1"}
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            ip = str(info[4][0] or "").strip()
+            if ip:
+                addrs.add(ip)
+    except Exception:
+        pass
+    try:
+        proc = subprocess.run(
+            ["ifconfig"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=1,
+        )
+        for ip in re.findall(r"\binet\s+(\d+\.\d+\.\d+\.\d+)\b", proc.stdout or ""):
+            addrs.add(ip)
+    except Exception:
+        pass
+    return sorted(addrs, key=lambda ip: (ip.startswith("127."), ip))
+
+
+def _lan_ipv4_addresses() -> list[str]:
+    return [ip for ip in _local_ipv4_addresses() if not ip.startswith("127.")]
+
+
+def _assert_bind_target_available(host: str, port: int, label: str) -> None:
+    bind_host = str(host or "127.0.0.1").strip() or "127.0.0.1"
+    family = socket.AF_INET6 if ":" in bind_host and bind_host != "0.0.0.0" else socket.AF_INET
+    sock = socket.socket(family, socket.SOCK_STREAM)
+    try:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind((bind_host, int(port)))
+    except OSError as exc:
+        err = getattr(exc, "errno", None)
+        if err in {errno.EADDRNOTAVAIL, 49, 99}:
+            ips = _local_ipv4_addresses()
+            options = ["127.0.0.1", "0.0.0.0", *_lan_ipv4_addresses()]
+            sys.exit(
+                f"{label}: cannot bind {bind_host}:{port}; address is not assigned to this Mac.\n"
+                f"Current local IPv4 addresses: {', '.join(ips) or '(none)'}.\n"
+                f"Use one of: --host {', '.join(dict.fromkeys(options))}."
+            )
+        if err in {errno.EADDRINUSE, 48, 98}:
+            sys.exit(f"{label}: port {port} is already in use on {bind_host}.")
+        sys.exit(f"{label}: cannot bind {bind_host}:{port}: {exc}")
+    finally:
+        sock.close()
+
+
+def _access_url(host: str, port: int) -> str:
+    display_host = str(host or "127.0.0.1").strip() or "127.0.0.1"
+    if display_host in {"0.0.0.0", "::"}:
+        lan = _lan_ipv4_addresses()
+        if lan:
+            display_host = lan[0]
+    return f"http://{display_host}:{port}/admin"
 
 # `from __future__ import annotations` stores `request: Request` as a
 # string. FastAPI resolves that string against module globals, not the
@@ -339,9 +404,10 @@ def main():
     root = Path(args.root or _ROOT).expanduser().resolve()
     if not (root / "frontend" / "atlas" / "admin.html").is_file():
         sys.exit(f"frontend/atlas/admin.html not found under {root}")
+    _assert_bind_target_available(args.host, args.port, "ATLAS admin")
     import uvicorn
     app = create_admin_app(root)
-    print(f"\n  ATLAS Admin → http://{args.host}:{args.port}/admin\n", flush=True)
+    print(f"\n  ATLAS Admin → {_access_url(args.host, args.port)}\n", flush=True)
     uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
 
 
