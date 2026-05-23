@@ -16207,7 +16207,16 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', onCollapse }) => {
     const effectiveSession = preserveBrowser
       ? (browserSession || prevSession || incomingSession)
       : (incomingSession || browserSession || prevSession);
-    const sameSession = !prevSession || !effectiveSession || prevSession === effectiveSession;
+    // Tail match (ip/workflow) so an owner-prefix difference between the
+    // orchestrator run session (e.g. `admin/new_axi/orchestrator`) and the
+    // workspace session does NOT flip sameSession to false. When it flips,
+    // the monotonic Math.max clamp below is skipped and the token/cost
+    // counters jump up and down between two sources — the visible
+    // "흔들림" the user reported during an active orchestrator run.
+    const _sessTail = (s) => String(s || '').split('/').filter(Boolean).slice(-2).join('/');
+    const sameSession = !prevSession || !effectiveSession
+      || prevSession === effectiveSession
+      || (_sessTail(prevSession) && _sessTail(prevSession) === _sessTail(effectiveSession));
     if (effectiveSession) merged.activeSession = effectiveSession;
 
     const counters = ['tokens', 'tokensIn', 'tokensCache', 'tokensOut', 'costUsd'];
