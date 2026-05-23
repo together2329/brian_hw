@@ -29,6 +29,7 @@ Thumbs.db
 # Test results
 tests/results/
 *.vcd
+mutants/
 
 # Cache
 .pytest_cache/
